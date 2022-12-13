@@ -13,6 +13,19 @@ packages = [
 python = "~3.10"
 modelw-preset-django = {extras = ["channels"], version = "~2022.10.0b8", allow-prereleases = true}
 drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
+channels = "^4.0.0"
+channels-postgres = "^0.0.5"
+daphne = "^4.0.0"
+Django = "^4.1.4"
+django-cors-headers = "^3.13.0"
+django-extensions = "^3.2.1"
+django-better-admin-arrayfield = "^1.4.2"
+typefit = "^0.4.2"
+requests = "^2.28.1"
+python-json-logger = "^2.0.4"
+psycopg2 = "^2.9.5"
+whitenoise = "^6.2.0"
+python-dotenv = "^0.21.0"
 
 [tool.poetry.dev-dependencies]
 black = "*"
