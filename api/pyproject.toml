@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "riddler"
+version = "0.1.0"
+description = ""
+authors = ["Hector Soria <hector.soria@with-madrid.com>"]
+license = "Proprietary"
+
+packages = [
+    {include = "riddler", from = "src"},
+]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+modelw-preset-django = {extras = ["channels"], version = "~2022.10.0b8", allow-prereleases = true}
+drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
+
+[tool.poetry.dev-dependencies]
+black = "*"
+isort = "*"
+ipython = "*"
+
+[tool.isort]
+profile = "black"
+known_first_party = "riddler"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
