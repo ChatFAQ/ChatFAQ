@@ -6,7 +6,7 @@ import sys
 
 def main():
     os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE", "riddler.django.settings"
+        "DJANGO_SETTINGS_MODULE", "riddler.config.settings"
     )
     try:
         from django.core.management import execute_from_command_line

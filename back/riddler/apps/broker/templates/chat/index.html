@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+</head>
+<body>
+Conversation ID:<br/><div><input id="conversation-input" type="text" size="100"></div>
+FSM
+<div><select id="fsm-input">
+    {% for fsm_name in fsm_names %}
+          <option value="{{ fsm_name }}">{{ fsm_name }}</option>
+    {% endfor %}
+</select>
+</div>
+<br/>
+<input id="conversation-submit" type="button" value="Enter">
+
+<script>
+    const submit = function (e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#conversation-submit').click();
+        }
+    }
+    document.querySelector('#conversation-input').focus();
+    document.querySelector('#conversation-input').onkeyup = submit;
+    document.querySelector('#fsm-input').onkeyup = submit;
+
+    document.querySelector('#conversation-submit').onclick = function (e) {
+        const conversation = document.querySelector('#conversation-input').value;
+        const fsm = document.querySelector('#fsm-input').value;
+        window.location.pathname = '/api/broker/chat/' + conversation + '/' + fsm + '/';
+    };
+</script>
+</body>
+</html>

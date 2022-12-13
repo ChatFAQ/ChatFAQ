@@ -6,7 +6,7 @@ authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 license = "Proprietary"
 
 packages = [
-    {include = "riddler", from = "src"},
+    {include = "riddler"},
 ]
 
 [tool.poetry.dependencies]

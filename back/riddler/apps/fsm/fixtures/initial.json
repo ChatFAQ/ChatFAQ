@@ -1,0 +1,66 @@
+[
+{
+    "model": "fsm.finitestatemachine",
+    "pk": 1,
+    "fields": {
+        "created_date": "2022-11-29T13:11:38.579Z",
+        "updated_date": "2022-12-05T10:31:03.635Z",
+        "name": "test",
+        "definition": {
+            "states": [
+                {
+                    "name": "hello",
+                    "events": [
+                        "say_hello"
+                    ],
+                    "initial": true
+                },
+                {
+                    "name": "answering",
+                    "events": [
+                        "create_answer"
+                    ]
+                },
+                {
+                    "name": "goodbye",
+                    "events": [
+                        "create_goodbye_answer"
+                    ]
+                }
+            ],
+            "transitions": [
+                {
+                    "dest": "answering",
+                    "source": "hello",
+                    "trigger": "give_answer"
+                },
+                {
+                    "dest": "answering",
+                    "source": "answering",
+                    "unless": [
+                        "is_saying_goodbye"
+                    ],
+                    "trigger": "give_answer"
+                },
+                {
+                    "dest": "goodbye",
+                    "source": "hello",
+                    "trigger": "say_goodbye",
+                    "conditions": [
+                        "is_saying_goodbye"
+                    ]
+                },
+                {
+                    "dest": "goodbye",
+                    "source": "answering",
+                    "trigger": "say_goodbye",
+                    "conditions": [
+                        "is_saying_goodbye"
+                    ]
+                }
+            ]
+        },
+        "funcs": "[\"async def is_saying_goodbye(self):\\r\\n    return (await self.get_last_mml()).payload[\\\"text\\\"] == \\\"goodbye\\\"\", \"async def say_hello(self):\\r\\n    await self.send_response(self, 'Hello!')\", \"async def create_answer(self):\\r\\n    import random\\r\\n    await self.send_response(self, f'My answer to your message \\\"{(await self.get_last_mml()).payload[\\\"text\\\"]}\\\" is: {random.randint(0, 999)}')\", \"async def create_goodbye_answer(self):\\r\\n    await self.send_response(self, 'Byeeeeeeee')\"]"
+    }
+}
+]

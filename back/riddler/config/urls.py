@@ -4,8 +4,6 @@ from django.urls import include, path
 from django.utils.translation import gettext_lazy as _
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
-from riddler.people.views import MeViewSet
-
 admin.site.site_title = _("Riddler")
 admin.site.site_header = _("Riddler")
 
@@ -15,11 +13,9 @@ if settings.DEBUG:
 else:
     router = SimpleRouter()
 
-router.register("me", MeViewSet, basename="me")
-
 urlpatterns = [
     path("back/admin/", admin.site.urls),
-    path("back/api/", include(router.urls)),
+    path("back/api/", include("riddler.apps.urls")),
 ]
 
 if settings.DEBUG:

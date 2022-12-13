@@ -2,9 +2,10 @@ import os
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "riddler.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "riddler.config.settings")
 
 
 def make_app(django_app):
@@ -18,12 +19,12 @@ def make_app(django_app):
         Output of get_asgi_application()
     """
 
-    from riddler.django.routing import websocket_urlpatterns
+    from riddler.config.routing import websocket_urlpatterns
 
     return ProtocolTypeRouter(
         {
             "http": django_app,
-            "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+            "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
         }
     )
 
