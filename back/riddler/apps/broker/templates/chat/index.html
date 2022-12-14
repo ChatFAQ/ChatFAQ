@@ -29,7 +29,7 @@ FSM
     document.querySelector('#conversation-submit').onclick = function (e) {
         const conversation = document.querySelector('#conversation-input').value;
         const fsm = document.querySelector('#fsm-input').value;
-        window.location.pathname = '/api/broker/chat/' + conversation + '/' + fsm + '/';
+        window.location.pathname = '/back/api/broker/chat/' + conversation + '/' + fsm + '/';
     };
 </script>
 </body>

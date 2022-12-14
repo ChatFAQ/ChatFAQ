@@ -3,6 +3,7 @@
 import django.contrib.postgres.fields.citext
 from django.db import migrations, models
 import uuid
+from django.contrib.postgres.operations import CITextExtension
 
 
 class Migration(migrations.Migration):
@@ -14,6 +15,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        CITextExtension(),
         migrations.CreateModel(
             name="User",
             fields=[

@@ -20,7 +20,7 @@ As simple as running
 If you want to test the Telegram platform you should obtain a Telegram token from a bot and run your service under https using, for example, ngrok `ngrok http 8000`.
 
 Then run docker-compose:
-    
+
 `TG_TOKEN=<TOKEN> BASE_URL=<HTTPS_ADDRESS> docker-compose up`
 
 ### 2. From pip repository
@@ -33,6 +33,7 @@ Install machine requirements:
 
 - Python 3.8
 - PostgreSQL
+- gdal-bin
 
 Create a .env file with the needed variables set. You can see an example of those on [.env_example](.env_example)
 
