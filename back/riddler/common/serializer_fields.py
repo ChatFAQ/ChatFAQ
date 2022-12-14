@@ -2,7 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 
-from api.common.validators import NDigits
+from riddler.common.validators import NDigits
 
 
 class Color:

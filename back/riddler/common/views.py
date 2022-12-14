@@ -5,9 +5,9 @@ from asgiref.sync import async_to_sync
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.broker.serializers import BasicMessageSerializer, ToMMLSerializer
-from api.fsm.lib import MachineContext
-from api.fsm.models import CachedMachine, FiniteStateMachine
+from riddler.apps.broker.serializers import BasicMessageSerializer, ToMMLSerializer
+from riddler.apps.fsm.lib import MachineContext
+from riddler.apps.fsm.models import CachedMachine, FiniteStateMachine
 
 
 class BotView(APIView, MachineContext):

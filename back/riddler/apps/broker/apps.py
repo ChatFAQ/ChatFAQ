@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 
 class BrokerConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "api.broker"
+    name = "riddler.apps.broker"
 
     def ready(self):
 

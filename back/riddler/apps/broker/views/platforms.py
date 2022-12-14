@@ -1,10 +1,10 @@
 import requests
 from rest_framework.response import Response
 
-from api.broker.serializers import TelegramMessageSerializer
-from api.common.views import BotView
-from api.fsm.lib import MachineContext
-from config import settings
+from riddler.apps.broker.serializers import TelegramMessageSerializer
+from riddler.common.views import BotView
+from riddler.apps.fsm.lib import MachineContext
+from riddler.config import settings
 
 
 class TelegramBotView(BotView):

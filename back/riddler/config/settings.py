@@ -6,9 +6,6 @@ from dj_database_url import config as db_config
 
 from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 def get_package_version() -> str:
@@ -42,7 +39,6 @@ with EnvManager(ModelWDjango()) as env:
         "django.contrib.messages",
         "django.contrib.staticfiles",
         "django_extensions",
-        "channels",
         "channels_postgres",
         "corsheaders",
         "django_better_admin_arrayfield",
@@ -54,10 +50,10 @@ with EnvManager(ModelWDjango()) as env:
         "riddler.apps.fsm",
     ]
 
-    MIDDLEWARE = [
-        "corsheaders.middleware.CorsMiddleware",
-        "whitenoise.middleware.WhiteNoiseMiddleware",
-    ]
+    # MIDDLEWARE = [
+    #     "corsheaders.middleware.CorsMiddleware",
+    #     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # ]
 
     CORS_ALLOW_ALL_ORIGINS = True
 
@@ -153,7 +149,8 @@ with EnvManager(ModelWDjango()) as env:
         },
         "root": {
             "handlers": ["console"],
-            "level": "DEBUG" if env.DEBUG else "INFO",
+            # "level": "DEBUG" if is_true(env.get("DEBUG")) else "INFO",
+            "level": "DEBUG",
         },
     }
 

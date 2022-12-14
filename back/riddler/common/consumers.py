@@ -1,14 +1,14 @@
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
-from api.broker.models import Message
-from api.fsm.lib import Machine, MachineContext
+from riddler.apps.broker.models import Message
+from riddler.apps.fsm.lib import Machine, MachineContext
 
 
 class BotConsumer(
     AsyncJsonWebsocketConsumer, MachineContext
 ):
-    from api.broker.serializers import MessageSerializer  # TODO: resolve CI
+    from riddler.apps.broker.serializers import MessageSerializer  # TODO: resolve CI
 
     serializer_class = MessageSerializer
 
@@ -33,7 +33,7 @@ class BotConsumer(
         await self.channel_layer.group_discard(self.conversation_id, self.channel_name)
 
     async def initialize_machine(self):
-        from api.fsm.models import FiniteStateMachine  # TODO: fix CI
+        from riddler.apps.fsm.models import FiniteStateMachine  # TODO: fix CI
 
         self.fsm_name = self.get_fsm_name()
         fsm = await sync_to_async(FiniteStateMachine.objects.get)(name=self.fsm_name)
