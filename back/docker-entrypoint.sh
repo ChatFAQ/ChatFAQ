@@ -18,7 +18,7 @@ then
 fi
 
 echo "Applying fixtures"
-python manage.py loaddata api/fsm/fixtures/initial.json --app fsm
+make apply_fsm_fixtures
 
 echo "Launching Django..."
-daphne -b 0.0.0.0 -p 8000 config.asgi:application
+daphne -b 0.0.0.0 -p 8000 riddler.config.asgi:application
