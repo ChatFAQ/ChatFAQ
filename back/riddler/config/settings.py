@@ -8,6 +8,10 @@ from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
 
 
+MIDDLEWARE = []
+INSTALLED_APPS = []
+
+
 def get_package_version() -> str:
     """
     Trying to get the current package version using the metadata module. This
@@ -25,12 +29,13 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-with EnvManager(ModelWDjango()) as env:
+preset = ModelWDjango()
+with EnvManager(preset) as env:
     # ---
     # Apps
     # ---
 
-    INSTALLED_APPS = [
+    INSTALLED_APPS += [
         "daphne",
         "django.contrib.admin",
         "django.contrib.auth",
@@ -49,11 +54,10 @@ with EnvManager(ModelWDjango()) as env:
         "riddler.apps.broker",
         "riddler.apps.fsm",
     ]
-
-    # MIDDLEWARE = [
-    #     "corsheaders.middleware.CorsMiddleware",
-    #     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # ]
+    MIDDLEWARE += [
+        "corsheaders.middleware.CorsMiddleware",
+        "whitenoise.middleware.WhiteNoiseMiddleware"
+    ]
 
     CORS_ALLOW_ALL_ORIGINS = True
 
@@ -149,8 +153,7 @@ with EnvManager(ModelWDjango()) as env:
         },
         "root": {
             "handlers": ["console"],
-            # "level": "DEBUG" if is_true(env.get("DEBUG")) else "INFO",
-            "level": "DEBUG",
+            "level": "DEBUG" if is_true(preset._debug(env)) else "INFO",
         },
     }
 
