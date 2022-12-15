@@ -748,14 +748,14 @@ test = ["coveralls (==3.3.0)", "dj-database-url (==0.5.0)", "freezegun (==1.1.0)
 
 [[package]]
 name = "django-sms"
-version = "0.5.0"
+version = "0.6.0"
 description = "A Django app for sending SMS with interchangeable backends."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django-sms-0.5.0.tar.gz", hash = "sha256:7940a08592d9ed9ed434926c465a8e77ad89b1c440e27f7ac14b9f21c6a69307"},
-    {file = "django_sms-0.5.0-py3-none-any.whl", hash = "sha256:c5ffa7237259c7a22fcbed1e78f67c23eb4a7ad5cd22f209b9039662c944c08e"},
+    {file = "django-sms-0.6.0.tar.gz", hash = "sha256:a65d5e0d4cbcab95b528264950985b365aa6fec3e3be301cb517679555046242"},
+    {file = "django_sms-0.6.0-py3-none-any.whl", hash = "sha256:aaee41ab8745e8415fa4ce801f73d8a9a2e6ea4b02874eba2ea2bd72aa6133d3"},
 ]
 
 [package.dependencies]
@@ -788,18 +788,18 @@ typing-extensions = ">=4"
 
 [[package]]
 name = "djangorestframework"
-version = "3.13.1"
+version = "3.14.0"
 description = "Web APIs for Django, made easy."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "djangorestframework-3.13.1-py3-none-any.whl", hash = "sha256:24c4bf58ed7e85d1fe4ba250ab2da926d263cd57d64b03e8dcef0ac683f8b1aa"},
-    {file = "djangorestframework-3.13.1.tar.gz", hash = "sha256:0c33407ce23acc68eca2a6e46424b008c9c02eceb8cf18581921d0092bc1f2ee"},
+    {file = "djangorestframework-3.14.0-py3-none-any.whl", hash = "sha256:eb63f58c9f218e1a7d064d17a70751f528ed4e1d35547fdade9aaf4cd103fd08"},
+    {file = "djangorestframework-3.14.0.tar.gz", hash = "sha256:579a333e6256b09489cbe0a067e66abe55c6595d8926be6b99423786334350c8"},
 ]
 
 [package.dependencies]
-django = ">=2.2"
+django = ">=3.0"
 pytz = "*"
 
 [[package]]
@@ -1222,14 +1222,14 @@ PyYAML = ">=6.0"
 
 [[package]]
 name = "modelw-preset-django"
-version = "2022.10.0b9"
+version = "2022.10.0b10"
 description = "Model W preset for Django"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.11"
 files = [
-    {file = "modelw_preset_django-2022.10.0b9-py3-none-any.whl", hash = "sha256:cd2087a7f4676d384fb7cc9e012741e6185f2779387105c390a5e3af25d37890"},
-    {file = "modelw_preset_django-2022.10.0b9.tar.gz", hash = "sha256:efa737125be5a7546ce7d431ee71b3a3a87b43c36db513941efc0a73856571f6"},
+    {file = "modelw_preset_django-2022.10.0b10-py3-none-any.whl", hash = "sha256:f5baa6f7c6a56c161f12610a88da2b1692b5bb189875a4bf75858c595b8fe173"},
+    {file = "modelw_preset_django-2022.10.0b10.tar.gz", hash = "sha256:f90d6b0858081e553e4e29ad8b901beb6171a6fd3fd647208292e85614947043"},
 ]
 
 [package.dependencies]
@@ -1240,7 +1240,7 @@ dj-database-url = ">=0.5,<0.6"
 Django = {version = ">=4.1,<4.2", extras = ["argon2"]}
 django-postgres-extra = ">=2.0,<2.1"
 django-wailer = ">=1.0.0-beta.2,<1.1.0"
-djangorestframework = ">=3.13,<3.14"
+djangorestframework = ">=3.14,<3.15"
 djangorestframework-gis = ">=1.0,<1.1"
 modelw-env-manager = ">=1.0.0-alpha.5,<1.1.0"
 psycopg2 = ">=2.9,<2.10"
