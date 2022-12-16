@@ -10,6 +10,7 @@ from model_w.preset.django import ModelWDjango
 
 MIDDLEWARE = []
 INSTALLED_APPS = []
+LOGGING = {}
 
 
 def get_package_version() -> str:
@@ -140,11 +141,11 @@ with EnvManager(preset) as env:
     # ---
 
     SIMPLE_LOG = True
-
-    LOGGINGX = {
+    LOGGING_CONFIG = 'logging.config.dictConfig'
+    LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
-        "formatters": {"json": {"()": "utils.logging_formatters.DjangoJsonFormatter"}},
+        "formatters": {"json": {"()": "riddler.utils.logging_formatters.DjangoJsonFormatter"}},
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
