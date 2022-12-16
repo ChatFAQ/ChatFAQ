@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 
 from asgiref.sync import async_to_sync
@@ -9,8 +10,6 @@ from riddler.apps.broker.models import Message
 from riddler.apps.broker.serializers import BasicMessageSerializer, ToMMLSerializer
 from riddler.apps.fsm.lib import MachineContext
 from riddler.apps.fsm.models import CachedMachine, FiniteStateMachine
-import logging
-
 from riddler.utils.logging_formatters import TIMESTAMP_FORMAT
 
 logger = logging.getLogger(__name__)
@@ -34,12 +33,16 @@ class BotView(APIView, MachineContext):
         if not self.machine:
             if self.fsm_name is None:
                 return False
-            logger.debug(f"Starting new conversation ({self.conversation_id}), creating new FSM")
+            logger.debug(
+                f"Starting new conversation ({self.conversation_id}), creating new FSM"
+            )
             fsm = FiniteStateMachine.objects.get(name=self.fsm_name)
             self.machine = fsm.build_machine(self)
             async_to_sync(self.machine.start)()
         else:
-            logger.debug(f"Continuing conversation ({self.conversation_id}), reusing cached conversation's FSM ({self.machine.cachedmachine_set.first().updated_date.strftime(TIMESTAMP_FORMAT)})")
+            logger.debug(
+                f"Continuing conversation ({self.conversation_id}), reusing cached conversation's FSM ({self.machine.cachedmachine_set.first().updated_date.strftime(TIMESTAMP_FORMAT)})"
+            )
             async_to_sync(self.machine.next_state)()
         return True
 

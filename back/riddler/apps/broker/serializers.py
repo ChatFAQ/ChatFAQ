@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 # from ..common.consumers import BoilerplateConsumer # TODO resolve CI
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
+
 from .models import AgentType, Message, Satisfaction
 
 
@@ -59,6 +60,7 @@ class MessagePayloadSerializer(serializers.Serializer):
       ]
     }
     """
+
     text = serializers.CharField(required=False)
     html = serializers.CharField(required=False)
     image = serializers.CharField(required=False)

@@ -1,5 +1,5 @@
-from rest_framework import viewsets
 from django.contrib.auth.mixins import LoginRequiredMixin
+from rest_framework import viewsets
 
 from .models import FiniteStateMachine
 from .serializers import FSMSerializer

@@ -2,10 +2,11 @@ import time
 
 from asgiref.sync import sync_to_async
 
+from riddler.apps.fsm.lib import MachineContext
+from riddler.common.consumers import BotConsumer
+
 from .models import AgentType
 from .serializers import MessageSerializer
-from riddler.common.consumers import BotConsumer
-from riddler.apps.fsm.lib import MachineContext
 
 
 class RiddlerConsumer(BotConsumer):
@@ -32,7 +33,7 @@ class RiddlerConsumer(BotConsumer):
                 "payload": payload,
                 "conversation": self.conversation_id,
                 "send_time": int(time.time() * 1000),
-                "prev": last_mml.pk if last_mml else None
+                "prev": last_mml.pk if last_mml else None,
             }
         )
         await sync_to_async(serializer.is_valid)()

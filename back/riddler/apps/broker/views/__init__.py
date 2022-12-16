@@ -2,9 +2,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from rest_framework import viewsets
 
+from riddler.apps.fsm.models import FiniteStateMachine
+
 from ..models import Message
 from ..serializers import MessageSerializer
-from riddler.apps.fsm.models import FiniteStateMachine
 
 
 class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):

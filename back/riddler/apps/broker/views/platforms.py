@@ -3,8 +3,8 @@ from rest_framework.response import Response
 
 from riddler.apps.broker.models import Message
 from riddler.apps.broker.serializers import TelegramMessageSerializer
-from riddler.common.views import BotView
 from riddler.apps.fsm.lib import MachineContext
+from riddler.common.views import BotView
 from riddler.config import settings
 
 

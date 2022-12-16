@@ -5,6 +5,7 @@ from django_better_admin_arrayfield.models.fields import ArrayField
 from typefit import typefit
 
 from riddler.common.models import ChangesMixin
+
 from .lib import Machine, MachineContext, State, Transition
 
 

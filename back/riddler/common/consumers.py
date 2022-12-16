@@ -1,16 +1,14 @@
+from logging import getLogger
+
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.apps.fsm.lib import Machine, MachineContext
 
-from logging import getLogger
-
 logger = getLogger(__name__)
 
 
-class BotConsumer(
-    AsyncJsonWebsocketConsumer, MachineContext
-):
+class BotConsumer(AsyncJsonWebsocketConsumer, MachineContext):
     from riddler.apps.broker.serializers import MessageSerializer  # TODO: resolve CI
 
     serializer_class = MessageSerializer
@@ -29,7 +27,9 @@ class BotConsumer(
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
         self.machine = await self.initialize_machine()
-        logger.debug(f"Starting new WS conversation ({self.conversation_id}), creating new FSM")
+        logger.debug(
+            f"Starting new WS conversation ({self.conversation_id}), creating new FSM"
+        )
 
         # Join room group
         await self.channel_layer.group_add(self.conversation_id, self.channel_name)
@@ -43,6 +43,7 @@ class BotConsumer(
 
     async def initialize_machine(self):
         from riddler.apps.fsm.models import FiniteStateMachine  # TODO: fix CI
+
         logger.debug(f"Creating new FSM ({self.fsm_name})")
 
         self.set_fsm_name(self.gather_fsm_name())

@@ -24,7 +24,9 @@ def make_app(django_app):
     return ProtocolTypeRouter(
         {
             "http": django_app,
-            "websocket": AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(websocket_urlpatterns))),
+            "websocket": AllowedHostsOriginValidator(
+                AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+            ),
         }
     )
 

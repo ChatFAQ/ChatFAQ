@@ -1,6 +1,7 @@
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import requests
 import tempfile
+
+import requests
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class ToTempFile(object):

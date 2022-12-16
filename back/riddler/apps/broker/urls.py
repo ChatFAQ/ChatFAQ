@@ -1,10 +1,10 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views.platforms import TelegramBotView
 from riddler.config import settings
 
 from . import views
+from .views.platforms import TelegramBotView
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()

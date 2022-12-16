@@ -5,7 +5,7 @@ from datetime import datetime
 from django.conf import settings
 from pythonjsonlogger.jsonlogger import JsonFormatter
 
-TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
+TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 class DjangoJsonFormatter(JsonFormatter):

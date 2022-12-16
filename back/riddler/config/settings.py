@@ -1,12 +1,10 @@
 import os
+from importlib import metadata
 from pathlib import Path
 
-from importlib import metadata
 from dj_database_url import config as db_config
-
 from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
-
 
 MIDDLEWARE = []
 INSTALLED_APPS = []
@@ -57,7 +55,7 @@ with EnvManager(preset) as env:
     ]
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",
-        "whitenoise.middleware.WhiteNoiseMiddleware"
+        "whitenoise.middleware.WhiteNoiseMiddleware",
     ]
 
     CORS_ALLOW_ALL_ORIGINS = True
@@ -109,9 +107,7 @@ with EnvManager(preset) as env:
     # OpenAPI Schema
     # ---
 
-    REST_FRAMEWORK = {
-        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"
-    }
+    REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
 
     SPECTACULAR_SETTINGS = {
         "TITLE": "Riddler",
@@ -141,11 +137,13 @@ with EnvManager(preset) as env:
     # ---
 
     SIMPLE_LOG = True
-    LOGGING_CONFIG = 'logging.config.dictConfig'
+    LOGGING_CONFIG = "logging.config.dictConfig"
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
-        "formatters": {"json": {"()": "riddler.utils.logging_formatters.DjangoJsonFormatter"}},
+        "formatters": {
+            "json": {"()": "riddler.utils.logging_formatters.DjangoJsonFormatter"}
+        },
         "handlers": {
             "console": {
                 "class": "logging.StreamHandler",
