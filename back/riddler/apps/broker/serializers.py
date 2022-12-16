@@ -33,6 +33,32 @@ class QuickReplySerializer(serializers.Serializer):
 
 
 class MessagePayloadSerializer(serializers.Serializer):
+    """
+    TODO: Rebuild schema as such
+    const mml = {
+      from: {
+        id: 'xxx'
+      },
+      conversation: {
+        id: 'xxx',
+      },
+      response: [
+        [
+          {type: 'text', payload: "yolo"},
+        ],
+        [
+          {type: 'image', url: 'https://...'},
+          {type: 'text', payload: 'some image'},
+        ],
+        [
+          {type: 'typing', payload: false}
+        ],
+        [
+          {type: 'sleep', payload: 4}
+        ]
+      ]
+    }
+    """
     text = serializers.CharField(required=False)
     html = serializers.CharField(required=False)
     image = serializers.CharField(required=False)
