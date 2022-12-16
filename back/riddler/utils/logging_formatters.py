@@ -5,6 +5,8 @@ from datetime import datetime
 from django.conf import settings
 from pythonjsonlogger.jsonlogger import JsonFormatter
 
+TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
 
 class DjangoJsonFormatter(JsonFormatter):
     WHITE = "\u001b[37m"
@@ -18,7 +20,7 @@ class DjangoJsonFormatter(JsonFormatter):
     }
 
     def format(self, record: logging.LogRecord) -> str:
-        timestamp = datetime.fromtimestamp(record.created).strftime('%Y-%m-%dT%H:%M:%S')
+        timestamp = datetime.fromtimestamp(record.created).strftime(TIMESTAMP_FORMAT)
         res = super().format(record)
         color = self.level_to_colors.get(record.levelname, self.WHITE)
 

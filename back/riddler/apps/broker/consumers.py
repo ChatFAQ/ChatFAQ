@@ -9,8 +9,11 @@ from riddler.apps.fsm.lib import MachineContext
 
 
 class RiddlerConsumer(BotConsumer):
-    def get_fsm_name(self):
+    def gather_fsm_name(self):
         return self.scope["url_route"]["kwargs"]["fsm"]
+
+    def gather_conversation_id(self):
+        return self.scope["url_route"]["kwargs"]["conversation"]
 
     async def send_response(self, ctx: MachineContext, msg: str):
         await self.channel_layer.group_send(
