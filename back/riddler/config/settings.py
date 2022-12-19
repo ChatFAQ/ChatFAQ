@@ -135,7 +135,7 @@ with EnvManager(preset) as env:
     # ---
     # Logging
     # ---
-
+    """
     SIMPLE_LOG = True
     LOGGING_CONFIG = "logging.config.dictConfig"
     LOGGING = {
@@ -155,6 +155,7 @@ with EnvManager(preset) as env:
             "level": "DEBUG" if is_true(preset._debug(env)) else "INFO",
         },
     }
+    """
 
     # ---
     # Telegram
