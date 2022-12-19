@@ -3,6 +3,9 @@ from typing import Coroutine, List, NamedTuple, Text
 from asgiref.sync import sync_to_async
 
 from riddler.apps.broker.models import Message
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 
 class State(NamedTuple):
@@ -69,13 +72,16 @@ class Machine:
 
     async def start(self):
         await self.run_current_state_events()
+        logger.debug(f"FSM start --> {self.current_state}")
         await self.save_cache()
 
     async def next_state(self):
         transitions = self.get_current_state_transitions()
         for t in transitions:
             if await self.check_transition_condition(t):
+                logger.debug(f"FSM from ---> {self.current_state}")
                 self.current_state = self.get_state_by_name(t.dest)
+                logger.debug(f"FSM to -----> {self.current_state}")
                 await self.run_current_state_events()
                 break
         await self.save_cache()
