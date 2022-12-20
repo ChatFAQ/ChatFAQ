@@ -31,7 +31,7 @@ We still have not deployed a public stable first release to pypi
 
 Install machine requirements:
 
-- Python 3.8
+- Python 3.10
 - PostgreSQL
 - gdal-bin
 
