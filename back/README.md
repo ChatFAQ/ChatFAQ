@@ -31,23 +31,22 @@ We still have not deployed a public stable first release to pypi
 
 Install machine requirements:
 
-- Python 3.8
+- Python 3.10
 - PostgreSQL
 - gdal-bin
+- poetry
 
 Create a .env file with the needed variables set. You can see an example of those on [.env_example](.env_example)
 
-Create a virtualenv in the root directory:
+This project is based on [Model-W](https://github.com/ModelW/project-maker) therefore we use poetry for the management of the dependencies
 
-`virtualenv --python python3.8 .venv`
+Go inside ./back directory Create and install project dependencies:
 
-Activate it:
+`poetry install`
 
-`source .venv/bin/activate`
+Activate the virtual environment
 
-Install the project requirements
-
-`pip install -r requirements.txt`
+`poetry shell`
 
 Create a 'riddler' database in postgres
 
@@ -79,13 +78,10 @@ Run the server
 
 ## Endpoints
 
-Dummy chat: http://localhost:8000/api/broker/chat/
+Dummy chat: http://localhost:8000/back/api/broker/chat/
 
-Admin: http://localhost:8000/admin/
+Admin: http://localhost:8000/back/admin/
 
-Swagger Docs: http://localhost:8000/api/schema/swagger-ui/
+Swagger Docs: http://localhost:8000/back/api/schema/swagger-ui/
 
-Redoc Docs: http://localhost:8000/api/schema/redoc/
-
-## TODOs
-- [ ] Properly implement ABC for MachineContext, BotView & BotConsumer
+Redoc Docs: http://localhost:8000/back/api/schema/redoc/
