@@ -20,5 +20,11 @@ fi
 echo "Applying fixtures"
 make apply_fsm_fixtures
 
-echo "Launching Django..."
-daphne -b 0.0.0.0 -p 8000 riddler.config.asgi:application
+if [ "$DEBUG" == "yes" ]
+then
+    echo "Launching Django DEV..."
+    ./manage.py runserver 0.0.0.0:8000
+else
+    echo "Launching Django PROD..."
+    daphne -b 0.0.0.0 -p 8000 riddler.config.asgi:application
+fi

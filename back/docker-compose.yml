@@ -1,32 +1,34 @@
-version: "3.3"
+version: "2.1"
 services:
-  back:
-    build: .
-    ports:
-      - 8000:8000
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - riddler
-    env_file:
-      - .env_docker
-  postgres:
-    image: postgres:15
-    networks:
-      - riddler
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=super
-      - POSTGRES_DB=riddler
-    healthcheck:
-      test: if psql -U postgres -lqt | cut -d \| -f 1 | grep -w riddler; then exit 0; else exit 1; fi
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    back:
+        build: .
+        ports:
+            - 8000:8000
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - riddler
+        volumes:
+            - ./:/var/apps/back
+        env_file:
+            - .env_docker
+    postgres:
+        image: postgres:15
+        networks:
+            - riddler
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_PASSWORD=super
+            - POSTGRES_DB=riddler
+        healthcheck:
+            test: if psql -U postgres -lqt | cut -d \| -f 1 | grep -w riddler; then exit 0; else exit 1; fi
+            interval: 5s
+            timeout: 5s
+            retries: 5
 volumes:
-  pgdata:
+    pgdata:
 networks:
-  riddler:
-    driver: bridge
+    riddler:
+        driver: bridge
