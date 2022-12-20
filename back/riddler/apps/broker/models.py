@@ -18,6 +18,14 @@ class AgentType(Enum):
     bot = "bot"
 
 
+class StackPayloadType(Enum):
+    text = "text"
+    html = "html"
+    image = "image"
+    satisfaction = "satisfaction"
+    quick_replies = "quick_replies"
+
+
 class Message(ChangesMixin):
     """
     ivar str prev: The id of the previous MML, typically to which this one answers. Thanks to this we can reconstruct the whole conversation in order.
@@ -57,7 +65,7 @@ class Message(ChangesMixin):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     meta = models.JSONField(null=True)
-    payload = models.JSONField(null=True)
+    stacks = models.JSONField(null=True)
 
     def cycle_fsm(self):
         pass

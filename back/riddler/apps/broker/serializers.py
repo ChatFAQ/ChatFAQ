@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
 
-from .models import AgentType, Message, Satisfaction
+from .models import AgentType, Message, StackPayloadType
 
 
 class ToMMLSerializer(serializers.Serializer):
@@ -33,34 +33,27 @@ class QuickReplySerializer(serializers.Serializer):
     meta = serializers.JSONField(required=False)
 
 
-class MessagePayloadSerializer(serializers.Serializer):
-    """
-    TODO: Rebuild schema as such
-    const mml = {
-      from: {
-        id: 'xxx'
-      },
-      conversation: {
-        id: 'xxx',
-      },
-      response: [
-        [
-          {type: 'text', payload: "yolo"},
-        ],
-        [
-          {type: 'image', url: 'https://...'},
-          {type: 'text', payload: 'some image'},
-        ],
-        [
-          {type: 'typing', payload: false}
-        ],
-        [
-          {type: 'sleep', payload: 4}
-        ]
-      ]
-    }
-    """
+class Payload(serializers.Field):
+    def to_representation(self, obj):
+        return obj
 
+    def to_internal_value(self, data):
+        return data
+
+
+class MessageStackSerializer(serializers.Serializer):
+    # TODO: Implement the corresponfing validations over the 'payload' depending on the 'type'
+    type = serializers.ChoiceField(
+        choices=[n.value for n in StackPayloadType]
+    )
+    payload = Payload(required=False, allow_null=True)
+    id = serializers.CharField(required=False, max_length=255)
+    meta = serializers.JSONField(required=False)
+
+    """
+    satisfaction = serializers.ChoiceField(
+        required=False, choices=[n.value for n in Satisfaction], allow_null=True
+    )
     text = serializers.CharField(required=False)
     html = serializers.CharField(required=False)
     image = serializers.CharField(required=False)
@@ -70,7 +63,9 @@ class MessagePayloadSerializer(serializers.Serializer):
     )
     meta = serializers.JSONField(required=False)
     quick_replies = QuickReplySerializer(required=False, many=True)
+    """
 
+    """
     class Meta:
         validators = [
             AtLeastNOf(
@@ -79,10 +74,11 @@ class MessagePayloadSerializer(serializers.Serializer):
             ),
             PresentTogether(fields=["response_id", "text"]),
         ]
+    """
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    payload = MessagePayloadSerializer()
+    stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
     transmitter = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()

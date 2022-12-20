@@ -1,3 +1,4 @@
+import json
 import time
 
 from asgiref.sync import sync_to_async
@@ -21,16 +22,18 @@ class RiddlerConsumer(BotConsumer):
             ctx.conversation_id, {"type": "response", "text": msg}
         )
 
-    async def response(self, payload: dict):
+    async def response(self, data: dict):
         last_mml = await self.get_last_mml()
-
         serializer = MessageSerializer(
             data={
                 "transmitter": {
                     "type": AgentType.bot.value,
                 },
                 "confidence": 1,
-                "payload": payload,
+                "stacks": [[{
+                    "type": "text",
+                    "payload": data["text"],
+                }]],
                 "conversation": self.conversation_id,
                 "send_time": int(time.time() * 1000),
                 "prev": last_mml.pk if last_mml else None,
@@ -39,4 +42,4 @@ class RiddlerConsumer(BotConsumer):
         await sync_to_async(serializer.is_valid)()
         await sync_to_async(serializer.save)()
         # Send message to WebSocket
-        await self.send(payload["text"])
+        await self.send(json.dumps(serializer.data))

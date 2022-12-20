@@ -26,8 +26,8 @@
     );
 
     chatSocket.onmessage = function (e) {
-        // const data = JSON.parse(e.data);
-        document.querySelector('#chat-log').value += e.data + "\n";
+        const data = JSON.parse(e.data);
+        document.querySelector('#chat-log').value += data["stacks"][0][0]["payload"] + "\n";
     };
 
     chatSocket.onclose = function (e) {
@@ -53,9 +53,12 @@
             'conversation': conversation,
             'send_time': Date.now(),
             'threshold': 0,
-            'payload': {
-                'text': message
-            },
+            'stacks': [
+                [{
+                    'type': "text",
+                    'payload': message
+                }]
+            ],
         }));
         messageInputDom.value = '';
     };
