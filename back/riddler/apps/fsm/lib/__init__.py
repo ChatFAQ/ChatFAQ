@@ -9,22 +9,43 @@ logger = getLogger(__name__)
 
 
 class State(NamedTuple):
+    """
+    Attributes
+    ----------
+    name: str
+        A human readable name for describing the state
+    events: List of str
+        A list of strings which are the function's names needed to be executed right after we enter the state
+    initial: bool
+        It defines the initial state, there should only be 1
+    ubiquitous: bool
+        It describes a state that can be accessed from any other state, it is just a shortcut for not adding this state
+        to all the rest ones in the transitions definition
+    """
     name: Text
     events: List[Text] = []
     initial: bool = False
+    ubiquitous: bool = False
 
 
 class Transition(NamedTuple):
+    """
+    Attributes
+    ----------
+    source: str
+        'from' state
+    dest: str
+        'to' state
+    conditions: List of str
+        A list of strings which are the function's names needed to be executed to determine if we can enter the 'dest'
+        state
+    unless: List of str
+        The same as conditions but considering the function with a 'not' operator in front of it
+    """
     source: Text
     dest: Text
     conditions: List[Text] = []
     unless: List[Text] = []
-
-
-class SerializedMachine(NamedTuple):
-    states: List[State]
-    transitions: List[Transition]
-    current_state: State = None
 
 
 class MachineContext:
