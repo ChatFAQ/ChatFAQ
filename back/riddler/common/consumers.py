@@ -15,7 +15,7 @@ class BotConsumer(AsyncJsonWebsocketConsumer, MachineContext):
     it takes care of the initialization and management of the fsm and
     the persistence of the sending/receiving MMLs into the database
     """
-    from riddler.apps.broker.serializers import MessageSerializer  # TODO: resolve CI
+    from riddler.apps.broker.serializers.message import MessageSerializer  # TODO: resolve CI
 
     serializer_class = MessageSerializer
 

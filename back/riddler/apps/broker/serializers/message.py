@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
 
-from .models.message import AgentType, Message, StackPayloadType
+from riddler.apps.broker.models.message import AgentType, Message, StackPayloadType
 
 
 class ToMMLSerializer(serializers.Serializer):

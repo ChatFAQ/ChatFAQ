@@ -156,10 +156,3 @@ with EnvManager(preset) as env:
         },
     }
     """
-
-    # ---
-    # Telegram
-    # ---
-
-    TG_BOT_API_URL = "https://api.telegram.org/bot"
-    TG_TOKEN = os.getenv("TG_TOKEN")

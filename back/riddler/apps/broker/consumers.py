@@ -6,8 +6,8 @@ from asgiref.sync import sync_to_async
 from riddler.apps.fsm.lib import MachineContext
 from riddler.common.consumers import BotConsumer
 
-from .models import AgentType
-from .serializers import MessageSerializer
+from .models.message import AgentType
+from .serializers.message import MessageSerializer
 
 
 class RiddlerConsumer(BotConsumer):

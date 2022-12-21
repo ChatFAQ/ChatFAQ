@@ -5,12 +5,21 @@ from rest_framework import viewsets
 from riddler.apps.fsm.models import FiniteStateMachine
 
 from ..models.message import Message
-from ..serializers import MessageSerializer
+from ..models.platform_bot import PlatformBot
+from ..serializers.message import MessageSerializer
+from ..serializers.platform_bot import PlatformBotSerializer
 
 
+# TODO: @extend_schema for message stacks[][].type <-> message stacks[][].payload
 class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+
+
+# TODO: @extend_schema for platform_types <-> platform_meta
+class PlatformBotView(LoginRequiredMixin, viewsets.ModelViewSet):
+    queryset = PlatformBot.objects.all()
+    serializer_class = PlatformBotSerializer
 
 
 def chat(request):
