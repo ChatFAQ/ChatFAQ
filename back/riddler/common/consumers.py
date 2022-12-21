@@ -1,7 +1,7 @@
 from logging import getLogger
 from django.db import transaction
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.apps.fsm.lib import Machine, MachineContext
@@ -63,6 +63,8 @@ class BotConsumer(AsyncJsonWebsocketConsumer, MachineContext):
                 self.conversation_id, {"type": "response", "errors": serializer.errors}
             )
         else:
-            with transaction.atomic():
-                await sync_to_async(serializer.save)()
-                await self.machine.next_state()
+            @transaction.atomic()
+            def _aux(_serializer):
+                _serializer.save()
+                async_to_sync(self.machine.next_state)()
+            await sync_to_async(_aux)(serializer)

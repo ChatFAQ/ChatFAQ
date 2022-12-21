@@ -104,18 +104,25 @@ class Machine:
 
     async def next_state(self):
         transitions = self.get_current_state_transitions()
+        best_score = 0
+        best_transition = None
+        transition_data = {}
         for t in transitions:
-            if await self.check_transition_condition(t):
-                logger.debug(f"FSM from ---> {self.current_state}")
-                self.current_state = self.get_state_by_name(t.dest)
-                logger.debug(f"FSM to -----> {self.current_state}")
-                await self.run_current_state_events()
-                break
+            score, _data = await self.check_transition_condition(t)
+            if score > best_score:
+                best_transition = t
+                best_score = score
+                transition_data = _data
+        if best_transition:
+            logger.debug(f"FSM from ---> {self.current_state}")
+            self.current_state = self.get_state_by_name(best_transition.dest)
+            logger.debug(f"FSM to -----> {self.current_state}")
+            await self.run_current_state_events(transition_data)
         await self.save_cache()
 
-    async def run_current_state_events(self):
+    async def run_current_state_events(self, transition_data={}):
         for event in self.current_state.events:
-            await getattr(self.ctx, event)()
+            await getattr(self.ctx, event)(transition_data)
 
     def get_initial_state(self):
         for state in self.states:
@@ -132,15 +139,21 @@ class Machine:
         return filter(lambda t: t.source == self.current_state.name, self.transitions)
 
     async def check_transition_condition(self, transition):
+        max_score = 0 if transition.conditions else 1
+        data = {}
         for condition in transition.conditions:
-            if not await getattr(self.ctx, condition)():
-                return False
+            score, _data = await getattr(self.ctx, condition)()
+            if score > max_score:
+                max_score = score
+                data = _data
 
+        un_max_score = 0
         for condition in transition.unless:
-            if await getattr(self.ctx, condition)():
-                return False
+            score, _ = await getattr(self.ctx, condition)()
+            if score > un_max_score:
+                un_max_score = score
 
-        return True
+        return max_score - un_max_score, data
 
     async def save_cache(self):
         from riddler.apps.fsm.models import CachedMachine  # TODO: Resolve CI
