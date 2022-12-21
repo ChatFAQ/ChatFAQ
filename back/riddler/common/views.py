@@ -1,6 +1,6 @@
 import json
 import logging
-import os
+from django.db import transaction
 
 from asgiref.sync import async_to_sync
 from rest_framework.response import Response
@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class BotView(APIView, MachineContext):
+    """
+    Abstract class all views representing an HTTP bot should inherit from,
+    it takes care of the initialization and management of the fsm and
+    the persistence of the sending/receiving MMLs into the database
+    """
     serializer_class: ToMMLSerializer = BasicMessageSerializer
 
     def __init__(self, *args, **kwargs):
@@ -28,7 +33,16 @@ class BotView(APIView, MachineContext):
     def gather_conversation_id(self, mml: Message):
         raise NotImplemented("Implement a method that gathers the conversation id")
 
-    def resolve_machine(self, request):
+    def resolve_machine(self):
+        """
+        It will try to get a cached FSM from a provided name or create a new one in case
+        there is no one yet (when is a brand-new conversation_id)
+        Returns
+        -------
+        bool
+            Whether or not it was able to create (new) or retrieve (cached) a FSM.
+            If returns False most likely it is going be because a wrongly provided FSM name
+        """
         self.machine = CachedMachine.build_cached_fsm(self)
         if not self.machine:
             if self.fsm_name is None:
@@ -55,7 +69,8 @@ class BotView(APIView, MachineContext):
             self.set_conversation_id(self.gather_conversation_id(mml.conversation))
             self.set_fsm_name(self.gather_fsm_name(request.data))
 
-            self.resolve_machine(request, mml)
+            with transaction.atomic():
+                self.resolve_machine()
             return Response({"ok": "POST request processed"})
 
     @staticmethod

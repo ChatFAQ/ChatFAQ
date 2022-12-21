@@ -42,7 +42,7 @@ class Payload(serializers.Field):
 
 
 class MessageStackSerializer(serializers.Serializer):
-    # TODO: Implement the corresponfing validations over the 'payload' depending on the 'type'
+    # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
     type = serializers.ChoiceField(
         choices=[n.value for n in StackPayloadType]
     )

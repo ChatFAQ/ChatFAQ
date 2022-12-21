@@ -1,4 +1,5 @@
 from logging import getLogger
+from django.db import transaction
 
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -9,6 +10,11 @@ logger = getLogger(__name__)
 
 
 class BotConsumer(AsyncJsonWebsocketConsumer, MachineContext):
+    """
+    Abstract class all views representing an WS bot should inherit from,
+    it takes care of the initialization and management of the fsm and
+    the persistence of the sending/receiving MMLs into the database
+    """
     from riddler.apps.broker.serializers import MessageSerializer  # TODO: resolve CI
 
     serializer_class = MessageSerializer
@@ -57,5 +63,6 @@ class BotConsumer(AsyncJsonWebsocketConsumer, MachineContext):
                 self.conversation_id, {"type": "response", "errors": serializer.errors}
             )
         else:
-            await sync_to_async(serializer.save)()
-            await self.machine.next_state()
+            with transaction.atomic():
+                await sync_to_async(serializer.save)()
+                await self.machine.next_state()

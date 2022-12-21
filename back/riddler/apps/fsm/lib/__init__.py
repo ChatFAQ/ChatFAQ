@@ -28,6 +28,12 @@ class SerializedMachine(NamedTuple):
 
 
 class MachineContext:
+    """
+    Abstract class all http views/WS representing a bot should inherit from,
+    this way we have a generic and shared functionality across the different
+    bots whatever what kind they are (WebSocket based, http views and what not)
+    making the FSM states access to this 'connection' functionality
+    """
     def __init__(self, *args, **kargs):
         self.conversation_id = None
         self.fsm_name = None
