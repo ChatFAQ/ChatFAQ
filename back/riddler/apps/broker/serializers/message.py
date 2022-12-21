@@ -94,8 +94,8 @@ class MessageSerializer(serializers.ModelSerializer):
         """
         # It seems we are implementing "UniqueValidator" but nor really, because this will also fail for when value=None
         # and another message also already have value=None while UniqueValidator will not fail on this specific use case
-        if Message.objects.filter(prev=prev).first():
-            raise ValidationError(f"prev should be always unique")
+        if Message.objects.filter(conversation=self.initial_data["conversation"], prev=prev).first():
+            raise ValidationError(f"prev should be always unique for the same conversation")
         if prev and prev.conversation != self.initial_data["conversation"]:
             raise ValidationError(f"prev should belong to the same conversation")
 
