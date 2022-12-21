@@ -4,7 +4,7 @@ from rest_framework import viewsets
 
 from riddler.apps.fsm.models import FiniteStateMachine
 
-from ..models import Message
+from ..models.message import Message
 from ..serializers import MessageSerializer
 
 

@@ -2,7 +2,7 @@ from typing import Coroutine, List, NamedTuple, Text
 
 from asgiref.sync import sync_to_async
 
-from riddler.apps.broker.models import Message
+from riddler.apps.broker.models.message import Message
 from logging import getLogger
 
 logger = getLogger(__name__)

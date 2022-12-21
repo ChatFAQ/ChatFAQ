@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from riddler.apps.broker.models import Message
+from riddler.apps.broker.models.message import Message
 from riddler.apps.broker.serializers import BasicMessageSerializer, ToMMLSerializer
 from riddler.apps.fsm.lib import MachineContext
 from riddler.apps.fsm.models import CachedMachine, FiniteStateMachine
