@@ -82,6 +82,10 @@ class FSMContext:
 
 
 class FSM:
+    """
+    FSM as in "Finite-State Machine".
+    Bots are represented as a FSM: states are the various states of the bot.
+    """
     def __init__(
         self,
         ctx: FSMContext,
@@ -89,6 +93,19 @@ class FSM:
         transitions: List[Transition],
         current_state: State = None,
     ):
+        """
+        Parameters
+        ----------
+        ctx
+            The connextion context, usually useful to get the MML which triggered the state
+        states
+            States usually sends messages to the user.
+        transitions
+            Contain the handlers and information that determines state changes.
+        current_state
+            It will usually be None when a new conversation a thus a new FSM starts. If the FSM come from a CachedFSM
+            then it is when current_state is set to the cached current_state
+        """
         self.ctx = ctx
         self.states = states
         self.transitions = transitions
@@ -103,6 +120,10 @@ class FSM:
         await self.save_cache()
 
     async def next_state(self):
+        """
+        It will cycle to the next state based on which transition returns a higher probability, once the next state
+        is reached it makes sure everything is saved and cached into the DB to keep the system stateful
+        """
         transitions = self.get_current_state_transitions()
         best_score = 0
         best_transition = None
@@ -139,6 +160,9 @@ class FSM:
         return filter(lambda t: t.source == self.current_state.name, self.transitions)
 
     async def check_transition_condition(self, transition):
+        """
+        For a transition it will compute its score based on all its conditions
+        """
         max_score = 0 if transition.conditions else 1
         data = {}
         for condition in transition.conditions:
