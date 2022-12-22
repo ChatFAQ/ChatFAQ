@@ -15,14 +15,6 @@ As simple as running
 
 `docker-compose up`
 
-<hr style="border:1px solid gray">
-
-If you want to test the Telegram platform you should obtain a Telegram token from a bot and run your service under https using, for example, ngrok `ngrok http 8000`.
-
-Then run docker-compose:
-
-`TG_TOKEN=<TOKEN> BASE_URL=<HTTPS_ADDRESS> docker-compose up`
-
 ### 2. From pip repository
 
 We still have not deployed a public stable first release to pypi
@@ -75,6 +67,29 @@ Create a superuser
 Run the server
 
 `make run`
+
+
+## Telegram
+
+If you want to test the Telegram platform you should obtain a Telegram token from a bot and run your service under https using, for example, ngrok `ngrok http 8000`.
+
+Then run docker-compose:
+
+`BASE_URL=<HTTPS_ADDRESS> docker-compose up`
+
+Or if you are running it straight in you machine make sure to include in your .env
+
+`BASE_URL=<HTTPS_ADDRESS>`
+
+The in your admin go to Platform bots: http://localhost:8000/back/admin/broker/platformbot/ and create a new one selecting your desired FSM, Platform type = Telegram and in platform meta something as:
+
+```
+{
+    "token": <TELEGRAM_TOKEN>,
+    "api_url": "https://api.telegram.org/bot",
+}
+```
+
 
 ## Endpoints
 
