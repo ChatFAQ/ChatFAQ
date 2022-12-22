@@ -53,6 +53,10 @@ class BotView(APIView, FSMContext):
         return True
 
     def post(self, request, *args, **kwargs):
+        """
+        Entry point for the message coming from the platform, here we will serialize such message,
+        store it in the database and call the FSM
+        """
         serializer = self.serializer_class(data=request.data)
         if not serializer.is_valid():
             self.send_response(json.dumps(serializer.errors))
