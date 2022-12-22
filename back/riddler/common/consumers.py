@@ -24,12 +24,6 @@ class BotConsumer(AsyncJsonWebsocketConsumer, FSMContext):
         self.fsm: FSM = None
         self.fsm_name: str = None
 
-    def gather_fsm_name(self):
-        raise NotImplemented("Implement a method that gathers the fsm name")
-
-    def gather_conversation_id(self):
-        raise NotImplemented("Implement a method that gathers the conversation's id")
-
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
         self.fsm = await self.initialize_fsm()
@@ -48,13 +42,11 @@ class BotConsumer(AsyncJsonWebsocketConsumer, FSMContext):
         await self.channel_layer.group_discard(self.conversation_id, self.channel_name)
 
     async def initialize_fsm(self):
-        from riddler.apps.fsm.models import FSMDefinition  # TODO: fix CI
-
         logger.debug(f"Creating new FSM ({self.fsm_name})")
-
-        self.set_fsm_name(self.gather_fsm_name())
-        fsm = await sync_to_async(FSMDefinition.objects.get)(name=self.fsm_name)
-        return fsm.build_fsm(self)
+        pc = await sync_to_async(self.gather_platform_config)()
+        self.set_platform_config(pc)
+        # TODO: Support cached FSM ???
+        return self.platform_config.fsm_def.build_fsm(self)
 
     async def receive_json(self, *args):
         serializer = self.serializer_class(data=args[0])

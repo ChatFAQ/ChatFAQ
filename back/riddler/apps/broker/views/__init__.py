@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from riddler.apps.fsm.models import FSMDefinition
 
 from ..models.message import Message
-from ..models.platform_config import PlatformConfig
+from ..models.platform_config import PlatformConfig, PlatformTypes
 from ..serializers.message import MessageSerializer
 from ..serializers.platform_config import PlatformConfigSerializer
 
@@ -23,9 +23,9 @@ class PlatformBotView(LoginRequiredMixin, viewsets.ModelViewSet):
 
 
 def chat(request):
-    fsm_names = list(FSMDefinition.objects.values_list("name", flat=True))
-    return render(request, "chat/index.html", {"fsm_names": fsm_names})
+    pc_ids = list(PlatformConfig.objects.filter(platform_type=PlatformTypes.ws.value).values_list("pk", flat=True))
+    return render(request, "chat/index.html", {"pc_ids": pc_ids})
 
 
-def room(request, conversation, fsm):
-    return render(request, "chat/room.html", {"conversation": conversation, "fsm": fsm})
+def room(request, conversation, pc_id):
+    return render(request, "chat/room.html", {"conversation": conversation, "pc_id": pc_id})

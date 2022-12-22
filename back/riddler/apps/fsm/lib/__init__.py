@@ -1,5 +1,5 @@
 from typing import Coroutine, List, NamedTuple, Text
-
+from rest_framework.request import Request
 from asgiref.sync import sync_to_async
 
 from riddler.apps.broker.models.message import Message
@@ -64,6 +64,12 @@ class FSMContext:
         raise NotImplementedError(
             "All classes that behave as contexts for machines should implement 'send_response'"
         )
+
+    def gather_platform_config(self, request: Request = None):
+        raise NotImplemented("Implement a method that gathers the fsm name")
+
+    def gather_conversation_id(self, mml: Message = None):
+        raise NotImplemented("Implement a method that gathers the conversation id")
 
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id

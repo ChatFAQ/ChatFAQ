@@ -16,7 +16,7 @@ router.register(r"platform_bots", views.PlatformBotView, basename="platform_bots
 urlpatterns = [
     path("", include(router.urls)),
     path("chat/", views.chat, name="chat"),
-    path("chat/<str:conversation>/<str:fsm>/", views.room, name="room"),
+    path("chat/<str:conversation>/<str:pc_id>/", views.room, name="room"),
 ]
 for pb in PlatformConfig.objects.all():
     if pb.platform_type == PlatformTypes.telegram.value:

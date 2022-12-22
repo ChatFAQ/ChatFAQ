@@ -7,12 +7,15 @@ from riddler.apps.fsm.lib import FSMContext
 from riddler.common.consumers import BotConsumer
 
 from .models.message import AgentType
+from .models.platform_config import PlatformConfig
 from .serializers.message import MessageSerializer
 
 
 class RiddlerConsumer(BotConsumer):
-    def gather_fsm_name(self):
-        return self.scope["url_route"]["kwargs"]["fsm"]
+
+    def gather_platform_config(self):
+        pk = self.scope["url_route"]["kwargs"]["pc_id"]
+        return PlatformConfig.objects.select_related("fsm_def").get(pk=pk)
 
     def gather_conversation_id(self):
         return self.scope["url_route"]["kwargs"]["conversation"]

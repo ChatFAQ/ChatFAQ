@@ -10,10 +10,10 @@
 <input id="chat-message-input" type="text" size="100"><br>
 <input id="chat-message-submit" type="button" value="Send">
 {{ conversation|json_script:"conversation" }}
-{{ fsm|json_script:"fsm" }}
+{{ pc_id|json_script:"pc_id" }}
 <script>
     const conversation = JSON.parse(document.getElementById('conversation').textContent);
-    const fsm = JSON.parse(document.getElementById('fsm').textContent);
+    const pc_id = JSON.parse(document.getElementById('pc_id').textContent);
 
     const chatSocket = new WebSocket(
         'ws://'
@@ -21,7 +21,7 @@
         + '/back/ws/broker/'
         + conversation
         + '/'
-        + fsm
+        + pc_id
         + '/'
     );
 

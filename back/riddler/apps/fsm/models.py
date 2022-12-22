@@ -47,16 +47,15 @@ class CachedFSM(ChangesMixin):
     fsm_def = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
 
     @classmethod
-    def update_or_create(cls, m: FSM):
-        instance = cls.objects.filter(conversation_id=m.ctx.conversation_id).first()
+    def update_or_create(cls, fsm: FSM):
+        instance = cls.objects.filter(conversation_id=fsm.ctx.conversation_id).first()
         if instance:
-            instance.current_state = m.current_state._asdict()
+            instance.current_state = fsm.current_state._asdict()
         else:
-            fsm = FSMDefinition.objects.get(name=m.ctx.fsm_name)
             instance = cls(
-                conversation_id=m.ctx.conversation_id,
-                current_state=m.current_state._asdict(),
-                fsm=fsm,
+                conversation_id=fsm.ctx.conversation_id,
+                current_state=fsm.current_state._asdict(),
+                fsm_def=fsm.ctx.platform_config.fsm_def,
             )
         instance.save()
 
