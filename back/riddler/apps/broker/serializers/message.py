@@ -141,7 +141,7 @@ class TelegramMessageSerializer(ToMMLSerializer):
     def to_mml(self) -> Message:
         s = MessageSerializer(
             data={
-                "payload": {"text": self.validated_data["message"]["text"]},
+                "stacks": [[{"type": "text", "payload": self.validated_data["message"]["text"]}]],
                 "transmitter": {
                     "first_name": self.validated_data["message"]["from"]["first_name"],
                     "type": AgentType.human.value,
