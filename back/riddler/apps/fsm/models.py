@@ -9,7 +9,7 @@ from riddler.common.models import ChangesMixin
 from .lib import Machine, MachineContext, State, Transition
 
 
-class FiniteStateMachine(ChangesMixin):
+class FSMDefinition(ChangesMixin):
     # TODO: Model 'definitions' inside DB ???
     name = models.CharField(null=True, unique=True, max_length=255)
     definition = models.JSONField(null=True)
@@ -43,7 +43,7 @@ class FiniteStateMachine(ChangesMixin):
 class CachedMachine(ChangesMixin):
     conversation_id = models.CharField(unique=True, max_length=255)
     current_state = models.JSONField(default=dict)
-    fsm = models.ForeignKey(FiniteStateMachine, on_delete=models.CASCADE)
+    fsm = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
 
     @classmethod
     def update_or_create(cls, m: Machine):
@@ -51,7 +51,7 @@ class CachedMachine(ChangesMixin):
         if instance:
             instance.current_state = m.current_state._asdict()
         else:
-            fsm = FiniteStateMachine.objects.get(name=m.ctx.fsm_name)
+            fsm = FSMDefinition.objects.get(name=m.ctx.fsm_name)
             instance = cls(
                 conversation_id=m.ctx.conversation_id,
                 current_state=m.current_state._asdict(),

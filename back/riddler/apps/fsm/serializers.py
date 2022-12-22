@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from .models import FiniteStateMachine
+from .models import FSMDefinition
 
 
 class FSMSerializer(serializers.ModelSerializer):
     class Meta:
-        model = FiniteStateMachine
+        model = FSMDefinition
         fields = "__all__"

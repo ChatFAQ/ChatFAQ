@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from rest_framework import viewsets
 
-from riddler.apps.fsm.models import FiniteStateMachine
+from riddler.apps.fsm.models import FSMDefinition
 
 from ..models.message import Message
 from ..models.platform_bot import PlatformBot
@@ -23,7 +23,7 @@ class PlatformBotView(LoginRequiredMixin, viewsets.ModelViewSet):
 
 
 def chat(request):
-    fsm_names = list(FiniteStateMachine.objects.values_list("name", flat=True))
+    fsm_names = list(FSMDefinition.objects.values_list("name", flat=True))
     return render(request, "chat/index.html", {"fsm_names": fsm_names})
 
 

@@ -48,12 +48,12 @@ class BotConsumer(AsyncJsonWebsocketConsumer, MachineContext):
         await self.channel_layer.group_discard(self.conversation_id, self.channel_name)
 
     async def initialize_machine(self):
-        from riddler.apps.fsm.models import FiniteStateMachine  # TODO: fix CI
+        from riddler.apps.fsm.models import FSMDefinition  # TODO: fix CI
 
         logger.debug(f"Creating new FSM ({self.fsm_name})")
 
         self.set_fsm_name(self.gather_fsm_name())
-        fsm = await sync_to_async(FiniteStateMachine.objects.get)(name=self.fsm_name)
+        fsm = await sync_to_async(FSMDefinition.objects.get)(name=self.fsm_name)
         return fsm.build_machine(self)
 
     async def receive_json(self, *args):

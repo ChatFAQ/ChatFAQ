@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from riddler.apps.broker.models.message import Message
 from riddler.apps.broker.serializers.message import BasicMessageSerializer, ToMMLSerializer
 from riddler.apps.fsm.lib import MachineContext
-from riddler.apps.fsm.models import CachedMachine, FiniteStateMachine
+from riddler.apps.fsm.models import CachedMachine, FSMDefinition
 from riddler.utils.logging_formatters import TIMESTAMP_FORMAT
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class BotView(APIView, MachineContext):
             logger.debug(
                 f"Starting new conversation ({self.conversation_id}), creating new FSM"
             )
-            fsm = FiniteStateMachine.objects.get(name=self.fsm_name)
+            fsm = FSMDefinition.objects.get(name=self.fsm_name)
             self.machine = fsm.build_machine(self)
             async_to_sync(self.machine.start)()
         else:
