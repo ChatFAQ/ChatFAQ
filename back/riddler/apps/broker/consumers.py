@@ -3,7 +3,7 @@ import time
 
 from asgiref.sync import sync_to_async
 
-from riddler.apps.fsm.lib import MachineContext
+from riddler.apps.fsm.lib import FSMContext
 from riddler.common.consumers import BotConsumer
 
 from .models.message import AgentType
@@ -17,7 +17,7 @@ class RiddlerConsumer(BotConsumer):
     def gather_conversation_id(self):
         return self.scope["url_route"]["kwargs"]["conversation"]
 
-    async def send_response(self, ctx: MachineContext, msg: str):
+    async def send_response(self, ctx: FSMContext, msg: str):
         await self.channel_layer.group_send(
             ctx.conversation_id, {"type": "response", "text": msg}
         )

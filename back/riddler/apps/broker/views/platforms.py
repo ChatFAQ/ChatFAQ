@@ -2,7 +2,7 @@ import requests
 
 from ..models.message import Message
 from ..serializers.message import TelegramMessageSerializer
-from riddler.apps.fsm.lib import MachineContext
+from riddler.apps.fsm.lib import FSMContext
 from riddler.common.views import BotView
 from riddler.config import settings
 
@@ -17,7 +17,7 @@ class TelegramBotView(BotView):
         return mml.conversation
 
     @staticmethod
-    async def send_response(ctx: MachineContext, msg: str):
+    async def send_response(ctx: FSMContext, msg: str):
         data = {
             "chat_id": ctx.conversation_id,
             "text": msg,

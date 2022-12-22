@@ -3,7 +3,7 @@ from django.contrib.postgres.fields import ArrayField as DjangoArrayField
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_better_admin_arrayfield.forms.widgets import DynamicArrayTextareaWidget
 
-from .models import CachedMachine, FSMDefinition
+from .models import CachedFSM, FSMDefinition
 
 
 class FSMDefinitionAdmin(admin.ModelAdmin, DynamicArrayMixin):
@@ -12,9 +12,9 @@ class FSMDefinitionAdmin(admin.ModelAdmin, DynamicArrayMixin):
     }
 
 
-class CachedMachineAdmin(admin.ModelAdmin):
+class CachedFSMAdmin(admin.ModelAdmin):
     pass
 
 
 admin.site.register(FSMDefinition, FSMDefinitionAdmin)
-admin.site.register(CachedMachine, CachedMachineAdmin)
+admin.site.register(CachedFSM, CachedFSMAdmin)

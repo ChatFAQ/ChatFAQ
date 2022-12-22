@@ -16,14 +16,14 @@ class PlatformBot(ChangesMixin):
     This represents the association between a message platform and a FSM
     Attributes
     ----------
-    fsm
+    fsm_def
         A reference to the finite state machine model
     platform_type : str
         Telegram, Whatsapp, etc...
     platform_meta : dict
         metadata specific to the platform itself, they often are tokens, api_urls, etc...
     """
-    fsm = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
+    fsm_def = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
     platform_type = models.CharField(max_length=255, choices=((v.value, v.value) for v in PlatformTypes))
     platform_meta = models.JSONField(default=dict)
 

@@ -8,14 +8,14 @@ from rest_framework.views import APIView
 
 from riddler.apps.broker.models.message import Message
 from riddler.apps.broker.serializers.message import BasicMessageSerializer, ToMMLSerializer
-from riddler.apps.fsm.lib import MachineContext
-from riddler.apps.fsm.models import CachedMachine, FSMDefinition
+from riddler.apps.fsm.lib import FSMContext
+from riddler.apps.fsm.models import CachedFSM, FSMDefinition
 from riddler.utils.logging_formatters import TIMESTAMP_FORMAT
 
 logger = logging.getLogger(__name__)
 
 
-class BotView(APIView, MachineContext):
+class BotView(APIView, FSMContext):
     """
     Abstract class all views representing an HTTP bot should inherit from,
     it takes care of the initialization and management of the fsm and
@@ -25,7 +25,7 @@ class BotView(APIView, MachineContext):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.machine = None
+        self.fsm = None
 
     def gather_fsm_name(self, data):
         raise NotImplemented("Implement a method that gathers the fsm name")
@@ -33,7 +33,7 @@ class BotView(APIView, MachineContext):
     def gather_conversation_id(self, mml: Message):
         raise NotImplemented("Implement a method that gathers the conversation id")
 
-    def resolve_machine(self):
+    def resolve_fsm(self):
         """
         It will try to get a cached FSM from a provided name or create a new one in case
         there is no one yet (when is a brand-new conversation_id)
@@ -43,21 +43,21 @@ class BotView(APIView, MachineContext):
             Whether or not it was able to create (new) or retrieve (cached) a FSM.
             If returns False most likely it is going be because a wrongly provided FSM name
         """
-        self.machine = CachedMachine.build_cached_fsm(self)
-        if not self.machine:
+        self.fsm = CachedFSM.build_fsm(self)
+        if not self.fsm:
             if self.fsm_name is None:
                 return False
             logger.debug(
                 f"Starting new conversation ({self.conversation_id}), creating new FSM"
             )
             fsm = FSMDefinition.objects.get(name=self.fsm_name)
-            self.machine = fsm.build_machine(self)
-            async_to_sync(self.machine.start)()
+            self.fsm = fsm.build_fsm(self)
+            async_to_sync(self.fsm.start)()
         else:
             logger.debug(
-                f"Continuing conversation ({self.conversation_id}), reusing cached conversation's FSM ({self.machine.cachedmachine_set.first().updated_date.strftime(TIMESTAMP_FORMAT)})"
+                f"Continuing conversation ({self.conversation_id}), reusing cached conversation's FSM ({CachedFSM.get_conv_updated_date(self)})"
             )
-            async_to_sync(self.machine.next_state)()
+            async_to_sync(self.fsm.next_state)()
         return True
 
     def post(self, request, *args, **kwargs):
@@ -70,7 +70,7 @@ class BotView(APIView, MachineContext):
             self.set_fsm_name(self.gather_fsm_name(request.data))
 
             with transaction.atomic():
-                self.resolve_machine()
+                self.resolve_fsm()
             return Response({"ok": "POST request processed"})
 
     @staticmethod

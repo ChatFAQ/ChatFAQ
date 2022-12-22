@@ -6,7 +6,8 @@ from typefit import typefit
 
 from riddler.common.models import ChangesMixin
 
-from .lib import Machine, MachineContext, State, Transition
+from .lib import FSM, FSMContext, State, Transition
+from ...utils.logging_formatters import TIMESTAMP_FORMAT
 
 
 class FSMDefinition(ChangesMixin):
@@ -15,8 +16,8 @@ class FSMDefinition(ChangesMixin):
     definition = models.JSONField(null=True)
     funcs = ArrayField(models.TextField(), default=list)
 
-    def build_machine(self, ctx: MachineContext, current_state: State = None):
-        m = Machine(
+    def build_fsm(self, ctx: FSMContext, current_state: State = None) -> FSM:
+        m = FSM(
             ctx=ctx,
             states=self.states,
             transitions=self.transitions,
@@ -25,7 +26,7 @@ class FSMDefinition(ChangesMixin):
         self.declare_ctx_functions(ctx)
         return m
 
-    def declare_ctx_functions(self, ctx: MachineContext):
+    def declare_ctx_functions(self, ctx: FSMContext):
         for f in self.funcs:
             loc = {}
             exec(f, globals(), loc)
@@ -40,13 +41,13 @@ class FSMDefinition(ChangesMixin):
         return typefit(List[Transition], self.definition.get("transitions", []))
 
 
-class CachedMachine(ChangesMixin):
+class CachedFSM(ChangesMixin):
     conversation_id = models.CharField(unique=True, max_length=255)
     current_state = models.JSONField(default=dict)
-    fsm = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
+    fsm_def = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
 
     @classmethod
-    def update_or_create(cls, m: Machine):
+    def update_or_create(cls, m: FSM):
         instance = cls.objects.filter(conversation_id=m.ctx.conversation_id).first()
         if instance:
             instance.current_state = m.current_state._asdict()
@@ -60,11 +61,17 @@ class CachedMachine(ChangesMixin):
         instance.save()
 
     @classmethod
-    def build_cached_fsm(cls, ctx: MachineContext):
+    def build_fsm(cls, ctx: FSMContext) -> FSM:
         instance = cls.objects.filter(conversation_id=ctx.conversation_id).first()
         if instance:
-            return instance.fsm.build_machine(
+            return instance.fsm_def.build_fsm(
                 ctx, typefit(State, instance.current_state)
             )
 
         return None
+
+    @classmethod
+    def get_conv_updated_date(cls, ctx: FSMContext):
+        instance = cls.objects.filter(conversation_id=ctx.conversation_id).first()
+        if instance:
+            instance.updated_date.strftime(TIMESTAMP_FORMAT)

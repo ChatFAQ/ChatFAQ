@@ -48,7 +48,7 @@ class Transition(NamedTuple):
     unless: List[Text] = []
 
 
-class MachineContext:
+class FSMContext:
     """
     Abstract class all http views/WS representing a bot should inherit from,
     this way we have a generic and shared functionality across the different
@@ -81,10 +81,10 @@ class MachineContext:
         )()
 
 
-class Machine:
+class FSM:
     def __init__(
         self,
-        ctx: MachineContext,
+        ctx: FSMContext,
         states: List[State],
         transitions: List[Transition],
         current_state: State = None,
@@ -156,6 +156,6 @@ class Machine:
         return max_score - un_max_score, data
 
     async def save_cache(self):
-        from riddler.apps.fsm.models import CachedMachine  # TODO: Resolve CI
+        from riddler.apps.fsm.models import CachedFSM  # TODO: Resolve CI
 
-        await sync_to_async(CachedMachine.update_or_create)(self)
+        await sync_to_async(CachedFSM.update_or_create)(self)
