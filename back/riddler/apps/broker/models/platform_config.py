@@ -2,7 +2,6 @@ from enum import Enum
 
 from django.db import models
 
-from riddler.apps.fsm.models import FSMDefinition
 from riddler.common.models import ChangesMixin
 
 
@@ -11,7 +10,7 @@ class PlatformTypes(Enum):
     ws = "ws"
 
 
-class PlatformBot(ChangesMixin):
+class PlatformConfig(ChangesMixin):
     """
     This represents the association between a message platform and a FSM
     Attributes
@@ -23,7 +22,7 @@ class PlatformBot(ChangesMixin):
     platform_meta : dict
         metadata specific to the platform itself, they often are tokens, api_urls, etc...
     """
-    fsm_def = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
+    fsm_def = models.ForeignKey("fsm.FSMDefinition", on_delete=models.CASCADE)
     platform_type = models.CharField(max_length=255, choices=((v.value, v.value) for v in PlatformTypes))
     platform_meta = models.JSONField(default=dict)
 

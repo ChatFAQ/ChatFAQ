@@ -1,6 +1,7 @@
 import requests
 
 from ..models.message import Message
+from ..models.platform_config import PlatformConfig
 from ..serializers.message import TelegramMessageSerializer
 from riddler.apps.fsm.lib import FSMContext
 from riddler.common.views import BotView
@@ -10,8 +11,9 @@ from riddler.config import settings
 class TelegramBotView(BotView):
     serializer_class = TelegramMessageSerializer
 
-    def gather_fsm_name(self, data):
-        return "test"
+    def gather_platform_config(self, request):
+        token = request.stream.path.split("/")[-1]
+        return PlatformConfig.objects.get(platform_meta__token=token)
 
     def gather_conversation_id(self, mml: Message):
         return mml.conversation
@@ -24,5 +26,5 @@ class TelegramBotView(BotView):
             "parse_mode": "Markdown",
         }
         requests.post(
-            f"{settings.TG_BOT_API_URL}{settings.TG_TOKEN}/sendMessage", data=data
+            f"{ctx.platform_config.platform_meta['api_url']}{ctx.platform_config.platform_meta['token']}/sendMessage", data=data
         )

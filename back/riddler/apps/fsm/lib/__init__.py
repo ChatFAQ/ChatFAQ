@@ -4,7 +4,7 @@ from asgiref.sync import sync_to_async
 
 from riddler.apps.broker.models.message import Message
 from logging import getLogger
-
+from riddler.apps.broker.models.platform_config import PlatformConfig
 logger = getLogger(__name__)
 
 
@@ -56,8 +56,8 @@ class FSMContext:
     making the FSM states access to this 'connection' functionality
     """
     def __init__(self, *args, **kargs):
-        self.conversation_id = None
-        self.fsm_name = None
+        self.conversation_id: str = None
+        self.platform_config: PlatformConfig = None
         super().__init__(*args, **kargs)
 
     async def send_response(self, *args, **kargs):
@@ -68,8 +68,8 @@ class FSMContext:
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id
 
-    def set_fsm_name(self, fsm_name):
-        self.fsm_name = fsm_name
+    def set_platform_config(self, platform_config):
+        self.platform_config = platform_config
 
     async def get_last_mml(
         self,

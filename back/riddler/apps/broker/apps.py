@@ -15,15 +15,15 @@ class BrokerConfig(AppConfig):
     name = "riddler.apps.broker"
 
     def ready(self):
-        from .models.platform_bot import PlatformTypes
-        PlatformBot = apps.get_model('broker', 'PlatformBot')
+        from .models.platform_config import PlatformTypes
+        PlatformConfig = apps.get_model('broker', 'PlatformConfig')
 
-        for pb in PlatformBot.objects.all():
-            if pb.platform_type == PlatformTypes.telegram.value:
-                webhookUrl = urljoin(settings.BASE_URL, reverse(pb.platform_view_name()))
+        for pc in PlatformConfig.objects.all():
+            if pc.platform_type == PlatformTypes.telegram.value:
+                webhookUrl = urljoin(settings.BASE_URL, reverse(pc.platform_view_name()))
                 logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
                 res = requests.get(
-                    f"{pb.platform_meta['api_url']}{pb.platform_meta['token']}/setWebhook",
+                    f"{pc.platform_meta['api_url']}{pc.platform_meta['token']}/setWebhook",
                     params={"url": webhookUrl},
                 )
                 if res.ok:

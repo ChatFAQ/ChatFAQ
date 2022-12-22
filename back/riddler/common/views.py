@@ -27,7 +27,7 @@ class BotView(APIView, FSMContext):
         super().__init__(*args, **kwargs)
         self.fsm = None
 
-    def gather_fsm_name(self, data):
+    def gather_platform_config(self, request):
         raise NotImplemented("Implement a method that gathers the fsm name")
 
     def gather_conversation_id(self, mml: Message):
@@ -45,13 +45,12 @@ class BotView(APIView, FSMContext):
         """
         self.fsm = CachedFSM.build_fsm(self)
         if not self.fsm:
-            if self.fsm_name is None:
+            if self.platform_config is None:
                 return False
             logger.debug(
                 f"Starting new conversation ({self.conversation_id}), creating new FSM"
             )
-            fsm = FSMDefinition.objects.get(name=self.fsm_name)
-            self.fsm = fsm.build_fsm(self)
+            self.fsm = self.platform_config.fsm_def.build_fsm(self)
             async_to_sync(self.fsm.start)()
         else:
             logger.debug(
@@ -67,7 +66,7 @@ class BotView(APIView, FSMContext):
         else:
             mml = serializer.to_mml()
             self.set_conversation_id(self.gather_conversation_id(mml.conversation))
-            self.set_fsm_name(self.gather_fsm_name(request.data))
+            self.set_platform_config(self.gather_platform_config(request))
 
             with transaction.atomic():
                 self.resolve_fsm()
