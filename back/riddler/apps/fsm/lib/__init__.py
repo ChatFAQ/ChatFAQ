@@ -18,9 +18,6 @@ class State(NamedTuple):
         A list of strings which are the function's names needed to be executed right after we enter the state
     initial: bool
         It defines the initial state, there should only be 1
-    ubiquitous: bool
-        It describes a state that can be accessed from any other state, it is just a shortcut for not adding this state
-        to all the rest ones in the transitions definition
     """
     name: Text
     events: List[Text] = []
@@ -34,6 +31,8 @@ class Transition(NamedTuple):
     ----------
     source: str
         'from' state
+        If source = None then it describes a state that can be accessed from any other state,
+        referred as an 'ubiquitous state'.
     dest: str
         'to' state
     conditions: List of str
@@ -42,8 +41,8 @@ class Transition(NamedTuple):
     unless: List of str
         The same as conditions but considering the function with a 'not' operator in front of it
     """
-    source: Text
     dest: Text
+    source: Text = None
     conditions: List[Text] = []
     unless: List[Text] = []
 
@@ -152,6 +151,7 @@ class FSM:
             await getattr(self.ctx, event)(transition_data)
 
     def get_initial_state(self):
+
         for state in self.states:
             if state.initial:
                 return state
@@ -163,7 +163,7 @@ class FSM:
                 return state
 
     def get_current_state_transitions(self):
-        return filter(lambda t: t.source == self.current_state.name, self.transitions)
+        return filter(lambda t: t.source == self.current_state.name or t.source is None, self.transitions)
 
     async def check_transition_condition(self, transition):
         """
