@@ -5,6 +5,7 @@ from asgiref.sync import sync_to_async, async_to_sync
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.apps.fsm.lib import FSM, FSMContext
+from riddler.utils import WSStatusCodes
 
 logger = getLogger(__name__)
 
@@ -52,7 +53,7 @@ class BotConsumer(AsyncJsonWebsocketConsumer, FSMContext):
         serializer = self.serializer_class(data=args[0])
         if not await sync_to_async(serializer.is_valid)():
             await self.channel_layer.group_send(
-                self.conversation_id, {"type": "response", "errors": serializer.errors}
+                self.conversation_id, {"type": "response", "status": WSStatusCodes.bad_request.value, "payload": serializer.errors}
             )
         else:
             @transaction.atomic()
@@ -60,3 +61,6 @@ class BotConsumer(AsyncJsonWebsocketConsumer, FSMContext):
                 _serializer.save()
                 async_to_sync(self.fsm.next_state)()
             await sync_to_async(_aux)(serializer)
+
+    async def response(self, data: dict):
+        raise NotImplemented("'response' method should be implemented for all bot consumers")

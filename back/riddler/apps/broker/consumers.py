@@ -9,6 +9,7 @@ from riddler.common.consumers import BotConsumer
 from .models.message import AgentType
 from .models.platform_config import PlatformConfig
 from .serializers.message import MessageSerializer
+from ...utils import WSStatusCodes
 
 
 class RiddlerConsumer(BotConsumer):
@@ -22,10 +23,13 @@ class RiddlerConsumer(BotConsumer):
 
     async def send_response(self, ctx: FSMContext, msg: str):
         await self.channel_layer.group_send(
-            ctx.conversation_id, {"type": "response", "text": msg}
+            ctx.conversation_id, {"type": "response", "status": WSStatusCodes.ok.value, "payload": msg}
         )
 
     async def response(self, data: dict):
+        if not WSStatusCodes.is_ok(data["status"]):
+            await self.send(json.dumps(data))
+
         last_mml = await self.get_last_mml()
         serializer = MessageSerializer(
             data={
@@ -35,7 +39,7 @@ class RiddlerConsumer(BotConsumer):
                 "confidence": 1,
                 "stacks": [[{
                     "type": "text",
-                    "payload": data["text"],
+                    "payload": data["payload"],
                 }]],
                 "conversation": self.conversation_id,
                 "send_time": int(time.time() * 1000),
@@ -45,4 +49,4 @@ class RiddlerConsumer(BotConsumer):
         await sync_to_async(serializer.is_valid)()
         await sync_to_async(serializer.save)()
         # Send message to WebSocket
-        await self.send(json.dumps(serializer.data))
+        await self.send(json.dumps({**serializer.data, "status": data["status"]}))

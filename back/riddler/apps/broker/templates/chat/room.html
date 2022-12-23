@@ -27,7 +27,10 @@
 
     chatSocket.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        document.querySelector('#chat-log').value += data["stacks"][0][0]["payload"] + "\n";
+        if (data["status"] >= 400)
+            document.querySelector('#chat-log').value += JSON.stringify(data["payload"]) + "\n";
+        else
+            document.querySelector('#chat-log').value += data["stacks"][0][0]["payload"] + "\n";
     };
 
     chatSocket.onclose = function (e) {
