@@ -6,6 +6,7 @@ from django.apps import AppConfig, apps
 from django.urls import reverse
 
 from riddler.config import settings
+from riddler.utils import is_migrating
 
 logger = getLogger(__name__)
 
@@ -17,6 +18,9 @@ class BrokerConfig(AppConfig):
     def ready(self):
         from .models.platform_config import PlatformTypes
         PlatformConfig = apps.get_model('broker', 'PlatformConfig')
+
+        if is_migrating():
+            return
 
         for pc in PlatformConfig.objects.all():
             if pc.platform_type == PlatformTypes.telegram.value:
