@@ -1,6 +1,6 @@
 [
 {
-    "model": "fsm.finitestatemachine",
+    "model": "fsm.fsmdefinition",
     "pk": 1,
     "fields": {
         "created_date": "2022-11-29T14:11:38.579",
