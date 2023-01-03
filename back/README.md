@@ -24,6 +24,8 @@ We still have not deployed a public stable first release to pypi
 Install machine requirements:
 
 - Python 3.10
+- python3.10-dev
+- python3.10-distutils
 - PostgreSQL
 - gdal-bin
 - poetry
