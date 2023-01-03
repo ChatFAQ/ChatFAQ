@@ -17,7 +17,7 @@ class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
 
 
 # TODO: @extend_schema for platform_types <-> platform_meta
-class PlatformBotView(LoginRequiredMixin, viewsets.ModelViewSet):
+class PlatformConfigView(LoginRequiredMixin, viewsets.ModelViewSet):
     queryset = PlatformConfig.objects.all()
     serializer_class = PlatformConfigSerializer
 

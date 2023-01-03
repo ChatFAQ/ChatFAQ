@@ -11,7 +11,7 @@ from ...utils import is_migrating
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r"messages", views.MessageView, basename="messages")
-router.register(r"platform_bots", views.PlatformBotView, basename="platform_bots")
+router.register(r"platform_bots", views.PlatformConfigView, basename="platform_bots")
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
