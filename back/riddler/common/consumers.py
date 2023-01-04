@@ -54,8 +54,8 @@ class AbsBotConsumer(AsyncJsonWebsocketConsumer, FSMContext, ABC):
         # TODO: Support cached FSM ???
         return self.platform_config.fsm_def.build_fsm(self)
 
-    async def receive_json(self, *args):
-        serializer = self.serializer_class(data=args[0])
+    async def receive_json(self, content, **kwargs):
+        serializer = self.serializer_class(data=content)
         if not await sync_to_async(serializer.is_valid)():
             await self.channel_layer.group_send(
                 self.conversation_id, {"type": "response", "status": WSStatusCodes.bad_request.value, "payload": serializer.errors}

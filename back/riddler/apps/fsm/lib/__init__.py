@@ -195,9 +195,15 @@ class FSM:
 
         group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
         async_to_sync(self.channel_layer.group_send({
-            group_name,
-            {"type": "response", "status": WSStatusCodes.ok.value, "payload": {"name": condition_name}}
+            group_name, {
+                "type": "response",
+                "status": WSStatusCodes.ok.value,
+                "payload": {
+                    "name": condition_name, "conversation_id": self.ctx.conversation_id
+                }}
         }))
+        # # Return response with:
+        # return await RPCResponseLayer.fetch(conversation_id)  # pools until response
 
     async def save_cache(self):
         from riddler.apps.fsm.models import CachedFSM  # TODO: Resolve CI

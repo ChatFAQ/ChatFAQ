@@ -40,7 +40,12 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         # Leave room group
         await self.channel_layer.group_discard(self.conversation_id, self.channel_name)
 
-    async def receive_json(self, *args):
+    async def receive_json(self, content, **kwargs):
+        # # Return response with:
+        # serializer = RPCResponseSerializer(data=json.loads(content))
+        # serializer.is_valid(raise_exception=True)
+        # content = json.loads(content)
+        # await RPCResponseLayer.notify(serializer.data, serializer.data["conversation_id"])
         pass
 
     async def response(self, data: dict):
