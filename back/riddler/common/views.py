@@ -13,7 +13,7 @@ from riddler.apps.fsm.models import CachedFSM
 logger = logging.getLogger(__name__)
 
 
-class BotView(APIView, FSMContext):
+class AbsBotView(APIView, FSMContext):
     """
     Abstract class all views representing an HTTP bot should inherit from,
     it takes care of the initialization and management of the fsm and

@@ -4,15 +4,21 @@ import time
 from asgiref.sync import sync_to_async
 
 from riddler.apps.fsm.lib import FSMContext
-from riddler.common.consumers import BotConsumer
+from riddler.common.consumers import AbsBotConsumer
 
-from .models.message import AgentType
-from .models.platform_config import PlatformConfig
-from .serializers.message import MessageSerializer
-from ...utils import WSStatusCodes
+from ..models.message import AgentType
+from ..models.platform_config import PlatformConfig
+from ..serializers.message import MessageSerializer
+from riddler.utils import WSStatusCodes
 
 
-class RiddlerConsumer(BotConsumer):
+class ExampleBotConsumer(AbsBotConsumer):
+    """
+    A very simple implementation of the AbsBotConsumer just to show how could a Riddler bot work
+    """
+    from riddler.apps.broker.serializers.message import MessageSerializer  # TODO: resolve CI
+
+    serializer_class = MessageSerializer
 
     def gather_platform_config(self):
         pk = self.scope["url_route"]["kwargs"]["pc_id"]
@@ -23,7 +29,7 @@ class RiddlerConsumer(BotConsumer):
 
     async def send_response(self, ctx: FSMContext, msg: str):
         await self.channel_layer.group_send(
-            ctx.conversation_id, {"type": "response", "status": WSStatusCodes.ok.value, "payload": msg}
+            self.get_group_name(), {"type": "response", "status": WSStatusCodes.ok.value, "payload": msg}
         )
 
     async def response(self, data: dict):

@@ -1,10 +1,13 @@
-from typing import Coroutine, List, NamedTuple, Text
+from channels.layers import get_channel_layer
+from typing import List, NamedTuple, Text
 from rest_framework.request import Request
-from asgiref.sync import sync_to_async
+from asgiref.sync import sync_to_async, async_to_sync
 
 from riddler.apps.broker.models.message import Message
 from logging import getLogger
 from riddler.apps.broker.models.platform_config import PlatformConfig
+from riddler.utils import WSStatusCodes
+
 logger = getLogger(__name__)
 
 
@@ -78,7 +81,7 @@ class FSMContext:
 
     async def get_last_mml(
         self,
-    ) -> Message:  # TODO: property return type for a coroutine
+    ) -> Message:
         return await sync_to_async(
             Message.objects.filter(conversation=self.conversation_id)
             .order_by("-created_date")
@@ -91,6 +94,8 @@ class FSM:
     FSM as in "Finite-State Machine".
     Bots are represented as a FSM: states are the various states of the bot.
     """
+    channel_layer = get_channel_layer()
+
     def __init__(
         self,
         ctx: FSMContext,
@@ -148,7 +153,7 @@ class FSM:
 
     async def run_current_state_events(self, transition_data={}):
         for event in self.current_state.events:
-            await getattr(self.ctx, event)(transition_data)
+            await getattr(self.ctx, event)(transition_data)  # call run_condition and wait
 
     def get_initial_state(self):
 
@@ -171,19 +176,28 @@ class FSM:
         """
         max_score = 0 if transition.conditions else 1
         data = {}
-        for condition in transition.conditions:
-            score, _data = await getattr(self.ctx, condition)()
+        for condition_name in transition.conditions:
+            score, _data = await getattr(self.ctx, condition_name)()  # call run_condition and wait
             if score > max_score:
                 max_score = score
                 data = _data
 
         un_max_score = 0
-        for condition in transition.unless:
-            score, _ = await getattr(self.ctx, condition)()
+        for condition_name in transition.unless:
+            score, _ = await getattr(self.ctx, condition_name)()  # call run_condition and wait
             if score > un_max_score:
                 un_max_score = score
 
         return max_score - un_max_score, data
+
+    def run_condition(self, condition_name):
+        from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+
+        group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
+        async_to_sync(self.channel_layer.group_send({
+            group_name,
+            {"type": "response", "status": WSStatusCodes.ok.value, "payload": {"name": condition_name}}
+        }))
 
     async def save_cache(self):
         from riddler.apps.fsm.models import CachedFSM  # TODO: Resolve CI

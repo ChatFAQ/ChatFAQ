@@ -5,7 +5,7 @@ from .models.platform_config import PlatformConfig
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ["payload_text", "transmitter_type", "conversation"]
+    list_display = ["transmitter_type", "conversation", "stacks"]
 
     def payload_text(self, obj):
         return obj.payload["text"]

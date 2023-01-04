@@ -1,3 +1,4 @@
+from abc import ABC
 from logging import getLogger
 from django.db import transaction
 
@@ -10,20 +11,24 @@ from riddler.utils import WSStatusCodes
 logger = getLogger(__name__)
 
 
-class BotConsumer(AsyncJsonWebsocketConsumer, FSMContext):
+class AbsBotConsumer(AsyncJsonWebsocketConsumer, FSMContext, ABC):
     """
     Abstract class all views representing an WS bot should inherit from,
     it takes care of the initialization and management of the fsm and
     the persistence of the sending/receiving MMLs into the database
     """
-    from riddler.apps.broker.serializers.message import MessageSerializer  # TODO: resolve CI
-
-    serializer_class = MessageSerializer
+    serializer_class = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.serializer_class is None:
+            raise Exception("serializer_class should not be None on any BotConsumer")
+
         self.fsm: FSM = None
         self.fsm_name: str = None
+
+    def get_group_name(self):
+        return f"bot_{self.conversation_id}"
 
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
@@ -33,14 +38,14 @@ class BotConsumer(AsyncJsonWebsocketConsumer, FSMContext):
         )
 
         # Join room group
-        await self.channel_layer.group_add(self.conversation_id, self.channel_name)
+        await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
         await self.accept()
         await self.fsm.start()
 
     async def disconnect(self, close_code):
         logger.debug(f"Disconnecting from WS conversation ({self.conversation_id})")
         # Leave room group
-        await self.channel_layer.group_discard(self.conversation_id, self.channel_name)
+        await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
 
     async def initialize_fsm(self):
         logger.debug(f"Creating new FSM ({self.fsm_name})")

@@ -4,11 +4,11 @@ from ..models.message import Message
 from ..models.platform_config import PlatformConfig
 from ..serializers.message import TelegramMessageSerializer
 from riddler.apps.fsm.lib import FSMContext
-from riddler.common.views import BotView
+from riddler.common.views import AbsBotView
 from riddler.config import settings
 
 
-class TelegramBotView(BotView):
+class TelegramBotView(AbsBotView):
     serializer_class = TelegramMessageSerializer
 
     def gather_platform_config(self, request):
