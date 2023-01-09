@@ -11,6 +11,9 @@ isort:
 run:
 	./manage.py runserver 8000
 
+run_daphne:
+	daphne riddler.config.asgi:application
+
 spectacular:
 	./manage.py spectacular --file schema.yml
 

@@ -1,8 +1,9 @@
 from abc import ABC
 from logging import getLogger
+
+from asgiref.sync import async_to_sync, sync_to_async
 from django.db import transaction
 
-from asgiref.sync import sync_to_async, async_to_sync
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.apps.fsm.lib import FSM, FSMContext
@@ -27,20 +28,23 @@ class AbsBotConsumer(AsyncJsonWebsocketConsumer, FSMContext, ABC):
         self.fsm: FSM = None
         self.fsm_name: str = None
 
+    @staticmethod
+    def create_group_name(conversation_id):
+        return f"bot_{conversation_id}"
+
     def get_group_name(self):
-        return f"bot_{self.conversation_id}"
+        return self.create_group_name(self.conversation_id)
 
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
         self.fsm = await self.initialize_fsm()
-        logger.debug(
-            f"Starting new WS conversation ({self.conversation_id}), creating new FSM"
-        )
-
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
         await self.accept()
         await self.fsm.start()
+        logger.debug(
+            f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
+        )
 
     async def disconnect(self, close_code):
         logger.debug(f"Disconnecting from WS conversation ({self.conversation_id})")
@@ -58,14 +62,19 @@ class AbsBotConsumer(AsyncJsonWebsocketConsumer, FSMContext, ABC):
         serializer = self.serializer_class(data=content)
         if not await sync_to_async(serializer.is_valid)():
             await self.channel_layer.group_send(
-                self.conversation_id, {"type": "response", "status": WSStatusCodes.bad_request.value, "payload": serializer.errors}
+                self.get_group_name(), {"type": "response", "status": WSStatusCodes.bad_request.value, "payload": serializer.errors}
             )
         else:
-            @transaction.atomic()
-            def _aux(_serializer):
-                _serializer.save()
-                async_to_sync(self.fsm.next_state)()
-            await sync_to_async(_aux)(serializer)
+            # It seems like django does not support transactions on async code
+            # The commented code seems right but it is not: it blocks the save() methods inside from the RPCResponseConsumer
+            # @transaction.atomic()
+            # def _aux(_serializer):
+            #     _serializer.save()
+            #     async_to_sync(self.fsm.next_state)()
+            # await sync_to_async(_aux)(serializer)
+
+            await sync_to_async(serializer.save)()
+            await self.fsm.next_state()
 
     async def response(self, data: dict):
         raise NotImplemented("'response' method should be implemented for all bot consumers")

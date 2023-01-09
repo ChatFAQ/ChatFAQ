@@ -20,6 +20,7 @@ eggs/
 .eggs/
 lib/
 !back/riddler/apps/fsm/lib/
+!back/riddler/apps/broker/lib/
 lib64/
 parts/
 sdist/

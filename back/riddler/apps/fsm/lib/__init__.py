@@ -1,8 +1,10 @@
+from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
+from django.forms import model_to_dict
 from typing import List, NamedTuple, Text
 from rest_framework.request import Request
-from asgiref.sync import sync_to_async, async_to_sync
 
+from riddler.apps.broker.lib import RPCResponseLayer
 from riddler.apps.broker.models.message import Message
 from logging import getLogger
 from riddler.apps.broker.models.platform_config import PlatformConfig
@@ -87,6 +89,16 @@ class FSMContext:
             .order_by("-created_date")
             .first
         )()
+
+    async def serialize(self):
+        """
+        We serialize the ctx just so we can send it to the RPC Servers
+        """
+        last_mml = model_to_dict((await self.get_last_mml()), fields=["stacks"])
+        return {
+            "conversation_id": self.conversation_id,
+            "last_mml": last_mml,
+        }
 
 
 class FSM:
@@ -177,33 +189,48 @@ class FSM:
         max_score = 0 if transition.conditions else 1
         data = {}
         for condition_name in transition.conditions:
-            score, _data = await getattr(self.ctx, condition_name)()  # call run_condition and wait
+            score, _data = await self.run_condition(condition_name)
             if score > max_score:
                 max_score = score
                 data = _data
 
         un_max_score = 0
         for condition_name in transition.unless:
-            score, _ = await getattr(self.ctx, condition_name)()  # call run_condition and wait
+            score, _ = await self.run_condition(condition_name)
             if score > un_max_score:
                 un_max_score = score
 
         return max_score - un_max_score, data
 
-    def run_condition(self, condition_name):
+    async def run_condition(self, condition_name):
+        """
+        It will call the RPC server, 'condition_name' is the procedure the remote server should run
+        Then it will wait util the response is back into the databse
+        Parameters
+        ----------
+        condition_name: str
+            Name of the remote procedure to call
+
+        Returns
+        -------
+        tuple[float, dict]
+            The first float indicates the score, the returning dictionary is the result of the RPC
+
+        """
         from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
         group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
-        async_to_sync(self.channel_layer.group_send({
-            group_name, {
-                "type": "response",
-                "status": WSStatusCodes.ok.value,
-                "payload": {
-                    "name": condition_name, "conversation_id": self.ctx.conversation_id
-                }}
-        }))
-        # # Return response with:
-        # return await RPCResponseLayer.fetch(conversation_id)  # pools until response
+        data = {
+            "type": "response",
+            "status": WSStatusCodes.ok.value,
+            "payload": {
+                "name": condition_name,
+                "ctx": await self.ctx.serialize()
+            }
+        }
+        await self.channel_layer.group_send(group_name, data)
+        payload = await RPCResponseLayer.poll(self.ctx.conversation_id)
+        return payload["score"], payload["data"]
 
     async def save_cache(self):
         from riddler.apps.fsm.models import CachedFSM  # TODO: Resolve CI
