@@ -3,6 +3,10 @@ import websockets
 import json
 from logging import getLogger
 
+from riddler_sdk import settings
+
+settings.configure()
+
 logger = getLogger()
 
 
@@ -27,8 +31,8 @@ class RiddlerSDK:
             while True:
                 logger.info("Waiting...")
                 data = await websocket.recv()
-                logger.info(f"Executing handler ::: {data['name']}")
                 data = json.loads(data)
+                logger.info(f"Executing handler ::: {data['name']}")
                 for handler in self.rpcs[data["name"]]:
                     res = handler(data["ctx"])
                     await websocket.send(json.dumps(
