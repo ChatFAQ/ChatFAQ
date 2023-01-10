@@ -1,10 +1,11 @@
+import asyncio
+
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
 from django.forms import model_to_dict
 from typing import List, NamedTuple, Text
 from rest_framework.request import Request
 
-from riddler.apps.broker.lib import RPCResponseLayer
 from riddler.apps.broker.models.message import Message
 from logging import getLogger
 from riddler.apps.broker.models.platform_config import PlatformConfig
@@ -131,6 +132,7 @@ class FSM:
         self.ctx = ctx
         self.states = states
         self.transitions = transitions
+        self.rpc_result_future: asyncio.Future = None
 
         self.current_state = current_state
         if not current_state:
@@ -229,7 +231,8 @@ class FSM:
             }
         }
         await self.channel_layer.group_send(group_name, data)
-        payload = await RPCResponseLayer.poll(self.ctx.conversation_id)
+        self.rpc_result_future = asyncio.get_event_loop().create_future()
+        payload = await self.rpc_result_future
         return payload["score"], payload["data"]
 
     async def save_cache(self):

@@ -1,12 +1,10 @@
 import json
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-
-from riddler.apps.broker.models.rpc import RPCResponse
 from riddler.apps.broker.serializers.rpc import RPCResponseSerializer
 from riddler.apps.fsm.serializers import FSMSerializer
+from riddler.common.consumers import AbsBotConsumer
 from riddler.utils import WSStatusCodes
 
 logger = getLogger(__name__)
@@ -50,7 +48,13 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
     async def receive_json(self, content, **kwargs):
         serializer = RPCResponseSerializer(data=content)
         serializer.is_valid(raise_exception=True)
-        await sync_to_async(serializer.save)()
+        data = {
+            "type": "rpc_response",
+            "status": WSStatusCodes.ok.value,
+            "payload": serializer.data["payload"]
+        }
+        conversation_id = content["ctx"]["conversation_id"]
+        await self.channel_layer.group_send(AbsBotConsumer.create_group_name(conversation_id), data)
 
     async def response(self, data: dict):
         if not WSStatusCodes.is_ok(data["status"]):

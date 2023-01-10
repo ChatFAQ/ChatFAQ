@@ -1,3 +1,5 @@
+import asyncio
+
 from abc import ABC
 from logging import getLogger
 
@@ -8,11 +10,12 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.apps.fsm.lib import FSM, FSMContext
 from riddler.utils import WSStatusCodes
+from riddler.utils.custom_channels import CustomAsyncConsumer
 
 logger = getLogger(__name__)
 
 
-class AbsBotConsumer(AsyncJsonWebsocketConsumer, FSMContext, ABC):
+class AbsBotConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer, FSMContext, ABC):
     """
     Abstract class all views representing an WS bot should inherit from,
     it takes care of the initialization and management of the fsm and
@@ -75,6 +78,9 @@ class AbsBotConsumer(AsyncJsonWebsocketConsumer, FSMContext, ABC):
 
             await sync_to_async(serializer.save)()
             await self.fsm.next_state()
+
+    async def rpc_response(self, data: dict):
+        self.fsm.rpc_result_future.set_result(data["payload"])
 
     async def response(self, data: dict):
         raise NotImplemented("'response' method should be implemented for all bot consumers")

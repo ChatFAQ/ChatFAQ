@@ -1,7 +1,5 @@
 from rest_framework import serializers
 
-from riddler.apps.broker.models.rpc import RPCResponse
-
 
 class CtxSerializer(serializers.Serializer):
     conversation_id = serializers.CharField(max_length=255)
@@ -13,9 +11,15 @@ class PayloadSerializer(serializers.Serializer):
 
 
 class RPCResponseSerializer(serializers.ModelSerializer):
+    """
+    This represent the communication layer between the RPC consumer and the Bot Consumer/View
+    Attributes
+    ----------
+    ctx: dict
+        The conversation ctx to which the RPC is giving a result, this json has to have a "conversation_id" key just so
+        the RPC Consumer knows to which Bot Consumer/View should send the data
+    payload: dict
+        The RPC response payload
+    """
     ctx = CtxSerializer()
     payload = PayloadSerializer()
-
-    class Meta:
-        model = RPCResponse
-        fields = "__all__"
