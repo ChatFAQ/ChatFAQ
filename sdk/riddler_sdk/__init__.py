@@ -21,29 +21,39 @@ class RiddlerSDK:
         self.riddler_host = riddler_host
         self.fsm_id = fsm_id
         self.rpcs = {}
+        self.uri = ""
+        self.ws = None
 
     async def _connect(self):
-        uri = f"{self.riddler_host}back/ws/broker/rpc/"
+        self.uri = f"{self.riddler_host}back/ws/broker/rpc/"
         if self.fsm_id is not None:
-            uri = f"{self.riddler_host}back/ws/broker/rpc/{self.fsm_id}/"
-        try:
-            async with websockets.connect(uri) as websocket:
-                logger.info(f"Connected to: {uri}")
-                await self.receive_loop(websocket)
-        except (websockets.ConnectionClosed, ConnectionRefusedError):
-            logger.info(f"Disconnected from {uri}, trying to reconnect in 1s")
-            await asyncio.sleep(1)
-            await self._connect()
+            self.uri = f"{self.riddler_host}back/ws/broker/rpc/{self.fsm_id}/"
+        connection_error = True
+        while connection_error:
+            try:
+                async with websockets.connect(self.uri) as ws:
+                    self.ws = ws
+                    logger.info(f"Connected to: {self.uri}")
+                    await self.receive_loop()
+            except (websockets.ConnectionClosed, ConnectionRefusedError):
+                logger.info(f"Disconnected from {self.uri}, trying to reconnect in 1s")
+                await asyncio.sleep(1)
+            else:
+                connection_error = False
 
-    async def receive_loop(self, websocket):
+    async def _disconnect(self):
+        logger.info(f"Disconnecting from: {self.uri}")
+        await self.ws.close()
+
+    async def receive_loop(self):
         while True:
             logger.info("Waiting...")
-            data = await websocket.recv()
+            data = await self.ws.recv()
             data = json.loads(data)
             logger.info(f"Executing handler ::: {data['name']}")
             for handler in self.rpcs[data["name"]]:
                 res = handler(data["ctx"])
-                await websocket.send(json.dumps(
+                await self.ws.send(json.dumps(
                     {
                         "ctx": data["ctx"],
                         "payload": res,
@@ -51,7 +61,10 @@ class RiddlerSDK:
                 ))
 
     def connect(self):
-        asyncio.run(self._connect())
+        try:
+            asyncio.run(self._connect())
+        except KeyboardInterrupt:
+            asyncio.run(self._disconnect())
 
     def rpc(self, name):
         """
