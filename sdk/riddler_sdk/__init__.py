@@ -26,21 +26,29 @@ class RiddlerSDK:
         uri = f"{self.riddler_host}back/ws/broker/rpc/"
         if self.fsm_id is not None:
             uri = f"{self.riddler_host}back/ws/broker/rpc/{self.fsm_id}/"
-        async with websockets.connect(uri) as websocket:
-            logger.info(f"Connected to: {uri}")
-            while True:
-                logger.info("Waiting...")
-                data = await websocket.recv()
-                data = json.loads(data)
-                logger.info(f"Executing handler ::: {data['name']}")
-                for handler in self.rpcs[data["name"]]:
-                    res = handler(data["ctx"])
-                    await websocket.send(json.dumps(
-                        {
-                            "ctx": data["ctx"],
-                            "payload": res,
-                        }
-                    ))
+        try:
+            async with websockets.connect(uri) as websocket:
+                logger.info(f"Connected to: {uri}")
+                await self.receive_loop(websocket)
+        except (websockets.ConnectionClosed, ConnectionRefusedError):
+            logger.info(f"Disconnected from {uri}, trying to reconnect in 1s")
+            await asyncio.sleep(1)
+            await self._connect()
+
+    async def receive_loop(self, websocket):
+        while True:
+            logger.info("Waiting...")
+            data = await websocket.recv()
+            data = json.loads(data)
+            logger.info(f"Executing handler ::: {data['name']}")
+            for handler in self.rpcs[data["name"]]:
+                res = handler(data["ctx"])
+                await websocket.send(json.dumps(
+                    {
+                        "ctx": data["ctx"],
+                        "payload": res,
+                    }
+                ))
 
     def connect(self):
         asyncio.run(self._connect())
