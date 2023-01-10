@@ -1,11 +1,12 @@
 import asyncio
+import json
 
 from abc import ABC
 from logging import getLogger
 
-from asgiref.sync import async_to_sync, sync_to_async
-from django.db import transaction
+from asgiref.sync import sync_to_async
 
+from channels.generic.http import AsyncHttpConsumer
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.apps.fsm.lib import FSM, FSMContext
@@ -84,3 +85,17 @@ class AbsBotConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer, FSMContext
 
     async def response(self, data: dict):
         raise NotImplemented("'response' method should be implemented for all bot consumers")
+
+
+class TestHttpConsumer(AsyncHttpConsumer):
+    async def handle(self, body):
+        await self.send_headers(headers=[
+        ])
+        for i in range(2):
+            await asyncio.sleep(1)
+            await self.send_body(json.dumps({"data": i}).encode("utf-8"), more_body=True)
+        await self.send_body(b"")
+
+    async def chat_message(self, event):
+        for i in range(2):
+            await self.send_body(json.dumps({"data": i}).encode("utf-8"), more_body=True)
