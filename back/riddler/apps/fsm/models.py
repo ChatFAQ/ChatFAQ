@@ -23,6 +23,7 @@ class FSMDefinition(ChangesMixin):
             transitions=self.transitions,
             current_state=current_state,
         )
+        # TODO: Remove when fully RPC are implemented
         self.declare_ctx_functions(ctx)
         return m
 
@@ -44,7 +45,7 @@ class FSMDefinition(ChangesMixin):
 class CachedFSM(ChangesMixin):
     conversation_id = models.CharField(unique=True, max_length=255)
     current_state = models.JSONField(default=dict)
-    fsm_def = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
+    fsm_def: FSMDefinition = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
 
     @classmethod
     def update_or_create(cls, fsm: FSM):
@@ -61,7 +62,7 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def build_fsm(cls, ctx: FSMContext) -> FSM:
-        instance = cls.objects.filter(conversation_id=ctx.conversation_id).first()
+        instance: CachedFSM = cls.objects.filter(conversation_id=ctx.conversation_id).first()
         if instance:
             return instance.fsm_def.build_fsm(
                 ctx, typefit(State, instance.current_state)

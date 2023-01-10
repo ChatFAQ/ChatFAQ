@@ -8,7 +8,6 @@ from rest_framework.request import Request
 
 from riddler.apps.broker.models.message import Message
 from logging import getLogger
-from riddler.apps.broker.models.platform_config import PlatformConfig
 from riddler.utils import WSStatusCodes
 
 logger = getLogger(__name__)
@@ -61,6 +60,7 @@ class FSMContext:
     making the FSM states access to this 'connection' functionality
     """
     def __init__(self, *args, **kargs):
+        from riddler.apps.broker.models.platform_config import PlatformConfig # TODO: fix CI
         self.conversation_id: str = None
         self.platform_config: PlatformConfig = None
         super().__init__(*args, **kargs)

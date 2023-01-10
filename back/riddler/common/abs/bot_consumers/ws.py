@@ -1,44 +1,21 @@
-import asyncio
-import json
-
-from abc import ABC
 from logging import getLogger
 
 from asgiref.sync import sync_to_async
 
-from channels.generic.http import AsyncHttpConsumer
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
-from riddler.apps.fsm.lib import FSM, FSMContext
+from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.utils import WSStatusCodes
-from riddler.utils.custom_channels import CustomAsyncConsumer
 
 logger = getLogger(__name__)
 
 
-class AbsBotConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer, FSMContext, ABC):
+class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
     Abstract class all views representing an WS bot should inherit from,
     it takes care of the initialization and management of the fsm and
     the persistence of the sending/receiving MMLs into the database
     """
-    serializer_class = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.serializer_class is None:
-            raise Exception("serializer_class should not be None on any BotConsumer")
-
-        self.fsm: FSM = None
-        self.fsm_name: str = None
-
-    @staticmethod
-    def create_group_name(conversation_id):
-        return f"bot_{conversation_id}"
-
-    def get_group_name(self):
-        return self.create_group_name(self.conversation_id)
-
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
         self.fsm = await self.initialize_fsm()
@@ -50,13 +27,8 @@ class AbsBotConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer, FSMContext
             f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
         )
 
-    async def disconnect(self, close_code):
-        logger.debug(f"Disconnecting from WS conversation ({self.conversation_id})")
-        # Leave room group
-        await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
-
     async def initialize_fsm(self):
-        logger.debug(f"Creating new FSM ({self.fsm_name})")
+        logger.debug(f"Creating new FSM")
         pc = await sync_to_async(self.gather_platform_config)()
         self.set_platform_config(pc)
         # TODO: Support cached FSM ???
@@ -79,23 +51,3 @@ class AbsBotConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer, FSMContext
 
             await sync_to_async(serializer.save)()
             await self.fsm.next_state()
-
-    async def rpc_response(self, data: dict):
-        self.fsm.rpc_result_future.set_result(data["payload"])
-
-    async def response(self, data: dict):
-        raise NotImplemented("'response' method should be implemented for all bot consumers")
-
-
-class TestHttpConsumer(AsyncHttpConsumer):
-    async def handle(self, body):
-        await self.send_headers(headers=[
-        ])
-        for i in range(2):
-            await asyncio.sleep(1)
-            await self.send_body(json.dumps({"data": i}).encode("utf-8"), more_body=True)
-        await self.send_body(b"")
-
-    async def chat_message(self, event):
-        for i in range(2):
-            await self.send_body(json.dumps({"data": i}).encode("utf-8"), more_body=True)

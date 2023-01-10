@@ -4,15 +4,14 @@ import time
 from asgiref.sync import sync_to_async
 
 from riddler.apps.fsm.lib import FSMContext
-from riddler.common.consumers import AbsBotConsumer
+from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 
 from ..models.message import AgentType
-from ..models.platform_config import PlatformConfig
 from ..serializers.message import MessageSerializer
 from riddler.utils import WSStatusCodes
 
 
-class ExampleBotConsumer(AbsBotConsumer):
+class ExampleBotConsumer(WSBotConsumer):
     """
     A very simple implementation of the AbsBotConsumer just to show how could a Riddler bot work
     """
@@ -21,6 +20,7 @@ class ExampleBotConsumer(AbsBotConsumer):
     serializer_class = MessageSerializer
 
     def gather_platform_config(self):
+        from ..models.platform_config import PlatformConfig  # TODO: Fix CI
         pk = self.scope["url_route"]["kwargs"]["pc_id"]
         return PlatformConfig.objects.select_related("fsm_def").get(pk=pk)
 

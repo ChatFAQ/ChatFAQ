@@ -4,7 +4,7 @@ from logging import getLogger
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from riddler.apps.broker.serializers.rpc import RPCResponseSerializer
 from riddler.apps.fsm.serializers import FSMSerializer
-from riddler.common.consumers import AbsBotConsumer
+from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from riddler.utils import WSStatusCodes
 
 logger = getLogger(__name__)
@@ -54,7 +54,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             "payload": serializer.data["payload"]
         }
         conversation_id = content["ctx"]["conversation_id"]
-        await self.channel_layer.group_send(AbsBotConsumer.create_group_name(conversation_id), data)
+        await self.channel_layer.group_send(WSBotConsumer.create_group_name(conversation_id), data)
 
     async def response(self, data: dict):
         if not WSStatusCodes.is_ok(data["status"]):
