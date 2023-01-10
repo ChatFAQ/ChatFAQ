@@ -10,7 +10,7 @@ class PayloadSerializer(serializers.Serializer):
     data = serializers.JSONField(default=dict)
 
 
-class RPCResponseSerializer(serializers.ModelSerializer):
+class RPCResponseSerializer(serializers.Serializer):
     """
     This represent the communication layer between the RPC consumer and the Bot Consumer/View
     Attributes
