@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.8"
 asyncio = "^3.4.3"
 websockets = "^10.4"
+coloredlogs = "^15.0.1"
 
 
 [build-system]
