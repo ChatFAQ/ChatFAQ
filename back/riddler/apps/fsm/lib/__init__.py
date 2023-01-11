@@ -98,7 +98,8 @@ class FSMContext:
         """
         We serialize the ctx just so we can send it to the RPC Servers
         """
-        last_mml = model_to_dict((await self.get_last_mml()), fields=["stacks"])
+        last_mml = await self.get_last_mml()
+        last_mml = model_to_dict(last_mml, fields=["stacks"]) if last_mml else None
         return {
             "conversation_id": self.conversation_id,
             "last_mml": last_mml,
