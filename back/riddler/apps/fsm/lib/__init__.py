@@ -1,3 +1,5 @@
+import time
+
 import asyncio
 
 from asgiref.sync import sync_to_async
@@ -6,8 +8,9 @@ from django.forms import model_to_dict
 from typing import List, NamedTuple, Text
 from rest_framework.request import Request
 
-from riddler.apps.broker.models.message import Message
+from riddler.apps.broker.models.message import Message, AgentType
 from logging import getLogger
+
 from riddler.utils import WSStatusCodes
 
 logger = getLogger(__name__)
@@ -60,12 +63,12 @@ class FSMContext:
     making the FSM states access to this 'connection' functionality
     """
     def __init__(self, *args, **kargs):
-        from riddler.apps.broker.models.platform_config import PlatformConfig # TODO: fix CI
+        from riddler.apps.broker.models.platform_config import PlatformConfig  # TODO: fix CI
         self.conversation_id: str = None
         self.platform_config: PlatformConfig = None
         super().__init__(*args, **kargs)
 
-    async def send_response(self, *args, **kargs):
+    async def send_response(self, stacks: list):
         raise NotImplementedError(
             "All classes that behave as contexts for machines should implement 'send_response'"
         )
@@ -166,8 +169,34 @@ class FSM:
         await self.save_cache()
 
     async def run_current_state_events(self, transition_data={}):
-        for event in self.current_state.events:
-            await getattr(self.ctx, event)(transition_data)  # call run_condition and wait
+        """
+        It will call the RPC server, the procedure name is the event name declared in the fsm definition for the
+        current state
+        Parameters
+        ----------
+        transition_data: dict
+            data coming from the result of the execution of the conditions. It might be usefull for the state event, so
+            we pass it along.
+        """
+        from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+
+        group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
+
+        for event_name in self.current_state.events:
+            data = {
+                "type": "response",
+                "status": WSStatusCodes.ok.value,
+                "payload": {
+                    "name": event_name,
+                    "ctx": {"transition_data": transition_data, **(await self.ctx.serialize())}
+                }
+            }
+            await self.channel_layer.group_send(group_name, data)
+
+            self.rpc_result_future = asyncio.get_event_loop().create_future()
+            stacks = await self.rpc_result_future
+            await self.save_bot_mml(stacks)
+            await self.ctx.send_response(stacks)
 
     def get_initial_state(self):
 
@@ -239,3 +268,22 @@ class FSM:
         from riddler.apps.fsm.models import CachedFSM  # TODO: Resolve CI
 
         await sync_to_async(CachedFSM.update_or_create)(self)
+
+    async def save_bot_mml(self, stacks):
+        from riddler.apps.broker.serializers.message import MessageSerializer  # TODO: CI
+
+        last_mml = await self.ctx.get_last_mml()
+        serializer = MessageSerializer(
+            data={
+                "transmitter": {
+                    "type": AgentType.bot.value,
+                },
+                "confidence": 1,
+                "stacks": stacks,
+                "conversation": self.ctx.conversation_id,
+                "send_time": int(time.time() * 1000),
+                "prev": last_mml.pk if last_mml else None,
+            }
+        )
+        await sync_to_async(serializer.is_valid)()
+        await sync_to_async(serializer.save)()

@@ -30,7 +30,7 @@
         if (data["status"] >= 400)
             document.querySelector('#chat-log').value += JSON.stringify(data["payload"]) + "\n";
         else
-            document.querySelector('#chat-log').value += data["stacks"][0][0]["payload"] + "\n";
+            document.querySelector('#chat-log').value += data["payload"] + "\n";
     };
 
     chatSocket.onclose = function (e) {
@@ -48,21 +48,12 @@
         const messageInputDom = document.querySelector('#chat-message-input');
         const message = messageInputDom.value;
         chatSocket.send(JSON.stringify({
-            // 'prev':  '1234567890',
-            'transmitter': {
-                'type': 'human',
-                'platform': "riddler_plugin",
-            },
-            'conversation': conversation,
-            'send_time': Date.now(),
-            'threshold': 0,
-            'stacks': [
-                [{
-                    'type': "text",
-                    'payload': message
-                }]
-            ],
-        }));
+            "stacks": [[{
+                "type": "text",
+                "payload": message,
+            }]]}
+        ));
+
         messageInputDom.value = '';
     };
 </script>

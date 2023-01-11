@@ -1,7 +1,12 @@
+import time
+
+from asgiref.sync import async_to_sync
+from typing import Union
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-# from ..common.consumers import BoilerplateConsumer # TODO resolve CI
+from riddler.apps.fsm.lib import FSMContext
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
 
@@ -9,7 +14,7 @@ from riddler.apps.broker.models.message import AgentType, Message, StackPayloadT
 
 
 class ToMMLSerializer(serializers.Serializer):
-    def to_mml(self):
+    def to_mml(self, ctx: FSMContext):
         raise NotImplementedError(
             "You should implement a 'to_mml' method that converts your platform into an MML internal message"
         )
@@ -96,14 +101,32 @@ class MessageSerializer(serializers.ModelSerializer):
         # and another message also already have value=None while UniqueValidator will not fail on this specific use case
         if Message.objects.filter(conversation=self.initial_data["conversation"], prev=prev).first():
             raise ValidationError(f"prev should be always unique for the same conversation")
-        if prev and prev.conversation != self.initial_data["conversation"]:
+        if prev and prev.conversation != str(self.initial_data["conversation"]):
             raise ValidationError(f"prev should belong to the same conversation")
 
 
-class BasicMessageSerializer(MessageSerializer, ToMMLSerializer):
-    def to_mml(self):
-        s = MessageSerializer(data=self.validated_data)
-        s.is_valid(raise_exception=True)
+class ExampleWSSerializer(ToMMLSerializer):
+    stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
+
+    def to_mml(self, ctx: FSMContext) -> Union[bool, Message]:
+        if not self.is_valid():
+            return False
+
+        last_mml = async_to_sync(ctx.get_last_mml)()
+        s = MessageSerializer(
+            data={
+                "stacks": self.data["stacks"],
+                "transmitter": {
+                    "type": AgentType.human.value,
+                    "platform": "WS",
+                },
+                "send_time": int(time.time() * 1000),
+                "conversation": ctx.conversation_id,
+                "prev": last_mml.pk if last_mml else None
+            }
+        )
+        if not s.is_valid():
+            return False
         return s.save()
 
 
@@ -138,7 +161,10 @@ del TelegramPayloadSerializer._declared_fields["_from"]
 class TelegramMessageSerializer(ToMMLSerializer):
     message = TelegramPayloadSerializer()
 
-    def to_mml(self) -> Message:
+    def to_mml(self, ctx: FSMContext) -> Union[bool, Message]:
+        if not self.is_valid():
+            return False
+        last_mml = async_to_sync(ctx.get_last_mml)()
         s = MessageSerializer(
             data={
                 "stacks": [[{"type": "text", "payload": self.validated_data["message"]["text"]}]],
@@ -149,7 +175,9 @@ class TelegramMessageSerializer(ToMMLSerializer):
                 },
                 "send_time": self.validated_data["message"]["date"] * 1000,
                 "conversation": self.validated_data["message"]["chat"]["id"],
+                "prev": last_mml.pk if last_mml else None
             }
         )
-        s.is_valid(raise_exception=True)
+        if not s.is_valid():
+            return False
         return s.save()

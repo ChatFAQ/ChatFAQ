@@ -22,4 +22,4 @@ class RPCResponseSerializer(serializers.Serializer):
         The RPC response payload
     """
     ctx = CtxSerializer()
-    payload = PayloadSerializer()
+    payload = serializers.JSONField(default=dict)

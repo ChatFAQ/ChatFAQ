@@ -14,7 +14,6 @@ class FSMDefinition(ChangesMixin):
     # TODO: Model 'definitions' inside DB ???
     name = models.CharField(null=True, unique=True, max_length=255)
     definition = models.JSONField(null=True)
-    funcs = ArrayField(models.TextField(), default=list)
 
     def build_fsm(self, ctx: FSMContext, current_state: State = None) -> FSM:
         m = FSM(
@@ -23,15 +22,7 @@ class FSMDefinition(ChangesMixin):
             transitions=self.transitions,
             current_state=current_state,
         )
-        # TODO: Remove when fully RPC are implemented
-        self.declare_ctx_functions(ctx)
         return m
-
-    def declare_ctx_functions(self, ctx: FSMContext):
-        for f in self.funcs:
-            loc = {}
-            exec(f, globals(), loc)
-            setattr(ctx, list(loc.keys())[0], list(loc.values())[0].__get__(ctx))
 
     @property
     def states(self) -> List[State]:

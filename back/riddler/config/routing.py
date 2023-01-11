@@ -1,6 +1,6 @@
 from django.urls import re_path, path
 
-from riddler.apps.broker.consumers import ExampleBotConsumer, RPCConsumer
+from riddler.apps.broker.consumers import ExampleWSBotConsumer, RPCConsumer
 from riddler.apps.broker.models.platform_config import PlatformConfig, PlatformTypes
 from riddler.utils import is_migrating
 
@@ -15,7 +15,7 @@ websocket_urlpatterns = [
     ),
     re_path(
         r"back/ws/broker/(?P<conversation>\w+)/(?P<pc_id>\w+)/$",
-        ExampleBotConsumer.as_asgi(),
+        ExampleWSBotConsumer.as_asgi(),
     ),
 ]
 

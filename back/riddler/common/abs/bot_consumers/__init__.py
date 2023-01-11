@@ -26,9 +26,6 @@ class BotConsumer(CustomAsyncConsumer, FSMContext, ABC):
     async def rpc_response(self, data: dict):
         self.fsm.rpc_result_future.set_result(data["payload"])
 
-    async def send_response(self, data: dict):
-        raise NotImplemented("'response' method should be implemented for all bot consumers")
-
     async def disconnect(self):
         logger.debug(f"Disconnecting from conversation ({self.conversation_id})")
         # Leave room group

@@ -18,7 +18,12 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
-        self.fsm = await self.initialize_fsm()
+        pc = await sync_to_async(self.gather_platform_config)()
+        self.set_platform_config(pc)
+
+        # TODO: Support cached FSM ???
+        self.fsm = self.platform_config.fsm_def.build_fsm(self)
+
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
         await self.accept()
@@ -27,27 +32,21 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
         )
 
-    async def initialize_fsm(self):
-        logger.debug(f"Creating new FSM")
-        pc = await sync_to_async(self.gather_platform_config)()
-        self.set_platform_config(pc)
-        # TODO: Support cached FSM ???
-        return self.platform_config.fsm_def.build_fsm(self)
-
     async def receive_json(self, content, **kwargs):
         serializer = self.serializer_class(data=content)
-        if not await sync_to_async(serializer.is_valid)():
+        mml = await sync_to_async(serializer.to_mml)(self)
+        if not mml:
             await self.channel_layer.group_send(
                 self.get_group_name(), {"type": "response", "status": WSStatusCodes.bad_request.value, "payload": serializer.errors}
             )
-        else:
-            # It seems like django does not support transactions on async code
-            # The commented code seems right but it is not: it blocks the save() methods inside from the RPCResponseConsumer
-            # @transaction.atomic()
-            # def _aux(_serializer):
-            #     _serializer.save()
-            #     async_to_sync(self.fsm.next_state)()
-            # await sync_to_async(_aux)(serializer)
+            return
 
-            await sync_to_async(serializer.save)()
-            await self.fsm.next_state()
+        # It seems like django does not support transactions on async code
+        # The commented code seems right but it is not: it blocks the save() methods inside from the RPCResponseConsumer
+        # @transaction.atomic()
+        # def _aux(_serializer):
+        #     _serializer.save()
+        #     async_to_sync(self.fsm.next_state)()
+        # await sync_to_async(_aux)(serializer)
+
+        await self.fsm.next_state()
