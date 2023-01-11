@@ -55,15 +55,22 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         await self.send_headers(headers=[
             (b"Content-Type", b"application/json"),
         ])
-        data = json.loads(body.decode("utf-8"))
+        try:
+            data = json.loads(body.decode("utf-8"))
+        except json.decoder.JSONDecodeError as e:
+            logger.error(e)
+            await self.send_json({"error": "Wrong JSON"})
+            return
+
         serializer = self.serializer_class(data=data)
         if not serializer.is_valid():
             await self.send_json(serializer.errors)
         else:
             # with transaction.atomic():
-            mml = serializer.to_mml()
+            mml = await sync_to_async(serializer.to_mml)()
             self.set_conversation_id(mml.conversation)
-            self.set_platform_config(self.gather_platform_config(data))
+            pc = await sync_to_async(self.gather_platform_config)(self.scope)
+            self.set_platform_config(pc)
             await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
 
             await self.resolve_fsm()
