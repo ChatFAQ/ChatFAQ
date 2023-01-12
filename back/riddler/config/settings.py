@@ -124,7 +124,7 @@ with EnvManager(preset) as env:
 
     CHANNEL_LAYERS = {
         "default": {
-            "BACKEND": "channels_postgres.core.PostgresChannelLayer",
+            "BACKEND": "riddler.utils.custom_channel_layer.CustomPostgresChannelLayer",
             "CONFIG": {
                 **db_config(conn_max_age=int(os.getenv("CONN_MAX_AGE", 0))),
                 "config": {},

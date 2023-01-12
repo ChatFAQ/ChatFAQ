@@ -29,8 +29,6 @@ class CustomWSBotConsumer(WSBotConsumer):
         for stack in stacks:
             for layer in stack:
                 if layer.get("type") == "text":
-                    print(f"sending: {layer['payload']}")
-                    # await asyncio.sleep(0.2)
                     await self.channel_layer.group_send(
                         self.get_group_name(), {"type": "response", "status": WSStatusCodes.ok.value, "payload": layer["payload"]}
                     )

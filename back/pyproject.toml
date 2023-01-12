@@ -14,7 +14,6 @@ python = "~3.10"
 modelw-preset-django = {extras = ["channels"], version = "~2022.10.0b8", allow-prereleases = true}
 drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
 channels = "^4.0.0"
-channels-postgres = "^0.0.5"
 daphne = "^4.0.0"
 Django = "^4.1.4"
 django-cors-headers = "^3.13.0"
@@ -27,6 +26,7 @@ psycopg2 = "^2.9.5"
 whitenoise = "^6.2.0"
 python-dotenv = "^0.21.0"
 httpx = "^0.23.3"
+channels-postgres = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 black = "*"
