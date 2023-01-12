@@ -1,3 +1,5 @@
+import asyncio
+
 import json
 from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from logging import getLogger
@@ -27,6 +29,8 @@ class CustomWSBotConsumer(WSBotConsumer):
         for stack in stacks:
             for layer in stack:
                 if layer.get("type") == "text":
+                    print(f"sending: {layer['payload']}")
+                    # await asyncio.sleep(0.2)
                     await self.channel_layer.group_send(
                         self.get_group_name(), {"type": "response", "status": WSStatusCodes.ok.value, "payload": layer["payload"]}
                     )
@@ -34,4 +38,5 @@ class CustomWSBotConsumer(WSBotConsumer):
                     logger.warning(f"Layer not supported: {layer}")
 
     async def response(self, data: dict):
+        print(f"NOW: {data}")
         await self.send(json.dumps(data))

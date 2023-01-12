@@ -26,7 +26,7 @@ class BotConsumer(CustomAsyncConsumer, FSMContext, ABC):
     async def rpc_response(self, data: dict):
         self.fsm.rpc_result_future.set_result(data["payload"])
 
-    async def disconnect(self):
-        logger.debug(f"Disconnecting from conversation ({self.conversation_id})")
+    async def disconnect(self, code):
+        logger.debug(f"Disconnecting from conversation ({self.conversation_id}) (CODE: {code})")
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)

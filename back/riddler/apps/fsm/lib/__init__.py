@@ -5,7 +5,7 @@ import asyncio
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
 from django.forms import model_to_dict
-from typing import List, NamedTuple, Text
+from typing import List, NamedTuple, Text, Union
 from rest_framework.request import Request
 
 from riddler.apps.broker.models.message import Message, AgentType
@@ -62,11 +62,11 @@ class FSMContext:
     bots whatever what kind they are (WebSocket based, http views and what not)
     making the FSM states access to this 'connection' functionality
     """
-    def __init__(self, *args, **kargs):
+    def __init__(self, *args, **kwargs):
         from riddler.apps.broker.models.platform_config import PlatformConfig  # TODO: fix CI
-        self.conversation_id: str = None
-        self.platform_config: PlatformConfig = None
-        super().__init__(*args, **kargs)
+        self.conversation_id: Union[str, None] = None
+        self.platform_config: Union[PlatformConfig, None] = None
+        super().__init__(*args, **kwargs)
 
     async def send_response(self, stacks: list):
         raise NotImplementedError(
@@ -109,7 +109,7 @@ class FSMContext:
 class FSM:
     """
     FSM as in "Finite-State Machine".
-    Bots are represented as a FSM: states are the various states of the bot.
+    Bots are represented as an FSM: states are the various states of the bot.
     """
     channel_layer = get_channel_layer()
 
@@ -124,9 +124,9 @@ class FSM:
         Parameters
         ----------
         ctx
-            The connextion context, usually useful to get the MML which triggered the state
+            The connection context, usually useful to get the MML which triggered the state
         states
-            States usually sends messages to the user.
+            They usually send messages to the user.
         transitions
             Contain the handlers and information that determines state changes.
         current_state
@@ -136,7 +136,7 @@ class FSM:
         self.ctx = ctx
         self.states = states
         self.transitions = transitions
-        self.rpc_result_future: asyncio.Future = None
+        self.rpc_result_future: Union[asyncio.Future, None] = None
 
         self.current_state = current_state
         if not current_state:
@@ -169,7 +169,7 @@ class FSM:
             await self.run_current_state_events(transition_data)
         await self.save_cache()
 
-    async def run_current_state_events(self, transition_data={}):
+    async def run_current_state_events(self, transition_data=None):
         """
         It will call the RPC server, the procedure name is the event name declared in the fsm definition for the
         current state
@@ -179,6 +179,8 @@ class FSM:
             data coming from the result of the execution of the conditions. It might be useful for the state event, so
             we pass it along.
         """
+        if transition_data is None:
+            transition_data = {}
         from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
         group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
@@ -237,7 +239,7 @@ class FSM:
     async def run_condition(self, condition_name):
         """
         It will call the RPC server, 'condition_name' is the procedure the remote server should run
-        Then it will wait util the response is back into the databse
+        Then it will wait util the response is back into the database
         Parameters
         ----------
         condition_name: str
