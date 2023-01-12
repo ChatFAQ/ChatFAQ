@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
         "created_date": "2022-11-29T14:11:38.579",
-        "updated_date": "2022-12-21T18:13:45.228",
+        "updated_date": "2023-01-09T13:07:08.526",
         "name": "test",
         "definition": {
             "states": [
@@ -59,8 +59,7 @@
                     ]
                 }
             ]
-        },
-        "funcs": "[\"async def is_saying_goodbye(self):\\r\\n    if (await self.get_last_mml()).stacks[0][0][\\\"payload\\\"] == \\\"goodbye\\\":\\r\\n        return 1, {}\\r\\n    return 0, {}\", \"async def say_hello(self, data):\\r\\n    await self.send_response(self, 'Hello!')\", \"async def create_answer(self, data):\\r\\n    import random\\r\\n    await self.send_response(self, f'My answer to your message \\\"{(await self.get_last_mml()).stacks[0][0][\\\"payload\\\"]}\\\" is: {random.randint(0, 999)}')\", \"async def create_goodbye_answer(self, data):\\r\\n    await self.send_response(self, 'Byeeeeeeee')\"]"
+        }
     }
 }
 ]
