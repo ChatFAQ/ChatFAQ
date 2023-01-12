@@ -26,6 +26,7 @@ python-json-logger = "^2.0.4"
 psycopg2 = "^2.9.5"
 whitenoise = "^6.2.0"
 python-dotenv = "^0.21.0"
+httpx = "^0.23.3"
 
 [tool.poetry.dev-dependencies]
 black = "*"

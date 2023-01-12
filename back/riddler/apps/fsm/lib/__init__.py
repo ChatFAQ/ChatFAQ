@@ -176,7 +176,7 @@ class FSM:
         Parameters
         ----------
         transition_data: dict
-            data coming from the result of the execution of the conditions. It might be usefull for the state event, so
+            data coming from the result of the execution of the conditions. It might be useful for the state event, so
             we pass it along.
         """
         from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI

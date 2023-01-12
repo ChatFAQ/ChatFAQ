@@ -1,11 +1,14 @@
 import json
 from riddler.common.abs.bot_consumers.ws import WSBotConsumer
+from logging import getLogger
 
-from ..serializers.message import ExampleWSSerializer
+from ...serializers.message import ExampleWSSerializer
 from riddler.utils import WSStatusCodes
 
+logger = getLogger(__name__)
 
-class ExampleWSBotConsumer(WSBotConsumer):
+
+class CustomWSBotConsumer(WSBotConsumer):
     """
     A very simple implementation of the AbsBotConsumer just to show how could a Riddler bot work
     """
@@ -13,7 +16,7 @@ class ExampleWSBotConsumer(WSBotConsumer):
     serializer_class = ExampleWSSerializer
 
     def gather_platform_config(self):
-        from ..models.platform_config import PlatformConfig  # TODO: Fix CI
+        from ...models.platform_config import PlatformConfig  # TODO: Fix CI
         pk = self.scope["url_route"]["kwargs"]["pc_id"]
         return PlatformConfig.objects.select_related("fsm_def").get(pk=pk)
 
@@ -21,9 +24,14 @@ class ExampleWSBotConsumer(WSBotConsumer):
         return self.scope["url_route"]["kwargs"]["conversation"]
 
     async def send_response(self, stacks: list):
-        await self.channel_layer.group_send(
-            self.get_group_name(), {"type": "response", "status": WSStatusCodes.ok.value, "payload": stacks[0][0]["payload"]}
-        )
+        for stack in stacks:
+            for layer in stack:
+                if layer.get("type") == "text":
+                    await self.channel_layer.group_send(
+                        self.get_group_name(), {"type": "response", "status": WSStatusCodes.ok.value, "payload": layer["payload"]}
+                    )
+                else:
+                    logger.warning(f"Layer not supported: {layer}")
 
     async def response(self, data: dict):
         await self.send(json.dumps(data))

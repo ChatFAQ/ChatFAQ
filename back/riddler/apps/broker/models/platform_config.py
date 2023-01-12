@@ -9,7 +9,7 @@ from enum import Enum
 
 from django.db import models
 
-from riddler.apps.broker.consumers.platforms.telegram import TelegramBotConsumer
+from riddler.apps.broker.consumers.bot_examples.telegram import TelegramBotConsumer
 from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
 from riddler.common.models import ChangesMixin
 

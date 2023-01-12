@@ -1,9 +1,11 @@
+import inspect
 import asyncio
 import websockets
 import json
 from logging import getLogger
 
 from riddler_sdk import settings
+from riddler_sdk.layers import Layer
 
 settings.configure()
 
@@ -41,30 +43,30 @@ class RiddlerSDK:
             else:
                 connection_error = False
 
+    def connect(self):
+        try:
+            asyncio.run(self._connect())
+        except KeyboardInterrupt:
+            asyncio.run(self._disconnect())
+
     async def _disconnect(self):
         logger.info(f"Disconnecting from: {self.uri}")
         await self.ws.close()
 
     async def receive_loop(self):
+        logger.info("Listening...")
         while True:
-            logger.info("Waiting...")
             data = await self.ws.recv()
             data = json.loads(data)
-            logger.info(f"Executing handler ::: {data['name']}")
+            logger.info(f"Executing RPC ::: {data['name']}")
             for handler in self.rpcs[data["name"]]:
-                res = handler(data["ctx"])
+                res = self._run_handler(handler, data["ctx"])
                 await self.ws.send(json.dumps(
                     {
                         "ctx": data["ctx"],
                         "payload": res,
                     }
                 ))
-
-    def connect(self):
-        try:
-            asyncio.run(self._connect())
-        except KeyboardInterrupt:
-            asyncio.run(self._disconnect())
 
     def rpc(self, name):
         """
@@ -84,3 +86,16 @@ class RiddlerSDK:
 
             return inner
         return outer
+
+    @classmethod
+    def _run_handler(cls, handler, data):
+        res = handler(data)
+        if inspect.isgenerator(res):
+            return [cls._layer_to_json(item) for item in res]
+        return res
+
+    @staticmethod
+    def _layer_to_json(layer):
+        if not isinstance(layer, Layer):
+            raise Exception("RPCs of actions should only return layers")
+        return layer.to_json()

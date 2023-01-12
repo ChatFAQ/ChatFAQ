@@ -1,5 +1,6 @@
 import random
 from riddler_sdk import RiddlerSDK
+from riddler_sdk.layers import Text
 
 sdk = RiddlerSDK("ws://localhost:8000/", 1)
 
@@ -21,22 +22,20 @@ def is_saying_goodbye(ctx: dict):
 
 @sdk.rpc("say_hello")
 def say_hello(ctx: dict):
-    return [[{"type": "text", "payload": "Hello!"}]]
+    yield Text("Hello!")
+    yield Text("How are you?")
 
 
 @sdk.rpc("create_answer")
 def create_answer(ctx: dict):
     last_payload = ctx['last_mml']['stacks'][0][0]['payload']
-    return [[{
-        "type": "text",
-        "payload": f'My answer to your message "{last_payload}" is: {random.randint(0, 999)}'
-    }]]
+    yield Text(f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}')
+    yield Text(f'Tell me more')
 
 
 @sdk.rpc("create_goodbye_answer")
 def create_goodbye_answer(ctx: dict):
-    return [[{"type": "text", "payload": "Byeeeeeeee!"}]]
-
+    yield Text("Byeeeeeeee!")
 
 
 sdk.connect()
