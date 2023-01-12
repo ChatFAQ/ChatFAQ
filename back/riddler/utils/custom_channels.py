@@ -7,7 +7,7 @@ from channels.exceptions import StopConsumer
 from channels.layers import get_channel_layer
 
 
-async def custom_await_many_dispatch(consumer_callables, dispatch):
+async def concurrent_await_many_dispatch(consumer_callables, dispatch):
     """
     Given a set of consumer callables, awaits on them all and passes results
     from them to the dispatch awaitable as they come in.
@@ -49,7 +49,7 @@ class CustomAsyncConsumer:
     on their type.
 
     This is a modification of channels/consumer.py (AsyncConsumer) to use our custom function
-    "custom_await_many_dispatch" instead of the original "await_many_dispatch" just so multiple tasks of the same
+    "concurrent_await_many_dispatch" instead of the original "await_many_dispatch" just so multiple tasks of the same
     consumer get executed in parallel.
     """
 
@@ -77,11 +77,11 @@ class CustomAsyncConsumer:
         # Pass messages in from channel layer or client to dispatch method
         try:
             if self.channel_layer is not None:
-                await custom_await_many_dispatch(
+                await concurrent_await_many_dispatch(
                     [receive, self.channel_receive], self.dispatch
                 )
             else:
-                await custom_await_many_dispatch([receive], self.dispatch)
+                await concurrent_await_many_dispatch([receive], self.dispatch)
         except StopConsumer:
             # Exit cleanly
             pass
