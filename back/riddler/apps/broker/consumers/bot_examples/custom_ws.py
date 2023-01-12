@@ -36,5 +36,4 @@ class CustomWSBotConsumer(WSBotConsumer):
                     logger.warning(f"Layer not supported: {layer}")
 
     async def response(self, data: dict):
-        print(f"NOW: {data}")
         await self.send(json.dumps(data))
