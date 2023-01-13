@@ -79,12 +79,12 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         if errors:
             await self.error_response({"payload": {"errors": errors, "request_info": data}})
             return
+        self.fsm_id = fsm.pk
 
         if created:
             logger.info(f"Created new FSM Definition from the RPC server: {data['name']}")
         else:
             logger.info(f"Setting existing FSM Definition ({fsm.name}) by provided definition")
-        self.fsm_id = fsm
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
 
     async def manage_rpc_result(self, data):
