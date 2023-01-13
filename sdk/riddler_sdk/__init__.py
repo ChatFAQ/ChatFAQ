@@ -1,12 +1,13 @@
 import inspect
 import asyncio
-from typing import Union
+from typing import Union, Callable
 
 import websockets
 import json
 from logging import getLogger
 
 from riddler_sdk import settings
+from riddler_sdk.fsm import FSMDefinition
 from riddler_sdk.layers import Layer
 from riddler_sdk.ws.messages import MessageType
 
@@ -22,15 +23,33 @@ class RiddlerSDK:
         - Declare the FSM in Riddler
         - Translate inbound messages from Riddler into function calls (handlers) and vice-versa
     """
-    def __init__(self, riddler_host: str, fsm_name: str = None, fsm_def: Union[int, str, dict] = None):
+    def __init__(self, riddler_host: str, fsm_name: Union[int, str, None] = None, fsm_def: Union[FSMDefinition, None] = None):
+        """
+        Parameters
+        ----------
+        riddler_host: str
+            The WS address of your Riddler server
+        fsm_name: Union[int, str, None]
+            The id or name of the FSM you are going to associate this client to. If you are going to create a new FSM
+            then it should be the name you are going to give to the new created FSM
+
+        fsm_def: Union[FSMDefinition, None]
+            The FSM you are going to create in the Riddler server, if already exists a FSM definition on the server with
+            the same struincurre then that one will be reused and your 'name' parameter will be ignored
+        """
         if fsm_def is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
         self.riddler_host = riddler_host
         self.fsm_name = fsm_name
         self.fsm_def = fsm_def
         self.rpcs = {}
+        # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
+        # already registered that rpc under that name and avoid duplicates
+        self._rpcs = {}
         self.uri = ""
         self.ws = None
+        if self.fsm_def is not None:
+            self.fsm_def.register_rpcs(self)
 
     async def _connect(self):
         self.uri = f"{self.riddler_host}back/ws/broker/rpc/"
@@ -59,14 +78,14 @@ class RiddlerSDK:
             asyncio.run(self._disconnect())
 
     async def on_connect(self):
-        if type(self.fsm_def) is dict:
+        if self.fsm_def is not None:
             logger.info(f"Setting FSM by Definition {self.fsm_name}")
             await self.ws.send(json.dumps(
                 {
                     "type": MessageType.fsm_def.value,
                     "data": {
                         "name": self.fsm_name,
-                        "definition": self.fsm_def
+                        "definition": self.fsm_def.to_json()
                     },
                 }
             ))
@@ -96,7 +115,7 @@ class RiddlerSDK:
                 data = data["payload"]
                 logger.error(f"Error from Riddler server: {data}")
 
-    def rpc(self, name):
+    def rpc(self, name: str) -> Callable:
         """
         Decorator for registering functions as handlers
         Parameters
@@ -109,8 +128,11 @@ class RiddlerSDK:
                 return func(ctx)
 
             if name not in self.rpcs:
+                self._rpcs[name] = []
                 self.rpcs[name] = []
-            self.rpcs[name].append(inner)
+            if func not in self._rpcs[name]:
+                self._rpcs[name].append(func)
+                self.rpcs[name].append(inner)
 
             return inner
         return outer

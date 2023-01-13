@@ -30,7 +30,6 @@ class State(NamedTuple):
     name: Text
     events: List[Text] = []
     initial: bool = False
-    ubiquitous: bool = False
 
 
 class Transition(NamedTuple):

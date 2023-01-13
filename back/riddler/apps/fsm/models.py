@@ -38,10 +38,12 @@ class FSMDefinition(ChangesMixin):
                 return item, False, ""
         if cls.objects.filter(name=name).first():
             return None, False, f"Trying to create a new FSM definition with a conflicting name: {name} which already exists"
-        return cls(
+        fsm = cls(
             name=name,
             definition=definition,
-        ).save(), True, ""
+        )
+        fsm.save()
+        return fsm, True, ""
 
     @classmethod
     def get_by_id_or_name(cls, id_or_name: str) -> Union[FSMDefinition, None]:
