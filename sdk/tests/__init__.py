@@ -1,8 +1,9 @@
 import random
 from riddler_sdk import RiddlerSDK
 from riddler_sdk.layers import Text
+from tests.fsm_def import fsm_def
 
-sdk = RiddlerSDK("ws://localhost:8000/", 1)
+sdk = RiddlerSDK("ws://localhost:8000/", "test", fsm_def)
 
 
 # TODO: create type out of ctx

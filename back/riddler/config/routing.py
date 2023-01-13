@@ -1,6 +1,6 @@
 from django.urls import re_path, path
 
-from riddler.apps.broker.consumers import RPCConsumer
+from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer
 from riddler.apps.broker.consumers.bot_examples.custom_ws import CustomWSBotConsumer
 from riddler.apps.broker.models.platform_config import PlatformConfig, PlatformTypes
 from riddler.utils import is_migrating

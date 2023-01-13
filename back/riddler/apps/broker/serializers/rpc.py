@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from riddler.apps.broker.consumers.message_types import RPCMessageType
+
 
 class CtxSerializer(serializers.Serializer):
     conversation_id = serializers.CharField(max_length=255)
@@ -10,7 +12,7 @@ class PayloadSerializer(serializers.Serializer):
     data = serializers.JSONField(default=dict)
 
 
-class RPCResponseSerializer(serializers.Serializer):
+class RPCResultSerializer(serializers.Serializer):
     """
     This represent the communication layer between the RPC consumer and the Bot Consumer/View
     Attributes
@@ -23,3 +25,31 @@ class RPCResponseSerializer(serializers.Serializer):
     """
     ctx = CtxSerializer()
     payload = serializers.JSONField(default=dict)
+
+
+class RPCFSMDefSerializer(serializers.Serializer):
+    """
+    Used for when a RPC Server push a FSM definition
+    ----------
+    name: str
+        Name of the new FSM
+    definition: dict
+        The definition itself
+    """
+    name = serializers.CharField(max_length=255)
+    definition = serializers.JSONField(default=dict)
+
+
+class RPCResponseSerializer(serializers.Serializer):
+    """
+    Represents any message coming from the RPC server
+    Attributes
+    ----------
+    type: str
+        So far there is only 2 types: 'fsm_def' for registering/declaring FSM Definition & 'rpc_result' results of the
+        Remote Procedure Calls
+    data: dict
+        The RPC response payload
+    """
+    type = serializers.ChoiceField(choices=[n.value for n in RPCMessageType])
+    data = serializers.JSONField(default=dict)

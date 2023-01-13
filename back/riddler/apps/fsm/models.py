@@ -1,7 +1,6 @@
-from typing import List
-
+from __future__ import annotations
+from typing import List, Tuple, Union
 from django.db import models
-from django_better_admin_arrayfield.models.fields import ArrayField
 from typefit import typefit
 
 from riddler.common.models import ChangesMixin
@@ -31,6 +30,31 @@ class FSMDefinition(ChangesMixin):
     @property
     def transitions(self) -> List[Transition]:
         return typefit(List[Transition], self.definition.get("transitions", []))
+
+    @classmethod
+    def get_or_create_from_definition(cls, name, definition) -> Tuple[Union[FSMDefinition, None], bool, str]:
+        for item in cls.objects.all():
+            if item.definition == definition:
+                return item, False, ""
+        if cls.objects.filter(name=name).first():
+            return None, False, f"Trying to create a new FSM definition with a conflicting name: {name} which already exists"
+        return cls(
+            name=name,
+            definition=definition,
+        ).save(), True, ""
+
+    @classmethod
+    def get_by_id_or_name(cls, id_or_name: str) -> Union[FSMDefinition, None]:
+        if id_or_name is None:
+            return
+        if id_or_name.isnumeric():
+            fsm = cls.objects.filter(pk=id_or_name).first()
+            if fsm:
+                return fsm
+        else:
+            fsm = cls.objects.filter(name=id_or_name).first()
+            if fsm:
+                return fsm
 
 
 class CachedFSM(ChangesMixin):
