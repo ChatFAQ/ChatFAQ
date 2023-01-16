@@ -2,8 +2,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from rest_framework import viewsets
 
-from riddler.apps.fsm.models import FSMDefinition
-
 from ..models.message import Message
 from ..models.platform_config import PlatformConfig, PlatformTypes
 from ..serializers.message import MessageSerializer

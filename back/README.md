@@ -1,12 +1,12 @@
 # Riddler Back
 
-This project hold the [FSM](api/fsm) (Finite State Machine) and the [Broker](api/broker) of the Riddler project, it can be considered the Back-end of riddler.
+This project hold the [FSM](riddler/apps/fsm/lib/__init__.py) (Finite State Machine) and the Broker of the Riddler project, it can be considered the Back-end of riddler.
 
-It also serves a very simple dummy [Front-end](api/broker/templates/chat/index.html) just for testing the WS connection to the backend from a custom widget.
+It also serves a very simple dummy [Front-end](riddler/back/riddler/apps/broker/templates/chat/index.html) just as an example of a WS connection to the backend from a custom widget.
 
 ## Installation
 
-Three options to run this project: docker, pypi, local.
+Three options to run this project: docker, local.
 
 ### 1. Docker Compose
 
@@ -14,10 +14,6 @@ Three options to run this project: docker, pypi, local.
 As simple as running
 
 `docker-compose up`
-
-### 2. From pip repository
-
-We still have not deployed a public stable first release to pypi
 
 ### 3. Set it up locally
 
@@ -53,10 +49,6 @@ Create a 'riddler' user in postgres
 Grant to the newly created user the proper the privileges to the database
 
 `sudo -u postgres psql -c "grant all privileges on database riddler to riddler;"`
-
-Apply django migrations
-
-`./manage.py migrate`
 
 Apply django fixtures
 
@@ -102,3 +94,12 @@ Admin: http://localhost:8000/back/admin/
 Swagger Docs: http://localhost:8000/back/api/schema/swagger-ui/
 
 Redoc Docs: http://localhost:8000/back/api/schema/redoc/
+
+
+## Build the docs
+
+go inside the `doc` directory and run:
+
+```
+poetry run make html
+```

@@ -27,6 +27,8 @@ whitenoise = "^6.2.0"
 python-dotenv = "^0.21.0"
 httpx = "^0.23.3"
 channels-postgres = "^0.0.5"
+sphinx = "<6"
+myst-parser = "^0.18.1"
 
 [tool.poetry.dev-dependencies]
 black = "*"

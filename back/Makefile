@@ -17,6 +17,9 @@ run_daphne:
 spectacular:
 	./manage.py spectacular --file schema.yml
 
+docs:
+	poetry run $(MAKE) -f doc/Makefile html
+
 # create_fsm_fixtures:
 # 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > riddler/apps/fsm/fixtures/initial.json
 #
