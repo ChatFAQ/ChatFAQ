@@ -4,13 +4,12 @@ import asyncio
 
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
-from django.forms import model_to_dict
 from typing import List, NamedTuple, Text, Union
-from rest_framework.request import Request
 
-from riddler.apps.broker.models.message import Message, AgentType
+from riddler.apps.broker.models.message import AgentType
 from logging import getLogger
 
+from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.utils import WSStatusCodes
 
 logger = getLogger(__name__)
@@ -54,57 +53,6 @@ class Transition(NamedTuple):
     unless: List[Text] = []
 
 
-class FSMContext:
-    """
-    Abstract class all http views/WS representing a bot should inherit from,
-    this way we have a generic and shared functionality across the different
-    bots whatever what kind they are (WebSocket based, http views and what not)
-    making the FSM states access to this 'connection' functionality
-    """
-    def __init__(self, *args, **kwargs):
-        from riddler.apps.broker.models.platform_config import PlatformConfig  # TODO: fix CI
-        self.conversation_id: Union[str, None] = None
-        self.platform_config: Union[PlatformConfig, None] = None
-        super().__init__(*args, **kwargs)
-
-    async def send_response(self, stacks: list):
-        raise NotImplementedError(
-            "All classes that behave as contexts for machines should implement 'send_response'"
-        )
-
-    def gather_platform_config(self, request: Request = None):
-        raise NotImplemented("Implement a method that gathers the fsm name")
-
-    def gather_conversation_id(self, mml: Message = None):
-        raise NotImplemented("Implement a method that gathers the conversation id")
-
-    def set_conversation_id(self, conversation_id):
-        self.conversation_id = conversation_id
-
-    def set_platform_config(self, platform_config):
-        self.platform_config = platform_config
-
-    async def get_last_mml(
-        self,
-    ) -> Message:
-        return await sync_to_async(
-            Message.objects.filter(conversation=self.conversation_id)
-            .order_by("-created_date")
-            .first
-        )()
-
-    async def serialize(self):
-        """
-        We serialize the ctx just so we can send it to the RPC Servers
-        """
-        last_mml = await self.get_last_mml()
-        last_mml = model_to_dict(last_mml, fields=["stacks"]) if last_mml else None
-        return {
-            "conversation_id": self.conversation_id,
-            "last_mml": last_mml,
-        }
-
-
 class FSM:
     """
     FSM as in "Finite-State Machine".
@@ -114,7 +62,7 @@ class FSM:
 
     def __init__(
         self,
-        ctx: FSMContext,
+        ctx: BotConsumer,
         states: List[State],
         transitions: List[Transition],
         current_state: State = None,

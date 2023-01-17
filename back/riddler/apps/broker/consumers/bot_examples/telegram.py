@@ -1,8 +1,4 @@
 from logging import getLogger
-
-import httpx
-
-from riddler.apps.broker.models.message import Message
 from riddler.apps.broker.serializers.message import TelegramMessageSerializer
 from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
 
@@ -19,20 +15,4 @@ class TelegramBotConsumer(HTTPBotConsumer):
 
     def gather_conversation_id(self, validated_data):
         return validated_data["message"]["chat"]["id"]
-
-    async def send_response(self, mml: Message):
-        async with httpx.AsyncClient() as client:
-            for stack in mml.stacks:
-                for layer in stack:
-                    if layer.get("type") == "text":
-                        data = {
-                            "chat_id": self.conversation_id,
-                            "text": layer["payload"],
-                            "parse_mode": "Markdown",
-                        }
-                        await client.post(
-                            f"{self.platform_config.platform_meta['api_url']}{self.platform_config.platform_meta['token']}/sendMessage", data=data
-                        )
-                    else:
-                        logger.warning(f"Layer not supported: {layer}")
 

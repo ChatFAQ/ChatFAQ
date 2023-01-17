@@ -80,7 +80,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
 
     async def send_response(self, mml: Message):
         async with httpx.AsyncClient() as client:
-            for data in self.serializer_class(mml).to_platform():
+            for data in self.serializer_class.to_platform(mml, self):
                 await client.post(
                     f"{self.platform_config.platform_meta['api_url']}{self.platform_config.platform_meta['token']}/sendMessage", data=data
                 )

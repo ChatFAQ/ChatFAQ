@@ -1,3 +1,4 @@
+import json
 from logging import getLogger
 
 from asgiref.sync import sync_to_async
@@ -53,6 +54,9 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         await self.fsm.next_state()
 
     async def send_response(self, mml: Message):
-        for data in self.serializer_class(mml).to_platform():
+        for data in self.serializer_class.to_platform(mml, self):
             data["type"] = "response"
             await self.channel_layer.group_send(self.get_group_name(), data)
+
+    async def response(self, data: dict):
+        await self.send(json.dumps(data))

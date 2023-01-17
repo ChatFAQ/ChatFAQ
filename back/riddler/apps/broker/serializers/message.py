@@ -6,7 +6,7 @@ from typing import Union
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from riddler.apps.fsm.lib import FSMContext
+from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
 
@@ -19,12 +19,46 @@ logger = getLogger(__name__)
 
 
 class BotMessageSerializer(serializers.Serializer):
-    def to_mml(self, ctx: FSMContext):
+    def to_mml(self, ctx: BotConsumer) -> Message:
+        """
+        It should convert the validated data (it's called after calling 'is_valid') coming from the platform to a MML
+        structure.
+
+        Parameters
+        ----------
+        ctx: BotConsumer
+            current context of the consumer using this serializer, useful for accessing the conversation_id, platform_config, etc
+
+
+        Returns
+        -------
+        Message
+            Saved MML
+
+        """
         raise NotImplementedError(
             "You should implement a 'to_mml' method that converts your platform into an MML internal message"
         )
 
-    def to_platform(self, ctx: FSMContext):
+    @staticmethod
+    def to_platform(mml: Message, ctx: BotConsumer) -> dict:
+        """
+        It should convert a MML coming from the FSM to the platform expected schema
+        structure.
+
+        Parameters
+        ----------
+        mml: Message
+            FMS's message
+        ctx: BotConsumer
+            current context of the consumer using this serializer, useful for accessing the conversation_id, platform_config, etc
+
+        Returns
+        -------
+        dict
+            Payload to be sent to the platform
+
+        """
         raise NotImplementedError(
             "You should implement a 'to_mml' method that converts your platform into an MML internal message"
         )
@@ -118,7 +152,7 @@ class MessageSerializer(serializers.ModelSerializer):
 class ExampleWSSerializer(BotMessageSerializer):
     stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
 
-    def to_mml(self, ctx: FSMContext) -> Union[bool, Message]:
+    def to_mml(self, ctx: BotConsumer) -> Union[bool, Message]:
         if not self.is_valid():
             return False
 
@@ -139,8 +173,9 @@ class ExampleWSSerializer(BotMessageSerializer):
             return False
         return s.save()
 
-    def to_platform(self, ctx: FSMContext):
-        for stack in self.mml.stacks:
+    @staticmethod
+    def to_platform(mml: Message, ctx: BotConsumer) -> dict:
+        for stack in mml.stacks:
             for layer in stack:
                 if layer.get("type") == "text":
                     data = {
@@ -183,7 +218,7 @@ del TelegramPayloadSerializer._declared_fields["_from"]
 class TelegramMessageSerializer(BotMessageSerializer):
     message = TelegramPayloadSerializer()
 
-    def to_mml(self, ctx: FSMContext) -> Union[bool, Message]:
+    def to_mml(self, ctx: BotConsumer) -> Union[bool, Message]:
         if not self.is_valid():
             return False
         last_mml = async_to_sync(ctx.get_last_mml)()
@@ -204,8 +239,9 @@ class TelegramMessageSerializer(BotMessageSerializer):
             return False
         return s.save()
 
-    def to_platform(self, ctx: FSMContext):
-        for stack in self.mml.stacks:
+    @staticmethod
+    def to_platform(mml: Message, ctx: BotConsumer):
+        for stack in mml.stacks:
             for layer in stack:
                 if layer.get("type") == "text":
                     data = {

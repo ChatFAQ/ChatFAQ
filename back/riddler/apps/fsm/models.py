@@ -5,7 +5,8 @@ from typefit import typefit
 
 from riddler.common.models import ChangesMixin
 
-from .lib import FSM, FSMContext, State, Transition
+from .lib import FSM, State, Transition
+from ...common.abs.bot_consumers import BotConsumer
 from ...utils.logging_formatters import TIMESTAMP_FORMAT
 
 
@@ -14,7 +15,7 @@ class FSMDefinition(ChangesMixin):
     name = models.CharField(null=True, unique=True, max_length=255)
     definition = models.JSONField(null=True)
 
-    def build_fsm(self, ctx: FSMContext, current_state: State = None) -> FSM:
+    def build_fsm(self, ctx: BotConsumer, current_state: State = None) -> FSM:
         m = FSM(
             ctx=ctx,
             states=self.states,
@@ -78,7 +79,7 @@ class CachedFSM(ChangesMixin):
         instance.save()
 
     @classmethod
-    def build_fsm(cls, ctx: FSMContext) -> FSM:
+    def build_fsm(cls, ctx: BotConsumer) -> FSM:
         instance: CachedFSM = cls.objects.filter(conversation_id=ctx.conversation_id).first()
         if instance:
             return instance.fsm_def.build_fsm(
@@ -88,7 +89,7 @@ class CachedFSM(ChangesMixin):
         return None
 
     @classmethod
-    def get_conv_updated_date(cls, ctx: FSMContext):
+    def get_conv_updated_date(cls, ctx: BotConsumer):
         instance = cls.objects.filter(conversation_id=ctx.conversation_id).first()
         if instance:
             instance.updated_date.strftime(TIMESTAMP_FORMAT)
