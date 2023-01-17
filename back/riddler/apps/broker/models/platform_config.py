@@ -8,9 +8,13 @@ from urllib.parse import urljoin
 from enum import Enum
 
 from django.db import models
+from django.db.models.base import ModelBase
+from django.urls import re_path
 
+from riddler.apps.broker.consumers.bot_examples.custom_ws import CustomWSBotConsumer
 from riddler.apps.broker.consumers.bot_examples.telegram import TelegramBotConsumer
-from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
+from riddler.common.abs.bot_consumers.http import BotConsumer, HTTPBotConsumer
+from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from riddler.common.models import ChangesMixin
 
 logger = getLogger()
@@ -21,7 +25,17 @@ class PlatformTypes(Enum):
     ws = "ws"
 
 
-class PlatformConfig(ChangesMixin):
+class PlatformConfigMetaClass(ModelBase):
+    registry = []
+
+    def __new__(cls, cls_name, bases, attrs):
+        new_class = super().__new__(cls, cls_name, bases, attrs)
+        if cls_name != "PlatformConfig":
+            cls.registry.append(new_class)
+        return new_class
+
+
+class PlatformConfig(ChangesMixin, metaclass=PlatformConfigMetaClass):
     """
     This represents the association between a message platform and a FSM
     Attributes
@@ -37,73 +51,101 @@ class PlatformConfig(ChangesMixin):
     platform_type = models.CharField(max_length=255, choices=((v.value, v.value) for v in PlatformTypes))
     platform_meta = models.JSONField(default=dict)
 
-    def platform_view_name(self):
+    def get_queryset(self):
         """
-        Just an utility function to control the url's view name depending on the platform type since this name will
-        most likely depend on the metadata of the paltform
+        This method should filter the set of this platforms exclusivelly from any other platform, most likely by its platform_type
         """
-        if self.platform_type == PlatformTypes.telegram.value:
-            return f"webhook_{self.platform_type}_{self.platform_meta['token'].replace(':', '_')}"
-        else:
-            raise "Platform not supported"
+        raise NotImplementedError
 
+    @property
     def platform_url_path(self) -> str:
         """
-        Just an utility function to control the url's view depending on the platform type since this name will
-        most likely depend on the metadata of the paltform
+        For controlling the view's url depending on the platform type since this name will
+        most likely depend on the metadata of the platform
         """
-        if self.platform_type == PlatformTypes.telegram.value:
-            return f"back/webhooks/broker/telegram/{self.platform_meta['token']}"
-        else:
-            raise "Platform not supported"
+        raise NotImplementedError
 
-    def platform_http_consumer(self) -> Type[HTTPBotConsumer]:
+    @property
+    def platform_consumer(self) -> Type[BotConsumer]:
         """
-        Just an utility function to control the url's view depending on the platform type since this name will
-        most likely depend on the metadata of the paltform
+        The HTTP/WS consumer associated with the config
         """
-        if self.platform_type == PlatformTypes.telegram.value:
-            return TelegramBotConsumer
-        else:
-            raise "Platform not supported"
+        raise NotImplementedError
+
+    def build_path(self):
+        return re_path(
+            self.platform_url_path,
+            self.platform_consumer.as_asgi()
+        )
+
+    @property
+    def is_http(self):
+        return issubclass(self.platform_consumer, HTTPBotConsumer)
+
+    @property
+    def is_ws(self):
+        return issubclass(self.platform_consumer, WSBotConsumer)
 
     def register(self):
-        if self.platform_type == PlatformTypes.telegram.value:
-            webhookUrl = urljoin(settings.BASE_URL, self.platform_url_path())
-            logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
-            res = requests.get(
-                f"{self.platform_meta['api_url']}{self.platform_meta['token']}/setWebhook",
-                params={"url": webhookUrl},
-            )
-            if res.ok:
-                logger.debug(
-                    f"Successfully notified  WebhookUrl ({webhookUrl}) to Telegram"
-                )
-            else:
-                logger.error(
-                    f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
-                )
-        else:
-            pass
+        raise NotImplementedError
 
 
-# TODO: Creating instances of Django proxy models from their base class
-# so we can implement "platform_view_name", "platform_url_path", "platform_http_consumer" & "register" separately
-
-'''
 class TelegramPlatformConfig(PlatformConfig):
     """
     Telegram configuration
     """
+
     class Meta:
         proxy = True
 
-    class TelegramPlatformConfigManager(models.Manager):
-        def get_queryset(self):
-            return super(
-                TelegramPlatformConfig.TelegramPlatformConfigManager,
-                self
-            ).get_queryset().filter(platform_type=PlatformTypes.telegram.value)
+    @classmethod
+    def get_queryset(cls):
+        return cls.objects.filter(platform_type=PlatformTypes.telegram.value)
 
-    objects = TelegramPlatformConfigManager()
-'''
+    @property
+    def platform_url_path(self) -> str:
+        return f"back/webhooks/broker/telegram/{self.platform_meta['token']}"
+
+    @property
+    def platform_consumer(self) -> Type[BotConsumer]:
+        return TelegramBotConsumer
+
+    def register(self):
+        webhookUrl = urljoin(settings.BASE_URL, self.platform_url_path)
+        logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
+        res = requests.get(
+            f"{self.platform_meta['api_url']}{self.platform_meta['token']}/setWebhook",
+            params={"url": webhookUrl},
+        )
+        if res.ok:
+            logger.debug(
+                f"Successfully notified  WebhookUrl ({webhookUrl}) to Telegram"
+            )
+        else:
+            logger.error(
+                f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
+            )
+
+
+class CustomWSPlatformConfig(PlatformConfig):
+    """
+    Custom WS configuration
+    """
+
+    class Meta:
+        proxy = True
+
+    @classmethod
+    def get_queryset(cls):
+        return cls.objects.filter(platform_type=PlatformTypes.ws.value)
+
+    @property
+    def platform_url_path(self) -> str:
+        return r"back/ws/broker/(?P<conversation>\w+)/(?P<pc_id>\w+)/$"
+
+    @property
+    def platform_consumer(self) -> Type[BotConsumer]:
+        return CustomWSBotConsumer
+
+    def register(self):
+        pass
