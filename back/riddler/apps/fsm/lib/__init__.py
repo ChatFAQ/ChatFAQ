@@ -197,8 +197,7 @@ class FSM:
 
             self.rpc_result_future = asyncio.get_event_loop().create_future()
             stacks = await self.rpc_result_future
-            await self.save_bot_mml(stacks)
-            await self.ctx.send_response(stacks)
+            await self.ctx.send_response(await self.save_bot_mml(stacks))
 
     def get_initial_state(self):
 
@@ -288,4 +287,4 @@ class FSM:
             }
         )
         await sync_to_async(serializer.is_valid)()
-        await sync_to_async(serializer.save)()
+        return await sync_to_async(serializer.save)()

@@ -4,6 +4,7 @@ import json
 from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from logging import getLogger
 
+from ...models.message import Message
 from ...serializers.message import ExampleWSSerializer
 from riddler.utils import WSStatusCodes
 
@@ -25,8 +26,8 @@ class CustomWSBotConsumer(WSBotConsumer):
     def gather_conversation_id(self):
         return self.scope["url_route"]["kwargs"]["conversation"]
 
-    async def send_response(self, stacks: list):
-        for stack in stacks:
+    async def send_response(self, mml: Message):
+        for stack in mml.stacks:
             for layer in stack:
                 if layer.get("type") == "text":
                     await self.channel_layer.group_send(

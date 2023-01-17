@@ -2,10 +2,12 @@ import json
 
 from logging import getLogger
 
+import httpx
 from asgiref.sync import sync_to_async
 
 from channels.generic.http import AsyncHttpConsumer
 
+from riddler.apps.broker.models.message import Message
 from riddler.apps.fsm.models import CachedFSM
 from riddler.common.abs.bot_consumers import BotConsumer
 
@@ -75,6 +77,13 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
 
         await self.resolve_fsm()
         await self.send_json({"ok": "POST request processed"})
+
+    async def send_response(self, mml: Message):
+        async with httpx.AsyncClient() as client:
+            for data in self.serializer_class(mml).to_platform():
+                await client.post(
+                    f"{self.platform_config.platform_meta['api_url']}{self.platform_config.platform_meta['token']}/sendMessage", data=data
+                )
 
     async def send_json(self, data, more_body=False):
         await self.send_body(json.dumps(data).encode("utf-8"), more_body=more_body)

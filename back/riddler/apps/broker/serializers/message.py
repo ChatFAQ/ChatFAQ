@@ -11,10 +11,20 @@ from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
 
 from riddler.apps.broker.models.message import AgentType, Message, StackPayloadType
+from logging import getLogger
+
+from riddler.utils import WSStatusCodes
+
+logger = getLogger(__name__)
 
 
-class ToMMLSerializer(serializers.Serializer):
+class BotMessageSerializer(serializers.Serializer):
     def to_mml(self, ctx: FSMContext):
+        raise NotImplementedError(
+            "You should implement a 'to_mml' method that converts your platform into an MML internal message"
+        )
+
+    def to_platform(self, ctx: FSMContext):
         raise NotImplementedError(
             "You should implement a 'to_mml' method that converts your platform into an MML internal message"
         )
@@ -105,7 +115,7 @@ class MessageSerializer(serializers.ModelSerializer):
             raise ValidationError(f"prev should belong to the same conversation")
 
 
-class ExampleWSSerializer(ToMMLSerializer):
+class ExampleWSSerializer(BotMessageSerializer):
     stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
 
     def to_mml(self, ctx: FSMContext) -> Union[bool, Message]:
@@ -128,6 +138,18 @@ class ExampleWSSerializer(ToMMLSerializer):
         if not s.is_valid():
             return False
         return s.save()
+
+    def to_platform(self, ctx: FSMContext):
+        for stack in self.mml.stacks:
+            for layer in stack:
+                if layer.get("type") == "text":
+                    data = {
+                        "status": WSStatusCodes.ok.value,
+                        "payload": layer["payload"]
+                    }
+                    yield data
+                else:
+                    logger.warning(f"Layer not supported: {layer}")
 
 
 class TelegramFromSerializer(serializers.Serializer):
@@ -158,7 +180,7 @@ TelegramPayloadSerializer._declared_fields[
 del TelegramPayloadSerializer._declared_fields["_from"]
 
 
-class TelegramMessageSerializer(ToMMLSerializer):
+class TelegramMessageSerializer(BotMessageSerializer):
     message = TelegramPayloadSerializer()
 
     def to_mml(self, ctx: FSMContext) -> Union[bool, Message]:
@@ -181,3 +203,16 @@ class TelegramMessageSerializer(ToMMLSerializer):
         if not s.is_valid():
             return False
         return s.save()
+
+    def to_platform(self, ctx: FSMContext):
+        for stack in self.mml.stacks:
+            for layer in stack:
+                if layer.get("type") == "text":
+                    data = {
+                        "chat_id": ctx.conversation_id,
+                        "text": layer["payload"],
+                        "parse_mode": "Markdown",
+                    }
+                    yield data
+                else:
+                    logger.warning(f"Layer not supported: {layer}")

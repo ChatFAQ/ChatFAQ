@@ -4,6 +4,7 @@ from asgiref.sync import sync_to_async
 
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+from riddler.apps.broker.models.message import Message
 from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.utils import WSStatusCodes
 
@@ -50,3 +51,8 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         # await sync_to_async(_aux)(serializer)
 
         await self.fsm.next_state()
+
+    async def send_response(self, mml: Message):
+        for data in self.serializer_class(mml).to_platform():
+            data["type"] = "response"
+            await self.channel_layer.group_send(self.get_group_name(), data)

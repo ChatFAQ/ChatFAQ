@@ -1,5 +1,7 @@
 from abc import ABC
 from logging import getLogger
+
+from riddler.apps.broker.serializers.message import BotMessageSerializer
 from riddler.apps.fsm.lib import FSMContext, FSM
 from riddler.utils.custom_channels import CustomAsyncConsumer
 
@@ -11,8 +13,9 @@ class BotConsumer(CustomAsyncConsumer, FSMContext, ABC):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.serializer_class is None:
-            raise Exception("serializer_class should not be None on any BotConsumer")
+        if self.serializer_class is None or not issubclass(self.serializer_class, BotMessageSerializer):
+            raise Exception("serializer_class should not be None on any BotConsumer and should implement "
+                            "ToMMLSerializer methods")
 
         self.fsm: FSM = None
 
