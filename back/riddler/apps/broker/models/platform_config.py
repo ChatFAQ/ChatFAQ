@@ -38,22 +38,24 @@ class PlatformConfigMetaClass(ModelBase):
 class PlatformConfig(ChangesMixin, metaclass=PlatformConfigMetaClass):
     """
     This represents the association between a message platform and a FSM
+
     Attributes
     ----------
-    fsm_def
+    fsm_def : str
         A reference to the finite state machine model
     platform_type : str
         Telegram, Whatsapp, etc...
     platform_meta : dict
         metadata specific to the platform itself, they often are tokens, api_urls, etc...
     """
+
     fsm_def = models.ForeignKey("fsm.FSMDefinition", on_delete=models.CASCADE)
     platform_type = models.CharField(max_length=255, choices=((v.value, v.value) for v in PlatformTypes))
     platform_meta = models.JSONField(default=dict)
 
     def get_queryset(self):
         """
-        This method should filter the set of this platforms exclusivelly from any other platform, most likely by its platform_type
+        It should filter the set of these platforms exclusively from any other platform, most likely by its platform_type
         """
         raise NotImplementedError
 
@@ -87,6 +89,10 @@ class PlatformConfig(ChangesMixin, metaclass=PlatformConfigMetaClass):
         return issubclass(self.platform_consumer, WSBotConsumer)
 
     def register(self):
+        """
+        In case we need to notify the remote message platform information as such our endpoint. This method will be
+        executed for all platform configs when initializing the app
+        """
         raise NotImplementedError
 
 
