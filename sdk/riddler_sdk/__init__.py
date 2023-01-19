@@ -7,6 +7,7 @@ import json
 from logging import getLogger
 
 from riddler_sdk import settings
+from riddler_sdk.conditions import Result
 from riddler_sdk.fsm import FSMDefinition
 from riddler_sdk.layers import Layer
 from riddler_sdk.ws.messages import MessageType
@@ -95,7 +96,7 @@ class RiddlerSDK:
         await self.ws.close()
 
     async def receive_loop(self):
-        logger.info("Listening...")
+        logger.info(" ---------------------- Listening...")
         while True:
             data = await self.ws.recv()
             data = json.loads(data)
@@ -142,10 +143,10 @@ class RiddlerSDK:
         res = handler(data)
         if inspect.isgenerator(res):
             return [cls._layer_to_json(item) for item in res]
-        return res
+        return cls._layer_to_json(res)
 
     @staticmethod
-    def _layer_to_json(layer):
-        if not isinstance(layer, Layer):
-            raise Exception("RPCs of actions should only return layers")
-        return layer.to_json()
+    def _layer_to_json(rpc_result):
+        if not isinstance(rpc_result, Layer) and not isinstance(rpc_result, Result):
+            raise Exception("RPCs results should return either Layers type objects or result type objects")
+        return rpc_result.to_json()

@@ -1,5 +1,6 @@
 import random
 
+from riddler_sdk.conditions import Result
 from riddler_sdk.fsm import State, Transition, FSMDefinition
 from riddler_sdk.layers import Text
 
@@ -8,14 +9,8 @@ from riddler_sdk.layers import Text
 # TODO: create type out of this return data structure and check of type on sdk handler registration
 def is_saying_goodbye(ctx: dict):
     if ctx["last_mml"]["stacks"][0][0]["payload"] == "goodbye":
-        return {
-            "score": 1,
-            "data": {}
-        }
-    return {
-        "score": 0,
-        "data": {}
-    }
+        return Result(1)
+    return Result(0)
 
 
 def send_hello(ctx: dict):
