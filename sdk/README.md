@@ -40,8 +40,6 @@ The diagram below describe the FSM definition used in this exampled and implemen
 
 ### States
 
-This FSM is composed of 3 states: __Greeting__, __Answering__, __Goodbye__.
-
 Instantiate the __State__ class for creating a new state in the SDK:
 
 - give it a __name__
@@ -52,7 +50,20 @@ Instantiate the __State__ class for creating a new state in the SDK:
 
 - pass a list of __events__ it should trigger once it's entered.
 
-In this case Greeting state is the initial state (represented as green in the image), all FSM definitions should have one and only one initial state.
+```python
+from riddler_sdk.fsm import State
+
+initial_state = State(
+    name="Initial State",
+    events=[do_something, do_something_else],
+    initial=True
+)
+```
+
+
+In this example the FSM definition is composed of 3 states: __Greeting__, __Answering__, __Goodbye__.
+
+the Greeting state is the initial state (represented as green in the image), all FSM definitions should have one and only one initial state.
 
 All our 3 states have one event to trigger once entered:
 
@@ -80,8 +91,19 @@ Instantiate the __Transition__ class for creating a new transition in the SDK:
 
 
 - declare the list of __unless__ that need NOT pass in order to the transition to happen
+```python
+from riddler_sdk.fsm import Transition
 
-In this case we have 3 transitions:
+initial_to_next_transition = Transition(
+    source=initial_state,
+    dest=next_state,
+    conditions=[some_condition],
+    unless=[some_condition_shouldnt_happen],
+)
+```
+
+
+In this example we have 3 transitions:
 - any_to_goodbye: it is a ubiquitous transitions (as there is no __source__ passed to), it does not matter where we are at, if the user says "goodbye" then we will pass to the Goodbye state.
 
 
@@ -100,7 +122,14 @@ Instantiate the __FSMDefinition__ class for orchestrating all the states and its
 
 
 - pass the __transitions__, order matters: if 2 transitions returns same scores then the first one on the list will be the winner.
+```python
+from riddler_sdk.fsm import FSMDefinition
 
+fsm_definition = FSMDefinition(
+    states=[initial_state, next_state],
+    transitions=[initial_to_next_transition],
+)
+```
 
 ### Connexion
 
@@ -117,7 +146,12 @@ We do so by instantiating the class RiddlerSDK and passing to the constructor 3 
 - fsm_def (optional): an instance of FSMDefinition
 
 Then we call our RiddlerSDK instance's `connect` method, and we are done.
+```python
+from riddler_sdk import RiddlerSDK
 
+sdk = RiddlerSDK("ws://localhost:8000/", "first_fsm", fsm_definition)
+sdk.connect()
+```
 
 ## Build the docs
 
