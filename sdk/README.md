@@ -23,7 +23,7 @@ An FSM definition is composed out of 2 types of blocks: States & Transitions:
 
 - <ins>States</ins>: defines the nodes of an FSM, when a node is reached its __events__ will be triggered.
 
-- <ins>Transitions</ins>: define the __conditions__ needed to transit from one state (__source__)to the other.
+- <ins>Transitions</ins>: define the __conditions__ needed to transit from one state to the other.
 
 Both __events__ and __conditions__ are functionality that will be executed on demand of the Riddler Server. They are known as RPC (Remote Procedure Calls)
 
