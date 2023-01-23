@@ -74,7 +74,7 @@ class CachedFSM(ChangesMixin):
             instance = cls(
                 conversation_id=fsm.ctx.conversation_id,
                 current_state=fsm.current_state._asdict(),
-                fsm_def=fsm.ctx.platform_config.fsm_def,
+                fsm_def=fsm.ctx.fsm_def,
             )
         instance.save()
 

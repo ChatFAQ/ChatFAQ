@@ -103,7 +103,6 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_send(WSBotConsumer.create_group_name(conversation_id), res)
 
     async def rpc_call(self, data: dict):
-        print(1)
         data["status"] = WSStatusCodes.ok.value
         data["type"] = RPCMessageType.rpc_request.value
         await self.send(json.dumps(data))
