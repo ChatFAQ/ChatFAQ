@@ -3,6 +3,8 @@
 This SDK assist on 2 main tasks:
 
 - Creating FSM Definitions on a Riddler server
+
+
 - Hosting RPCs (Remote Procedure Calls) to serve when a session's FSM connected to a Riddler server reach the call.
 
 ## Installation
@@ -15,13 +17,13 @@ Go inside ./back directory and install project dependencies:
 
 ### Concepts
 
-- <u>FSMDefinition</u>: Is the full description of a Finite State Machine.
+- <ins>FSMDefinition</ins>: Is the full description of a Finite State Machine.
 
 An FSM definition is composed out of 2 types of blocks: States & Transitions:
 
-- <u>States</u>: defines the nodes of an FSM, when a node is reached its __events__ will be triggered.
+- <ins>States</ins>: defines the nodes of an FSM, when a node is reached its __events__ will be triggered.
 
-- <u>Transitions</u>: define the __conditions__ needed to transit from one state (__source__)to the other.
+- <ins>Transitions</ins>: define the __conditions__ needed to transit from one state (__source__)to the other.
 
 Both __events__ and __conditions__ are functionality that will be executed on demand of the Riddler Server. They are known as RPC (Remote Procedure Calls)
 
@@ -42,7 +44,11 @@ This FSM is composed of 3 states: Greeting, Answering, Goodbye.
 
 Instantiate the State class for creating a new state in the SDK:
 - give it a __name__
+
+
 - set __initial__ to `True` in case is the initial state
+
+
 - pass a list of __events__ it should trigger once it's entered.
 
 In this case Greeting state is the initial state (represented as green in the image), all FSM definitions should have one and only one initial state.
@@ -50,7 +56,11 @@ In this case Greeting state is the initial state (represented as green in the im
 All our 3 states have one event to trigger once entered:
 
 - Greeting is going to trigger `send_greeting` which return a stack of 2 layers of text: the first layer is saying hello and the second layer is asking our human how is it going.
+
+
 - Answering is going to trigger `send_answer` which also returns a stack of 2 layers of text: the first layer is replying a customized answer (by appending a random number) to the last message, the second layer is inviting the human to keep asking questions
+
+
 - Goodbye is going to trigger `send_goodbye` which returns a stack of 1 layer of text simply effusively saying goodbye
 
 ### Transitions
@@ -60,13 +70,23 @@ We have already defined our states, but we also need to defined how to go from o
 Instantiate the Transition class for creating a new transition in the SDK:
 
 - pass the __source__ state from which this transition could happen (or do not pass it in case this transition can occur from any state, AKA _ubiquitous transitions_)
+
+
 - pass the __dest__ state indicating on which state this transition lands
+
+
 - declare the list of __conditions__ that need to pass in order to the transition to happen
+
+
 - declare the list of __unless__ that need NOT pass in order to the transition to happen
 
 In this case we have 3 transitions:
 - any_to_goodbye: it is a ubiquitous transitions (as there is no __source__ passed to), it does not matter where we are at, if the user says "goodbye" then we will pass to the Goodbye state.
+
+
 - greeting_to_answer: represents the move from Greetings to Answer, which will always happens as long as we are not saying goodbye
+
+
 - answer_to_answer: represents the move from Answer to itself, which will always happens as long as we are not saying goodbye
 
 ### FSM Definition
@@ -76,6 +96,8 @@ The final step consist on gluing everything together.
 Instantiate the FSMDefinition class for orchestrating all the states and its transitions.
 
 - pass the __states__, order won't matter
+
+
 - pass the __transitions__, order matters: if 2 transitions returns same scores then the first one on the list will be the winner.
 
 
@@ -86,7 +108,11 @@ The only thing left after defining your FSM is to communicate it to Riddler Serv
 We do so by instantiating the class RiddlerSDK and passing to the constructor 3 parameters:
 
 - riddler_host: the address of our Riddler Server
+
+
 - fsm_name: the name of our new FSM Definition if we are providing `fsm_def` or the name/ID of an already existing FSM Definition on the remote server if not `fsm_def` is provided
+
+
 - fsm_def (optional): an instance of FSMDefinition
 
 Then we call our RiddlerSDK instance's `connect` method, and we are done.
