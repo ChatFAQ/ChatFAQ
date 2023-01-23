@@ -30,11 +30,11 @@ Both __events__ and __conditions__ are functionality that will be executed on de
 
 ### Example
 
-Inside _examples/\_\_init\_\_.py_ you can find a simple working example of the usage of the SDK.
+Inside [examples/\_\_init\_\_.py](examples/__init__.py) you can find a simple working example of the usage of the SDK.
 
 Let's walk through it step by step.
 
-The diagram below describe the FSM definition is implemented inside _examples/fsm_def.py_.
+The diagram below describe the FSM definition used in this exampled and implemented in [examples/fsm_def.py](examples/fsm_def.py).
 
 ![Simple FSM Definition](./doc/source/images/simple_fsm.png?raw=true "Simple FSM Definition")
 
