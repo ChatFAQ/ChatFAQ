@@ -24,7 +24,7 @@ class RiddlerSDK:
         - Declare the FSM in Riddler
         - Translate inbound messages from Riddler into function calls (handlers) and vice-versa
     """
-    def __init__(self, riddler_host: str, fsm_name: Union[int, str, None] = None, fsm_def: Union[FSMDefinition, None] = None):
+    def __init__(self, riddler_host: str, fsm_name: Union[int, str, None], fsm_def: Union[FSMDefinition, None] = None):
         """
         Parameters
         ----------

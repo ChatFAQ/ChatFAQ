@@ -10,4 +10,4 @@ isort:
 	$(PYTHON_BIN) -m isort tests
 
 run:
-	poetry run python tests/__init__.py
+	poetry run python examples/__init__.py

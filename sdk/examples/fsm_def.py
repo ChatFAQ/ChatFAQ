@@ -5,8 +5,6 @@ from riddler_sdk.fsm import State, Transition, FSMDefinition
 from riddler_sdk.layers import Text
 
 
-# TODO: create type out of ctx
-# TODO: create type out of this return data structure and check of type on sdk handler registration
 def is_saying_goodbye(ctx: dict):
     if ctx["last_mml"]["stacks"][0][0]["payload"] == "goodbye":
         return Result(1)
@@ -29,36 +27,38 @@ def send_goodbye(ctx: dict):
 
 
 greeting_state = State(
-    name="greeting",
+    name="Greeting",
     events=[send_greeting],
     initial=True
 )
 
 answering_state = State(
-    name="answering",
+    name="Answering",
     events=[send_answer],
 )
 
 goodbye_state = State(
-    name="goodbye",
+    name="Goodbye",
     events=[send_goodbye],
+)
+
+any_to_goodbye = Transition(
+    dest=goodbye_state,
+    conditions=[is_saying_goodbye]
 )
 
 greeting_to_answer = Transition(
     source=greeting_state,
     dest=answering_state,
+    unless=[is_saying_goodbye],
 )
 answer_to_answer = Transition(
     source=answering_state,
     dest=answering_state,
     unless=[is_saying_goodbye]
 )
-any_to_goodbye = Transition(
-    dest=goodbye_state,
-    conditions=[is_saying_goodbye]
-)
 
 fsm_def = FSMDefinition(
     states=[greeting_state, answering_state, goodbye_state],
-    transitions=[greeting_to_answer, answer_to_answer, any_to_goodbye],
+    transitions=[greeting_to_answer, any_to_goodbye, answer_to_answer],
 )
