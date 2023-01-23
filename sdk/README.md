@@ -13,6 +13,16 @@ Go inside ./back directory and install project dependencies:
 
 `poetry install`
 
+
+## Build the docs
+
+go inside the `doc` directory and run:
+
+```
+poetry run make html
+```
+
+
 ## Quick start
 
 ### Concepts
@@ -58,6 +68,12 @@ initial_state = State(
     events=[do_something, do_something_else],
     initial=True
 )
+
+next_state = State(
+    name="Other State",
+    events=[do_more_things],
+)
+
 ```
 
 
@@ -151,12 +167,4 @@ from riddler_sdk import RiddlerSDK
 
 sdk = RiddlerSDK("ws://localhost:8000/", "first_fsm", fsm_definition)
 sdk.connect()
-```
-
-## Build the docs
-
-go inside the `doc` directory and run:
-
-```
-poetry run make html
 ```
