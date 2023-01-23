@@ -20,11 +20,11 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
-        pc = await sync_to_async(self.gather_platform_config)()
-        self.set_platform_config(pc)
+        self.set_fsm_def(await self.gather_fsm_def())
+        self.set_platform_config(await self.gather_platform_config())
 
         # TODO: Support cached FSM ???
-        self.fsm = self.platform_config.fsm_def.build_fsm(self)
+        self.fsm = self.fsm_def.build_fsm(self)
 
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)

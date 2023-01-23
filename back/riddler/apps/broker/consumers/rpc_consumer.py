@@ -40,7 +40,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             logger.debug("New RPC WS Connection without fsm_id, the fsm definition will have to be declared later on "
                          "with a 'fsm_def' message type")
         else:
-            logger.info(f"Setting existing FSM Definition ({fsm.name}) by ID/name")
+            logger.info(f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by ID/name")
             self.fsm_id = fsm.pk
             await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
         await self.accept()
@@ -84,7 +84,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         if created:
             logger.info(f"Created new FSM Definition from the RPC server: {data['name']}")
         else:
-            logger.info(f"Setting existing FSM Definition ({fsm.name}) by provided definition")
+            logger.info(f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by provided definition")
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
 
     async def manage_rpc_result(self, data):
@@ -102,7 +102,8 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         conversation_id = data["ctx"]["conversation_id"]
         await self.channel_layer.group_send(WSBotConsumer.create_group_name(conversation_id), res)
 
-    async def response(self, data: dict):
+    async def rpc_call(self, data: dict):
+        print(1)
         data["status"] = WSStatusCodes.ok.value
         data["type"] = RPCMessageType.rpc_request.value
         await self.send(json.dumps(data))

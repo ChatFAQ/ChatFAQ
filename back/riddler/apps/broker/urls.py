@@ -12,5 +12,5 @@ router.register(r"platform_bots", views.PlatformConfigView, basename="platform_b
 urlpatterns = [
     path("", include(router.urls)),
     path("chat/", views.chat, name="chat"),
-    path("chat/<str:conversation>/<str:pc_id>/", views.room, name="room"),
+    path("chat/<str:conversation>/<str:fsm_def_id>/<str:pc_id>/", views.room, name="room"),
 ]

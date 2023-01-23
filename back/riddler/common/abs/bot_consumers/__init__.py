@@ -24,11 +24,13 @@ class BotConsumer(CustomAsyncConsumer, ABC):
     serializer_class = None
 
     def __init__(self, *args, **kwargs):
-        from riddler.apps.broker.models.platform_config import PlatformConfig  # TODO: fix CI
-        from riddler.apps.broker.serializers.message import BotMessageSerializer  # TODO: fix CI
-        from riddler.apps.fsm.lib import FSM  # TODO: fix CI
+        from riddler.apps.broker.models.platform_config import PlatformConfig  # TODO: CI
+        from riddler.apps.broker.serializers.message import BotMessageSerializer  # TODO: CI
+        from riddler.apps.fsm.models import FSMDefinition  # TODO: CI
+        from riddler.apps.fsm.lib import FSM  # TODO: CI
 
         self.conversation_id: Union[str, None] = None
+        self.fsm_def: FSMDefinition = None
         self.platform_config: Union[PlatformConfig, None] = None
 
         super().__init__(*args, **kwargs)
@@ -71,14 +73,20 @@ class BotConsumer(CustomAsyncConsumer, ABC):
             "All classes that behave as contexts for machines should implement 'send_response'"
         )
 
-    def gather_platform_config(self, request: Request = None):
-        raise NotImplemented("Implement a method that gathers the fsm name")
-
     def gather_conversation_id(self, mml: Message = None):
         raise NotImplemented("Implement a method that gathers the conversation id")
 
+    async def gather_fsm_def(self, mml: Message = None):
+        raise NotImplemented("Implement a method that gathers the conversation id")
+
+    async def gather_platform_config(self, request: Request = None):
+        raise NotImplemented("Implement a method that gathers the fsm name")
+
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id
+
+    def set_fsm_def(self, fsm_def):
+        self.fsm_def = fsm_def
 
     def set_platform_config(self, platform_config):
         self.platform_config = platform_config

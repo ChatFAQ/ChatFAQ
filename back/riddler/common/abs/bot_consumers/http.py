@@ -43,7 +43,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
             logger.debug(
                 f"Starting new conversation ({self.conversation_id}), creating new FSM"
             )
-            self.fsm = self.platform_config.fsm_def.build_fsm(self)
+            self.fsm = self.fsm_def.build_fsm(self)
             await self.fsm.start()
 
         return True
@@ -65,8 +65,8 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         serializer.is_valid()
 
         self.set_conversation_id(self.gather_conversation_id(serializer.validated_data))
-        pc = await sync_to_async(self.gather_platform_config)(self.scope)
-        self.set_platform_config(pc)
+        self.set_fsm_def(await self.gather_fsm_def(serializer.validated_data))
+        self.set_platform_config(await self.gather_platform_config(self.scope))
 
         mml = await sync_to_async(serializer.to_mml)(self)
         if not mml:

@@ -130,11 +130,11 @@ class FSM:
             transition_data = {}
         from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
-        group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
+        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
         for event_name in self.current_state.events:
             data = {
-                "type": "response",
+                "type": "rpc_call",
                 "status": WSStatusCodes.ok.value,
                 "payload": {
                     "name": event_name,
@@ -142,9 +142,10 @@ class FSM:
                 }
             }
             await self.channel_layer.group_send(group_name, data)
-
             self.rpc_result_future = asyncio.get_event_loop().create_future()
+            logger.debug(f"Waiting for RCP call {event_name}...")
             stacks = await self.rpc_result_future
+            logger.debug(f"...Receive RCP call {event_name}")
             await self.ctx.send_response(await self.save_bot_mml(stacks))
 
     def get_initial_state(self):
@@ -199,9 +200,9 @@ class FSM:
         """
         from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
-        group_name = RPCConsumer.create_group_name(self.ctx.platform_config.fsm_def_id)
+        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
         data = {
-            "type": "response",
+            "type": "rpc_call",
             "status": WSStatusCodes.ok.value,
             "payload": {
                 "name": condition_name,
@@ -210,7 +211,9 @@ class FSM:
         }
         await self.channel_layer.group_send(group_name, data)
         self.rpc_result_future = asyncio.get_event_loop().create_future()
+        logger.debug(f"Waiting for RCP call {condition_name}...")
         payload = await self.rpc_result_future
+        logger.debug(f"...Receive RCP call {condition_name}")
         return payload["score"], payload["data"]
 
     async def save_cache(self):

@@ -13,7 +13,7 @@ def is_saying_goodbye(ctx: dict):
     return Result(0)
 
 
-def send_hello(ctx: dict):
+def send_greeting(ctx: dict):
     yield Text("Hello!")
     yield Text("How are you?")
 
@@ -28,9 +28,9 @@ def send_goodbye(ctx: dict):
     yield Text("Byeeeeeeee!")
 
 
-hello_state = State(
-    name="hello",
-    events=[send_hello],
+greeting_state = State(
+    name="greeting",
+    events=[send_greeting],
     initial=True
 )
 
@@ -44,8 +44,8 @@ goodbye_state = State(
     events=[send_goodbye],
 )
 
-hello_to_answer = Transition(
-    source=hello_state,
+greeting_to_answer = Transition(
+    source=greeting_state,
     dest=answering_state,
 )
 answer_to_answer = Transition(
@@ -59,6 +59,6 @@ any_to_goodbye = Transition(
 )
 
 fsm_def = FSMDefinition(
-    states=[hello_state, answering_state, goodbye_state],
-    transitions=[hello_to_answer, answer_to_answer, any_to_goodbye],
+    states=[greeting_state, answering_state, goodbye_state],
+    transitions=[greeting_to_answer, answer_to_answer, any_to_goodbye],
 )

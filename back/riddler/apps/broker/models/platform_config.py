@@ -41,15 +41,12 @@ class PlatformConfig(ChangesMixin, metaclass=PlatformConfigMetaClass):
 
     Attributes
     ----------
-    fsm_def : str
-        A reference to the finite state machine model
     platform_type : str
         Telegram, Whatsapp, etc...
     platform_meta : dict
         metadata specific to the platform itself, they often are tokens, api_urls, etc...
     """
 
-    fsm_def = models.ForeignKey("fsm.FSMDefinition", on_delete=models.CASCADE)
     platform_type = models.CharField(max_length=255, choices=((v.value, v.value) for v in PlatformTypes))
     platform_meta = models.JSONField(default=dict)
 
@@ -147,7 +144,7 @@ class CustomWSPlatformConfig(PlatformConfig):
 
     @property
     def platform_url_path(self) -> str:
-        return r"back/ws/broker/(?P<conversation>\w+)/(?P<pc_id>\w+)/$"
+        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def_id>\w+)/(?P<pc_id>\w+)/$"
 
     @property
     def platform_consumer(self) -> Type[BotConsumer]:
