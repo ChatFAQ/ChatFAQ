@@ -40,9 +40,10 @@ The diagram below describe the FSM definition is implemented inside _examples/fs
 
 ### States
 
-This FSM is composed of 3 states: Greeting, Answering, Goodbye.
+This FSM is composed of 3 states: __Greeting__, __Answering__, __Goodbye__.
 
-Instantiate the State class for creating a new state in the SDK:
+Instantiate the __State__ class for creating a new state in the SDK:
+
 - give it a __name__
 
 
@@ -55,19 +56,19 @@ In this case Greeting state is the initial state (represented as green in the im
 
 All our 3 states have one event to trigger once entered:
 
-- Greeting is going to trigger `send_greeting` which return a stack of 2 layers of text: the first layer is saying hello and the second layer is asking our human how is it going.
+- __Greeting__ is going to trigger `send_greeting` which return a stack of 2 layers of text: the first layer is saying hello and the second layer is asking our human how is it going.
 
 
-- Answering is going to trigger `send_answer` which also returns a stack of 2 layers of text: the first layer is replying a customized answer (by appending a random number) to the last message, the second layer is inviting the human to keep asking questions
+- __Answering__ is going to trigger `send_answer` which also returns a stack of 2 layers of text: the first layer is replying a customized answer (by appending a random number) to the last message, the second layer is inviting the human to keep asking questions
 
 
-- Goodbye is going to trigger `send_goodbye` which returns a stack of 1 layer of text simply effusively saying goodbye
+- __Goodbye__ is going to trigger `send_goodbye` which returns a stack of 1 layer of text simply effusively saying goodbye
 
 ### Transitions
 
-We have already defined our states, but we also need to defined how to go from one to another, we have to define the transitions between them.
+We have already defined our states, but we also need to defined how to go from one to another, in other words, we have to define the transitions between them.
 
-Instantiate the Transition class for creating a new transition in the SDK:
+Instantiate the __Transition__ class for creating a new transition in the SDK:
 
 - pass the __source__ state from which this transition could happen (or do not pass it in case this transition can occur from any state, AKA _ubiquitous transitions_)
 
@@ -93,7 +94,7 @@ In this case we have 3 transitions:
 
 The final step consist on gluing everything together.
 
-Instantiate the FSMDefinition class for orchestrating all the states and its transitions.
+Instantiate the __FSMDefinition__ class for orchestrating all the states and its transitions.
 
 - pass the __states__, order won't matter
 
