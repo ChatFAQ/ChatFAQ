@@ -2,6 +2,7 @@ class Result:
     """
     Instances of this class should be always returned by the conditions of the FSM's transitions
     """
+
     def __init__(self, score: float, data: dict = {}):
         """
 
@@ -20,8 +21,4 @@ class Result:
         self.data = data
 
     def to_json(self):
-        return {
-            "score": self.score,
-            "data": self.data
-        }
-
+        return {"score": self.score, "data": self.data}

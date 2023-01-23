@@ -2,6 +2,7 @@ class Layer:
     """
     Representation of all the future stack's layers. Implementing a new layer should inherit form this
     """
+
     _type = None
 
     def to_json(self):
@@ -25,7 +26,4 @@ class Text(Layer):
         self.payload = payload
 
     def to_json(self):
-        return [{
-            "type": self._type,
-            "payload": self.payload
-        }]
+        return [{"type": self._type, "payload": self.payload}]

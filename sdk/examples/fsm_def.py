@@ -1,7 +1,7 @@
 import random
 
 from riddler_sdk.conditions import Result
-from riddler_sdk.fsm import State, Transition, FSMDefinition
+from riddler_sdk.fsm import FSMDefinition, State, Transition
 from riddler_sdk.layers import Text
 
 
@@ -17,20 +17,18 @@ def send_greeting(ctx: dict):
 
 
 def send_answer(ctx: dict):
-    last_payload = ctx['last_mml']['stacks'][0][0]['payload']
-    yield Text(f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}')
-    yield Text(f'Tell me more')
+    last_payload = ctx["last_mml"]["stacks"][0][0]["payload"]
+    yield Text(
+        f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}'
+    )
+    yield Text(f"Tell me more")
 
 
 def send_goodbye(ctx: dict):
     yield Text("Byeeeeeeee!")
 
 
-greeting_state = State(
-    name="Greeting",
-    events=[send_greeting],
-    initial=True
-)
+greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
 answering_state = State(
     name="Answering",
@@ -42,10 +40,7 @@ goodbye_state = State(
     events=[send_goodbye],
 )
 
-any_to_goodbye = Transition(
-    dest=goodbye_state,
-    conditions=[is_saying_goodbye]
-)
+any_to_goodbye = Transition(dest=goodbye_state, conditions=[is_saying_goodbye])
 
 greeting_to_answer = Transition(
     source=greeting_state,
@@ -53,9 +48,7 @@ greeting_to_answer = Transition(
     unless=[is_saying_goodbye],
 )
 answer_to_answer = Transition(
-    source=answering_state,
-    dest=answering_state,
-    unless=[is_saying_goodbye]
+    source=answering_state, dest=answering_state, unless=[is_saying_goodbye]
 )
 
 fsm_def = FSMDefinition(

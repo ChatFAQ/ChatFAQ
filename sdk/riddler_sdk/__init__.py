@@ -1,11 +1,10 @@
-import inspect
 import asyncio
-from typing import Union, Callable
-
-import websockets
+import inspect
 import json
 from logging import getLogger
+from typing import Callable, Union
 
+import websockets
 from riddler_sdk import settings
 from riddler_sdk.conditions import Result
 from riddler_sdk.fsm import FSMDefinition
@@ -24,7 +23,13 @@ class RiddlerSDK:
         - Declare the FSM in Riddler
         - Translate inbound messages from Riddler into function calls (handlers) and vice-versa
     """
-    def __init__(self, riddler_host: str, fsm_name: Union[int, str, None], fsm_def: Union[FSMDefinition, None] = None):
+
+    def __init__(
+        self,
+        riddler_host: str,
+        fsm_name: Union[int, str, None],
+        fsm_def: Union[FSMDefinition, None] = None,
+    ):
         """
         Parameters
         ----------
@@ -81,15 +86,17 @@ class RiddlerSDK:
     async def on_connect(self):
         if self.fsm_def is not None:
             logger.info(f"Setting FSM by Definition {self.fsm_name}")
-            await self.ws.send(json.dumps(
-                {
-                    "type": MessageType.fsm_def.value,
-                    "data": {
-                        "name": self.fsm_name,
-                        "definition": self.fsm_def.to_json()
-                    },
-                }
-            ))
+            await self.ws.send(
+                json.dumps(
+                    {
+                        "type": MessageType.fsm_def.value,
+                        "data": {
+                            "name": self.fsm_name,
+                            "definition": self.fsm_def.to_json(),
+                        },
+                    }
+                )
+            )
 
     async def _disconnect(self):
         logger.info(f"Disconnecting from: {self.uri}")
@@ -105,13 +112,17 @@ class RiddlerSDK:
                 logger.info(f"Executing RPC ::: {data['name']}")
                 for handler in self.rpcs[data["name"]]:
                     res = self._run_handler(handler, data["ctx"])
-                    await self.ws.send(json.dumps({
-                        "type": MessageType.rpc_result.value,
-                        "data": {
-                            "ctx": data["ctx"],
-                            "payload": res,
-                        }
-                    }))
+                    await self.ws.send(
+                        json.dumps(
+                            {
+                                "type": MessageType.rpc_result.value,
+                                "data": {
+                                    "ctx": data["ctx"],
+                                    "payload": res,
+                                },
+                            }
+                        )
+                    )
             elif data.get("type") == MessageType.error.value:
                 data = data["payload"]
                 logger.error(f"Error from Riddler server: {data}")
@@ -124,6 +135,7 @@ class RiddlerSDK:
         name : str
             Name to which the function will be called once we received it from riddler
         """
+
         def outer(func):
             def inner(ctx: dict):
                 return func(ctx)
@@ -136,6 +148,7 @@ class RiddlerSDK:
                 self.rpcs[name].append(inner)
 
             return inner
+
         return outer
 
     @classmethod
@@ -148,5 +161,7 @@ class RiddlerSDK:
     @staticmethod
     def _layer_to_json(rpc_result):
         if not isinstance(rpc_result, Layer) and not isinstance(rpc_result, Result):
-            raise Exception("RPCs results should return either Layers type objects or result type objects")
+            raise Exception(
+                "RPCs results should return either Layers type objects or result type objects"
+            )
         return rpc_result.to_json()

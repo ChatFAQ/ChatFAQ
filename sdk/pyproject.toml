@@ -12,6 +12,8 @@ websockets = "^10.4"
 coloredlogs = "^15.0.1"
 sphinx = "<6"
 myst-parser = "^0.18.1"
+isort = "^5.11.4"
+black = "^22.12.0"
 
 
 [build-system]

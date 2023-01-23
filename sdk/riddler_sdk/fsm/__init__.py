@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import List, Callable
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, List
+
 if TYPE_CHECKING:
     from riddler_sdk import RiddlerSDK
 
@@ -11,6 +11,7 @@ class FSMDefinition:
     Representation of the entire FSM, this class will generate the DSM Definition sent to the Riddler server and will do
     all the validation of the states/transitions and will register all the RPCs
     """
+
     def __init__(self, states: List[State] = [], transitions: List[Transition] = []):
         """
 
@@ -46,6 +47,7 @@ class State:
     """
     The state of the FSM
     """
+
     def __init__(self, name: str, events: List[Callable] = [], initial: bool = False):
         """
 
@@ -75,7 +77,14 @@ class Transition:
     """
     The transition between 2 states of the FSM
     """
-    def __init__(self, dest: State, source: State = None, conditions: List[Callable] = [], unless: List[Callable] = []):
+
+    def __init__(
+        self,
+        dest: State,
+        source: State = None,
+        conditions: List[Callable] = [],
+        unless: List[Callable] = [],
+    ):
         """
 
         Parameters

@@ -7,7 +7,7 @@ black:
 
 isort:
 	$(PYTHON_BIN) -m isort riddler_sdk
-	$(PYTHON_BIN) -m isort tests
+	$(PYTHON_BIN) -m isort examples
 
 run:
 	poetry run python examples/__init__.py
