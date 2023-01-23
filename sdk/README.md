@@ -1,6 +1,6 @@
 # Riddler SDK
 
-This SDK assist on 2 main tasks:
+This SDK assists you on 2 main tasks:
 
 - Creating FSM Definitions on a Riddler server
 
