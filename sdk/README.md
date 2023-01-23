@@ -183,9 +183,9 @@ Instantiate the __FSMDefinition__ class for orchestrating all the states and its
 ```python
 from riddler_sdk.fsm import FSMDefinition
 
-fsm_definition = FSMDefinition(
-    states=[initial_state, next_state],
-    transitions=[initial_to_next_transition],
+fsm_def = FSMDefinition(
+    states=[greeting_state, answering_state, goodbye_state],
+    transitions=[greeting_to_answer, any_to_goodbye, answer_to_answer],
 )
 ```
 
@@ -207,6 +207,6 @@ Then we call our RiddlerSDK instance's `connect` method, and we are done.
 ```python
 from riddler_sdk import RiddlerSDK
 
-sdk = RiddlerSDK("ws://localhost:8000/", "first_fsm", fsm_definition)
+sdk = RiddlerSDK("ws://localhost:8000/", "simple_fsm", fsm_def)
 sdk.connect()
 ```
