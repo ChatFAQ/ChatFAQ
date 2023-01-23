@@ -63,17 +63,23 @@ Instantiate the __State__ class for creating a new state in the SDK:
 ```python
 from riddler_sdk.fsm import State
 
-initial_state = State(
-    name="Initial State",
-    events=[do_something, do_something_else],
+greeting_state = State(
+    name="Greeting",
+    events=[send_greeting],
     initial=True
 )
 
-next_state = State(
-    name="Other State",
-    events=[do_more_things],
+answering_state = State(
+    name="Answering",
+    events=[send_answer],
 )
 
+goodbye_state = State(
+    name="Goodbye",
+    events=[send_goodbye],
+)
+
+...
 ```
 
 
@@ -90,6 +96,33 @@ All our 3 states have one event to trigger once entered:
 
 
 - __Goodbye__ is going to trigger `send_goodbye` which returns a stack of 1 layer of text simply effusively saying goodbye
+
+```python
+import random
+
+from riddler_sdk.conditions import Result
+from riddler_sdk.layers import Text
+
+def is_saying_goodbye(ctx: dict):
+    if ctx["last_mml"]["stacks"][0][0]["payload"] == "goodbye":
+        return Result(1)
+    return Result(0)
+
+
+def send_greeting(ctx: dict):
+    yield Text("Hello!")
+    yield Text("How are you?")
+
+
+def send_answer(ctx: dict):
+    last_payload = ctx['last_mml']['stacks'][0][0]['payload']
+    yield Text(f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}')
+    yield Text(f'Tell me more')
+
+
+def send_goodbye(ctx: dict):
+    yield Text("Byeeeeeeee!")
+```
 
 ### Transitions
 
@@ -110,11 +143,20 @@ Instantiate the __Transition__ class for creating a new transition in the SDK:
 ```python
 from riddler_sdk.fsm import Transition
 
-initial_to_next_transition = Transition(
-    source=initial_state,
-    dest=next_state,
-    conditions=[some_condition],
-    unless=[some_condition_shouldnt_happen],
+any_to_goodbye = Transition(
+    dest=goodbye_state,
+    conditions=[is_saying_goodbye]
+)
+
+greeting_to_answer = Transition(
+    source=greeting_state,
+    dest=answering_state,
+    unless=[is_saying_goodbye],
+)
+answer_to_answer = Transition(
+    source=answering_state,
+    dest=answering_state,
+    unless=[is_saying_goodbye]
 )
 ```
 
