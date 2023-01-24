@@ -2,7 +2,6 @@ import json
 
 from logging import getLogger
 
-import httpx
 from asgiref.sync import sync_to_async
 
 from channels.generic.http import AsyncHttpConsumer
@@ -31,6 +30,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
             Whether or not it was able to create (new) or retrieve (cached) a FSM.
             If returns False most likely it is going be because a wrongly provided FSM name
         """
+
         self.fsm = await sync_to_async(CachedFSM.build_fsm)(self)
         if self.fsm:
             logger.debug(
@@ -38,8 +38,6 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
             )
             await self.fsm.next_state()
         else:
-            if self.platform_config is None:
-                return False
             logger.debug(
                 f"Starting new conversation ({self.conversation_id}), creating new FSM"
             )
@@ -66,7 +64,6 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
 
         self.set_conversation_id(self.gather_conversation_id(serializer.validated_data))
         self.set_fsm_def(await self.gather_fsm_def(serializer.validated_data))
-        self.set_platform_config(await self.gather_platform_config(self.scope))
 
         mml = await sync_to_async(serializer.to_mml)(self)
         if not mml:
@@ -77,13 +74,6 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
 
         await self.resolve_fsm()
         await self.send_json({"ok": "POST request processed"})
-
-    async def send_response(self, mml: Message):
-        async with httpx.AsyncClient() as client:
-            for data in self.serializer_class.to_platform(mml, self):
-                await client.post(
-                    f"{self.platform_config.platform_meta['api_url']}{self.platform_config.platform_meta['token']}/sendMessage", data=data
-                )
 
     async def send_json(self, data, more_body=False):
         await self.send_body(json.dumps(data).encode("utf-8"), more_body=more_body)
@@ -96,3 +86,6 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
             await self.send_json({"error": "Wrong JSON"})
             return
         return data
+
+    async def send_response(self, mml: Message):
+        raise NotImplementedError

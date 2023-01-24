@@ -8,13 +8,6 @@
 Conversation ID:<br/><div><input id="conversation-input" type="text" size="100"></div>
 
 <div>
-    Platform Config ID
-    <select id="pc_id-input">
-    {% for pc_id in pc_ids %}
-          <option value="{{ pc_id }}">{{ pc_id }}</option>
-    {% endfor %}
-</select>
-<div>
     FSM Definition ID
     <select id="fsm_def_id-input">
     {% for fsm_def_id in fsm_def_ids %}
@@ -33,15 +26,12 @@ Conversation ID:<br/><div><input id="conversation-input" type="text" size="100">
     }
     document.querySelector('#conversation-input').focus();
     document.querySelector('#conversation-input').onkeyup = submit;
-    document.querySelector('#pc_id-input').onkeyup = submit;
     document.querySelector('#fsm_def_id-input').onkeyup = submit;
 
     document.querySelector('#conversation-submit').onclick = function (e) {
         const conversation = document.querySelector('#conversation-input').value;
-        const pc_id = document.querySelector('#pc_id-input').value;
         const fsm_def_id = document.querySelector('#fsm_def_id-input').value;
-        window.location.pathname = '/back/api/broker/chat/' + conversation + '/' + pc_id + '/';
-        window.location.pathname = '/back/api/broker/chat/' + conversation + '/' + fsm_def_id + '/' + pc_id + '/';
+        window.location.pathname = '/back/api/broker/chat/' + conversation + '/' + fsm_def_id + '/';
     };
 </script>
 </body>

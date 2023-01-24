@@ -2,6 +2,7 @@ import time
 
 from asgiref.sync import async_to_sync
 from typing import Union
+from riddler.apps.broker.models.message import StackPayloadType, AgentType
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -10,16 +11,19 @@ from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
 
-from riddler.apps.broker.models.message import AgentType, Message, StackPayloadType
+
 from logging import getLogger
 
 from riddler.utils import WSStatusCodes
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from riddler.apps.broker.models.message import Message
 
 logger = getLogger(__name__)
 
 
 class BotMessageSerializer(serializers.Serializer):
-    def to_mml(self, ctx: BotConsumer) -> Message:
+    def to_mml(self, ctx: BotConsumer) -> "Message":
         """
         It should convert the validated data (it's called after calling 'is_valid') coming from the platform to a MML
         structure.
@@ -41,7 +45,7 @@ class BotMessageSerializer(serializers.Serializer):
         )
 
     @staticmethod
-    def to_platform(mml: Message, ctx: BotConsumer) -> dict:
+    def to_platform(mml: "Message", ctx: BotConsumer) -> dict:
         """
         It should convert a MML coming from the FSM to the platform expected schema
         structure.
@@ -65,12 +69,14 @@ class BotMessageSerializer(serializers.Serializer):
 
 
 class AgentSerializer(serializers.Serializer):
+
     first_name = serializers.CharField(required=False, max_length=255)
     last_name = serializers.CharField(required=False, max_length=255)
     type = serializers.ChoiceField(choices=[n.value for n in AgentType])
     platform = serializers.CharField(required=False, max_length=255)
 
     class Meta:
+
         validators = [
             PresentTogether(fields=[{"type": AgentType.human.value}, "platform"])
         ]
@@ -92,6 +98,7 @@ class Payload(serializers.Field):
 
 class MessageStackSerializer(serializers.Serializer):
     # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
+
     type = serializers.ChoiceField(
         choices=[n.value for n in StackPayloadType]
     )
@@ -133,6 +140,7 @@ class MessageSerializer(serializers.ModelSerializer):
     send_time = JSTimestampField()
 
     class Meta:
+        from riddler.apps.broker.models.message import Message  # TODO: CI
         model = Message
         fields = "__all__"
 
@@ -141,6 +149,7 @@ class MessageSerializer(serializers.ModelSerializer):
         - There should be only one message with prev set to None
         - Prev should be None or belonging to the same conversation
         """
+        from riddler.apps.broker.models.message import Message  # TODO: CI
         # It seems we are implementing "UniqueValidator" but nor really, because this will also fail for when value=None
         # and another message also already have value=None while UniqueValidator will not fail on this specific use case
         if Message.objects.filter(conversation=self.initial_data["conversation"], prev=prev).first():
@@ -152,7 +161,8 @@ class MessageSerializer(serializers.ModelSerializer):
 class ExampleWSSerializer(BotMessageSerializer):
     stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
 
-    def to_mml(self, ctx: BotConsumer) -> Union[bool, Message]:
+    def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
+
         if not self.is_valid():
             return False
 
@@ -174,7 +184,7 @@ class ExampleWSSerializer(BotMessageSerializer):
         return s.save()
 
     @staticmethod
-    def to_platform(mml: Message, ctx: BotConsumer) -> dict:
+    def to_platform(mml: "Message", ctx: BotConsumer) -> dict:
         for stack in mml.stacks:
             for layer in stack:
                 if layer.get("type") == "text":
@@ -218,7 +228,8 @@ del TelegramPayloadSerializer._declared_fields["_from"]
 class TelegramMessageSerializer(BotMessageSerializer):
     message = TelegramPayloadSerializer()
 
-    def to_mml(self, ctx: BotConsumer) -> Union[bool, Message]:
+    def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
+
         if not self.is_valid():
             return False
         last_mml = async_to_sync(ctx.get_last_mml)()
@@ -240,7 +251,7 @@ class TelegramMessageSerializer(BotMessageSerializer):
         return s.save()
 
     @staticmethod
-    def to_platform(mml: Message, ctx: BotConsumer):
+    def to_platform(mml: "Message", ctx: BotConsumer):
         for stack in mml.stacks:
             for layer in stack:
                 if layer.get("type") == "text":

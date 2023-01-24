@@ -156,3 +156,9 @@ with EnvManager(preset) as env:
         },
     }
     """
+
+    # ---
+    # Telegram
+    # ---
+
+    TG_TOKEN = os.getenv("TG_TOKEN")

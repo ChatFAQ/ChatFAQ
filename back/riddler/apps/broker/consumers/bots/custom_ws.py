@@ -19,11 +19,14 @@ class CustomWSBotConsumer(WSBotConsumer):
     def gather_conversation_id(self):
         return self.scope["url_route"]["kwargs"]["conversation"]
 
-    async def gather_platform_config(self):
-        from ...models.platform_config import PlatformConfig  # TODO: Fix CI
-        pk = self.scope["url_route"]["kwargs"]["pc_id"]
-        return await sync_to_async(PlatformConfig.objects.get)(pk=pk)
-
     async def gather_fsm_def(self):
         pk = self.scope["url_route"]["kwargs"]["fsm_def_id"]
         return await sync_to_async(FSMDefinition.objects.get)(pk=pk)
+
+    @classmethod
+    def platform_url_path(self) -> str:
+        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def_id>\w+)/$"
+
+    @classmethod
+    def register(cls):
+        pass

@@ -1,6 +1,5 @@
 from enum import Enum
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 

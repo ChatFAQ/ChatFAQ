@@ -1,7 +1,9 @@
 from django.urls import re_path
 
 from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer
-from riddler.apps.broker.models.platform_config import PlatformConfigMetaClass
+from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
+from riddler.common.abs.bot_consumers import BrokerMetaClass
+from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from riddler.utils import is_migrating
 
 websocket_urlpatterns = [
@@ -22,12 +24,11 @@ def set_up_platform_urls(_http_urlpatterns, _ws_urlpatterns):
     if is_migrating():
         return
 
-    for pc_class in PlatformConfigMetaClass.registry:
-        for pc in pc_class.get_queryset().all():
-            if pc.is_http:
-                _http_urlpatterns.append(pc.build_path())
-            elif pc.is_ws:
-                _ws_urlpatterns.append(pc.build_path())
+    for pc in BrokerMetaClass.registry:
+        if issubclass(pc, HTTPBotConsumer):
+            _http_urlpatterns.append(pc.build_path())
+        elif issubclass(pc, WSBotConsumer):
+            _ws_urlpatterns.append(pc.build_path())
 
 
 set_up_platform_urls(http_urlpatterns, websocket_urlpatterns)
