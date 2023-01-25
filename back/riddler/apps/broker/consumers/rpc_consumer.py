@@ -10,6 +10,7 @@ from riddler.apps.fsm.models import FSMDefinition
 from riddler.apps.fsm.serializers import FSMSerializer
 from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from riddler.utils import WSStatusCodes
+from django.contrib.auth.models import AnonymousUser
 
 logger = getLogger(__name__)
 
@@ -34,6 +35,10 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         return self.create_group_name(self.fsm_id)
 
     async def connect(self):
+        if not self.scope.get("user") or isinstance(self.scope["user"], AnonymousUser):
+            await self.close()
+            return
+
         fsm_id_or_name = self.scope["url_route"]["kwargs"].get("fsm_id")
         fsm = await sync_to_async(FSMDefinition.get_by_id_or_name)(fsm_id_or_name)
         if fsm is None:

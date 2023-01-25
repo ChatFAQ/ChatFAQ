@@ -27,6 +27,8 @@ class RiddlerSDK:
     def __init__(
         self,
         riddler_host: str,
+        user_email: str,
+        user_password: str,
         fsm_name: Union[int, str, None],
         fsm_def: Union[FSMDefinition, None] = None,
     ):
@@ -46,6 +48,8 @@ class RiddlerSDK:
         if fsm_def is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
         self.riddler_host = riddler_host
+        self.user_email = user_email
+        self.user_password = user_password
         self.fsm_name = fsm_name
         self.fsm_def = fsm_def
         self.rpcs = {}
@@ -61,7 +65,7 @@ class RiddlerSDK:
         self.uri = f"{self.riddler_host}back/ws/broker/rpc/"
         if self.fsm_name is not None and self.fsm_def is None:
             self.uri = f"{self.riddler_host}back/ws/broker/rpc/{self.fsm_name}/"
-
+        self.uri = f"{self.uri}?email={self.user_email}&pass={self.user_password}"
         connection_error = True
         while connection_error:
             try:
