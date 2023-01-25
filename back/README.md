@@ -105,23 +105,37 @@ Regardless of which one you inherit from, you need to implement the next attribu
 
 
 ###### Telegram's consumer implementation
+
+The full Telegram's consumer can be found under [here](riddler/apps/broker/consumers/bots/telegram.py)
+
+Next we explain its different parts:
+
+- _gather_conversation_id_: When telegram sends a user's message to our registered web-hook it includes within it will include the conversation's identifier under "message" -> "chat" -> "id"
 ```python
-
-class TelegramBotConsumer(HTTPBotConsumer):
-    serializer_class = TelegramMessageSerializer
-    API_URL = "https://api.telegram.org/bot"
-    TOKEN = settings.TG_TOKEN
-
+...
     def gather_conversation_id(self, validated_data):
         return validated_data["message"]["chat"]["id"]
+...
+```
 
+- _gather_fsm_def_: For this specific bot we will keep it simple and select the first FSm on the DB. We could have implemented a sophisticated way of selecting FSM from the bot conversation interpreting LSD commands coming from the user but that will go outside scope of this example.
+```python
+...
     async def gather_fsm_def(self, validated_data):
         return await sync_to_async(FSMDefinition.objects.first)()
-
+...
+```
+- _platform_url_path_: The URL that Django is going to expose so Telegram can send us the users messages to the bot, we include Telegram's token on the URL for security reasons.
+```python
+...
     @classmethod
     def platform_url_path(self) -> str:
         return f"back/webhooks/broker/telegram/{self.TOKEN}"
-
+...
+```
+- _register_: As mentioned in the previous method, Telegram needs to know the web-hook URL to which it has to send the user's messages. Here in the `register` function we notify to the Telegram API which one is our web-hook, `register` get executed when the server starts.
+```python
+...
     @classmethod
     def register(cls):
         webhookUrl = urljoin(settings.BASE_URL, cls.platform_url_path())
@@ -138,72 +152,95 @@ class TelegramBotConsumer(HTTPBotConsumer):
             logger.error(
                 f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
             )
-
+...
+```
+- _send_response_: As mentioned earlier, since this bot is based on HTTPBotConsumer, how we send the messages coming from the FSM has to be defined under `send_response`. As you can see we will send the data to the Telgram's API endpoint: _/sendMessage_. Which data? you would ask, well: the MML comming from the FSM that passed to our `serialized_class` can be converted into Telegram API payload
+```python
+...
     async def send_response(self, mml: Message):
         async with httpx.AsyncClient() as client:
             for data in self.serializer_class.to_platform(mml, self):
                 await client.post(
                     f"{self.API_URL}{self.TOKEN}/sendMessage", data=data
                 )
+...
 ```
-
-- gather_conversation_id: When telegram sends a user's message to our registered web-hook it includes within it the conversation's ID under "message" -> "chat" -> "id"
-- gather_fsm_def: For this specific
-- _platform_url_path_: The URL telegram is going to connect to, we include Telegram's token on the URL for security reasons
-- _register_: Telegram API needs to know the web-hook url to which the users' messages of their bots  get sent to. Here in the `register` function we notify to the Telegram API which one is our webhook, `register` get executed when the server starts.
-send_response
-
-
-
-
-
-![Telegram Platform Config](./doc/source/images/telegram_platform_config.png?raw=true "Telegram Platform Config")
-
-###### Custom's consumer implementation
+- _serializer_class_: We set our class for serializing Telegram to FSM and vice versa to be TelegramMessageSerializer.
 ```python
-class CustomWSPlatformConfig(PlatformConfig):
-    """
-    Custom WS configuration
-    """
+...
+    serializer_class = TelegramMessageSerializer
+...
+```
+Let's look into this class better:
+###### Telegram's serializer
 
-    class Meta:
-        proxy = True
+The `serialize_class` from any consumer has to inherit from `BotMessageSerializer` which is a child of the DRF's Serialize class
 
-    @classmethod
-    def get_queryset(cls):
-        return cls.objects.filter(platform_type=PlatformTypes.ws.value)
+First of all you should define your serializer as any other DRF serializer. It fields should represent the incoming messages from the MP, in this case Telegram.
+```python
+class TelegramMessageSerializer(BotMessageSerializer):
+    message = TelegramPayloadSerializer()
+...
+```
+- _to_mml_: This method should create an MML message from the message coming from the MP. It will most likely feed the `MessageSerializer` with the `validated_data` of itself, save it and return the resulting MML instance
+```python
+...
+    def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
 
-    @property
-    def platform_url_path(self) -> str:
-        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def_id>\w+)/(?P<pc_id>\w+)/$"
-
-    @property
-    def platform_consumer(self) -> Type[BotConsumer]:
-        return CustomWSBotConsumer
-
-    def register(self):
-        pass
+        if not self.is_valid():
+            return False
+        last_mml = async_to_sync(ctx.get_last_mml)()
+        s = MessageSerializer(
+            data={
+                "stacks": [[{"type": "text", "payload": self.validated_data["message"]["text"]}]],
+                "transmitter": {
+                    "first_name": self.validated_data["message"]["from"]["first_name"],
+                    "type": AgentType.human.value,
+                    "platform": "Telegram",
+                },
+                "send_time": self.validated_data["message"]["date"] * 1000,
+                "conversation": self.validated_data["message"]["chat"]["id"],
+                "prev": last_mml.pk if last_mml else None
+            }
+        )
+        if not s.is_valid():
+            return False
+        return s.save()
+...
+```
+- _to_platform_: Here we transform the stack of messages coming from an FSM's answer to something that Telegram would understand. Telegram supports very rich type of messages, again, this will go out of the scope of the example, so we will keep it siple and send simple single text message to Telegram.
+```python
+...
+    @staticmethod
+    def to_platform(mml: "Message", ctx: BotConsumer):
+        for stack in mml.stacks:
+            for layer in stack:
+                if layer.get("type") == "text":
+                    data = {
+                        "chat_id": ctx.conversation_id,
+                        "text": layer["payload"],
+                        "parse_mode": "Markdown",
+                    }
+                    yield data
+                else:
+                    logger.warning(f"Layer not supported: {layer}")
+...
 ```
 
+The only thing left is to expose our server and configure our Telegram's token
 
-- _get_queryset_: we filter on `platform_type=PlatformTypes.ws.value` meaning that this functionality will be applied to all the records that satisfy that filter
+First, obtain a Telegram token from a bot and add it in your .env
+```
+TG_TOKEN=<YOUT_TG_TOKEN>
+```
 
+This setting will be picked up by `TelegramBotConsumer`
 
-- _platform_url_path_: The URL of our custom bot will contain the information of the conversation's ID, the FSM definition's ID and the Platform Configuration's ID
+```python
+TOKEN = settings.TG_TOKEN
+```
 
-
-- _platform_consumer_: `CustomWSBotConsumer` is the consumer we are going to be using. We will futher explain this later on.
-
-
-- _register_: We need to do nothing here since our custom bot is intended to be used directly, meaning we are going to connect to the resulting `platform_url_path` straight from the client (via WS)
-
-
-![Custom Platform Config](./doc/source/images/custom_platform_config.png?raw=true "Custom Platform Config")
-
-
-## Telegram
-
-If you want to test the Telegram platform you should obtain a Telegram token from a bot and run your service under https using, for example, ngrok `ngrok http 8000`.
+Then run your service under https using, for example, ngrok `ngrok http 8000`.
 
 Then run docker-compose:
 
@@ -213,19 +250,109 @@ Or if you are running it straight in you machine make sure to include in your .e
 
 `BASE_URL=<HTTPS_ADDRESS>`
 
-The in your admin go to Platform bots: http://localhost:8000/back/admin/broker/platformbot/ and create a new one selecting your desired FSM, Platform type = Telegram and in platform meta something as:
+###### Custom's consumer implementation
 
+The full Custom WS's consumer can be found under [here](riddler/apps/broker/consumers/bots/custom_ws.py)
+
+Next we explain its different parts:
+
+- _gather_conversation_id_: The conversation identifier comes as a URL param. When the client connect to our Web Socket then part of the URL contains this ID
+```python
+...
+    def gather_conversation_id(self):
+        return self.scope["url_route"]["kwargs"]["conversation"]
+...
 ```
-{
-    "token": <TELEGRAM_TOKEN>,
-    "api_url": "https://api.telegram.org/bot",
-}
+
+- _gather_fsm_def_: Same as the conversation identifier, the FSM definiton identifier comes as a URL param when the client connects with the WS.
+```python
+...
+    async def gather_fsm_def(self):
+        pk = self.scope["url_route"]["kwargs"]["fsm_def_id"]
+        return await sync_to_async(FSMDefinition.objects.get)(pk=pk)
+...
+```
+- _platform_url_path_: The URL of our custom bot will contain the information of the conversation's ID and the FSM definition's ID for, later on, being picked up in `gather_conversation_id` and `gather_fsm_def` as already mentioned
+```python
+...
+    @classmethod
+    def platform_url_path(self) -> str:
+        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def_id>\w+)/$"
+...
+```
+- _register_: We need to do nothing here since our custom bot is intended to be used directly, meaning we are going to connect to the resulting `platform_url_path` straight from the client (via WS)
+```python
+...
+    @classmethod
+    def register(cls):
+        pass
+...
+```
+- _serializer_class_: We set our class for serializing our custom client to FSM and vice versa to be ExampleWSSerializer.
+```python
+...
+    serializer_class = ExampleWSSerializer
+...
+```
+Let's look into this class better:
+
+###### Custom WS's serializer
+
+Our custom client will send a list of stack of messages with the same format as MML expects
+
+```python
+class ExampleWSSerializer(BotMessageSerializer):
+    stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
+...
+```
+- _to_mml_: For creating the final MML we just have to add some extra properties as `transmitter`, `send_time`, `conversation` and `prev`. The stacks we use them as they come after validation.
+```python
+...
+    def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
+
+        if not self.is_valid():
+            return False
+
+        last_mml = async_to_sync(ctx.get_last_mml)()
+        s = MessageSerializer(
+            data={
+                "stacks": self.data["stacks"],
+                "transmitter": {
+                    "type": AgentType.human.value,
+                    "platform": "WS",
+                },
+                "send_time": int(time.time() * 1000),
+                "conversation": ctx.conversation_id,
+                "prev": last_mml.pk if last_mml else None
+            }
+        )
+        if not s.is_valid():
+            return False
+        return s.save()
+...
+```
+- _to_platform_: We do not have to modify the message coming from the FSM since our client knows how to read MML messages, although for the moment only supports type text messages.
+```python
+...
+    @staticmethod
+    def to_platform(mml: "Message", ctx: BotConsumer) -> dict:
+        for stack in mml.stacks:
+            for layer in stack:
+                if layer.get("type") == "text":
+                    data = {
+                        "status": WSStatusCodes.ok.value,
+                        "payload": layer["payload"]
+                    }
+                    yield data
+                else:
+                    logger.warning(f"Layer not supported: {layer}")
+...
 ```
 
 
 ## Endpoints
 
-Dummy chat: http://localhost:8000/back/api/broker/chat/
+Custom WS chat: http://localhost:8000/back/api/broker/chat/
 
 Admin: http://localhost:8000/back/admin/
 
