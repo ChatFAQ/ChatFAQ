@@ -118,8 +118,8 @@ Next we explain its different parts:
 ...
 ```
 
-```python
 - _gather_fsm_def_: For this specific bot we will keep it simple and select the first FSm on the DB. We could have implemented a sophisticated way of selecting FSM from the bot conversation interpreting LSD commands coming from the user but that will go outside scope of this example.
+```python
 ...
     async def gather_fsm_def(self, validated_data):
         return await sync_to_async(FSMDefinition.objects.first)()
