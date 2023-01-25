@@ -193,9 +193,15 @@ fsm_def = FSMDefinition(
 
 The only thing left after defining your FSM is to communicate it to Riddler Server and remain listening as an RPC server (for executing your previously declared events & conditions on demand)
 
-We do so by instantiating the class RiddlerSDK and passing to the constructor 3 parameters:
+We do so by instantiating the class RiddlerSDK and passing to the constructor 5 parameters:
 
 - riddler_host: the address of our Riddler Server
+
+
+- user_email: the email of an Riddler's admin user
+
+
+- user_password:  the password of an Riddler's admin user
 
 
 - fsm_name: the name of our new FSM Definition if we are providing `fsm_def` or the name/ID of an already existing FSM Definition on the remote server if not `fsm_def` is provided
@@ -207,6 +213,12 @@ Then we call our RiddlerSDK instance's `connect` method, and we are done.
 ```python
 from riddler_sdk import RiddlerSDK
 
-sdk = RiddlerSDK("ws://localhost:8000/", "simple_fsm", fsm_def)
+sdk = RiddlerSDK(
+    os.getenv('RIDDLER_URL'),
+    os.getenv('RIDDLER_EMAIL'),
+    os.getenv('RIDDLER_PASSWORD'),
+    "simple_fsm",
+    fsm_def
+)
 sdk.connect()
 ```

@@ -6,7 +6,7 @@ import os
 load_dotenv()
 
 sdk = RiddlerSDK(
-    os.getenv('RIDDLER_URL'),
+    os.getenv('RIDDLER_HOST'),
     os.getenv('RIDDLER_EMAIL'),
     os.getenv('RIDDLER_PASSWORD'),
     "simple_fsm",
