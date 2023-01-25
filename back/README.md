@@ -10,7 +10,6 @@ Three options to run this project: docker, local.
 
 ### 1. Docker Compose
 
-
 As simple as running
 
 `docker-compose up`
@@ -61,6 +60,145 @@ Create a superuser
 Run the server
 
 `make run`
+
+
+## Quick Start
+
+### Concepts
+
+- <ins>Consumer</ins>: A broker is the layer responsible to connect the message platform (MP) (Telegram, WhatsApp, Signal, etc...) with the FSM and hold the session of a conversation. It knows hot to serialize the messages from the MP to the FSM and vice versa, and it knows how to send the resulting FSM's messages to the MP.
+
+
+- <ins>FSM Definition</ins>: The FSM Definition is the description of the different states the bot exists on, and the transitions that describe how to pass from one state to the other.
+<br/>This definition lives on Riddler's database but typically gets defined from the SDK.
+<br/>We won't explain it further in this tutorial. If you wish a more detailed explanation go to the [SDK's README.md](../sdk/README.md)
+
+### Example
+
+This repository comes with examples of 2 different bots: a Telegram bot and a custom bot that connects with a WS client. We will be explaining both on this tutorial
+
+
+#### Consumers
+
+There are 2 types of consumers you can inherit from: HTTP based (HTTPBotConsumer) or WS based (WSBotConsumer)
+
+Regardless of which one you inherit from, you need to implement the next attributes & methods:
+
+- __serializer_class__: This class attribute should be a class that inherits from __BotMessageSerializer__ and implements:
+  - to_mml: method that serialize the data coming from the platform to an MML message format
+  - to_platform: method that serialize the MML from the FSM to a format the used platform undestands
+
+
+- __gather_conversation_id__: Method that returns a unique identifier of a conversation/session. For HTTPBotConsumer this gets executed on every message, for WSBotConsumers only when the connection get established.
+
+
+- __gather_fsm_def__: Method that returns the FSM definition that the connexion is going to use. For HTTPBotConsumer this gets executed on every message, for WSBotConsumers only when the connection get established.
+
+
+- __platform_url_path__: It creates the URL that will be exposed by Django and to which the client is going to connect in order o talk with the consumer
+
+
+- __register__: In case we need to notify the remote MP information as such a webhook. This method will be executed for all the BotConsumers when initializing the server.
+
+
+- __send_response__: This method should be only implemented for those consumers that inherits from HTTPBotConsumer. The reason for it is because the response of a WS connection is usually the connection itself, on the other hand a bot that operates through HTTP usually does not include it response to the original request.
+
+
+###### Telegram's consumer implementation
+```python
+
+class TelegramBotConsumer(HTTPBotConsumer):
+    serializer_class = TelegramMessageSerializer
+    API_URL = "https://api.telegram.org/bot"
+    TOKEN = settings.TG_TOKEN
+
+    def gather_conversation_id(self, validated_data):
+        return validated_data["message"]["chat"]["id"]
+
+    async def gather_fsm_def(self, validated_data):
+        return await sync_to_async(FSMDefinition.objects.first)()
+
+    @classmethod
+    def platform_url_path(self) -> str:
+        return f"back/webhooks/broker/telegram/{self.TOKEN}"
+
+    @classmethod
+    def register(cls):
+        webhookUrl = urljoin(settings.BASE_URL, cls.platform_url_path())
+        logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
+        res = requests.get(
+            f"{cls.API_URL}{cls.TOKEN}/setWebhook",
+            params={"url": webhookUrl},
+        )
+        if res.ok:
+            logger.debug(
+                f"Successfully notified  WebhookUrl ({webhookUrl}) to Telegram"
+            )
+        else:
+            logger.error(
+                f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
+            )
+
+    async def send_response(self, mml: Message):
+        async with httpx.AsyncClient() as client:
+            for data in self.serializer_class.to_platform(mml, self):
+                await client.post(
+                    f"{self.API_URL}{self.TOKEN}/sendMessage", data=data
+                )
+```
+
+- gather_conversation_id: When telegram sends a user's message to our registered web-hook it includes within it the conversation's ID under "message" -> "chat" -> "id"
+- gather_fsm_def: For this specific
+- _platform_url_path_: The URL telegram is going to connect to, we include Telegram's token on the URL for security reasons
+- _register_: Telegram API needs to know the web-hook url to which the users' messages of their bots  get sent to. Here in the `register` function we notify to the Telegram API which one is our webhook, `register` get executed when the server starts.
+send_response
+
+
+
+
+
+![Telegram Platform Config](./doc/source/images/telegram_platform_config.png?raw=true "Telegram Platform Config")
+
+###### Custom's consumer implementation
+```python
+class CustomWSPlatformConfig(PlatformConfig):
+    """
+    Custom WS configuration
+    """
+
+    class Meta:
+        proxy = True
+
+    @classmethod
+    def get_queryset(cls):
+        return cls.objects.filter(platform_type=PlatformTypes.ws.value)
+
+    @property
+    def platform_url_path(self) -> str:
+        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def_id>\w+)/(?P<pc_id>\w+)/$"
+
+    @property
+    def platform_consumer(self) -> Type[BotConsumer]:
+        return CustomWSBotConsumer
+
+    def register(self):
+        pass
+```
+
+
+- _get_queryset_: we filter on `platform_type=PlatformTypes.ws.value` meaning that this functionality will be applied to all the records that satisfy that filter
+
+
+- _platform_url_path_: The URL of our custom bot will contain the information of the conversation's ID, the FSM definition's ID and the Platform Configuration's ID
+
+
+- _platform_consumer_: `CustomWSBotConsumer` is the consumer we are going to be using. We will futher explain this later on.
+
+
+- _register_: We need to do nothing here since our custom bot is intended to be used directly, meaning we are going to connect to the resulting `platform_url_path` straight from the client (via WS)
+
+
+![Custom Platform Config](./doc/source/images/custom_platform_config.png?raw=true "Custom Platform Config")
 
 
 ## Telegram
