@@ -25,13 +25,6 @@ class TelegramBotConsumer(HTTPBotConsumer):
     async def gather_fsm_def(self, validated_data):
         return await sync_to_async(FSMDefinition.objects.first)()
 
-    async def send_response(self, mml: Message):
-        async with httpx.AsyncClient() as client:
-            for data in self.serializer_class.to_platform(mml, self):
-                await client.post(
-                    f"{self.API_URL}{self.TOKEN}/sendMessage", data=data
-                )
-
     @classmethod
     def platform_url_path(self) -> str:
         return f"back/webhooks/broker/telegram/{self.TOKEN}"
@@ -52,3 +45,10 @@ class TelegramBotConsumer(HTTPBotConsumer):
             logger.error(
                 f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
             )
+
+    async def send_response(self, mml: Message):
+        async with httpx.AsyncClient() as client:
+            for data in self.serializer_class.to_platform(mml, self):
+                await client.post(
+                    f"{self.API_URL}{self.TOKEN}/sendMessage", data=data
+                )
