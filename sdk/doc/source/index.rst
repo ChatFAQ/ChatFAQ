@@ -15,10 +15,10 @@ Installation
 
 :ref:`Installation section <Installation>`
 
-Quick Example
+Quick Start
 ############
 
-:ref:`Quick Example <Quick Example>`
+:ref:`Quick Start <Quick Start>`
 
 
 Indices and tables

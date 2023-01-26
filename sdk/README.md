@@ -9,7 +9,7 @@ This SDK assists you on 2 main tasks:
 
 ## Installation
 
-Go inside ./back directory and install project dependencies:
+Go inside _./sdk_ directory and install project dependencies:
 
 `poetry install`
 
@@ -46,7 +46,7 @@ Let's walk through it step by step.
 
 The diagram below describe the FSM definition used in this exampled and implemented in [examples/fsm_def.py](examples/fsm_def.py).
 
-![Simple FSM Definition](./doc/source/images/simple_fsm.png?raw=true "Simple FSM Definition")
+![Simple FSM Definition](doc/source/_static/images/simple_fsm.png?raw=true "Simple FSM Definition")
 
 ### States
 
@@ -189,7 +189,7 @@ fsm_def = FSMDefinition(
 )
 ```
 
-### Connexion
+### Connection
 
 The only thing left after defining your FSM is to communicate it to Riddler Server and remain listening as an RPC server (for executing your previously declared events & conditions on demand)
 
@@ -198,16 +198,16 @@ We do so by instantiating the class RiddlerSDK and passing to the constructor 5 
 - riddler_host: the address of our Riddler Server
 
 
-- user_email: the email of an Riddler's admin user
+- _user_email_: the email of an Riddler's admin user
 
 
-- user_password:  the password of an Riddler's admin user
+- _user_password_:  the password of an Riddler's admin user
 
 
-- fsm_name: the name of our new FSM Definition if we are providing `fsm_def` or the name/ID of an already existing FSM Definition on the remote server if not `fsm_def` is provided
+- _fsm_name_: the name of our new FSM Definition if we are providing `fsm_def` or the name/ID of an already existing FSM Definition on the remote server if not `fsm_def` is provided
 
 
-- fsm_def (optional): an instance of FSMDefinition
+- _fsm_def_ (optional): an instance of FSMDefinition
 
 Then we call our RiddlerSDK instance's `connect` method, and we are done.
 ```python
