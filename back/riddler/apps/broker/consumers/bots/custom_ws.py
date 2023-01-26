@@ -4,7 +4,7 @@ from riddler.apps.fsm.models import FSMDefinition
 from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from logging import getLogger
 
-from ...serializers.message import ExampleWSSerializer
+from riddler.apps.broker.serializers.messages.custom_ws import ExampleWSSerializer
 
 logger = getLogger(__name__)
 

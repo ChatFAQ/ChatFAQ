@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 
 from ..models.message import Message
-from ..serializers.message import MessageSerializer
+from ..serializers.messages import MessageSerializer
 from ...fsm.models import FSMDefinition
 
 

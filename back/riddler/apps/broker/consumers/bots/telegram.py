@@ -7,7 +7,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 
 from riddler.apps.broker.models.message import Message
-from riddler.apps.broker.serializers.message import TelegramMessageSerializer
+from riddler.apps.broker.serializers.messages.telegram import TelegramMessageSerializer
 from riddler.apps.fsm.models import FSMDefinition
 from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
 

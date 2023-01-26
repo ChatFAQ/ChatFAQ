@@ -1,7 +1,3 @@
-import time
-
-from asgiref.sync import async_to_sync
-from typing import Union
 from riddler.apps.broker.models.message import StackPayloadType, AgentType
 
 from rest_framework import serializers
@@ -14,7 +10,6 @@ from riddler.common.validators import AtLeastNOf, PresentTogether
 
 from logging import getLogger
 
-from riddler.utils import WSStatusCodes
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from riddler.apps.broker.models.message import Message
@@ -156,110 +151,3 @@ class MessageSerializer(serializers.ModelSerializer):
             raise ValidationError(f"prev should be always unique for the same conversation")
         if prev and prev.conversation != str(self.initial_data["conversation"]):
             raise ValidationError(f"prev should belong to the same conversation")
-
-
-class ExampleWSSerializer(BotMessageSerializer):
-    stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
-
-    def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
-
-        if not self.is_valid():
-            return False
-
-        last_mml = async_to_sync(ctx.get_last_mml)()
-        s = MessageSerializer(
-            data={
-                "stacks": self.data["stacks"],
-                "transmitter": {
-                    "type": AgentType.human.value,
-                    "platform": "WS",
-                },
-                "send_time": int(time.time() * 1000),
-                "conversation": ctx.conversation_id,
-                "prev": last_mml.pk if last_mml else None
-            }
-        )
-        if not s.is_valid():
-            return False
-        return s.save()
-
-    @staticmethod
-    def to_platform(mml: "Message", ctx: BotConsumer) -> dict:
-        for stack in mml.stacks:
-            for layer in stack:
-                if layer.get("type") == "text":
-                    data = {
-                        "status": WSStatusCodes.ok.value,
-                        "payload": layer["payload"]
-                    }
-                    yield data
-                else:
-                    logger.warning(f"Layer not supported: {layer}")
-
-
-class TelegramFromSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    is_bot = serializers.BooleanField()
-    first_name = serializers.CharField()
-    language_code = serializers.CharField(max_length=2, min_length=2)
-
-
-class TelegramChatSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    first_name = serializers.CharField()
-    type = serializers.CharField()
-
-
-class TelegramPayloadSerializer(serializers.Serializer):
-    message_id = serializers.IntegerField()
-    _from = TelegramFromSerializer()
-    chat = TelegramChatSerializer()
-    date = serializers.IntegerField()
-    text = serializers.CharField()
-
-
-# Hack to allow reserve word 'from' as serializer field
-TelegramPayloadSerializer._declared_fields[
-    "from"
-] = TelegramPayloadSerializer._declared_fields["_from"]
-del TelegramPayloadSerializer._declared_fields["_from"]
-
-
-class TelegramMessageSerializer(BotMessageSerializer):
-    message = TelegramPayloadSerializer()
-
-    def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
-
-        if not self.is_valid():
-            return False
-        last_mml = async_to_sync(ctx.get_last_mml)()
-        s = MessageSerializer(
-            data={
-                "stacks": [[{"type": "text", "payload": self.validated_data["message"]["text"]}]],
-                "transmitter": {
-                    "first_name": self.validated_data["message"]["from"]["first_name"],
-                    "type": AgentType.human.value,
-                    "platform": "Telegram",
-                },
-                "send_time": self.validated_data["message"]["date"] * 1000,
-                "conversation": self.validated_data["message"]["chat"]["id"],
-                "prev": last_mml.pk if last_mml else None
-            }
-        )
-        if not s.is_valid():
-            return False
-        return s.save()
-
-    @staticmethod
-    def to_platform(mml: "Message", ctx: BotConsumer):
-        for stack in mml.stacks:
-            for layer in stack:
-                if layer.get("type") == "text":
-                    data = {
-                        "chat_id": ctx.conversation_id,
-                        "text": layer["payload"],
-                        "parse_mode": "Markdown",
-                    }
-                    yield data
-                else:
-                    logger.warning(f"Layer not supported: {layer}")

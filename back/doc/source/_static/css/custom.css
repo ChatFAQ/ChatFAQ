@@ -1,0 +1,7 @@
+.underline {
+    text-decoration: underline;
+    display: inline;
+}
+li:not(:last-child) {
+    margin-bottom: 1em;
+}
