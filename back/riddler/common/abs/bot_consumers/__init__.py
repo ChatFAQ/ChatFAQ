@@ -39,7 +39,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     serializer_class = None
 
     def __init__(self, *args, **kwargs):
-        from riddler.apps.broker.serializers.message import BotMessageSerializer  # TODO: CI
+        from riddler.apps.broker.serializers.messages import BotMessageSerializer  # TODO: CI
 
         self.conversation_id: Union[str, None] = None
         self.fsm_def: "FSMDefinition" = None

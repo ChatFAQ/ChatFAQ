@@ -222,7 +222,7 @@ class FSM:
         await sync_to_async(CachedFSM.update_or_create)(self)
 
     async def save_bot_mml(self, stacks):
-        from riddler.apps.broker.serializers.message import MessageSerializer  # TODO: CI
+        from riddler.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         last_mml = await self.ctx.get_last_mml()
         serializer = MessageSerializer(
