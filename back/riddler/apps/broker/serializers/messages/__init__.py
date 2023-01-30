@@ -6,7 +6,8 @@ from rest_framework.exceptions import ValidationError
 from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
-
+from io import StringIO
+from lxml import etree
 
 from logging import getLogger
 
@@ -90,6 +91,30 @@ class Payload(serializers.Field):
     def to_internal_value(self, data):
         return data
 
+class TextPayload(serializers.Serializer):
+    payload = serializers.CharField()
+
+class HTMLPayload(serializers.Serializer):
+    @staticmethod
+    def html_syntax_validator(value):
+        try:
+            etree.parse(StringIO(value), etree.HTMLParser(recover=False))
+        except XMLSyntaxError:
+            raise serializers.ValidationError('This field must be valid HTML.')
+
+    payload = serializers.CharField(validators=[html_syntax_validator])
+
+class ImagePayload(serializers.Serializer):
+    payload = serializers.URLField()
+
+class ImagePayload(serializers.Serializer):
+    payload = serializers.URLField()
+
+class SatisfactionPayload(serializers.Serializer):
+    payload = Payload()
+
+class QuickRepliesPayload(serializers.Serializer):
+    payload = Payload()
 
 class MessageStackSerializer(serializers.Serializer):
     # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
@@ -100,6 +125,23 @@ class MessageStackSerializer(serializers.Serializer):
     payload = Payload(required=False, allow_null=True)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
+
+    def validate(self, data):
+        if data.get('type') == StackPayloadType.text.value:
+            s = TextPayload(data=data)
+        elif data.get('type') == StackPayloadType.html.value:
+            s = HTMLPayload(data=data)
+        elif data.get('type') == StackPayloadType.image.value:
+            s = ImagePayload(data=data)
+        elif data.get('type') == StackPayloadType.satisfaction.value:
+            s = SatisfactionPayload(data=data)
+        elif data.get('type') == StackPayloadType.quick_replies.value:
+            s = QuickRepliesPayload(data=data)
+        else:
+            raise serializers.ValidationError(f'type not supported {data.get("type")}')
+        s.is_valid(raise_exception=True)
+        data["payload"] = s.validated_data["payload"]
+        return data
 
     """
     satisfaction = serializers.ChoiceField(
