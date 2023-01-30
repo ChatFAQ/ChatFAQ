@@ -51,11 +51,12 @@ Grant to the newly created user the proper the privileges to the database
 
 Apply django fixtures
 
-`make apply_fsm_fixtures`
+`make apply_fixtures`
 
 Create a superuser
 
 `./manage.py createsuperuser`
+
 
 Run the server
 

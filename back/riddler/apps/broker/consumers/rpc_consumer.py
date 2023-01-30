@@ -4,6 +4,7 @@ from logging import getLogger
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+
 from riddler.apps.broker.consumers.message_types import RPCMessageType
 from riddler.apps.broker.serializers.rpc import RPCResponseSerializer, RPCResultSerializer, RPCFSMDefSerializer
 from riddler.apps.fsm.models import FSMDefinition
@@ -34,8 +35,13 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
     def get_group_name(self):
         return self.create_group_name(self.fsm_id)
 
+    async def is_auth(self, scope):
+        return self.scope.get("user") and \
+            not isinstance(self.scope["user"], AnonymousUser) and \
+            await sync_to_async(self.scope["user"].groups.filter(name='RPC').exists)()
+
     async def connect(self):
-        if not self.scope.get("user") or isinstance(self.scope["user"], AnonymousUser):
+        if not await self.is_auth(self.scope):
             await self.close()
             return
 

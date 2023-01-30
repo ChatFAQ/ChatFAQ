@@ -145,6 +145,8 @@ We do so by instantiating the class RiddlerSDK and passing to the constructor 5 
 
 - *fsm_def* (optional): an instance of FSMDefinition
 
+You should make sure the used user belong to the *RPC* group, you can set that from the admin site of the Riddler server.
+
 Then we call our RiddlerSDK instance's `connect` method, and we are done.
 
 

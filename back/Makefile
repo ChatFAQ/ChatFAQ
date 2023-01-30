@@ -20,6 +20,13 @@ spectacular:
 docs:
 	poetry run $(MAKE) -f doc/Makefile html
 
+create_fixtures:
+	./manage.py dumpdata auth.group --indent 4 > riddler/apps/people/fixtures/initial.json
+
+apply_fixtures:
+	./manage.py loaddata riddler/apps/people/fixtures/initial.json --app auth.group
+
+
 # create_fsm_fixtures:
 # 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > riddler/apps/fsm/fixtures/initial.json
 #

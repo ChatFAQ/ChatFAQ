@@ -18,7 +18,7 @@ then
 fi
 
 echo "Applying fixtures"
-make apply_fsm_fixtures
+make apply_fixtures
 
 if [ "$DEBUG" == "yes" ]
 then
