@@ -163,3 +163,8 @@ with EnvManager(preset) as env:
     # ---
 
     TG_TOKEN = os.getenv("TG_TOKEN")
+    # SPECTACULAR_SETTINGS = {
+    #     "POSTPROCESSING_HOOKS": [
+    #         "riddler.apps.broker.serializers.messages.custom_postprocessing_hook"
+    #     ]
+    # }

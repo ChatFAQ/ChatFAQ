@@ -4,10 +4,10 @@ from rest_framework import viewsets
 
 from ..models.message import Message
 from ..serializers.messages import MessageSerializer
+
 from ...fsm.models import FSMDefinition
 
 
-# TODO: @extend_schema for message stacks[][].type <-> message stacks[][].payload
 class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
