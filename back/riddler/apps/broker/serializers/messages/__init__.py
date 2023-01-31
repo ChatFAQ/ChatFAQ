@@ -1,3 +1,5 @@
+from lxml.etree import XMLSyntaxError
+
 from riddler.apps.broker.models.message import StackPayloadType, AgentType
 
 from rest_framework import serializers
