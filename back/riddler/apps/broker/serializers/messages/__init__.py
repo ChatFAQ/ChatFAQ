@@ -1,4 +1,7 @@
-from riddler.apps.broker.models.message import StackPayloadType, AgentType
+from drf_spectacular.utils import extend_schema_serializer, extend_schema_field, PolymorphicProxySerializer
+from lxml.etree import XMLSyntaxError
+
+from riddler.apps.broker.models.message import StackPayloadType, AgentType, Satisfaction
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -16,6 +19,10 @@ if TYPE_CHECKING:
     from riddler.apps.broker.models.message import Message
 
 logger = getLogger(__name__)
+
+
+def custom_postprocessing_hook(result, generator, request, public):
+    return result
 
 
 class BotMessageSerializer(serializers.Serializer):
@@ -84,15 +91,11 @@ class QuickReplySerializer(serializers.Serializer):
     meta = serializers.JSONField(required=False)
 
 
-class Payload(serializers.Field):
-    def to_representation(self, obj):
-        return obj
-
-    def to_internal_value(self, data):
-        return data
+# ----------- Payload's types -----------
 
 class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
+
 
 class HTMLPayload(serializers.Serializer):
     @staticmethod
@@ -104,17 +107,43 @@ class HTMLPayload(serializers.Serializer):
 
     payload = serializers.CharField(validators=[html_syntax_validator])
 
-class ImagePayload(serializers.Serializer):
-    payload = serializers.URLField()
 
 class ImagePayload(serializers.Serializer):
     payload = serializers.URLField()
+
 
 class SatisfactionPayload(serializers.Serializer):
-    payload = Payload()
+    payload = serializers.ChoiceField(
+        required=False, choices=[n.value for n in Satisfaction], allow_null=True
+    )
+
 
 class QuickRepliesPayload(serializers.Serializer):
-    payload = Payload()
+    payload = QuickReplySerializer(required=False, many=True)
+
+
+# ----------- --------------- -----------
+
+@extend_schema_field(
+    PolymorphicProxySerializer(
+        component_name="Payload",
+        resource_type_field_name="payload",
+        serializers={
+            "TextPayload": TextPayload,
+            "HTMLPayload": HTMLPayload,
+            "ImagePayload": ImagePayload,
+            "SatisfactionPayload": SatisfactionPayload,
+            "QuickRepliesPayload": QuickRepliesPayload,
+        }
+    )
+)
+class Payload(serializers.Field):
+    def to_representation(self, obj):
+        return obj
+
+    def to_internal_value(self, data):
+        return data
+
 
 class MessageStackSerializer(serializers.Serializer):
     # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
@@ -122,7 +151,7 @@ class MessageStackSerializer(serializers.Serializer):
     type = serializers.ChoiceField(
         choices=[n.value for n in StackPayloadType]
     )
-    payload = Payload(required=False, allow_null=True)
+    payload = Payload()
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
 
@@ -142,32 +171,6 @@ class MessageStackSerializer(serializers.Serializer):
         s.is_valid(raise_exception=True)
         data["payload"] = s.validated_data["payload"]
         return data
-
-    """
-    satisfaction = serializers.ChoiceField(
-        required=False, choices=[n.value for n in Satisfaction], allow_null=True
-    )
-    text = serializers.CharField(required=False)
-    html = serializers.CharField(required=False)
-    image = serializers.CharField(required=False)
-    response_id = serializers.CharField(required=False)
-    satisfaction = serializers.ChoiceField(
-        required=False, choices=[n.value for n in Satisfaction], allow_null=True
-    )
-    meta = serializers.JSONField(required=False)
-    quick_replies = QuickReplySerializer(required=False, many=True)
-    """
-
-    """
-    class Meta:
-        validators = [
-            AtLeastNOf(
-                fields=["text", "html", "image", "satisfaction", "quick_replies"],
-                number=1,
-            ),
-            PresentTogether(fields=["response_id", "text"]),
-        ]
-    """
 
 
 class MessageSerializer(serializers.ModelSerializer):
