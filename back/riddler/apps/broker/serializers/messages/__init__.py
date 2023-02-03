@@ -1,5 +1,3 @@
-from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
-
 from riddler.apps.broker.models.message import StackPayloadType, AgentType
 
 from rest_framework import serializers
@@ -118,19 +116,6 @@ class SatisfactionPayload(serializers.Serializer):
 class QuickRepliesPayload(serializers.Serializer):
     payload = Payload()
 
-
-@extend_schema_serializer(
-    examples = [
-         OpenApiExample(
-            'Valid example 1',
-            summary='short summary',
-            description='longer description',
-            value={
-                'meta': {'top10': True},
-            },
-        ),
-    ]
-)
 class MessageStackSerializer(serializers.Serializer):
     # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
 
