@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Riddler" type="Python.DjangoServer" factoryName="Django server">
-    <module name="riddler" />
+  <configuration default="false" name="back" type="Python.DjangoServer" factoryName="Django server">
+    <module name="back" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
