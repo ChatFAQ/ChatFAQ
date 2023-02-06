@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="SDK" type="PythonConfigurationType" factoryName="Python">
-    <module name="sdk" />
+  <configuration default="false" name="sdk" type="PythonConfigurationType" factoryName="Python">
+    <module name="riddler" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
@@ -8,12 +8,12 @@
     </envs>
     <option name="SDK_HOME" value="$USER_HOME$/.cache/pypoetry/virtualenvs/riddler-sdk-yGzK4RHy-py3.8/bin/python" />
     <option name="SDK_NAME" value="Python 3.8 (riddler-sdk-yGzK4RHy-py3.8)" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../sdk/examples" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/sdk/examples" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../sdk/examples/__init__.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/sdk/examples/__init__.py" />
     <option name="PARAMETERS" value="" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
