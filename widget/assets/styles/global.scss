@@ -1,0 +1,18 @@
+@import "variables";
+
+* {
+  color: $text-color;
+  font-family: $font-family;
+}
+
+.pi {
+  color: white;
+}
+
+.p-button {
+  border-color: $main-color !important;
+}
+
+.p-button:focus, .p-button:hover {
+  box-shadow: none;
+}
