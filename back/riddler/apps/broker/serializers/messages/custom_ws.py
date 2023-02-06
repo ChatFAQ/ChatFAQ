@@ -47,13 +47,5 @@ class ExampleWSSerializer(BotMessageSerializer):
 
     @staticmethod
     def to_platform(mml: "Message", ctx: BotConsumer) -> dict:
-        for stack in mml.stacks:
-            for layer in stack:
-                if layer.get("type") == "text":
-                    data = {
-                        "status": WSStatusCodes.ok.value,
-                        "payload": layer["payload"]
-                    }
-                    yield data
-                else:
-                    logger.warning(f"Layer not supported: {layer}")
+        s = MessageSerializer(mml)
+        yield s.data
