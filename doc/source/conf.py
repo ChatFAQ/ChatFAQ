@@ -15,7 +15,12 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-
+import os
+import sys
+import django
+sys.path.insert(0, os.path.abspath('..'))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'back.riddler.config.settings'
+# django.setup()
 
 # -- Project information -----------------------------------------------------
 
@@ -39,8 +44,13 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autosectionlabel',
+    "myst_parser",
+    "sphinx.ext.napoleon",
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,7 +70,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -99,6 +109,9 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+html_css_files = [
+    'css/custom.css',
+]
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

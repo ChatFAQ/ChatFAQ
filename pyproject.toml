@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 myst-parser = "^0.18.1"
+django = "^4.1.6"
 
 [build-system]
 requires = ["poetry-core"]

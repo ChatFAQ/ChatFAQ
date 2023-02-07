@@ -1,24 +1,24 @@
-.. ChatFAQ documentation master file, created by
-   sphinx-quickstart on Tue Feb  7 11:59:37 2023.
+.. Riddler SDK documentation master file, created by
+   sphinx-quickstart on Thu Jan 19 10:39:01 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ChatFAQ's documentation!
-===================================
+Welcome to Riddler SDK's documentation!
+=======================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-Riddler
+Installation
 ############
 
-:ref:`Riddler <Welcome to Riddler's documentation!>`
+:ref:`Installation section <Installation>`
 
-SDK
+Quick Start
 ############
 
-:ref:`SDK <Welcome to Riddler SDK's documentation!>`
+:ref:`Quick Start <Quick Start>`
 
 
 Indices and tables
