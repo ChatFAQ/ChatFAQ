@@ -16,21 +16,15 @@ The system is comprised of three main components:
 
 - The Back-end, also known as "Riddler," manages client-to-message platform connections and session storage. It also houses the database storing all Finite State Machine (FSM) definitions, user information, and more.
 
+:ref:`Riddler docs <Welcome to Riddler's documentation!>`
+
 - The SDK serves two primary functions: it allows for the posting of new FSM definitions to Riddler, and it also launches an Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
 
 - The Message Platform (MP) is the client application where the user interacts with the bot. Examples of MP include platforms such as WhatsApp, Telegram, Facebook Messenger, or a custom interface.
 
-.. image:: ../../_static/images/chatfaq_components.png
+.. image:: ._static/images/chatfaq_components.png
 
-Riddler
-############
-
-:ref:`Riddler <Welcome to Riddler's documentation!>`
-
-SDK
-############
-
-:ref:`SDK <Welcome to Riddler SDK's documentation!>`
+:ref:`SDK docs <Welcome to Riddler SDK's documentation!>`
 
 
 Indices and tables
