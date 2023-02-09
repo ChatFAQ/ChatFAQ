@@ -18,4 +18,4 @@ Installation
 Quick Start
 --------------------------
 
-:ref:`Quick Start <Quick Start>`
+:doc:`<quick_start>`

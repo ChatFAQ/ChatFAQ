@@ -30,4 +30,4 @@ As mentioned before, run this project from Docker or install it locally.
 Quick Start
 --------------------------
 
-:ref:`Quick Start <Quick Start>`
+:doc:`<quick_start>`
