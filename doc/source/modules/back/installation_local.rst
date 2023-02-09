@@ -1,6 +1,8 @@
 Local Installation
 ==================
 
+.. module:: back
+
 Create a .env file with the needed variables set. You can see an example of those on :ref:`env_example`
 
 This project is based on `Model-W <https://github.com/ModelW/project-maker>`_. therefore we use poetry for the management of the dependencies

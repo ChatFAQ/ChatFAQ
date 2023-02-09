@@ -21,6 +21,8 @@ The system is comprised of three main components:
 
 - The Message Platform (MP) is the client application where the user interacts with the bot. Examples of MP include platforms such as WhatsApp, Telegram, Facebook Messenger, or a custom interface.
 
+    :ref:`Widget docs <Widget's documentation>`
+
 .. image:: ./_static/images/chatfaq_components.png
 
 
@@ -33,3 +35,4 @@ Contents
    ChatFAQ docs <index.rst>
    Riddler docs <modules/back/index.rst>
    SDK docs <modules/sdk/index.rst>
+   Widget docs <modules/widget/index.rst>
