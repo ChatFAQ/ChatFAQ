@@ -2,6 +2,10 @@
 Quick Start
 ==================
 
+If your intention is to connect our custom :ref:`widget <Widget's documentation>` to your already installed Riddler server, then no further information is necessary.
+
+However, if you desire to create a new consumer to connect to a different type of Message Platform, please continue reading.
+
 Concepts
 ------------------
 
