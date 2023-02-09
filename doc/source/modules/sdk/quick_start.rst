@@ -9,14 +9,13 @@ Concepts
 
 - :underline:`FSMDefinition`: Is the full description of a Finite State Machine.
 
-An FSM definition is composed out of 2 types of blocks: States & Transitions:
+An FSM (Finite State Machine) definition consists of two types of blocks: States and Transitions.
 
-- :underline:`States`: defines the nodes of an FSM, when a node is reached its **events** will be triggered.
+- :underline:`States`: A state in an FSM is a node that represents a specific condition. When a node is reached, its associated **events** are triggered. These events are executed on the demand of the Riddler Server as Remote Procedure Calls (RPC).
 
-- :underline:`Transitions`: define the **conditions** needed to transit from one state to the other.
+- :underline:`Transitions`: Transitions define the **conditions** needed to move from one state to another. These conditions are executed on the demand of the Riddler Server as Remote Procedure Calls (RPC).
 
-Both **events** and **conditions** are functionality that will be executed on demand of the Riddler Server. They are known as RPC (Remote Procedure Calls)
-
+Both **events** and **conditions** are functionality that is executed on demand by the Riddler Server as RPCs. An RPC is a function that is executed remotely, and its results are returned to the caller.
 
 Example
 ------------------

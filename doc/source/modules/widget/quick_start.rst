@@ -25,26 +25,22 @@ Locally preview production build:
 
     npm run preview
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
 Configuration
 ---------------------
 
 .. module:: widget
 
-Create a *.env* file with 2 variables: **RIDDLER_API** & **RIDDLER_WS** with its respective protocol + addreses . If you are developing locally you could just copy the content of :ref:`env_example`
+Create a *.env* file and define two variables, **RIDDLER_API** and **RIDDLER_WS**, with their respective protocols and addresses. If you are developing locally, you can simply copy the contents of env_example.
 
 Usage
 ---------------------
 
-The idea is just to include a script tag pointing to this service in any external webpage that requires a chatbot interface.
-
-So, in case you are developing locally:
+To integrate the chatbot interface into an external webpage, simply include the following script tag:
 
 .. code-block:: html
 
     <script src="http://localhost:3000/js/IframeLoader.js"></script>
 
-should be enough.
+This assumes that you are developing locally. If not, please use the correct URL for the script.
 
-Another option would be navigating to http://localhost:3000/ which will serve a blank page with the example script tag above appended to the body.
+Alternatively, you can navigate to http://localhost:3000/ to access a blank page that already has the example script tag appended to the body.
