@@ -31,6 +31,9 @@ class TelegramBotConsumer(HTTPBotConsumer):
 
     @classmethod
     def register(cls):
+        if not cls.TOKEN:
+            return
+
         webhookUrl = urljoin(settings.BASE_URL, cls.platform_url_path())
         logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
         res = requests.get(
