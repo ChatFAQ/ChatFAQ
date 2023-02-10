@@ -9,22 +9,22 @@ isort:
 	$(PYTHON_BIN) -m isort riddler
 
 run:
-	./manage.py runserver 8000
+	./pmanage runserver 8000
 
 run_daphne:
-	daphne riddler.config.asgi:application
+	$(PYTHON_BIN) daphne riddler.config.asgi:application
 
 spectacular:
-	./manage.py spectacular --file schema.yml
+	./pmanage spectacular --file schema.yml
 
 docs:
 	poetry run $(MAKE) -f doc/Makefile html
 
 create_fixtures:
-	./manage.py dumpdata auth.group --indent 4 > riddler/apps/people/fixtures/initial.json
+	./pmanage dumpdata auth.group --indent 4 > riddler/apps/people/fixtures/initial.json
 
 apply_fixtures:
-	./manage.py loaddata riddler/apps/people/fixtures/initial.json --app auth.group
+	./pmanage loaddata riddler/apps/people/fixtures/initial.json --app auth.group
 
 
 # create_fsm_fixtures:
