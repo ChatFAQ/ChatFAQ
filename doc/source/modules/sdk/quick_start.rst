@@ -22,7 +22,7 @@ Example
 
 .. module:: examples
 
-Inside :ref:`examples/__init__.py <init_example>` you can find a simple working example of the usage of the SDK.
+Inside :ref:`examples/__init__.py <SDK Usage Example>` you can find a simple working example of the usage of the SDK.
 
 Let's walk through it step by step.
 

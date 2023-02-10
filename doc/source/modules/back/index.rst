@@ -6,9 +6,7 @@
 Riddler's documentation
 ===================================
 
-This project hold the [FSM](riddler/apps/fsm/lib/__init__.py) (Finite State Machine) and the Broker of the Riddler project, it can be considered the Back-end of riddler.
-
-It also serves a very simple dummy [Front-end](riddler/back/riddler/apps/broker/templates/chat/index.html) just as an example of a WS connection to the backend from a custom widget.
+This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Broker of the Riddler project, it can be considered the Back-end of riddler.
 
 Prerequisites
 --------------------------

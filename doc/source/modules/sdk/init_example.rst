@@ -1,4 +1,4 @@
-init_example
+SDK Usage Example
 ======================
 
 .. literalinclude:: ../../../../sdk/examples/__init__.py
