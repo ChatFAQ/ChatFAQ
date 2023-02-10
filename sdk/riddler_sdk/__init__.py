@@ -26,7 +26,7 @@ class RiddlerSDK:
 
     def __init__(
         self,
-        riddler_host: str,
+        riddler_ws: str,
         user_email: str,
         user_password: str,
         fsm_name: Union[int, str, None],
@@ -35,7 +35,7 @@ class RiddlerSDK:
         """
         Parameters
         ----------
-        riddler_host: str
+        riddler_ws: str
             The WS address of your Riddler server
         fsm_name: Union[int, str, None]
             The id or name of the FSM you are going to associate this client to. If you are going to create a new FSM
@@ -47,7 +47,7 @@ class RiddlerSDK:
         """
         if fsm_def is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
-        self.riddler_host = riddler_host
+        self.riddler_ws = riddler_ws
         self.user_email = user_email
         self.user_password = user_password
         self.fsm_name = fsm_name
@@ -62,9 +62,9 @@ class RiddlerSDK:
             self.fsm_def.register_rpcs(self)
 
     async def _connect(self):
-        self.uri = f"{self.riddler_host}back/ws/broker/rpc/"
+        self.uri = f"{self.riddler_ws}back/ws/broker/rpc/"
         if self.fsm_name is not None and self.fsm_def is None:
-            self.uri = f"{self.riddler_host}back/ws/broker/rpc/{self.fsm_name}/"
+            self.uri = f"{self.riddler_ws}back/ws/broker/rpc/{self.fsm_name}/"
         self.uri = f"{self.uri}?email={self.user_email}&pass={self.user_password}"
         connection_error = True
         while connection_error:
