@@ -1,20 +1,22 @@
-from drf_spectacular.utils import extend_schema_serializer, extend_schema_field, PolymorphicProxySerializer
+from io import StringIO
+from logging import getLogger
+from typing import TYPE_CHECKING
+
+from drf_spectacular.utils import (
+    PolymorphicProxySerializer,
+    extend_schema_field,
+    extend_schema_serializer,
+)
+from lxml import etree
 from lxml.etree import XMLSyntaxError
-
-from riddler.apps.broker.models.message import StackPayloadType, AgentType, Satisfaction
-
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from riddler.apps.broker.models.message import AgentType, Satisfaction, StackPayloadType
 from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.common.serializer_fields import JSTimestampField
 from riddler.common.validators import AtLeastNOf, PresentTogether
-from io import StringIO
-from lxml import etree
 
-from logging import getLogger
-
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from riddler.apps.broker.models.message import Message
 
@@ -93,6 +95,7 @@ class QuickReplySerializer(serializers.Serializer):
 
 # ----------- Payload's types -----------
 
+
 class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
 
@@ -103,7 +106,7 @@ class HTMLPayload(serializers.Serializer):
         try:
             etree.parse(StringIO(value), etree.HTMLParser(recover=False))
         except XMLSyntaxError:
-            raise serializers.ValidationError('This field must be valid HTML.')
+            raise serializers.ValidationError("This field must be valid HTML.")
 
     payload = serializers.CharField(validators=[html_syntax_validator])
 
@@ -124,6 +127,7 @@ class QuickRepliesPayload(serializers.Serializer):
 
 # ----------- --------------- -----------
 
+
 @extend_schema_field(
     PolymorphicProxySerializer(
         component_name="Payload",
@@ -134,7 +138,7 @@ class QuickRepliesPayload(serializers.Serializer):
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,
             "QuickRepliesPayload": QuickRepliesPayload,
-        }
+        },
     )
 )
 class Payload(serializers.Field):
@@ -148,23 +152,21 @@ class Payload(serializers.Field):
 class MessageStackSerializer(serializers.Serializer):
     # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
 
-    type = serializers.ChoiceField(
-        choices=[n.value for n in StackPayloadType]
-    )
+    type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType])
     payload = Payload()
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
 
     def validate(self, data):
-        if data.get('type') == StackPayloadType.text.value:
+        if data.get("type") == StackPayloadType.text.value:
             s = TextPayload(data=data)
-        elif data.get('type') == StackPayloadType.html.value:
+        elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
-        elif data.get('type') == StackPayloadType.image.value:
+        elif data.get("type") == StackPayloadType.image.value:
             s = ImagePayload(data=data)
-        elif data.get('type') == StackPayloadType.satisfaction.value:
+        elif data.get("type") == StackPayloadType.satisfaction.value:
             s = SatisfactionPayload(data=data)
-        elif data.get('type') == StackPayloadType.quick_replies.value:
+        elif data.get("type") == StackPayloadType.quick_replies.value:
             s = QuickRepliesPayload(data=data)
         else:
             raise serializers.ValidationError(f'type not supported {data.get("type")}')
@@ -174,13 +176,16 @@ class MessageStackSerializer(serializers.Serializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
+    stacks = serializers.ListField(
+        child=serializers.ListField(child=MessageStackSerializer())
+    )
     transmitter = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()
 
     class Meta:
         from riddler.apps.broker.models.message import Message  # TODO: CI
+
         model = Message
         fields = "__all__"
 
@@ -190,9 +195,14 @@ class MessageSerializer(serializers.ModelSerializer):
         - Prev should be None or belonging to the same conversation
         """
         from riddler.apps.broker.models.message import Message  # TODO: CI
+
         # It seems we are implementing "UniqueValidator" but nor really, because this will also fail for when value=None
         # and another message also already have value=None while UniqueValidator will not fail on this specific use case
-        if Message.objects.filter(conversation=self.initial_data["conversation"], prev=prev).first():
-            raise ValidationError(f"prev should be always unique for the same conversation")
+        if Message.objects.filter(
+            conversation=self.initial_data["conversation"], prev=prev
+        ).first():
+            raise ValidationError(
+                f"prev should be always unique for the same conversation"
+            )
         if prev and prev.conversation != str(self.initial_data["conversation"]):
             raise ValidationError(f"prev should belong to the same conversation")

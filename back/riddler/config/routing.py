@@ -1,8 +1,8 @@
 from django.urls import re_path
 
 from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer
-from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
 from riddler.common.abs.bot_consumers import BrokerMetaClass
+from riddler.common.abs.bot_consumers.http import HTTPBotConsumer
 from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from riddler.utils import is_migrating
 
@@ -14,7 +14,7 @@ websocket_urlpatterns = [
     re_path(
         r"back/ws/broker/rpc/$",
         RPCConsumer.as_asgi(),
-    )
+    ),
 ]
 
 http_urlpatterns = []

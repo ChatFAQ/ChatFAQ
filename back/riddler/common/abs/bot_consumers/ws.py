@@ -1,15 +1,13 @@
 import json
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 from asgiref.sync import sync_to_async
-
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.utils import WSStatusCodes
 
-
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from riddler.apps.broker.models.message import Message
 
@@ -23,6 +21,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     it takes care of the initialization and management of the fsm and
     the persistence of the sending/receiving MMLs into the database
     """
+
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
         self.set_fsm_def(await self.gather_fsm_def())
@@ -43,7 +42,12 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         mml = await sync_to_async(serializer.to_mml)(self)
         if not mml:
             await self.channel_layer.group_send(
-                self.get_group_name(), {"type": "response", "status": WSStatusCodes.bad_request.value, "payload": serializer.errors}
+                self.get_group_name(),
+                {
+                    "type": "response",
+                    "status": WSStatusCodes.bad_request.value,
+                    "payload": serializer.errors,
+                },
             )
             return
 

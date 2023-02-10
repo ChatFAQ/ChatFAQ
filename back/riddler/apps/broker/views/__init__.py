@@ -2,10 +2,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from rest_framework import viewsets
 
+from ...fsm.models import FSMDefinition
 from ..models.message import Message
 from ..serializers.messages import MessageSerializer
-
-from ...fsm.models import FSMDefinition
 
 
 class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
@@ -19,4 +18,8 @@ def chat(request):
 
 
 def room(request, conversation, fsm_def_id):
-    return render(request, "chat/room.html", {"conversation": conversation, "fsm_def_id": fsm_def_id})
+    return render(
+        request,
+        "chat/room.html",
+        {"conversation": conversation, "fsm_def_id": fsm_def_id},
+    )

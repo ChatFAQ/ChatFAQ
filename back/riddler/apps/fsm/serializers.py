@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from .models import FSMDefinition
 from ...common.serializers import DynamicFieldsSerializerMixin
+from .models import FSMDefinition
 
 
 class FSMSerializer(DynamicFieldsSerializerMixin, serializers.ModelSerializer):

@@ -1,19 +1,19 @@
 import time
+from logging import getLogger
+from typing import TYPE_CHECKING, Union
 
 from asgiref.sync import async_to_sync
-from typing import Union
-from riddler.apps.broker.models.message import AgentType
-
 from rest_framework import serializers
 
-from riddler.apps.broker.serializers.messages import BotMessageSerializer, MessageStackSerializer, MessageSerializer
+from riddler.apps.broker.models.message import AgentType
+from riddler.apps.broker.serializers.messages import (
+    BotMessageSerializer,
+    MessageSerializer,
+    MessageStackSerializer,
+)
 from riddler.common.abs.bot_consumers import BotConsumer
-
-
-from logging import getLogger
-
 from riddler.utils import WSStatusCodes
-from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from riddler.apps.broker.models.message import Message
 
@@ -21,7 +21,9 @@ logger = getLogger(__name__)
 
 
 class ExampleWSSerializer(BotMessageSerializer):
-    stacks = serializers.ListField(child=serializers.ListField(child=MessageStackSerializer()))
+    stacks = serializers.ListField(
+        child=serializers.ListField(child=MessageStackSerializer())
+    )
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
 
@@ -38,7 +40,7 @@ class ExampleWSSerializer(BotMessageSerializer):
                 },
                 "send_time": int(time.time() * 1000),
                 "conversation": ctx.conversation_id,
-                "prev": last_mml.pk if last_mml else None
+                "prev": last_mml.pk if last_mml else None,
             }
         )
         if not s.is_valid():

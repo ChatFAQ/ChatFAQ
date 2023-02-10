@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 from typing import List, Tuple, Union
+
 from django.db import models
 from typefit import typefit
 
 from riddler.common.models import ChangesMixin
 
-from .lib import FSM, State, Transition
 from ...common.abs.bot_consumers import BotConsumer
 from ...utils.logging_formatters import TIMESTAMP_FORMAT
+from .lib import FSM, State, Transition
 
 
 class FSMDefinition(ChangesMixin):
@@ -33,12 +35,18 @@ class FSMDefinition(ChangesMixin):
         return typefit(List[Transition], self.definition.get("transitions", []))
 
     @classmethod
-    def get_or_create_from_definition(cls, name, definition) -> Tuple[Union[FSMDefinition, None], bool, str]:
+    def get_or_create_from_definition(
+        cls, name, definition
+    ) -> Tuple[Union[FSMDefinition, None], bool, str]:
         for item in cls.objects.all():
             if item.definition == definition:
                 return item, False, ""
         if cls.objects.filter(name=name).first():
-            return None, False, f"Trying to create a new FSM definition with a conflicting name: {name} which already exists"
+            return (
+                None,
+                False,
+                f"Trying to create a new FSM definition with a conflicting name: {name} which already exists",
+            )
         fsm = cls(
             name=name,
             definition=definition,
@@ -80,7 +88,9 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def build_fsm(cls, ctx: BotConsumer) -> FSM:
-        instance: CachedFSM = cls.objects.filter(conversation_id=ctx.conversation_id).first()
+        instance: CachedFSM = cls.objects.filter(
+            conversation_id=ctx.conversation_id
+        ).first()
         if instance:
             return instance.fsm_def.build_fsm(
                 ctx, typefit(State, instance.current_state)

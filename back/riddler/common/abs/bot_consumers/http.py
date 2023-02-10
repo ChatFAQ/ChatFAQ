@@ -1,9 +1,7 @@
 import json
-
 from logging import getLogger
 
 from asgiref.sync import sync_to_async
-
 from channels.generic.http import AsyncHttpConsumer
 
 from riddler.apps.broker.models.message import Message
@@ -56,9 +54,11 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         if data is None:
             return
 
-        await self.send_headers(headers=[
-            (b"Content-Type", b"application/json"),
-        ])
+        await self.send_headers(
+            headers=[
+                (b"Content-Type", b"application/json"),
+            ]
+        )
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
 

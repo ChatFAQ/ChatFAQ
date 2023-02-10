@@ -1,10 +1,10 @@
-from asgiref.sync import sync_to_async
-
-from riddler.apps.fsm.models import FSMDefinition
-from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 from logging import getLogger
 
+from asgiref.sync import sync_to_async
+
 from riddler.apps.broker.serializers.messages.custom_ws import ExampleWSSerializer
+from riddler.apps.fsm.models import FSMDefinition
+from riddler.common.abs.bot_consumers.ws import WSBotConsumer
 
 logger = getLogger(__name__)
 

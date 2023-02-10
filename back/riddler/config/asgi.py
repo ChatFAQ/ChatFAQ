@@ -22,18 +22,18 @@ def make_app(django_app):
         Output of get_asgi_application()
     """
 
-    from riddler.config.routing import websocket_urlpatterns, http_urlpatterns
+    from riddler.config.routing import http_urlpatterns, websocket_urlpatterns
 
     return ProtocolTypeRouter(
         {
             "http": AuthMiddlewareStack(
                 URLRouter(http_urlpatterns + [re_path(r"", django_app)])
             ),
-            "websocket": PassAuthMiddleWare(AllowedHostsOriginValidator(
-                AuthMiddlewareStack(
-                    URLRouter(websocket_urlpatterns)
+            "websocket": PassAuthMiddleWare(
+                AllowedHostsOriginValidator(
+                    AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
                 )
-            )),
+            ),
         }
     )
 

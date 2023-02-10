@@ -47,7 +47,7 @@ with EnvManager(preset) as env:
         "corsheaders",
         "django_better_admin_arrayfield",
         "rest_framework",
-        'rest_framework.authtoken',
+        "rest_framework.authtoken",
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "riddler.apps.people",

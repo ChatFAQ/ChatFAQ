@@ -1,6 +1,6 @@
 from abc import ABC
 from logging import getLogger
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from asgiref.sync import sync_to_async
 from django.forms import model_to_dict
@@ -8,11 +8,10 @@ from django.urls import re_path
 
 from riddler.utils.custom_channels import CustomAsyncConsumer
 
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from riddler.apps.fsm.models import FSMDefinition
-    from riddler.apps.fsm.lib import FSM
     from riddler.apps.broker.models.message import Message
+    from riddler.apps.fsm.lib import FSM
+    from riddler.apps.fsm.models import FSMDefinition
 
 logger = getLogger(__name__)
 
@@ -22,7 +21,11 @@ class BrokerMetaClass(type):
 
     def __new__(cls, cls_name, bases, attrs):
         new_class = super().__new__(cls, cls_name, bases, attrs)
-        if cls_name != "BotConsumer" and cls_name != "WSBotConsumer" and cls_name != "HTTPBotConsumer":
+        if (
+            cls_name != "BotConsumer"
+            and cls_name != "WSBotConsumer"
+            and cls_name != "HTTPBotConsumer"
+        ):
             cls.registry.append(new_class)
         return new_class
 
@@ -39,15 +42,21 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     serializer_class = None
 
     def __init__(self, *args, **kwargs):
-        from riddler.apps.broker.serializers.messages import BotMessageSerializer  # TODO: CI
+        from riddler.apps.broker.serializers.messages import (
+            BotMessageSerializer,  # TODO: CI
+        )
 
         self.conversation_id: Union[str, None] = None
         self.fsm_def: "FSMDefinition" = None
 
         super().__init__(*args, **kwargs)
-        if self.serializer_class is None or not issubclass(self.serializer_class, BotMessageSerializer):
-            raise Exception("serializer_class should not be None on any BotConsumer and should implement "
-                            "BotMessageSerializer")
+        if self.serializer_class is None or not issubclass(
+            self.serializer_class, BotMessageSerializer
+        ):
+            raise Exception(
+                "serializer_class should not be None on any BotConsumer and should implement "
+                "BotMessageSerializer"
+            )
 
         self.fsm: "FSM" = None
 
@@ -75,7 +84,9 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         self.fsm.rpc_result_future.set_result(data["payload"])
 
     async def disconnect(self, code=None):
-        logger.debug(f"Disconnecting from conversation ({self.conversation_id}) (CODE: {code})")
+        logger.debug(
+            f"Disconnecting from conversation ({self.conversation_id}) (CODE: {code})"
+        )
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
 
@@ -139,10 +150,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
     @classmethod
     def build_path(cls):
-        return re_path(
-            cls.platform_url_path(),
-            cls.as_asgi()
-        )
+        return re_path(cls.platform_url_path(), cls.as_asgi())
 
     @classmethod
     def register(cls):

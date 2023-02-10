@@ -23,6 +23,7 @@ class RPCResultSerializer(serializers.Serializer):
     payload: dict
         The RPC response payload
     """
+
     ctx = CtxSerializer()
     payload = serializers.JSONField(default=dict)
 
@@ -36,6 +37,7 @@ class RPCFSMDefSerializer(serializers.Serializer):
     definition: dict
         The definition itself
     """
+
     name = serializers.CharField(max_length=255)
     definition = serializers.JSONField(default=dict)
 
@@ -51,5 +53,6 @@ class RPCResponseSerializer(serializers.Serializer):
     data: dict
         The RPC response payload
     """
+
     type = serializers.ChoiceField(choices=[n.value for n in RPCMessageType])
     data = serializers.JSONField(default=dict)

@@ -1,6 +1,6 @@
+import asyncio
 import functools
 
-import asyncio
 from asgiref.sync import async_to_sync
 from channels import DEFAULT_CHANNEL_LAYER
 from channels.exceptions import StopConsumer

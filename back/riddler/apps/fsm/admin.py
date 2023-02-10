@@ -1,14 +1,13 @@
 from django.contrib import admin
-from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django.db.models import JSONField
-from .models import CachedFSM, FSMDefinition
+from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
+
 from ...utils import PrettyJSONWidget
+from .models import CachedFSM, FSMDefinition
 
 
 class FSMDefinitionAdmin(admin.ModelAdmin, DynamicArrayMixin):
-    formfield_overrides = {
-        JSONField: {'widget': PrettyJSONWidget}
-    }
+    formfield_overrides = {JSONField: {"widget": PrettyJSONWidget}}
 
 
 class CachedFSMAdmin(admin.ModelAdmin):

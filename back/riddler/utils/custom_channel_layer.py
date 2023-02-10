@@ -12,6 +12,7 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
     receiving the notification.
     What I do not understand is why in the first place there can be no new message
     """
+
     async def _get_message_from_channel(self, channel):
         retrieve_events_sql = f'LISTEN "{channel}";'
         retrieve_queued_messages_sql = """
@@ -35,7 +36,7 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
 
             if not message:
                 # Unlisten and clear pending messages (From other connections) from the queue
-                await cur.execute('UNLISTEN *;')
+                await cur.execute("UNLISTEN *;")
                 for _ in range(conn.notifies.qsize()):
                     conn.notifies.get_nowait()
 

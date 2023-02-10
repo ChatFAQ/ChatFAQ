@@ -1,14 +1,12 @@
-import time
-
 import asyncio
+import time
+from logging import getLogger
+from typing import List, NamedTuple, Text, Union
 
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
-from typing import List, NamedTuple, Text, Union
 
 from riddler.apps.broker.models.message import AgentType
-from logging import getLogger
-
 from riddler.common.abs.bot_consumers import BotConsumer
 from riddler.utils import WSStatusCodes
 
@@ -26,6 +24,7 @@ class State(NamedTuple):
     initial: bool
         It defines the initial state, there should only be 1
     """
+
     name: Text
     events: List[Text] = []
     initial: bool = False
@@ -47,6 +46,7 @@ class Transition(NamedTuple):
     unless: List of str
         The same as conditions but considering the function with a 'not' operator in front of it
     """
+
     dest: Text
     source: Text = None
     conditions: List[Text] = []
@@ -58,6 +58,7 @@ class FSM:
     FSM as in "Finite-State Machine".
     Bots are represented as an FSM: states are the various states of the bot.
     """
+
     channel_layer = get_channel_layer()
 
     def __init__(
@@ -128,7 +129,9 @@ class FSM:
         """
         if transition_data is None:
             transition_data = {}
-        from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+        from riddler.apps.broker.consumers.rpc_consumer import (
+            RPCConsumer,  # TODO: fix CI
+        )
 
         group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
@@ -138,8 +141,11 @@ class FSM:
                 "status": WSStatusCodes.ok.value,
                 "payload": {
                     "name": event_name,
-                    "ctx": {"transition_data": transition_data, **(await self.ctx.serialize())}
-                }
+                    "ctx": {
+                        "transition_data": transition_data,
+                        **(await self.ctx.serialize()),
+                    },
+                },
             }
             await self.channel_layer.group_send(group_name, data)
             self.rpc_result_future = asyncio.get_event_loop().create_future()
@@ -161,7 +167,10 @@ class FSM:
                 return state
 
     def get_current_state_transitions(self):
-        return filter(lambda t: t.source == self.current_state.name or t.source is None, self.transitions)
+        return filter(
+            lambda t: t.source == self.current_state.name or t.source is None,
+            self.transitions,
+        )
 
     async def check_transition_condition(self, transition):
         """
@@ -198,16 +207,15 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        from riddler.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+        from riddler.apps.broker.consumers.rpc_consumer import (
+            RPCConsumer,  # TODO: fix CI
+        )
 
         group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
         data = {
             "type": "rpc_call",
             "status": WSStatusCodes.ok.value,
-            "payload": {
-                "name": condition_name,
-                "ctx": await self.ctx.serialize()
-            }
+            "payload": {"name": condition_name, "ctx": await self.ctx.serialize()},
         }
         await self.channel_layer.group_send(group_name, data)
         self.rpc_result_future = asyncio.get_event_loop().create_future()
@@ -222,7 +230,9 @@ class FSM:
         await sync_to_async(CachedFSM.update_or_create)(self)
 
     async def save_bot_mml(self, stacks):
-        from riddler.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+        from riddler.apps.broker.serializers.messages import (
+            MessageSerializer,  # TODO: CI
+        )
 
         last_mml = await self.ctx.get_last_mml()
         serializer = MessageSerializer(

@@ -1,17 +1,16 @@
+from logging import getLogger
+from typing import TYPE_CHECKING, Union
 
 from asgiref.sync import async_to_sync
-from typing import Union
-from riddler.apps.broker.models.message import AgentType
-
 from rest_framework import serializers
 
-from riddler.apps.broker.serializers.messages import BotMessageSerializer, MessageSerializer
+from riddler.apps.broker.models.message import AgentType
+from riddler.apps.broker.serializers.messages import (
+    BotMessageSerializer,
+    MessageSerializer,
+)
 from riddler.common.abs.bot_consumers import BotConsumer
 
-
-from logging import getLogger
-
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from riddler.apps.broker.models.message import Message
 
@@ -56,7 +55,14 @@ class TelegramMessageSerializer(BotMessageSerializer):
         last_mml = async_to_sync(ctx.get_last_mml)()
         s = MessageSerializer(
             data={
-                "stacks": [[{"type": "text", "payload": self.validated_data["message"]["text"]}]],
+                "stacks": [
+                    [
+                        {
+                            "type": "text",
+                            "payload": self.validated_data["message"]["text"],
+                        }
+                    ]
+                ],
                 "transmitter": {
                     "first_name": self.validated_data["message"]["from"]["first_name"],
                     "type": AgentType.human.value,
@@ -64,7 +70,7 @@ class TelegramMessageSerializer(BotMessageSerializer):
                 },
                 "send_time": self.validated_data["message"]["date"] * 1000,
                 "conversation": self.validated_data["message"]["chat"]["id"],
-                "prev": last_mml.pk if last_mml else None
+                "prev": last_mml.pk if last_mml else None,
             }
         )
         if not s.is_valid():

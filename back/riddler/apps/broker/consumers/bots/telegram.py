@@ -52,6 +52,4 @@ class TelegramBotConsumer(HTTPBotConsumer):
     async def send_response(self, mml: Message):
         async with httpx.AsyncClient() as client:
             for data in self.serializer_class.to_platform(mml, self):
-                await client.post(
-                    f"{self.API_URL}{self.TOKEN}/sendMessage", data=data
-                )
+                await client.post(f"{self.API_URL}{self.TOKEN}/sendMessage", data=data)
