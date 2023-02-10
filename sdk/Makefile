@@ -9,5 +9,5 @@ isort:
 	$(PYTHON_BIN) -m isort riddler_sdk
 	$(PYTHON_BIN) -m isort examples
 
-run:
+run_example:
 	poetry run python examples/__init__.py
