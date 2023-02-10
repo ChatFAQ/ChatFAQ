@@ -13,7 +13,7 @@ SDK's documentation
 Installation
 --------------------------
 
-:ref:`Installation section <Installation>`
+:doc:`installation`
 
 Quick Start
 --------------------------

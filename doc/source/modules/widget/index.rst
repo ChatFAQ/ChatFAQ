@@ -10,7 +10,7 @@ This is a simple implementation of a client chatbot that connect to a Riddler se
 Installation
 --------------------------
 
-:ref:`Installation section <Installation>`
+:doc:`installation`
 
 Quick Start
 --------------------------
