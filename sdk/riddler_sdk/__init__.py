@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import json
+import urllib.parse
 from logging import getLogger
 from typing import Callable, Union
 
@@ -65,7 +66,9 @@ class RiddlerSDK:
         self.uri = f"{self.riddler_ws}back/ws/broker/rpc/"
         if self.fsm_name is not None and self.fsm_def is None:
             self.uri = f"{self.riddler_ws}back/ws/broker/rpc/{self.fsm_name}/"
-        self.uri = f"{self.uri}?email={self.user_email}&pass={self.user_password}"
+        parsed_email = urllib.parse.quote(self.user_email)
+        parsed_password = urllib.parse.quote(self.user_password)
+        self.uri = f"{self.uri}?email={parsed_email}&pass={parsed_password}"
         connection_error = True
         while connection_error:
             try:
