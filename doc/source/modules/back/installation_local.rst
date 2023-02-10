@@ -49,6 +49,12 @@ Create a superuser
 
     ./manage.py createsuperuser
 
+Apply fixtures
+
+.. code-block:: console
+
+    make apply_fixtures
+
 Run the server
 
 .. code-block:: console
