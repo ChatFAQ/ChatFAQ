@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import dns from "dns";
+dns.setDefaultResultOrder('ipv4first')
 
 export default defineNuxtConfig({
     css: [
