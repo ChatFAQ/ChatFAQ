@@ -1,12 +1,12 @@
-.. riddler documentation master file, created by
+.. ChatFAQ documentation master file, created by
    sphinx-quickstart on Mon Jan 16 12:29:01 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Riddler's documentation
+ChatFAQ's documentation
 ===================================
 
-This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Broker of the Riddler project, it can be considered the Back-end of riddler.
+This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Consumer.
 
 Prerequisites
 --------------------------

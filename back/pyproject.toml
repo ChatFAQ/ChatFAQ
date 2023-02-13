@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "riddler"
+name = "back"
 version = "0.1.0"
 description = ""
 authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 license = "Proprietary"
 
 packages = [
-    {include = "riddler"},
+    {include = "back"},
 ]
 
 [tool.poetry.dependencies]
@@ -37,7 +37,7 @@ ipython = "*"
 
 [tool.isort]
 profile = "black"
-known_first_party = "riddler"
+known_first_party = "back"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

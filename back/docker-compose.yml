@@ -8,7 +8,7 @@ services:
             postgres:
                 condition: service_healthy
         networks:
-            - riddler
+            - chatfaq
         volumes:
             - ./:/var/apps/back
         env_file:
@@ -16,19 +16,19 @@ services:
     postgres:
         image: postgres:15
         networks:
-            - riddler
+            - chatfaq
         volumes:
             - pgdata:/var/lib/postgresql/data
         environment:
             - POSTGRES_PASSWORD=super
-            - POSTGRES_DB=riddler
+            - POSTGRES_DB=chatfaq
         healthcheck:
-            test: if psql -U postgres -lqt | cut -d \| -f 1 | grep -w riddler; then exit 0; else exit 1; fi
+            test: if psql -U postgres -lqt | cut -d \| -f 1 | grep -w chatfaq; then exit 0; else exit 1; fi
             interval: 5s
             timeout: 5s
             retries: 5
 volumes:
     pgdata:
 networks:
-    riddler:
+    chatfaq:
         driver: bridge

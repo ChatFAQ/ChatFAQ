@@ -1,8 +1,8 @@
 import random
 
-from riddler_sdk.conditions import Result
-from riddler_sdk.fsm import FSMDefinition, State, Transition
-from riddler_sdk.layers import Text
+from chatfaq_sdk.conditions import Result
+from chatfaq_sdk.fsm import FSMDefinition, State, Transition
+from chatfaq_sdk.layers import Text
 
 
 def is_saying_goodbye(ctx: dict):

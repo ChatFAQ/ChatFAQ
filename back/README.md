@@ -1,8 +1,6 @@
-# Riddler Back
+# ChatFAQ Back
 
-This project hold the [FSM](riddler/apps/fsm/lib/__init__.py) (Finite State Machine) and the Broker of the Riddler project, it can be considered the Back-end of riddler.
-
-It also serves a very simple dummy [Front-end](riddler/back/riddler/apps/broker/templates/chat/index.html) just as an example of a WS connection to the backend from a custom widget.
+This project hold the [FSM](back/apps/fsm/lib/__init__.py) (Finite State Machine) and the Consumers of the ChatFAQ project
 
 ## Installation
 
@@ -37,17 +35,17 @@ Activate the virtual environment
 
 `poetry shell`
 
-Create a 'riddler' database in postgres
+Create a 'chatfaq' database in postgres
 
-`sudo -u postgres psql -c "CREATE DATABASE riddler"`
+`sudo -u postgres psql -c "CREATE DATABASE chatfaq"`
 
-Create a 'riddler' user in postgres
+Create a 'chatfaq' user in postgres
 
-`sudo -u postgres psql -c "CREATE user riddler WITH encrypted password 'riddler';"`
+`sudo -u postgres psql -c "CREATE user chatfaq WITH encrypted password 'chatfaq';"`
 
 Grant to the newly created user the proper the privileges to the database
 
-`sudo -u postgres psql -c "grant all privileges on database riddler to riddler;"`
+`sudo -u postgres psql -c "grant all privileges on database chatfaq to chatfaq;"`
 
 Apply django fixtures
 
@@ -71,7 +69,7 @@ Run the server
 
 
 - <ins>FSM Definition</ins>: The FSM Definition is the description of the different states the bot exists on, and the transitions that describe how to pass from one state to the other.
-<br/>This definition lives on Riddler's database but typically gets defined from the SDK.
+<br/>This definition lives on ChatFAQ's database but typically gets defined from the SDK.
 <br/>We won't explain it further in this tutorial. If you wish a more detailed explanation go to the [SDK's README.md](../sdk/README.md)
 
 ### Example
@@ -107,7 +105,7 @@ Regardless of which one you inherit from, you need to implement the next attribu
 
 ###### Telegram's consumer implementation
 
-The full Telegram's consumer can be found under [here](riddler/apps/broker/consumers/bots/telegram.py)
+The full Telegram's consumer can be found under [here](back/apps/broker/consumers/bots/telegram.py)
 
 Next we explain its different parts:
 
@@ -253,7 +251,7 @@ Or if you are running it straight in you machine make sure to include in your .e
 
 ###### Custom's consumer implementation
 
-The full Custom WS's consumer can be found under [here](riddler/apps/broker/consumers/bots/custom_ws.py)
+The full Custom WS's consumer can be found under [here](back/apps/broker/consumers/bots/custom_ws.py)
 
 Next we explain its different parts:
 

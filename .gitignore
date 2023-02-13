@@ -19,8 +19,8 @@ downloads/
 eggs/
 .eggs/
 lib/
-!back/riddler/apps/fsm/lib/
-!back/riddler/apps/broker/lib/
+!back/back/apps/fsm/lib/
+!back/back/apps/broker/lib/
 lib64/
 parts/
 sdist/

@@ -7,7 +7,7 @@
 
 <script setup>
     const runtimeConfig = useRuntimeConfig()
-    const { data: fsmDefs } = await useFetch(runtimeConfig.riddlerAPI + "/back/api/fsm/definitions/?fields=id,name")
+    const { data: fsmDefs } = await useFetch(runtimeConfig.chatfaqAPI + "/back/api/fsm/definitions/?fields=id,name")
     const selectedFSMDef = useState("selectedFSMDef")
 </script>
 

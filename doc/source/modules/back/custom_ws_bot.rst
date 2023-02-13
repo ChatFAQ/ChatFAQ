@@ -1,5 +1,5 @@
 custom_ws_bot
 ======================
 
-.. literalinclude:: ../../../../back/riddler/apps/broker/consumers/bots/custom_ws.py
+.. literalinclude:: ../../../../back/back/apps/broker/consumers/bots/custom_ws.py
    :language: python

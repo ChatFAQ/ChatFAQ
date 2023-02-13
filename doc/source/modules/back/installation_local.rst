@@ -19,23 +19,23 @@ Activate the virtual environment
 
     poetry shell
 
-Create a 'riddler' database in postgres
+Create a 'chatfaq' database in postgres
 
 .. code-block:: console
 
-    sudo -u postgres psql -c "CREATE DATABASE riddler"
+    sudo -u postgres psql -c "CREATE DATABASE chatfaq"
 
-Create a 'riddler' user in postgres
+Create a 'chatfaq' user in postgres
 
 .. code-block:: console
 
-    sudo -u postgres psql -c "CREATE user riddler WITH encrypted password 'riddler';"
+    sudo -u postgres psql -c "CREATE user chatfaq WITH encrypted password 'chatfaq';"
 
 Grant to the newly created user the proper the privileges to the database
 
 .. code-block:: console
 
-    sudo -u postgres psql -c "grant all privileges on database riddler to riddler;"
+    sudo -u postgres psql -c "grant all privileges on database chatfaq to chatfaq;"
 
 Apply django migrations
 

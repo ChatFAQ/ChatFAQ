@@ -5,7 +5,7 @@
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
-      <env name="DJANGO_SETTINGS_MODULE" value="riddler.config.settings" />
+      <env name="DJANGO_SETTINGS_MODULE" value="back.config.settings" />
     </envs>
     <option name="SDK_HOME" value="$USER_HOME$/.cache/pypoetry/virtualenvs/riddler-mVK3jSOz-py3.10/bin/python" />
     <option name="SDK_NAME" value="Python 3.10 (riddler-mVK3jSOz-py3.10)" />

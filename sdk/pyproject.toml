@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "riddler_sdk"
+name = "chatfaq_sdk"
 version = "0.1.0"
 description = ""
 authors = ["Hector Soria <attosoria@hotmail.com>"]

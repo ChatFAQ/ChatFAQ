@@ -6,13 +6,13 @@ black:
 	$(PYTHON_BIN) -m black --exclude '/(\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|_build|buck-out|build|dist|node_modules|webpack_bundles)/' .
 
 isort:
-	$(PYTHON_BIN) -m isort riddler
+	$(PYTHON_BIN) -m isort back
 
 run:
 	./pmanage runserver 8000
 
 run_daphne:
-	$(PYTHON_BIN) daphne riddler.config.asgi:application
+	$(PYTHON_BIN) daphne back.config.asgi:application
 
 spectacular:
 	./pmanage spectacular --file schema.yml
@@ -21,15 +21,15 @@ docs:
 	poetry run $(MAKE) -f doc/Makefile html
 
 create_fixtures:
-	./pmanage dumpdata auth.group --indent 4 > riddler/apps/people/fixtures/initial.json
+	./pmanage dumpdata auth.group --indent 4 > back/apps/people/fixtures/initial.json
 
 apply_fixtures:
-	./pmanage loaddata riddler/apps/people/fixtures/initial.json --app auth.group
+	./pmanage loaddata back/apps/people/fixtures/initial.json --app auth.group
 
 
 # create_fsm_fixtures:
-# 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > riddler/apps/fsm/fixtures/initial.json
+# 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > back/apps/fsm/fixtures/initial.json
 #
 # apply_fsm_fixtures:
-# 	./manage.py loaddata riddler/apps/fsm/fixtures/initial.json --app fsm
+# 	./manage.py loaddata back/apps/fsm/fixtures/initial.json --app fsm
 #

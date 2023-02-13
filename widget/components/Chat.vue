@@ -25,7 +25,7 @@ onMounted(() => {
 });
 
 const ws = new WebSocket(
-    runtimeConfig.riddlerWS
+    runtimeConfig.chatfaqWS
     + "/back/ws/broker/"
     + conversationID
     + "/"

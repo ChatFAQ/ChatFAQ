@@ -1,6 +1,6 @@
-# Riddler Plugin
+# ChatFAQ Plugin
 
-This is a simple implementation of a client chatbot that connect to a Riddler server and offers a interface to communicate with a selected FSM
+This is a simple implementation of a client chatbot that connect to a ChatFAQ's back-end server and offers a interface to communicate with a selected FSM
 
 ## Setup
 
@@ -43,7 +43,7 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 ## Configuration
 
-Create a *.env* file with 2 variables: **RIDDLER_API** & **RIDDLER_WS**. If you are developing locally you could just copy the content of [.envexample]([./.envexample])
+Create a *.env* file with 2 variables: **CHATFAQ_BACKEND_API** & **CHATFAQ_BACKEND_WS**. If you are developing locally you could just copy the content of [.envexample]([./.envexample])
 
 ## Usage
 

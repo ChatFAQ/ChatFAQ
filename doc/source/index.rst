@@ -11,11 +11,11 @@ ChatFAQ is a comprehensive ecosystem for building chatbots, including generic ch
 
 The system is comprised of three main components:
 
-- The Back-end, also known as "Riddler," manages client-to-message platform connections and session storage. It also houses the database storing all Finite State Machine (FSM) definitions, user information, and more.
+- The Back-end manages client-to-message platform connections and session storage. It also houses the database storing all Finite State Machine (FSM) definitions, user information, and more.
 
-    :ref:`Riddler docs <Riddler's documentation>`
+    :ref:`Back-end docs <Back-end's documentation>`
 
-- The SDK serves two primary functions: it allows for the posting of new FSM definitions to Riddler, and it also launches an Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
+- The SDK serves two primary functions: it allows for the posting of new FSM definitions to the ChatFAQ's Back-end server, and it also launches an Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
 
     :ref:`SDK docs <SDK's documentation>`
 
@@ -33,6 +33,6 @@ Contents
    :maxdepth: 2
 
    ChatFAQ docs <index.rst>
-   Riddler docs <modules/back/index.rst>
+   Back-end docs <modules/back/index.rst>
    SDK docs <modules/sdk/index.rst>
    Widget docs <modules/widget/index.rst>

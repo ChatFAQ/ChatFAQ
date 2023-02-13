@@ -30,7 +30,7 @@ Configuration
 
 .. module:: widget
 
-Create a *.env* file and define two variables, **RIDDLER_API** and **RIDDLER_WS**, with their respective protocols and addresses. If you are developing locally, you can simply copy the contents of env_example.
+Create a *.env* file and define two variables, **CHATFAQ_BACKEND_API** and **CHATFAQ_BACKEND_WS**, with their respective protocols and addresses. If you are developing locally, you can simply copy the contents of env_example.
 
 Usage
 ---------------------

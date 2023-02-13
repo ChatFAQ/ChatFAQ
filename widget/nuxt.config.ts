@@ -16,8 +16,8 @@ export default defineNuxtConfig({
         // privateKey: process.env.PRIVATE_KEY,
         // Keys within public are also exposed client-side
         public: {
-            riddlerAPI: process.env.RIDDLER_API,
-            riddlerWS: process.env.RIDDLER_WS,
+            chatfaqAPI: process.env.CHATFAQ_BACKEND_API,
+            chatfaqWS: process.env.CHATFAQ_BACKEND_WS,
         }
     },
     app: {

@@ -1,11 +1,10 @@
-# Riddler SDK
+# ChatFAQ SDK
 
 This SDK assists you on 2 main tasks:
 
-- Creating FSM Definitions on a Riddler server
+- Creating FSM Definitions on a ChatFAQ's back-end server
 
-
-- Hosting RPCs (Remote Procedure Calls) to serve when a session's FSM connected to a Riddler server reach the call.
+- Hosting RPCs (Remote Procedure Calls) to serve when a session's FSM connected to a ChatFAQ's back-end server reach the call.
 
 ## Installation
 
@@ -35,7 +34,7 @@ An FSM definition is composed out of 2 types of blocks: States & Transitions:
 
 - <ins>Transitions</ins>: define the __conditions__ needed to transit from one state to the other.
 
-Both __events__ and __conditions__ are functionality that will be executed on demand of the Riddler Server. They are known as RPC (Remote Procedure Calls)
+Both __events__ and __conditions__ are functionality that will be executed on demand from the ChatFAQ's back-end server. They are known as RPC (Remote Procedure Calls)
 
 
 ### Example
@@ -61,7 +60,7 @@ Instantiate the __State__ class for creating a new state in the SDK:
 - pass a list of __events__ it should trigger once it's entered.
 
 ```python
-from riddler_sdk.fsm import State
+from chatfaq_sdk.fsm import State
 
 greeting_state = State(
     name="Greeting",
@@ -100,8 +99,8 @@ All our 3 states have one event to trigger once entered:
 ```python
 import random
 
-from riddler_sdk.conditions import Result
-from riddler_sdk.layers import Text
+from chatfaq_sdk.conditions import Result
+from chatfaq_sdk.layers import Text
 
 def is_saying_goodbye(ctx: dict):
     if ctx["last_mml"]["stacks"][0][0]["payload"] == "goodbye":
@@ -141,7 +140,7 @@ Instantiate the __Transition__ class for creating a new transition in the SDK:
 
 - declare the list of __unless__ that need NOT pass in order to the transition to happen
 ```python
-from riddler_sdk.fsm import Transition
+from chatfaq_sdk.fsm import Transition
 
 any_to_goodbye = Transition(
     dest=goodbye_state,
@@ -181,7 +180,7 @@ Instantiate the __FSMDefinition__ class for orchestrating all the states and its
 
 - pass the __transitions__, order matters: if 2 transitions returns same scores then the first one on the list will be the winner.
 ```python
-from riddler_sdk.fsm import FSMDefinition
+from chatfaq_sdk.fsm import FSMDefinition
 
 fsm_def = FSMDefinition(
     states=[greeting_state, answering_state, goodbye_state],
@@ -191,17 +190,17 @@ fsm_def = FSMDefinition(
 
 ### Connection
 
-The only thing left after defining your FSM is to communicate it to Riddler Server and remain listening as an RPC server (for executing your previously declared events & conditions on demand)
+The only thing left after defining your FSM is to communicate it to ChatFAQ's back-end server and remain listening as an RPC server (for executing your previously declared events & conditions on demand)
 
-We do so by instantiating the class RiddlerSDK and passing to the constructor 5 parameters:
+We do so by instantiating the class ChatFAQSDK and passing to the constructor 5 parameters:
 
-- riddler_host: the address of our Riddler Server
-
-
-- _user_email_: the email of an Riddler's admin user
+- chatfaq_backend_host: the address of our ChatFAQ's back-end server
 
 
-- _user_password_:  the password of an Riddler's admin user
+- _user_email_: the email of an ChatFAQ's back-end admin user
+
+
+- _user_password_:  the password of an ChatFAQ's back-end admin user
 
 
 - _fsm_name_: the name of our new FSM Definition if we are providing `fsm_def` or the name/ID of an already existing FSM Definition on the remote server if not `fsm_def` is provided
@@ -209,16 +208,16 @@ We do so by instantiating the class RiddlerSDK and passing to the constructor 5 
 
 - _fsm_def_ (optional): an instance of FSMDefinition
 
-You should make sure the used user belong to the *RPC* group, you can set that from the admin site of the Riddler server.
+You should make sure the used user belong to the *RPC* group, you can set that from the admin site of the ChatFAQ's back-end server.
 
-Then we call our RiddlerSDK instance's `connect` method, and we are done.
+Then we call our ChatFAQSDK instance's `connect` method, and we are done.
 ```python
-from riddler_sdk import RiddlerSDK
+from chatfaq_sdk import ChatFAQSDK
 
-sdk = RiddlerSDK(
-    os.getenv('RIDDLER_URL'),
-    os.getenv('RIDDLER_EMAIL'),
-    os.getenv('RIDDLER_PASSWORD'),
+sdk = ChatFAQSDK(
+    os.getenv('CHATFAQ_BACKEND_URL'),
+    os.getenv('CHATFAQ_BACKEND_EMAIL'),
+    os.getenv('CHATFAQ_BACKEND_PASSWORD'),
     "simple_fsm",
     fsm_def
 )

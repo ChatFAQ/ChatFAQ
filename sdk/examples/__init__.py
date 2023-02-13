@@ -1,14 +1,14 @@
 from examples.fsm_def import fsm_def
-from riddler_sdk import RiddlerSDK
+from chatfaq_sdk import ChatFAQSDK
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-sdk = RiddlerSDK(
-    os.getenv('RIDDLER_WS'),
-    os.getenv('RIDDLER_EMAIL'),
-    os.getenv('RIDDLER_PASSWORD'),
+sdk = ChatFAQSDK(
+    os.getenv('CHATFAQ_BACKEND_WS'),
+    os.getenv('CHATFAQ_BACKEND_EMAIL'),
+    os.getenv('CHATFAQ_BACKEND_PASSWORD'),
     "simple_fsm",
     fsm_def
 )

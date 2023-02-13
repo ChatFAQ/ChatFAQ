@@ -1,5 +1,5 @@
 FSM Core
 ======================
 
-.. literalinclude:: ../../../../back/riddler/apps/fsm/lib/__init__.py
+.. literalinclude:: ../../../../back/back/apps/fsm/lib/__init__.py
    :language: python
