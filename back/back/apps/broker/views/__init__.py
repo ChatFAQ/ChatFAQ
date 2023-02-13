@@ -10,16 +10,3 @@ from ..serializers.messages import MessageSerializer
 class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-
-
-def chat(request):
-    fsm_def_ids = list(FSMDefinition.objects.values_list("pk", flat=True))
-    return render(request, "chat/index.html", {"fsm_def_ids": fsm_def_ids})
-
-
-def room(request, conversation, fsm_def_id):
-    return render(
-        request,
-        "chat/room.html",
-        {"conversation": conversation, "fsm_def_id": fsm_def_id},
-    )
