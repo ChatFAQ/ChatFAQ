@@ -1,6 +1,15 @@
 Docker Installation
 ===================
 
+Prerequisites
+------------------
+
+- Docker
+- docker-compose
+
+Installation
+------------------
+
 As simple as running
 
 .. code-block:: console

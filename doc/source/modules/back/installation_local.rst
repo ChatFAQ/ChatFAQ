@@ -1,6 +1,20 @@
 Local Installation
 ==================
 
+Prerequisites
+------------------
+
+- Python 3.10
+- python3.10-dev
+- python3.10-distutils
+- PostgreSQL
+- gdal-bin
+- poetry
+
+
+Installation
+------------------
+
 .. module:: back
 
 Create a .env file with the needed variables set. You can see an example of those on :ref:`env_example`

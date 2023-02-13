@@ -8,22 +8,14 @@ ChatFAQ's documentation
 
 This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Consumer.
 
-Prerequisites
---------------------------
-
-You could either run this project from Docker or install it locally. Depending on your choice you will need different prerequisites.
-
-- :ref:`Docker Prerequisites`
-- :ref:`Local Prerequisites`
-
-
 Installation
 --------------------------
 
-As mentioned before, run this project from Docker or install it locally.
-
-- :ref:`Docker Installation`
 - :ref:`Local Installation`
+
+or...
+
+- :ref:`Using Docker <Docker Installation>`
 
 Quick Start
 --------------------------
