@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-ChatFAQ's documentation
+Back-end's documentation
 ===================================
 
 This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Consumer.
