@@ -82,6 +82,4 @@ Run the server
     make run
 
 
-Add your admin user to the RPC group:
-
 Now you should be able to navigate to http://localhost:8000/back/admin and log in with your previously created user.

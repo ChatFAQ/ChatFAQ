@@ -8,7 +8,7 @@ Back-end's documentation
 
 This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Consumer.
 
-Installation
+Setting Up
 --------------------------
 
 - :ref:`Setting it up locally`
@@ -20,4 +20,4 @@ or...
 Concepts
 --------------------------
 
-:doc:`Concepts`
+:doc:`concepts`
