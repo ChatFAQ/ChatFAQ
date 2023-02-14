@@ -11,11 +11,11 @@ This project hold the :ref:`FSM <FSM Core>` (Finite State Machine) and the Consu
 Installation
 --------------------------
 
-- :ref:`Local Installation`
+- :ref:`Setting it up locally`
 
 or...
 
-- :ref:`Using Docker <Docker Installation>`
+- :ref:`Setting it up with Docker`
 
 Quick Start
 --------------------------

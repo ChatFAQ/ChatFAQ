@@ -1,5 +1,5 @@
-Docker Installation
-===================
+Setting it up with Docker
+=========================
 
 Prerequisites
 ------------------

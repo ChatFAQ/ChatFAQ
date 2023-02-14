@@ -1,5 +1,5 @@
-Local Installation
-==================
+Setting it up locally
+=====================
 
 Prerequisites
 ------------------
@@ -67,6 +67,8 @@ Create a superuser
 
     ./manage.py createsuperuser
 
+    When creating the superuser it will ask you if it belongs to the RPC group, respond yes, this is important for later on being able to create an RPC Server with this same user
+
 Apply fixtures
 
 .. code-block:: console
@@ -78,3 +80,8 @@ Run the server
 .. code-block:: console
 
     make run
+
+
+Add your admin user to the RPC group:
+
+Now you should be able to navigate to http://localhost:8000/back/admin and log in with your previously created user.
