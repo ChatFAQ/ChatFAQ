@@ -1,13 +1,11 @@
 
-Quick Start
+Concepts
 ==================
 
 If your intention is to connect our custom :ref:`widget <Widget's documentation>` to your already installed ChatFAQ's Back-end server, then no further information is necessary.
 
 However, if you desire to create a new consumer to connect to a different type of Message Platform, please continue reading.
 
-Concepts
-------------------
 
 .. role:: underline
 

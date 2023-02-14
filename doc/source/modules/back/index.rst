@@ -17,7 +17,7 @@ or...
 
 - :ref:`Setting it up with Docker`
 
-Quick Start
+Concepts
 --------------------------
 
-:doc:`quick_start`
+:doc:`Concepts`
