@@ -67,7 +67,7 @@ Create a superuser
 
     ./manage.py createsuperuser
 
-    When creating the superuser it will ask you if it belongs to the RPC group, respond yes, this is important for later on being able to create an RPC Server with this same user
+When creating the superuser it will ask you if it belongs to the RPC group, it is important to respond yes(y) for later on being able to create an RPC Server with this same user
 
 Apply fixtures
 
