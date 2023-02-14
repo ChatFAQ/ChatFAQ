@@ -28,6 +28,8 @@ Create a :code:`examples/.env` file with the needed variables set. You can see a
 
 .. literalinclude:: ../../../../sdk/examples/.env_example
 
+**CHATFAQ_BACKEND_EMAIL** and **CHATFAQ_BACKEND_PASSWORD** should belongs to the created admin user on :doc:`the back-end installation <../back/index>`
+
 Make sure poetry is using the right python executable. You have 2 options for this:
 
     1. If you have the python executable in your PATH poetry will create the virtual environment for you:
