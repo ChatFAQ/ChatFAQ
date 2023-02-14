@@ -23,19 +23,25 @@ Create a :code:`.env` file with the needed variables set. You can see an example
 
 .. literalinclude:: ../../../../back/.env_example
 
-This project is based on `Model-W <https://github.com/ModelW/project-maker>`_. therefore we use poetry for the management of the dependencies
+Make sure poetry is using the right python executable. You have 2 options for this:
 
-Go inside ./back directory Create and install project dependencies:
+    1. If you have the python executable in your PATH poetry will create the virtual environment for you:
+
+    .. code-block:: console
+
+        poetry env use python3.10
+
+    2.- Or perhaps you rather use an environment you created with other tool as such pyenv or virtualenv
+
+    .. code-block:: console
+
+        poetry env use /full/path/to/virtualenv/python
+
+Install project dependencies:
 
 .. code-block:: console
 
     poetry install
-
-Activate the virtual environment
-
-.. code-block:: console
-
-    poetry shell
 
 Create a 'chatfaq' database in postgres
 
@@ -59,13 +65,13 @@ Apply django migrations
 
 .. code-block:: console
 
-    ./manage.py migrate
+    poetry run ./manage.py migrate
 
 Create a superuser
 
 .. code-block:: console
 
-    ./manage.py createsuperuser
+    poetry run ./manage.py createsuperuser
 
 When creating the superuser it will ask you if it belongs to the RPC group, it is important to respond yes(y) for later on being able to create an RPC Server with this same user
 
@@ -73,13 +79,13 @@ Apply fixtures
 
 .. code-block:: console
 
-    make apply_fixtures
+    poetry run make apply_fixtures
 
 Run the server
 
 .. code-block:: console
 
-    make run
+    poetry run make run
 
 
 Now you should be able to navigate to http://localhost:8000/back/admin and log in with your previously created user.
