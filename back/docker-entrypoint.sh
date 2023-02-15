@@ -10,9 +10,10 @@ then
     {
       python manage.py createsuperuser \
         --noinput \
-        --username $DJANGO_SUPERUSER_USERNAME \
+        --first_name $DJANGO_SUPERUSER_USERNAME \
+        --last_name $DJANGO_SUPERUSER_USERNAME \
         --email $DJANGO_SUPERUSER_EMAIL \
-        --rpc_group y
+        --rpc_group True
     } || {
         echo "Superuser already existed"
     }

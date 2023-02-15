@@ -6,6 +6,9 @@ ARG ENV_TYPE
 ENV BUILD_MODE=yes
 
 ENV POETRY_VERSION=1.3.1
+
+ENV DOCKER_CONTAINER Yes
+
 # System deps:
 RUN pip install "poetry==$POETRY_VERSION"
 

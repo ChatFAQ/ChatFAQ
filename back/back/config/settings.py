@@ -29,7 +29,12 @@ def is_true(s):
 
 
 preset = ModelWDjango()
-with EnvManager(preset) as env:
+
+dotenv_path = None
+if os.getenv("DOCKER_CONTAINER"):
+    dotenv_path = False
+
+with EnvManager(preset, dotenv_path=dotenv_path) as env:
     # ---
     # Apps
     # ---
