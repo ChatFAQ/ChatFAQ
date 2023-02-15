@@ -6,8 +6,7 @@
 ChatFAQ's documentation
 ===================================
 
-
-ChatFAQ is a comprehensive ecosystem for building chatbots, including generic chatbots, chatbots that learn from business-specific data, chatbots that redirect user requests to human operators, and any other type of chatbot you can imagine.
+ChatFAQ is an comprehensive platform for creating a wide variety of chatbots: generic ones, business-trained, or even capable of redirecting requests to human operators.
 
 The system is comprised of three main components that you need to install:
 
