@@ -4,14 +4,15 @@ set -e
 echo "Apply database migrations"
 python manage.py migrate
 
-if [ "DJANGO_SUPERUSER_PASSWORD" ] && [ "DJANGO_SUPERUSER_USERNAME" ] && [ "DJANGO_SUPERUSER_EMAIL" ]
+if [ -v DJANGO_SUPERUSER_PASSWORD ] && [ -v DJANGO_SUPERUSER_USERNAME ] && [ -v DJANGO_SUPERUSER_EMAIL ]
 then
     echo "Creating super user"
     {
       python manage.py createsuperuser \
         --noinput \
         --username $DJANGO_SUPERUSER_USERNAME \
-        --email $DJANGO_SUPERUSER_EMAIL
+        --email $DJANGO_SUPERUSER_EMAIL \
+        --rpc_group y
     } || {
         echo "Superuser already existed"
     }
