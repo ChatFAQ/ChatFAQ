@@ -6,7 +6,7 @@ authors = ["Hector Soria <attosoria@hotmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "~3.10"
 asyncio = "^3.4.3"
 websockets = "^10.4"
 coloredlogs = "^15.0.1"
