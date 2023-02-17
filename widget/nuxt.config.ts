@@ -3,6 +3,7 @@ import dns from "dns";
 dns.setDefaultResultOrder('ipv4first')
 
 export default defineNuxtConfig({
+    ssr: false,
     css: [
         'primevue/resources/themes/saga-blue/theme.css',
         'primevue/resources/primevue.css',

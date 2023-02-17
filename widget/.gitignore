@@ -1,4 +1,5 @@
 node_modules
+chatfaq-widget-*
 *.log*
 .nuxt
 .nitro

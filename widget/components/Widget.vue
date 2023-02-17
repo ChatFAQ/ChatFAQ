@@ -4,6 +4,9 @@
 </template>
 
 <script setup>
+import FSMSelector from "~/components/FSMSelector.vue";
+import Chat from "~/components/Chat.vue";
+
 const selectedFSMDef = useState("selectedFSMDef")
 </script>
 
