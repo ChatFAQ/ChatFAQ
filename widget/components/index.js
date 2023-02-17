@@ -1,1 +1,1 @@
-export { default as WidgetLoader } from './WidgetLoader.vue';
+export { loadWidget as loadWidget } from './_index';
