@@ -1,0 +1,4 @@
+./back
+./sdk
+
+-r doc/base.txt
