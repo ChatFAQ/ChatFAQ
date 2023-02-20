@@ -9,6 +9,7 @@ import postcss from "rollup-plugin-postcss";
 import { terser } from "rollup-plugin-terser";
 import minimist from "minimist";
 import scss from "rollup-plugin-scss";
+import babel from '@rollup/plugin-babel';
 
 // Get browserslist config and remove ie from es build targets
 const esbrowserslist = fs.readFileSync("./.browserslistrc")
@@ -17,8 +18,8 @@ const esbrowserslist = fs.readFileSync("./.browserslistrc")
     .filter((entry) => entry && entry.substring(0, 2) !== "ie");
 
 // Extract babel preset-env config, to combine with esbrowserslist
-// const babelPresetEnvConfig = require('../babel.config')
-//   .presets.filter((entry) => entry[0] === '@babel/preset-env')[0][1];
+const babelPresetEnvConfig = require('./babel.config')
+  .presets.filter((entry) => entry[0] === '@babel/preset-env')[0][1];
 
 const argv = minimist(process.argv.slice(2));
 
@@ -37,6 +38,10 @@ const baseConfig = {
                     {
                         find: "~",
                         replacement: `${path.resolve(projectRoot)}`,
+                    },
+                    {
+                        find: "#build",
+                        replacement: `.nuxt`,
                     },
                 ],
             }),
@@ -74,11 +79,11 @@ const baseConfig = {
             }),
             commonjs(),
         ],
-        // babel: {
-        //   exclude: 'node_modules/**',
-        //   extensions: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
-        //   babelHelpers: 'bundled',
-        // },
+        babel: {
+          exclude: 'node_modules/**',
+          extensions: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
+          babelHelpers: 'bundled',
+        },
     },
 };
 
@@ -115,18 +120,18 @@ if (!argv.format || argv.format === "es") {
             ...baseConfig.plugins.preVue,
             vue(baseConfig.plugins.vue),
             ...baseConfig.plugins.postVue,
-            // babel({
-            //   ...baseConfig.plugins.babel,
-            //   presets: [
-            //     [
-            //       '@babel/preset-env',
-            //       {
-            //         ...babelPresetEnvConfig,
-            //         targets: esbrowserslist,
-            //       },
-            //     ],
-            //   ],
-            // }),
+            babel({
+              ...baseConfig.plugins.babel,
+              presets: [
+                [
+                  '@babel/preset-env',
+                  {
+                    ...babelPresetEnvConfig,
+                    targets: esbrowserslist,
+                  },
+                ],
+              ],
+            }),
         ],
     };
     buildFormats.push(esConfig);
@@ -149,7 +154,7 @@ if (!argv.format || argv.format === "cjs") {
             ...baseConfig.plugins.preVue,
             vue(baseConfig.plugins.vue),
             ...baseConfig.plugins.postVue,
-            // babel(baseConfig.plugins.babel),
+            babel(baseConfig.plugins.babel),
         ],
     };
     buildFormats.push(umdConfig);
@@ -172,7 +177,7 @@ if (!argv.format || argv.format === "iife") {
             ...baseConfig.plugins.preVue,
             vue(baseConfig.plugins.vue),
             ...baseConfig.plugins.postVue,
-            // babel(baseConfig.plugins.babel),
+            babel(baseConfig.plugins.babel),
             terser({
                 output: {
                     ecma: 5,

@@ -13,6 +13,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
+import { useState } from "nuxt/app";
 const runtimeConfig = useRuntimeConfig();
 const selectedFSMDef = useState("selectedFSMDef");
 const messages = ref([]);

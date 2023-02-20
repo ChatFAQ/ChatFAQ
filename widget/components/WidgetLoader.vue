@@ -8,8 +8,8 @@
 
 <script setup>
 import Widget from "~/components/Widget.vue";
+import { ref } from 'vue';
 
-const selectedFSMDef = useState("selectedFSMDef")
 const opened = ref()
 </script>
 
