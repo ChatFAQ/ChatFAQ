@@ -14,9 +14,10 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useState } from "nuxt/app";
+import { useFSMDef } from '~/store/FSMDef'
 const runtimeConfig = useRuntimeConfig();
-const selectedFSMDef = useState("selectedFSMDef");
+const FSMDefStore = useFSMDef();
+
 const messages = ref([]);
 const promptValue = ref("");
 const conversationID = Math.floor(Math.random() * 1000000000);
@@ -31,7 +32,7 @@ const ws = new WebSocket(
     + "/back/ws/broker/"
     + conversationID
     + "/"
-    + selectedFSMDef.value.id
+    + FSMDefStore.selectedFSMDef.id
     + "/",
 );
 ws.onmessage = function(e) {

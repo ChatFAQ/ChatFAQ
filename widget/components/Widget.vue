@@ -1,14 +1,14 @@
 <template>
-    <FSMSelector v-if="!selectedFSMDef"></FSMSelector>
+    <FSMSelector v-if="!FSMDefStore.selectedFSMDef.id"></FSMSelector>
     <Chat v-else/>
 </template>
 
 <script setup>
 import FSMSelector from "~/components/FSMSelector.vue";
 import Chat from "~/components/Chat.vue";
-import { useState } from "nuxt/app";
+import { useFSMDef } from '~/store/FSMDef'
+const FSMDefStore = useFSMDef();
 
-const selectedFSMDef = useState("selectedFSMDef")
 </script>
 
 <style scoped>
