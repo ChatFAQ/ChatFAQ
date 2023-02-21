@@ -6,20 +6,26 @@
 </template>
 
 <script setup>
-    import { useFetch } from "nuxt/app";
-    import { useFSMDef } from '~/store/FSMDef'
-    const FSMDefStore = useFSMDef();
+import {useFSMDef} from '~/store/FSMDef'
+import { ref } from 'vue';
 
-    const runtimeConfig = useRuntimeConfig()
-    const { data: fsmDefs } = await useFetch(runtimeConfig.chatfaqAPI + "/back/api/fsm/definitions/?fields=id,name")
+const FSMDefStore = useFSMDef();
+
+const fsmDefs = ref()
+
+const runtimeConfig = useRuntimeConfig()
+
+let response = await fetch(runtimeConfig.chatfaqAPI + "/back/api/fsm/definitions/?fields=id,name");
+fsmDefs.value = await response.json();
 
 </script>
 
 <style scoped lang="scss">
-    .selector-wrapper{
-        text-align: center;
-        * {
-            margin: 20px;
-        }
+.selector-wrapper {
+    text-align: center;
+
+    * {
+        margin: 20px;
     }
+}
 </style>
