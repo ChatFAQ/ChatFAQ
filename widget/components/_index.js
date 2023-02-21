@@ -13,7 +13,6 @@ import {createApp} from 'vue'
 function loadWidget(selector) {
     const el = document.querySelector(selector);
     createApp(WidgetLoader, {...el.dataset})
-        .use(createPinia())
         .use(PrimeVue, {ripple: true})
         .use(ToastService)
         .use(createPinia())
