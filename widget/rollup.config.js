@@ -5,12 +5,10 @@ import alias from "@rollup/plugin-alias";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
-import postcss from "rollup-plugin-postcss";
 import { terser } from "rollup-plugin-terser";
 import minimist from "minimist";
-import scss from "rollup-plugin-scss";
 import babel from '@rollup/plugin-babel';
-
+import styles from "rollup-plugin-styles";
 // Get browserslist config and remove ie from es build targets
 const esbrowserslist = fs.readFileSync("./.browserslistrc")
     .toString()
@@ -18,8 +16,8 @@ const esbrowserslist = fs.readFileSync("./.browserslistrc")
     .filter((entry) => entry && entry.substring(0, 2) !== "ie");
 
 // Extract babel preset-env config, to combine with esbrowserslist
-const babelPresetEnvConfig = require('./babel.config')
-  .presets.filter((entry) => entry[0] === '@babel/preset-env')[0][1];
+const babelPresetEnvConfig = require("./babel.config")
+    .presets.filter((entry) => entry[0] === "@babel/preset-env")[0][1];
 
 const argv = minimist(process.argv.slice(2));
 
@@ -47,12 +45,13 @@ const baseConfig = {
             }),
         ],
         replace: {
+            preventAssignment: true,
             "process.env.NODE_ENV": JSON.stringify("production"),
             "process.server": false,
             "process.client": true,
             "process.dev": false,
         },
-        scss: scss(),
+        // scss: scss(),
         vue: {
             css: true, // Dynamically inject css as a <style> tag
             compileTemplate: true, // Explicitly convert template to render function
@@ -77,15 +76,16 @@ const baseConfig = {
             // Process all `<style>` blocks except `<style module>`.
             PostCSS({ include: /(?<!&module=.*)\.css$/ }),
             */
-            postcss({
-                minimize: true,
-            }),
+            // postcss({
+            //     minimize: true,
+            // }),
+            styles(),
             commonjs(),
         ],
         babel: {
-          exclude: 'node_modules/**',
-          extensions: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
-          babelHelpers: 'bundled',
+            exclude: "node_modules/**",
+            extensions: [".js", ".jsx", ".ts", ".tsx", ".vue"],
+            babelHelpers: "bundled",
         },
     },
 };
@@ -126,16 +126,16 @@ if (!argv.format || argv.format === "es") {
             vue(baseConfig.plugins.vue),
             ...baseConfig.plugins.postVue,
             babel({
-              ...baseConfig.plugins.babel,
-              presets: [
-                [
-                  '@babel/preset-env',
-                  {
-                    ...babelPresetEnvConfig,
-                    targets: esbrowserslist,
-                  },
+                ...baseConfig.plugins.babel,
+                presets: [
+                    [
+                        "@babel/preset-env",
+                        {
+                            ...babelPresetEnvConfig,
+                            targets: esbrowserslist,
+                        },
+                    ],
                 ],
-              ],
             }),
         ],
     };

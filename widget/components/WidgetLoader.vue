@@ -2,7 +2,7 @@
     <Suspense>
         <div v-if="opened" class="widget-wrapper">
             <div class="widget-wrapper-header" @click="opened = false"></div>
-            <Widget class="widget"/>
+            <Widget class="widget" />
         </div>
         <div v-else class="widget-open-button" @click="opened = true"></div>
     </Suspense>
@@ -10,19 +10,29 @@
 
 <script setup>
 import Widget from "~/components/Widget.vue";
-import { useGlobalStore } from '~/store'
-import { ref, defineProps } from 'vue';
-const opened = ref()
-const store = useGlobalStore()
+import { useGlobalStore } from "~/store";
+import { ref, defineProps } from "vue";
 
-const props = defineProps(['chatfaqWs', 'chatfaqApi'])
+const opened = ref();
+const store = useGlobalStore();
 
-store.chatfaqWS = props.chatfaqWs
-store.chatfaqAPI = props.chatfaqApi
+const props = defineProps(["chatfaqWs", "chatfaqApi"]);
+
+store.chatfaqWS = props.chatfaqWs;
+store.chatfaqAPI = props.chatfaqApi;
 
 </script>
 
+<style lang="scss">
+@import 'assets/styles/global.scss';
+@import 'primevue/resources/themes/saga-blue/theme.css';
+@import 'primevue/resources/primevue.css';
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+</style>
+
 <style lang="scss" scoped>
+
 .widget-wrapper {
     border: solid 1px;
     border-radius: 5px;
