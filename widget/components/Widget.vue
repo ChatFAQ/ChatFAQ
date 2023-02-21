@@ -1,13 +1,13 @@
 <template>
-    <FSMSelector v-if="!FSMDefStore.selectedFSMDef.id"></FSMSelector>
+    <FSMSelector v-if="!store.selectedFSMDef.id"></FSMSelector>
     <Chat v-else/>
 </template>
 
 <script setup>
 import FSMSelector from "~/components/FSMSelector.vue";
 import Chat from "~/components/Chat.vue";
-import { useFSMDef } from '~/store/FSMDef'
-const FSMDefStore = useFSMDef();
+import { useGlobalStore } from '~/store'
+const store = useGlobalStore();
 
 </script>
 

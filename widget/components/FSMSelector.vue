@@ -1,21 +1,19 @@
 <template>
     <div class="selector-wrapper">
         <div>Select Your FSM</div>
-        <SelectButton v-model="FSMDefStore.selectedFSMDef" :options="fsmDefs" optionLabel="name"/>
+        <SelectButton v-model="store.selectedFSMDef" :options="fsmDefs" optionLabel="name"/>
     </div>
 </template>
 
 <script setup>
-import {useFSMDef} from '~/store/FSMDef'
+import {useGlobalStore} from '~/store'
 import { ref } from 'vue';
 
-const FSMDefStore = useFSMDef();
+const store = useGlobalStore();
 
 const fsmDefs = ref()
 
-const runtimeConfig = useRuntimeConfig()
-
-let response = await fetch(runtimeConfig.chatfaqAPI + "/back/api/fsm/definitions/?fields=id,name");
+let response = await fetch(store.chatfaqAPI + "/back/api/fsm/definitions/?fields=id,name");
 fsmDefs.value = await response.json();
 
 </script>

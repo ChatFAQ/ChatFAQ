@@ -1,16 +1,25 @@
 <template>
-    <div v-if="opened" class="widget-wrapper">
-        <div class="widget-wrapper-header" @click="opened = false"></div>
-        <Widget class="widget"/>
-    </div>
-    <div v-else class="widget-open-button" @click="opened = true"></div>
+    <Suspense>
+        <div v-if="opened" class="widget-wrapper">
+            <div class="widget-wrapper-header" @click="opened = false"></div>
+            <Widget class="widget"/>
+        </div>
+        <div v-else class="widget-open-button" @click="opened = true"></div>
+    </Suspense>
 </template>
 
 <script setup>
 import Widget from "~/components/Widget.vue";
-import { ref } from 'vue';
-
+import { useGlobalStore } from '~/store'
+import { ref, defineProps } from 'vue';
 const opened = ref()
+const store = useGlobalStore()
+
+const props = defineProps(['chatfaqWs', 'chatfaqApi'])
+
+store.chatfaqWS = props.chatfaqWs
+store.chatfaqAPI = props.chatfaqApi
+
 </script>
 
 <style lang="scss" scoped>

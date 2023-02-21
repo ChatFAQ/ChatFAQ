@@ -13,26 +13,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useFSMDef } from '~/store/FSMDef'
-const runtimeConfig = useRuntimeConfig();
-const FSMDefStore = useFSMDef();
+import { ref, computed } from 'vue';
+import { useGlobalStore } from '~/store'
+const store = useGlobalStore();
 
 const messages = ref([]);
 const promptValue = ref("");
 const conversationID = Math.floor(Math.random() * 1000000000);
 
-onMounted(() => {
-    // console.log(chatInput.value)
-    // chatInput.value.focus()
-});
-
 const ws = new WebSocket(
-    runtimeConfig.chatfaqWS
+    store.chatfaqWS
     + "/back/ws/broker/"
     + conversationID
     + "/"
-    + FSMDefStore.selectedFSMDef.id
+    + store.selectedFSMDef.id
     + "/",
 );
 ws.onmessage = function(e) {
