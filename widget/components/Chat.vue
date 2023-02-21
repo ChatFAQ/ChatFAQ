@@ -90,16 +90,16 @@ function sendMessage() {
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
     width: 100%;
-    box-shadow: none;
-    border: none;
-    border-top: 1px solid;
-    border-color: $main-color;
+    box-shadow: none !important;
+    border: none !important;
+    border-top: 1px solid !important;
+    border-color: $main-color !important;
 }
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
-    box-shadow: none;
-    border-color: $main-color;
-    background-color: $main-color;
+    box-shadow: none !important;
+    border-color: $main-color !important;
+    background-color: $main-color !important;
 }
 
 .message {
