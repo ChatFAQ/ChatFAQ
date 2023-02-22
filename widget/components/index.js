@@ -10,8 +10,8 @@ import TextArea from "primevue/textarea";
 
 import { createApp } from "vue";
 
-function buildApp(el) {
-    createApp(WidgetLoader, { ...el.dataset })
+function _buildApp(props) {
+    return createApp(WidgetLoader, { ...props })
         .use(PrimeVue, { ripple: true })
         .use(ToastService)
         .use(createPinia())
@@ -20,12 +20,19 @@ function buildApp(el) {
         .component("Toast", Toast)
         .component("SelectButton", SelectButton)
         .component("TextArea", TextArea)
-        .mount(el);
 }
 
-function loadWidget(selector) {
-    const el = document.querySelector(selector);
-    buildApp(el)
+class ChatfaqWidget {
+    constructor(element) {
+        if (typeof element == "string")
+            element = document.querySelector(element)
+        this.element = element;
+        this.app = _buildApp(element.dataset);
+    }
+
+    mount() {
+        this.app.mount(this.element)
+    }
 }
 
 // couldn't implement this: https://rimdev.io/vue-3-custom-elements cause shadow dom problems (Rollup does not include 'styles' inside the .ce.vue element)
@@ -33,8 +40,9 @@ function loadWidget(selector) {
 // for the moment we just implemented: https://github.com/vuejs/vue-web-component-wrapper/issues/93#issuecomment-909136116
 class ChatfaqWidgetCustomElement extends HTMLElement {
     connectedCallback() {
-        buildApp(this)
+        const app = _buildApp(this.dataset);
+        app.mount(this)
     }
 }
 
-export { ChatfaqWidgetCustomElement, loadWidget };
+export { ChatfaqWidgetCustomElement, ChatfaqWidget };
