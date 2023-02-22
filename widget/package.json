@@ -1,16 +1,12 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "private": true,
     "scripts": {
-        "main": "dist/widget-loader.ssr.js",
+        "main": "dist/widget-loader.esm.js",
         "browser": "dist/widget-loader.esm.js",
         "module": "dist/widget-loader.esm.js",
         "unpkg": "dist/widget-loader.min.js",
-        "files": [
-            "dist/*",
-            "components/**/*.vue"
-        ],
         "build": "nuxt build",
         "dev": "nuxt dev",
         "generate": "nuxt generate",
