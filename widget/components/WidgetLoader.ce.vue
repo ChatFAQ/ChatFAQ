@@ -1,10 +1,12 @@
 <template>
     <Suspense>
-        <div v-if="opened" class="widget-wrapper">
-            <div class="widget-wrapper-header" @click="opened = false"></div>
-            <Widget class="widget" />
+        <div>
+            <div v-if="opened" class="widget-wrapper">
+                <div class="widget-wrapper-header" @click="opened = false"></div>
+                <Widget class="widget" />
+            </div>
+            <div v-else class="widget-open-button" @click="opened = true"></div>
         </div>
-        <div v-else class="widget-open-button" @click="opened = true"></div>
     </Suspense>
 </template>
 

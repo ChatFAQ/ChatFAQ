@@ -55,6 +55,10 @@ const baseConfig = {
         vue: {
             css: true, // Dynamically inject css as a <style> tag
             compileTemplate: true, // Explicitly convert template to render function
+            template: {
+                isProduction: true,
+            },
+            isWebComponent: true // Why is this not injecting the styles inside the component???
         },
         postVue: [
             resolve({

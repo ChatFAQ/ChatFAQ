@@ -1,1 +1,1 @@
-export { loadWidget as loadWidget } from './_index';
+export { loadWidget as loadWidget, ChatfaqWidgetCustomElement as ChatfaqWidgetCustomElement } from './_index';

@@ -14,7 +14,7 @@ export default plugin;
 
 /*
 // Import vue component
-import WidgetLoader from './WidgetLoader.vue';
+import WidgetLoader from './WidgetLoader.ce.vue';
 
 // Declare install function executed by Vue.use()
 export function install(Vue) {
