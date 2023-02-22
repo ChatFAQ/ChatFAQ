@@ -13,8 +13,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useGlobalStore } from '~/store'
+import { ref, computed } from "vue";
+import { useGlobalStore } from "~/store";
+
 const store = useGlobalStore();
 
 const messages = ref([]);
@@ -86,6 +87,10 @@ function sendMessage() {
     height: 100%;
     width: 100%;
     overflow: scroll;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
