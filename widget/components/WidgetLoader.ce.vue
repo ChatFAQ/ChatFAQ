@@ -34,11 +34,12 @@ store.chatfaqAPI = props.chatfaqApi;
 </style>
 
 <style lang="scss" scoped>
+@import "../assets/styles/variables";
 
 .widget-wrapper {
     border: solid 1px;
     border-radius: 5px;
-    border-color: #FF8E93;
+    border-color: $chatfaq-main-color;
     width: 300px;
     height: 450px;
     position: absolute;
@@ -52,7 +53,7 @@ store.chatfaqAPI = props.chatfaqApi;
 
 .widget-wrapper-header {
     cursor: pointer;
-    background-color: #FF8E93;
+    background-color: $chatfaq-main-color;
     height: 50px;
 }
 
@@ -63,7 +64,7 @@ store.chatfaqAPI = props.chatfaqApi;
 
 .widget-open-button {
     cursor: pointer;
-    background-color: #FF8E93;
+    background-color: $chatfaq-main-color;
     width: 50px;
     height: 50px;
     border-radius: 50px;
