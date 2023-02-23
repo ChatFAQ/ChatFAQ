@@ -41,26 +41,55 @@ Start the development server on http://localhost:3000
 
 You are all set! Now you can navigate to http://localhost:3000 and test the widget!
 
-Production
----------------------
 
-Build the application for production:
-
-.. code-block:: console
-
-    npm run build
-
-Locally preview production build:
-
-.. code-block:: console
-
-    npm run preview
-
-Integration on external sites
+Installation as an external dependency
 -----------------------------
 
-To integrate the chatbot interface into an external webpage, simply include the following script tag:
+Node server
+
+Via NPM
+
+.. code-block:: console
+
+    npm i chatfaq-widget
+
+Or using UNPKG
 
 .. code-block:: html
 
-    <script src="http://localhost:3000/js/IframeLoader.js"></script>
+    <script src="unpkg.com/chatfaq-widget/dist/widget-loader.min.esm" ></script>
+
+
+JS Library
+
+.. code-block:: html
+
+    <div id="chatfaq-widget" data-chatfaq-api="http://127.0.0.1:8008" data-chatfaq-ws="ws://127.0.0.1:8008"></div>
+
+    <script>
+
+        import { ChatfaqWidget } from "chatfaq-widget/dist/widget-loader.esm";
+
+        const config = {
+            element: "#chatfaq-widget",
+            chatfaqApi: "http://127.0.0.1:8000",
+            chatfaqWs: "ws://127.0.0.1:8000",
+        };
+
+        const chatfaqWidget = new ChatfaqWidget(config);
+
+    </script>
+
+Web-Component
+
+.. code-block:: html
+
+    import { ChatfaqWidgetCustomElement } from "chatfaq-widget/dist/widget-loader.esm";
+
+    <script>
+
+        customElements.define("chatfaq-widget", ChatfaqWidgetCustomElement)
+
+    </script>
+
+    <chatfaq-widget data-chatfaq-api="http://127.0.0.1:8000" data-chatfaq-ws="ws://127.0.0.1:8000"></chatfaq-widget>
