@@ -23,11 +23,18 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor(element) {
+    constructor({ element, chatfaqApi, chatfaqWs }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
-        this.app = _buildApp(element.dataset);
+
+        const props = { ...element.dataset }
+        if (chatfaqApi)
+            props['chatfaqApi'] = chatfaqApi;
+        if (chatfaqWs)
+            props['chatfaqWs'] = chatfaqWs
+
+        this.app = _buildApp(props);
     }
 
     mount() {
