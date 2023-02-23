@@ -1,3 +1,8 @@
-$text-color: #495057;
-$font-family: 'Courier New', monospace;
-$main-color: #FF8E93;
+:root {
+    --chatfaq-text-color: #495057;
+    --chatfaq-font-family: 'Courier New', monospace;
+    --chatfaq-main-color: #FF8E93;
+}
+$chatfaq-text-color: var(--chatfaq-text-color);
+$chatfaq-font-family: var(--chatfaq-font-family);
+$chatfaq-main-color: var(--chatfaq-main-color);

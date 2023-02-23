@@ -1,18 +1,20 @@
 @import "variables";
 
-* {
-  color: $text-color;
-  font-family: $font-family;
-}
+.chatfaq-widget {
+    * {
+      color: $chatfaq-text-color;
+      font-family: $chatfaq-font-family;
+    }
 
-.pi {
-  color: white !important;
-}
+    .pi {
+      color: white !important;
+    }
 
-.p-button {
-  border-color: $main-color !important;
-}
+    .p-button {
+      border-color: $chatfaq-main-color !important;
+    }
 
-.p-button:focus, .p-button:hover {
-  box-shadow: none !important;
+    .p-button:focus, .p-button:hover {
+      box-shadow: none !important;
+    }
 }

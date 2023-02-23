@@ -98,13 +98,13 @@ function sendMessage() {
     box-shadow: none !important;
     border: none !important;
     border-top: 1px solid !important;
-    border-color: $main-color !important;
+    border-color: $chatfaq-main-color !important;
 }
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
     box-shadow: none !important;
-    border-color: $main-color !important;
-    background-color: $main-color !important;
+    border-color: $chatfaq-main-color !important;
+    background-color: $chatfaq-main-color !important;
 }
 
 .message {
@@ -115,7 +115,7 @@ function sendMessage() {
     border-radius: 5px;
 
     &.bot {
-        border-color: $main-color;
+        border-color: $chatfaq-main-color;
     }
 
     &.user {

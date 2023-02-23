@@ -1,6 +1,6 @@
 <template>
     <Suspense>
-        <div>
+        <div class="chatfaq-widget">
             <div v-if="opened" class="widget-wrapper">
                 <div class="widget-wrapper-header" @click="opened = false"></div>
                 <Widget class="widget" />
