@@ -5,7 +5,7 @@
                 <div class="widget-wrapper-header" @click="opened = false"></div>
                 <Widget class="widget" />
             </div>
-            <div v-else class="widget-open-button" @click="opened = true"></div>
+            <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'" /></div>
         </div>
     </Suspense>
 </template>
@@ -36,6 +36,8 @@ store.chatfaqAPI = props.chatfaqApi;
 <style lang="scss" scoped>
 @import "../assets/styles/variables";
 
+$widget-open-button-margin: 24px;
+
 .widget-wrapper {
     border: solid 1px;
     border-radius: 5px;
@@ -46,9 +48,9 @@ store.chatfaqAPI = props.chatfaqApi;
     display: flex;
     align-items: stretch;
     flex-flow: column;
-    bottom: 0px;
+    bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
     right: 0px;
-    margin: 25px;
+    margin: 16px;
 }
 
 .widget-wrapper-header {
@@ -64,14 +66,26 @@ store.chatfaqAPI = props.chatfaqApi;
 
 .widget-open-button {
     cursor: pointer;
-    background-color: $chatfaq-main-color;
-    width: 50px;
-    height: 50px;
-    border-radius: 50px;
+    background: $chatfaq-color-gradient-pink;
+    width: $chatfaq-bubble-button-size;
+    height: $chatfaq-bubble-button-size;
+    border-radius: $chatfaq-bubble-button-size;
     position: absolute;
     bottom: 0px;
     right: 0px;
-    margin: 25px;
+    margin: $widget-open-button-margin;
+    i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        &.open {
+            content: $chatfaq-bubble-button-open;
+        }
+        &.close {
+            content: $chatfaq-bubble-button-close;
+        }
+    }
 }
 </style>
 
