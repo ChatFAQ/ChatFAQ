@@ -1,3 +1,5 @@
+@import "fonts";
+
 :root {
      /* Colors */
 
@@ -47,6 +49,10 @@
 
     --chatfaq-bubble-button-open: url('~/assets/icons/bubble-button-open.svg');
     --chatfaq-bubble-button-close: url('~/assets/icons/bubble-button-close.svg');
+    --chatfaq-maximize: url('~/assets/icons/maximize.svg');
+    --chatfaq-minimize: url('~/assets/icons/maximize.svg');
+    --chatfaq-dot-menu: url('~/assets/icons/dot-menu.svg');
+    --chatfaq-logo: url('~/assets/icons/chatfaq-logo.svg');
 
      /* Sizes */
 
@@ -111,6 +117,10 @@ $chatfaq-font-button: var(--chatfaq-font-button);
 
 $chatfaq-bubble-button-open: var(--chatfaq-bubble-button-open);
 $chatfaq-bubble-button-close: var(--chatfaq-bubble-button-close);
+$chatfaq-maximize: var(--chatfaq-maximize);
+$chatfaq-minimize: var(--chatfaq-minimize);
+$chatfaq-dot-menu: var(--chatfaq-dot-menu);
+$chatfaq-logo: var(--chatfaq-logo);
 
  /* Sizes */
 

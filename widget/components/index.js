@@ -23,7 +23,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs }) {
+    constructor({ element, chatfaqApi, chatfaqWs, title, subtitle }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -33,6 +33,10 @@ class ChatfaqWidget {
             props['chatfaqApi'] = chatfaqApi;
         if (chatfaqWs)
             props['chatfaqWs'] = chatfaqWs
+        if (title)
+            props['title'] = title;
+        if (subtitle)
+            props['subtitle'] = subtitle
 
         this.app = _buildApp(props);
     }
