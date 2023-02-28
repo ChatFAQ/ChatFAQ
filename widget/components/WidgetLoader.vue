@@ -2,30 +2,18 @@
     <Suspense>
         <div class="chatfaq-widget">
             <div v-if="opened" class="widget-wrapper">
-                <div class="widget-wrapper-header">
-                    <i class="logo" />
-                    <div class="header-text">
-                        <div class="title">
-                            {{ title }}
-                        </div>
-                        <div class="subtitle">
-                            {{ subtitle }}
-                        </div>
-                    </div>
-                    <i class="menu" />
-                    <i class="maximizer" />
-                </div>
-                <Widget class="widget" />
+                <Header/>
+                <Widget class="widget"/>
             </div>
-            <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'" /></div>
+            <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'"/></div>
         </div>
     </Suspense>
 </template>
 
 <script setup>
 import Widget from "~/components/Widget.vue";
-import { useGlobalStore } from "~/store";
-import { ref, defineProps } from "vue";
+import {useGlobalStore} from "~/store";
+import {ref, defineProps} from "vue";
 
 const opened = ref();
 const store = useGlobalStore();
@@ -34,6 +22,8 @@ const props = defineProps(["chatfaqWs", "chatfaqApi", "title", "subtitle"]);
 
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
+store.title = props.title;
+store.subtitle = props.subtitle;
 
 </script>
 
@@ -65,44 +55,6 @@ $widget-open-button-margin: 24px;
     margin: 16px;
 }
 
-.widget-wrapper-header {
-    display: flex;
-    background: $chatfaq-color-gradient-purple;
-    color: $chatfaq-color-neutral-white !important;
-    > * {
-        margin-top: 30px;
-        margin-bottom: 30px;
-
-        &.maximizer {
-            cursor: pointer;
-            content: $chatfaq-maximize;
-            margin-left: 8px;
-            margin-right: 24px;
-            &.maximized {
-                content: $chatfaq-minimize;
-            }
-        }
-        &.menu {
-            cursor: pointer;
-            margin-left: auto;
-            content: $chatfaq-dot-menu;
-        }
-        &.logo {
-            margin-left: 24px;
-            margin-right: 16px;
-            content: $chatfaq-logo;
-        }
-        &.header-text {
-            .title {
-                font: $chatfaq-font-body-m-bold;
-            }
-            .subtitle {
-                font: $chatfaq-font-body-sm;
-            }
-        }
-    }
-}
-
 .widget-wrapper > .widget {
     position: relative;
     height: 100%;
@@ -118,14 +70,17 @@ $widget-open-button-margin: 24px;
     bottom: 0px;
     right: 0px;
     margin: $widget-open-button-margin;
+
     i {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+
         &.open {
             content: $chatfaq-bubble-button-open;
         }
+
         &.close {
             content: $chatfaq-bubble-button-close;
         }
