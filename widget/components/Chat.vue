@@ -1,7 +1,17 @@
 <template>
     <div class="chat-wrapper">
         <div class="conversation-content">
-            <div v-for="data in flatStacks" class="message" :class="data.transmitter.type">
+            <div
+                v-for="data in flatStacks"
+                class="message"
+                :class=" {
+                    [data.transmitter.type]: true,
+                    'is-last-of-type': isLastOfType(data, flatStacks),
+                    'is-first-of-type': isFirstOfType(data, flatStacks),
+                    'is-first': !flatStacks.indexOf(data),
+                    'is-last': flatStacks.indexOf(data) === flatStacks.length -1
+                }
+            ">
                 {{ data.payload }}
             </div>
         </div>
@@ -65,17 +75,35 @@ function sendMessage() {
     ws.send(JSON.stringify(m));
     promptValue.value = "";
 }
+function isLastOfType(msg, flatStack) {
+    if (flatStack.indexOf(msg) === flatStack.length - 1)
+        return true
+    if (flatStack[flatStack.indexOf(msg) + 1].transmitter.type !== msg.transmitter.type)
+        return true
+    return false
+}
+function isFirstOfType(msg, flatStack) {
+    if (!flatStack.indexOf(msg))
+        return true
+    if (flatStack[flatStack.indexOf(msg) - 1].transmitter.type !== msg.transmitter.type)
+        return true
+    return false
+}
+
 </script>
 <style scoped lang="scss">
 @import "../assets/styles/variables";
 
 .chat-wrapper {
+    font: $chatfaq-font-body-s;
+    font-style: normal;
     position: absolute;
     height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background-color: $chatfaq-color-primary-200;
 }
 
 .input-chat-wrapper {
@@ -88,7 +116,8 @@ function sendMessage() {
     height: 100%;
     width: 100%;
     overflow: scroll;
-
+    display: flex;
+    flex-direction: column;
     &::-webkit-scrollbar {
         display: none;
     }
@@ -99,6 +128,7 @@ function sendMessage() {
     border: 0;
     outline: 0;
     margin-left: 24px;
+    background-color: $chatfaq-color-primary-200;
 }
 
 
@@ -108,6 +138,7 @@ function sendMessage() {
 
     &::placeholder {
         font-style: italic;
+        color: rgb(2, 12, 28);
     }
 }
 
@@ -121,17 +152,40 @@ function sendMessage() {
 .message {
     border: solid 1px;
     width: fit-content;
-    margin: 5px;
+    margin: 8px 5px 0px;
     padding: 5px;
-    border-radius: 5px;
+    border-radius: 20px;
+    padding: 7px 15px 9px 15px;
+    max-width: 90%;
+    word-wrap: break-word;
+
+    &.is-first-of-type {
+        margin-top: 16px;
+    }
+    &.is-first {
+        margin-top: 20px;
+    }
+    &.is-last {
+        margin-bottom: 20px;
+    }
 
     &.bot {
-        border-color: $chatfaq-main-color;
+        border-color: $chatfaq-color-primary-500;
+        color: $chatfaq-color-neutral-black;
+        margin-left: 24px;
+        &.is-last-of-type {
+            border-radius: 20px  20px  20px  0px;
+        }
     }
 
     &.user {
-        border-color: #8E93FF;
-        margin-left: auto;
+        background-color: $chatfaq-color-primary-500;
+        color: $chatfaq-color-neutral-white;
+        align-self: end;
+        margin-right: 24px;
+        &.is-last-of-type {
+            border-radius: 20px  20px  0px  20px;
+        }
     }
 }
 </style>
