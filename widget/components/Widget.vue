@@ -2,8 +2,8 @@
     <Suspense>
         <div class="chatfaq-widget">
             <div v-if="opened" class="widget-wrapper">
-                <Header/>
-                <Chat class="widget"/>
+                <Header class="header"/>
+                <Chat class="chat"/>
             </div>
             <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'"/></div>
         </div>
@@ -42,9 +42,6 @@ store.subtitle = props.subtitle;
 $widget-open-button-margin: 24px;
 
 .widget-wrapper {
-    border: solid 1px;
-    border-radius: 5px;
-    border-color: $chatfaq-main-color;
     width: 400px;
     height: 580px;
     position: absolute;
@@ -56,10 +53,18 @@ $widget-open-button-margin: 24px;
     margin: 16px;
 }
 
-.widget-wrapper > .widget {
+.widget-wrapper > .chat {
     position: relative;
     height: 100%;
+    border: 2px solid $chatfaq-color-primary-500;
+    border-radius: 0px 0px 10px 10px;
 }
+.widget-wrapper > .header {
+    border: 2px solid $chatfaq-color-primary-500;
+    border-radius: 10px 10px 0px 0px;
+}
+
+
 
 .widget-open-button {
     cursor: pointer;
