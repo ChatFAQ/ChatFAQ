@@ -38,7 +38,8 @@
     --chatfaq-font-body-xl: normal normal 400 24px/33px 'Open Sans';
     --chatfaq-font-body-m: normal normal 400 24px/33px 'Open Sans';
     --chatfaq-font-body-m-bold: normal normal 600 16px/22px 'Open Sans';
-    --chatfaq-font-body-sm: normal normal 400 14px/19px 'Open Sans';
+    --chatfaq-font-body-s: normal normal 400 14px/19px 'Open Sans';
+    --chatfaq-font-body-xs: normal normal 400 14px/19px 'Open Sans';
 
     --chatfaq-font-caption-md: italic normal 600 14px/19px 'Open Sans';
     --chatfaq-font-caption-sm: normal normal 400 12px/16px 'Open Sans';
@@ -53,6 +54,7 @@
     --chatfaq-minimize: url('~/assets/icons/maximize.svg');
     --chatfaq-dot-menu: url('~/assets/icons/dot-menu.svg');
     --chatfaq-logo: url('~/assets/icons/chatfaq-logo.svg');
+    --chatfaq-logo-long: url('~/assets/icons/chatfaq-logo-long.svg');
 
      /* Sizes */
 
@@ -106,7 +108,8 @@ $chatfaq-font-title-xs: var(--chatfaq-font-title-xs);
 $chatfaq-font-body-xl: var(--chatfaq-font-body-xl);
 $chatfaq-font-body-m: var(--chatfaq-font-body-m);
 $chatfaq-font-body-m-bold: var(--chatfaq-font-body-m-bold);
-$chatfaq-font-body-sm: var(--chatfaq-font-body-sm);
+$chatfaq-font-body-s: var(--chatfaq-font-body-s);
+$chatfaq-font-body-xs: var(--chatfaq-font-body-xs);
 
 $chatfaq-font-caption-md: var(--chatfaq-font-caption-md);
 $chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
@@ -121,6 +124,7 @@ $chatfaq-maximize: var(--chatfaq-maximize);
 $chatfaq-minimize: var(--chatfaq-minimize);
 $chatfaq-dot-menu: var(--chatfaq-dot-menu);
 $chatfaq-logo: var(--chatfaq-logo);
+$chatfaq-logo-long: var(--chatfaq-logo-long);
 
  /* Sizes */
 

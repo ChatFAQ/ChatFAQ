@@ -4,6 +4,7 @@
             <div v-if="opened" class="widget-wrapper">
                 <Header class="header"/>
                 <Chat class="chat"/>
+                <Footer class="footer"/>
             </div>
             <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'"/></div>
         </div>
@@ -56,12 +57,16 @@ $widget-open-button-margin: 24px;
 .widget-wrapper > .chat {
     position: relative;
     height: 100%;
-    border: 2px solid $chatfaq-color-primary-500;
-    border-radius: 0px 0px 10px 10px;
+    border-left: 2px solid $chatfaq-color-primary-500;
+    border-right: 2px solid $chatfaq-color-primary-500;
 }
 .widget-wrapper > .header {
     border: 2px solid $chatfaq-color-primary-500;
     border-radius: 10px 10px 0px 0px;
+}
+.widget-wrapper > .footer {
+    border: 2px solid $chatfaq-color-primary-500;
+    border-radius: 0px 0px 10px 10px;
 }
 
 

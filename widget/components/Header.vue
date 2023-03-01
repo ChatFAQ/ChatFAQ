@@ -58,7 +58,7 @@ const store = useGlobalStore();
             }
 
             .subtitle {
-                font: $chatfaq-font-body-sm;
+                font: $chatfaq-font-body-s;
             }
         }
     }
