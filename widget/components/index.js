@@ -1,4 +1,4 @@
-import WidgetLoader from "./WidgetLoader.ce.vue";
+import Widget from "./Widget.vue";
 import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
 import Button from "primevue/button";
@@ -11,7 +11,7 @@ import TextArea from "primevue/textarea";
 import { createApp } from "vue";
 
 function _buildApp(props) {
-    return createApp(WidgetLoader, { ...props })
+    return createApp(Widget, { ...props })
         .use(PrimeVue, { ripple: true })
         .use(ToastService)
         .use(createPinia())

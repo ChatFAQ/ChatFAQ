@@ -14,13 +14,13 @@ export default plugin;
 
 /*
 // Import vue component
-import WidgetLoader from './WidgetLoader.ce.vue';
+import Widget from './Widget.ce.vue';
 
 // Declare install function executed by Vue.use()
 export function install(Vue) {
     if (install.installed) return;
     install.installed = true;
-    Vue.component('WidgetLoader', WidgetLoader);
+    Vue.component('Widget', Widget);
 }
 
 // Create module definition for Vue.use()
@@ -40,5 +40,5 @@ if (GlobalVue) {
 }
 
 // To allow use as module (npm/webpack/etc.) export component
-export default WidgetLoader;
+export default Widget;
 */

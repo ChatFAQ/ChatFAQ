@@ -1,5 +1,5 @@
 <template>
-    <WidgetLoader :chatfaqWs="runtimeConfig.chatfaqWS" :chatfaqApi="runtimeConfig.chatfaqAPI" :fsmDef="fsmDef" :title="title" :subtitle="subtitle"/>
+    <Widget :chatfaqWs="runtimeConfig.chatfaqWS" :chatfaqApi="runtimeConfig.chatfaqAPI" :fsmDef="fsmDef" :title="title" :subtitle="subtitle"/>
 </template>
 <script setup>
 
