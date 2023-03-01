@@ -6,8 +6,8 @@
             </div>
         </div>
         <div class="input-chat-wrapper">
-            <InputText v-model="promptValue" class="chat-prompt" ref="chatInput" @keyup.enter="sendMessage"/>
-            <Button class="chat-send-button" @click="sendMessage"><i class="pi pi-send"></i></Button>
+            <input placeholder="Write a question here..." v-model="promptValue" class="chat-prompt" ref="chatInput" @keyup.enter="sendMessage"/>
+            <i class="chat-send-button" @click="sendMessage"></i>
         </div>
     </div>
 </template>
@@ -81,6 +81,7 @@ function sendMessage() {
 .input-chat-wrapper {
     display: flex;
     width: 100%;
+    border-top: 1px solid $chatfaq-color-neutral-black !important;
 }
 
 .conversation-content {
@@ -95,17 +96,27 @@ function sendMessage() {
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
     width: 100%;
-    box-shadow: none !important;
-    border: none !important;
-    border-top: 1px solid !important;
-    border-color: $chatfaq-main-color !important;
+    border: 0;
+    outline: 0;
+    margin-left: 24px;
+}
+
+
+.chat-prompt {
+    font: $chatfaq-font-caption-md;
+    font-style: normal;
+
+    &::placeholder {
+        font-style: italic;
+    }
 }
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
-    box-shadow: none !important;
-    border-color: $chatfaq-main-color !important;
-    background-color: $chatfaq-main-color !important;
+    content: $chatfaq-send-icon;
+    margin: 22px 26px 22px 20px;
+    cursor: pointer;
 }
+
 
 .message {
     border: solid 1px;

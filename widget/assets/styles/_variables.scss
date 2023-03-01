@@ -53,8 +53,9 @@
     --chatfaq-maximize: url('~/assets/icons/maximize.svg');
     --chatfaq-minimize: url('~/assets/icons/maximize.svg');
     --chatfaq-dot-menu: url('~/assets/icons/dot-menu.svg');
-    --chatfaq-logo: url('~/assets/icons/chatfaq-logo.svg');
-    --chatfaq-logo-long: url('~/assets/icons/chatfaq-logo-long.svg');
+    --chatfaq-logo: url('~/assets/icons/logo.svg');
+    --chatfaq-logo-long: url('~/assets/icons/logo-long.svg');
+    --chatfaq-send-icon: url('~/assets/icons/send-icon.svg');
 
      /* Sizes */
 
@@ -125,6 +126,7 @@ $chatfaq-minimize: var(--chatfaq-minimize);
 $chatfaq-dot-menu: var(--chatfaq-dot-menu);
 $chatfaq-logo: var(--chatfaq-logo);
 $chatfaq-logo-long: var(--chatfaq-logo-long);
+$chatfaq-send-icon: var(--chatfaq-send-icon);
 
  /* Sizes */
 
