@@ -1,5 +1,5 @@
 <template>
-    <div class="chat-wrapper">
+    <div class="chat-wrapper"  :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content">
             <div
                 v-for="data in flatStacks"
@@ -9,14 +9,22 @@
                     'is-last-of-type': isLastOfType(data, flatStacks),
                     'is-first-of-type': isFirstOfType(data, flatStacks),
                     'is-first': !flatStacks.indexOf(data),
-                    'is-last': flatStacks.indexOf(data) === flatStacks.length -1
+                    'is-last': flatStacks.indexOf(data) === flatStacks.length -1,
+                    'dark-mode': store.darkMode
                 }
             ">
                 {{ data.payload }}
             </div>
         </div>
-        <div class="input-chat-wrapper">
-            <input placeholder="Write a question here..." v-model="promptValue" class="chat-prompt" ref="chatInput" @keyup.enter="sendMessage"/>
+        <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
+            <input
+                placeholder="Write a question here..."
+                v-model="promptValue"
+                class="chat-prompt"
+                :class="{ 'dark-mode': store.darkMode }"
+                ref="chatInput"
+                @keyup.enter="sendMessage"
+            />
             <i class="chat-send-button" @click="sendMessage"></i>
         </div>
     </div>
@@ -104,12 +112,19 @@ function isFirstOfType(msg, flatStack) {
     flex-direction: column;
     overflow: hidden;
     background-color: $chatfaq-color-primary-200;
+    &.dark-mode  {
+        background-color: $chatfaq-color-neutral-black;
+    }
 }
 
 .input-chat-wrapper {
     display: flex;
     width: 100%;
     border-top: 1px solid $chatfaq-color-neutral-black !important;
+
+    &.dark-mode  {
+        border-top: 1px solid $chatfaq-color-secondary-500 !important;
+    }
 }
 
 .conversation-content {
@@ -140,6 +155,14 @@ function isFirstOfType(msg, flatStack) {
         font-style: italic;
         color: rgb(2, 12, 28);
     }
+
+    &.dark-mode  {
+        background-color: $chatfaq-color-neutral-black;
+        color: $chatfaq-color-primary-200;
+        &::placeholder {
+            color: $chatfaq-color-neutral-white;
+        }
+    }
 }
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
@@ -155,7 +178,7 @@ function isFirstOfType(msg, flatStack) {
     margin: 8px 5px 0px;
     padding: 5px;
     border-radius: 20px;
-    padding: 7px 15px 9px 15px;
+    padding: 9px 15px 9px 15px;
     max-width: 90%;
     word-wrap: break-word;
 
@@ -176,9 +199,15 @@ function isFirstOfType(msg, flatStack) {
         &.is-last-of-type {
             border-radius: 20px  20px  20px  0px;
         }
+        &.dark-mode  {
+            background-color: $chatfaq-color-neutral-black;
+            border-color: $chatfaq-color-secondary-500;
+            color: $chatfaq-color-neutral-white;
+        }
     }
 
     &.user {
+        border: none;
         background-color: $chatfaq-color-primary-500;
         color: $chatfaq-color-neutral-white;
         align-self: end;

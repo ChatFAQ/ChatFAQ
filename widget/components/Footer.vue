@@ -31,7 +31,7 @@ const store = useGlobalStore();
 
             &.logo-long {
                 margin-left: 8px;
-                content: $chatfaq-logo-long;
+                content: $chatfaq-logo-long-icon;
             }
 
             &.text {

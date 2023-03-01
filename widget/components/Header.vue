@@ -5,12 +5,15 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <i class="menu"/>
+        <i class="menu-button" @click="store.menuOpened = !store.menuOpened"/>
+        <Menu class="menu" v-if="store.menuOpened"/>
         <i class="maximizer"/>
     </div>
 </template>
 
 <script setup>
+import Menu from "~/components/Menu.vue";
+
 import {useGlobalStore} from "~/store";
 
 const store = useGlobalStore();
@@ -25,31 +28,40 @@ const store = useGlobalStore();
     background: $chatfaq-color-gradient-purple;
     color: $chatfaq-color-neutral-white !important;
 
+    .menu {
+        margin: 0px;
+        position: absolute;
+        z-index: 1;
+        top: 80px;
+        left: 30px;;
+    }
+
     > * {
         margin-top: 30px;
         margin-bottom: 30px;
 
         &.maximizer {
             cursor: pointer;
-            content: $chatfaq-maximize;
+            content: $chatfaq-maximize-icon;
             margin-left: 8px;
             margin-right: 24px;
 
             &.maximized {
-                content: $chatfaq-minimize;
+                content: $chatfaq-minimize-icon;
             }
         }
 
-        &.menu {
+        &.menu-button {
             cursor: pointer;
             margin-left: auto;
-            content: $chatfaq-dot-menu;
+            content: $chatfaq-dot-menu-icon;
+            position: relative;
         }
 
         &.logo {
             margin-left: 24px;
             margin-right: 16px;
-            content: $chatfaq-logo;
+            content: $chatfaq-logo-icon;
         }
 
         &.header-text {

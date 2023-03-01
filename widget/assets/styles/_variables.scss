@@ -48,29 +48,24 @@
 
      /* Icons */
 
-    --chatfaq-bubble-button-open: url('~/assets/icons/bubble-button-open.svg');
-    --chatfaq-bubble-button-close: url('~/assets/icons/bubble-button-close.svg');
-    --chatfaq-maximize: url('~/assets/icons/maximize.svg');
-    --chatfaq-minimize: url('~/assets/icons/maximize.svg');
-    --chatfaq-dot-menu: url('~/assets/icons/dot-menu.svg');
-    --chatfaq-logo: url('~/assets/icons/logo.svg');
-    --chatfaq-logo-long: url('~/assets/icons/logo-long.svg');
+    --chatfaq-bubble-button-open-icon: url('~/assets/icons/bubble-button-open.svg');
+    --chatfaq-bubble-button-close-icon: url('~/assets/icons/bubble-button-close.svg');
+    --chatfaq-maximize-icon: url('~/assets/icons/maximize.svg');
+    --chatfaq-minimize-icon: url('~/assets/icons/maximize.svg');
+    --chatfaq-dot-menu-icon: url('~/assets/icons/dot-menu.svg');
+    --chatfaq-logo-icon: url('~/assets/icons/logo.svg');
+    --chatfaq-logo-long-icon: url('~/assets/icons/logo-long.svg');
     --chatfaq-send-icon: url('~/assets/icons/send-icon.svg');
+    --chatfaq-moon-icon: url('~/assets/icons/moon.svg');
+    --chatfaq-sun-icon: url('~/assets/icons/sun.svg');
+    --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
+    --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
 
      /* Sizes */
 
     --chatfaq-bubble-button-size: 60px;
-
-     /* --- */
-
-    --chatfaq-text-color: #495057;
-    --chatfaq-font-family: 'Courier New', monospace;
-    --chatfaq-main-color: #FF8E93;
 }
 
-$chatfaq-text-color: var(--chatfaq-text-color);
-$chatfaq-font-family: var(--chatfaq-font-family);
-$chatfaq-main-color: var(--chatfaq-main-color);
 
 /* Colors */
 
@@ -119,14 +114,18 @@ $chatfaq-font-button: var(--chatfaq-font-button);
 
 /* Icons */
 
-$chatfaq-bubble-button-open: var(--chatfaq-bubble-button-open);
-$chatfaq-bubble-button-close: var(--chatfaq-bubble-button-close);
-$chatfaq-maximize: var(--chatfaq-maximize);
-$chatfaq-minimize: var(--chatfaq-minimize);
-$chatfaq-dot-menu: var(--chatfaq-dot-menu);
-$chatfaq-logo: var(--chatfaq-logo);
-$chatfaq-logo-long: var(--chatfaq-logo-long);
+$chatfaq-bubble-button-open-icon: var(--chatfaq-bubble-button-open-icon);
+$chatfaq-bubble-button-close-icon: var(--chatfaq-bubble-button-close-icon);
+$chatfaq-maximize-icon: var(--chatfaq-maximize-icon);
+$chatfaq-minimize-icon: var(--chatfaq-minimize-icon);
+$chatfaq-dot-menu-icon: var(--chatfaq-dot-menu-icon);
+$chatfaq-logo-icon: var(--chatfaq-logo-icon);
+$chatfaq-logo-long-icon: var(--chatfaq-logo-long-icon);
 $chatfaq-send-icon: var(--chatfaq-send-icon);
+$chatfaq-moon-icon: var(--chatfaq-moon-icon);
+$chatfaq-sun-icon: var(--chatfaq-sun-icon);
+$chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
+$chatfaq-mail-icon: var(--chatfaq-mail-icon);
 
  /* Sizes */
 

@@ -36,9 +36,6 @@
         "@rollup/plugin-buble": "^1.0.2",
         "@rollup/plugin-commonjs": "^24.0.1",
         "pinia": "^2.0.32",
-        "primeflex": "^3.3.0",
-        "primeicons": "^6.0.1",
-        "primevue": "^3.23.0",
         "rollup-plugin-vue": "^6.0.0",
         "sass": "^1.58.0",
         "sass-loader": "^13.2.0"

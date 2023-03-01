@@ -2,18 +2,6 @@
 
 .chatfaq-widget {
     * {
-        font-family: $chatfaq-font-family;
-    }
-
-    .pi {
-        color: white !important;
-    }
-
-    .p-button {
-        border-color: $chatfaq-main-color !important;
-    }
-
-    .p-button:focus, .p-button:hover {
-        box-shadow: none !important;
+        font-family: $chatfaq-font-body-s;
     }
 }

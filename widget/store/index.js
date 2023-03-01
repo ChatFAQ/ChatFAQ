@@ -1,11 +1,15 @@
 import {defineStore} from 'pinia'
 
-export const useGlobalStore = defineStore('fsmDef', {
+export const useGlobalStore = defineStore('globalStore', {
     state: () => {
         return {
-            selectedFSMDef: {},
+            fsmDef: undefined,
             chatfaqWS: {},
-            chatfaqAPI: {}
+            chatfaqAPI: {},
+            title: "",
+            subtitle: "",
+            darkMode: false,
+            menuOpened: false,
         }
     },
 })

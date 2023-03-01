@@ -89,11 +89,11 @@ $widget-open-button-margin: 24px;
         transform: translate(-50%, -50%);
 
         &.open {
-            content: $chatfaq-bubble-button-open;
+            content: $chatfaq-bubble-button-open-icon;
         }
 
         &.close {
-            content: $chatfaq-bubble-button-close;
+            content: $chatfaq-bubble-button-close-icon;
         }
     }
 }

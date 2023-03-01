@@ -5,14 +5,10 @@ dns.setDefaultResultOrder('ipv4first')
 export default defineNuxtConfig({
     ssr: false,
     css: [
-        'primevue/resources/themes/saga-blue/theme.css',
-        'primevue/resources/primevue.css',
-        'primeicons/primeicons.css',
-        'primeflex/primeflex.css',
         '~/assets/styles/global.scss'
     ],
     build: {
-        transpile: ['primevue']
+        transpile: []
     },
     runtimeConfig: {
         // The private keys which are only available server-side

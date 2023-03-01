@@ -1,25 +1,10 @@
 import Widget from "./Widget.vue";
 import { createPinia } from "pinia";
-import PrimeVue from "primevue/config";
-import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Toast from "primevue/toast";
-import ToastService from "primevue/toastservice";
-import SelectButton from "primevue/selectbutton";
-import TextArea from "primevue/textarea";
 
 import { createApp } from "vue";
 
 function _buildApp(props) {
-    return createApp(Widget, { ...props })
-        .use(PrimeVue, { ripple: true })
-        .use(ToastService)
-        .use(createPinia())
-        .component("Button", Button)
-        .component("InputText", InputText)
-        .component("Toast", Toast)
-        .component("SelectButton", SelectButton)
-        .component("TextArea", TextArea)
+    return createApp(Widget, { ...props }).use(createPinia())
 }
 
 class ChatfaqWidget {
