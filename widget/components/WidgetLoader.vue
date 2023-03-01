@@ -18,10 +18,11 @@ import {ref, defineProps} from "vue";
 const opened = ref();
 const store = useGlobalStore();
 
-const props = defineProps(["chatfaqWs", "chatfaqApi", "title", "subtitle"]);
+const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "title", "subtitle"]);
 
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
+store.fsmDef = props.fsmDef;
 store.title = props.title;
 store.subtitle = props.subtitle;
 

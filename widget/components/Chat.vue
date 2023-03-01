@@ -6,15 +6,15 @@
             </div>
         </div>
         <div class="input-chat-wrapper">
-            <InputText v-model="promptValue" class="chat-prompt" ref="chatInput" @keyup.enter="sendMessage" />
+            <InputText v-model="promptValue" class="chat-prompt" ref="chatInput" @keyup.enter="sendMessage"/>
             <Button class="chat-send-button" @click="sendMessage"><i class="pi pi-send"></i></Button>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
-import { useGlobalStore } from "~/store";
+import {ref, computed} from "vue";
+import {useGlobalStore} from "~/store";
 
 const store = useGlobalStore();
 
@@ -27,13 +27,13 @@ const ws = new WebSocket(
     + "/back/ws/broker/"
     + conversationID
     + "/"
-    + store.selectedFSMDef.id
+    + store.fsmDef
     + "/",
 );
-ws.onmessage = function(e) {
+ws.onmessage = function (e) {
     messages.value.push(JSON.parse(e.data));
 };
-ws.onclose = function(e) {
+ws.onclose = function (e) {
     console.error("Chat socket closed unexpectedly");
 };
 
@@ -44,7 +44,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({ ...data, "transmitter": _messages[i]["transmitter"] });
+                res.push({...data, "transmitter": _messages[i]["transmitter"]});
             }
         }
     }
@@ -55,7 +55,7 @@ function sendMessage() {
     if (!promptValue.value.length)
         return;
     const m = {
-        "transmitter": { "type": "user" },
+        "transmitter": {"type": "user"},
         "stacks": [[{
             "type": "text",
             "payload": promptValue.value,

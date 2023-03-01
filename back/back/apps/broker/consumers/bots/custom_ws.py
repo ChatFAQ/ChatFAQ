@@ -20,12 +20,12 @@ class CustomWSBotConsumer(WSBotConsumer):
         return self.scope["url_route"]["kwargs"]["conversation"]
 
     async def gather_fsm_def(self):
-        pk = self.scope["url_route"]["kwargs"]["fsm_def_id"]
-        return await sync_to_async(FSMDefinition.objects.get)(pk=pk)
+        name = self.scope["url_route"]["kwargs"]["fsm_def"]
+        return await sync_to_async(FSMDefinition.objects.get)(name=name)
 
     @classmethod
     def platform_url_path(self) -> str:
-        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def_id>\w+)/$"
+        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def>\w+)/$"
 
     @classmethod
     def register(cls):
