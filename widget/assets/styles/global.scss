@@ -3,5 +3,6 @@
 .chatfaq-widget {
     * {
         font-family: $chatfaq-font-body-s;
+        box-sizing: border-box;
     }
 }

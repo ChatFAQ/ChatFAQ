@@ -50,15 +50,16 @@ $widget-open-button-margin: 24px;
     margin: 16px;
 }
 
+
+.widget-wrapper > .header {
+    border: 2px solid $chatfaq-color-primary-500;
+    border-radius: 10px 10px 0px 0px;
+}
 .widget-wrapper > .chat {
     position: relative;
     height: 100%;
     border-left: 2px solid $chatfaq-color-primary-500;
     border-right: 2px solid $chatfaq-color-primary-500;
-}
-.widget-wrapper > .header {
-    border: 2px solid $chatfaq-color-primary-500;
-    border-radius: 10px 10px 0px 0px;
 }
 .widget-wrapper > .footer {
     border: 2px solid $chatfaq-color-primary-500;
