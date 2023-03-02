@@ -25,7 +25,7 @@
                 ref="chatInput"
                 @keyup.enter="sendMessage"
             />
-            <i class="chat-send-button" @click="sendMessage"></i>
+            <i class="chat-send-button" :class="{'dark-mode': store.darkMode}" @click="sendMessage"></i>
         </div>
     </div>
 </template>
@@ -169,6 +169,9 @@ function isFirstOfType(msg, flatStack) {
     content: $chatfaq-send-icon;
     margin: 22px 26px 22px 20px;
     cursor: pointer;
+    &.dark-mode {
+        content: $chatfaq-send-dark-icon;
+    }
 }
 
 

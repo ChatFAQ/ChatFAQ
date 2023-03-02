@@ -10,6 +10,7 @@ export const useGlobalStore = defineStore('globalStore', {
             subtitle: "",
             darkMode: false,
             menuOpened: false,
+            maximized: false,
         }
     },
 })

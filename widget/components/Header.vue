@@ -7,7 +7,7 @@
         </div>
         <i class="menu-button" @click="store.menuOpened = !store.menuOpened"/>
         <Menu class="menu" v-if="store.menuOpened"/>
-        <i class="maximizer"/>
+        <i class="maximizer" :class="{'maximized': store.maximized}" @click="store.maximized = !store.maximized"/>
     </div>
 </template>
 
@@ -33,7 +33,7 @@ const store = useGlobalStore();
         position: absolute;
         z-index: 1;
         top: 80px;
-        left: 30px;;
+        right: 60px;;
     }
 
     > * {

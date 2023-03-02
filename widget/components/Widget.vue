@@ -1,7 +1,7 @@
 <template>
     <Suspense>
         <div class="chatfaq-widget">
-            <div v-if="opened" class="widget-wrapper">
+            <div v-if="opened" class="widget-wrapper" :class="{'maximized': store.maximized}">
                 <Header class="header"/>
                 <Chat class="chat"/>
                 <Footer class="footer"/>
@@ -48,6 +48,10 @@ $widget-open-button-margin: 24px;
     bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
     right: 0px;
     margin: 16px;
+    &.maximized {
+        width: 70vw;
+        height: 85vh;
+    }
 }
 
 
