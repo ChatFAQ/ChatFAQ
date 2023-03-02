@@ -56,6 +56,10 @@ const store = useGlobalStore();
             margin-left: auto;
             content: $chatfaq-dot-menu-icon;
             position: relative;
+
+            &:hover {
+                content: $chatfaq-dot-menu-hovered-icon !important;
+            }
         }
 
         &.logo {

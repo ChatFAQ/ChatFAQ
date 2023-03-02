@@ -75,6 +75,9 @@ $widget-open-button-margin: 24px;
 .widget-open-button {
     cursor: pointer;
     background: $chatfaq-color-gradient-pink;
+    &:hover {
+        background: $chatfaq-color-gradient-purple;
+    }
     width: $chatfaq-bubble-button-size;
     height: $chatfaq-bubble-button-size;
     border-radius: $chatfaq-bubble-button-size;
