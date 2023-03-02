@@ -64,7 +64,7 @@ JS Library
 
 .. code-block:: html
 
-    <div id="chatfaq-widget" data-chatfaq-api="http://127.0.0.1:8008" data-chatfaq-ws="ws://127.0.0.1:8008"></div>
+    <div id="chatfaq-widget"></div>
 
     <script>
 
@@ -74,11 +74,29 @@ JS Library
             element: "#chatfaq-widget",
             chatfaqApi: "http://127.0.0.1:8000",
             chatfaqWs: "ws://127.0.0.1:8000",
-        };
+            fsmDef: "simple_fsm",
+            title: "Hello there 👋",
+            subtitle: "How can we help you?",
+        }
 
         const chatfaqWidget = new ChatfaqWidget(config);
 
     </script>
+
+It is also possible to pass the config keys as data attributes to the mounted element as such:
+
+.. code-block:: html
+
+    <div
+        id="chatfaq-widget"
+        data-chatfaq-api="http://127.0.0.1:8000"
+        data-chatfaq-ws="ws://127.0.0.1:8000"
+        data-fsm-def="simple_fsm"
+        data-title="Hello there 👋"
+        data-subtitle="How can we help you?"
+    ></div>
+
+If you declare data attributes and a config object and its keys collide, then the config object will have priority.
 
 Web-Component
 
@@ -92,4 +110,24 @@ Web-Component
 
     </script>
 
-    <chatfaq-widget data-chatfaq-api="http://127.0.0.1:8000" data-chatfaq-ws="ws://127.0.0.1:8000"></chatfaq-widget>
+    <chatfaq-widget
+        data-chatfaq-api="http://127.0.0.1:8000"
+        data-chatfaq-ws="ws://127.0.0.1:8000"
+        data-fsm-def="simple_fsm"
+        data-title="Hello there 👋"
+        data-subtitle="How can we help you?"
+    ></chatfaq-widget>
+
+Widget params:
+
+**element**: string selector or HTMLElement to which the widget will be attached.
+
+**chatfaqApi**: url of the chatfaq-api.
+
+**chatfaqWs**: url of the chatfaq-ws.
+
+**fsmDef**: name of the fsm-def.
+
+**title**: title which will appear on the header of the chatbot
+
+**subtitle**: subtitle which will appear on the footer of the chatbot
