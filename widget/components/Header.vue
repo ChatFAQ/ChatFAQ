@@ -5,9 +5,13 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <i class="menu-button" @click="store.menuOpened = !store.menuOpened"/>
+        <div class="menu-button" @click="store.menuOpened = !store.menuOpened">
+            <i/>
+        </div>
         <Menu class="menu" v-if="store.menuOpened"/>
-        <i class="maximizer" :class="{'maximized': store.maximized}" @click="store.maximized = !store.maximized"/>
+        <div class="maximizer" @click="store.maximized = !store.maximized">
+            <i :class="{'maximized': store.maximized}" />
+        </div>
     </div>
 </template>
 
@@ -42,23 +46,40 @@ const store = useGlobalStore();
 
         &.maximizer {
             cursor: pointer;
-            content: $chatfaq-maximize-icon;
             margin-left: 8px;
             margin-right: 24px;
+            display: flex;
+            width: 32px;
+            height: 32px;
+            border-radius: 32px;
 
-            &.maximized {
-                content: $chatfaq-minimize-icon;
+            &:hover {
+                background: $chatfaq-color-primary-900;
+            }
+
+            i {
+                content: $chatfaq-maximize-icon;
+
+                &.maximized {
+                    content: $chatfaq-minimize-icon;
+                }
             }
         }
 
         &.menu-button {
             cursor: pointer;
             margin-left: auto;
-            content: $chatfaq-dot-menu-icon;
             position: relative;
+            width: 32px;
+            height: 32px;
+            border-radius: 32px;
+            display: flex;
 
             &:hover {
-                content: $chatfaq-dot-menu-hovered-icon !important;
+                background: $chatfaq-color-primary-900;
+            }
+            i {
+                content: $chatfaq-dot-menu-icon;
             }
         }
 
