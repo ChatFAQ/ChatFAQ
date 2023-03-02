@@ -5,10 +5,12 @@ import alias from "@rollup/plugin-alias";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
-import { terser } from "rollup-plugin-terser";
+import {terser} from "rollup-plugin-terser";
 import minimist from "minimist";
 import babel from '@rollup/plugin-babel';
 import styles from "rollup-plugin-styles";
+import Components from 'unplugin-vue-components/rollup'
+
 // Get browserslist config and remove ie from es build targets
 const esbrowserslist = fs.readFileSync("./.browserslistrc")
     .toString()
@@ -22,7 +24,6 @@ const babelPresetEnvConfig = require("./babel.config")
 const argv = minimist(process.argv.slice(2));
 
 const projectRoot = path.resolve(__dirname);
-
 const baseConfig = {
     input: "components/entry.js",
     plugins: {
@@ -83,8 +84,15 @@ const baseConfig = {
             // postcss({
             //     minimize: true,
             // }),
-            styles(),
+            styles({
+                alias: {
+                    "~": projectRoot
+                }
+            }),
             commonjs(),
+            Components({
+                "dirs": [`${path.resolve(projectRoot, "components")}`]
+            })
         ],
         babel: {
             exclude: "node_modules/**",

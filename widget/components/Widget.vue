@@ -12,7 +12,6 @@
 </template>
 
 <script setup>
-import Chat from "~/components/Chat.vue";
 import {useGlobalStore} from "~/store";
 import {ref, defineProps} from "vue";
 

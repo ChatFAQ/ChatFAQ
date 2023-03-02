@@ -30,7 +30,8 @@
         "minimist": "^1.2.8",
         "nuxt": "^3.1.1",
         "rollup-plugin-styles": "^4.0.0",
-        "rollup-plugin-terser": "^7.0.2"
+        "rollup-plugin-terser": "^7.0.2",
+        "unplugin-vue-components": "^0.24.0"
     },
     "dependencies": {
         "@rollup/plugin-buble": "^1.0.2",

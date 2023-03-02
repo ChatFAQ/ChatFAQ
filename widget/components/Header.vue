@@ -16,8 +16,6 @@
 </template>
 
 <script setup>
-import Menu from "~/components/Menu.vue";
-
 import {useGlobalStore} from "~/store";
 
 const store = useGlobalStore();
