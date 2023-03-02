@@ -118,7 +118,7 @@ if (!argv.format || argv.format === "es") {
         input: "components/entry.esm.js",
         external,
         output: {
-            file: "dist/chatfaq-widget.esm.js",
+            file: "dist/widget.esm.js",
             format: "esm",
             exports: "named",
         },
@@ -150,7 +150,7 @@ if (!argv.format || argv.format === "cjs") {
         external,
         output: {
             compact: true,
-            file: "dist/chatfaq-widget.ssr.js",
+            file: "dist/widget.ssr.js",
             format: "cjs",
             name: "Widget",
             exports: "auto",
@@ -173,7 +173,7 @@ if (!argv.format || argv.format === "iife") {
         external,
         output: {
             compact: true,
-            file: "dist/chatfaq-widget.min.js",
+            file: "dist/widget.min.js",
             format: "iife",
             name: "Widget",
             exports: "auto",
