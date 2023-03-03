@@ -99,7 +99,11 @@ Run the server
     poetry run make run
 
 
-Now you should be able to navigate to http://localhost:8000/back/admin and log in with your previously created user.
+Now you should be able to navigate to http://localhost:8000/back/admin
+
+.. image:: ../../_static/images/chatfaq_backend_admin.png
+
+...and log in with your previously created user.
 
 Setting it up with Docker
 -------------------------
