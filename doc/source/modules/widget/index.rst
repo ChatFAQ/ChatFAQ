@@ -1,7 +1,7 @@
 Widget's documentation
 =======================================
 
-This is a simple implementation of a client chatbot that connect to a ChatFAQ back-end server and offers a interface to communicate with a selected FSM
+This is a simple implementation of a client chatbot that connects to ChatFAQ back-end server and offers an interface to communicate with a selected FSM
 
 .. image:: ../../_static/images/chatfaq_components_mp.png
 
@@ -22,11 +22,11 @@ Go inside *./widget* directory and install project dependencies:
 Configuration
 ---------------------
 
-Navigate inside :code:`./widget`
+Navigate within :code:`./widget`
 
 .. module:: widget
 
-Create a :code:`.env` file with the needed variables set. You can see an example of those on the :ref:`.env_example <sdk_env_example>` file
+Make a :code:`.env` file with the necessary variables set. The :ref:`.env_example <sdk_env_example>` file contains an example of one of these.
 
 .. literalinclude:: ../../../../widget/.env_example
 
@@ -41,6 +41,8 @@ Start the development server on http://localhost:3000
 
 You are all set! Now you can navigate to http://localhost:3000 and test the widget!
 
+.. image:: ../../_static/images/chatbot_widget_closed.png
+.. image:: ../../_static/images/chatbot_widget_opened.png
 
 Installation as an external dependency
 ----------------------------------------------------------
