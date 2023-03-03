@@ -1,7 +1,7 @@
 Widget's documentation
 =======================================
 
-This is a simple implementation of a client chatbot that connect to a ChatFAQ's back-end server and offers a interface to communicate with a selected FSM
+This is a simple implementation of a client chatbot that connect to a ChatFAQ back-end server and offers a interface to communicate with a selected FSM
 
 .. image:: ../../_static/images/chatfaq_components_mp.png
 
@@ -43,7 +43,7 @@ You are all set! Now you can navigate to http://localhost:3000 and test the widg
 
 
 Installation as an external dependency
------------------------------
+----------------------------------------------------------
 
 Node server
 

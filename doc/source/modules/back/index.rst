@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Back-end's documentation
+back-end's documentation
 ===================================
 
 .. image:: ../../_static/images/chatfaq_components_be.png

@@ -11,11 +11,11 @@ Concepts
 
 An FSM (Finite State Machine) definition consists of two types of blocks: States and Transitions.
 
-- :underline:`States`: A state in an FSM is a node that represents a specific condition. When a node is reached, its associated **events** are triggered. These events are executed on the demand of the ChatFAQ's Back-end server as Remote Procedure Calls (RPC).
+- :underline:`States`: A state in an FSM is a node that represents a specific condition. When a node is reached, its associated **events** are triggered. These events are executed on the demand of the ChatFAQ back-end server as Remote Procedure Calls (RPC).
 
-- :underline:`Transitions`: Transitions define the **conditions** needed to move from one state to another. These conditions are executed on the demand of the ChatFAQ's Back-end server as Remote Procedure Calls (RPC).
+- :underline:`Transitions`: Transitions define the **conditions** needed to move from one state to another. These conditions are executed on the demand of the ChatFAQ back-end server as Remote Procedure Calls (RPC).
 
-Both **events** and **conditions** are functionality that is executed on demand by the ChatFAQ's Back-end server as RPCs. An RPC is a function that is executed remotely, and its results are returned to the caller.
+Both **events** and **conditions** are functionality that is executed on demand by the ChatFAQ back-end server as RPCs. An RPC is a function that is executed remotely, and its results are returned to the caller.
 
 Example
 ------------------
@@ -126,17 +126,17 @@ Connection
 ------------------
 
 
-The only thing left after defining your FSM is to communicate it to ChatFAQ's Back-end server and remain listening as an RPC server (for executing your previously declared events & conditions on demand)
+The only thing left after defining your FSM is to communicate it to ChatFAQ back-end server and remain listening as an RPC server (for executing your previously declared events & conditions on demand)
 
 We do so by instantiating the class ChatFAQSDK and passing to the constructor 5 parameters:
 
-- *chatfaq_host*: the address of our ChatFAQ's Back-end server
+- *chatfaq_host*: the address of our ChatFAQ back-end server
 
 
-- *user_email*: the email of an ChatFAQ's back-end admin user
+- *user_email*: the email of an ChatFAQ back-end admin user
 
 
-- *user_password*:  the password of an ChatFAQ's back-end admin user
+- *user_password*:  the password of an ChatFAQ back-end admin user
 
 
 - *fsm_name*: the name of our new FSM Definition if we are providing `fsm_def` or the name/ID of an already existing FSM Definition on the remote server if not `fsm_def` is provided
@@ -144,7 +144,7 @@ We do so by instantiating the class ChatFAQSDK and passing to the constructor 5 
 
 - *fsm_def* (optional): an instance of FSMDefinition
 
-You should make sure the used user belong to the *RPC* group, you can set that from the admin site of the ChatFAQ's back-end server.
+You should make sure the used user belong to the *RPC* group, you can set that from the admin site of the ChatFAQ back-end server.
 
 Then we call our ChatFAQSDK instance's `connect` method, and we are done.
 

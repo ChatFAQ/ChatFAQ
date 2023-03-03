@@ -12,21 +12,20 @@ The system is comprised of three main components that you need to install:
 
 .. image:: ./_static/images/chatfaq_components.png
 
-- :ref:`The Back-end <Back-end's documentation>` manages client-to-message platform connections and session storage. It also houses the database storing all Finite State Machine (FSM) definitions, user information, and more.
+- :ref:`The back-end <back-end's documentation>` manages client-to-messaging platform connections and session storage. It also houses the database storing all Finite State Machine (FSM) definitions, user information, and more.
 
 
-- :ref:`The SDK <SDK's documentation>` serves two primary functions: it allows for the posting of new FSM definitions to ChatFAQ's Back-end server, and it also launches a Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
+- :ref:`The SDK <SDK's documentation>` serves two primary functions: it allows for the posting of new FSM definitions to ChatFAQ back-end server, and it also launches a Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
 
 
-- :ref:`The Message Platform (MP) <Widget's documentation>` is the client application where the user interacts with the bot. Examples of MP include platforms such as WhatsApp, Telegram, Facebook Messenger, or a custom interface.
+- :ref:`The messaging platform (MP) <Widget's documentation>` is the client application where the user interacts with the bot. Examples of MP include platforms such as WhatsApp, Telegram, Facebook Messenger, or a custom interface.
 
 
 Contents
 --------------------------
 
 .. toctree::
-   :maxdepth: 1
 
-   Back-end docs <modules/back/index.rst>
+   back-end docs <modules/back/index.rst>
    SDK docs <modules/sdk/index.rst>
    Widget docs <modules/widget/index.rst>

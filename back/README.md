@@ -23,7 +23,7 @@ Install machine requirements:
 - gdal-bin
 - poetry
 
-Create a .env file with the needed variables set. You can see an example of those on [.env_example](.env_example)
+Make a .env with the necessary variable set. The [.env_example](.env_example) file contains an example of one of these
 
 This project is based on [Model-W](https://github.com/ModelW/project-maker) therefore we use poetry for the management of the dependencies
 
@@ -43,7 +43,7 @@ Create a 'chatfaq' user in postgres
 
 `sudo -u postgres psql -c "CREATE user chatfaq WITH encrypted password 'chatfaq';"`
 
-Grant to the newly created user the proper the privileges to the database
+Give the newly created user the necessary privileges
 
 `sudo -u postgres psql -c "grant all privileges on database chatfaq to chatfaq;"`
 
