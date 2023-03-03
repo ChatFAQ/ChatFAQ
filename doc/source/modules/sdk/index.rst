@@ -30,15 +30,15 @@ Create a :code:`examples/.env` file with the needed variables set. You can see a
 
 **CHATFAQ_BACKEND_EMAIL** and **CHATFAQ_BACKEND_PASSWORD** should belongs to the created admin user on :doc:`the back-end installation <../back/index>`
 
-Make sure poetry is using the right python executable. You have 2 options for this:
+Make sure Poetry is using the right Python executable. You have 2 options for this:
 
-    1. If you have the python executable in your PATH poetry will create the virtual environment for you:
+    1. If you have the Python executable in your PATH, Poetry will create the virtual environment for you:
 
     .. code-block:: console
 
         poetry env use python3.10
 
-    2.- Or perhaps you rather use an environment you created with other tool as such pyenv or virtualenv
+    2.- Alternatively, you could use  an environment created with another tool, such as Pyenv or Virtualenv
 
     .. code-block:: console
 

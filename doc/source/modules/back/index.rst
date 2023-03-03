@@ -34,15 +34,15 @@ Create a :code:`.env` file with the needed variables set. You can see an example
 
 .. literalinclude:: ../../../../back/.env_example
 
-Make sure poetry is using the right python executable. You have 2 options for this:
+Make sure Poetry is using the right Python executable. You have two options for this:
 
-    1. If you have the python executable in your PATH poetry will create the virtual environment for you:
+    1. If you have the Python executable in your PATH, Poetry will create the virtual environment for you:
 
     .. code-block:: console
 
         poetry env use python3.10
 
-    2.- Or perhaps you rather use an environment you created with other tool as such pyenv or virtualenv
+    2.- Alternatively, you could use  an environment created with another tool, such as Pyenv or Virtualenv
 
     .. code-block:: console
 
@@ -54,19 +54,19 @@ Install project dependencies:
 
     poetry install
 
-Create a 'chatfaq' database in postgres
+Create a "chatfaq" database in PostgreSQL
 
 .. code-block:: console
 
     sudo -u postgres psql -c "CREATE DATABASE chatfaq"
 
-Create a 'chatfaq' user in postgres
+Create a "chatfaq" user in PostgreSQL
 
 .. code-block:: console
 
     sudo -u postgres psql -c "CREATE user chatfaq WITH encrypted password 'chatfaq';"
 
-Grant to the newly created user the proper the privileges to the database
+Give the newly created user the necessary privileges
 
 .. code-block:: console
 
@@ -84,7 +84,7 @@ Create a superuser
 
     poetry run ./manage.py createsuperuser
 
-When creating the superuser it will ask you if it belongs to the RPC group, it is important to respond yes(y) for later on being able to create an RPC Server with this same user
+When creating the superuser, it will ask if it belongs to the RPC group; it is critical to answer "yes" (y) so that later you can create an RPC Server with this same user
 
 Apply fixtures
 
@@ -124,9 +124,9 @@ As simple as running
 
     docker compose up
 
-The containers generated will extract the environment variables from the '.env_docker' file.
+The containers generated will extract the environment variables from the ".env_docker" file.
 
-Additionally, an admin user will be established with the credentials of 'user=admin' and 'password=admin', as specified in the same file."
+Additionally, an admin user will be established with the credentials of "user=admin" and "password=admin", as specified in the same file."
 
 
 :doc:`concepts`
