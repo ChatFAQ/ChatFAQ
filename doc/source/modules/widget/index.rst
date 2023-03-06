@@ -41,8 +41,14 @@ Start the development server on http://localhost:3000
 
 You are all set! Now you can navigate to http://localhost:3000 and test the widget!
 
-.. image:: ../../_static/images/chatbot_widget_closed.png
-.. image:: ../../_static/images/chatbot_widget_opened.png
+
++------------------------------------------------------------------+-------------------------------------------------------------------+
+|                                                                  |                                                                   |
+|.. image:: ../../_static/images/chatbot_widget_closed.png         |.. image:: ../../_static/images/chatbot_widget_closed.png          |
+|                                                                  |                                                                   |
+|                                                                  |                                                                   |
+|                                                                  |                                                                   |
++------------------------------------------------------------------+-------------------------------------------------------------------+
 
 Installation as an external dependency
 ----------------------------------------------------------
