@@ -44,7 +44,7 @@ You are all set! Now you can navigate to http://localhost:3000 and test the widg
 
 +------------------------------------------------------------------+-------------------------------------------------------------------+
 |                                                                  |                                                                   |
-|.. image:: ../../_static/images/chatbot_widget_closed.png         |.. image:: ../../_static/images/chatbot_widget_closed.png          |
+|.. image:: ../../_static/images/chatbot_widget_closed.png         |.. image:: ../../_static/images/chatbot_widget_opened.png          |
 |                                                                  |                                                                   |
 |                                                                  |                                                                   |
 |                                                                  |                                                                   |
