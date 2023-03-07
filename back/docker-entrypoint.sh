@@ -4,6 +4,9 @@ set -e
 echo "Apply database migrations"
 python manage.py migrate
 
+echo "Applying fixtures"
+make apply_fixtures
+
 if [ -v DJANGO_SUPERUSER_PASSWORD ] && [ -v DJANGO_SUPERUSER_USERNAME ] && [ -v DJANGO_SUPERUSER_EMAIL ]
 then
     echo "Creating super user"
@@ -18,9 +21,6 @@ then
         echo "Superuser already existed"
     }
 fi
-
-echo "Applying fixtures"
-make apply_fixtures
 
 if [ "$DEBUG" == "yes" ]
 then
