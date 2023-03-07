@@ -24,6 +24,4 @@ RUN apt-get -y purge --auto-remove build-essential
 COPY . .
 RUN rm -rf .env
 
-EXPOSE 8000
-
 CMD [ "poetry", "run", "python", "-m", "examples.__init__"]
