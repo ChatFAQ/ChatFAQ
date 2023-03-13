@@ -18,7 +18,7 @@
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <input
-                placeholder="Write a question here..."
+                :placeholder="$t('writeaquestionhere')"
                 v-model="promptValue"
                 class="chat-prompt"
                 :class="{ 'dark-mode': store.darkMode }"
