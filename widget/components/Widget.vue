@@ -2,8 +2,7 @@
     <Suspense>
         <div class="chatfaq-widget">
             <div v-if="opened" class="widget-wrapper">
-                <div v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}">
-                </div>
+                <History v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
                 <div class="flex-column" :class="{'maximized': store.maximized}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened}"/>
