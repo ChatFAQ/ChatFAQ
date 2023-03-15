@@ -1,10 +1,14 @@
 <template>
     <Suspense>
         <div class="chatfaq-widget">
-            <div v-if="opened" class="widget-wrapper" :class="{'maximized': store.maximized}">
-                <Header class="header"/>
-                <Chat class="chat"/>
-                <Footer class="footer"/>
+            <div v-if="opened" class="widget-wrapper">
+                <div v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}">
+                </div>
+                <div class="flex-column" :class="{'maximized': store.maximized}">
+                    <Header class="header"/>
+                    <Chat class="chat"/>
+                    <Footer class="footer"/>
+                </div>
             </div>
             <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'"/></div>
         </div>
@@ -37,34 +41,43 @@ store.subtitle = props.subtitle;
 
 $widget-open-button-margin: 24px;
 
+.widget-history {
+    background-color: red;
+}
 .widget-wrapper {
-    width: 400px;
-    height: 580px;
     position: absolute;
     display: flex;
     align-items: stretch;
-    flex-flow: column;
+    flex-flow: row;
     bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
     right: 0px;
     margin: 16px;
-    &.maximized {
-        width: 70vw;
-        height: 85vh;
+
+    .flex-column {
+        &.maximized {
+            width: 70vw;
+            height: 85vh;
+        }
+        display: flex;
+        width: 400px;
+        height: 580px;
+        align-items: stretch;
+        flex-flow: column;
     }
 }
 
 
-.widget-wrapper > .header {
+.widget-wrapper > .flex-column > .header {
     border: 2px solid $chatfaq-color-primary-500;
     border-radius: 10px 10px 0px 0px;
 }
-.widget-wrapper > .chat {
+.widget-wrapper > .flex-column > .chat {
     position: relative;
     height: 100%;
     border-left: 2px solid $chatfaq-color-primary-500;
     border-right: 2px solid $chatfaq-color-primary-500;
 }
-.widget-wrapper > .footer {
+.widget-wrapper > .flex-column > .footer {
     border: 2px solid $chatfaq-color-primary-500;
     border-radius: 0px 0px 10px 10px;
 }
