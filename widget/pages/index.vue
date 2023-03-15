@@ -1,7 +1,18 @@
 <template>
-    <Widget :chatfaqWs="runtimeConfig.chatfaqWS" :chatfaqApi="runtimeConfig.chatfaqAPI" :fsmDef="fsmDef" :title="title" :subtitle="subtitle"/>
+    <Widget :chatfaqWs="runtimeConfig.chatfaqWS" :chatfaqApi="runtimeConfig.chatfaqAPI" :fsmDef="fsmDef" :userId="userId" :title="title" :subtitle="subtitle"/>
 </template>
 <script setup>
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+let userId = localStorage.getItem("chatfaq-user-identifier")
+if(!userId) {
+    localStorage.setItem("chatfaq-user-identifier", uuidv4())
+    userId = localStorage.getItem("chatfaq-user-identifier")
+}
 
 const runtimeConfig = useRuntimeConfig()
 const title = ref("Hello there 👋")

@@ -79,6 +79,9 @@ function sendMessage() {
             "payload": promptValue.value,
         }]],
     };
+    if (store.userId !== undefined)
+        m["transmitter"]["identifier"] = store.userId
+
     messages.value.push(m);
     ws.send(JSON.stringify(m));
     promptValue.value = "";

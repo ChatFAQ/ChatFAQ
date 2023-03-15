@@ -75,6 +75,7 @@ class BotMessageSerializer(serializers.Serializer):
 
 class AgentSerializer(serializers.Serializer):
 
+    identifier = serializers.CharField(required=False, max_length=255)
     first_name = serializers.CharField(required=False, max_length=255)
     last_name = serializers.CharField(required=False, max_length=255)
     type = serializers.ChoiceField(choices=[n.value for n in AgentType])
