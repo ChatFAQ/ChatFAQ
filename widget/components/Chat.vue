@@ -73,7 +73,10 @@ function sendMessage() {
     if (!promptValue.value.length)
         return;
     const m = {
-        "transmitter": {"type": "user"},
+        "transmitter": {
+            "type": "human",
+            "platform": "WS",
+        },
         "stacks": [[{
             "type": "text",
             "payload": promptValue.value,
@@ -212,7 +215,7 @@ function isFirstOfType(msg, flatStack) {
         }
     }
 
-    &.user {
+    &.human {
         border: none;
         background-color: $chatfaq-color-primary-500;
         color: $chatfaq-color-neutral-white;
