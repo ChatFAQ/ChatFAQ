@@ -10,4 +10,6 @@ router.register(r"messages", views.MessageView, basename="messages")
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path("", include(router.urls)),
+    path("conversations", views.ConversationView.as_view()),
+    path("conversations_info", views.ConversationInfoView.as_view()),
 ]
