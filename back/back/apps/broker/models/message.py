@@ -104,18 +104,16 @@ class Message(ChangesMixin):
         return chain
 
     @classmethod
-    def conversations_by_transmitter_id(cls, identifier):
-        conversations = cls.objects.filter(transmitter__identifier=identifier).values("conversation").distinct().all()
-
-        first_messages = cls.objects.filter(
+    def conversation_chain(cls, conversation_id):
+        first_message = cls.objects.filter(
             prev__isnull=True,
-            conversation__in=conversations,
-        )
-        return [first_msg.to_mml_chain() for first_msg in first_messages]
+            conversation=conversation_id,
+        ).first()
+        return first_message.to_mml_chain() if first_message else []
 
     @classmethod
-    def conversations_info_by_transmitter_id(cls, identifier):
-        conversations = cls.objects.filter(transmitter__identifier=identifier).values("conversation").distinct().all()
+    def conversations_info(cls, transmitter__id):
+        conversations = cls.objects.filter(transmitter__identifier=transmitter__id).values("conversation").distinct().all()
 
         first_messages = cls.objects.values_list(
             "conversation", "created_date"
@@ -124,4 +122,4 @@ class Message(ChangesMixin):
             conversation__in=conversations,
         )
 
-        return [msg_data for msg_data in first_messages]
+        return list(first_messages.all())

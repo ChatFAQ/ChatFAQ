@@ -63,6 +63,8 @@
     --chatfaq-sun-icon: url('~/assets/icons/sun.svg');
     --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
     --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
+    --chatfaq-checkbox: url('~/assets/icons/checkbox.svg');
+    --chatfaq-checkbox-checked: url('~/assets/icons/checkbox-checked.svg');
 
      /* Sizes */
 
@@ -132,6 +134,9 @@ $chatfaq-moon-icon: var(--chatfaq-moon-icon);
 $chatfaq-sun-icon: var(--chatfaq-sun-icon);
 $chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
 $chatfaq-mail-icon: var(--chatfaq-mail-icon);
+$chatfaq-checkbox: var(--chatfaq-checkbox);
+$chatfaq-checkbox-checked: var(--chatfaq-checkbox-checked);
+
 
  /* Sizes */
 
