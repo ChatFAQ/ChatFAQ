@@ -113,11 +113,14 @@ class Message(ChangesMixin):
 
     @classmethod
     def conversations_info(cls, transmitter__id):
-        conversations = cls.objects.filter(transmitter__identifier=transmitter__id).values("conversation").distinct().all()
+        conversations = (
+            cls.objects.filter(transmitter__identifier=transmitter__id)
+            .values("conversation")
+            .distinct()
+            .all()
+        )
 
-        first_messages = cls.objects.values_list(
-            "conversation", "created_date"
-        ).filter(
+        first_messages = cls.objects.values_list("conversation", "created_date").filter(
             prev__isnull=True,
             conversation__in=conversations,
         )

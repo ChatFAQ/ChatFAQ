@@ -1,4 +1,6 @@
-from django.contrib.auth.management.commands.createsuperuser import Command as CreatesuperuserCommand
+from django.contrib.auth.management.commands.createsuperuser import (
+    Command as CreatesuperuserCommand,
+)
 from django.core import exceptions
 
 

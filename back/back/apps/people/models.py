@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin, Group
+from django.contrib.auth.models import Group, PermissionsMixin
 from django.contrib.postgres.fields import CIEmailField
 from django.core.management import CommandError
 from django.db import models
@@ -48,8 +48,10 @@ class UserManager(BaseUserManager):
         if user.rpc_group:
             rpc_group = Group.objects.filter(name="RPC").first()
             if not rpc_group:
-                raise CommandError("You want it to add a user to the RPC group but such a group does not exit. Either "
-                                   "create the group manyally or run `make apply_fixtures`")
+                raise CommandError(
+                    "You want it to add a user to the RPC group but such a group does not exit. Either "
+                    "create the group manyally or run `make apply_fixtures`"
+                )
             user.groups.add(rpc_group)
             user.save()
 
@@ -100,10 +102,7 @@ class User(UuidPkModel, AbstractBaseUser, PermissionsMixin):
 
     # This field is made only for the createsuperuser command,
     # to be able to add it to the RPC group once created an admin.
-    rpc_group = models.BooleanField(
-        _("Belongs to the RPC group? [y/N]"),
-        default=False
-    )
+    rpc_group = models.BooleanField(_("Belongs to the RPC group? [y/N]"), default=False)
     objects = UserManager()
 
     EMAIL_FIELD = "email"
