@@ -1,0 +1,41 @@
+---
+name: ChatFAQ
+
+databases:
+  psql:
+    cluster_name: "chatfaq-psql-dev"
+    db_name: "{{ deployment_key }}"
+    db_user: "{{ deployment_key }}"
+    engine: pg
+    version: "15"
+
+env:
+  - name: urls
+    variables:
+      SENTRY_DSN: '{{ secret("SENTRY_DSN") }}'
+      BASE_URL: '{{ APP_URL }}'
+  - name: django
+    variables:
+      SECRET_KEY: '{{ secret("SECRET_KEY") }}'
+      SENTRY_ENVIRONMENT: "{{ back.component_key }}"
+      ENVIRONMENT: "{{ back.component_key }}"
+      DATABASE_URL: "{{ psql.DATABASE_URL }}"
+
+images:
+  - name: back
+    build_context: back
+
+services:
+  - name: back
+    image: back
+    envs: [urls, django]
+    instance_size: XXS
+    port: 8000
+
+jobs:
+  - name: migrate
+    when: PRE_DEPLOY
+    image: back
+    envs: [ urls, django ]
+    command: modelw-docker run python manage.py migrate
+    instance_size: XXS
