@@ -9,6 +9,7 @@
         "unpkg": "dist/widget-loader.min.js",
         "build": "nuxt build",
         "dev": "nuxt dev",
+        "start": "nuxt start",
         "generate": "nuxt generate",
         "preview": "nuxt preview",
         "package": "cross-env NODE_ENV=production rollup --config rollup.config.js",
