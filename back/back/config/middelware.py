@@ -2,12 +2,13 @@ from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import AnonymousUser
-from rest_framework.authtoken.models import Token
 
 
 @database_sync_to_async
 def return_user_from_token(token_string):
+    from django.contrib.auth.models import AnonymousUser
+    from rest_framework.authtoken.models import Token
+
     try:
         user = Token.objects.get(key=token_string).user
     except Token.DoesNotExist:
@@ -17,6 +18,8 @@ def return_user_from_token(token_string):
 
 @database_sync_to_async
 def return_user_from_passw(email, passw):
+    from django.contrib.auth.models import AnonymousUser
+
     user = authenticate(email=email, password=passw)
     if user is None:
         user = AnonymousUser()
