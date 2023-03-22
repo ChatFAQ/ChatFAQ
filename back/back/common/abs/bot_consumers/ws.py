@@ -52,7 +52,8 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             return
 
         # It seems like django does not support transactions on async code
-        # The commented code seems right but it is not: it blocks the save() methods inside from the RPCResponseConsumer
+        # The commented code seems right but it is not: it blocks the save()
+        # methods inside from the RPCResponseConsumer
         # @transaction.atomic()
         # def _aux(_serializer):
         #     _serializer.save()
