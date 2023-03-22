@@ -2,7 +2,7 @@
 name: ChatFAQ
 
 databases:
-  psql:
+  - name: psql
     cluster_name: "chatfaq-psql-dev"
     db_name: "{{ deployment_key }}"
     db_user: "{{ deployment_key }}"
