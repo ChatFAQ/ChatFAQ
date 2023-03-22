@@ -6,9 +6,9 @@ from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 from django.urls import re_path
 
-from back.config.midderlware import PassAuthMiddleWare
-
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+
+from back.config.middelware import PassAuthMiddleWare  # noqa B101
 
 
 def make_app(django_app):

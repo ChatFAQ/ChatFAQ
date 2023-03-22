@@ -7,9 +7,10 @@ from rest_framework import serializers
 
 from back.apps.broker.models.message import AgentType
 from back.apps.broker.serializers.messages import (
+    AgentSerializer,
     BotMessageSerializer,
     MessageSerializer,
-    MessageStackSerializer, AgentSerializer,
+    MessageStackSerializer,
 )
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes

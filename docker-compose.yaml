@@ -1,0 +1,52 @@
+---
+version: "3.8"
+services:
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: chatfaq_postgres
+    hostname: chatfaq_postgres
+    mem_limit: 512m
+    volumes:
+      - chatfaq_db_data:/var/lib/postgresql/data/
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata/
+    networks:
+      - chatfaq_db_net
+
+  back:
+    build:
+      context: back
+      dockerfile: Dockerfile
+    image: chatfaq_back
+    container_name: chatfaq_back
+    hostname: chatfaq_back
+    mem_limit: 512m
+    depends_on:
+      - postgres
+    networks:
+      - chatfaq_db_net
+      - chatfaq_back_net
+
+  widget:
+    build:
+      context: widget
+      dockerfile: Dockerfile
+    image: chatfaq_widget
+    container_name: chatfaq_widget
+    mem_limit: 128m
+    depends_on:
+      - back
+    ports:
+      - 3000:3000
+    networks:
+      - default
+      - chatfaq_back_net
+
+volumes:
+  chatfaq_db_data:
+
+networks:
+  chatfaq_db_net:  # postgres, back
+  chatfaq_back_net:  # back, widget
+
