@@ -22,6 +22,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         """
         It will try to get a cached FSM from a provided name or create a new one in case
         there is no one yet (when is a brand-new conversation_id)
+
         Returns
         -------
         bool
