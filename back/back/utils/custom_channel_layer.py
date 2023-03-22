@@ -6,6 +6,7 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
     This is a modification of the original PostgresChannelLayer to fix the next error:
     When a bunch og nre messages are added quickly one after the other with channel_layer.group_send
     then the order of these messages gets messed up apparently.
+
     I figure out it was because when "retrieve_queued_messages_sql" returns no message, then the next query the layer
     executes after waiting for the notification was not considering the order of the messages. The solution I
     implemented has been just to repeat the same original query (which does takes in account the order) right after
