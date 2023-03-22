@@ -23,5 +23,5 @@ jobs:
       - name: Upload manifest
         uses: WithAgency/dogeops-action@main
         env:
-          DOGEOPS_API_URL: ${{ env.DOGEOPS_API_URL }}
+          DOGEOPS_API_URL: ${{ vars.DOGEOPS_API_URL }}
           DOGEOPS_API_KEY: ${{ secrets.DOGEOPS_API_KEY }}
