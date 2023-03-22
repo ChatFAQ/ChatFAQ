@@ -93,3 +93,33 @@ class Message(ChangesMixin):
 
     def cycle_fsm(self):
         pass
+
+    def to_mml_chain(self, chain=[]):
+        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+
+        chain.append(MessageSerializer(self).data)
+        _next = Message.objects.filter(prev=self).first()
+        if _next:
+            return _next.to_mml_chain(chain)
+        return chain
+
+    @classmethod
+    def conversation_chain(cls, conversation_id):
+        first_message = cls.objects.filter(
+            prev__isnull=True,
+            conversation=conversation_id,
+        ).first()
+        return first_message.to_mml_chain() if first_message else []
+
+    @classmethod
+    def conversations_info(cls, transmitter__id):
+        conversations = cls.objects.filter(transmitter__identifier=transmitter__id).values("conversation").distinct().all()
+
+        first_messages = cls.objects.values_list(
+            "conversation", "created_date"
+        ).filter(
+            prev__isnull=True,
+            conversation__in=conversations,
+        )
+
+        return list(first_messages.all())

@@ -3,10 +3,10 @@
         <div class="menu-button" @click="store.darkMode = !store.darkMode">
             <i class="light-mode-icon" :class="{'dark-mode': store.darkMode}"/>
             <span v-if="!store.darkMode">Show dark mode</span>
-            <span v-else>Show light mode</span>
+            <span v-else>{{ $t("showlightmode") }}</span>
         </div>
-        <div class="menu-button"><i class="restart-icon"/>Restart the conversation</div>
-        <div class="menu-button"><i class="email-icon"/>Send a summary by email</div>
+        <div class="menu-button"><i class="restart-icon"/>{{ $t("restarttheconversation") }}</div>
+        <div class="menu-button"><i class="email-icon"/>{{ $t("sendasummarybyemail") }}</div>
     </div>
 </template>
 

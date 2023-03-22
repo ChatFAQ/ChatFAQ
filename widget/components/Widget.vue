@@ -1,10 +1,13 @@
 <template>
     <Suspense>
         <div class="chatfaq-widget">
-            <div v-if="opened" class="widget-wrapper" :class="{'maximized': store.maximized}">
-                <Header class="header"/>
-                <Chat class="chat"/>
-                <Footer class="footer"/>
+            <div v-if="opened" class="widget-wrapper">
+                <History v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
+                <div class="flex-column" :class="{'maximized': store.maximized}">
+                    <Header class="header" :class="{'history': store.historyOpened}"/>
+                    <Chat class="chat" :class="{'history': store.historyOpened}"/>
+                    <Footer class="footer" :class="{'history': store.historyOpened}"/>
+                </div>
             </div>
             <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'"/></div>
         </div>
@@ -18,11 +21,12 @@ import {ref, defineProps} from "vue";
 const opened = ref();
 const store = useGlobalStore();
 
-const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "title", "subtitle"]);
+const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "userId", "title", "subtitle"]);
 
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
 store.fsmDef = props.fsmDef;
+store.userId = props.userId;
 store.title = props.title;
 store.subtitle = props.subtitle;
 
@@ -37,36 +41,65 @@ store.subtitle = props.subtitle;
 
 $widget-open-button-margin: 24px;
 
-.widget-wrapper {
-    width: 400px;
+.widget-history {
+    background: $chatfaq-color-gradient-purple;
+    width: 220px;
     height: 580px;
+    &.maximized {
+        height: 85vh;
+    }
+    border-radius: 10px 0px 0px 10px;
+    border-top: 2px solid $chatfaq-color-primary-500;
+    border-bottom: 2px solid $chatfaq-color-primary-500;
+    border-left: 2px solid $chatfaq-color-primary-500;
+}
+.widget-wrapper {
     position: absolute;
     display: flex;
     align-items: stretch;
-    flex-flow: column;
+    flex-flow: row;
     bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
     right: 0px;
     margin: 16px;
-    &.maximized {
-        width: 70vw;
-        height: 85vh;
+
+    .flex-column {
+        &.maximized {
+            width: 70vw;
+            height: 85vh;
+        }
+        display: flex;
+        width: 400px;
+        height: 580px;
+        align-items: stretch;
+        flex-flow: column;
     }
 }
 
 
-.widget-wrapper > .header {
+.widget-wrapper > .flex-column > .header {
     border: 2px solid $chatfaq-color-primary-500;
     border-radius: 10px 10px 0px 0px;
+    &.history {
+        border-radius: 0px 10px 0px 0px;
+        border-left: 0px;
+    }
 }
-.widget-wrapper > .chat {
+.widget-wrapper > .flex-column > .chat {
     position: relative;
     height: 100%;
     border-left: 2px solid $chatfaq-color-primary-500;
     border-right: 2px solid $chatfaq-color-primary-500;
+    &.history {
+        border-left: 0px;
+    }
 }
-.widget-wrapper > .footer {
+.widget-wrapper > .flex-column > .footer {
     border: 2px solid $chatfaq-color-primary-500;
     border-radius: 0px 0px 10px 10px;
+    &.history {
+        border-radius: 0px 0px 10px 0px;
+        border-left: 0px;
+    }
 }
 
 

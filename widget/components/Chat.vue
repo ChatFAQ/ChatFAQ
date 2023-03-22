@@ -18,7 +18,7 @@
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <input
-                placeholder="Write a question here..."
+                :placeholder="$t('writeaquestionhere')"
                 v-model="promptValue"
                 class="chat-prompt"
                 :class="{ 'dark-mode': store.darkMode }"
@@ -73,12 +73,18 @@ function sendMessage() {
     if (!promptValue.value.length)
         return;
     const m = {
-        "transmitter": {"type": "user"},
+        "transmitter": {
+            "type": "human",
+            "platform": "WS",
+        },
         "stacks": [[{
             "type": "text",
             "payload": promptValue.value,
         }]],
     };
+    if (store.userId !== undefined)
+        m["transmitter"]["identifier"] = store.userId
+
     messages.value.push(m);
     ws.send(JSON.stringify(m));
     promptValue.value = "";
@@ -209,7 +215,7 @@ function isFirstOfType(msg, flatStack) {
         }
     }
 
-    &.user {
+    &.human {
         border: none;
         background-color: $chatfaq-color-primary-500;
         color: $chatfaq-color-neutral-white;

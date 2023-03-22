@@ -9,7 +9,7 @@ from back.apps.broker.models.message import AgentType
 from back.apps.broker.serializers.messages import (
     BotMessageSerializer,
     MessageSerializer,
-    MessageStackSerializer,
+    MessageStackSerializer, AgentSerializer,
 )
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
@@ -24,6 +24,7 @@ class ExampleWSSerializer(BotMessageSerializer):
     stacks = serializers.ListField(
         child=serializers.ListField(child=MessageStackSerializer())
     )
+    transmitter = AgentSerializer()
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
 
@@ -34,10 +35,7 @@ class ExampleWSSerializer(BotMessageSerializer):
         s = MessageSerializer(
             data={
                 "stacks": self.data["stacks"],
-                "transmitter": {
-                    "type": AgentType.human.value,
-                    "platform": "WS",
-                },
+                "transmitter": self.data["transmitter"],
                 "send_time": int(time.time() * 1000),
                 "conversation": ctx.conversation_id,
                 "prev": last_mml.pk if last_mml else None,

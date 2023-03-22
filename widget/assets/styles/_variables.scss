@@ -54,6 +54,7 @@
     --chatfaq-minimize-icon: url('~/assets/icons/minimize.svg');
     --chatfaq-dot-menu-icon: url('~/assets/icons/dot-menu.svg');
     --chatfaq-dot-menu-hovered-icon: url('~/assets/icons/dot-menu-hovered.svg');
+    --chatfaq-clock: url('~/assets/icons/clock.svg');
     --chatfaq-logo-icon: url('~/assets/icons/logo.svg');
     --chatfaq-logo-long-icon: url('~/assets/icons/logo-long.svg');
     --chatfaq-send-icon: url('~/assets/icons/send.svg');
@@ -62,6 +63,8 @@
     --chatfaq-sun-icon: url('~/assets/icons/sun.svg');
     --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
     --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
+    --chatfaq-checkbox: url('~/assets/icons/checkbox.svg');
+    --chatfaq-checkbox-checked: url('~/assets/icons/checkbox-checked.svg');
 
      /* Sizes */
 
@@ -122,6 +125,7 @@ $chatfaq-maximize-icon: var(--chatfaq-maximize-icon);
 $chatfaq-minimize-icon: var(--chatfaq-minimize-icon);
 $chatfaq-dot-menu-icon: var(--chatfaq-dot-menu-icon);
 $chatfaq-dot-menu-hovered-icon: var(--chatfaq-dot-menu-hovered-icon);
+$chatfaq-clock: var(--chatfaq-clock);
 $chatfaq-logo-icon: var(--chatfaq-logo-icon);
 $chatfaq-logo-long-icon: var(--chatfaq-logo-long-icon);
 $chatfaq-send-icon: var(--chatfaq-send-icon);
@@ -130,6 +134,9 @@ $chatfaq-moon-icon: var(--chatfaq-moon-icon);
 $chatfaq-sun-icon: var(--chatfaq-sun-icon);
 $chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
 $chatfaq-mail-icon: var(--chatfaq-mail-icon);
+$chatfaq-checkbox: var(--chatfaq-checkbox);
+$chatfaq-checkbox-checked: var(--chatfaq-checkbox-checked);
+
 
  /* Sizes */
 
