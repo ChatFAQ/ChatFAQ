@@ -24,5 +24,5 @@ jobs:
         uses: WithAgency/dogeops-action@main
         env:
           # vars context is not implemented in act yet
-          DOGEOPS_API_URL: ${{ secrets.DOGEOPS_API_URL }}
+          DOGEOPS_API_URL: ${{ env.DOGEOPS_API_URL }}
           DOGEOPS_API_KEY: ${{ secrets.DOGEOPS_API_KEY }}
