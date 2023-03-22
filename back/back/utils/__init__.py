@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 
 class ToTempFile(object):
     """
-    this helper is used on this project mainly for storing the certificate which are
+    This helper is used on this project mainly for storing the certificate which are
     in environment variables into temporary files which will immediately be
     deleted when finished its usage.
 
