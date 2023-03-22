@@ -12,8 +12,8 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
     Given a set of consumer callables, awaits on them all and passes results
     from them to the dispatch awaitable as they come in.
 
-    This is a modification of channels/utils.py (await_many_dispatch) just so multiple tasks of the same consumer get
-    executed in parallel.
+    This is a modification of channels/utils.py (await_many_dispatch) just so multiple
+    tasks of the same consumer get executed in parallel.
     """
     # Start them all off as tasks
     loop = asyncio.get_event_loop()
