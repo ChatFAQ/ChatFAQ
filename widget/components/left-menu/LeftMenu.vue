@@ -68,7 +68,7 @@ conversations.value = await response.json();
     }
 
     .other-buttons {
-        height: 100%;
+        height: fit-content;
         display: flex;
         flex-direction: column-reverse;
 
