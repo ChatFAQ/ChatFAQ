@@ -7,7 +7,7 @@
 
 <script setup>
 
-import MenuItem from "~/components/left-menu/MenuItem.vue";
+import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 </script>
 
 

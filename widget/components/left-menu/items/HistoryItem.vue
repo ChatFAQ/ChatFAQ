@@ -7,7 +7,7 @@
 
 <script setup>
 import {ref} from 'vue';
-import MenuItem from "~/components/left-menu/MenuItem.vue";
+import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 
 const props = defineProps(["title", "conversationId"]);
 
