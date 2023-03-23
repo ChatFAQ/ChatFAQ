@@ -22,8 +22,9 @@ function timestampToSentence(isoString) {
 @import "../assets/styles/variables";
 
 .history-item {
+    padding: 8px 8px 8px 8px;
+
     color: $chatfaq-color-neutral-white;
-    /* identical to box height */
 
     letter-spacing: 0.5px;
     i {

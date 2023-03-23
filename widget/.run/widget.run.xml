@@ -1,11 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="widget" type="js.build_tools.npm">
-    <package-json value="$PROJECT_DIR$/widget/package.json" />
+    <package-json value="$PROJECT_DIR$/../widget/package.json" />
     <command value="run" />
     <scripts>
       <script value="dev" />
     </scripts>
-    <node-interpreter value="project" />
+    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v19.6.0/bin/node" />
     <envs />
     <method v="2" />
   </configuration>

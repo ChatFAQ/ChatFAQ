@@ -1,6 +1,9 @@
 <template>
     <div class="conversations">
-        <div v-for="conversation in conversations" class="conversation">
+        <div class="conversation-item new-conversation">
+            <HistoryNewConversationItem></HistoryNewConversationItem>
+        </div>
+        <div v-for="conversation in conversations" class="conversation-item">
             <HistoryItem :conversation-id="conversation[0]" :title="conversation[1]"/>
         </div>
     </div>
@@ -28,6 +31,7 @@ function timestampToSentence(isoString) {
 @import "../assets/styles/variables";
 
 .conversations {
+    font-size: 14px;
     overflow-y: scroll;
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
@@ -35,17 +39,18 @@ function timestampToSentence(isoString) {
         display: none;
     }
 
-    .conversation {
+    .conversation-item {
+        &.new-conversation {
+            margin-top: 16px;
+            background: rgba(223, 218, 234, 0.1);
+        }
         margin-left: 14px;
         margin-right: 14px;
 
-        padding-left: 10px;
-        padding-right: 10px;
-        padding-top: 7px;
-        padding-bottom: 7px;
+        padding: 7px 10px;
 
         &:hover {
-            background: rgba(223, 218, 234, 0.1);
+            // background: rgba(223, 218, 234, 0.1);
             cursor: pointer;
         }
 

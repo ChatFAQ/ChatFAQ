@@ -8,9 +8,6 @@
         <div class="menu-button" @click="store.menuOpened = !store.menuOpened">
             <i/>
         </div>
-        <div class="history-button" :class="{'active': store.historyOpened}"  @click="store.historyOpened = !store.historyOpened">
-            <i />
-        </div>
         <Menu class="menu" v-if="store.menuOpened"/>
         <div class="maximizer" @click="store.maximized = !store.maximized">
             <i :class="{'maximized': store.maximized}" />
@@ -81,21 +78,6 @@ const store = useGlobalStore();
             }
             i {
                 content: $chatfaq-dot-menu-icon;
-            }
-        }
-        &.history-button {
-            cursor: pointer;
-            margin-left: 10px;
-            position: relative;
-            width: 32px;
-            height: 32px;
-            border-radius: 32px;
-            display: flex;
-            &:hover,&.active {
-                background: $chatfaq-color-primary-900;
-            }
-            i {
-                content: $chatfaq-clock;
             }
         }
         &.logo {

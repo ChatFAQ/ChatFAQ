@@ -5,7 +5,7 @@
             <span v-if="!store.darkMode">Show dark mode</span>
             <span v-else>{{ $t("showlightmode") }}</span>
         </div>
-        <div class="menu-button"><i class="restart-icon"/>{{ $t("restarttheconversation") }}</div>
+        <div class="menu-button" @click="store.historyOpened = !store.historyOpened"><i class="history-icon"/>{{ $t("showhistory") }}</div>
         <div class="menu-button"><i class="email-icon"/>{{ $t("sendasummarybyemail") }}</div>
     </div>
 </template>
@@ -48,8 +48,8 @@ const store = useGlobalStore();
         }
     }
 
-    .restart-icon {
-        content: $chatfaq-refresh-icon;
+    .history-icon {
+        content: $chatfaq-clock;
     }
 
     .email-icon {
