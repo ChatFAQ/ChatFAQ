@@ -24,10 +24,10 @@ function timestampToSentence(isoString) {
 @import "../assets/styles/variables";
 
 .checkbox {
-    content: $chatfaq-checkbox;
+    content: $chatfaq-checkbox-icon;
 
     &.checked {
-        content: $chatfaq-checkbox-checked;
+        content: $chatfaq-checkbox-checked-icon;
     }
 }
 </style>

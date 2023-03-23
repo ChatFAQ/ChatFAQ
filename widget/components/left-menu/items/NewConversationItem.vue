@@ -15,7 +15,7 @@ import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 @import "../assets/styles/variables";
 
 .plus {
-    content: $chatfaq-plus;
+    content: $chatfaq-plus-icon;
 }
 </style>
 

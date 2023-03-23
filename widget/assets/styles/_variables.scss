@@ -53,6 +53,7 @@
     --chatfaq-maximize-icon: url('~/assets/icons/maximize.svg');
     --chatfaq-minimize-icon: url('~/assets/icons/minimize.svg');
     --chatfaq-dot-menu-icon: url('~/assets/icons/dot-menu.svg');
+    --chatfaq-hamburguer-icon: url('~/assets/icons/hamburguer.svg');
     --chatfaq-dot-menu-hovered-icon: url('~/assets/icons/dot-menu-hovered.svg');
     --chatfaq-clock: url('~/assets/icons/clock.svg');
     --chatfaq-logo-icon: url('~/assets/icons/logo.svg');
@@ -63,9 +64,11 @@
     --chatfaq-sun-icon: url('~/assets/icons/sun.svg');
     --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
     --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
-    --chatfaq-checkbox: url('~/assets/icons/checkbox.svg');
-    --chatfaq-checkbox-checked: url('~/assets/icons/checkbox-checked.svg');
-    --chatfaq-plus: url('~/assets/icons/plus.svg');
+    --chatfaq-checkbox-icon: url('~/assets/icons/checkbox.svg');
+    --chatfaq-checkbox-checked-icon: url('~/assets/icons/checkbox-checked.svg');
+    --chatfaq-plus-icon: url('~/assets/icons/plus.svg');
+    --chatfaq-double-arrow-right-icon: url('~/assets/icons/double-arrow-right.svg');
+
 
      /* Sizes */
 
@@ -125,6 +128,7 @@ $chatfaq-bubble-button-close-icon: var(--chatfaq-bubble-button-close-icon);
 $chatfaq-maximize-icon: var(--chatfaq-maximize-icon);
 $chatfaq-minimize-icon: var(--chatfaq-minimize-icon);
 $chatfaq-dot-menu-icon: var(--chatfaq-dot-menu-icon);
+$chatfaq-hamburguer-icon: var(--chatfaq-hamburguer-icon);
 $chatfaq-dot-menu-hovered-icon: var(--chatfaq-dot-menu-hovered-icon);
 $chatfaq-clock: var(--chatfaq-clock);
 $chatfaq-logo-icon: var(--chatfaq-logo-icon);
@@ -135,9 +139,10 @@ $chatfaq-moon-icon: var(--chatfaq-moon-icon);
 $chatfaq-sun-icon: var(--chatfaq-sun-icon);
 $chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
 $chatfaq-mail-icon: var(--chatfaq-mail-icon);
-$chatfaq-checkbox: var(--chatfaq-checkbox);
-$chatfaq-checkbox-checked: var(--chatfaq-checkbox-checked);
-$chatfaq-plus: var(--chatfaq-plus);
+$chatfaq-checkbox-icon: var(--chatfaq-checkbox-icon);
+$chatfaq-checkbox-checked-icon: var(--chatfaq-checkbox-checked-icon);
+$chatfaq-plus-icon: var(--chatfaq-plus-icon);
+$chatfaq-double-arrow-right-icon: var(--chatfaq-double-arrow-right-icon);
 
 
  /* Sizes */
