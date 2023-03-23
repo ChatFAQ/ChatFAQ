@@ -8,10 +8,19 @@
 <script setup>
 import {ref} from 'vue';
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
+import {useGlobalStore} from "~/store";
+const store = useGlobalStore();
 
 const props = defineProps(["title", "conversationId"]);
 
 const selected = ref(false)
+
+watch(selected, (newVal) => {
+    if (newVal)
+        store.selectedConversations.push(props.conversationId)
+    else
+        store.selectedConversations.splice(store.selectedConversations.indexOf(props.conversationId), 1);
+})
 
 function timestampToSentence(isoString) {
     return (new Date(isoString)).toString().split(" GMT")[0]

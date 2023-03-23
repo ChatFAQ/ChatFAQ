@@ -5,5 +5,6 @@
     "sendasummary": "Send a summary",
     "showhistory": "Show history",
     "newconversation": "New conversation",
-    "clearhistory": "Clear history"
+    "clearhistory": "Clear history",
+    "deleteselected": "Delete selected"
 }
