@@ -71,17 +71,6 @@ conversations.value = await response.json();
         }
     }
 
-    .other-buttons {
-        height: fit-content;
-        display: flex;
-        flex-direction: column-reverse;
-
-        .left-menu-item {
-            &:first-child {
-                margin-bottom: 16px;
-            }
-        }
-    }
 
     .new-conversation {
         .left-menu-item {
@@ -100,6 +89,24 @@ conversations.value = await response.json();
             cursor: pointer;
         }
 
+    }
+    .other-buttons {
+        height: fit-content;
+        display: flex;
+        flex-direction: column-reverse;
+
+        .left-menu-item {
+            margin-left: 0px;
+            margin-right: 0px;
+            padding-left: 14px;
+            padding-right: 14px;
+            &:first-child {
+                margin-bottom: 16px;
+            }
+            &:hover {
+                background-color: $chatfaq-color-primary-900;
+            }
+        }
     }
 }
 </style>
