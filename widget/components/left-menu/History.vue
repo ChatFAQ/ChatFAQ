@@ -1,7 +1,7 @@
 <template>
     <div class="conversations">
         <div class="conversation-item new-conversation">
-            <HistoryNewConversationItem></HistoryNewConversationItem>
+            <HistoryNewConversationItem/>
         </div>
         <div v-for="conversation in conversations" class="conversation-item">
             <HistoryItem :conversation-id="conversation[0]" :title="conversation[1]"/>
@@ -12,6 +12,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useGlobalStore } from "~/store";
+import HistoryNewConversationItem from "~/components/left-menu/HistoryNewConversationItem.vue";
+import HistoryItem from "~/components/left-menu/HistoryItem.vue";
 
 const store = useGlobalStore();
 

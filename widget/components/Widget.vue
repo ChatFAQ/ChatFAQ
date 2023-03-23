@@ -17,6 +17,10 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import {ref, defineProps} from "vue";
+import History from "~/components/left-menu/History.vue";
+import Footer from "~/components/chat/Footer.vue";
+import Header from "~/components/chat/Header.vue";
+import Chat from "~/components/chat/Chat.vue";
 
 const opened = ref();
 const store = useGlobalStore();
