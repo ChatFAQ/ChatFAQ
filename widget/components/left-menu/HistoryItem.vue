@@ -1,11 +1,13 @@
 <template>
-    <div class="history-item">
-        <i class="checkbox" :class="{'checked': selected}" @click="selected = !selected"/> {{ timestampToSentence(title) }}
-    </div>
+    <MenuItem>
+        <i class="checkbox" :class="{'checked': selected}" @click="selected = !selected"/>
+        <span> {{ timestampToSentence(title) }}</span>
+    </MenuItem>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import {ref} from 'vue';
+import MenuItem from "~/components/left-menu/MenuItem.vue";
 
 const props = defineProps(["title", "conversationId"]);
 
@@ -21,21 +23,11 @@ function timestampToSentence(isoString) {
 <style lang="scss" scoped>
 @import "../assets/styles/variables";
 
-.history-item {
-    padding: 8px 8px 8px 8px;
+.checkbox {
+    content: $chatfaq-checkbox;
 
-    color: $chatfaq-color-neutral-white;
-
-    letter-spacing: 0.5px;
-    i {
-        margin-right: 5px;
-    }
-    .checkbox {
-        content: $chatfaq-checkbox;
-
-        &.checked {
-            content: $chatfaq-checkbox-checked;
-        }
+    &.checked {
+        content: $chatfaq-checkbox-checked;
     }
 }
 </style>

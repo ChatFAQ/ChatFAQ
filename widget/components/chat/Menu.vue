@@ -6,7 +6,7 @@
             <span v-else>{{ $t("showlightmode") }}</span>
         </div>
         <div class="menu-button" @click="store.historyOpened = !store.historyOpened"><i class="history-icon"/>{{ $t("showhistory") }}</div>
-        <div class="menu-button"><i class="email-icon"/>{{ $t("sendasummarybyemail") }}</div>
+        <div class="menu-button"><i class="email-icon"/>{{ $t("sendasummary") }}</div>
     </div>
 </template>
 

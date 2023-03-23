@@ -5,10 +5,9 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="menu-button" @click="store.menuOpened = !store.menuOpened">
+        <div class="menu-button" @click="store.historyOpened = !store.historyOpened">
             <i/>
         </div>
-        <Menu class="menu" v-if="store.menuOpened"/>
         <div class="maximizer" @click="store.maximized = !store.maximized">
             <i :class="{'maximized': store.maximized}" />
         </div>
@@ -30,7 +29,7 @@ const store = useGlobalStore();
     display: flex;
     background: $chatfaq-color-gradient-purple;
     color: $chatfaq-color-neutral-white !important;
-
+    /*
     .menu {
         margin: 0px;
         position: absolute;
@@ -38,6 +37,7 @@ const store = useGlobalStore();
         top: 80px;
         right: 60px;;
     }
+    */
 
     > * {
         margin-top: 30px;

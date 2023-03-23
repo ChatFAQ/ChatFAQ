@@ -2,7 +2,7 @@
     <Suspense>
         <div class="chatfaq-widget">
             <div v-if="opened" class="widget-wrapper">
-                <History v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
+                <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
                 <div class="flex-column" :class="{'maximized': store.maximized}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened}"/>
@@ -17,7 +17,7 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import {ref, defineProps} from "vue";
-import History from "~/components/left-menu/History.vue";
+import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Footer from "~/components/chat/Footer.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
