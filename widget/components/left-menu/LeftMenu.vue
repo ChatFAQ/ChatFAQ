@@ -55,6 +55,7 @@ conversations.value = await response.json();
     color: $chatfaq-color-neutral-white;
 
     .conversations {
+        height: 100%;
         overflow-y: scroll;
         -ms-overflow-style: none; /* IE and Edge */
         scrollbar-width: none; /* Firefox */
