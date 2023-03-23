@@ -15,7 +15,6 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
-import Menu from "~/components/chat/Menu.vue";
 
 const store = useGlobalStore();
 </script>
