@@ -1,9 +1,12 @@
 <template>
     <div class="left-menu-wrapper">
-        <div class="conversations">
-            <div class="left-menu-item new-conversation">
+        <div class="new-conversation">
+            <div class="left-menu-item">
                 <NewConversationItem/>
             </div>
+
+        </div>
+        <div class="conversations">
             <div v-for="conversation in conversations" class="left-menu-item">
                 <HistoryItem :conversation-id="conversation[0]" :title="conversation[1]"/>
             </div>
@@ -80,13 +83,17 @@ conversations.value = await response.json();
         }
     }
 
+    .new-conversation {
+        .left-menu-item {
+            margin-top: 16px;
+            margin-bottom: 8px;
+            background: rgba(223, 218, 234, 0.1);
+        }
+    }
     .left-menu-item {
         margin-left: 14px;
         margin-right: 14px;
 
-        &.new-conversation {
-            background: rgba(223, 218, 234, 0.1);
-        }
 
         &:hover {
             // background: rgba(223, 218, 234, 0.1);
