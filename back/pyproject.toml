@@ -12,7 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "~3.10"
 modelw-preset-django = {extras = ["channels"], version = "~2022.10.0b8", allow-prereleases = true}
-drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
+drf-spectacular = {extras = ["sidecar"], version = "^0.26.1"}
 channels = "^4.0.0"
 daphne = "^4.0.0"
 Django = "^4.1.4"
