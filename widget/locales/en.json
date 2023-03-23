@@ -4,5 +4,6 @@
     "restarttheconversation": "Restart the conversation",
     "sendasummary": "Send a summary",
     "showhistory": "Show history",
-    "newconversation": "New conversation"
+    "newconversation": "New conversation",
+    "clearhistory": "Clear history"
 }

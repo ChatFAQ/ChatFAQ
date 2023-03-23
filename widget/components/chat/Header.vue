@@ -56,6 +56,7 @@ const store = useGlobalStore();
 
             i {
                 width: 32px;
+                margin: auto;
                 content: $chatfaq-maximize-icon;
 
                 &.maximized {
