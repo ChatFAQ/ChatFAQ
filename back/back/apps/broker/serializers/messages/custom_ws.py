@@ -32,14 +32,12 @@ class ExampleWSSerializer(BotMessageSerializer):
         if not self.is_valid():
             return False
 
-        last_mml = async_to_sync(ctx.get_last_mml)()
         s = MessageSerializer(
             data={
                 "stacks": self.data["stacks"],
                 "transmitter": self.data["transmitter"],
                 "send_time": int(time.time() * 1000),
                 "conversation": ctx.conversation_id,
-                "prev": last_mml.pk if last_mml else None,
             }
         )
         if not s.is_valid():

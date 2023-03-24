@@ -148,3 +148,11 @@ class Message(ChangesMixin):
         )
 
         return list(first_messages.all())
+
+    @classmethod
+    def get_last_mml(cls, conversation_id):
+        return cls.objects.filter(conversation=conversation_id).order_by("-created_date").first()
+
+    def save(self, *args, **kwargs):
+        self.prev = Message.get_last_mml(self.conversation)
+        super(Message, self).save(*args, **kwargs)

@@ -228,7 +228,6 @@ class FSM:
     async def save_bot_mml(self, stacks):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
-        last_mml = await self.ctx.get_last_mml()
         serializer = MessageSerializer(
             data={
                 "transmitter": {
@@ -238,7 +237,6 @@ class FSM:
                 "stacks": stacks,
                 "conversation": self.ctx.conversation_id,
                 "send_time": int(time.time() * 1000),
-                "prev": last_mml.pk if last_mml else None,
             }
         )
         await sync_to_async(serializer.is_valid)()

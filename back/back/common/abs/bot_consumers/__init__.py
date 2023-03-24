@@ -107,32 +107,15 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     def set_fsm_def(self, fsm_def):
         self.fsm_def = fsm_def
 
-    async def get_last_mml(
-        self,
-    ):
-
-        """
-        Utility function just to gather the last message on the conversation, it is ofter useful to know what to respond to!
-
-        Returns
-        -------
-        Message
-            Last message from the conversation
-
-        """
-        from back.apps.broker.models.message import Message  # TODO: CI
-
-        return await sync_to_async(
-            Message.objects.filter(conversation=self.conversation_id)
-            .order_by("-created_date")
-            .first
-        )()
-
     async def serialize(self):
         """
         We serialize the ctx just so we can send it to the RPC Servers
         """
-        last_mml = await self.get_last_mml()
+        from back.apps.broker.models.message import Message  # TODO: CI
+        last_mml = await sync_to_async(
+            Message.get_last_mml
+        )(self.conversation_id)
+
         last_mml = model_to_dict(last_mml, fields=["stacks"]) if last_mml else None
         return {
             "conversation_id": self.conversation_id,

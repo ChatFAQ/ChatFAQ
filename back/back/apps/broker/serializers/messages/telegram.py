@@ -52,7 +52,6 @@ class TelegramMessageSerializer(BotMessageSerializer):
 
         if not self.is_valid():
             return False
-        last_mml = async_to_sync(ctx.get_last_mml)()
         s = MessageSerializer(
             data={
                 "stacks": [
@@ -70,7 +69,6 @@ class TelegramMessageSerializer(BotMessageSerializer):
                 },
                 "send_time": self.validated_data["message"]["date"] * 1000,
                 "conversation": self.validated_data["message"]["chat"]["id"],
-                "prev": last_mml.pk if last_mml else None,
             }
         )
         if not s.is_valid():
