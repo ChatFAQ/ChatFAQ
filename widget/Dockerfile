@@ -11,7 +11,7 @@ COPY package.json package-lock.json ./
 
 COPY . .
 
-RUN npm ci --prefer-local \
+RUN npm ci --omit dev \
     && npx nuxt build
 
 FROM node:18-alpine
@@ -21,12 +21,13 @@ RUN apk update  \
     && apk --no-cache add dumb-init \
     && adduser -D nuxtuser
 
-USER nuxtuser
-WORKDIR /app
-
 # copy the output directory to the /app directory from
 # build stage with proper permissions for user nuxt user
-COPY --chown=nuxtuser:nuxtuser --from=build /app/.output /app/node_modules ./
+COPY --chown=nuxtuser:nuxtuser --from=build /app/.output ./
+COPY --chown=nuxtuser:nuxtuser --from=build /app/node_modules ./
+
+USER nuxtuser
+WORKDIR /app
 
 # set app host and port . In nuxt 3 this is based on nitor and you can read
 #more on this https://nitro.unjs.io/deploy/node#environment-variables
