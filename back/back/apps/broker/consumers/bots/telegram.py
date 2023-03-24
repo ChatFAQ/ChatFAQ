@@ -26,28 +26,29 @@ class TelegramBotConsumer(HTTPBotConsumer):
         return await sync_to_async(FSMDefinition.objects.first)()
 
     @classmethod
-    def platform_url_path(self) -> str:
-        return f"back/webhooks/broker/telegram/{self.TOKEN}"
+    def platform_url_paths(self) -> str:
+        yield f"back/webhooks/broker/telegram/{self.TOKEN}"
 
     @classmethod
     def register(cls):
         if not cls.TOKEN:
             return
 
-        webhookUrl = urljoin(settings.BASE_URL, cls.platform_url_path())
-        logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
-        res = requests.get(
-            f"{cls.API_URL}{cls.TOKEN}/setWebhook",
-            params={"url": webhookUrl},
-        )
-        if res.ok:
-            logger.debug(
-                f"Successfully notified  WebhookUrl ({webhookUrl}) to Telegram"
+        for platform_url_path in cls.platform_url_paths():
+            webhookUrl = urljoin(settings.BASE_URL, platform_url_path)
+            logger.debug(f"Notifying to Telegram our WebHook Url: {webhookUrl}")
+            res = requests.get(
+                f"{cls.API_URL}{cls.TOKEN}/setWebhook",
+                params={"url": webhookUrl},
             )
-        else:
-            logger.error(
-                f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
-            )
+            if res.ok:
+                logger.debug(
+                    f"Successfully notified  WebhookUrl ({webhookUrl}) to Telegram"
+                )
+            else:
+                logger.error(
+                    f"Error notifying  WebhookUrl ({webhookUrl}) to Telegram: {res.text}"
+                )
 
     async def send_response(self, mml: Message):
         async with httpx.AsyncClient() as client:

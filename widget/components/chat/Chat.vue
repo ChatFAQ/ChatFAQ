@@ -46,7 +46,8 @@ const ws = new WebSocket(
     + conversationID
     + "/"
     + store.fsmDef
-    + "/",
+    + "/"
+    + (store.userId ? `${store.userId}/` : "")
 );
 ws.onmessage = function (e) {
     messages.value.push(JSON.parse(e.data));

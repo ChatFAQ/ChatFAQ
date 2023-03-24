@@ -24,8 +24,9 @@ class CustomWSBotConsumer(WSBotConsumer):
         return await sync_to_async(FSMDefinition.objects.get)(name=name)
 
     @classmethod
-    def platform_url_path(self) -> str:
-        return r"back/ws/broker/(?P<conversation>\w+)/(?P<fsm_def>\w+)/$"
+    def platform_url_paths(cls) -> str:
+        yield r"back/ws/broker/(?P<conversation>[\w-]+)/(?P<fsm_def>[\w-]+)/$"
+        yield r"back/ws/broker/(?P<conversation>[\w-]+)/(?P<fsm_def>[\w-]+)/(?P<transmitter_id>[\w-]+)/$"
 
     @classmethod
     def register(cls):

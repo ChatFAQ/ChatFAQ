@@ -26,9 +26,9 @@ def set_up_platform_urls(_http_urlpatterns, _ws_urlpatterns):
 
     for pc in BrokerMetaClass.registry:
         if issubclass(pc, HTTPBotConsumer):
-            _http_urlpatterns.append(pc.build_path())
+            _http_urlpatterns += list(pc.build_path())
         elif issubclass(pc, WSBotConsumer):
-            _ws_urlpatterns.append(pc.build_path())
+            _ws_urlpatterns += list(pc.build_path())
 
 
 set_up_platform_urls(http_urlpatterns, websocket_urlpatterns)

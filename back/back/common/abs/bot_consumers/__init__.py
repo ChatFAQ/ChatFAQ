@@ -124,16 +124,17 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
     # ---------- Broker methods ----------
     @classmethod
-    def platform_url_path(cls) -> str:
+    def platform_url_paths(cls) -> str:
         """
-        For controlling the view's url depending on the platform type since this name will
+        For controlling the view's urls depending on the platform type since this name will
         most likely depend on the metadata of the platform
         """
         raise NotImplementedError
 
     @classmethod
     def build_path(cls):
-        return re_path(cls.platform_url_path(), cls.as_asgi())
+        for platform_url_path in cls.platform_url_paths():
+            yield re_path(platform_url_path, cls.as_asgi())
 
     @classmethod
     def register(cls):
