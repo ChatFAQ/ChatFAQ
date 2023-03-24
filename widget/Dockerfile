@@ -22,7 +22,7 @@ RUN apk update  \
 # copy the output directory to the /app directory from
 # build stage with proper permissions for user nuxt user
 COPY --chown=nuxtuser:nuxtuser --from=build /app/.output ./
-#COPY --chown=nuxtuser:nuxtuser --from=build /app/node_modules ./
+COPY --chown=nuxtuser:nuxtuser --from=build /app/node_modules ./
 
 USER nuxtuser
 WORKDIR /app
