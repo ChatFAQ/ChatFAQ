@@ -11,8 +11,10 @@ COPY package.json package-lock.json ./
 
 COPY . .
 
-RUN npm ci --omit dev \
-    && npx nuxt build
+RUN NO_UPDATE_NOTIFIER=1 npm ci  \
+    --no-audit \
+    --no-fund \
+    && npm run build
 
 FROM node:18-alpine
 
@@ -24,7 +26,7 @@ RUN apk update  \
 # copy the output directory to the /app directory from
 # build stage with proper permissions for user nuxt user
 COPY --chown=nuxtuser:nuxtuser --from=build /app/.output ./
-COPY --chown=nuxtuser:nuxtuser --from=build /app/node_modules ./
+#COPY --chown=nuxtuser:nuxtuser --from=build /app/node_modules ./
 
 USER nuxtuser
 WORKDIR /app
