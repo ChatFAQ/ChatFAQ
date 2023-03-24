@@ -23,6 +23,9 @@ class CustomWSBotConsumer(WSBotConsumer):
         name = self.scope["url_route"]["kwargs"]["fsm_def"]
         return await sync_to_async(FSMDefinition.objects.get)(name=name)
 
+    async def gather_user_id(self):
+        return self.scope["url_route"]["kwargs"]["transmitter_id"]
+
     @classmethod
     def platform_url_paths(cls) -> str:
         yield r"back/ws/broker/(?P<conversation>[\w-]+)/(?P<fsm_def>[\w-]+)/$"

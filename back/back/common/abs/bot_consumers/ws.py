@@ -25,6 +25,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.set_conversation_id(self.gather_conversation_id())
         self.set_fsm_def(await self.gather_fsm_def())
+        self.set_user_id(await self.gather_user_id())
 
         # TODO: Support cached FSM ???
         self.fsm = self.fsm_def.build_fsm(self)

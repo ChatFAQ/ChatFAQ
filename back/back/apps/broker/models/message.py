@@ -2,6 +2,7 @@ from enum import Enum
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q
 
 from back.common.models import ChangesMixin
 
@@ -136,7 +137,7 @@ class Message(ChangesMixin):
     @classmethod
     def conversations_info(cls, transmitter__id):
         conversations = (
-            cls.objects.filter(transmitter__identifier=transmitter__id)
+            cls.objects.filter(Q(transmitter__identifier=transmitter__id) | Q(receiver__identifier=transmitter__id))
             .values("conversation")
             .distinct()
             .all()

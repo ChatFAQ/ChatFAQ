@@ -81,11 +81,11 @@ class AgentSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[n.value for n in AgentType])
     platform = serializers.CharField(required=False, max_length=255)
 
-    class Meta:
-
-        validators = [
-            PresentTogether(fields=[{"type": AgentType.human.value}, "platform"])
-        ]
+    # class Meta:
+    #
+    #     validators = [
+    #         PresentTogether(fields=[{"type": AgentType.human.value}, "platform"])
+    #     ]
 
 
 class QuickReplySerializer(serializers.Serializer):

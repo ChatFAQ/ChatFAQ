@@ -228,16 +228,26 @@ class FSM:
     async def save_bot_mml(self, stacks):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
-        serializer = MessageSerializer(
-            data={
-                "transmitter": {
-                    "type": AgentType.bot.value,
-                },
-                "confidence": 1,
-                "stacks": stacks,
-                "conversation": self.ctx.conversation_id,
-                "send_time": int(time.time() * 1000),
+        data = {
+            "transmitter": {
+                "type": AgentType.bot.value,
+            },
+            "confidence": 1,
+            "stacks": stacks,
+            "conversation": self.ctx.conversation_id,
+            "send_time": int(time.time() * 1000),
+        }
+        if self.ctx.user_id is not None:
+            data["receiver"] = {
+                "type": AgentType.human.value,
+                "identifier": self.ctx.user_id
             }
-        )
+        serializer = MessageSerializer(data=data)
+
         await sync_to_async(serializer.is_valid)()
+        print(serializer.errors)
+        print(serializer.errors)
+        print(serializer.errors)
+        print(serializer.errors)
+        print(serializer.errors)
         return await sync_to_async(serializer.save)()

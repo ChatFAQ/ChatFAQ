@@ -47,6 +47,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         )
 
         self.conversation_id: Union[str, None] = None
+        self.user_id: Union[str, None] = None
+
         self.fsm_def: "FSMDefinition" = None
 
         super().__init__(*args, **kwargs)
@@ -101,11 +103,17 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     async def gather_fsm_def(self, mml: "Message"):
         raise NotImplemented("Implement a method that gathers the conversation id")
 
+    async def gather_user_id(self, mml: "Message"):
+        return None
+
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id
 
     def set_fsm_def(self, fsm_def):
         self.fsm_def = fsm_def
+
+    def set_user_id(self, user_id):
+        self.user_id = user_id
 
     async def serialize(self):
         """

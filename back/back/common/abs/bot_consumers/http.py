@@ -65,6 +65,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
 
         self.set_conversation_id(self.gather_conversation_id(serializer.validated_data))
         self.set_fsm_def(await self.gather_fsm_def(serializer.validated_data))
+        self.set_user_id(await self.gather_user_id(serializer.validated_data))
 
         mml = await sync_to_async(serializer.to_mml)(self)
         if not mml:
