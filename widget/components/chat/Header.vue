@@ -1,17 +1,12 @@
 <template>
     <div class="widget-wrapper-header">
-        <i class="logo"/>
+        <div class="menu-button" @click="store.historyOpened = !store.historyOpened">
+            <i :class="{'opened': store.historyOpened}"/>
+        </div>
         <div class="header-text">
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="menu-button" @click="store.menuOpened = !store.menuOpened">
-            <i/>
-        </div>
-        <div class="history-button" :class="{'active': store.historyOpened}"  @click="store.historyOpened = !store.historyOpened">
-            <i />
-        </div>
-        <Menu class="menu" v-if="store.menuOpened"/>
         <div class="maximizer" @click="store.maximized = !store.maximized">
             <i :class="{'maximized': store.maximized}" />
         </div>
@@ -32,7 +27,7 @@ const store = useGlobalStore();
     display: flex;
     background: $chatfaq-color-gradient-purple;
     color: $chatfaq-color-neutral-white !important;
-
+    /*
     .menu {
         margin: 0px;
         position: absolute;
@@ -40,6 +35,7 @@ const store = useGlobalStore();
         top: 80px;
         right: 60px;;
     }
+    */
 
     > * {
         margin-top: 30px;
@@ -47,11 +43,10 @@ const store = useGlobalStore();
 
         &.maximizer {
             cursor: pointer;
-            margin-left: 10px;
+            margin-left: auto;
             margin-right: 24px;
             display: flex;
-            width: 32px;
-            height: 32px;
+            width: 40px;
             border-radius: 32px;
 
             &:hover {
@@ -59,6 +54,8 @@ const store = useGlobalStore();
             }
 
             i {
+                width: 32px;
+                margin: auto;
                 content: $chatfaq-maximize-icon;
 
                 &.maximized {
@@ -69,33 +66,23 @@ const store = useGlobalStore();
 
         &.menu-button {
             cursor: pointer;
-            margin-left: auto;
+            margin-left: 24px;
+            margin-right: 16px;
             position: relative;
-            width: 32px;
-            height: 32px;
             border-radius: 32px;
+            width: 40px;
             display: flex;
 
             &:hover {
                 background: $chatfaq-color-primary-900;
             }
             i {
-                content: $chatfaq-dot-menu-icon;
-            }
-        }
-        &.history-button {
-            cursor: pointer;
-            margin-left: 10px;
-            position: relative;
-            width: 32px;
-            height: 32px;
-            border-radius: 32px;
-            display: flex;
-            &:hover,&.active {
-                background: $chatfaq-color-primary-900;
-            }
-            i {
-                content: $chatfaq-clock;
+                width: 20px;
+                margin: auto;
+                content: $chatfaq-hamburguer-icon;
+                &.opened {
+                    content: $chatfaq-double-arrow-right-icon;
+                }
             }
         }
         &.logo {

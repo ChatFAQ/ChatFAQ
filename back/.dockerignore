@@ -1,0 +1,8 @@
+*
+
+!pyproject.toml
+!poetry.lock
+!manage.py
+!__init__.py
+!back
+!README.md

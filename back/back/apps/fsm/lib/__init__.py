@@ -129,9 +129,7 @@ class FSM:
         """
         if transition_data is None:
             transition_data = {}
-        from back.apps.broker.consumers.rpc_consumer import (
-            RPCConsumer,  # TODO: fix CI
-        )
+        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
         group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
@@ -207,9 +205,7 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        from back.apps.broker.consumers.rpc_consumer import (
-            RPCConsumer,  # TODO: fix CI
-        )
+        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
         group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
         data = {
@@ -230,9 +226,7 @@ class FSM:
         await sync_to_async(CachedFSM.update_or_create)(self)
 
     async def save_bot_mml(self, stacks):
-        from back.apps.broker.serializers.messages import (
-            MessageSerializer,  # TODO: CI
-        )
+        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         last_mml = await self.ctx.get_last_mml()
         serializer = MessageSerializer(

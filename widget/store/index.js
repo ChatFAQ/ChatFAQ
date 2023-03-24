@@ -12,7 +12,8 @@ export const useGlobalStore = defineStore('globalStore', {
             darkMode: false,
             menuOpened: false,
             maximized: false,
-            historyOpened: false
+            historyOpened: false,
+            selectedConversations: [],
         }
     },
 })
