@@ -3,14 +3,14 @@ name: Bootstrap DogeOps
 on:
   push:
     paths:
-      - "api/**"
+      - "back/**"
       - "Dogefile"
 
 jobs:
 #  lint:
 #    uses: WITH-Test/workflows/.github/workflows/lint-python.yml@main
 #    with:
-#      project-folder: api
+#      project-folder: back
 
   dogeops:
 #    needs: pull-image  # lint
@@ -23,6 +23,5 @@ jobs:
       - name: Upload manifest
         uses: WithAgency/dogeops-action@main
         env:
-          # vars context is not implemented in act yet
-          DOGEOPS_API_URL: ${{ secrets.DOGEOPS_API_URL }}
+          DOGEOPS_API_URL: ${{ vars.DOGEOPS_API_URL }}
           DOGEOPS_API_KEY: ${{ secrets.DOGEOPS_API_KEY }}

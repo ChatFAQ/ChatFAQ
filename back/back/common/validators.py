@@ -31,7 +31,8 @@ class AtLeastNOf:
 
 class PresentTogether:
     """
-    The order of the provided fields matter: from left to right if the field has a value then the next one should also have one
+    The order of the provided fields matter: from left to right if the field has
+    a value then the next one should also have one.
 
     Should be applied to the serializer class, not to an individual field.
     """

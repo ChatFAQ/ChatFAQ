@@ -1,4 +1,5 @@
 act/
+
 # ---
 # Python-related
 # ---
@@ -49,7 +50,6 @@ htmlcov/
 .nox/
 .coverage
 .coverage.*
-.cache
 nosetests.xml
 coverage.xml
 *.cover
@@ -59,7 +59,6 @@ coverage.xml
 cover/
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -105,7 +104,6 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
@@ -239,3 +237,9 @@ sw.*
 
 # dotenv environment variables file
 .env
+.env.local
+.env.*.local
+
+# zsh autoenv
+.in
+.out

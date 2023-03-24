@@ -2,7 +2,7 @@
 name: ChatFAQ
 
 databases:
-  psql:
+  - name: psql
     cluster_name: "chatfaq-psql-dev"
     db_name: "{{ deployment_key }}"
     db_user: "{{ deployment_key }}"
@@ -10,32 +10,45 @@ databases:
     version: "15"
 
 env:
-  - name: urls
+  - name: sentry
     variables:
       SENTRY_DSN: '{{ secret("SENTRY_DSN") }}'
-      BASE_URL: '{{ APP_URL }}'
   - name: django
     variables:
+      BASE_URL: '{{ APP_URL }}'
       SECRET_KEY: '{{ secret("SECRET_KEY") }}'
       SENTRY_ENVIRONMENT: "{{ back.component_key }}"
       ENVIRONMENT: "{{ back.component_key }}"
       DATABASE_URL: "{{ psql.DATABASE_URL }}"
+  - name: widget
+    variables:
+      SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
+      API_URL: '{{APP_URL}}'
 
 images:
+  - name: widget
+    build_context: widget
   - name: back
     build_context: back
 
 services:
+  - name: widget
+    image: widget
+    envs: [ sentry, widget ]
+    instance_size: XXS
+    port: 3000
   - name: back
     image: back
-    envs: [urls, django]
+    envs: [sentry, django]
     instance_size: XXS
     port: 8000
+    route_prefixes:
+      - "/back"
 
 jobs:
   - name: migrate
     when: PRE_DEPLOY
     image: back
-    envs: [ urls, django ]
+    envs: [ sentry, django ]
     command: modelw-docker run python manage.py migrate
     instance_size: XXS

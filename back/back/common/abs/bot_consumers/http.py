@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
     """
-    Abstract class all HTTP bot onsumers should inherit from,
+    Abstract class all HTTP bot consumers should inherit from,
     it takes care of the initialization and management of the fsm and
     the persistence of the sending/receiving MMLs into the database
     """
@@ -22,6 +22,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         """
         It will try to get a cached FSM from a provided name or create a new one in case
         there is no one yet (when is a brand-new conversation_id)
+
         Returns
         -------
         bool

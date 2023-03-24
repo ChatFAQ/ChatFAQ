@@ -30,7 +30,7 @@ channels-postgres = "^0.0.5"
 sphinx = "<6"
 myst-parser = "^0.18.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
 ipython = "*"
