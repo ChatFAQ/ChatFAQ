@@ -23,8 +23,8 @@ env:
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
-      CHATFAQ_BACKEND_API: "{{ $APP_URL }}"
-      CHATFAQ_BACKEND_WS: "{{ $APP_URL }}"
+      CHATFAQ_BACKEND_API: "{{ APP_URL }}"
+      CHATFAQ_BACKEND_WS: "{{ APP_URL }}"
 
 images:
   - name: widget
