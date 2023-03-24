@@ -11,5 +11,5 @@ router.register(r"messages", views.MessageView, basename="messages")
 urlpatterns = [
     path("", include(router.urls)),
     path("conversation", views.ConversationView.as_view()),
-    path("conversations_info", views.ConversationsInfoView.as_view()),
+    path("conversations", views.ConversationsInfoView.as_view()),
 ]

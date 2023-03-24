@@ -42,7 +42,7 @@ const store = useGlobalStore();
 
 const conversations = ref()
 
-let response = await fetch(store.chatfaqAPI + `/back/api/broker/conversations_info?transmitter_id=${store.userId}`);
+let response = await fetch(store.chatfaqAPI + `/back/api/broker/conversations?id=${store.userId}`);
 conversations.value = await response.json();
 
 </script>

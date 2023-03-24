@@ -1,9 +1,13 @@
 from rest_framework import serializers
 
 
-class ConversationsSerializer(serializers.Serializer):
-    transmitter_id = serializers.CharField(max_length=255)
+class TransmitterSerializer(serializers.Serializer):
+    id = serializers.CharField(max_length=255)
 
 
 class ConversationSerializer(serializers.Serializer):
-    conversation_id = serializers.CharField(max_length=255)
+    id = serializers.CharField(max_length=255)
+
+
+class ConversationsSerializer(serializers.Serializer):
+    ids = serializers.ListSerializer(child=serializers.CharField(max_length=255))

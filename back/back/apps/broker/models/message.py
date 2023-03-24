@@ -122,6 +122,18 @@ class Message(ChangesMixin):
         return first_message.to_mml_chain() if first_message else []
 
     @classmethod
+    def delete_conversation(cls, conversation_id):
+        return cls.objects.filter(
+            conversation=conversation_id,
+        ).delete()
+
+    @classmethod
+    def delete_conversations(cls, conversation_ids):
+        return cls.objects.filter(
+            conversation__in=conversation_ids,
+        ).delete()
+
+    @classmethod
     def conversations_info(cls, transmitter__id):
         conversations = (
             cls.objects.filter(transmitter__identifier=transmitter__id)

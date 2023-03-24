@@ -1,5 +1,5 @@
 <template>
-    <MenuItem>
+    <MenuItem @click="deleteConversations">
         <i class="trash-icon"/>
         <span v-if="store.selectedConversations.length">{{ $t("deleteselected") }}</span>
         <span v-else>{{ $t("clearhistory") }}</span>
@@ -7,11 +7,28 @@
 </template>
 
 <script setup>
-import {useGlobalStore} from "~/store";
+import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
+
+async function deleteConversations() {
+    let response = await fetch(
+        store.chatfaqAPI + `/back/api/broker/conversations`,
+        {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                ids: store.selectedConversations
+            })
+        }
+    );
+    console.log(await response.json());
+}
+
 </script>
 
 
