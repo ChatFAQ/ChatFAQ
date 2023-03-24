@@ -1,9 +1,5 @@
 FROM node:18-alpine as build
 
-RUN adduser -D nuxtuser
-
-USER nuxtuser
-
 # set work dir as app
 WORKDIR /app
 
