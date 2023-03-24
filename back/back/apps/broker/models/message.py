@@ -32,7 +32,8 @@ class Message(ChangesMixin):
     Attributes
     ----------
     prev: str
-        The id of the previous MML, typically to which this one answers. Thanks to this we can reconstruct the whole conversation in order.
+        The id of the previous MML, typically to which this one answers. Thanks to this we can reconstruct the whole
+         conversation in order.
     transmitter: JSONField
         The type of agent (human/bot) that generated this message.
         * first_name str:
@@ -42,9 +43,17 @@ class Message(ChangesMixin):
         * type str:
             Its type: bot or human
     receiver: JSONField
-        The agent to which this message is intended. Is this property ****required? Could it be the transmitter is entirely unknown to whom is communicating?
+        The agent to which this message is intended. Is this property ****required? Could it be the transmitter is
+        entirely unknown to whom is communicating?
     conversation: str
-        A unique identifier that groups all the messages sent within the same context.
+        A unique identifier that groups all the messages sent within the same conversation.
+         There is no Conversation model, instead, a conversation is represented by the group of
+         messages that share the same 'conversation' value, and their order is determined by
+         the 'prev' attribute.
+    conversation_name: str
+        A name that describes the conversation. Since a conversation is a virtual concept
+         that does not have its own entity, this property is held by the first message in the
+         conversation, which has 'prev' set to null.
     send_time: str
         The moment at which this message was sent.
     confidence: float
@@ -79,6 +88,7 @@ class Message(ChangesMixin):
     transmitter = models.JSONField()
     receiver = models.JSONField(null=True)
     conversation = models.CharField(max_length=255)
+    conversation_name = models.CharField(max_length=255, null=True)
     send_time = models.DateTimeField()
     confidence = models.FloatField(
         null=True,

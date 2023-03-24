@@ -5,7 +5,7 @@
     <scripts>
       <script value="dev" />
     </scripts>
-    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v19.6.0/bin/node" />
+    <node-interpreter value="$USER_HOME$/.nvm/versions/node/v19.5.0/bin/node" />
     <envs />
     <method v="2" />
   </configuration>
