@@ -26,7 +26,8 @@ async function deleteConversations() {
             })
         }
     );
-    console.log(await response.json());
+    await response.json();
+    await store.gatherConversations()
 }
 
 </script>

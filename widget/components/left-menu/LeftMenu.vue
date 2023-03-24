@@ -7,8 +7,8 @@
 
         </div>
         <div class="conversations">
-            <div v-for="conversation in conversations" class="left-menu-item">
-                <HistoryItem :conversation-id="conversation[0]" :title="conversation[1]"/>
+            <div v-for="conversation in store.conversations" class="left-menu-item">
+                <HistoryItem :key="conversation[0]" :conversation-id="conversation[0]" :title="conversation[1]"/>
             </div>
         </div>
         <div class="other-buttons">
@@ -30,8 +30,7 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
-import {useGlobalStore} from "~/store";
+import { useGlobalStore } from "~/store";
 import NewConversationItem from "~/components/left-menu/items/NewConversationItem.vue";
 import HistoryItem from "~/components/left-menu/items/HistoryItem.vue";
 import LightMode from "~/components/left-menu/items/LightMode.vue";
@@ -40,10 +39,7 @@ import DeleteHistory from "~/components/left-menu/items/DeleteHistory.vue";
 
 const store = useGlobalStore();
 
-const conversations = ref()
-
-let response = await fetch(store.chatfaqAPI + `/back/api/broker/conversations?id=${store.userId}`);
-conversations.value = await response.json();
+await store.gatherConversations()
 
 </script>
 
@@ -79,6 +75,7 @@ conversations.value = await response.json();
             background: rgba(223, 218, 234, 0.1);
         }
     }
+
     .left-menu-item {
         margin-left: 14px;
         margin-right: 14px;
@@ -90,6 +87,7 @@ conversations.value = await response.json();
         }
 
     }
+
     .other-buttons {
         height: fit-content;
         display: flex;
@@ -100,9 +98,11 @@ conversations.value = await response.json();
             margin-right: 0px;
             padding-left: 14px;
             padding-right: 14px;
+
             &:first-child {
                 margin-bottom: 16px;
             }
+
             &:hover {
                 background-color: $chatfaq-color-primary-900;
             }

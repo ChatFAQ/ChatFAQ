@@ -1,4 +1,4 @@
-import {defineStore} from 'pinia'
+import { defineStore } from 'pinia'
 
 export const useGlobalStore = defineStore('globalStore', {
     state: () => {
@@ -13,7 +13,14 @@ export const useGlobalStore = defineStore('globalStore', {
             menuOpened: false,
             maximized: false,
             historyOpened: false,
+            conversations: [],
             selectedConversations: [],
         }
+    },
+    actions: {
+        async gatherConversations() {
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations?id=${this.userId}`);
+            this.conversations = await response.json();
+        },
     },
 })
