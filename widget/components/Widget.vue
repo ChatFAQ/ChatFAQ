@@ -44,10 +44,11 @@ store.subtitle = props.subtitle;
 @import "../assets/styles/variables";
 
 $widget-open-button-margin: 24px;
+$history-width: 220px;
 
 .widget-history {
     background: $chatfaq-color-gradient-purple;
-    width: 220px;
+    width: $history-width;
     height: 580px;
     &.maximized {
         height: 85vh;
@@ -68,7 +69,7 @@ $widget-open-button-margin: 24px;
 
     .flex-column {
         &.maximized {
-            width: 70vw;
+            width: calc(90vw - $history-width);
             height: 85vh;
         }
         display: flex;
