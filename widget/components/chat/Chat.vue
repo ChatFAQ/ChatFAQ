@@ -1,5 +1,5 @@
 <template>
-    <div class="chat-wrapper"  :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
+    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content">
             <div
                 v-for="data in flatStacks"
@@ -31,30 +31,43 @@
 </template>
 
 <script setup>
-import {ref, computed} from "vue";
-import {useGlobalStore} from "~/store";
+import { ref, computed } from "vue";
+import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
 
 const messages = ref([]);
 const promptValue = ref("");
-const conversationID = Math.floor(Math.random() * 1000000000);
 
-const ws = new WebSocket(
-    store.chatfaqWS
-    + "/back/ws/broker/"
-    + conversationID
-    + "/"
-    + store.fsmDef
-    + "/"
-    + (store.userId ? `${store.userId}/` : "")
-);
-ws.onmessage = function (e) {
-    messages.value.push(JSON.parse(e.data));
-};
-ws.onclose = function (e) {
-    console.error("Chat socket closed unexpectedly");
-};
+let ws = undefined
+function createConnection() {
+    if (ws)
+        ws.close()
+
+    const conversationID = Math.floor(Math.random() * 1000000000);
+    ws = new WebSocket(
+        store.chatfaqWS
+        + "/back/ws/broker/"
+        + conversationID
+        + "/"
+        + store.fsmDef
+        + "/"
+        + (store.userId ? `${store.userId}/` : "")
+    );
+    ws.onmessage = async function (e) {
+        if (!messages.value.length) // First message, update list of conversations
+            await store.gatherConversations()
+
+        messages.value.push(JSON.parse(e.data));
+    };
+    ws.onopen = async function (e) {
+        messages.value = [];
+    };
+}
+createConnection();
+
+watch(() => store.newConversation, createConnection)
+
 
 const flatStacks = computed(() => {
     const res = [];
@@ -63,7 +76,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({...data, "transmitter": _messages[i]["transmitter"]});
+                res.push({ ...data, "transmitter": _messages[i]["transmitter"] });
             }
         }
     }
@@ -90,6 +103,7 @@ function sendMessage() {
     ws.send(JSON.stringify(m));
     promptValue.value = "";
 }
+
 function isLastOfType(msg, flatStack) {
     if (flatStack.indexOf(msg) === flatStack.length - 1)
         return true
@@ -97,6 +111,7 @@ function isLastOfType(msg, flatStack) {
         return true
     return false
 }
+
 function isFirstOfType(msg, flatStack) {
     if (!flatStack.indexOf(msg))
         return true
@@ -119,7 +134,8 @@ function isFirstOfType(msg, flatStack) {
     flex-direction: column;
     overflow: hidden;
     background-color: $chatfaq-color-primary-200;
-    &.dark-mode  {
+
+    &.dark-mode {
         background-color: $chatfaq-color-neutral-black;
     }
 }
@@ -129,7 +145,7 @@ function isFirstOfType(msg, flatStack) {
     width: 100%;
     border-top: 1px solid $chatfaq-color-neutral-black !important;
 
-    &.dark-mode  {
+    &.dark-mode {
         border-top: 1px solid $chatfaq-color-secondary-500 !important;
     }
 }
@@ -140,6 +156,7 @@ function isFirstOfType(msg, flatStack) {
     overflow: scroll;
     display: flex;
     flex-direction: column;
+
     &::-webkit-scrollbar {
         display: none;
     }
@@ -163,9 +180,10 @@ function isFirstOfType(msg, flatStack) {
         color: rgb(2, 12, 28);
     }
 
-    &.dark-mode  {
+    &.dark-mode {
         background-color: $chatfaq-color-neutral-black;
         color: $chatfaq-color-primary-200;
+
         &::placeholder {
             color: $chatfaq-color-neutral-white;
         }
@@ -176,6 +194,7 @@ function isFirstOfType(msg, flatStack) {
     content: $chatfaq-send-icon;
     margin: 22px 26px 22px 20px;
     cursor: pointer;
+
     &.dark-mode {
         content: $chatfaq-send-dark-icon;
     }
@@ -195,9 +214,11 @@ function isFirstOfType(msg, flatStack) {
     &.is-first-of-type {
         margin-top: 16px;
     }
+
     &.is-first {
         margin-top: 20px;
     }
+
     &.is-last {
         margin-bottom: 20px;
     }
@@ -206,10 +227,12 @@ function isFirstOfType(msg, flatStack) {
         border-color: $chatfaq-color-primary-500;
         color: $chatfaq-color-neutral-black;
         margin-left: 24px;
+
         &.is-last-of-type {
-            border-radius: 20px  20px  20px  0px;
+            border-radius: 20px 20px 20px 0px;
         }
-        &.dark-mode  {
+
+        &.dark-mode {
             background-color: $chatfaq-color-neutral-black;
             border-color: $chatfaq-color-secondary-500;
             color: $chatfaq-color-neutral-white;
@@ -222,8 +245,9 @@ function isFirstOfType(msg, flatStack) {
         color: $chatfaq-color-neutral-white;
         align-self: end;
         margin-right: 24px;
+
         &.is-last-of-type {
-            border-radius: 20px  20px  0px  20px;
+            border-radius: 20px 20px 0px 20px;
         }
     }
 }

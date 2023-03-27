@@ -1,5 +1,5 @@
 <template>
-    <MenuItem>
+    <MenuItem @click="store.newConversation++">
         <i class="plus"/>
         <span>{{ $t("newconversation") }}</span>
     </MenuItem>
@@ -8,6 +8,10 @@
 <script setup>
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
+import { useGlobalStore } from "~/store";
+
+const store = useGlobalStore();
+
 </script>
 
 
