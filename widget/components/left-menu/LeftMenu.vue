@@ -92,6 +92,10 @@ await store.gatherConversations()
         height: fit-content;
         display: flex;
         flex-direction: column-reverse;
+        > div:last-child {
+            border-top: 2px solid #4D4160;
+        }
+
 
         .left-menu-item {
             margin-left: 0px;
