@@ -19,6 +19,7 @@ export const useGlobalStore = defineStore('globalStore', {
             // which happens every time "New Conversation" button is clicked, then other components will subscribe
             // for any change and react to the fact that has been clicked
             newConversation: 0,
+            opened: false,
         }
     },
     actions: {

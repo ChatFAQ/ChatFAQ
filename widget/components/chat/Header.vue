@@ -7,8 +7,11 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="maximizer" @click="store.maximized = !store.maximized">
+        <div class="maximizer desktop" @click="store.maximized = !store.maximized">
             <i :class="{'maximized': store.maximized}" />
+        </div>
+        <div class="minimizer" @click="store.opened = false">
+            <i/>
         </div>
     </div>
 </template>
@@ -22,6 +25,7 @@ const store = useGlobalStore();
 
 <style lang="scss" scoped>
 @import "../assets/styles/variables";
+$phone-breakpoint: 600px;
 
 .widget-wrapper-header {
     display: flex;
@@ -41,7 +45,7 @@ const store = useGlobalStore();
         margin-top: 30px;
         margin-bottom: 30px;
 
-        &.maximizer {
+        &.maximizer, &.minimizer {
             cursor: pointer;
             margin-left: auto;
             margin-right: 24px;
@@ -49,6 +53,11 @@ const store = useGlobalStore();
             width: 40px;
             border-radius: 32px;
 
+            &.desktop {
+                @media only screen and (max-width: $phone-breakpoint) {
+                    display: none;
+                }
+            }
             &:hover {
                 background: $chatfaq-color-primary-900;
             }
@@ -56,11 +65,19 @@ const store = useGlobalStore();
             i {
                 width: 32px;
                 margin: auto;
+            }
+        }
+        &.maximizer {
+            i {
                 content: $chatfaq-maximize-icon;
-
                 &.maximized {
                     content: $chatfaq-minimize-icon;
                 }
+            }
+        }
+        &.minimizer {
+            i {
+                content: $chatfaq-arrow-down-icon;
             }
         }
 

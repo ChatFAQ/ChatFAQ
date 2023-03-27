@@ -1,7 +1,7 @@
 <template>
     <Suspense>
         <div class="chatfaq-widget">
-            <div v-if="opened" class="widget-wrapper">
+            <div v-if="store.opened" class="widget-wrapper">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
                 <div class="flex-column" :class="{'maximized': store.maximized}">
@@ -10,20 +10,22 @@
                     <Footer class="footer" :class="{'history': store.historyOpened}"/>
                 </div>
             </div>
-            <div class="widget-open-button" @click="opened = !opened"><i :class="opened ? 'close' : 'open'"/></div>
+            <div class="widget-open-button" :class="{'opened': store.opened}"
+                 @click="store.opened = !store.opened">
+                <i :class="store.opened ? 'close' : 'open'"/>
+            </div>
         </div>
     </Suspense>
 </template>
 
 <script setup>
-import {useGlobalStore} from "~/store";
-import {ref, defineProps} from "vue";
+import { useGlobalStore } from "~/store";
+import { ref, defineProps } from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Footer from "~/components/chat/Footer.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
 
-const opened = ref();
 const store = useGlobalStore();
 
 const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "userId", "title", "subtitle"]);
@@ -60,18 +62,22 @@ $phone-breakpoint: 600px;
         display: unset;
     }
 }
+
 .widget-history {
     background: $chatfaq-color-gradient-purple;
     width: $history-width;
     height: 580px;
+
     &.maximized {
         height: 85vh;
     }
+
     border-radius: 10px 0px 0px 10px;
     border-top: 2px solid $chatfaq-color-primary-500;
     border-bottom: 2px solid $chatfaq-color-primary-500;
     border-left: 2px solid $chatfaq-color-primary-500;
 }
+
 .widget-wrapper {
     position: absolute;
     display: flex;
@@ -86,6 +92,7 @@ $phone-breakpoint: 600px;
             width: calc(90vw - $history-width);
             height: 85vh;
         }
+
         display: flex;
         width: 400px;
         height: 580px;
@@ -96,6 +103,7 @@ $phone-breakpoint: 600px;
             height: 100%;
         }
     }
+
     @media only screen and (max-width: $phone-breakpoint) {
         width: 100%;
         height: 100%;
@@ -108,46 +116,55 @@ $phone-breakpoint: 600px;
 .widget-wrapper > .flex-column > .header {
     border: 2px solid $chatfaq-color-primary-500;
     border-radius: 10px 10px 0px 0px;
+
     &.history {
         border-radius: 0px 10px 0px 0px;
         border-left: 0px;
     }
+
     @media only screen and (max-width: $phone-breakpoint) {
         border-radius: unset;
     }
 }
+
 .widget-wrapper > .flex-column > .chat {
     position: relative;
     height: 100%;
     border-left: 2px solid $chatfaq-color-primary-500;
     border-right: 2px solid $chatfaq-color-primary-500;
+
     &.history {
         border-left: 0px;
     }
-    @media only screen and (max-width: $phone-breakpoint) {
-        border-radius: unset;
-    }
-}
-.widget-wrapper > .flex-column > .footer {
-    border: 2px solid $chatfaq-color-primary-500;
-    border-radius: 0px 0px 10px 10px;
-    &.history {
-        border-radius: 0px 0px 10px 0px;
-        border-left: 0px;
-    }
+
     @media only screen and (max-width: $phone-breakpoint) {
         border-radius: unset;
     }
 }
 
+.widget-wrapper > .flex-column > .footer {
+    border: 2px solid $chatfaq-color-primary-500;
+    border-radius: 0px 0px 10px 10px;
+
+    &.history {
+        border-radius: 0px 0px 10px 0px;
+        border-left: 0px;
+    }
+
+    @media only screen and (max-width: $phone-breakpoint) {
+        border-radius: unset;
+    }
+}
 
 
 .widget-open-button {
     cursor: pointer;
     background: $chatfaq-color-gradient-pink;
+
     &:hover {
         background: $chatfaq-color-gradient-purple;
     }
+
     width: $chatfaq-bubble-button-size;
     height: $chatfaq-bubble-button-size;
     border-radius: $chatfaq-bubble-button-size;
@@ -155,6 +172,12 @@ $phone-breakpoint: 600px;
     bottom: 0px;
     right: 0px;
     margin: $widget-open-button-margin;
+
+    &.opened {
+        @media only screen and (max-width: $phone-breakpoint) {
+            display: none;
+        }
+    }
 
     i {
         position: absolute;
