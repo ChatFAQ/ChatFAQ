@@ -1,5 +1,8 @@
 <template>
     <div class="left-menu-wrapper">
+        <div class="close-menu" @click="store.historyOpened = false">
+            <i/>
+        </div>
         <div class="new-conversation">
             <div class="left-menu-item">
                 <NewConversationItem/>
@@ -46,6 +49,7 @@ await store.gatherConversations()
 
 <style lang="scss" scoped>
 @import "../assets/styles/variables";
+$phone-breakpoint: 600px;
 
 .left-menu-wrapper {
     display: flex;
@@ -53,6 +57,11 @@ await store.gatherConversations()
     font-size: 14px;
     color: $chatfaq-color-neutral-white;
 
+    @media only screen and (max-width: $phone-breakpoint) {
+        position: absolute;
+        z-index: 2;
+        height: 100% !important;
+    }
     .conversations {
         height: 100%;
         overflow-y: scroll;
@@ -110,6 +119,25 @@ await store.gatherConversations()
             &:hover {
                 background-color: $chatfaq-color-primary-900;
             }
+        }
+    }
+    .close-menu {
+        position: absolute;
+        right: -50px;
+        background-color: $chatfaq-color-primary-500;
+        border-radius: 20px;
+        width: 32px;
+        top: 30px;
+        height: 32px;
+        align-content: center;
+        align-items: center;
+        justify-content: center;
+        i {
+            content: $chatfaq-double-arrow-left-icon;
+            width: 16px;
+        }
+        @media only screen and (max-width: $phone-breakpoint) {
+            display: flex;
         }
     }
 }

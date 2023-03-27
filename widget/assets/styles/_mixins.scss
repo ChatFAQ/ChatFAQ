@@ -1,1 +1,7 @@
 @import "variables";
+
+@mixin phone($property, $value) {
+    @media only screen and (max-width: 600px) {
+        #{$property}: $value;
+    }
+}

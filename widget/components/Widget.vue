@@ -2,6 +2,7 @@
     <Suspense>
         <div class="chatfaq-widget">
             <div v-if="opened" class="widget-wrapper">
+                <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
                 <div class="flex-column" :class="{'maximized': store.maximized}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
@@ -45,7 +46,20 @@ store.subtitle = props.subtitle;
 
 $widget-open-button-margin: 24px;
 $history-width: 220px;
+$phone-breakpoint: 600px;
 
+.dark-filter {
+    display: none;
+
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(2, 12, 28, 0.7);
+    z-index: 1;
+    @media only screen and (max-width: $phone-breakpoint) {
+        display: unset;
+    }
+}
 .widget-history {
     background: $chatfaq-color-gradient-purple;
     width: $history-width;
@@ -77,6 +91,16 @@ $history-width: 220px;
         height: 580px;
         align-items: stretch;
         flex-flow: column;
+        @media only screen and (max-width: $phone-breakpoint) {
+            width: 100%;
+            height: 100%;
+        }
+    }
+    @media only screen and (max-width: $phone-breakpoint) {
+        width: 100%;
+        height: 100%;
+        margin: 0px;
+        bottom: 0px;
     }
 }
 
@@ -88,6 +112,9 @@ $history-width: 220px;
         border-radius: 0px 10px 0px 0px;
         border-left: 0px;
     }
+    @media only screen and (max-width: $phone-breakpoint) {
+        border-radius: unset;
+    }
 }
 .widget-wrapper > .flex-column > .chat {
     position: relative;
@@ -97,6 +124,9 @@ $history-width: 220px;
     &.history {
         border-left: 0px;
     }
+    @media only screen and (max-width: $phone-breakpoint) {
+        border-radius: unset;
+    }
 }
 .widget-wrapper > .flex-column > .footer {
     border: 2px solid $chatfaq-color-primary-500;
@@ -104,6 +134,9 @@ $history-width: 220px;
     &.history {
         border-radius: 0px 0px 10px 0px;
         border-left: 0px;
+    }
+    @media only screen and (max-width: $phone-breakpoint) {
+        border-radius: unset;
     }
 }
 

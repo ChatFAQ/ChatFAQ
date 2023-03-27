@@ -68,14 +68,19 @@
     --chatfaq-checkbox-checked-icon: url('~/assets/icons/checkbox-checked.svg');
     --chatfaq-plus-icon: url('~/assets/icons/plus.svg');
     --chatfaq-double-arrow-right-icon: url('~/assets/icons/double-arrow-right.svg');
+    --chatfaq-double-arrow-left-icon: url('~/assets/icons/double-arrow-left.svg');
     --chatfaq-trash-icon: url('~/assets/icons/trash.svg');
     --chatfaq-check-icon: url('~/assets/icons/check.svg');
     --chatfaq-close-icon: url('~/assets/icons/close.svg');
 
-
      /* Sizes */
 
     --chatfaq-bubble-button-size: 60px;
+
+     /* Breakpoints */
+
+    /* Extra small devices (phones, 600px and down) */
+    --phone-breakpoint: 600px;
 }
 
 
@@ -146,6 +151,7 @@ $chatfaq-checkbox-icon: var(--chatfaq-checkbox-icon);
 $chatfaq-checkbox-checked-icon: var(--chatfaq-checkbox-checked-icon);
 $chatfaq-plus-icon: var(--chatfaq-plus-icon);
 $chatfaq-double-arrow-right-icon: var(--chatfaq-double-arrow-right-icon);
+$chatfaq-double-arrow-left-icon: var(--chatfaq-double-arrow-left-icon);
 $chatfaq-trash-icon: var(--chatfaq-trash-icon);
 $chatfaq-check-icon: var(--chatfaq-check-icon);
 $chatfaq-close-icon: var(--chatfaq-close-icon);
@@ -154,3 +160,7 @@ $chatfaq-close-icon: var(--chatfaq-close-icon);
  /* Sizes */
 
 $chatfaq-bubble-button-size: var(--chatfaq-bubble-button-size);
+
+ /* Breakpoints */
+
+$phone-breakpoint: var(--phone-breakpoint);
