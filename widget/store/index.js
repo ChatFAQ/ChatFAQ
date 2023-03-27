@@ -29,9 +29,7 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     getters: {
         conversationsIds() {
-            const ids = []
-            this.conversations.forEach((c) => { ids.push(c[0]) })
-            return ids
+            return this.conversations.reduce((acc, current) => acc.concat([current[0]]), [])
         }
     }
 })
