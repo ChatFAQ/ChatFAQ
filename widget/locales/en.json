@@ -6,5 +6,6 @@
     "showhistory": "Show history",
     "newconversation": "New conversation",
     "clearhistory": "Clear history",
-    "deleteselected": "Delete selected"
+    "deleteselected": "Delete selected",
+    "confirm": "confirm"
 }
