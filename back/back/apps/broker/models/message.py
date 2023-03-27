@@ -146,7 +146,7 @@ class Message(ChangesMixin):
         first_messages = cls.objects.values_list("conversation", "created_date").filter(
             prev__isnull=True,
             conversation__in=conversations,
-        )
+        ).order_by("-created_date")
 
         return list(first_messages.all())
 
