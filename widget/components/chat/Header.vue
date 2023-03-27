@@ -7,7 +7,7 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="maximizer desktop" @click="store.maximized = !store.maximized">
+        <div class="maximizer" @click="store.maximized = !store.maximized">
             <i :class="{'maximized': store.maximized}" />
         </div>
         <div class="minimizer" @click="store.opened = false">
@@ -53,11 +53,6 @@ $phone-breakpoint: 600px;
             width: 40px;
             border-radius: 32px;
 
-            &.desktop {
-                @media only screen and (max-width: $phone-breakpoint) {
-                    display: none;
-                }
-            }
             &:hover {
                 background: $chatfaq-color-primary-900;
             }
@@ -74,10 +69,17 @@ $phone-breakpoint: 600px;
                     content: $chatfaq-minimize-icon;
                 }
             }
+            @media only screen and (max-width: $phone-breakpoint) {
+                display: none;
+            }
         }
         &.minimizer {
+            display: none;
             i {
                 content: $chatfaq-arrow-down-icon;
+            }
+            @media only screen and (max-width: $phone-breakpoint) {
+                display: unset;
             }
         }
 
