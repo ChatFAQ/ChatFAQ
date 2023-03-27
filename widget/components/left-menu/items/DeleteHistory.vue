@@ -22,7 +22,7 @@ async function deleteConversations() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                ids: store.selectedConversations
+                ids: store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
             })
         }
     );

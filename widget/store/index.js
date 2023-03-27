@@ -25,7 +25,13 @@ export const useGlobalStore = defineStore('globalStore', {
         async gatherConversations() {
             let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations?id=${this.userId}`);
             this.conversations = await response.json();
-            console.log(this.conversations.length)
         },
     },
+    getters: {
+        conversationsIds() {
+            const ids = []
+            this.conversations.forEach((c) => { ids.push(c[0]) })
+            return ids
+        }
+    }
 })
