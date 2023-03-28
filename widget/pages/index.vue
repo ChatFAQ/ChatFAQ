@@ -14,11 +14,10 @@ if(!userId) {
     userId = localStorage.getItem("chatfaq-user-identifier")
 }
 
-const runtimeConfig = useRuntimeConfig()
+const { public: { chatfaqWS, chatfaqAPI } } = useRuntimeConfig()
 console.log("PUBLIC CONFIG:::")
-console.log(runtimeConfig)
-console.log(runtimeConfig.public.chatfaqWS)
-console.log(runtimeConfig.public.chatfaqAPI)
+console.log(chatfaqWS)
+console.log(chatfaqAPI)
 console.log(":::")
 const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
