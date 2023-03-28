@@ -1,5 +1,5 @@
 <template>
-    <Widget :chatfaqWs="runtimeConfig.chatfaqWS" :chatfaqApi="runtimeConfig.chatfaqAPI" :fsmDef="fsmDef" :userId="userId" :title="title" :subtitle="subtitle"/>
+    <Widget :chatfaqWs="runtimeConfig.public.chatfaqWS" :chatfaqApi="runtimeConfig.public.chatfaqAPI" :fsmDef="fsmDef" :userId="userId" :title="title" :subtitle="subtitle"/>
 </template>
 <script setup>
 function uuidv4() {
