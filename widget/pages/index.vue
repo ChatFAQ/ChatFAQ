@@ -16,7 +16,9 @@ if(!userId) {
 
 const runtimeConfig = useRuntimeConfig()
 console.log("PUBLIC CONFIG:::")
-console.log(runtimeConfig.public)
+console.log(runtimeConfig)
+console.log(runtimeConfig.public.chatfaqWS)
+console.log(runtimeConfig.public.chatfaqAPI)
 console.log(":::")
 const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
