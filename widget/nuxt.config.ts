@@ -19,8 +19,8 @@ export default defineNuxtConfig({
         // privateKey: process.env.PRIVATE_KEY,
         // Keys within public are also exposed client-side
         public: {
-            chatfaqAPI: process.env.CHATFAQ_BACKEND_API,
-            chatfaqWS: process.env.CHATFAQ_BACKEND_WS,
+            chatfaqAPI: process.env["CHATFAQ_BACKEND_API"],
+            chatfaqWS: process.env["CHATFAQ_BACKEND_WS"],
         }
     },
     app: {
