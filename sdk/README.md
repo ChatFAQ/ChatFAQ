@@ -19,7 +19,9 @@ go inside the `doc` directory and run:
 poetry run make html
 ```
 
-## Publish package on PYPI test
+## Publish package
+
+### PYPI test
 
 add repository to poetry config
 
@@ -30,3 +32,31 @@ get token from https://test.pypi.org/manage/account/token/
 store token using
 
     poetry config pypi-token.chatfaq-sdk pypi-YYYYYYYY
+
+### PYPI production
+
+get token from https://pypi.org/manage/account/token/
+
+store token using
+
+    poetry config pypi-token.chatfaq-sdk pypi-XXXXXXXX
+
+Each time you need to publish
+
+Bump version
+
+    poetry version prerelease
+
+or
+
+    poetry version patch
+
+### Poetry Publish
+
+To TestPyPi
+
+    poetry publish -r test-pypi
+
+To PyPi
+
+    poetry publish
