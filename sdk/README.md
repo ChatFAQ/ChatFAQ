@@ -27,4 +27,6 @@ add repository to poetry config
 
 get token from https://test.pypi.org/manage/account/token/
 
-    store token using poetry config pypi-token.chatfaq-sdk  pypi-YYYYYYYY
+store token using
+
+    poetry config pypi-token.chatfaq-sdk pypi-YYYYYYYY
