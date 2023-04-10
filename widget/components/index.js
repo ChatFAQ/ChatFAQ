@@ -1,10 +1,9 @@
 import Widget from "./Widget.vue";
-import { createPinia } from "pinia";
-
 import { createApp } from "vue";
+import {_createI18n, _createPinia} from "../plugins";
 
 function _buildApp(props) {
-    return createApp(Widget, { ...props }).use(createPinia())
+    return createApp(Widget, { ...props }).use(_createPinia()).use(_createI18n())
 }
 
 class ChatfaqWidget {

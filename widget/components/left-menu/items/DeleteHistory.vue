@@ -15,6 +15,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useGlobalStore } from "~/store";
 
 const deleting = ref(false)

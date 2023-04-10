@@ -1,5 +1,5 @@
-import {createPinia} from 'pinia'
+import {_createPinia} from "./index";
 
 export default defineNuxtPlugin(nuxtApp => {
-    nuxtApp.vueApp.use(createPinia())
+    nuxtApp.vueApp.use(_createPinia())
 })

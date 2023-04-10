@@ -10,6 +10,7 @@ import minimist from "minimist";
 import babel from '@rollup/plugin-babel';
 import styles from "rollup-plugin-styles";
 import Components from 'unplugin-vue-components/rollup'
+import json from '@rollup/plugin-json';
 
 // Get browserslist config and remove ie from es build targets
 const esbrowserslist = fs.readFileSync("./.browserslistrc")
@@ -44,6 +45,7 @@ const baseConfig = {
                     },
                 ],
             }),
+            json()
         ],
         replace: {
             preventAssignment: true,

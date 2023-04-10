@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 import {useGlobalStore} from "~/store";
 const store = useGlobalStore();
