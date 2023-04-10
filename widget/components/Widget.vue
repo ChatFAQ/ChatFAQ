@@ -44,7 +44,7 @@ store.subtitle = props.subtitle;
 </style>
 
 <style lang="scss" scoped>
-@import "../assets/styles/variables";
+@import "assets/styles/variables";
 
 $widget-open-button-margin: 24px;
 $history-width: 220px;

@@ -17,7 +17,7 @@ const store = useGlobalStore();
 
 
 <style lang="scss" scoped>
-@import "../assets/styles/variables";
+@import "assets/styles/variables";
 
 .widget-wrapper-header {
     background: $chatfaq-color-gradient-purple;

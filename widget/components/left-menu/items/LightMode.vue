@@ -16,7 +16,7 @@ const store = useGlobalStore();
 
 
 <style lang="scss" scoped>
-@import "../assets/styles/variables";
+@import "assets/styles/variables";
 
 .light-mode-icon {
     content: $chatfaq-moon-icon;

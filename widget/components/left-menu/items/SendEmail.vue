@@ -12,7 +12,7 @@ import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 
 
 <style lang="scss" scoped>
-@import "../assets/styles/variables";
+@import "assets/styles/variables";
 
 .email-icon {
     content: $chatfaq-mail-icon;

@@ -48,7 +48,7 @@ await store.gatherConversations()
 
 
 <style lang="scss" scoped>
-@import "../assets/styles/variables";
+@import "assets/styles/variables";
 $phone-breakpoint: 600px;
 
 .left-menu-wrapper {
@@ -91,7 +91,6 @@ $phone-breakpoint: 600px;
 
 
         &:hover {
-            // background: rgba(223, 218, 234, 0.1);
             cursor: pointer;
         }
 

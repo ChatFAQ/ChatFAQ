@@ -30,7 +30,7 @@ function timestampToSentence(isoString) {
 
 
 <style lang="scss" scoped>
-@import "../assets/styles/variables";
+@import "assets/styles/variables";
 
 .checkbox {
     content: $chatfaq-checkbox-icon;
