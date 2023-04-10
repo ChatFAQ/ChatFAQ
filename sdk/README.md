@@ -18,3 +18,13 @@ go inside the `doc` directory and run:
 ```
 poetry run make html
 ```
+
+## Publish package on PYPI test
+
+add repository to poetry config
+
+    poetry config repositories.chatfaq-sdk https://test.pypi.org/legacy/
+
+get token from https://test.pypi.org/manage/account/token/
+
+    store token using poetry config pypi-token.chatfaq-sdk  pypi-YYYYYYYY
