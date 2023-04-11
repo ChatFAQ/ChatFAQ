@@ -1,9 +1,13 @@
 [tool.poetry]
 name = "chatfaq_sdk"
 version = "0.1.2"
-description = ""
+description = "ChatFAQ SDK"
 authors = ["Hector Soria <attosoria@hotmail.com>"]
 readme = "README.md"
+
+packages = [
+    { include = "chatfaq_sdk" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -13,7 +17,6 @@ coloredlogs = "^15.0.1"
 black = "^23.1.0"
 isort = "^5.12.0"
 python-dotenv = "^0.21.1"
-
 
 [build-system]
 requires = ["poetry-core"]

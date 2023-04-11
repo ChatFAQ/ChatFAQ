@@ -51,7 +51,7 @@ answer_to_answer = Transition(
     source=answering_state, dest=answering_state, unless=[is_saying_goodbye]
 )
 
-fsm_def = FSMDefinition(
+fsm_definition = FSMDefinition(
     states=[greeting_state, answering_state, goodbye_state],
     transitions=[greeting_to_answer, any_to_goodbye, answer_to_answer],
 )

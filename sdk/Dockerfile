@@ -3,11 +3,11 @@ FROM python:3.10-slim
 ENV POETRY_VERSION=1.3.1
 
 # System deps:
-RUN pip install "poetry==$POETRY_VERSION"
+RUN curl -sSL https://install.python-poetry.org | python -
 
 # Copy only requirements to cache them in docker layer
 WORKDIR /var/apps/sdk
-COPY poetry.lock pyproject.toml ./
+COPY poetry.lock pyproject.toml README.md ./
 
 # System req
 RUN apt-get -y update && apt-get install -y --no-install-recommends \

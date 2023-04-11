@@ -3,7 +3,7 @@ import inspect
 import json
 import urllib.parse
 from logging import getLogger
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
 import websockets
 from chatfaq_sdk import settings
@@ -30,8 +30,8 @@ class ChatFAQSDK:
         chatfaq_ws: str,
         user_email: str,
         user_password: str,
-        fsm_name: Union[int, str, None],
-        fsm_def: Union[FSMDefinition, None] = None,
+        fsm_name: Optional[Union[int, str]],
+        fsm_definition: Optional[FSMDefinition] = None,
     ):
         """
         Parameters
@@ -42,17 +42,17 @@ class ChatFAQSDK:
             The id or name of the FSM you are going to associate this client to. If you are going to create a new FSM
             then it should be the name you are going to give to the new created FSM
 
-        fsm_def: Union[FSMDefinition, None]
+        fsm_definition: Union[FSMDefinition, None]
             The FSM you are going to create in the ChatFAQ's back-end server, if already exists a FSM definition on the server with
             the same struincurre then that one will be reused and your 'name' parameter will be ignored
         """
-        if fsm_def is dict and fsm_name is None:
+        if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
         self.chatfaq_ws = chatfaq_ws
         self.user_email = user_email
         self.user_password = user_password
         self.fsm_name = fsm_name
-        self.fsm_def = fsm_def
+        self.fsm_def = fsm_definition
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
         # already registered that rpc under that name and avoid duplicates
