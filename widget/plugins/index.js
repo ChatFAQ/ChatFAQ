@@ -16,3 +16,5 @@ export function _createI18n() {
         },
     });
 }
+
+export default {}

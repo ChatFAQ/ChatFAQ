@@ -6,8 +6,9 @@ import {resolve, dirname} from 'node:path'
 import {fileURLToPath} from 'url'
 import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
 
+
 export default defineNuxtConfig({
-    ssr: false,
+    ssr: true,
     css: [
         '~/assets/styles/global.scss'
     ],
@@ -18,10 +19,12 @@ export default defineNuxtConfig({
         // The private keys which are only available server-side
         // privateKey: process.env.PRIVATE_KEY,
         // Keys within public are also exposed client-side
-        public: {
-            chatfaqAPI: process.env["CHATFAQ_BACKEND_API"],
-            chatfaqWS: process.env["CHATFAQ_BACKEND_WS"],
-        }
+        public: (() => {
+            return {
+                chatfaqAPI: process.env.CHATFAQ_BACKEND_API,
+                chatfaqWS: process.env.CHATFAQ_BACKEND_WS,
+            };
+        })()
     },
     app: {
         head: {
