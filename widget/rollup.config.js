@@ -100,6 +100,7 @@ const baseConfig = {
             exclude: "node_modules/**",
             extensions: [".js", ".jsx", ".ts", ".tsx", ".vue"],
             babelHelpers: "bundled",
+            compact: true
         },
     },
 };
