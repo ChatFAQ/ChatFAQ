@@ -19,4 +19,4 @@
   - This one is used to expose services running in containers to the host. This way, for example, `postgres` will be
     accessible to your host on port 5432, combined with the change in `/etc/hosts`, will make the `DATABASE_URL` env var the same
     for both envs: `psqtgresql://user:password@postgres:5432/database`, where `user`, `password` and `database` are defined
-    in a `.env` files in the `back` service folder, and apply only to your development setup.
+    in a `.env` files in the `back` service folder, and apply only to *your* development setup.

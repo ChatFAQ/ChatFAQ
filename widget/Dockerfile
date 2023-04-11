@@ -2,7 +2,7 @@ FROM modelw/base:2023.03
 
 COPY --chown=user package.json package-lock.json ./
 
-RUN modelw-docker run node --version && modelw-docker run npm --version && modelw-docker install
+RUN modelw-docker install
 
 COPY --chown=user . .
 

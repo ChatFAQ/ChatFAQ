@@ -9,6 +9,13 @@
             <option value="docker-compose.vars.yaml" />
           </list>
         </option>
+        <option name="services">
+          <list>
+            <option value="back" />
+            <option value="postgres" />
+            <option value="widget" />
+          </list>
+        </option>
         <option name="sourceFilePath" value="docker-compose.yaml" />
         <option name="upDetach" value="false" />
       </settings>

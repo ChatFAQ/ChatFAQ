@@ -15,3 +15,7 @@ services:
   widget:
     env_file:
       - "widget/.env"
+
+  state-machine:
+    env_file:
+      - "sdk/.env"

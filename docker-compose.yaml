@@ -6,7 +6,6 @@ services:
     image: postgres:15-alpine
     container_name: chatfaq_postgres
     hostname: chatfaq_postgres
-    mem_limit: 512m
     volumes:
       - chatfaq_db_data:/var/lib/postgresql/data/
     environment:
@@ -21,7 +20,19 @@ services:
     image: chatfaq_back
     container_name: chatfaq_back
     hostname: chatfaq_back
-    mem_limit: 512m
+    depends_on:
+      - postgres
+    networks:
+      - chatfaq_db_net
+      - chatfaq_back_net
+
+  state-machine:
+    build:
+      context: sdk
+      dockerfile: Dockerfile
+    image: chatfaq_fsm
+    container_name: chatfaq_fsm
+    hostname: chatfaq_fsm
     depends_on:
       - postgres
     networks:
@@ -34,7 +45,6 @@ services:
       dockerfile: Dockerfile
     image: chatfaq_widget
     container_name: chatfaq_widget
-    mem_limit: 128m
     depends_on:
       - back
     ports:
