@@ -33,6 +33,7 @@ services:
     image: chatfaq_fsm
     container_name: chatfaq_fsm
     hostname: chatfaq_fsm
+    run_command: modelw-docker run python -m examples.simple_example
     depends_on:
       - postgres
     networks:

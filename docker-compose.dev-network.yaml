@@ -22,6 +22,6 @@ services:
   # needs: /etc/hosts: 127.0.0.1  back
   widget:
     ports:
-    - "3001:3000"
+    - "3000:3000"
     networks:
     - default

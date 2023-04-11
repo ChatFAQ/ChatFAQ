@@ -24,13 +24,21 @@ env:
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       CHATFAQ_BACKEND_API: "{{ APP_URL }}"
-      CHATFAQ_BACKEND_WS: "{{ APP_URL }}"
+      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+  - name: sdk
+    variables:
+      SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
+      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+      CHATFAQ_BACKEND_EMAIL: "{{ get('USER_EMAIL') }}"
+      CHATFAQ_BACKEND_PASSWORD: "{{ secret('USER_EMAIL') }}"
 
 images:
   - name: widget
     build_context: widget
   - name: back
     build_context: back
+  - name: sdk
+    build_context: sdk
 
 services:
   - name: widget
@@ -45,6 +53,13 @@ services:
     port: 8000
     route_prefixes:
       - "/back"
+
+workers:
+  - name: fsm_example
+    image: sdk
+    envs: [ sentry, django ]
+    command: modelw-docker run python manage.py
+    instance_size: XXS
 
 jobs:
   - name: migrate
