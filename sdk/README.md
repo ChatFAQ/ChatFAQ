@@ -55,7 +55,7 @@ or
 
 To TestPyPi
 
-    poetry publish -r test-pypi
+    poetry publish -r chatfaq-sdk
 
 To PyPi
 
