@@ -23,13 +23,13 @@ env:
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
-      CHATFAQ_BACKEND_API: "{{ APP_URL }}"
-      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+      NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
+      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
   - name: sdk
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-      CHATFAQ_BACKEND_EMAIL: '{{ get("CHATFAQ_BACKEND_EMAIL") }}'
+      CHATFAQ_BACKEND_EMAIL: '{{ secret("CHATFAQ_BACKEND_EMAIL") }}'
       CHATFAQ_BACKEND_PASSWORD: '{{ secret("CHATFAQ_BACKEND_PASSWORD") }}'
 
 images:
