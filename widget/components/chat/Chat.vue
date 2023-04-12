@@ -41,6 +41,11 @@ const promptValue = ref("");
 const conversationContent = ref(null)
 
 let ws = undefined
+function scrollConversationDown() {
+    nextTick(() => {
+        conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
+    })
+}
 function createConnection() {
     if (ws)
         ws.close()
@@ -60,9 +65,7 @@ function createConnection() {
             await store.gatherConversations()
 
         messages.value.push(JSON.parse(e.data));
-        nextTick(() => {
-            conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
-        })
+        scrollConversationDown();
     };
     ws.onopen = async function (e) {
         messages.value = [];
@@ -106,6 +109,7 @@ function sendMessage() {
     messages.value.push(m);
     ws.send(JSON.stringify(m));
     promptValue.value = "";
+    scrollConversationDown();
 }
 
 function isLastOfType(msg, flatStack) {
