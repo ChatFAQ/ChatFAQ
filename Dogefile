@@ -18,7 +18,7 @@ env:
       BASE_URL: '{{ APP_URL }}'
       SECRET_KEY: '{{ secret("SECRET_KEY") }}'
       SENTRY_ENVIRONMENT: "{{ back.component_key }}"
-      ENVIRONMENT: "{{ back.component_key }}"
+      ENVIRONMENT: "{{ deployment_key }}"
       DATABASE_URL: "{{ psql.DATABASE_URL }}"
   - name: widget
     variables:
