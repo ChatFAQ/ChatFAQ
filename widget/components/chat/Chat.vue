@@ -1,6 +1,6 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
-        <div class="conversation-content">
+        <div class="conversation-content" ref="conversationContent">
             <div
                 v-for="data in flatStacks"
                 class="message"
@@ -31,13 +31,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick } from "vue";
 import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
 
 const messages = ref([]);
 const promptValue = ref("");
+const conversationContent = ref(null)
 
 let ws = undefined
 function createConnection() {
@@ -59,6 +60,9 @@ function createConnection() {
             await store.gatherConversations()
 
         messages.value.push(JSON.parse(e.data));
+        nextTick(() => {
+            conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
+        })
     };
     ws.onopen = async function (e) {
         messages.value = [];
