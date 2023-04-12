@@ -22,9 +22,13 @@ services:
     hostname: chatfaq_back
     depends_on:
       - postgres
+    ports:
+      - 8000:8000
     networks:
+      - default
       - chatfaq_db_net
       - chatfaq_back_net
+      - chatfaq_state_machine_net
 
   state-machine:
     build:
@@ -33,12 +37,10 @@ services:
     image: chatfaq_fsm
     container_name: chatfaq_fsm
     hostname: chatfaq_fsm
-    run_command: modelw-docker run python -m examples.simple_example
     depends_on:
-      - postgres
+      - back
     networks:
-      - chatfaq_db_net
-      - chatfaq_back_net
+      - chatfaq_state_machine_net
 
   widget:
     build:
@@ -60,4 +62,5 @@ volumes:
 networks:
   chatfaq_db_net:  # postgres, back
   chatfaq_back_net:  # back, widget
+  chatfaq_state_machine_net:  # back, state-machine
 

@@ -1,6 +1,5 @@
 ---
 # Expose ports
-# Inject environment variables
 
 version: "3.8"
 services:
@@ -9,19 +8,5 @@ services:
   postgres:
     ports:
     - "5432:5432"
-    networks:
-    - default
-
-  # needs: /etc/hosts: 127.0.0.1  back
-  back:
-    ports:
-    - "8000:8000"
-    networks:
-    - default
-
-  # needs: /etc/hosts: 127.0.0.1  back
-  widget:
-    ports:
-    - "3000:3000"
     networks:
     - default
