@@ -27,8 +27,8 @@ export default defineNuxtConfig({
         //  - for public runtime variables (both), use NUXT_PUBLIC_VARNAME
         // these 2 can be set at runtime by defining the vars NUXT_PUBLIC_CHATFAQ_API and NUXT_PUBLIC_CHATFAQ_WS
         public: {
-            chatfaqAPI: "",
-            chatfaqWS: "",
+            chatfaqAPI: process.env.CHATFAQ_BACKEND_API ?? "",
+            chatfaqWS: process.env.CHATFAQ_BACKEND_WS ?? "",
         }
     },
     app: {
