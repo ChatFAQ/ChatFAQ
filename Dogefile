@@ -29,8 +29,8 @@ env:
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-      CHATFAQ_BACKEND_EMAIL: "{{ get('USER_EMAIL') }}"
-      CHATFAQ_BACKEND_PASSWORD: "{{ secret('USER_PASSWORD') }}"
+      CHATFAQ_BACKEND_EMAIL: '{{ get("USER_EMAIL") }}'
+      CHATFAQ_BACKEND_PASSWORD: '{{ secret("USER_PASSWORD") }}'
 
 images:
   - name: widget
@@ -58,7 +58,7 @@ workers:
   - name: fsm_example
     image: sdk
     envs: [ sentry, sdk ]
-    command: modelw-docker run python manage.py
+    command: modelw-docker run python -m examples.simple_example
     instance_size: XXS
 
 jobs:
