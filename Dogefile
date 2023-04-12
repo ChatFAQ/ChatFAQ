@@ -58,7 +58,6 @@ workers:
   - name: fsm_example
     image: sdk
     envs: [ sentry, sdk ]
-    command: modelw-docker run python -m examples.simple_example
     instance_size: XXS
 
 jobs:
