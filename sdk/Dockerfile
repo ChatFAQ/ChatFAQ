@@ -21,6 +21,5 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr python - \
 RUN apt-get -y purge --auto-remove build-essential
 
 COPY . .
-RUN rm -rf .env
 
 CMD [ "poetry", "run", "python", "-m", "examples.simple_example"]
