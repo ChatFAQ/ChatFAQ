@@ -29,8 +29,8 @@ env:
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-      CHATFAQ_BACKEND_EMAIL: '{{ get("USER_EMAIL") }}'
-      CHATFAQ_BACKEND_PASSWORD: '{{ secret("USER_PASSWORD") }}'
+      CHATFAQ_BACKEND_EMAIL: '{{ get("CHATFAQ_BACKEND_EMAIL") }}'
+      CHATFAQ_BACKEND_PASSWORD: '{{ secret("CHATFAQ_BACKEND_PASSWORD") }}'
 
 images:
   - name: widget
