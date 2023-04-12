@@ -5,6 +5,7 @@ on:
     paths:
       - "back/**"
       - "widget/**"
+      - "sdk/**"
       - "Dogefile"
 
 jobs:
