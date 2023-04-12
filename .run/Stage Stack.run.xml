@@ -14,9 +14,11 @@
             <option value="back" />
             <option value="postgres" />
             <option value="widget" />
+            <option value="state-machine" />
           </list>
         </option>
         <option name="sourceFilePath" value="docker-compose.yaml" />
+        <option name="upAttachDependencies" value="true" />
         <option name="upDetach" value="false" />
       </settings>
     </deployment>
