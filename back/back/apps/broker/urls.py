@@ -12,4 +12,5 @@ urlpatterns = [
     path("", include(router.urls)),
     path("conversation", views.ConversationView.as_view()),
     path("conversations", views.ConversationsInfoView.as_view()),
+    path("conversations-download", views.ConversationsDownload.as_view())
 ]

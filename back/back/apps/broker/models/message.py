@@ -1,3 +1,5 @@
+import itertools
+
 from enum import Enum
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -105,22 +107,35 @@ class Message(ChangesMixin):
     def cycle_fsm(self):
         pass
 
-    def to_mml_chain(self, chain=[]):
-        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+    def get_chain(self, chain=[]):
 
-        chain.append(MessageSerializer(self).data)
+        # chain.append(MessageSerializer(self).data)
+        chain.append(self)
         _next = Message.objects.filter(prev=self).first()
         if _next:
-            return _next.to_mml_chain(chain)
+            return _next.get_chain(chain)
         return chain
 
+    def to_text(self):
+        stacks_text = '\n'.join([s["payload"] for s in itertools.chain(*self.stacks)])
+        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.transmitter['type']}: {stacks_text}"
+
     @classmethod
-    def conversation_chain(cls, conversation_id):
-        first_message = cls.objects.filter(
+    def get_first_msg(cls, conversation_id):
+        return cls.objects.filter(
             prev__isnull=True,
             conversation=conversation_id,
         ).first()
-        return first_message.to_mml_chain() if first_message else []
+
+    @classmethod
+    def get_mml_chain(cls, conversation_id):
+        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+
+        first_message = cls.get_first_msg(conversation_id)
+
+        if not first_message:
+            return []
+        return [MessageSerializer(m).data for m in first_message.get_chain()]
 
     @classmethod
     def delete_conversation(cls, conversation_id):
@@ -149,6 +164,16 @@ class Message(ChangesMixin):
         ).order_by("-created_date")
 
         return list(first_messages.all())
+
+    @classmethod
+    def conversation_to_text(cls, conversation_id):
+        text = ""
+        first_message = cls.get_first_msg(conversation_id)
+        msgs = first_message.get_chain()
+        for msg in msgs:
+            text = f"{text}{msg.to_text()}\n"
+
+        return text
 
     @classmethod
     def get_last_mml(cls, conversation_id):

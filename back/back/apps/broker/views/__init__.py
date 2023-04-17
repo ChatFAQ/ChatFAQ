@@ -1,5 +1,9 @@
+from zipfile import ZipFile
+
+from io import BytesIO
+
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets
 from rest_framework.views import APIView
 
@@ -18,7 +22,7 @@ class ConversationView(APIView):
         s = ConversationSerializer(data=request.GET)
         s.is_valid(raise_exception=True)
         return JsonResponse(
-            Message.conversation_chain(s.data["id"]), safe=False
+            Message.get_mml_chain(s.data["id"]), safe=False
         )
 
     def delete(self, request):
@@ -40,3 +44,29 @@ class ConversationsInfoView(APIView):
         s.is_valid(raise_exception=True)
         Message.delete_conversations(s.data["ids"])
         return JsonResponse({})
+
+
+class ConversationsDownload(APIView):
+
+    def post(self, request):
+        s = ConversationsSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        if len(s.data["ids"]) == 1:
+            content = Message.conversation_to_text(s.data["ids"][0])
+            filename = f"{Message.get_first_msg(s.data['ids'][0]).send_time.strftime('%Y-%m-%d_%H-%M-%S')}.txt"
+            content_type = 'text/plain'
+        else:
+            zip_content = BytesIO()
+            with ZipFile(zip_content, 'w') as _zip:
+                for _id in s.data["ids"]:
+                    _content = Message.conversation_to_text(_id)
+                    _zip.writestr(Message.get_first_msg(_id).send_time.strftime('%Y-%m-%d_%H-%M-%S') + ".txt", _content)
+
+            filename = f"{Message.get_first_msg(s.data['ids'][0]).send_time.strftime('%Y-%m-%d_%H-%M-%S')}.zip"
+            content_type = 'application/x-zip-compressed'
+            content = zip_content.getvalue()
+
+        response = HttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+        return response
