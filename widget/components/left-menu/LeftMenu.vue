@@ -17,7 +17,7 @@
         <div class="other-buttons">
 
             <div class="left-menu-item">
-                <SendEmail/>
+                <DownloadHistory/>
             </div>
 
             <div class="left-menu-item">
@@ -37,7 +37,7 @@ import { useGlobalStore } from "~/store";
 import NewConversationItem from "~/components/left-menu/items/NewConversationItem.vue";
 import HistoryItem from "~/components/left-menu/items/HistoryItem.vue";
 import LightMode from "~/components/left-menu/items/LightMode.vue";
-import SendEmail from "~/components/left-menu/items/SendEmail.vue";
+import DownloadHistory from "~/components/left-menu/items/DownloadHistory.vue";
 import DeleteHistory from "~/components/left-menu/items/DeleteHistory.vue";
 
 const store = useGlobalStore();

@@ -1,7 +1,7 @@
 <template>
     <MenuItem>
-        <i class="email-icon"/>
-        <span>{{ $t("sendasummary") }}</span>
+        <i class="download-icon"/>
+        <span>{{ $t("downloadhistory") }}</span>
     </MenuItem>
 </template>
 
@@ -14,8 +14,8 @@ import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 <style lang="scss" scoped>
 @import "assets/styles/variables";
 
-.email-icon {
-    content: $chatfaq-mail-icon;
+.download-icon {
+    content: $chatfaq-download-icon;
 }
 </style>
 
