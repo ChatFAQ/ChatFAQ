@@ -183,3 +183,13 @@ class Message(ChangesMixin):
     def save(self, *args, **kwargs):
         self.prev = Message.get_last_mml(self.conversation)
         super(Message, self).save(*args, **kwargs)
+
+
+class Vote(ChangesMixin):
+    VALUE_CHOICES = (
+        (0, 'Negative'),
+        (1, 'Positive'),
+    )
+    message = models.ForeignKey(Message, null=True, unique=True, on_delete=models.SET_NULL)
+    value = models.SmallIntegerField(max_length=300, choices=VALUE_CHOICES)
+    feedback = models.TextField()
