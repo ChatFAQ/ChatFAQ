@@ -14,15 +14,15 @@
         <div class="other-buttons">
 
             <div class="left-menu-item">
+                <DeleteHistory/>
+            </div>
+
+            <div class="left-menu-item">
                 <DownloadHistory/>
             </div>
 
             <div class="left-menu-item">
                 <LightMode/>
-            </div>
-
-            <div class="left-menu-item">
-                <DeleteHistory/>
             </div>
 
         </div>
