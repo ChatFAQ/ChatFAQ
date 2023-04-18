@@ -15,7 +15,6 @@
 </template>
 
 <script setup>
-import { watch } from 'vue';
 import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();

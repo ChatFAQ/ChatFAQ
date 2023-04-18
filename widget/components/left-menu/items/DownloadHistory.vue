@@ -37,6 +37,7 @@ async function downloadHistory() {
         const header = res.headers.get('Content-Disposition');
         const parts = header.split(';');
         filename = parts[1].split('=')[1].replaceAll("\"", "");
+        store.downloading = false
         return res.blob()
     }).then(blob => {
         var a = document.createElement("a");
