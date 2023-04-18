@@ -1,8 +1,5 @@
 <template>
     <div class="left-menu-wrapper">
-        <div class="close-menu" @click="store.historyOpened = false">
-            <i/>
-        </div>
         <div class="new-conversation">
             <div class="left-menu-item">
                 <NewConversationItem/>
@@ -136,25 +133,6 @@ $phone-breakpoint: 600px;
             &:hover {
                 background-color: $chatfaq-color-primary-900;
             }
-        }
-    }
-    .close-menu {
-        position: absolute;
-        right: -50px;
-        background-color: $chatfaq-color-primary-500;
-        border-radius: 20px;
-        width: 32px;
-        top: 30px;
-        height: 32px;
-        align-content: center;
-        align-items: center;
-        justify-content: center;
-        i {
-            content: $chatfaq-double-arrow-left-icon;
-            width: 16px;
-        }
-        @media only screen and (max-width: $phone-breakpoint) {
-            display: flex;
         }
     }
 }
