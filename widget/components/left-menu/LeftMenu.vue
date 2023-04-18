@@ -47,14 +47,14 @@ await store.gatherConversations()
 watch(() => store.deleting, (newVal) => {
     if (newVal && !store.selectedConversations.length) {
         historyItems.value.forEach(el => el.selected = true)
-    } else if (!newVal && store.selectedConversations.length === store.conversationsIds.length) {
+    } else if (!newVal && !store.downloading && store.selectedConversations.length === store.conversationsIds.length) {
         historyItems.value.forEach(el => el.selected = false)
     }
 })
 watch(() => store.downloading, (newVal) => {
     if (newVal && !store.selectedConversations.length) {
         historyItems.value.forEach(el => el.selected = true)
-    } else if (!newVal && store.selectedConversations.length === store.conversationsIds.length) {
+    } else if (!newVal && !store.deleting && store.selectedConversations.length === store.conversationsIds.length) {
         historyItems.value.forEach(el => el.selected = false)
     }
 })

@@ -7,7 +7,7 @@
             <i class="check-icon" @click="deleteConversations"/>
         </div>
     </MenuItem>
-    <MenuItem v-else @click="store.deleting = true">
+    <MenuItem v-else @click="store.deleting = true; store.downloading = false;">
         <i class="trash-icon"/>
         <span v-if="store.selectedConversations.length">{{ $t("deleteselected") }}</span>
         <span v-else>{{ $t("clearhistory") }}</span>

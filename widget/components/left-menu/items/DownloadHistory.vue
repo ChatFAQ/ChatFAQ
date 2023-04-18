@@ -7,7 +7,7 @@
             <i class="check-icon" @click="downloadHistory"/>
         </div>
     </MenuItem>
-    <MenuItem v-else @click="store.downloading = true">
+    <MenuItem v-else @click="store.downloading = true; store.deleting = false;">
         <i class="download-icon"/>
         <span v-if="store.selectedConversations.length">{{ $t("downloadselected") }}</span>
         <span v-else>{{ $t("downloadhistory") }}</span>
