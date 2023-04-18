@@ -245,4 +245,6 @@ class FSM:
         serializer = MessageSerializer(data=data)
 
         await sync_to_async(serializer.is_valid)()
+        if serializer.errors:
+            logger.error(serializer.errors)
         return await sync_to_async(serializer.save)()
