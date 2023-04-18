@@ -21,7 +21,7 @@ watch(selected, (newVal) => {
     else
         store.selectedConversations.splice(store.selectedConversations.indexOf(props.conversationId), 1);
 })
-
+defineExpose({ selected })
 function timestampToSentence(isoString) {
     return (new Date(isoString)).toString().split(" GMT")[0]
 }

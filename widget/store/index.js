@@ -20,6 +20,7 @@ export const useGlobalStore = defineStore('globalStore', {
             // for any change and react to the fact that has been clicked
             newConversation: 0,
             opened: false,
+            deleting: false,
         }
     },
     actions: {

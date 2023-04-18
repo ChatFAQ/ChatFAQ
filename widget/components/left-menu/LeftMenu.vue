@@ -11,7 +11,7 @@
         </div>
         <div class="conversations">
             <div v-for="conversation in store.conversations" class="left-menu-item">
-                <HistoryItem :key="conversation[0]" :conversation-id="conversation[0]" :title="conversation[1]"/>
+                <HistoryItem ref="historyItems" :key="conversation[0]" :conversation-id="conversation[0]" :title="conversation[1]" />
             </div>
         </div>
         <div class="other-buttons">
@@ -40,9 +40,20 @@ import LightMode from "~/components/left-menu/items/LightMode.vue";
 import DownloadHistory from "~/components/left-menu/items/DownloadHistory.vue";
 import DeleteHistory from "~/components/left-menu/items/DeleteHistory.vue";
 
+const historyItems = ref(null)
+
 const store = useGlobalStore();
 
 await store.gatherConversations()
+
+
+watch(() => store.deleting, (newVal) => {
+    if (newVal && !store.selectedConversations.length) {
+        historyItems.value.forEach(el => el.selected = true)
+    } else if (!newVal && store.selectedConversations.length === store.conversationsIds.length) {
+        historyItems.value.forEach(el => el.selected = false)
+    }
+})
 
 </script>
 

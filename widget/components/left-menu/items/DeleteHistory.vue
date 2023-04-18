@@ -1,13 +1,13 @@
 <template>
-    <MenuItem v-if="deleting">
+    <MenuItem v-if="store.deleting">
         <i class="trash-icon"/>
         <span>{{ $t("confirm") }}</span>
         <div class="delete-controls">
-            <i class="close-icon" @click="() => {deleting = false}"/>
+            <i class="close-icon" @click="() => {store.deleting = false}"/>
             <i class="check-icon" @click="deleteConversations"/>
         </div>
     </MenuItem>
-    <MenuItem v-else @click="deleting = true">
+    <MenuItem v-else @click="store.deleting = true">
         <i class="trash-icon"/>
         <span v-if="store.selectedConversations.length">{{ $t("deleteselected") }}</span>
         <span v-else>{{ $t("clearhistory") }}</span>
@@ -15,10 +15,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { watch } from 'vue';
 import { useGlobalStore } from "~/store";
 
-const deleting = ref(false)
 const store = useGlobalStore();
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
@@ -40,7 +39,7 @@ async function deleteConversations() {
     await store.gatherConversations()
 
     store.selectedConversations = []
-    deleting.value = false
+    store.deleting = false
 }
 
 </script>
