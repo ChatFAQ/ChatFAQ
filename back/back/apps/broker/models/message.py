@@ -107,7 +107,8 @@ class Message(ChangesMixin):
     def cycle_fsm(self):
         pass
 
-    def get_chain(self, chain):
+    def get_chain(self, chain=None):
+        chain = chain if chain else []
         # chain.append(MessageSerializer(self).data)
         chain.append(self)
         _next = Message.objects.filter(prev=self).first()
@@ -134,7 +135,7 @@ class Message(ChangesMixin):
 
         if not first_message:
             return []
-        return [MessageSerializer(m).data for m in first_message.get_chain([])]
+        return [MessageSerializer(m).data for m in first_message.get_chain()]
 
     @classmethod
     def delete_conversation(cls, conversation_id):
@@ -168,7 +169,7 @@ class Message(ChangesMixin):
     def conversation_to_text(cls, conversation_id):
         text = ""
         first_message = cls.get_first_msg(conversation_id)
-        msgs = first_message.get_chain([])
+        msgs = first_message.get_chain()
 
         for msg in msgs:
             text = f"{text}{msg.to_text()}\n"
