@@ -21,6 +21,7 @@ export const useGlobalStore = defineStore('globalStore', {
             newConversation: 0,
             opened: false,
             deleting: false,
+            downloading: false
         }
     },
     actions: {

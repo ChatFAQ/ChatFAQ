@@ -2,7 +2,7 @@
     <MenuItem v-if="store.deleting">
         <i class="trash-icon"/>
         <span>{{ $t("confirm") }}</span>
-        <div class="delete-controls">
+        <div class="confirm-controls">
             <i class="close-icon" @click="() => {store.deleting = false}"/>
             <i class="check-icon" @click="deleteConversations"/>
         </div>
@@ -57,7 +57,7 @@ async function deleteConversations() {
 .close-icon {
     content: $chatfaq-close-icon;
 }
-.delete-controls {
+.confirm-controls {
     width: 100%;
     display: flex;
     flex-direction: row-reverse;
