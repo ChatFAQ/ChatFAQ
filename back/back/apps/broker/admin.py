@@ -4,7 +4,7 @@ from .models.message import Message, Vote
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ["transmitter_type", "conversation", "stacks"]
+    list_display = ["transmitter_type", "conversation", "stacks", "created_date"]
 
     def payload_text(self, obj):
         return obj.payload["text"]

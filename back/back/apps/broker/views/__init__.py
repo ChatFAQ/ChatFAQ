@@ -70,3 +70,8 @@ class ConversationsDownload(APIView):
         response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
+
+
+class Vote(APIView):
+    def post(self, request):
+        pass
