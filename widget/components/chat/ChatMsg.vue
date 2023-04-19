@@ -2,20 +2,21 @@
     <div class="message-wrapper">
         <div
             class="message"
-            :class=" {
+            :class="{
                 [props.data.transmitter.type]: true,
-                'is-last-of-type': props.isLastOfType,
                 'is-first-of-type': props.isFirstOfType,
                 'is-first': props.isFirst,
                 'is-last': props.isLast,
+            }">
+            <div class="content" :class="{
+                [props.data.transmitter.type]: true,
+                'is-last-of-type': props.isLastOfType,
                 'dark-mode': store.darkMode
-            }
-        ">
-            <span class="content">{{ props.data.payload }}</span>
-            <div v-if="props.isFirstOfType && props.data.transmitter.type === 'bot'" class="voting">
+            }">{{ props.data.payload }}</div>
+<!--            <div v-if="props.isFirstOfType && props.data.transmitter.type === 'bot'" class="voting">
                 <button @click="vote(true)">Up</button>
                 <button @click="vote(false)">Down</button>
-            </div>
+            </div>-->
         </div>
     </div>
 </template>
@@ -23,7 +24,7 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 
-const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast"]);
+const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
 const voted = ref(null)
 
@@ -59,23 +60,47 @@ async function vote(positive) {
 .message-wrapper {
     display: flex;
     flex-direction: column;
-
-    .message {
+    .content {
         border: solid 1px;
-        width: fit-content;
-        margin: 8px 5px 0px;
-        padding: 5px;
         border-radius: 20px;
         padding: 9px 15px 9px 15px;
-        max-width: 90%;
         word-wrap: break-word;
+
+        &.bot {
+            border-color: $chatfaq-color-primary-500;
+            color: $chatfaq-color-neutral-black;
+            &.dark-mode {
+                background-color: $chatfaq-color-neutral-black;
+                border-color: $chatfaq-color-secondary-500;
+                color: $chatfaq-color-neutral-white;
+            }
+            &.is-last-of-type {
+                border-radius: 20px 20px 20px 0px;
+            }
+        }
+        &.human {
+            border: none;
+            background-color: $chatfaq-color-primary-500;
+            color: $chatfaq-color-neutral-white;
+
+            &.is-last-of-type {
+                border-radius: 20px 20px 0px 20px;
+            }
+        }
+
+    }
+    .message {
+        width: fit-content;
+        height: 100%;
+        margin: 8px 5px 0px;
+        max-width: 90%;
 
         &.is-first-of-type {
             margin-top: 16px;
         }
 
         &.is-first {
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         &.is-last {
@@ -83,31 +108,12 @@ async function vote(positive) {
         }
 
         &.bot {
-            border-color: $chatfaq-color-primary-500;
-            color: $chatfaq-color-neutral-black;
             margin-left: 24px;
-
-            &.is-last-of-type {
-                border-radius: 20px 20px 20px 0px;
-            }
-
-            &.dark-mode {
-                background-color: $chatfaq-color-neutral-black;
-                border-color: $chatfaq-color-secondary-500;
-                color: $chatfaq-color-neutral-white;
-            }
         }
 
         &.human {
-            border: none;
-            background-color: $chatfaq-color-primary-500;
-            color: $chatfaq-color-neutral-white;
             align-self: end;
             margin-right: 24px;
-
-            &.is-last-of-type {
-                border-radius: 20px 20px 0px 20px;
-            }
         }
     }
 
