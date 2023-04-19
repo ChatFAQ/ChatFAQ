@@ -187,9 +187,9 @@ class Message(ChangesMixin):
 
 class Vote(ChangesMixin):
     VALUE_CHOICES = (
-        (0, 'Negative'),
-        (1, 'Positive'),
+        ("positive", 'Positive'),
+        ("negative", 'Negative'),
     )
-    message = models.ForeignKey(Message, null=True, unique=True, on_delete=models.SET_NULL)
-    value = models.SmallIntegerField(max_length=300, choices=VALUE_CHOICES)
+    message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
     feedback = models.TextField()

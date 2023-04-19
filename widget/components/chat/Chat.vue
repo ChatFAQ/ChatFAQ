@@ -1,15 +1,14 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent">
-            <div v-for="(data, index) in flatStacks" class="conversation-content-wrapper">
-                <ChatMsg
-                    :is-last-of-type="isLastOfType(data, flatStacks)"
-                    :is-first-of-type="isFirstOfType(data, flatStacks)"
-                    :is-first="!flatStacks.indexOf(data)"
-                    :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
-                    :data="data"
-                ></ChatMsg>
-            </div>
+            <ChatMsg
+                v-for="(data, index) in flatStacks"
+                :is-last-of-type="isLastOfType(data, flatStacks)"
+                :is-first-of-type="isFirstOfType(data, flatStacks)"
+                :is-first="!flatStacks.indexOf(data)"
+                :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
+                :data="data"
+            ></ChatMsg>
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <input
@@ -60,6 +59,7 @@ function createConnection() {
             await store.gatherConversations()
 
         messages.value.push(JSON.parse(e.data));
+        console.log(messages)
         scrollConversationDown();
     };
     ws.onopen = async function (e) {
@@ -78,7 +78,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({ ...data, "transmitter": _messages[i]["transmitter"] });
+                res.push({ ...data, "transmitter": _messages[i]["transmitter"], "id": _messages[i]["id"] });
             }
         }
     }
@@ -161,10 +161,6 @@ function isFirstOfType(msg, flatStack) {
     &::-webkit-scrollbar {
         display: none;
     }
-}
-.conversation-content-wrapper {
-    display: flex;
-    flex-direction: column;
 }
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
