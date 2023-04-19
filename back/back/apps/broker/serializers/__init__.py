@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.apps import apps
 
 
 
@@ -16,5 +17,4 @@ class ConversationsSerializer(serializers.Serializer):
 
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
-        from back.apps.broker.views import Vote
-        model = Vote
+        model = apps.get_model('broker', 'Vote')
