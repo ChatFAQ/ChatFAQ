@@ -13,10 +13,10 @@
                 'is-last-of-type': props.isLastOfType,
                 'dark-mode': store.darkMode
             }">{{ props.data.payload }}</div>
-<!--            <div v-if="props.isFirstOfType && props.data.transmitter.type === 'bot'" class="voting">
+            <div v-if="props.isFirstOfType && props.data.transmitter.type === 'bot'" class="voting">
                 <button @click="vote(true)">Up</button>
                 <button @click="vote(false)">Down</button>
-            </div>-->
+            </div>
         </div>
     </div>
 </template>
@@ -94,6 +94,8 @@ async function vote(positive) {
         height: 100%;
         margin: 8px 5px 0px;
         max-width: 90%;
+        display: flex;
+        align-items: center;
 
         &.is-first-of-type {
             margin-top: 16px;
@@ -118,6 +120,7 @@ async function vote(positive) {
     }
 
     .voting {
+        margin-left: 20px;
     }
 }
 </style>
