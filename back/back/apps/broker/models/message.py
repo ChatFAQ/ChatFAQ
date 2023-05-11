@@ -152,7 +152,7 @@ class Message(ChangesMixin):
     @classmethod
     def conversations_info(cls, transmitter__id):
         conversations = (
-            cls.objects.filter(Q(transmitter__identifier=transmitter__id) | Q(receiver__identifier=transmitter__id))
+            cls.objects.filter(Q(transmitter__id=transmitter__id) | Q(receiver__id=transmitter__id))
             .values("conversation")
             .distinct()
             .all()

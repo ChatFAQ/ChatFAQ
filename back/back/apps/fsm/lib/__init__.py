@@ -240,7 +240,7 @@ class FSM:
         if self.ctx.user_id is not None:
             data["receiver"] = {
                 "type": AgentType.human.value,
-                "identifier": self.ctx.user_id
+                "id": self.ctx.user_id
             }
         serializer = MessageSerializer(data=data)
 

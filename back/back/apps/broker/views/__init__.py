@@ -8,7 +8,7 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets
 from rest_framework.views import APIView
 
-from ..models.message import Message, Vote
+from ..models.message import Message, Vote, AgentType
 from ..serializers import IdSerializer, IdsSerializer, VoteSerializer
 from ..serializers.messages import MessageSerializer
 
@@ -76,3 +76,10 @@ class ConversationsDownload(APIView):
 class VoteCreateAPIView(CreateAPIView, UpdateAPIView):
     serializer_class = VoteSerializer
     queryset = Vote.objects.all()
+
+
+class TransmitterAPIView(CreateAPIView, UpdateAPIView):
+    def get(self, request):
+        return JsonResponse(
+            Message.objects.filter(transmitter__type=AgentType.human.value).values('transmitter__id').distinct()
+        )
