@@ -81,5 +81,10 @@ class VoteCreateAPIView(CreateAPIView, UpdateAPIView):
 class TransmitterAPIView(CreateAPIView, UpdateAPIView):
     def get(self, request):
         return JsonResponse(
-            Message.objects.filter(transmitter__type=AgentType.human.value).values('transmitter__id').distinct()
+            list(Message.objects.filter(
+                transmitter__type=AgentType.human.value
+            ).values(
+                "transmitter__id"
+            ).distinct()),
+            safe=False
         )
