@@ -53,6 +53,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "django_better_admin_arrayfield",
         "rest_framework",
         "rest_framework.authtoken",
+        'knox',
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "back.apps.people",
@@ -113,7 +114,10 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     # OpenAPI Schema
     # ---
 
-    REST_FRAMEWORK = {"DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
+    REST_FRAMEWORK = {
+        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+        "DEFAULT_AUTHENTICATION_CLASSES": ('knox.auth.TokenAuthentication',),
+    }
 
     SPECTACULAR_SETTINGS = {
         "TITLE": "ChatFAQ's back-end server",
