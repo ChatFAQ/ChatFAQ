@@ -1,20 +1,14 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent">
-            <div
-                v-for="data in flatStacks"
-                class="message"
-                :class=" {
-                    [data.transmitter.type]: true,
-                    'is-last-of-type': isLastOfType(data, flatStacks),
-                    'is-first-of-type': isFirstOfType(data, flatStacks),
-                    'is-first': !flatStacks.indexOf(data),
-                    'is-last': flatStacks.indexOf(data) === flatStacks.length -1,
-                    'dark-mode': store.darkMode
-                }
-            ">
-                {{ data.payload }}
-            </div>
+            <ChatMsg
+                v-for="(data, index) in flatStacks"
+                :is-last-of-type="isLastOfType(data, flatStacks)"
+                :is-first-of-type="isFirstOfType(data, flatStacks)"
+                :is-first="!flatStacks.indexOf(data)"
+                :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
+                :data="data"
+            ></ChatMsg>
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <input
@@ -65,6 +59,7 @@ function createConnection() {
             await store.gatherConversations()
 
         messages.value.push(JSON.parse(e.data));
+        console.log(messages)
         scrollConversationDown();
     };
     ws.onopen = async function (e) {
@@ -83,7 +78,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({ ...data, "transmitter": _messages[i]["transmitter"] });
+                res.push({ ...data, "transmitter": _messages[i]["transmitter"], "id": _messages[i]["id"] });
             }
         }
     }
@@ -162,8 +157,6 @@ function isFirstOfType(msg, flatStack) {
     height: 100%;
     width: 100%;
     overflow: scroll;
-    display: flex;
-    flex-direction: column;
 
     &::-webkit-scrollbar {
         display: none;
@@ -208,55 +201,4 @@ function isFirstOfType(msg, flatStack) {
     }
 }
 
-
-.message {
-    border: solid 1px;
-    width: fit-content;
-    margin: 8px 5px 0px;
-    padding: 5px;
-    border-radius: 20px;
-    padding: 9px 15px 9px 15px;
-    max-width: 90%;
-    word-wrap: break-word;
-
-    &.is-first-of-type {
-        margin-top: 16px;
-    }
-
-    &.is-first {
-        margin-top: 20px;
-    }
-
-    &.is-last {
-        margin-bottom: 20px;
-    }
-
-    &.bot {
-        border-color: $chatfaq-color-primary-500;
-        color: $chatfaq-color-neutral-black;
-        margin-left: 24px;
-
-        &.is-last-of-type {
-            border-radius: 20px 20px 20px 0px;
-        }
-
-        &.dark-mode {
-            background-color: $chatfaq-color-neutral-black;
-            border-color: $chatfaq-color-secondary-500;
-            color: $chatfaq-color-neutral-white;
-        }
-    }
-
-    &.human {
-        border: none;
-        background-color: $chatfaq-color-primary-500;
-        color: $chatfaq-color-neutral-white;
-        align-self: end;
-        margin-right: 24px;
-
-        &.is-last-of-type {
-            border-radius: 20px 20px 0px 20px;
-        }
-    }
-}
 </style>

@@ -28,7 +28,7 @@ import Chat from "~/components/chat/Chat.vue";
 
 const store = useGlobalStore();
 
-const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "userId", "title", "subtitle"]);
+const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "userId", "title", "subtitle", "maximized", "historyOpened"]);
 
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
@@ -36,6 +36,11 @@ store.fsmDef = props.fsmDef;
 store.userId = props.userId;
 store.title = props.title;
 store.subtitle = props.subtitle;
+
+if (props.maximized !== undefined)
+    store.maximized = props.maximized;
+if (props.historyOpened !== undefined)
+    store.historyOpened = props.historyOpened;
 
 </script>
 

@@ -1,3 +1,4 @@
+from rest_framework.generics import CreateAPIView, UpdateAPIView
 from zipfile import ZipFile
 
 from io import BytesIO
@@ -7,8 +8,8 @@ from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets
 from rest_framework.views import APIView
 
-from ..models.message import Message
-from ..serializers import ConversationSerializer, TransmitterSerializer, ConversationsSerializer
+from ..models.message import Message, Vote
+from ..serializers import IdSerializer, IdsSerializer, VoteSerializer
 from ..serializers.messages import MessageSerializer
 
 
@@ -19,28 +20,28 @@ class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
 
 class ConversationView(APIView):
     def get(self, request):
-        s = ConversationSerializer(data=request.GET)
+        s = IdSerializer(data=request.GET)
         s.is_valid(raise_exception=True)
         return JsonResponse(
             Message.get_mml_chain(s.data["id"]), safe=False
         )
 
     def delete(self, request):
-        s = ConversationSerializer(data=request.GET)
+        s = IdSerializer(data=request.GET)
         s.is_valid(raise_exception=True)
         Message.delete_conversation()
 
 
 class ConversationsInfoView(APIView):
     def get(self, request):
-        s = TransmitterSerializer(data=request.GET)
+        s = IdSerializer(data=request.GET)
         s.is_valid(raise_exception=True)
         return JsonResponse(
             Message.conversations_info(s.data["id"]), safe=False
         )
 
     def delete(self, request):
-        s = ConversationsSerializer(data=request.data)
+        s = IdsSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         Message.delete_conversations(s.data["ids"])
         return JsonResponse({})
@@ -49,7 +50,7 @@ class ConversationsInfoView(APIView):
 class ConversationsDownload(APIView):
 
     def post(self, request):
-        s = ConversationsSerializer(data=request.data)
+        s = IdsSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         if len(s.data["ids"]) == 1:
             content = Message.conversation_to_text(s.data["ids"][0])
@@ -70,3 +71,8 @@ class ConversationsDownload(APIView):
         response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
+
+
+class VoteCreateAPIView(CreateAPIView, UpdateAPIView):
+    serializer_class = VoteSerializer
+    queryset = Vote.objects.all()
