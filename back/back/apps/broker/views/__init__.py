@@ -83,8 +83,8 @@ class TransmitterAPIView(CreateAPIView, UpdateAPIView):
         return JsonResponse(
             list(Message.objects.filter(
                 transmitter__type=AgentType.human.value
-            ).values(
-                "transmitter__id"
+            ).values_list(
+                "transmitter__id", flat=True
             ).distinct()),
             safe=False
         )
