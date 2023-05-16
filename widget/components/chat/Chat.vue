@@ -99,7 +99,7 @@ function sendMessage() {
         }]],
     };
     if (store.userId !== undefined)
-        m["transmitter"]["identifier"] = store.userId
+        m["transmitter"]["id"] = store.userId
 
     messages.value.push(m);
     ws.send(JSON.stringify(m));
