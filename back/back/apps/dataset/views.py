@@ -5,7 +5,10 @@ from .serializers import DatasetSerializer, ItemSerializer, UtteranceSerializer
 from rest_framework import generics
 
 
-class DatasetAPIView(generics.ListCreateAPIView):
+class DatasetAPIView(
+    generics.ListCreateAPIView,
+    generics.DestroyAPIView
+):
     queryset = Dataset.objects.all()
     serializer_class = DatasetSerializer
 
@@ -30,6 +33,7 @@ class DatasetAPIView(generics.ListCreateAPIView):
 class ItemAPIView(generics.ListCreateAPIView):
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
+    filterset_fields = ['dataset__id']
 
 
 class UtteranceAPIView(generics.ListCreateAPIView):

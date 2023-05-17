@@ -31,6 +31,7 @@ sphinx = "<6"
 myst-parser = "^0.18.1"
 django-rest-knox = "^4.2.0"
 pgvector = "^0.1.7"
+django-filter = "^23.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

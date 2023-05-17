@@ -54,6 +54,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "rest_framework",
         "rest_framework.authtoken",
         "knox",
+        "django_filters",
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "back.apps.people",
@@ -118,6 +119,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     REST_FRAMEWORK = {
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
         "DEFAULT_AUTHENTICATION_CLASSES": ('knox.auth.TokenAuthentication',),
+        "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
     }
 
     SPECTACULAR_SETTINGS = {
