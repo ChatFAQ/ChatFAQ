@@ -53,12 +53,13 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "django_better_admin_arrayfield",
         "rest_framework",
         "rest_framework.authtoken",
-        'knox',
+        "knox",
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "back.apps.people",
         "back.apps.broker",
         "back.apps.fsm",
+        "back.apps.dataset",
     ]
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",

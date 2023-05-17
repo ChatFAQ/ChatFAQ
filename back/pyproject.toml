@@ -30,6 +30,7 @@ channels-postgres = "^0.0.5"
 sphinx = "<6"
 myst-parser = "^0.18.1"
 django-rest-knox = "^4.2.0"
+pgvector = "^0.1.7"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
