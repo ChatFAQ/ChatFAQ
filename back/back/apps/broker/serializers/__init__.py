@@ -17,6 +17,13 @@ class UserFeedbackSerializer(serializers.ModelSerializer):
         model = apps.get_model('broker', 'UserFeedback')
 
 
+class AdminReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        model = apps.get_model('broker', 'AdminReview')
+
+
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = apps.get_model('broker', 'Message')

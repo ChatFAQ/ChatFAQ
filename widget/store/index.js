@@ -26,7 +26,7 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     actions: {
         async gatherConversations() {
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations?id=${this.userId}`);
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${this.userId}/`);
             this.conversations = await response.json();
         },
     },

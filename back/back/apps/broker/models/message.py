@@ -193,3 +193,13 @@ class UserFeedback(ChangesMixin):
     message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
     value = models.CharField(max_length=255, choices=VALUE_CHOICES)
     feedback = models.TextField()
+
+
+class AdminReview(ChangesMixin):
+    VALUE_CHOICES = (
+        ("positive", 'Positive'),
+        ("negative", 'Negative'),
+    )
+    message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
+    review = models.TextField()
