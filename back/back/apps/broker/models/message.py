@@ -185,7 +185,7 @@ class Message(ChangesMixin):
         super(Message, self).save(*args, **kwargs)
 
 
-class Vote(ChangesMixin):
+class UserFeedback(ChangesMixin):
     VALUE_CHOICES = (
         ("positive", 'Positive'),
         ("negative", 'Negative'),

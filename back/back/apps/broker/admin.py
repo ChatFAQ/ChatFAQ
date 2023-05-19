@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models.message import Message, Vote
+from .models.message import Message, UserFeedback
 
 
 class MessageAdmin(admin.ModelAdmin):
@@ -13,9 +13,9 @@ class MessageAdmin(admin.ModelAdmin):
         return obj.sender["type"]
 
 
-class VoteAdmin(admin.ModelAdmin):
+class UserFeedbackAdmin(admin.ModelAdmin):
     pass
 
 
 admin.site.register(Message, MessageAdmin)
-admin.site.register(Vote, VoteAdmin)
+admin.site.register(UserFeedback, UserFeedbackAdmin)

@@ -14,8 +14,8 @@
                 'dark-mode': store.darkMode
             }">{{ props.data.payload }}</div>
 <!--            <div v-if="props.isFirstOfType && props.data.sender.type === 'bot'" class="voting">
-                <button @click="vote(true)">Up</button>
-                <button @click="vote(false)">Down</button>
+                <button @click="feedbacke(true)">Up</button>
+                <button @click="feedbacke(false)">Down</button>
             </div>-->
         </div>
     </div>
@@ -26,31 +26,31 @@ import { useGlobalStore } from "~/store";
 
 const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
-const voted = ref(null)
+const feedbacked = ref(null)
 
-async function vote(positive) {
-    const voteData = {
+async function feedback(positive) {
+    const feedbackData = {
         message: props.data.id,
         value: positive ? 'positive' : 'negative',
         feedback: 'This is my feedback'
     };
     let method = "POST"
-    let endpoint = '/back/api/broker/votes/'
-    if (voted.value) {
-        voteData["id"] = voted.value
+    let endpoint = '/back/api/broker/user-feedbacks/'
+    if (feedbacked.value) {
+        feedbackData["id"] = feedbacked.value
         method = "PATCH"
-        endpoint = `${endpoint}${voteData["id"]}/`
+        endpoint = `${endpoint}${feedbackData["id"]}/`
     }
     const response = await fetch(store.chatfaqAPI + endpoint, {
         method: method,
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(voteData)
+        body: JSON.stringify(feedbackData)
     })
 
     const res = await response.json();
-    voted.value = res["id"]
+    feedbacked.value = res["id"]
 }
 
 </script>

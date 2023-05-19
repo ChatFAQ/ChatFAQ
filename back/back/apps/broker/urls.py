@@ -13,7 +13,7 @@ urlpatterns = [
     path("conversation", views.ConversationView.as_view()),
     path("conversations", views.ConversationsInfoView.as_view()),
     path("conversations-download", views.ConversationsDownload.as_view()),
-    path('votes/<int:pk>/', views.VoteCreateAPIView.as_view(), name='vote-create'),
-    path('votes/', views.VoteCreateAPIView.as_view(), name='vote-create'),
-    path('senders/', views.SenderAPIView.as_view(), name='vote-create'),
+    path('user-feedbacks/<int:pk>/', views.UserFeedbackCreateAPIView.as_view(), name='user-feedback-create'),
+    path('user-feedbacks/', views.UserFeedbackCreateAPIView.as_view(), name='user-feedback-create'),
+    path('senders/', views.SenderAPIView.as_view(), name='user-feedback-create'),
 ]

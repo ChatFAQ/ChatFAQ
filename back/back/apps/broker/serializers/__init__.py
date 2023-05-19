@@ -10,11 +10,11 @@ class IdsSerializer(serializers.Serializer):
     ids = serializers.ListSerializer(child=serializers.CharField(max_length=255))
 
 
-class VoteSerializer(serializers.ModelSerializer):
+class UserFeedbackSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = apps.get_model('broker', 'Vote')
+        model = apps.get_model('broker', 'UserFeedback')
 
 
 class MessageSerializer(serializers.ModelSerializer):
