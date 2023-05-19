@@ -1,6 +1,6 @@
+
 import os
 from importlib import metadata
-from pathlib import Path
 
 from dj_database_url import config as db_config
 from model_w.env_manager import EnvManager
@@ -180,3 +180,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     #         "back.apps.broker.serializers.messages.custom_postprocessing_hook"
     #     ]
     # }
+
+    REST_KNOX = {
+        'EXPIRY_DATETIME_FORMAT': None,
+    }

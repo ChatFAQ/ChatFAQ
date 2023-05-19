@@ -39,3 +39,4 @@ class ItemAPIView(generics.ListCreateAPIView):
 class UtteranceAPIView(generics.ListCreateAPIView):
     queryset = Utterance.objects.all()
     serializer_class = UtteranceSerializer
+    filterset_fields = ['item__id']
