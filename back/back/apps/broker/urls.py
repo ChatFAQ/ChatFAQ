@@ -15,5 +15,5 @@ urlpatterns = [
     path("conversations-download", views.ConversationsDownload.as_view()),
     path('votes/<int:pk>/', views.VoteCreateAPIView.as_view(), name='vote-create'),
     path('votes/', views.VoteCreateAPIView.as_view(), name='vote-create'),
-    path('transmitters/', views.TransmitterAPIView.as_view(), name='vote-create'),
+    path('senders/', views.SenderAPIView.as_view(), name='vote-create'),
 ]

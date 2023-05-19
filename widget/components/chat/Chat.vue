@@ -78,7 +78,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({ ...data, "transmitter": _messages[i]["transmitter"], "id": _messages[i]["id"] });
+                res.push({ ...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"] });
             }
         }
     }
@@ -89,7 +89,7 @@ function sendMessage() {
     if (!promptValue.value.length)
         return;
     const m = {
-        "transmitter": {
+        "sender": {
             "type": "human",
             "platform": "WS",
         },
@@ -99,7 +99,7 @@ function sendMessage() {
         }]],
     };
     if (store.userId !== undefined)
-        m["transmitter"]["id"] = store.userId
+        m["sender"]["id"] = store.userId
 
     messages.value.push(m);
     ws.send(JSON.stringify(m));
@@ -110,7 +110,7 @@ function sendMessage() {
 function isLastOfType(msg, flatStack) {
     if (flatStack.indexOf(msg) === flatStack.length - 1)
         return true
-    if (flatStack[flatStack.indexOf(msg) + 1].transmitter.type !== msg.transmitter.type)
+    if (flatStack[flatStack.indexOf(msg) + 1].sender.type !== msg.sender.type)
         return true
     return false
 }
@@ -118,7 +118,7 @@ function isLastOfType(msg, flatStack) {
 function isFirstOfType(msg, flatStack) {
     if (!flatStack.indexOf(msg))
         return true
-    if (flatStack[flatStack.indexOf(msg) - 1].transmitter.type !== msg.transmitter.type)
+    if (flatStack[flatStack.indexOf(msg) - 1].sender.type !== msg.sender.type)
         return true
     return false
 }

@@ -180,7 +180,7 @@ class MessageSerializer(serializers.ModelSerializer):
     stacks = serializers.ListField(
         child=serializers.ListField(child=MessageStackSerializer())
     )
-    transmitter = AgentSerializer()
+    sender = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()
 

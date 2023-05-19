@@ -3,17 +3,17 @@
         <div
             class="message"
             :class="{
-                [props.data.transmitter.type]: true,
+                [props.data.sender.type]: true,
                 'is-first-of-type': props.isFirstOfType,
                 'is-first': props.isFirst,
                 'is-last': props.isLast,
             }">
             <div class="content" :class="{
-                [props.data.transmitter.type]: true,
+                [props.data.sender.type]: true,
                 'is-last-of-type': props.isLastOfType,
                 'dark-mode': store.darkMode
             }">{{ props.data.payload }}</div>
-<!--            <div v-if="props.isFirstOfType && props.data.transmitter.type === 'bot'" class="voting">
+<!--            <div v-if="props.isFirstOfType && props.data.sender.type === 'bot'" class="voting">
                 <button @click="vote(true)">Up</button>
                 <button @click="vote(false)">Down</button>
             </div>-->

@@ -115,8 +115,14 @@ Prerequisites
 - Docker
 - docker-compose
 - pg_vector
-    `sudo apt install postgresql-server-dev-12`
-    `sudo pgxn install vector`
+
+    Debian distros:
+
+        `sudo apt install postgresql-server-dev-12`
+
+        `sudo apt-get install -y pgxnclient`
+
+        `sudo pgxn install vector`
 
 Installation
 ~~~~~~~~~~~~

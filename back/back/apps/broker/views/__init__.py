@@ -78,13 +78,13 @@ class VoteCreateAPIView(CreateAPIView, UpdateAPIView):
     queryset = Vote.objects.all()
 
 
-class TransmitterAPIView(CreateAPIView, UpdateAPIView):
+class SenderAPIView(CreateAPIView, UpdateAPIView):
     def get(self, request):
         return JsonResponse(
             list(Message.objects.filter(
-                transmitter__type=AgentType.human.value
+                sender__type=AgentType.human.value
             ).values_list(
-                "transmitter__id", flat=True
+                "sender__id", flat=True
             ).distinct()),
             safe=False
         )
