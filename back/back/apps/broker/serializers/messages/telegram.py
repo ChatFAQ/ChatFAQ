@@ -62,7 +62,7 @@ class TelegramMessageSerializer(BotMessageSerializer):
                         }
                     ]
                 ],
-                "transmitter": {
+                "sender": {
                     "first_name": self.validated_data["message"]["from"]["first_name"],
                     "type": AgentType.human.value,
                     "platform": "Telegram",

@@ -229,7 +229,7 @@ class FSM:
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         data = {
-            "transmitter": {
+            "sender": {
                 "type": AgentType.bot.value,
             },
             "confidence": 1,

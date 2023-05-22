@@ -25,7 +25,7 @@ class ExampleWSSerializer(BotMessageSerializer):
     stacks = serializers.ListField(
         child=serializers.ListField(child=MessageStackSerializer())
     )
-    transmitter = AgentSerializer()
+    sender = AgentSerializer()
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
 
@@ -35,7 +35,7 @@ class ExampleWSSerializer(BotMessageSerializer):
         s = MessageSerializer(
             data={
                 "stacks": self.data["stacks"],
-                "transmitter": self.data["transmitter"],
+                "sender": self.data["sender"],
                 "send_time": int(time.time() * 1000),
                 "conversation": ctx.conversation_id,
             }

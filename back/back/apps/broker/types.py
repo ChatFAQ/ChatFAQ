@@ -28,7 +28,7 @@ class Payload(NamedTuple):
 
 class Message(NamedTuple):
     conversation: Text
-    transmitter: Agent
+    sender: Agent
     payload: List[Payload]
     send_time: int
     confidence: float = 1

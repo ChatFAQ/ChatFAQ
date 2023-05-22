@@ -37,7 +37,7 @@ class Message(ChangesMixin):
     prev: str
         The id of the previous MML, typically to which this one answers. Thanks to this we can reconstruct the whole
          conversation in order.
-    transmitter: JSONField
+    sender: JSONField
         The type of agent (human/bot) that generated this message.
         * first_name str:
             The first name of the sending agent
@@ -46,7 +46,7 @@ class Message(ChangesMixin):
         * type str:
             Its type: bot or human
     receiver: JSONField
-        The agent to which this message is intended. Is this property ****required? Could it be the transmitter is
+        The agent to which this message is intended. Is this property ****required? Could it be the sender is
         entirely unknown to whom is communicating?
     conversation: str
         A unique identifier that groups all the messages sent within the same conversation.
@@ -60,9 +60,9 @@ class Message(ChangesMixin):
     send_time: str
         The moment at which this message was sent.
     confidence: float
-        How certain the bot is about its answer (required when transmitter = bot)
+        How certain the bot is about its answer (required when sender = bot)
     threshold: float
-        The minimal confidence the user would accept from the bot (required when transmitter = human)
+        The minimal confidence the user would accept from the bot (required when sender = human)
     meta: JSONField
         any extra info out of the bot domain the agen considers to put in
     stacks: list
@@ -88,7 +88,7 @@ class Message(ChangesMixin):
     """
 
     prev = models.ForeignKey("self", null=True, unique=True, on_delete=models.SET_NULL)
-    transmitter = models.JSONField()
+    sender = models.JSONField()
     receiver = models.JSONField(null=True)
     conversation = models.CharField(max_length=255)
     conversation_name = models.CharField(max_length=255, null=True)
@@ -118,7 +118,7 @@ class Message(ChangesMixin):
 
     def to_text(self):
         stacks_text = '\n'.join([s["payload"] for s in itertools.chain(*self.stacks)])
-        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.transmitter['type']}: {stacks_text}"
+        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stacks_text}"
 
     @classmethod
     def get_first_msg(cls, conversation_id):
@@ -150,9 +150,9 @@ class Message(ChangesMixin):
         ).delete()
 
     @classmethod
-    def conversations_info(cls, transmitter__id):
+    def conversations_info(cls, sender__id):
         conversations = (
-            cls.objects.filter(Q(transmitter__id=transmitter__id) | Q(receiver__id=transmitter__id))
+            cls.objects.filter(Q(sender__id=sender__id) | Q(receiver__id=sender__id))
             .values("conversation")
             .distinct()
             .all()
@@ -185,7 +185,7 @@ class Message(ChangesMixin):
         super(Message, self).save(*args, **kwargs)
 
 
-class Vote(ChangesMixin):
+class UserFeedback(ChangesMixin):
     VALUE_CHOICES = (
         ("positive", 'Positive'),
         ("negative", 'Negative'),
@@ -193,3 +193,13 @@ class Vote(ChangesMixin):
     message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
     value = models.CharField(max_length=255, choices=VALUE_CHOICES)
     feedback = models.TextField()
+
+
+class AdminReview(ChangesMixin):
+    VALUE_CHOICES = (
+        ("positive", 'Positive'),
+        ("negative", 'Negative'),
+    )
+    message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
+    review = models.TextField()

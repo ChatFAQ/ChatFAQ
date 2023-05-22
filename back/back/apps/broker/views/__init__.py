@@ -5,11 +5,11 @@ from io import BytesIO
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.views import APIView
 
-from ..models.message import Message, Vote, AgentType
-from ..serializers import IdSerializer, IdsSerializer, VoteSerializer
+from ..models.message import Message, UserFeedback, AgentType, AdminReview
+from ..serializers import IdSerializer, IdsSerializer, UserFeedbackSerializer, AdminReviewSerializer
 from ..serializers.messages import MessageSerializer
 
 
@@ -19,25 +19,19 @@ class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
 
 
 class ConversationView(APIView):
-    def get(self, request):
-        s = IdSerializer(data=request.GET)
-        s.is_valid(raise_exception=True)
+    def get(self, request, pk):
         return JsonResponse(
-            Message.get_mml_chain(s.data["id"]), safe=False
+            Message.get_mml_chain(pk), safe=False
         )
 
-    def delete(self, request):
-        s = IdSerializer(data=request.GET)
-        s.is_valid(raise_exception=True)
-        Message.delete_conversation()
+    def delete(self, request, pk):
+        Message.delete_conversation(pk)
 
 
 class ConversationsInfoView(APIView):
-    def get(self, request):
-        s = IdSerializer(data=request.GET)
-        s.is_valid(raise_exception=True)
+    def get(self, request, pk):
         return JsonResponse(
-            Message.conversations_info(s.data["id"]), safe=False
+            Message.conversations_info(pk), safe=False
         )
 
     def delete(self, request):
@@ -73,18 +67,23 @@ class ConversationsDownload(APIView):
         return response
 
 
-class VoteCreateAPIView(CreateAPIView, UpdateAPIView):
-    serializer_class = VoteSerializer
-    queryset = Vote.objects.all()
+class UserFeedbackAPIView(CreateAPIView, UpdateAPIView):
+    serializer_class = UserFeedbackSerializer
+    queryset = UserFeedback.objects.all()
 
 
-class TransmitterAPIView(CreateAPIView, UpdateAPIView):
+class AdminReviewAPIView(generics.ListCreateAPIView):
+    serializer_class = AdminReviewSerializer
+    queryset = AdminReview.objects.all()
+
+
+class SenderAPIView(CreateAPIView, UpdateAPIView):
     def get(self, request):
         return JsonResponse(
             list(Message.objects.filter(
-                transmitter__type=AgentType.human.value
+                sender__type=AgentType.human.value
             ).values_list(
-                "transmitter__id", flat=True
+                "sender__id", flat=True
             ).distinct()),
             safe=False
         )

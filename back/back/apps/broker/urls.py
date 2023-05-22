@@ -10,10 +10,13 @@ router.register(r"messages", views.MessageView, basename="messages")
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path("", include(router.urls)),
-    path("conversation", views.ConversationView.as_view()),
+    path("conversation/<int:pk>/", views.ConversationView.as_view()),
+    path("conversations/<str:pk>/", views.ConversationsInfoView.as_view()),
     path("conversations", views.ConversationsInfoView.as_view()),
     path("conversations-download", views.ConversationsDownload.as_view()),
-    path('votes/<int:pk>/', views.VoteCreateAPIView.as_view(), name='vote-create'),
-    path('votes/', views.VoteCreateAPIView.as_view(), name='vote-create'),
-    path('transmitters/', views.TransmitterAPIView.as_view(), name='vote-create'),
+    path('user-feedbacks/<int:pk>/', views.UserFeedbackAPIView.as_view()),
+    path('user-feedbacks/', views.UserFeedbackAPIView.as_view()),
+    path('admin-reviews/<int:pk>/', views.AdminReviewAPIView.as_view()),
+    path('admin-reviews/', views.AdminReviewAPIView.as_view()),
+    path('senders/', views.SenderAPIView.as_view()),
 ]
