@@ -8,11 +8,11 @@ if TYPE_CHECKING:
 
 class FSMDefinition:
     """
-    Representation of the entire FSM, this class will generate the DSM Definition sent to the ChatFAQ's back-end server and will do
-    all the validation of the states/transitions and will register all the RPCs
+    Representation of the entire FSM, this class will generate the DSM Definition sent to the ChatFAQ's back-end server
+    and will do all the validation of the states/transitions and will register all the RPCs
     """
 
-    def __init__(self, states: List[State] = [], transitions: List[Transition] = []):
+    def __init__(self, states: List[State] = [], transitions: List[Transition] = [], pre_load_models: List[int] = []):
         """
 
         Parameters
@@ -21,9 +21,13 @@ class FSMDefinition:
             All the states conforming the FSM
         transitions: list of Transition
             All the transitions conforming the FSM
+        pre_load_models: list of int
+            List of models to be pre-loaded during the FSM initialization, instead of loading them on the fly right when
+            the LMGeneratedText layer is called
         """
         self.states = states
         self.transitions = transitions
+        self.pre_load_models = pre_load_models
 
     def register_rpcs(self, chatfaq_sdk: ChatFAQSDK):
         for state in self.states:
