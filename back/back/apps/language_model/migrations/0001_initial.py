@@ -65,7 +65,7 @@ class Migration(migrations.Migration):
                     "dataset",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="dataset.dataset",
+                        to="language_model.dataset",
                     ),
                 ),
             ],
@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                 (
                     "item",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="dataset.item"
+                        on_delete=django.db.models.deletion.CASCADE, to="language_model.item"
                     ),
                 ),
             ],

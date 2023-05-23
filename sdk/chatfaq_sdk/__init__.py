@@ -27,17 +27,24 @@ class ChatFAQSDK:
 
     def __init__(
         self,
+        chatfaq_http: str,
         chatfaq_ws: str,
-        user_email: str,
-        user_password: str,
+        token: str,
         fsm_name: Optional[Union[int, str]],
         fsm_definition: Optional[FSMDefinition] = None,
     ):
         """
         Parameters
         ----------
+        chatfaq_http: str
+            The HTTP address of your ChatFAQ's back-end server
+
         chatfaq_ws: str
             The WS address of your ChatFAQ's back-end server
+
+        token: str
+            The auth token of your ChatFAQ's back-end server
+
         fsm_name: Union[int, str, None]
             The id or name of the FSM you are going to associate this client to. If you are going to create a new FSM
             then it should be the name you are going to give to the new created FSM
@@ -48,9 +55,9 @@ class ChatFAQSDK:
         """
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
+        self.chatfaq_http = chatfaq_http
         self.chatfaq_ws = chatfaq_ws
-        self.user_email = user_email
-        self.user_password = user_password
+        self.token = token
         self.fsm_name = fsm_name
         self.fsm_def = fsm_definition
         self.rpcs = {}
@@ -66,9 +73,8 @@ class ChatFAQSDK:
         self.uri = urllib.parse.urljoin(self.chatfaq_ws, "back/ws/broker/rpc/")
         if self.fsm_name is not None and self.fsm_def is None:
             self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/rpc/{self.fsm_name}/")
-        parsed_email = urllib.parse.quote(self.user_email)
-        parsed_password = urllib.parse.quote(self.user_password)
-        self.uri = f"{self.uri}?email={parsed_email}&pass={parsed_password}"
+        parsed_token = urllib.parse.quote(self.token)
+        self.uri = f"{self.uri}?token={parsed_token}"
         connection_error = True
         while connection_error:
             try:
@@ -99,7 +105,7 @@ class ChatFAQSDK:
                         "type": MessageType.fsm_def.value,
                         "data": {
                             "name": self.fsm_name,
-                            "definition": self.fsm_def.to_json(),
+                            "definition": self.fsm_def.to_dict_repr(),
                         },
                     }
                 )
@@ -158,17 +164,15 @@ class ChatFAQSDK:
 
         return outer
 
-    @classmethod
-    def _run_handler(cls, handler, data):
+    def _run_handler(self, handler, data):
         res = handler(data)
         if inspect.isgenerator(res):
-            return [cls._layer_to_json(item) for item in res]
-        return cls._layer_to_json(res)
+            return [self._layer_to_dict(item) for item in res]
+        return self._layer_to_dict(res)
 
-    @staticmethod
-    def _layer_to_json(rpc_result):
+    def _layer_to_dict(self, rpc_result):
         if not isinstance(rpc_result, Layer) and not isinstance(rpc_result, Result):
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        return rpc_result.to_json()
+        return rpc_result.dict_repr(self)

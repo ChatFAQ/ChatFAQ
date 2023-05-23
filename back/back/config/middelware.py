@@ -2,6 +2,8 @@ from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
 from django.contrib.auth import authenticate
+from knox.auth import TokenAuthentication
+from rest_framework import exceptions
 
 
 @database_sync_to_async
@@ -12,6 +14,17 @@ def return_user_from_token(token_string):
     try:
         user = Token.objects.get(key=token_string).user
     except Token.DoesNotExist:
+        user = AnonymousUser()
+    return user
+
+
+@database_sync_to_async
+def return_user_from_knox_token(token_string=''):
+    from django.contrib.auth.models import AnonymousUser
+
+    try:
+        user, auth_token = TokenAuthentication().authenticate_credentials(token_string.encode())
+    except exceptions.AuthenticationFailed:
         user = AnonymousUser()
     return user
 
@@ -32,8 +45,8 @@ class TokenAuthMiddleWare:
 
     async def __call__(self, scope, receive, send):
         token = parse_qs(scope["query_string"].decode()).get("token")
-        token = token[0] if token else None
-        user = await return_user_from_token(token)
+        token = token[0] if token else ''
+        user = await return_user_from_knox_token(token)
         scope["user"] = user
         return await self.app(scope, receive, send)
 

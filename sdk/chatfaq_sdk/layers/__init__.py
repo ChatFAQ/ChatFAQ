@@ -1,5 +1,8 @@
+import tempfile
+
 from ir_qa_dev import RetrieverAnswerer
 from logging import getLogger
+import requests
 
 logger = getLogger(__name__)
 
@@ -11,9 +14,10 @@ class Layer:
 
     _type = None
 
-    def to_json(self):
+    def dict_repr(self, ctx) -> dict:
         """
         Used to represent the layer as a dictionary which will be sent through the WS to the ChatFAQ's back-end server
+        It is cached since there are layers as such as the LMGeneratedText which are computationally expensive
         :return:
             dict
                 A json compatible dict
@@ -31,7 +35,7 @@ class Text(Layer):
     def __init__(self, payload):
         self.payload = payload
 
-    def to_json(self):
+    def dict_repr(self, ctx):
         return [{"type": self._type, "payload": self.payload}]
 
 
@@ -41,30 +45,42 @@ class LMGeneratedText(Layer):
     """
 
     _type = "lm_generated_text"
-    loaded_model = None
+    loaded_model = {}
 
     @classmethod
-    def load_model(cls, model_name):
-        if cls.loaded_model is None:
-            cls.loaded_model = {}
-        if model_name not in cls.loaded_model:
-            """
+    def get_model(cls, model_id, ctx):
+
+        if model_id not in cls.loaded_model:
             logger.info("Loafing model...")
-            retriever_answerer = RetrieverAnswerer(
-                os.path.dirname(os.path.abspath(__file__)) + '/data/chanel.csv',
-                model_name,
-                "title",
-                "text",
-                use_cpu=True
-            )
-            logger.info("...model loaded.")
-            """
-            pass
-        return cls.loaded_model[model_name]
+            headers = {
+                "Authorization": f"Token {ctx.token}"
+            }
+            # TODO use the Python client (refactor CLI to use it too)
+            model_res = requests.get(f"{ctx.chatfaq_http}/back/api/language-model/models/{model_id}/", headers=headers).json()
+            dataset_res = requests.get(f"{ctx.chatfaq_http}/back/api/language-model/datasets/{model_res['dataset']}/download_csv/")
 
-    def __init__(self, payload, model_name):
-        self.payload = payload
-        self.model_name = model_name
+            _file = dataset_res.content
 
-    def to_json(self):
-        return [{"type": self._type, "payload": self.payload, "model_name": self.model_name}]
+            tmp_path = tempfile.NamedTemporaryFile().name + ".csv"
+            # Open the file for writing.
+            with open(tmp_path, 'wb') as f:
+                f.write(_file)
+
+                cls.loaded_model[model_id] = RetrieverAnswerer(
+                    tmp_path,
+                    model_res["base_model"],
+                    "answer",
+                    "intent",
+                    use_cpu=True
+                )
+                logger.info("...model loaded.")
+                pass
+        return cls.loaded_model[model_id]
+
+    def __init__(self, input_text, model_id):
+        self.input_text = input_text
+        self.model_id = model_id
+
+    def dict_repr(self, ctx):
+        model = self.get_model(self.model_id, ctx)
+        return [{"type": self._type, "payload": model.query(self.input_text)}]

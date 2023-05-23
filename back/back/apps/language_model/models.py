@@ -67,3 +67,19 @@ class Utterance(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     intent = models.TextField()
     embedding = VectorField(blank=True, null=True)
+
+
+class Model(models.Model):
+    """
+    A model is a dataset associated with a base model, trained or not.
+    """
+    STATUS_CHOICES = (
+        ('created', 'Created'),
+        ('training', 'Training'),
+        ('trained', 'Trained'),
+    )
+
+    name = models.CharField(max_length=100)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    base_model = models.CharField(max_length=100, default='google/flan-t5-base')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='created')

@@ -20,5 +20,5 @@ class Result:
         self.score = score
         self.data = data
 
-    def to_json(self):
+    def dict_repr(self, ctx):
         return {"score": self.score, "data": self.data}

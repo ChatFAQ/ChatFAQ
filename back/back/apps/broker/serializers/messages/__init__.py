@@ -101,6 +101,10 @@ class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
 
 
+class LMGeneratedTextPayload(serializers.Serializer):
+    payload = serializers.CharField()
+
+
 class HTMLPayload(serializers.Serializer):
     @staticmethod
     def html_syntax_validator(value):
@@ -161,6 +165,8 @@ class MessageStackSerializer(serializers.Serializer):
     def validate(self, data):
         if data.get("type") == StackPayloadType.text.value:
             s = TextPayload(data=data)
+        elif data.get("type") == StackPayloadType.lm_generated_text.value:
+            s = LMGeneratedTextPayload(data=data)
         elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
         elif data.get("type") == StackPayloadType.image.value:

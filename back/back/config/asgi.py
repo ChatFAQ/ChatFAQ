@@ -8,7 +8,7 @@ from django.urls import re_path
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
 
-from back.config.middelware import PassAuthMiddleWare  # noqa B101
+from back.config.middelware import TokenAuthMiddleWare  # noqa B101
 
 
 def make_app(django_app):
@@ -29,7 +29,7 @@ def make_app(django_app):
             "http": AuthMiddlewareStack(
                 URLRouter(http_urlpatterns + [re_path(r"", django_app)])
             ),
-            "websocket": PassAuthMiddleWare(
+            "websocket": TokenAuthMiddleWare(
                 AllowedHostsOriginValidator(
                     AuthMiddlewareStack(URLRouter(websocket_urlpatterns))
                 )

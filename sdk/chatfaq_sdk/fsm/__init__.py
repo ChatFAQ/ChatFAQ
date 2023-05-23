@@ -36,10 +36,10 @@ class FSMDefinition:
             for rpc in transition.unless:
                 chatfaq_sdk.rpc(rpc.__name__)(rpc)
 
-    def to_json(self):
+    def to_dict_repr(self):
         return {
-            "states": [item.to_json() for item in self.states],
-            "transitions": [item.to_json() for item in self.transitions],
+            "states": [item.to_dict_repr() for item in self.states],
+            "transitions": [item.to_dict_repr() for item in self.transitions],
         }
 
 
@@ -65,7 +65,7 @@ class State:
         self.name = name
         self.events = events
 
-    def to_json(self):
+    def to_dict_repr(self):
         return {
             "initial": self.initial,
             "name": self.name,
@@ -105,7 +105,7 @@ class Transition:
         self.conditions = conditions
         self.unless = unless
 
-    def to_json(self):
+    def to_dict_repr(self):
         json = {
             "dest": self.dest.name,
             "unless": [f.__name__ for f in self.unless],

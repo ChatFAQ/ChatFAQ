@@ -1,6 +1,6 @@
 import csv
 
-from .models import Dataset, Item, Utterance
+from .models import Dataset, Item, Utterance, Model
 
 from rest_framework import serializers
 
@@ -34,4 +34,12 @@ class ItemSerializer(serializers.ModelSerializer):
 class UtteranceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Utterance
+        fields = '__all__'
+
+
+class ModelSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Model
         fields = '__all__'

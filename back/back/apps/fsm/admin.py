@@ -8,6 +8,7 @@ from .models import CachedFSM, FSMDefinition
 
 class FSMDefinitionAdmin(admin.ModelAdmin, DynamicArrayMixin):
     formfield_overrides = {JSONField: {"widget": PrettyJSONWidget}}
+    list_display = ("name",)
 
 
 class CachedFSMAdmin(admin.ModelAdmin):
