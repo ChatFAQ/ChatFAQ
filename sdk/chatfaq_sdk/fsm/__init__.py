@@ -8,11 +8,11 @@ if TYPE_CHECKING:
 
 class FSMDefinition:
     """
-    Representation of the entire FSM, this class will generate the DSM Definition sent to the ChatFAQ's back-end server and will do
-    all the validation of the states/transitions and will register all the RPCs
+    Representation of the entire FSM, this class will generate the DSM Definition sent to the ChatFAQ's back-end server
+    and will do all the validation of the states/transitions and will register all the RPCs
     """
 
-    def __init__(self, states: List[State] = [], transitions: List[Transition] = []):
+    def __init__(self, states: List[State] = [], transitions: List[Transition] = [], pre_load_models: List[int] = []):
         """
 
         Parameters
@@ -21,9 +21,13 @@ class FSMDefinition:
             All the states conforming the FSM
         transitions: list of Transition
             All the transitions conforming the FSM
+        pre_load_models: list of int
+            List of models to be pre-loaded during the FSM initialization, instead of loading them on the fly right when
+            the LMGeneratedText layer is called
         """
         self.states = states
         self.transitions = transitions
+        self.pre_load_models = pre_load_models
 
     def register_rpcs(self, chatfaq_sdk: ChatFAQSDK):
         for state in self.states:
@@ -36,10 +40,10 @@ class FSMDefinition:
             for rpc in transition.unless:
                 chatfaq_sdk.rpc(rpc.__name__)(rpc)
 
-    def to_json(self):
+    def to_dict_repr(self):
         return {
-            "states": [item.to_json() for item in self.states],
-            "transitions": [item.to_json() for item in self.transitions],
+            "states": [item.to_dict_repr() for item in self.states],
+            "transitions": [item.to_dict_repr() for item in self.transitions],
         }
 
 
@@ -65,7 +69,7 @@ class State:
         self.name = name
         self.events = events
 
-    def to_json(self):
+    def to_dict_repr(self):
         return {
             "initial": self.initial,
             "name": self.name,
@@ -105,7 +109,7 @@ class Transition:
         self.conditions = conditions
         self.unless = unless
 
-    def to_json(self):
+    def to_dict_repr(self):
         json = {
             "dest": self.dest.name,
             "unless": [f.__name__ for f in self.unless],

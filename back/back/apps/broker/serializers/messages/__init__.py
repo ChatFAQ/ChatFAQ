@@ -101,6 +101,13 @@ class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
 
 
+class LMGeneratedTextPayload(serializers.Serializer):
+    class _LMGeneratedTextPayload(serializers.Serializer):
+        model_response = serializers.CharField()
+        model = serializers.CharField()
+    payload = _LMGeneratedTextPayload()
+
+
 class HTMLPayload(serializers.Serializer):
     @staticmethod
     def html_syntax_validator(value):
@@ -135,6 +142,7 @@ class QuickRepliesPayload(serializers.Serializer):
         resource_type_field_name="payload",
         serializers={
             "TextPayload": TextPayload,
+            "LMGeneratedTextPayload": LMGeneratedTextPayload,
             "HTMLPayload": HTMLPayload,
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,
@@ -161,6 +169,8 @@ class MessageStackSerializer(serializers.Serializer):
     def validate(self, data):
         if data.get("type") == StackPayloadType.text.value:
             s = TextPayload(data=data)
+        elif data.get("type") == StackPayloadType.lm_generated_text.value:
+            s = LMGeneratedTextPayload(data=data)
         elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
         elif data.get("type") == StackPayloadType.image.value:

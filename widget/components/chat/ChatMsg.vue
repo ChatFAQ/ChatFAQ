@@ -8,11 +8,20 @@
                 'is-first': props.isFirst,
                 'is-last': props.isLast,
             }">
-            <div class="content" :class="{
+            <div class="content"
+                 v-if="props.data.type === MSG_TYPES.text"
+                 :class="{
                 [props.data.sender.type]: true,
                 'is-last-of-type': props.isLastOfType,
                 'dark-mode': store.darkMode
             }">{{ props.data.payload }}</div>
+            <div class="content"
+                 v-if="props.data.type === MSG_TYPES.lm_generated_text"
+                 :class="{
+                [props.data.sender.type]: true,
+                'is-last-of-type': props.isLastOfType,
+                'dark-mode': store.darkMode
+            }">{{ props.data.payload.model_response }}</div>
 <!--            <div v-if="props.isFirstOfType && props.data.sender.type === 'bot'" class="voting">
                 <button @click="feedbacke(true)">Up</button>
                 <button @click="feedbacke(false)">Down</button>
@@ -27,6 +36,11 @@ import { useGlobalStore } from "~/store";
 const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
 const feedbacked = ref(null)
+
+const MSG_TYPES = {
+	text: "text",
+	lm_generated_text: "lm_generated_text",
+}
 
 async function feedback(positive) {
     const feedbackData = {

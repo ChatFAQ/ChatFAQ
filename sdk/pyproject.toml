@@ -15,6 +15,7 @@ asyncio = "^3.4.3"
 websockets = "^10.4"
 coloredlogs = "^15.0.1"
 python-dotenv = "^0.21.1"
+ir-qa-dev = "^0.1.18"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
@@ -23,3 +24,8 @@ isort = "^5.12.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+secondary = true

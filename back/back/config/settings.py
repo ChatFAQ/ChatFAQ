@@ -60,7 +60,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "back.apps.people",
         "back.apps.broker",
         "back.apps.fsm",
-        "back.apps.dataset",
+        "back.apps.language_model",
     ]
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",
