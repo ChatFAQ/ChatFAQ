@@ -58,7 +58,7 @@ workers:
   - name: fsm_example
     image: sdk
     envs: [ sentry, sdk ]
-    instance_size: XXS
+    instance_size: XS
 
 jobs:
   - name: migrate
