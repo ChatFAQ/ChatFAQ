@@ -28,7 +28,7 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-preset = ModelWDjango()
+preset = ModelWDjango(enable_storages=True)
 
 dotenv_path = None
 if os.getenv("DOCKER_CONTAINER"):
