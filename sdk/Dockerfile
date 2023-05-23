@@ -15,6 +15,7 @@ COPY poetry.lock pyproject.toml README.md ./
 ENV POETRY_VERSION=1.4.2
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr python - \
     && poetry --version \
+    && poetry config installer.max-workers 10 \
     && poetry config virtualenvs.in-project true \
     && poetry install --only main --no-interaction --no-ansi --no-root
 
