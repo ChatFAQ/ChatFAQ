@@ -102,7 +102,10 @@ class TextPayload(serializers.Serializer):
 
 
 class LMGeneratedTextPayload(serializers.Serializer):
-    payload = serializers.CharField()
+    class _LMGeneratedTextPayload(serializers.Serializer):
+        model_response = serializers.CharField()
+        model = serializers.CharField()
+    payload = _LMGeneratedTextPayload()
 
 
 class HTMLPayload(serializers.Serializer):
@@ -139,6 +142,7 @@ class QuickRepliesPayload(serializers.Serializer):
         resource_type_field_name="payload",
         serializers={
             "TextPayload": TextPayload,
+            "LMGeneratedTextPayload": LMGeneratedTextPayload,
             "HTMLPayload": HTMLPayload,
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,

@@ -83,4 +83,4 @@ class LMGeneratedText(Layer):
 
     def dict_repr(self, ctx):
         model = self.get_model(self.model_id, ctx)
-        return [{"type": self._type, "payload": model.query(self.input_text)}]
+        return [{"type": self._type, "payload": {"model_response": model.query(self.input_text), "model": self.model_id}}]
