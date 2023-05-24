@@ -13,7 +13,7 @@
 
 .menu-item {
     display: flex;
-    padding: 12px 8px;
+    padding: 12px 12px;
     letter-spacing: 0.5px;
     border-radius: 4px;
     i {
