@@ -5,6 +5,10 @@ from django.contrib.auth import authenticate
 from knox.auth import TokenAuthentication
 from rest_framework import exceptions
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 
 @database_sync_to_async
 def return_user_from_token(token_string):
@@ -24,7 +28,8 @@ def return_user_from_knox_token(token_string=''):
 
     try:
         user, auth_token = TokenAuthentication().authenticate_credentials(token_string.encode())
-    except exceptions.AuthenticationFailed:
+    except exceptions.AuthenticationFailed as e:
+        logger.error("Error with token authentication", exc_info=1)
         user = AnonymousUser()
     return user
 
