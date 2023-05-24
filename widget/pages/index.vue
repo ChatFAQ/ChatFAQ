@@ -12,7 +12,7 @@ const chatfaqAPI = ref(conf.public.chatfaqAPI)
 const userId = ref(undefined)
 const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
-const fsmDef = ref("model_fsm")
+const fsmDef = ref("simple_fsm")
 
 
 function uuidv4() {
