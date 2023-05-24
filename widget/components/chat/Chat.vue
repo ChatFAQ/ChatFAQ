@@ -139,17 +139,20 @@ function isFirstOfType(msg, flatStack) {
     background-color: $chatfaq-color-primary-200;
 
     &.dark-mode {
-        background-color: $chatfaq-color-neutral-black;
+        background-color: $chatfaq-color-neutral-purple;
     }
 }
 
 .input-chat-wrapper {
+    margin: 24px;
     display: flex;
-    width: 100%;
-    border-top: 1px solid $chatfaq-color-neutral-black !important;
-
+    border-radius: 4px;
+    border: 1px solid $chatfaq-color-neutral-purple !important;
+    background-color: $chatfaq-color-primary-300;
+    box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
     &.dark-mode {
-        border-top: 1px solid $chatfaq-color-secondary-500 !important;
+        background-color: $chatfaq-color-primary-800;
+        border: 1px solid $chatfaq-color-primary-900 !important;
     }
 }
 
@@ -167,8 +170,8 @@ function isFirstOfType(msg, flatStack) {
     width: 100%;
     border: 0;
     outline: 0;
-    margin-left: 24px;
-    background-color: $chatfaq-color-primary-200;
+    margin-left: 16px;
+    background-color: $chatfaq-color-primary-300;
 }
 
 
@@ -182,7 +185,7 @@ function isFirstOfType(msg, flatStack) {
     }
 
     &.dark-mode {
-        background-color: $chatfaq-color-neutral-black;
+        background-color: $chatfaq-color-primary-800;
         color: $chatfaq-color-primary-200;
 
         &::placeholder {
@@ -193,7 +196,9 @@ function isFirstOfType(msg, flatStack) {
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
     content: $chatfaq-send-icon;
-    margin: 22px 26px 22px 20px;
+    margin-top: 11px;
+    margin-bottom: 11px;
+    margin-right: 16px;
     cursor: pointer;
 
     &.dark-mode {

@@ -15,6 +15,7 @@
     display: flex;
     padding: 12px 8px;
     letter-spacing: 0.5px;
+    border-radius: 4px;
     i {
         margin-right: 10px;
     }

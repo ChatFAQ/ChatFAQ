@@ -8,12 +8,14 @@
         </div>
         <div class="conversations">
             <div v-for="conversation in store.conversations" class="left-menu-item">
-                <HistoryItem ref="historyItems" :key="conversation[0]" :conversation-id="conversation[0]" :title="conversation[1]" />
+                <HistoryItem ref="historyItems" :key="conversation[0]" :conversation-id="conversation[0]"
+                             :title="conversation[1]"/>
             </div>
         </div>
         <div class="other-buttons">
+            <Footer class="footer" :class="{'history': store.historyOpened}"/>
 
-            <div class="left-menu-item">
+            <div class="left-menu-item delete-history">
                 <DeleteHistory/>
             </div>
 
@@ -24,18 +26,18 @@
             <div class="left-menu-item">
                 <LightMode/>
             </div>
-
         </div>
     </div>
 </template>
 
 <script setup>
-import { useGlobalStore } from "~/store";
+import {useGlobalStore} from "~/store";
 import NewConversationItem from "~/components/left-menu/items/NewConversationItem.vue";
 import HistoryItem from "~/components/left-menu/items/HistoryItem.vue";
 import LightMode from "~/components/left-menu/items/LightMode.vue";
 import DownloadHistory from "~/components/left-menu/items/DownloadHistory.vue";
 import DeleteHistory from "~/components/left-menu/items/DeleteHistory.vue";
+import Footer from "~/components/left-menu/items/Footer.vue";
 
 const historyItems = ref(null)
 
@@ -64,6 +66,7 @@ watch(() => store.downloading, (newVal) => {
 
 <style lang="scss" scoped>
 @import "assets/styles/variables";
+
 $phone-breakpoint: 600px;
 
 .left-menu-wrapper {
@@ -77,6 +80,7 @@ $phone-breakpoint: 600px;
         z-index: 2;
         height: 100% !important;
     }
+
     .conversations {
         height: 100%;
         overflow-y: scroll;
@@ -97,6 +101,7 @@ $phone-breakpoint: 600px;
             margin-top: 16px;
             margin-bottom: 8px;
             background: rgba(223, 218, 234, 0.1);
+            border-radius: 4px;
         }
     }
 
@@ -115,8 +120,21 @@ $phone-breakpoint: 600px;
         height: fit-content;
         display: flex;
         flex-direction: column-reverse;
-        > div:last-child {
-            border-top: 2px solid #4D4160;
+
+        > .left-menu-item:last-child {
+            border-top: 1px solid $chatfaq-color-neutral-purple;
+            padding-top: 12px;
+        }
+
+        > .delete-history {
+            padding-bottom: 12px;
+        }
+
+        > .footer {
+            border-top: 1px solid $chatfaq-color-neutral-purple;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            height: 60px;
         }
 
 
@@ -129,10 +147,12 @@ $phone-breakpoint: 600px;
             &:first-child {
                 margin-bottom: 16px;
             }
+        }
+    }
 
-            &:hover {
-                background-color: $chatfaq-color-primary-900;
-            }
+    .menu-item {
+        &:hover {
+            background-color: $chatfaq-color-primary-900;
         }
     }
 }

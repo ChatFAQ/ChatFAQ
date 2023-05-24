@@ -7,7 +7,6 @@
                 <div class="flex-column" :class="{'maximized': store.maximized}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened}"/>
-                    <Footer class="footer" :class="{'history': store.historyOpened}"/>
                 </div>
             </div>
             <div class="widget-open-button" :class="{'opened': store.opened}"
@@ -22,7 +21,6 @@
 import { useGlobalStore } from "~/store";
 import { ref, defineProps } from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
-import Footer from "~/components/chat/Footer.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
 
@@ -78,9 +76,7 @@ $phone-breakpoint: 600px;
     }
 
     border-radius: 10px 0px 0px 10px;
-    border-top: 2px solid $chatfaq-color-primary-500;
-    border-bottom: 2px solid $chatfaq-color-primary-500;
-    border-left: 2px solid $chatfaq-color-primary-500;
+    border: 1px solid $chatfaq-color-neutral-purple;
 }
 
 .widget-wrapper {
@@ -119,7 +115,7 @@ $phone-breakpoint: 600px;
 
 
 .widget-wrapper > .flex-column > .header {
-    border: 2px solid $chatfaq-color-primary-500;
+    border: 1px solid $chatfaq-color-neutral-purple;
     border-radius: 10px 10px 0px 0px;
 
     &.history {
@@ -135,8 +131,10 @@ $phone-breakpoint: 600px;
 .widget-wrapper > .flex-column > .chat {
     position: relative;
     height: 100%;
-    border-left: 2px solid $chatfaq-color-primary-500;
-    border-right: 2px solid $chatfaq-color-primary-500;
+    border-left: 1px solid $chatfaq-color-neutral-purple;
+    border-right: 1px solid $chatfaq-color-neutral-purple;
+    border-bottom: 1px solid $chatfaq-color-neutral-purple;
+    border-radius: 0px 0px 10px 0px;
 
     &.history {
         border-left: 0px;
@@ -147,8 +145,9 @@ $phone-breakpoint: 600px;
     }
 }
 
+/*
 .widget-wrapper > .flex-column > .footer {
-    border: 2px solid $chatfaq-color-primary-500;
+    border: 1px solid $chatfaq-color-neutral-purple;
     border-radius: 0px 0px 10px 10px;
 
     &.history {
@@ -161,6 +160,7 @@ $phone-breakpoint: 600px;
     }
 }
 
+*/
 
 .widget-open-button {
     cursor: pointer;

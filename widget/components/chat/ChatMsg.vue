@@ -7,20 +7,21 @@
                 'is-first-of-type': props.isFirstOfType,
                 'is-first': props.isFirst,
                 'is-last': props.isLast,
+                'maximized': store.maximized
             }">
             <div class="content"
                  v-if="props.data.type === MSG_TYPES.text"
                  :class="{
                 [props.data.sender.type]: true,
                 'is-last-of-type': props.isLastOfType,
-                'dark-mode': store.darkMode
+                'dark-mode': store.darkMode,
             }">{{ props.data.payload }}</div>
             <div class="content"
                  v-if="props.data.type === MSG_TYPES.lm_generated_text"
                  :class="{
                 [props.data.sender.type]: true,
                 'is-last-of-type': props.isLastOfType,
-                'dark-mode': store.darkMode
+                'dark-mode': store.darkMode,
             }">{{ props.data.payload.model_response }}</div>
 <!--            <div v-if="props.isFirstOfType && props.data.sender.type === 'bot'" class="voting">
                 <button @click="feedbacke(true)">Up</button>
@@ -75,30 +76,32 @@ async function feedback(positive) {
     display: flex;
     flex-direction: column;
     .content {
-        border: solid 1px;
-        border-radius: 20px;
+        border-radius: 6px;
         padding: 9px 15px 9px 15px;
         word-wrap: break-word;
 
         &.bot {
-            border-color: $chatfaq-color-primary-500;
+            background-color: $chatfaq-color-primary-300;
             color: $chatfaq-color-neutral-black;
             &.dark-mode {
-                background-color: $chatfaq-color-neutral-black;
-                border-color: $chatfaq-color-secondary-500;
+                background-color: $chatfaq-color-primary-800;
                 color: $chatfaq-color-neutral-white;
             }
             &.is-last-of-type {
-                border-radius: 20px 20px 20px 0px;
+                border-radius: 6px 6px 6px 0px;
             }
         }
         &.human {
             border: none;
             background-color: $chatfaq-color-primary-500;
             color: $chatfaq-color-neutral-white;
+            &.dark-mode {
+                background-color: $chatfaq-color-primary-900;
+                color: $chatfaq-color-neutral-white;
+            }
 
             &.is-last-of-type {
-                border-radius: 20px 20px 0px 20px;
+                border-radius: 6px 6px 0px 6px;
             }
         }
 
@@ -107,7 +110,6 @@ async function feedback(positive) {
         width: fit-content;
         height: 100%;
         margin: 8px 5px 0px;
-        max-width: 90%;
         display: flex;
         align-items: center;
 
@@ -125,11 +127,19 @@ async function feedback(positive) {
 
         &.bot {
             margin-left: 24px;
+            margin-right: 86px;
+            &.maximized {
+                margin-right: 404px;
+            }
         }
 
         &.human {
             align-self: end;
             margin-right: 24px;
+            margin-left: 86px;
+            &.maximized {
+                margin-left: 404px;
+            }
         }
     }
 

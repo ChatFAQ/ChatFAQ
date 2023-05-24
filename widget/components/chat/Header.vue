@@ -52,6 +52,7 @@ $phone-breakpoint: 600px;
             display: flex;
             width: 40px;
             border-radius: 32px;
+            border: 1px solid $chatfaq-color-neutral-purple;
 
             &:hover {
                 background: $chatfaq-color-primary-900;
@@ -63,6 +64,7 @@ $phone-breakpoint: 600px;
             }
         }
         &.maximizer {
+            border: 1px solid $chatfaq-color-neutral-purple;
             i {
                 content: $chatfaq-maximize-icon;
                 &.maximized {
@@ -91,14 +93,19 @@ $phone-breakpoint: 600px;
             border-radius: 32px;
             width: 40px;
             display: flex;
+            border: 1px solid $chatfaq-color-neutral-purple;
 
             &:hover {
                 background: $chatfaq-color-primary-900;
+                i {
+                    width: 20px;
+                    margin: auto;
+                }
             }
             i {
                 width: 20px;
                 margin: auto;
-                content: $chatfaq-hamburguer-icon;
+                content: $chatfaq-burger-menu-icon;
                 &.opened {
                     content: $chatfaq-double-arrow-right-icon;
                 }
