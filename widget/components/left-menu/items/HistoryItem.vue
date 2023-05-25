@@ -1,8 +1,8 @@
 <template>
     <MenuItem class="item-wrapper" :editable="true" :class="{editing}">
         <i class="checkbox" :class="{'checked': selected}" @click="selected = !selected"/>
-        <textarea v-if="!editing" disabled class="item-title">{{ title }}</textarea>
-        <textarea v-else ref="itemTitleEdit" class="item-title edit">{{ title }}</textarea>
+        <input v-if="!editing" disabled class="item-title" rows="1" :value="title"/>
+        <input v-else ref="itemTitleEdit" class="item-title edit" rows="1" :value="title"/>
 
         <div class="edit-controls" v-if="!editing">
             <i class="edit" @click="edit"/>
@@ -92,7 +92,6 @@ function timestampToSentence(isoString) {
     }
     .item-title {
         width: 120px;
-        height: 100%;
         background-color: unset;
         color: white;
         border: unset;
