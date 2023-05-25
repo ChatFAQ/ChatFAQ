@@ -182,5 +182,5 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     # }
 
     REST_KNOX = {
-        'EXPIRY_DATETIME_FORMAT': None,
+        'TOKEN_TTL': None,
     }
