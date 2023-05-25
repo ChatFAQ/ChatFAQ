@@ -1,12 +1,12 @@
 <template>
-    <MenuItem>
+    <div>
         <div class="footer-content">
             <div class="text">
                 Powered By
             </div>
             <i class="logo-long"/>
         </div>
-    </MenuItem>
+    </div>
 </template>
 
 <script setup>

@@ -103,11 +103,15 @@ $phone-breakpoint: 600px;
             background: rgba(223, 218, 234, 0.1);
             border-radius: 4px;
         }
+        .menu-item {
+            display: flex;
+            padding: 10px 4px !important;
+        }
     }
 
     .left-menu-item {
-        margin-left: 14px;
-        margin-right: 14px;
+        margin-left: 8px;
+        margin-right: 8px;
 
 
         &:hover {
@@ -139,20 +143,17 @@ $phone-breakpoint: 600px;
 
 
         .left-menu-item {
-            margin-left: 0px;
-            margin-right: 0px;
-            padding-left: 14px;
-            padding-right: 14px;
-
+            margin-left: 8px;
+            margin-right: 8px;
+            padding-left: 0px;
+            padding-right: 0px;
+            .menu-item {
+                padding: 12px 8px;
+                margin: 4px 0px;
+            }
             &:first-child {
                 margin-bottom: 16px;
             }
-        }
-    }
-
-    .menu-item {
-        &:hover {
-            background-color: $chatfaq-color-primary-900;
         }
     }
 }
