@@ -26,9 +26,20 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     actions: {
         async gatherConversations() {
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${this.userId}/`);
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/?sender=${this.userId}`);
             this.conversations = await response.json();
         },
+        // async renameConversationTitle(conversationId, title) {
+        //     await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
+        //         method: 'PATCH',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify({
+        //             title: title
+        //         })
+        //     });
+        // },
     },
     getters: {
         conversationsIds() {

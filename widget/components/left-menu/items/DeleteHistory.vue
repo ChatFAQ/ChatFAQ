@@ -22,19 +22,17 @@ const store = useGlobalStore();
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 
 async function deleteConversations() {
+    const ids = store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
     let response = await fetch(
-        store.chatfaqAPI + `/back/api/broker/conversations`,
+        store.chatfaqAPI + `/back/api/broker/conversations/${ids}/`,
         {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                ids: store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
-            })
         }
     );
-    await response.json();
+    await response.text();
     await store.gatherConversations()
 
     store.selectedConversations = []

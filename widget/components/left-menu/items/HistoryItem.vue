@@ -1,15 +1,15 @@
 <template>
     <MenuItem class="item-wrapper" :editable="true" :class="{editing}">
         <i class="checkbox" :class="{'checked': selected}" @click="selected = !selected"/>
-        <span class="item-title" v-if="!editing"> {{ timestampToSentence(title) }}</span>
-        <textarea class="item-title-edit" v-else :value="timestampToSentence(title)"/>
+        <textarea v-if="!editing" disabled class="item-title">{{ title }}</textarea>
+        <textarea v-else ref="itemTitleEdit" class="item-title edit">{{ title }}</textarea>
 
         <div class="edit-controls" v-if="!editing">
             <i class="edit" @click="edit"/>
         </div>
         <div class="edit-controls" v-else>
-            <i v-if="editing" class="check-icon" @click="deleteConversations"/>
-            <i v-if="editing" class="close-icon" @click="() => {store.deleting = false}"/>
+            <i v-if="editing" class="check-icon" @click="submit"/>
+            <i v-if="editing" class="close-icon" @click="editing = false"/>
         </div>
     </MenuItem>
 </template>
@@ -25,9 +25,21 @@ const props = defineProps(["title", "conversationId"]);
 
 const selected = ref(false)
 let editing = ref(false)
+let originalValue = props.title
+let itemTitleEdit = ref(null)
 
 function edit() {
     editing.value = true
+    nextTick(() => {
+        itemTitleEdit.value.focus()
+        itemTitleEdit.value.selectionStart = itemTitleEdit.value.value.length;
+    })
+}
+function submit() {
+    editing.value = false
+    if (itemTitleEdit.value.value !== originalValue) {
+        // store.renameConversationTitle(props.conversationId, itemTitleEdit.value.value)
+    }
 }
 
 watch(selected, (newVal) => {
@@ -80,9 +92,7 @@ function timestampToSentence(isoString) {
     }
     .item-title {
         width: 120px;
-    }
-    .item-title-edit {
-        width: 120px;
+        height: 100%;
         background-color: unset;
         color: white;
         border: unset;
@@ -90,8 +100,16 @@ function timestampToSentence(isoString) {
         font-family: "Open Sans";
         font-size: 14px;
         resize: none;
-        border: 1px solid $chatfaq-color-tertiary-blue-500;
         border-radius: 4px;
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        text-align: left;
+        border: 1px solid transparent;
+        &.edit {
+            border: 1px solid $chatfaq-color-tertiary-blue-500;
+        }
+
     }
 }
 </style>

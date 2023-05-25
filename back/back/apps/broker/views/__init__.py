@@ -6,58 +6,59 @@ from io import BytesIO
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse, HttpResponse
 from rest_framework import viewsets, generics
-from rest_framework.views import APIView
 
 from ..models.message import Message, UserFeedback, AgentType, AdminReview
-from ..serializers import IdSerializer, IdsSerializer, UserFeedbackSerializer, AdminReviewSerializer
+from ..serializers import UserFeedbackSerializer, AdminReviewSerializer
 from ..serializers.messages import MessageSerializer
+from rest_framework import mixins, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 
-class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
+class ConversationAPIViewSet(mixins.RetrieveModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   # mixins.UpdateModelMixin,
+                   viewsets.GenericViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
 
-
-class ConversationView(APIView):
-    def get(self, request, pk):
+    def retrieve(self, request, *args, **kwargs):
         return JsonResponse(
-            Message.get_mml_chain(pk), safe=False
+            Message.get_mml_chain(kwargs["pk"]), safe=False
         )
 
-    def delete(self, request, pk):
-        Message.delete_conversation(pk)
+    def destroy(self, request, *args, **kwargs):
+        Message.delete_conversations(kwargs["pk"].split(","))
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-class ConversationsInfoView(APIView):
-    def get(self, request, pk):
+    def list(self, request, *args, **kwargs):
+        # get any query params from request
         return JsonResponse(
-            Message.conversations_info(pk), safe=False
+            Message.conversations_info(request.query_params.get("sender")), safe=False
         )
 
-    def delete(self, request):
-        s = IdsSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        Message.delete_conversations(s.data["ids"])
-        return JsonResponse({})
+    # def update(self, request, *args, **kwargs):
+    #     request.data
 
-
-class ConversationsDownload(APIView):
-
-    def post(self, request):
-        s = IdsSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        if len(s.data["ids"]) == 1:
-            content = Message.conversation_to_text(s.data["ids"][0])
-            filename = f"{Message.get_first_msg(s.data['ids'][0]).send_time.strftime('%Y-%m-%d_%H-%M-%S')}.txt"
+    @action(methods=('post',), detail=True)
+    def download(self, request, *args, **kwargs):
+        """
+        A view to download all the dataset's items as a csv file:
+        """
+        ids = kwargs["pk"].split(",")
+        if len(ids) == 1:
+            content = Message.conversation_to_text(ids[0])
+            filename = f"{Message.get_first_msg(ids[0]).send_time.strftime('%Y-%m-%d_%H-%M-%S')}.txt"
             content_type = 'text/plain'
         else:
             zip_content = BytesIO()
             with ZipFile(zip_content, 'w') as _zip:
-                for _id in s.data["ids"]:
+                for _id in ids:
                     _content = Message.conversation_to_text(_id)
                     _zip.writestr(Message.get_first_msg(_id).send_time.strftime('%Y-%m-%d_%H-%M-%S') + ".txt", _content)
 
-            filename = f"{Message.get_first_msg(s.data['ids'][0]).send_time.strftime('%Y-%m-%d_%H-%M-%S')}.zip"
+            filename = f"{Message.get_first_msg(ids[0]).send_time.strftime('%Y-%m-%d_%H-%M-%S')}.zip"
             content_type = 'application/x-zip-compressed'
             content = zip_content.getvalue()
 
@@ -65,6 +66,11 @@ class ConversationsDownload(APIView):
         response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
+
+
+class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
 
 
 class UserFeedbackAPIView(CreateAPIView, UpdateAPIView):
