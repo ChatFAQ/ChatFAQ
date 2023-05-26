@@ -74,7 +74,6 @@ class BotMessageSerializer(serializers.Serializer):
 
 
 class AgentSerializer(serializers.Serializer):
-
     id = serializers.CharField(required=False, max_length=255)
     first_name = serializers.CharField(required=False, max_length=255)
     last_name = serializers.CharField(required=False, max_length=255)
@@ -105,6 +104,7 @@ class LMGeneratedTextPayload(serializers.Serializer):
     class _LMGeneratedTextPayload(serializers.Serializer):
         model_response = serializers.CharField()
         model = serializers.CharField()
+
     payload = _LMGeneratedTextPayload()
 
 

@@ -7,9 +7,9 @@ from django.forms import model_to_dict
 from django.urls import re_path
 
 from back.utils.custom_channels import CustomAsyncConsumer
+from back.apps.broker.models.message import Message, Conversation
 
 if TYPE_CHECKING:
-    from back.apps.broker.models.message import Message
     from back.apps.fsm.lib import FSM
     from back.apps.fsm.models import FSMDefinition
 
@@ -98,7 +98,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         )
 
     def gather_conversation_id(self, mml: "Message"):
-        raise NotImplemented("Implement a method that gathers the conversation id")
+        raise NotImplemented("Implement a method that creates/gathers the conversation id")
 
     async def gather_fsm_def(self, mml: "Message"):
         raise NotImplemented("Implement a method that gathers the conversation id")
@@ -106,8 +106,9 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     async def gather_user_id(self, mml: "Message"):
         return None
 
-    def set_conversation_id(self, conversation_id):
-        self.conversation_id = conversation_id
+    async def set_conversation_id(self, conversation_id):
+        conversation, _ = await Conversation.objects.aget_or_create(platform_conversation_id=conversation_id)
+        self.conversation_id = conversation.pk
 
     def set_fsm_def(self, fsm_def):
         self.fsm_def = fsm_def

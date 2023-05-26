@@ -38,8 +38,8 @@ class ConversationAPIViewSet(mixins.RetrieveModelMixin,
             Message.conversations_info(request.query_params.get("sender")), safe=False
         )
 
-    # def update(self, request, *args, **kwargs):
-    #     request.data
+    def update(self, request, *args, **kwargs):
+        pass
 
     @action(methods=('post',), detail=True)
     def download(self, request, *args, **kwargs):

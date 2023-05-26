@@ -29,6 +29,15 @@ class StackPayloadType(Enum):
     quick_replies = "quick_replies"
 
 
+class Conversation(ChangesMixin):
+    """
+    Table that holds the conversation information, all messages that belong to the same conversation will have the same conversation_id
+    """
+    platform_conversation_id = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+
+
 class Message(ChangesMixin):
     """
     The representation of the MML as a Django model
@@ -88,11 +97,10 @@ class Message(ChangesMixin):
             For the user to express its satisfaction to the given bot’s answer
     """
 
-    prev = models.ForeignKey("self", null=True, unique=True, on_delete=models.SET_NULL)
+    conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
+    prev = models.OneToOneField("self", null=True, on_delete=models.SET_NULL)
     sender = models.JSONField()
     receiver = models.JSONField(null=True)
-    conversation = models.CharField(max_length=255)
-    conversation_name = models.CharField(max_length=255, null=True)
     send_time = models.DateTimeField()
     confidence = models.FloatField(
         null=True,
