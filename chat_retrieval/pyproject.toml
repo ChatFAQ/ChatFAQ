@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chat-retrieval"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
