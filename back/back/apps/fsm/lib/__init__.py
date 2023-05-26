@@ -234,7 +234,7 @@ class FSM:
             },
             "confidence": 1,
             "stacks": stacks,
-            "conversation": self.ctx.conversation_id,
+            "conversation": self.ctx.conversation.pk,
             "send_time": int(time.time() * 1000),
         }
         if self.ctx.user_id is not None:

@@ -21,10 +21,9 @@ const store = useGlobalStore();
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 
-async function deleteConversations() {
-    const ids = store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
-    let response = await fetch(
-        store.chatfaqAPI + `/back/api/broker/conversations/${ids}/`,
+async function deleteConversation(id) {
+    await fetch(
+        store.chatfaqAPI + `/back/api/broker/conversations/${id}/`,
         {
             method: "DELETE",
             headers: {
@@ -32,7 +31,11 @@ async function deleteConversations() {
             },
         }
     );
-    await response.text();
+}
+
+async function deleteConversations() {
+    const ids = store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
+    await Promise.all(ids.map(id => deleteConversation(id)))
     await store.gatherConversations()
 
     store.selectedConversations = []

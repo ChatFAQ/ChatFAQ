@@ -75,12 +75,12 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def update_or_create(cls, fsm: FSM):
-        instance = cls.objects.filter(conversation__id=fsm.ctx.conversation_id).first()
+        instance = cls.objects.filter(conversation=fsm.ctx.conversation).first()
         if instance:
             instance.current_state = fsm.current_state._asdict()
         else:
             instance = cls(
-                conversation__id=fsm.ctx.conversation_id,
+                conversation=fsm.ctx.conversation,
                 current_state=fsm.current_state._asdict(),
                 fsm_def=fsm.ctx.fsm_def,
             )
@@ -89,7 +89,7 @@ class CachedFSM(ChangesMixin):
     @classmethod
     def build_fsm(cls, ctx: BotConsumer) -> FSM:
         instance: CachedFSM = cls.objects.filter(
-            conversation__id=ctx.conversation_id
+            conversation=ctx.conversation
         ).first()
         if instance:
             return instance.fsm_def.build_fsm(
@@ -100,6 +100,6 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def get_conv_updated_date(cls, ctx: BotConsumer):
-        instance = cls.objects.filter(conversation__id=ctx.conversation_id).first()
+        instance = cls.objects.filter(conversation=ctx.conversation).first()
         if instance:
             instance.updated_date.strftime(TIMESTAMP_FORMAT)

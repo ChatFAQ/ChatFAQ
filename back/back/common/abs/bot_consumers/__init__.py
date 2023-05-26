@@ -36,7 +36,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     this way we have a generic and shared functionality across the different
     bots whatever what kind they are (WebSocket based, http views and what not).
     The FSM, serializers and what not will probably access methods of this class to get information about the
-    conversation_id, platform_config, etc...
+    conversation, platform_config, etc...
     """
 
     serializer_class = None
@@ -46,7 +46,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             BotMessageSerializer,  # TODO: CI
         )
 
-        self.conversation_id: Union[str, None] = None
+        self.conversation: Union[Conversation, None] = None
         self.user_id: Union[str, None] = None
 
         self.fsm_def: "FSMDefinition" = None
@@ -67,7 +67,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return f"bot_{conversation_id}"
 
     def get_group_name(self):
-        return self.create_group_name(self.conversation_id)
+        return self.create_group_name(self.conversation.pk)
 
     async def rpc_response(self, data: dict):
         """
@@ -87,7 +87,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
     async def disconnect(self, code=None):
         logger.debug(
-            f"Disconnecting from conversation ({self.conversation_id}) (CODE: {code})"
+            f"Disconnecting from conversation ({self.conversation.pk}) (CODE: {code})"
         )
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
@@ -106,9 +106,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     async def gather_user_id(self, mml: "Message"):
         return None
 
-    async def set_conversation_id(self, conversation_id):
-        conversation, _ = await Conversation.objects.aget_or_create(platform_conversation_id=conversation_id)
-        self.conversation_id = conversation.pk
+    async def set_conversation(self, platform_conversation_id):
+        self.conversation, _ = await Conversation.objects.aget_or_create(platform_conversation_id=platform_conversation_id)
 
     def set_fsm_def(self, fsm_def):
         self.fsm_def = fsm_def
@@ -120,14 +119,13 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         """
         We serialize the ctx just so we can send it to the RPC Servers
         """
-        from back.apps.broker.models.message import Message  # TODO: CI
-        last_mml = await sync_to_async(
-            Message.get_last_mml
-        )(self.conversation_id)
+        from back.apps.broker.models.message import Conversation  # TODO: CI
+        conv = await sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
+        last_mml = await sync_to_async(conv.get_last_mml)()
 
         last_mml = model_to_dict(last_mml, fields=["stacks"]) if last_mml else None
         return {
-            "conversation_id": self.conversation_id,
+            "conversation_id": self.conversation.pk,
             "last_mml": last_mml,
         }
 

@@ -37,7 +37,7 @@ class ExampleWSSerializer(BotMessageSerializer):
                 "stacks": self.data["stacks"],
                 "sender": self.data["sender"],
                 "send_time": int(time.time() * 1000),
-                "conversation": ctx.conversation_id,
+                "conversation": ctx.conversation.pk,
             }
         )
         if not s.is_valid():

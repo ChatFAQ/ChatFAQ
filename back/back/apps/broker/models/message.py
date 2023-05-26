@@ -34,8 +34,49 @@ class Conversation(ChangesMixin):
     Table that holds the conversation information, all messages that belong to the same conversation will have the same conversation_id
     """
     platform_conversation_id = models.CharField(max_length=255, unique=True)
-    title = models.CharField(max_length=255, null=True, blank=True)
     name = models.CharField(max_length=255, null=True, blank=True)
+
+    def get_first_msg(self):
+        return Message.objects.filter(
+            prev__isnull=True,
+            conversation=self,
+        ).first()
+
+    def get_mml_chain(self):
+        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+
+        first_message = self.get_first_msg()
+
+        if not first_message:
+            return []
+        return [MessageSerializer(m).data for m in first_message.get_chain()]
+
+    def get_last_mml(self):
+        return Message.objects.filter(conversation=self).order_by("-created_date").first()
+
+    @classmethod
+    def conversations_from_sender(cls, sender_id):
+        conversations = cls.objects.values_list("pk", "name", "created_date").filter(
+            Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
+        ).distinct().order_by("-created_date")
+
+        return list(conversations.all())
+
+    def conversation_to_text(self):
+        text = ""
+        first_message = self.get_first_msg()
+        msgs = first_message.get_chain()
+
+        for msg in msgs:
+            text = f"{text}{msg.to_text()}\n"
+
+        return text
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.name:
+            self.name = self.created_date.strftime("%Y-%m-%d_%H-%M-%S")
+            super().save(update_fields=["name"])
 
 
 class Message(ChangesMixin):
@@ -129,68 +170,8 @@ class Message(ChangesMixin):
         stacks_text = '\n'.join([s["payload"] for s in itertools.chain(*self.stacks)])
         return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stacks_text}"
 
-    @classmethod
-    def get_first_msg(cls, conversation_id):
-        return cls.objects.filter(
-            prev__isnull=True,
-            conversation=conversation_id,
-        ).first()
-
-    @classmethod
-    def get_mml_chain(cls, conversation_id):
-        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
-
-        first_message = cls.get_first_msg(conversation_id)
-
-        if not first_message:
-            return []
-        return [MessageSerializer(m).data for m in first_message.get_chain()]
-
-    @classmethod
-    def delete_conversation(cls, conversation_id):
-        return cls.objects.filter(
-            conversation=conversation_id,
-        ).delete()
-
-    @classmethod
-    def delete_conversations(cls, conversation_ids):
-        return cls.objects.filter(
-            conversation__in=conversation_ids,
-        ).delete()
-
-    @classmethod
-    def conversations_info(cls, sender__id):
-        conversations = (
-            cls.objects.filter(Q(sender__id=sender__id) | Q(receiver__id=sender__id))
-            .values("conversation")
-            .distinct()
-            .all()
-        )
-
-        first_messages = cls.objects.values_list("conversation", "created_date").filter(
-            prev__isnull=True,
-            conversation__in=conversations,
-        ).order_by("-created_date")
-
-        return list(first_messages.all())
-
-    @classmethod
-    def conversation_to_text(cls, conversation_id):
-        text = ""
-        first_message = cls.get_first_msg(conversation_id)
-        msgs = first_message.get_chain()
-
-        for msg in msgs:
-            text = f"{text}{msg.to_text()}\n"
-
-        return text
-
-    @classmethod
-    def get_last_mml(cls, conversation_id):
-        return cls.objects.filter(conversation=conversation_id).order_by("-created_date").first()
-
     def save(self, *args, **kwargs):
-        self.prev = Message.get_last_mml(self.conversation)
+        self.prev = self.conversation.get_last_mml()
         super(Message, self).save(*args, **kwargs)
 
 

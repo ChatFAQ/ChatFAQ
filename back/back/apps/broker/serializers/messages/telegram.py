@@ -68,7 +68,7 @@ class TelegramMessageSerializer(BotMessageSerializer):
                     "platform": "Telegram",
                 },
                 "send_time": self.validated_data["message"]["date"] * 1000,
-                "conversation": self.validated_data["message"]["chat"]["id"],
+                "conversation": ctx.conversation.pk,
             }
         )
         if not s.is_valid():
@@ -81,7 +81,7 @@ class TelegramMessageSerializer(BotMessageSerializer):
             for layer in stack:
                 if layer.get("type") == "text":
                     data = {
-                        "chat_id": ctx.conversation_id,
+                        "chat_id": ctx.conversation.platform_conversation_id,
                         "text": layer["payload"],
                         "parse_mode": "Markdown",
                     }

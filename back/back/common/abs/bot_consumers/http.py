@@ -63,7 +63,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
 
-        await self.set_conversation_id(
+        await self.set_conversation(
             self.gather_conversation_id(serializer.validated_data)
         )
         self.set_fsm_def(await self.gather_fsm_def(serializer.validated_data))
