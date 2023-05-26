@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia'
-
 export const useGlobalStore = defineStore('globalStore', {
     state: () => {
         return {
@@ -29,17 +28,14 @@ export const useGlobalStore = defineStore('globalStore', {
             let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/?sender=${this.userId}`);
             this.conversations = await response.json();
         },
-        // async renameConversationTitle(conversationId, title) {
-        //     await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
-        //         method: 'PATCH',
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({
-        //             title: title
-        //         })
-        //     });
-        // },
+        async renameConversationName(id, name) {
+            await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name })
+            });
+            this.conversations.find((conversation) => conversation[0] === id)[1] = name;
+        },
     },
     getters: {
         conversationsIds() {

@@ -1,8 +1,8 @@
 <template>
     <MenuItem class="item-wrapper" :editable="true" :class="{editing}">
         <i class="checkbox" :class="{'checked': selected}" @click="selected = !selected"/>
-        <input v-if="!editing" disabled class="item-title" rows="1" :value="title"/>
-        <input v-else ref="itemTitleEdit" class="item-title edit" rows="1" :value="title"/>
+        <input v-if="!editing" disabled class="item-name" rows="1" :value="name"/>
+        <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name"/>
 
         <div class="edit-controls" v-if="!editing">
             <i class="edit" @click="edit"/>
@@ -21,11 +21,11 @@ import {useGlobalStore} from "~/store";
 
 const store = useGlobalStore();
 
-const props = defineProps(["title", "conversationId"]);
+const props = defineProps(["name", "conversationId"]);
 
 const selected = ref(false)
 let editing = ref(false)
-let originalValue = props.title
+let originalValue = props.name
 let itemTitleEdit = ref(null)
 
 function edit() {
@@ -35,10 +35,10 @@ function edit() {
         itemTitleEdit.value.selectionStart = itemTitleEdit.value.value.length;
     })
 }
-function submit() {
+async function submit() {
     editing.value = false
     if (itemTitleEdit.value.value !== originalValue) {
-        // store.renameConversationTitle(props.conversationId, itemTitleEdit.value.value)
+        await store.renameConversationName(props.conversationId, itemTitleEdit.value.value)
     }
 }
 
@@ -90,7 +90,7 @@ function timestampToSentence(isoString) {
             content: $chatfaq-close-icon;
         }
     }
-    .item-title {
+    .item-name {
         width: 120px;
         background-color: unset;
         color: white;

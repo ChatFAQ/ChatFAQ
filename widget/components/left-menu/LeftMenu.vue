@@ -9,7 +9,7 @@
         <div class="conversations">
             <div v-for="conversation in store.conversations" class="left-menu-item">
                 <HistoryItem ref="historyItems" :key="conversation[0]" :conversation-id="conversation[0]"
-                             :title="conversation[1]"/>
+                             :name="conversation[1]"/>
             </div>
         </div>
         <div class="other-buttons">
