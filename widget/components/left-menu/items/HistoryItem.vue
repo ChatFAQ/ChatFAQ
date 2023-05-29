@@ -1,6 +1,6 @@
 <template>
     <MenuItem class="item-wrapper" :editable="true" :class="{editing}">
-        <i class="checkbox" :class="{'checked': selected}" @click="selected = !selected"/>
+        <Checkbox v-model="selected"/>
         <input v-if="!editing" disabled class="item-name" rows="1" :value="name"/>
         <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name"/>
 
@@ -18,6 +18,7 @@
 import {ref, watch} from 'vue';
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 import {useGlobalStore} from "~/store";
+import Checkbox from "~/components/generic/Checkbox.vue";
 
 const store = useGlobalStore();
 

@@ -7,12 +7,11 @@ from . import views
 router = DefaultRouter()
 router.register(r"messages", views.MessageView, basename="messages")
 router.register(r"conversations", views.ConversationAPIViewSet, basename="conversations")
+router.register(r"user-feedback", views.UserFeedbackAPIViewSet, basename="user-feedback")
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path("", include(router.urls)),
-    path('user-feedbacks/<int:pk>/', views.UserFeedbackAPIView.as_view()),
-    path('user-feedbacks/', views.UserFeedbackAPIView.as_view()),
     path('admin-reviews/<int:pk>/', views.AdminReviewAPIView.as_view()),
     path('admin-reviews/', views.AdminReviewAPIView.as_view()),
     path('senders/', views.SenderAPIView.as_view()),

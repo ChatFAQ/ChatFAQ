@@ -76,6 +76,9 @@
     --chatfaq-close-icon: url('~/assets/icons/close.svg');
     --chatfaq-download-icon: url('~/assets/icons/download.svg');
     --chatfaq-edit-icon: url('~/assets/icons/edit.svg');
+    --chatfaq-copy-icon: url('~/assets/icons/copy.svg');
+    --chatfaq-thumb-up-icon: url('~/assets/icons/thumb-up.svg');
+    --chatfaq-thumb-down-icon: url('~/assets/icons/thumb-down.svg');
 
      /* Sizes */
 
@@ -163,7 +166,9 @@ $chatfaq-check-icon: var(--chatfaq-check-icon);
 $chatfaq-close-icon: var(--chatfaq-close-icon);
 $chatfaq-download-icon: var(--chatfaq-download-icon);
 $chatfaq-edit-icon: var(--chatfaq-edit-icon);
-
+$chatfaq-copy-icon: var(--chatfaq-copy-icon);
+$chatfaq-thumb-up-icon: var(--chatfaq-thumb-up-icon);
+$chatfaq-thumb-down-icon: var(--chatfaq-thumb-down-icon);
 
  /* Sizes */
 

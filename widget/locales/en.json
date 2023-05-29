@@ -8,5 +8,8 @@
     "newconversation": "New conversation",
     "clearhistory": "Clear history",
     "deleteselected": "Delete selected",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "additionalfeedback": "Please provide additional feedback",
+    "whatwastheissue": "What was the issue with this response?",
+    "submitfeedback": "Submit feedback"
 }

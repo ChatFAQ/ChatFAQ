@@ -65,7 +65,7 @@ class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
     serializer_class = MessageSerializer
 
 
-class UserFeedbackAPIView(CreateAPIView, UpdateAPIView):
+class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     serializer_class = UserFeedbackSerializer
     queryset = UserFeedback.objects.all()
 
