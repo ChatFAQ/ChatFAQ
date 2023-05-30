@@ -15,6 +15,7 @@
                 [props.data.sender.type]: true,
                 'is-last-of-type': props.isLastOfType,
                 'dark-mode': store.darkMode,
+                'maximized': store.maximized,
                 'feedbacked': feedbacked,
             }">{{ props.data.payload }}
             </div>
@@ -86,7 +87,10 @@ const MSG_TYPES = {
 
         &.feedbacked {
             border-radius: 6px 6px 0px 0px !important;
-            min-width: 550px;
+            min-width: 320px;
+            &.maximized {
+                min-width: 550px;
+            }
             @media only screen and (max-width: $phone-breakpoint) {
                 min-width: 300px;
             }
