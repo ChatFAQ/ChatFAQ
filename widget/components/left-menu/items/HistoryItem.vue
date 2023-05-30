@@ -101,8 +101,10 @@ function timestampToSentence(isoString) {
         -moz-box-sizing: border-box;
         text-align: left;
         border: 1px solid transparent;
+        text-overflow: ellipsis;
         &.edit {
             border: 1px solid $chatfaq-color-tertiary-blue-500;
+            text-overflow: unset;
         }
 
     }
