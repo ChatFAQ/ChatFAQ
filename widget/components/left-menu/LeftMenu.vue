@@ -83,6 +83,7 @@ $history-width: 220px;
         position: absolute;
         z-index: 2;
         height: 100% !important;
+        border-radius: unset !important;
     }
 
     .conversations {
