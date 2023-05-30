@@ -1,5 +1,8 @@
 <template>
     <div class="left-menu-wrapper">
+        <div class="menu-button" @click="store.historyOpened = !store.historyOpened">
+            <i :class="{'opened': store.historyOpened}"/>
+        </div>
         <div class="new-conversation">
             <div class="left-menu-item">
                 <NewConversationItem/>
@@ -68,6 +71,7 @@ watch(() => store.downloading, (newVal) => {
 @import "assets/styles/variables";
 
 $phone-breakpoint: 600px;
+$history-width: 220px;
 
 .left-menu-wrapper {
     display: flex;
@@ -153,6 +157,29 @@ $phone-breakpoint: 600px;
             }
             &:first-child {
                 margin-bottom: 16px;
+            }
+        }
+    }
+    .menu-button {
+        @media only screen and (max-width: $phone-breakpoint) {
+            position: absolute;
+            left: $history-width;
+            margin-left: 20px;
+            margin-top: 30px;
+            cursor: pointer;
+            border-radius: 32px;
+            height: 40px;
+            width: 40px;
+            display: flex;
+            border: 1px solid $chatfaq-color-neutral-purple;
+            background: $chatfaq-color-primary-500;
+            i {
+                width: 20px;
+                margin: auto;
+                content: $chatfaq-burger-menu-icon;
+                &.opened {
+                    content: $chatfaq-double-arrow-left-icon;
+                }
             }
         }
     }
