@@ -179,7 +179,7 @@ async function userFeedback(value, _collapse) {
 
     .feedback-controls {
         float: right;
-        margin-left: auto;
+        margin-left: 10px;
         margin-right: 18px;
         display: flex;
     }

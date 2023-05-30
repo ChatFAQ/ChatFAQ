@@ -87,15 +87,7 @@ const MSG_TYPES = {
 
         &.feedbacked {
             border-radius: 6px 6px 0px 0px !important;
-            min-width: 320px;
-            &.maximized {
-                @media only screen and (min-width: $phone-breakpoint) {
-                    min-width: 550px;
-                }
-            }
-            @media only screen and (max-width: $phone-breakpoint) {
-                min-width: 300px;
-            }
+            min-width: 100%;
         }
     }
 
