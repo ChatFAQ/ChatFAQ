@@ -90,8 +90,10 @@ $phone-breakpoint: 600px;
 
     .flex-column {
         &.maximized {
-            width: calc(90vw - $history-width);
-            height: 85vh;
+            @media only screen and (min-width: $phone-breakpoint) {
+                width: calc(90vw - $history-width);
+                height: 85vh;
+            }
         }
 
         display: flex;

@@ -89,7 +89,9 @@ const MSG_TYPES = {
             border-radius: 6px 6px 0px 0px !important;
             min-width: 320px;
             &.maximized {
-                min-width: 550px;
+                @media only screen and (min-width: $phone-breakpoint) {
+                    min-width: 550px;
+                }
             }
             @media only screen and (max-width: $phone-breakpoint) {
                 min-width: 300px;
@@ -124,7 +126,9 @@ const MSG_TYPES = {
             margin-right: 86px;
 
             &.maximized {
-                margin-right: 404px;
+                @media only screen and (min-width: $phone-breakpoint) {
+                    margin-right: 404px;
+                }
             }
         }
 
@@ -134,7 +138,9 @@ const MSG_TYPES = {
             margin-left: 86px;
 
             &.maximized {
-                margin-left: 404px;
+                @media only screen and (min-width: $phone-breakpoint) {
+                    margin-left: 404px;
+                }
             }
         }
     }

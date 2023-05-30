@@ -59,7 +59,7 @@ $phone-breakpoint: 600px;
             }
 
             i {
-                width: 32px;
+                width: 28px;
                 margin: auto;
             }
         }
@@ -68,7 +68,11 @@ $phone-breakpoint: 600px;
             i {
                 content: $chatfaq-maximize-icon;
                 &.maximized {
-                    content: $chatfaq-minimize-icon;
+                    width: 20px;
+                    @media only screen and (min-width: $phone-breakpoint) {
+                        content: $chatfaq-minimize-icon;
+                        width: 28px;
+                    }
                 }
             }
             @media only screen and (max-width: $phone-breakpoint) {
@@ -81,7 +85,7 @@ $phone-breakpoint: 600px;
                 content: $chatfaq-arrow-down-icon;
             }
             @media only screen and (max-width: $phone-breakpoint) {
-                display: unset;
+                display: flex;
             }
         }
 
