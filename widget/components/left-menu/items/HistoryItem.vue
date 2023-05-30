@@ -62,13 +62,8 @@ function timestampToSentence(isoString) {
 @import "assets/styles/variables";
 
 .item-wrapper {
-    .checkbox {
-        content: $chatfaq-checkbox-icon;
-
-        &.checked {
-            content: $chatfaq-checkbox-checked-icon;
-        }
-    }
+    display: flex;
+    align-items: center;
 
     &:hover, &.editing {
         background-color: $chatfaq-color-primary-900;

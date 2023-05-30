@@ -11,5 +11,10 @@
     "confirm": "Confirm",
     "additionalfeedback": "Please provide additional feedback",
     "whatwastheissue": "What was the issue with this response?",
-    "submitfeedback": "Submit feedback"
+    "whatdidyoulike": "What do you like about the response?",
+    "submitfeedback": "Submit feedback",
+    "feedbacksent" : "Feedback sent succesfully!",
+    "reason1": "This is harmful/unsafe",
+    "reason2": "This is not true",
+    "reason3": "This is not helpful"
 }
