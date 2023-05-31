@@ -25,7 +25,7 @@ env:
       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
       DO_REGION: '{{ get("DO_REGION") }}'
       STORAGES_MODE: do
-      STORAGE_MAKE_FILES_PUBLIC: yes
+      STORAGE_MAKE_FILES_PUBLIC: no
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
