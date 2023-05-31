@@ -8,8 +8,6 @@ from django.urls import re_path
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
 
-from back.config.middelware import TokenAuthMiddleWare  # noqa B101
-
 
 def make_app(django_app):
     """
@@ -23,6 +21,7 @@ def make_app(django_app):
     """
 
     from back.config.routing import http_urlpatterns, websocket_urlpatterns
+    from back.config.middelware import TokenAuthMiddleWare  # noqa B101
 
     return ProtocolTypeRouter(
         {
