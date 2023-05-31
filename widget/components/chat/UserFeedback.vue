@@ -3,11 +3,11 @@
          :class="{'feedbacked': feedbacked && !collapse, 'dark-mode': store.darkMode}">
         <div class="separator-line" v-if="feedbacked && !collapse" :class="{ 'dark-mode': store.darkMode }"></div>
         <div class="feedback-top">
-            <div v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}:</div>
+            <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}:</div>
             <!-- <div v-else-if="feedbacked">{{ $t('feedbacksent') }}:</div> -->
             <div class="feedback-controls">
                 <!-- Thumb Up -->
-                <div class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode}">
+                <div class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}">
                     <svg @click="userFeedback('positive')"
                          width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 7C2 6.44772 2.44772 6 3 6H4.66667V14H3C2.44772 14 2 13.5523 2 13V7Z"
@@ -22,7 +22,7 @@
                 </div>
 
                 <!-- Thumb Down -->
-                <div class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode}">
+                <div class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'collapse': collapse}">
                     <svg @click="userFeedback('negative')"
                          width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 9C14 9.55228 13.5523 10 13 10H11.3333V2H13C13.5523 2 14 2.44772 14 3V9Z"
@@ -174,14 +174,13 @@ async function userFeedback(value, _collapse) {
     .feedback-top {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         margin-left: 15px;
-    }
-
-    .feedback-controls {
-        float: right;
-        margin-left: 10px;
-        margin-right: 18px;
-        display: flex;
+        .feedback-controls {
+            margin-left: 15px;
+            margin-right: 18px;
+            display: flex;
+        }
     }
 
     .separator-line {
@@ -249,6 +248,9 @@ async function userFeedback(value, _collapse) {
         display: flex;
         &.dark-mode {
             color: $chatfaq-color-primary-300;
+        }
+        &.collapse {
+            cursor: unset;
         }
 
     }
