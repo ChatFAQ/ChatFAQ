@@ -15,6 +15,7 @@ asyncio = "^3.4.3"
 websockets = "^10.4"
 coloredlogs = "^15.0.1"
 python-dotenv = "^1.0.0"
+requests = "^2.31.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
