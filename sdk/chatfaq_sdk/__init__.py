@@ -9,7 +9,7 @@ import websockets
 from chatfaq_sdk import settings
 from chatfaq_sdk.conditions import Result
 from chatfaq_sdk.fsm import FSMDefinition
-from chatfaq_sdk.layers import Layer, LMGeneratedText
+from chatfaq_sdk.layers import Layer #  , LMGeneratedText
 from chatfaq_sdk.ws.messages import MessageType
 
 settings.configure()
@@ -69,8 +69,8 @@ class ChatFAQSDK:
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
-        for model_id in fsm_definition.pre_load_models:
-            LMGeneratedText.get_model(model_id, self)
+        # for model_id in fsm_definition.pre_load_models:
+        #     LMGeneratedText.get_model(model_id, self)
 
     async def _connect(self):
         self.uri = urllib.parse.urljoin(self.chatfaq_ws, "back/ws/broker/rpc/")
