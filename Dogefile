@@ -22,10 +22,10 @@ env:
       DATABASE_URL: "{{ psql.DATABASE_URL }}"
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
-      AWS_STORAGE_BUCKET_NAME: '{{ AWS_STORAGE_BUCKET_NAME }}'
-      DO_REGION: '{{ DO_REGION }}'
-      STORAGES_MODE: '{{ STORAGES_MODE }}'
-      STORAGE_MAKE_FILES_PUBLIC: '{{ STORAGE_MAKE_FILES_PUBLIC }}'
+      AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
+      DO_REGION: '{{ get("DO_REGION") }}'
+      STORAGES_MODE: do
+      STORAGE_MAKE_FILES_PUBLIC: yes
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
@@ -34,7 +34,6 @@ env:
   - name: sdk
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
-      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
       CHATFAQ_BACKEND_EMAIL: '{{ secret("CHATFAQ_BACKEND_EMAIL") }}'
       CHATFAQ_BACKEND_PASSWORD: '{{ secret("CHATFAQ_BACKEND_PASSWORD") }}'
       CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
