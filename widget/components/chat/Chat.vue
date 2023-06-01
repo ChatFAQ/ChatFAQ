@@ -2,7 +2,7 @@
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent">
             <ChatMsg
-                v-for="(data, index) in flatStacks"
+                v-for="data in flatStacks"
                 :is-last-of-type="isLastOfType(data, flatStacks)"
                 :is-first-of-type="isFirstOfType(data, flatStacks)"
                 :is-first="!flatStacks.indexOf(data)"
@@ -30,7 +30,6 @@ import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
 
-const messages = ref([]);
 const promptValue = ref("");
 const conversationContent = ref(null)
 
@@ -55,25 +54,23 @@ function createConnection() {
         + (store.userId ? `${store.userId}/` : "")
     );
     ws.onmessage = async function (e) {
-        if (!messages.value.length) // First message, update list of conversations
+        if (!store.messages.length) // First message, update list of conversations
             await store.gatherConversations()
 
-        messages.value.push(JSON.parse(e.data));
-        console.log(messages)
+        store.messages.push(JSON.parse(e.data));
         scrollConversationDown();
     };
     ws.onopen = async function (e) {
-        messages.value = [];
+        store.messages = [];
     };
 }
 createConnection();
 
 watch(() => store.newConversation, createConnection)
 
-
 const flatStacks = computed(() => {
     const res = [];
-    const _messages = messages.value;
+    const _messages = store.messages;
     for (let i = 0; i < _messages.length; i++) {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
@@ -101,7 +98,7 @@ function sendMessage() {
     if (store.userId !== undefined)
         m["sender"]["id"] = store.userId
 
-    messages.value.push(m);
+    store.messages.push(m);
     ws.send(JSON.stringify(m));
     promptValue.value = "";
     scrollConversationDown();

@@ -13,6 +13,7 @@ export const useGlobalStore = defineStore('globalStore', {
             maximized: true,
             historyOpened: true,
             conversations: [],
+            messages: [],
             selectedConversations: [],
             // The value of this property is irrelevant, what it really matters is the fact that its value changed,
             // which happens every time "New Conversation" button is clicked, then other components will subscribe
@@ -40,6 +41,15 @@ export const useGlobalStore = defineStore('globalStore', {
     getters: {
         conversationsIds() {
             return this.conversations.reduce((acc, current) => acc.concat([current[0]]), [])
+        },
+        getStacks() {
+            return (msgId) => {
+                // Returns the block of messages of the same type that ends with the last message being msg_id
+                for (let i = this.messages.length - 1; i >= 0; i--) {
+                    if (this.messages[i].id === msgId)
+                        return this.messages[i].stacks;
+                }
+            }
         }
     }
 })
