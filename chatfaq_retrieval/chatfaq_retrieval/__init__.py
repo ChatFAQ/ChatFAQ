@@ -4,8 +4,8 @@ from logging import getLogger
 import pandas as pd
 import torch
 
-from chat_retrieval.inf_retrieval.retriever import Retriever
-from chat_retrieval.prompt_generator.prompt_generator import PromptGenerator
+from chatfaq_retrieval.inf_retrieval.retriever import Retriever
+from chatfaq_retrieval.prompt_generator.prompt_generator import PromptGenerator
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 logger = getLogger(__name__)
