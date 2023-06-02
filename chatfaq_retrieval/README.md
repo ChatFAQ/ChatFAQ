@@ -21,3 +21,45 @@ The `PromptGenerator` is the main class for generating the prompts.
 
 The `RetrieverAnswerer` is the main class for the chatbot. It takes as input a question (query) and a context and returns a response to the query. This is done by first retrieving the most relevant sentences from the context to the query and then generating a response based on the retrieved sentences.
 
+
+# Publish package
+
+### PYPI test
+
+add repository to poetry config
+
+    poetry config repositories.chatfaq-retrieval https://test.pypi.org/legacy/
+
+get token from https://test.pypi.org/manage/account/token/
+
+store token using
+
+    poetry config pypi-token.chatfaq-retrieval pypi-YYYYYYYY
+
+### PYPI production
+
+get token from https://pypi.org/manage/account/token/
+
+store token using
+
+    poetry config pypi-token.chatfaq-retrieval pypi-XXXXXXXX
+
+Each time you need to publish
+
+Bump version
+
+    poetry version prerelease
+
+or
+
+    poetry version patch
+
+### Poetry Publish
+
+To TestPyPi
+
+    poetry publish -r chatfaq-retrieval
+
+To PyPi
+
+    poetry publish
