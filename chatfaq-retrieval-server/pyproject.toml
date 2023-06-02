@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "chatfaq_retrieval_server"
+version = "0.1.0"
+description = ""
+authors = ["Hector Soria <hector.soria@with-madrid.com>"]
+license = "Proprietary"
+
+packages = [
+    {include = "chatfaq_retrieval_server"},
+]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+modelw-preset-django = {extras = ["channels"], version = "~2023.3.0"}
+drf-spectacular = {extras = ["sidecar"], version = "^0.26.1"}
+chatfaq-retrieval = "0.1.2"
+
+[tool.poetry.dev-dependencies]
+black = "*"
+isort = "*"
+ipython = "*"
+
+[tool.isort]
+profile = "black"
+known_first_party = "chatfaq_retrieval_server"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+secondary = true
+

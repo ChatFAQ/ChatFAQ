@@ -12,6 +12,10 @@ services:
     env_file:
       - "back/.env"
 
+  chatfaq-retrieval-server:
+    env_file:
+      - "chatfaq-retrieval-server/.env"
+
   widget:
     env_file:
       - "widget/.env"
