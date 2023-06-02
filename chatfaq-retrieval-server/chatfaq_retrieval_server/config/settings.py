@@ -80,3 +80,6 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "REDOC_DIST": "SIDECAR",
     }
 
+    CACHED_MODELS = {
+
+    }
