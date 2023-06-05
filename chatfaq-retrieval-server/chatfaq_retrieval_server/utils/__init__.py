@@ -7,11 +7,11 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-def get_model(model_id, ctx):
+def get_model(model_id):
     if model_id not in settings.CACHED_MODELS:
         logger.info("Loafing model...")
         headers = {
-            "Authorization": f"Token {ctx.token}"
+            "Authorization": f"Token {settings.CHATFAQ_TOKEN}",
         }
         # TODO use the Python client (refactor CLI to use it too)
         model_res = requests.get(f"{settings.CHATFAQ_HTTP}/back/api/language-model/models/{model_id}/", headers=headers).json()

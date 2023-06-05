@@ -11,10 +11,12 @@ logger = getLogger(__name__)
 
 
 class RetrieveAPIView(APIView):
+    authentication_classes = []
+    permission_classes = []
 
     def get(self, request):
-        serializer = QuerySerializer(request.data, many=True)
+        serializer = QuerySerializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
-        model = get_model(serializer.data["model_id"], request)
+        model = get_model(serializer.data["model_id"])
         res = model.query(serializer.data["query"])
         return Response(res)

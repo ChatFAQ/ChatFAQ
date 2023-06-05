@@ -4,7 +4,7 @@ from django.urls import include, path
 from django.utils.translation import gettext_lazy as _
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
-from chatfaq_retrieval_server.apps.people.views import MeViewSet
+# from chatfaq_retrieval_server.apps.people.views import MeViewSet
 
 admin.site.site_title = _("ChatFAQ Retrieval Server")
 admin.site.site_header = _("ChatFAQ Retrieval Server")
@@ -15,11 +15,12 @@ if settings.DEBUG:
 else:
     router = SimpleRouter()
 
-router.register("me", MeViewSet, basename="me")
+# router.register("me", MeViewSet, basename="me")
 
 urlpatterns = [
     path("back/admin/", admin.site.urls),
-    path("back/api/", include(router.urls)),
+    # path("back/api/", include(router.urls)),
+    path("back/api/", include("chatfaq_retrieval_server.apps.urls")),
 ]
 
 if settings.DEBUG:

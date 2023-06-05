@@ -38,6 +38,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "django.contrib.staticfiles",
+        "chatfaq_retrieval_server.apps.retriever",
         "chatfaq_retrieval_server.apps.realtime",
         "chatfaq_retrieval_server.apps.people",
     ]
@@ -80,6 +81,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "REDOC_DIST": "SIDECAR",
     }
 
-    CACHED_MODELS = {
+    CHATFAQ_TOKEN = os.getenv("CHATFAQ_TOKEN")
+    CHATFAQ_HTTP = os.getenv("CHATFAQ_HTTP")
 
-    }
+    CACHED_MODELS = {}
