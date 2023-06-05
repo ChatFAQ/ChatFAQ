@@ -13,7 +13,7 @@ packages = [
 python = "~3.10"
 modelw-preset-django = {extras = ["channels"], version = "~2023.3.0"}
 drf-spectacular = {extras = ["sidecar"], version = "^0.26.1"}
-chatfaq-retrieval = "0.1.2"
+chatfaq-retrieval = "0.1.3"
 requests = "^2.31.0"
 
 [tool.poetry.dev-dependencies]
