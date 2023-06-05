@@ -17,6 +17,8 @@ class RetrieverAnswerer:
     RETRIEVER_MODEL = 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1'
     MAX_GPU_MEM = "18GiB"
     MAX_CPU_MEM = '12GiB'
+    cached_tokenizers = {}
+    cached_models = {}
 
     def __init__(self, base_data: str, model_name: str, context_col: str, embedding_col: str, use_cpu: bool = False):
         if not base_data.endswith(".csv"):
@@ -35,7 +37,9 @@ class RetrieverAnswerer:
         self.retriever.build_embeddings(embedding_col=embedding_col)
 
         # --- Set Up LLM ---
-        self.tokenizer = T5Tokenizer.from_pretrained(model_name)
+        if model_name not in self.cached_tokenizers:
+            self.cached_tokenizers[model_name] = T5Tokenizer.from_pretrained(model_name)
+        self.tokenizer = self.cached_tokenizers[model_name]
 
         device_map = "auto" if (not self.use_cpu and torch.cuda.is_available()) else None # use gpu if available
         memory_device = {'cpu': self.MAX_CPU_MEM}
@@ -44,12 +48,14 @@ class RetrieverAnswerer:
             memory_device = {0: self.MAX_GPU_MEM}
             dtype = torch.bfloat16
 
-        self.model = T5ForConditionalGeneration.from_pretrained(
-            model_name,
-            device_map=device_map,
-            torch_dtype=dtype,
-            max_memory=memory_device
-        )
+        if model_name not in self.cached_models:
+            self.cached_models[model_name] = T5ForConditionalGeneration.from_pretrained(
+                model_name,
+                device_map=device_map,
+                torch_dtype=dtype,
+                max_memory=memory_device
+            )
+        self.model = self.cached_models[model_name]
 
         self._log_models_info()
 

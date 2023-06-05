@@ -10,6 +10,8 @@ class Retriever:
     """
     Class for retrieving the context for a given query.
     """
+    cached_tokenizers = {}
+    cached_models = {}
 
     def __init__(self, df: pd.DataFrame, model_name: str = 'sentence-transformers/all-mpnet-base-v2',
                  context_col: str = 'answer', use_cpu: bool = False):
@@ -25,12 +27,20 @@ class Retriever:
         """
         self.df = df
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
+
         print(f"Using device {self.device}")
         print(f"Loading model {model_name}")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name,
-                                               # torch_dtype=torch.float16
-                                               ).to(self.device)
+
+        if model_name not in self.cached_tokenizers:
+            self.cached_tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = self.cached_tokenizers[model_name]
+
+        if model_name not in self.cached_models:
+            self.cached_models[model_name] = AutoModel.from_pretrained(model_name,
+                                                                       # torch_dtype=torch.float16
+                                                                       ).to(self.device)
+        self.model = self.cached_models[model_name]
+
         self.context_col = context_col
 
         if 'embedding' in self.df.columns:
