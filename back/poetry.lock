@@ -1880,13 +1880,13 @@ ptyprocess = ">=0.5"
 
 [[package]]
 name = "pgvector"
-version = "0.1.7"
+version = "0.1.8"
 description = "pgvector support for Python"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "pgvector-0.1.7-py2.py3-none-any.whl", hash = "sha256:b0da0289959372f916b96c1da7c57437725c7aa33fa0c75b4a53c3677369bdd5"},
+    {file = "pgvector-0.1.8-py2.py3-none-any.whl", hash = "sha256:99dce3a6580ef73863edb9b8441937671f4e1a09383826e6b0838176cd441a96"},
 ]
 
 [package.dependencies]
@@ -2968,4 +2968,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "7590887406779df2294e998fc166085aa405abebe99894e11ce2a1a7349f592f"
+content-hash = "ee39841e51d0a5cc62720c11d977c2c6b4b53d4c34f352db46326c5f2136a9c5"
