@@ -15,10 +15,11 @@ export const useGlobalStore = defineStore('globalStore', {
             conversations: [],
             messages: [],
             selectedConversations: [],
-            // The value of this property is irrelevant, what it really matters is the fact that its value changed,
-            // which happens every time "New Conversation" button is clicked, then other components will subscribe
-            // for any change and react to the fact that has been clicked
+            // The value of this properties (newConversation, scrollToBottom) is irrelevant, what it really matters is
+            // the fact that its value changed, which happens every time "New Conversation" button is clicked, then
+            // other components will subscribe for any change and react to the fact that has been clicked
             newConversation: 0,
+            scrollToBottom: 0,
             opened: false,
             deleting: false,
             downloading: false

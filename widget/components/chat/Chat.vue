@@ -40,6 +40,8 @@ function scrollConversationDown() {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
 }
+watch(() => store.scrollToBottom, scrollConversationDown)
+
 function createConnection() {
     if (ws)
         ws.close()
@@ -59,7 +61,7 @@ function createConnection() {
             await store.gatherConversations()
 
         store.messages.push(JSON.parse(e.data));
-        scrollConversationDown();
+        store.scrollToBottom += 1;
     };
     ws.onopen = async function (e) {
         store.messages = [];
@@ -104,7 +106,7 @@ function sendMessage(ev) {
     store.messages.push(m);
     ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
-    scrollConversationDown();
+    store.scrollToBottom += 1;
 }
 
 function isLastOfType(msg, flatStack) {
