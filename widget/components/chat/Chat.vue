@@ -11,13 +11,14 @@
             ></ChatMsg>
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
-            <input
+            <div
                 :placeholder="$t('writeaquestionhere')"
-                v-model="promptValue"
                 class="chat-prompt"
                 :class="{ 'dark-mode': store.darkMode }"
                 ref="chatInput"
                 @keyup.enter="sendMessage"
+                @keypress.enter.prevent
+                contenteditable
             />
             <i class="chat-send-button" :class="{'dark-mode': store.darkMode}" @click="sendMessage"></i>
         </div>
@@ -30,7 +31,7 @@ import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
 
-const promptValue = ref("");
+const chatInput = ref(null);
 const conversationContent = ref(null)
 
 let ws = undefined
@@ -82,8 +83,9 @@ const flatStacks = computed(() => {
     return res;
 });
 
-function sendMessage() {
-    if (!promptValue.value.length)
+function sendMessage(ev) {
+    const promptValue = chatInput.value.innerText.trim()
+    if (!promptValue.length)
         return;
     const m = {
         "sender": {
@@ -92,7 +94,7 @@ function sendMessage() {
         },
         "stacks": [[{
             "type": "text",
-            "payload": promptValue.value,
+            "payload": promptValue,
         }]],
     };
     if (store.userId !== undefined)
@@ -100,7 +102,7 @@ function sendMessage() {
 
     store.messages.push(m);
     ws.send(JSON.stringify(m));
-    promptValue.value = "";
+    chatInput.value.innerText = "";
     scrollConversationDown();
 }
 
@@ -175,6 +177,15 @@ function isFirstOfType(msg, flatStack) {
 .chat-prompt {
     font: $chatfaq-font-caption-md;
     font-style: normal;
+    min-height: 1em;
+    max-height: 80px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    &::-webkit-scrollbar{
+        display: none;
+    }
 
     &::placeholder {
         font-style: italic;
