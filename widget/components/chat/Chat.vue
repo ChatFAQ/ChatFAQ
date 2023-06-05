@@ -65,6 +65,7 @@ function createConnection() {
         store.messages = [];
     };
 }
+
 createConnection();
 
 watch(() => store.newConversation, createConnection)
@@ -149,6 +150,7 @@ function isFirstOfType(msg, flatStack) {
     border: 1px solid $chatfaq-color-neutral-purple !important;
     background-color: $chatfaq-color-primary-300;
     box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+
     &.dark-mode {
         background-color: $chatfaq-color-primary-800;
         border: 1px solid $chatfaq-color-primary-900 !important;
@@ -160,8 +162,19 @@ function isFirstOfType(msg, flatStack) {
     width: 100%;
     overflow: scroll;
 
+    /* Scroll */
     &::-webkit-scrollbar {
-        display: none;
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px 6px transparent;
+        border: solid 2px transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
+        border: solid 2px transparent;
     }
 }
 
@@ -183,10 +196,20 @@ function isFirstOfType(msg, flatStack) {
     overflow-y: auto;
     margin-top: auto;
     margin-bottom: auto;
-    &::-webkit-scrollbar{
-        display: none;
+    /* Scroll */
+    /*
+    &::-webkit-scrollbar {
+        width: 6px;
     }
-
+    &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px 6px transparent;
+        border: solid 2px transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
+        border: solid 2px transparent;
+    }
+    */
     &::placeholder {
         font-style: italic;
         color: rgb(2, 12, 28);
