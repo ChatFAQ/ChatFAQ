@@ -1,5 +1,12 @@
 <template>
-    <div class="message-wrapper">
+    <div class="message-wrapper"
+        :class="{
+            [props.data.sender.type]: true,
+            'is-first-of-type': props.isFirstOfType,
+            'is-first': props.isFirst,
+            'is-last': props.isLast,
+            'maximized': store.maximized
+        }">
         <div
             class="message"
             :class="{
@@ -51,10 +58,32 @@ const MSG_TYPES = {
     display: flex;
     flex-direction: column;
 
+    &.bot {
+        margin-left: 24px;
+        margin-right: 86px;
+
+        &.maximized {
+            @media only screen and (min-width: $phone-breakpoint) {
+                margin-right: 404px;
+            }
+        }
+    }
+
+    &.human {
+        margin-right: 24px;
+        margin-left: 86px;
+
+        &.maximized {
+            @media only screen and (min-width: $phone-breakpoint) {
+                margin-left: 404px;
+            }
+        }
+    }
     .content {
         border-radius: 6px;
         padding: 9px 15px 9px 15px;
         word-wrap: break-word;
+        max-width: 100%;
 
         &.bot {
             background-color: $chatfaq-color-primary-300;
@@ -95,8 +124,7 @@ const MSG_TYPES = {
         display: flex;
         align-items: baseline;
         flex-direction: column;
-
-        width: fit-content;
+        max-width: 100%;
         height: 100%;
         margin: 8px 5px 0px;
 
@@ -112,28 +140,8 @@ const MSG_TYPES = {
         &.is-last {
             margin-bottom: 20px;
         }
-
-        &.bot {
-            margin-left: 24px;
-            margin-right: 86px;
-
-            &.maximized {
-                @media only screen and (min-width: $phone-breakpoint) {
-                    margin-right: 404px;
-                }
-            }
-        }
-
         &.human {
             align-self: end;
-            margin-right: 24px;
-            margin-left: 86px;
-
-            &.maximized {
-                @media only screen and (min-width: $phone-breakpoint) {
-                    margin-left: 404px;
-                }
-            }
         }
     }
 
