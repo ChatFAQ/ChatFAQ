@@ -16,16 +16,8 @@
                 'is-last': props.isLast,
                 'maximized': store.maximized
             }">
-            <div class="content"
-                 v-if="props.data.type === MSG_TYPES.text || props.data.type === MSG_TYPES.lm_generated_text"
-                 :class="{
-                [props.data.sender.type]: true,
-                'is-last-of-type': props.isLastOfType,
-                'dark-mode': store.darkMode,
-                'maximized': store.maximized,
-                'feedbacking': feedbacking,
-            }">{{ props.data.payload }}
-            </div>
+            <TextMsg v-if="props.data.type === MSG_TYPES.text" :data="props.data" :is-last-of-type="props.isLastOfType"/>
+            <LMMsg v-if="props.data.type === MSG_TYPES.lm_generated_text" :data="props.data" :is-last-of-type="props.isLastOfType"/>
             <UserFeedback
                 v-if="props.isLastOfType && props.data.sender.type === 'bot'"
                 :msg-id="data.id"
@@ -39,6 +31,8 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
+import TextMsg from "~/components/chat/msgs/TextMsg.vue";
+import LMMsg from "~/components/chat/msgs/LMMsg.vue";
 
 const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();

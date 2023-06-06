@@ -6,7 +6,7 @@
         'dark-mode': store.darkMode,
         'maximized': store.maximized,
         'feedbacking': feedbacking,
-    }">{{ props.data.payload }}
+    }">{{ props.data.payload.model_response }}
     </div>
 </template>
 
