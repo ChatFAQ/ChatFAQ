@@ -14,7 +14,7 @@
             <div
                 :placeholder="$t('writeaquestionhere')"
                 class="chat-prompt"
-                :class="{ 'dark-mode': store.darkMode }"
+                :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
                 ref="chatInput"
                 @keyup.enter="sendMessage"
                 @keypress.enter.prevent
@@ -193,11 +193,14 @@ function isFirstOfType(msg, flatStack) {
     font: $chatfaq-font-caption-md;
     font-style: normal;
     min-height: 1em;
-    max-height: 80px;
     overflow-x: hidden;
     overflow-y: auto;
     margin-top: auto;
     margin-bottom: auto;
+    max-height: 80px;
+    &.maximized {
+        max-height: 190px;
+    }
     /* Scroll */
     /*
     &::-webkit-scrollbar {
@@ -229,11 +232,10 @@ function isFirstOfType(msg, flatStack) {
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
     content: $chatfaq-send-icon;
-    margin-top: 11px;
-    margin-bottom: 11px;
-    margin-right: 16px;
+    margin: 11px 16px;
     cursor: pointer;
-
+    height: 16px;
+    align-self: end;
     &.dark-mode {
         content: $chatfaq-send-dark-icon;
     }
