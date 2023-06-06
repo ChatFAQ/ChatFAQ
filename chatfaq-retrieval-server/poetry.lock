@@ -540,14 +540,14 @@ files = [
 
 [[package]]
 name = "chatfaq-retrieval"
-version = "0.1.3"
+version = "0.1.4"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chatfaq_retrieval-0.1.3-py3-none-any.whl", hash = "sha256:c38bb2cc48fbbb6e41098c9c7e5e4636146f32c3eabcc04a5bb78ea87128352f"},
-    {file = "chatfaq_retrieval-0.1.3.tar.gz", hash = "sha256:dc92740481c3929e80783efd2c851c36fdfde80246f3a1371583cd4312aa343e"},
+    {file = "chatfaq_retrieval-0.1.4-py3-none-any.whl", hash = "sha256:858412cfa5cc8deda1c3b7d0188a56302a3c37954bd64bf61cf67f8d32026ccc"},
+    {file = "chatfaq_retrieval-0.1.4.tar.gz", hash = "sha256:3d18e02c610b0fe4166711c176aebf8c06ea02dae81066805d7ea73c8b8f4b76"},
 ]
 
 [package.dependencies]
@@ -3229,4 +3229,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "fbf0e1af3922cb09f8b9bf0f9e0f441bb2336f232e382ea27648b2c3dcab03d9"
+content-hash = "7321b0a2dd87b35986d1144188d9cfe516b13af91cab5efc305e31ad66a98a22"
