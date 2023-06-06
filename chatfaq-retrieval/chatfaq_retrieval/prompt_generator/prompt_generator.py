@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from transformers import T5Tokenizer
 
@@ -35,7 +35,7 @@ class PromptGenerator:
         else:
             raise ValueError('Model not supported, use "T5"')
 
-    def create_prompt_t5(self, query: str, contexts: List[str], lang: str = 'en', max_length: int = 512):
+    def create_prompt_t5(self, query: str, contexts: List[str], lang: str = 'en', max_length: int = 512) -> Tuple[str, int]:
         """
         Create the prompt for the T5 model.
         Parameters
@@ -50,8 +50,7 @@ class PromptGenerator:
             The maximum length of the prompt, by default 512
         Returns
         -------
-        str
-            The prompt to use.
+        Tuple[str, int] : The prompt and the number of contexts used.
         """
 
         if lang not in PROMPTS:
@@ -68,8 +67,8 @@ class PromptGenerator:
                     max__tokens_context_length = max_length - len(self.tokenizer.encode(PROMPTS[lang].format(context='', question=query))) # Get the max length of the context
                     context_tokens = self.tokenizer.encode(contexts[0], max_length=max__tokens_context_length) # Encode the context and truncate it
                     prompt = PROMPTS[lang].format(context=self.tokenizer.decode(context_tokens), question=query) # Decode the context and add it to the prompt
-                    return prompt
+                    return prompt, 1
 
-                return PROMPTS[lang].format(context='\n'.join(contexts[:n_context-1]), question=query) # Return the prompt with the latest contexts that fit in the max_length
+                return PROMPTS[lang].format(context='\n'.join(contexts[:n_context-1]), question=query), n_context # Return the prompt with the latest contexts that fit in the max_length
 
-        return prompt
+        return prompt, len(contexts)
