@@ -1,5 +1,7 @@
 FROM modelw/base:2023.03
 
+ENV DOCKER_CONTAINER=1
+
 COPY --chown=user pyproject.toml poetry.lock ./
 
 RUN modelw-docker install
