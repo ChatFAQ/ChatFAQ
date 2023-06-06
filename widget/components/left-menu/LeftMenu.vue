@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import {useGlobalStore} from "~/store";
+import { useGlobalStore } from "~/store";
 import NewConversationItem from "~/components/left-menu/items/NewConversationItem.vue";
 import HistoryItem from "~/components/left-menu/items/HistoryItem.vue";
 import LightMode from "~/components/left-menu/items/LightMode.vue";
@@ -89,14 +89,22 @@ $history-width: 220px;
     .conversations {
         height: 100%;
         overflow-y: scroll;
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
-        &::-webkit-scrollbar {
-            display: none;
-        }
 
         &:first-child {
             margin-top: 16px;
+        }
+
+        /* Scroll */
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+        &::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 6px 6px transparent;
+            border: solid 2px transparent;
+        }
+        &::-webkit-scrollbar-thumb {
+            box-shadow: inset 0 0 6px 6px $chatfaq-color-tertiary-blue-500;
+            border: solid 2px transparent;
         }
     }
 
@@ -108,6 +116,7 @@ $history-width: 220px;
             background: rgba(223, 218, 234, 0.1);
             border-radius: 4px;
         }
+
         .menu-item {
             display: flex;
             padding: 10px 4px !important;
@@ -152,15 +161,18 @@ $history-width: 220px;
             margin-right: 8px;
             padding-left: 0px;
             padding-right: 0px;
+
             .menu-item {
                 padding: 12px 8px;
                 margin: 4px 0px;
             }
+
             &:first-child {
                 margin-bottom: 16px;
             }
         }
     }
+
     .menu-button {
         @media only screen and (max-width: $phone-breakpoint) {
             position: absolute;
@@ -178,6 +190,7 @@ $history-width: 220px;
                 width: 20px;
                 margin: auto;
                 content: $chatfaq-burger-menu-icon;
+
                 &.opened {
                     content: $chatfaq-double-arrow-left-icon;
                 }

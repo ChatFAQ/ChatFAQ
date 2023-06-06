@@ -107,6 +107,7 @@ async function userFeedback(value, _collapse) {
     if (collapse.value)
         return
     feedbackValue.value = value
+
     const feedbackData = {
         message: props.msgId,
         value: value,
@@ -143,6 +144,7 @@ async function userFeedback(value, _collapse) {
         collapse.value = true
         emit("collapse")
     }
+    store.scrollToBottom += 1;
 }
 
 </script>
@@ -237,7 +239,7 @@ async function userFeedback(value, _collapse) {
     .control {
         cursor: pointer;
         color: #9a8eb5;
-        padding: 4px;
+        padding: 0px 4px 4px;
         margin-top: 6px;
         display: flex;
         &.dark-mode {

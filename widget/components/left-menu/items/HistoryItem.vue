@@ -2,7 +2,7 @@
     <MenuItem class="item-wrapper" :editable="true" :class="{editing}">
         <Checkbox v-model="selected"/>
         <input v-if="!editing" disabled class="item-name" rows="1" :value="name"/>
-        <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name"/>
+        <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name"  @keyup.enter="submit" />
 
         <div class="edit-controls" v-if="!editing">
             <i class="edit" @click="edit"/>

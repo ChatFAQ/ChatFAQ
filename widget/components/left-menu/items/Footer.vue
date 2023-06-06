@@ -4,7 +4,7 @@
             <div class="text">
                 Powered By
             </div>
-            <i class="logo-long"/>
+            <i alt="ChatFAQ" class="logo-long"/>
         </div>
     </div>
 </template>
@@ -21,7 +21,7 @@ const store = useGlobalStore();
 
 .footer-content {
     display: flex;
-    justify-content: center;
+    margin-left: 16px;
     > * {
 
         &.logo-long {

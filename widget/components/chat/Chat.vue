@@ -11,13 +11,14 @@
             ></ChatMsg>
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
-            <input
+            <div
                 :placeholder="$t('writeaquestionhere')"
-                v-model="promptValue"
                 class="chat-prompt"
                 :class="{ 'dark-mode': store.darkMode }"
                 ref="chatInput"
                 @keyup.enter="sendMessage"
+                @keypress.enter.prevent
+                contenteditable
             />
             <i class="chat-send-button" :class="{'dark-mode': store.darkMode}" @click="sendMessage"></i>
         </div>
@@ -30,7 +31,7 @@ import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
 
-const promptValue = ref("");
+const chatInput = ref(null);
 const conversationContent = ref(null)
 
 let ws = undefined
@@ -39,6 +40,8 @@ function scrollConversationDown() {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
 }
+watch(() => store.scrollToBottom, scrollConversationDown)
+
 function createConnection() {
     if (ws)
         ws.close()
@@ -58,12 +61,13 @@ function createConnection() {
             await store.gatherConversations()
 
         store.messages.push(JSON.parse(e.data));
-        scrollConversationDown();
+        store.scrollToBottom += 1;
     };
     ws.onopen = async function (e) {
         store.messages = [];
     };
 }
+
 createConnection();
 
 watch(() => store.newConversation, createConnection)
@@ -82,8 +86,9 @@ const flatStacks = computed(() => {
     return res;
 });
 
-function sendMessage() {
-    if (!promptValue.value.length)
+function sendMessage(ev) {
+    const promptValue = chatInput.value.innerText.trim()
+    if (!promptValue.length)
         return;
     const m = {
         "sender": {
@@ -92,7 +97,7 @@ function sendMessage() {
         },
         "stacks": [[{
             "type": "text",
-            "payload": promptValue.value,
+            "payload": promptValue,
         }]],
     };
     if (store.userId !== undefined)
@@ -100,8 +105,8 @@ function sendMessage() {
 
     store.messages.push(m);
     ws.send(JSON.stringify(m));
-    promptValue.value = "";
-    scrollConversationDown();
+    chatInput.value.innerText = "";
+    store.scrollToBottom += 1;
 }
 
 function isLastOfType(msg, flatStack) {
@@ -147,6 +152,7 @@ function isFirstOfType(msg, flatStack) {
     border: 1px solid $chatfaq-color-neutral-purple !important;
     background-color: $chatfaq-color-primary-300;
     box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+
     &.dark-mode {
         background-color: $chatfaq-color-primary-800;
         border: 1px solid $chatfaq-color-primary-900 !important;
@@ -158,8 +164,19 @@ function isFirstOfType(msg, flatStack) {
     width: 100%;
     overflow: scroll;
 
+    /* Scroll */
     &::-webkit-scrollbar {
-        display: none;
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px 6px transparent;
+        border: solid 2px transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
+        border: solid 2px transparent;
     }
 }
 
@@ -175,7 +192,26 @@ function isFirstOfType(msg, flatStack) {
 .chat-prompt {
     font: $chatfaq-font-caption-md;
     font-style: normal;
-
+    min-height: 1em;
+    max-height: 80px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    /* Scroll */
+    /*
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+        box-shadow: inset 0 0 6px 6px transparent;
+        border: solid 2px transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
+        border: solid 2px transparent;
+    }
+    */
     &::placeholder {
         font-style: italic;
         color: rgb(2, 12, 28);
