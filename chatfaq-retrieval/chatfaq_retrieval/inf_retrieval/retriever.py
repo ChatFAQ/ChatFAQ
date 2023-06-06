@@ -130,7 +130,7 @@ class Retriever:
 
         return embeddings
 
-    def get_context(self, query: str, top_k: int = 5) -> List[Tuple[str, float, int]]:
+    def get_top_matches(self, query: str, top_k: int = 5) -> List[Tuple[str, float, int]]:
         """
         Returns the top_k most relevant context for the query.
 
@@ -153,9 +153,12 @@ class Retriever:
         scores = torch.mm(query_embedding, self.embeddings.transpose(0, 1))[
             0].cpu().tolist()  # Compute dot score between query and all document embeddings
         doc_score_pairs = list(
-            zip(self.df[self.context_col].tolist(), scores, range(len(self.df))))  # Combine docs, scores and an index
+            zip(self.df.to_dict('records'), scores, range(len(self.df))))  # Combine docs, scores and an index
         doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)  # Sort by decreasing score
 
         if top_k == -1:  # Return all
             return doc_score_pairs
         return doc_score_pairs[:top_k]
+
+    def get_contexts(self, matches):
+        return [match[0][self.context_col] for match in matches]
