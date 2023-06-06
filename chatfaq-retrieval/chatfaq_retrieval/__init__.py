@@ -62,8 +62,9 @@ class RetrieverAnswerer:
     def query(self, text, seed=2):
         torch.manual_seed(seed)
 
-        context = [value[0] for value in self.retriever.get_context(text, top_k=5)]
-        prompt = self.prompt_gen.create_prompt(text, context, lang='en1', max_length=512)
+        matches = self.retriever.get_top_matches(text, top_k=5)
+        contexts = self.retriever.get_contexts(matches)
+        prompt, n_of_contexts = self.prompt_gen.create_prompt(text, contexts, lang='en1', max_length=512)
 
         tokenizer_to = "cuda" if (not self.use_cpu and torch.cuda.is_available()) else 'cpu'
 
@@ -83,7 +84,10 @@ class RetrieverAnswerer:
         if tokenizer_to:
             torch.cuda.empty_cache()
 
-        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return {
+            "res": self.tokenizer.decode(outputs[0], skip_special_tokens=True),
+            "context": [match[0] for match in matches[:n_of_contexts]]
+        }
 
     def _log_models_info(self):
         logger.debug(f"Mem needed: {self.retriever.model.get_memory_footprint() / 1024 / 1024:.2f} MB")
