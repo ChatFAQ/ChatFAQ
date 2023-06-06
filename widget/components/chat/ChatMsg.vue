@@ -23,14 +23,14 @@
                 'is-last-of-type': props.isLastOfType,
                 'dark-mode': store.darkMode,
                 'maximized': store.maximized,
-                'feedbacked': feedbacked,
+                'feedbacking': feedbacking,
             }">{{ props.data.payload }}
             </div>
             <UserFeedback
                 v-if="props.isLastOfType && props.data.sender.type === 'bot'"
                 :msg-id="data.id"
-                @feedbacked="feedbacked = true"
-                @collapse="feedbacked = false"
+                @feedbacking="feedbacking = true"
+                @collapse="feedbacking = false"
             ></UserFeedback>
         </div>
     </div>
@@ -42,7 +42,7 @@ import UserFeedback from "~/components/chat/UserFeedback.vue";
 
 const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
-const feedbacked = ref(null)
+const feedbacking = ref(null)
 
 const MSG_TYPES = {
     text: "text",
@@ -114,7 +114,7 @@ const MSG_TYPES = {
             }
         }
 
-        &.feedbacked {
+        &.feedbacking {
             border-radius: 6px 6px 0px 0px !important;
             min-width: 100%;
         }

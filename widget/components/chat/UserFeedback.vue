@@ -100,7 +100,7 @@ const feedbackValue = ref(null)
 const quickAnswer1 = ref(false);
 const quickAnswer2 = ref(false);
 const quickAnswer3 = ref(false);
-const emit = defineEmits(['feedbacked', 'collapse'])
+const emit = defineEmits(['feedbacking', 'collapse'])
 const {t} = useI18n()
 
 async function userFeedback(value, _collapse) {
@@ -139,7 +139,7 @@ async function userFeedback(value, _collapse) {
 
     const res = await response.json();
     feedbacked.value = res["id"]
-    emit('feedbacked')
+    emit('feedbacking')
     if (_collapse) {
         collapse.value = true
         emit("collapse")
