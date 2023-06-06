@@ -47,6 +47,7 @@ class LMGeneratedText(Layer):
 
     def dict_repr(self, ctx):
         model_response = ChatfaqRetrievalAPI(ctx.chatfaq_retrieval_http, ctx.token).query(self.model_id, self.input_text)
+
         return [{
             "type": self._type,
             "payload": {

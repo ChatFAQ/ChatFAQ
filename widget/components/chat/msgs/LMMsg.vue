@@ -8,6 +8,7 @@
         'feedbacking': feedbacking,
     }">{{ props.data.payload.model_response }}
     </div>
+    <div v-for="ref in props.data.payload.references"><a :href="ref">{{ ref }}</a></div>
 </template>
 
 <script setup>
