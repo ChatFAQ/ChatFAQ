@@ -225,6 +225,9 @@ async function userFeedback(value, _collapse) {
             &::placeholder {
                 font-style: italic;
                 color: rgb(2, 12, 28);
+                letter-spacing: -0.5px;
+                font-style: italic;
+                font-weight: 400;
             }
 
             &.dark-mode {
