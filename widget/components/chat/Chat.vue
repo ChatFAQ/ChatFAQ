@@ -19,6 +19,7 @@
                 @keyup.enter="sendMessage"
                 @keypress.enter.prevent
                 contenteditable
+                oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
             />
             <i class="chat-send-button" :class="{'dark-mode': store.darkMode}" @click="sendMessage"></i>
         </div>
@@ -187,7 +188,12 @@ function isFirstOfType(msg, flatStack) {
     margin-left: 16px;
     background-color: $chatfaq-color-primary-300;
 }
-
+[contenteditable][placeholder]:empty:before {
+  content: attr(placeholder);
+  position: absolute;
+  color: rgba(2, 12, 28, 0.6);
+  background-color: transparent;
+}
 
 .chat-prompt {
     font: $chatfaq-font-caption-md;
