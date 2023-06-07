@@ -53,6 +53,7 @@ const MSG_TYPES = {
 </script>
 <style scoped lang="scss">
 @import "assets/styles/variables";
+$phone-breakpoint: 600px;
 
 .message-wrapper {
     display: flex;
@@ -64,7 +65,7 @@ const MSG_TYPES = {
 
         &.maximized {
             @media only screen and (min-width: $phone-breakpoint) {
-                margin-right: 404px;
+                margin-right: 35vw;
             }
         }
     }
@@ -75,7 +76,7 @@ const MSG_TYPES = {
 
         &.maximized {
             @media only screen and (min-width: $phone-breakpoint) {
-                margin-left: 404px;
+                margin-left: 35vw;
             }
         }
     }
