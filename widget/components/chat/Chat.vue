@@ -1,6 +1,6 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
-        <div class="conversation-content" ref="conversationContent">
+        <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <ChatMsg
                 v-for="data in flatStacks"
                 :is-last-of-type="isLastOfType(data, flatStacks)"
@@ -141,6 +141,7 @@ function isFirstOfType(msg, flatStack) {
 </script>
 <style scoped lang="scss">
 @import "assets/styles/variables";
+@import "assets/styles/mixins";
 
 .chat-wrapper {
     font: $chatfaq-font-body-s;
@@ -190,21 +191,11 @@ function isFirstOfType(msg, flatStack) {
 .conversation-content {
     height: 100%;
     width: 100%;
-    overflow: scroll;
+    overflow-x: hidden;
 
-    /* Scroll */
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 6px 6px transparent;
-        border: solid 2px transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
-        border: solid 2px transparent;
+    @include scroll-style();
+    &.dark-mode {
+        @include scroll-style(white);
     }
 }
 
@@ -214,6 +205,10 @@ function isFirstOfType(msg, flatStack) {
     outline: 0;
     margin-left: 16px;
     background-color: $chatfaq-color-primary-300;
+    @include scroll-style();
+    &.dark-mode {
+        @include scroll-style(white);
+    }
 }
 
 [contenteditable][placeholder]:empty:before {
