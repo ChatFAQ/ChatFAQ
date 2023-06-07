@@ -51,6 +51,7 @@ if (props.historyOpened !== undefined)
 
 $widget-open-button-margin: 24px;
 $history-width: 12vw;
+$history-width-mobile: 220px;
 $phone-breakpoint: 600px;
 $widget-margin: 16px;
 
@@ -72,6 +73,9 @@ $widget-margin: 16px;
     width: $history-width;
     height: 580px;
 
+    @media only screen and (max-width: $phone-breakpoint) {
+        width: $history-width-mobile;
+    }
     &.maximized {
         height: 85vh;
     }
