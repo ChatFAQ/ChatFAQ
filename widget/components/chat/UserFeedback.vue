@@ -200,6 +200,7 @@ async function userFeedback(value, _collapse) {
         border: 1px solid $chatfaq-color-neutral-purple !important;
         background-color: $chatfaq-color-primary-200;
         box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+        font-weight: 400;
 
         &.dark-mode {
             background-color: $chatfaq-color-neutral-purple;
