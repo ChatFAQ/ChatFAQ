@@ -46,6 +46,7 @@ function change() {
 @import "assets/styles/variables";
 
 .checkbox {
+    min-width: 16px;
     &.dark {
         fill: $chatfaq-color-primary-500;
     }

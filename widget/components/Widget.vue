@@ -4,7 +4,7 @@
             <div v-if="store.opened" class="widget-wrapper">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
-                <div class="flex-column" :class="{'maximized': store.maximized}">
+                <div class="widget-body" :class="{'maximized': store.maximized}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened}"/>
                 </div>
@@ -50,8 +50,9 @@ if (props.historyOpened !== undefined)
 @import "assets/styles/variables";
 
 $widget-open-button-margin: 24px;
-$history-width: 220px;
+$history-width: 12vw;
 $phone-breakpoint: 600px;
+$widget-margin: 16px;
 
 .dark-filter {
     display: none;
@@ -86,12 +87,12 @@ $phone-breakpoint: 600px;
     flex-flow: row;
     bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
     right: 0px;
-    margin: 16px;
+    margin: $widget-margin;
 
-    .flex-column {
+    .widget-body {
         &.maximized {
             @media only screen and (min-width: $phone-breakpoint) {
-                width: calc(90vw - $history-width);
+                width: calc(100vw - $history-width - $widget-margin * 2);
                 height: 85vh;
             }
         }
@@ -116,7 +117,7 @@ $phone-breakpoint: 600px;
 }
 
 
-.widget-wrapper > .flex-column > .header {
+.widget-wrapper > .widget-body > .header {
     border: 1px solid $chatfaq-color-neutral-purple;
     border-radius: 10px 10px 0px 0px;
 
@@ -130,7 +131,7 @@ $phone-breakpoint: 600px;
     }
 }
 
-.widget-wrapper > .flex-column > .chat {
+.widget-wrapper > .widget-body > .chat {
     position: relative;
     height: 100%;
     border-left: 1px solid $chatfaq-color-neutral-purple;
@@ -148,7 +149,7 @@ $phone-breakpoint: 600px;
 }
 
 /*
-.widget-wrapper > .flex-column > .footer {
+.widget-wrapper > .widget-body > .footer {
     border: 1px solid $chatfaq-color-neutral-purple;
     border-radius: 0px 0px 10px 10px;
 
