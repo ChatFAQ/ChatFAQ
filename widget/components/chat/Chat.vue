@@ -217,8 +217,11 @@ function isFirstOfType(msg, flatStack) {
     color: rgba(2, 12, 28, 0.6);
     background-color: transparent;
     font-style: italic;
+    cursor: text;
 }
-
+.dark-mode[contenteditable][placeholder]:empty:before {
+    color: $chatfaq-color-primary-200;
+}
 .chat-prompt {
     font: $chatfaq-font-caption-md;
     font-style: normal;
