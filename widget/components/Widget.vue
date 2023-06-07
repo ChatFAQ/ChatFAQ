@@ -4,7 +4,7 @@
             <div v-if="store.opened" class="widget-wrapper">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
-                <div class="widget-body" :class="{'maximized': store.maximized}">
+                <div class="widget-body" :class="{'maximized': store.maximized, 'history-closed': !store.historyOpened}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened}"/>
                 </div>
@@ -94,6 +94,11 @@ $widget-margin: 16px;
             @media only screen and (min-width: $phone-breakpoint) {
                 width: calc(100vw - $history-width - $widget-margin * 2);
                 height: 85vh;
+            }
+            &.history-closed {
+                @media only screen and (min-width: $phone-breakpoint) {
+                    width: calc(100vw - $widget-margin * 2);
+                }
             }
         }
 
