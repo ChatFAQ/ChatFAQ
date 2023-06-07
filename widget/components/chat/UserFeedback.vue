@@ -239,8 +239,8 @@ async function userFeedback(value, _collapse) {
     .control {
         cursor: pointer;
         color: #9a8eb5;
-        padding: 0px 4px 4px;
-        margin-top: 6px;
+        padding: 4px;
+        margin-top: 2px;
         display: flex;
         &.dark-mode {
             color: $chatfaq-color-primary-300;
@@ -251,7 +251,7 @@ async function userFeedback(value, _collapse) {
 
     }
 
-    .selected {
+    .selected, .control:not(.collapse):hover {
         color: $chatfaq-color-primary-500;
         background: rgba(70, 48, 117, 0.1);
         border-radius: 2px;
