@@ -31,6 +31,7 @@ const store = useGlobalStore();
 
         &.text {
             font: $chatfaq-font-body-xs;
+            font-size: 12px;
         }
     }
 }
