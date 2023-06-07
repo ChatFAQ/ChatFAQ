@@ -7,7 +7,7 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="maximizer" @click="store.maximized = !store.maximized">
+        <div class="maximizer" @click="store.maximized = !store.maximized; store.scrollToBottom += 1">
             <i :class="{'maximized': store.maximized}" />
         </div>
         <div class="minimizer" @click="store.opened = false">

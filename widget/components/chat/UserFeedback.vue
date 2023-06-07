@@ -194,8 +194,7 @@ async function userFeedback(value, _collapse) {
     }
 
     .feedback-input-wrapper {
-        margin-top: 12px;
-        margin: 15px;
+        margin: 12px;
         display: flex;
         border-radius: 4px;
         border: 1px solid $chatfaq-color-neutral-purple !important;
@@ -216,6 +215,7 @@ async function userFeedback(value, _collapse) {
 
 
         .feedback-input {
+            padding: 0px;
             height: 38px;
             border-radius: 10px;
             font: $chatfaq-font-caption-md;

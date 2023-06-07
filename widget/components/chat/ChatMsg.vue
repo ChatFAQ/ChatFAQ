@@ -126,7 +126,7 @@ const MSG_TYPES = {
         flex-direction: column;
         max-width: 100%;
         height: 100%;
-        margin: 8px 5px 0px;
+        margin: 8px 0px 0px;
 
 
         &.is-first-of-type {
