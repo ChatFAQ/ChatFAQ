@@ -181,6 +181,8 @@ class MessageStackSerializer(serializers.Serializer):
         elif data.get("type") == StackPayloadType.quick_replies.value:
             s = QuickRepliesPayload(data=data)
         else:
+            # TODO: support any other structure? just mark it as a JSONField and let the user handle it in the FE?
+            #  letting the database record the payload as unknow structure?
             raise serializers.ValidationError(f'type not supported {data.get("type")}')
         s.is_valid(raise_exception=True)
         data["payload"] = s.validated_data["payload"]
