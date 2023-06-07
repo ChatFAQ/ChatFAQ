@@ -21,8 +21,9 @@
                 @keypress.enter.prevent
                 contenteditable
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
+                @input="($event)=>thereIsContent = $event.target.innerHTML.length != 0"
             />
-            <i class="chat-send-button" :class="{'dark-mode': store.darkMode}" @click="sendMessage"></i>
+            <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent}" @click="sendMessage"></i>
         </div>
     </div>
 </template>
@@ -36,6 +37,7 @@ const store = useGlobalStore();
 const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
+const thereIsContent = ref(false)
 
 let ws = undefined
 
@@ -236,20 +238,6 @@ function isFirstOfType(msg, flatStack) {
         max-height: 190px;
     }
 
-    /* Scroll */
-    /*
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-    &::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 6px 6px transparent;
-        border: solid 2px transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
-        border: solid 2px transparent;
-    }
-    */
     &::placeholder {
         font-style: italic;
         color: rgb(2, 12, 28);
@@ -271,9 +259,13 @@ function isFirstOfType(msg, flatStack) {
     cursor: pointer;
     height: 16px;
     align-self: end;
+    opacity: 0.6;
 
     &.dark-mode {
         content: $chatfaq-send-dark-icon;
+    }
+    &.active {
+        opacity: 1;
     }
 }
 
