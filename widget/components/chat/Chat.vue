@@ -27,8 +27,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from "vue";
-import { useGlobalStore } from "~/store";
+import {ref, computed, watch, nextTick} from "vue";
+import {useGlobalStore} from "~/store";
 
 const store = useGlobalStore();
 
@@ -36,11 +36,13 @@ const chatInput = ref(null);
 const conversationContent = ref(null)
 
 let ws = undefined
+
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
 }
+
 watch(() => store.scrollToBottom, scrollConversationDown)
 
 function createConnection() {
@@ -80,7 +82,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({ ...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"] });
+                res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
             }
         }
     }
@@ -188,11 +190,13 @@ function isFirstOfType(msg, flatStack) {
     margin-left: 16px;
     background-color: $chatfaq-color-primary-300;
 }
+
 [contenteditable][placeholder]:empty:before {
-  content: attr(placeholder);
-  position: absolute;
-  color: rgba(2, 12, 28, 0.6);
-  background-color: transparent;
+    content: attr(placeholder);
+    position: absolute;
+    color: rgba(2, 12, 28, 0.6);
+    background-color: transparent;
+    font-style: italic;
 }
 
 .chat-prompt {
@@ -204,9 +208,11 @@ function isFirstOfType(msg, flatStack) {
     margin-top: auto;
     margin-bottom: auto;
     max-height: 80px;
+
     &.maximized {
         max-height: 190px;
     }
+
     /* Scroll */
     /*
     &::-webkit-scrollbar {
@@ -242,6 +248,7 @@ function isFirstOfType(msg, flatStack) {
     cursor: pointer;
     height: 16px;
     align-self: end;
+
     &.dark-mode {
         content: $chatfaq-send-dark-icon;
     }
