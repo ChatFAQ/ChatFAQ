@@ -19,6 +19,9 @@
     border-radius: 4px;
     *:first-child {
         margin-right: 8px;
+        svg {
+            margin-right: 8px;
+        }
     }
     &:hover {
         background-color: $chatfaq-color-primary-900;
