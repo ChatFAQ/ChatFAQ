@@ -10,6 +10,7 @@
                 :data="data"
             ></ChatMsg>
         </div>
+        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <div
                 :placeholder="$t('writeaquestionhere')"
@@ -34,8 +35,13 @@ const store = useGlobalStore();
 
 const chatInput = ref(null);
 const conversationContent = ref(null)
+const feedbackSentDisabled = ref(true)
 
 let ws = undefined
+
+watch(() => store.scrollToBottom, scrollConversationDown)
+watch(() => store.newConversation, createConnection)
+watch(() => store.feedbackSent, animateFeedbackSent)
 
 function scrollConversationDown() {
     nextTick(() => {
@@ -43,7 +49,13 @@ function scrollConversationDown() {
     })
 }
 
-watch(() => store.scrollToBottom, scrollConversationDown)
+function animateFeedbackSent() {
+    feedbackSentDisabled.value = false
+    setTimeout(() => {
+        feedbackSentDisabled.value = true
+    }, 1500)
+}
+
 
 function createConnection() {
     if (ws)
@@ -72,8 +84,6 @@ function createConnection() {
 }
 
 createConnection();
-
-watch(() => store.newConversation, createConnection)
 
 const flatStacks = computed(() => {
     const res = [];
@@ -160,6 +170,21 @@ function isFirstOfType(msg, flatStack) {
         background-color: $chatfaq-color-primary-800;
         border: 1px solid $chatfaq-color-primary-900 !important;
     }
+}
+
+.feedback-message {
+    margin-bottom: -16px;
+    text-align: center;
+    color: $chatfaq-color-greyscale-800;
+    .fade-out {
+        animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        transform: translate3d(0, 0, 0);
+    }
+}
+.fade-out {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 2s, opacity 2s linear;
 }
 
 .conversation-content {

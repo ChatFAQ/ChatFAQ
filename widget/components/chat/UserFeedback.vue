@@ -143,6 +143,7 @@ async function userFeedback(value, _collapse) {
     if (_collapse) {
         collapse.value = true
         emit("collapse")
+        store.feedbackSent += 1;
     }
     store.scrollToBottom += 1;
 }
