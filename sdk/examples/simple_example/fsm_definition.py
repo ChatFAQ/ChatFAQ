@@ -13,7 +13,7 @@ def is_saying_goodbye(ctx: dict):
 
 def send_greeting(ctx: dict):
     yield Text("Hello!")
-    yield Text("How are you?")
+    yield Text("How are you?", allow_feedback=False)
 
 
 def send_answer(ctx: dict):
@@ -25,7 +25,7 @@ def send_answer(ctx: dict):
 
 
 def send_goodbye(ctx: dict):
-    yield Text("Byeeeeeeee!")
+    yield Text("Byeeeeeeee!", allow_feedback=False)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

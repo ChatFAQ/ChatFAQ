@@ -27,7 +27,7 @@
             }">{{ props.data.payload }}
             </div>
             <UserFeedback
-                v-if="props.isLastOfType && props.data.sender.type === 'bot'"
+                v-if="props.isLastOfType && props.data.sender.type === 'bot' && props.data.meta.allow_feedback"
                 :msg-id="data.id"
                 @feedbacked="feedbacked = true"
                 @collapse="feedbacked = false"
