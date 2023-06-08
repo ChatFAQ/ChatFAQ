@@ -9,7 +9,7 @@
                 :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
                 :data="data"
             ></ChatMsg>
-            <!-- <Loader/> -->
+            <LoaderMsg v-if="isLastOfType(flatStacks[flatStacks.length - 1], flatStacks) && flatStacks[flatStacks.length - 1].sender.type === 'human'"></LoaderMsg>
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -32,7 +32,7 @@
 <script setup>
 import {ref, computed, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
-import Loader from "~/components/generic/Loader.vue";
+import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 
 const store = useGlobalStore();
 
