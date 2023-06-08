@@ -17,7 +17,7 @@ defineProps({
 
 .custom-loader {
     width: 50px;
-    height: 12px;
+    height: 9px;
     background: radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 0% 50%,
     radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 50% 50%,
     radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 100% 50%;
