@@ -19,7 +19,7 @@ class Layer:
     def __init__(self, allow_feedback=True):
         self.allow_feedback = allow_feedback
 
-    def _dict_repr(self, ctx) -> List[dict]:
+    def build_payloads(self, ctx) -> List[dict]:
         """
         Used to represent the layer as a dictionary which will be sent through the WS to the ChatFAQ's back-end server
         It is cached since there are layers as such as the LMGeneratedText which are computationally expensive
@@ -30,7 +30,7 @@ class Layer:
         raise NotImplementedError
 
     def dict_repr(self, ctx) -> List[dict]:
-        repr = self._dict_repr(ctx)
+        repr = self.build_payloads(ctx)
         for r in repr:
             r["type"] = self._type
             r["meta"] = {}
@@ -49,7 +49,7 @@ class Text(Layer):
         super().__init__(*args, **kwargs)
         self.payload = payload
 
-    def _dict_repr(self, ctx):
+    def build_payloads(self, ctx):
         return [{"payload": self.payload}]
 
 
@@ -66,11 +66,10 @@ class LMGeneratedText(Layer):
         self.input_text = input_text
         self.model_id = model_id
 
-    def dict_repr(self, ctx):
+    def build_payloads(self, ctx):
         model_response = ChatfaqRetrievalAPI(ctx.chatfaq_retrieval_http, ctx.token).query(self.model_id, self.input_text)
 
         return [{
-            "type": self._type,
             "payload": {
                 "model_response": model_response["res"],
                 "references": [c["url"] for c in model_response["context"]],
