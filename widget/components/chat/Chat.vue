@@ -9,6 +9,7 @@
                 :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
                 :data="data"
             ></ChatMsg>
+            <!-- <Loader/> -->
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -31,6 +32,7 @@
 <script setup>
 import {ref, computed, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
+import Loader from "~/components/generic/Loader.vue";
 
 const store = useGlobalStore();
 
