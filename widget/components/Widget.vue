@@ -50,8 +50,8 @@ if (props.historyOpened !== undefined)
 @import "assets/styles/variables";
 
 $widget-open-button-margin: 24px;
-$history-width: 12vw;
-$history-width-mobile: 220px;
+$history-width: 230px;
+$history-width-mobile: 260px;
 $phone-breakpoint: 600px;
 $widget-margin: 16px;
 
