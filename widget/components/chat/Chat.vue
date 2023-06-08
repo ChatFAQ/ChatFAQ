@@ -15,7 +15,7 @@
                 flatStacks[flatStacks.length - 1].sender.type === 'human'"
             ></LoaderMsg>
         </div>
-        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
+        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <div
                 :placeholder="$t('writeaquestionhere')"
@@ -188,6 +188,9 @@ function isFirstOfType(msg, flatStack) {
     .fade-out {
         animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
         transform: translate3d(0, 0, 0);
+    }
+    &.dark-mode {
+        color: $chatfaq-color-primary-200;
     }
 }
 .fade-out {
