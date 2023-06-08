@@ -75,7 +75,8 @@ function timestampToSentence(isoString) {
 
     .edit-controls {
         display: flex;
-        margin-left: 10px;
+        margin-left: auto;
+        margin-right: auto;
 
         .check-icon {
             content: $chatfaq-check-icon;
@@ -87,7 +88,8 @@ function timestampToSentence(isoString) {
         }
     }
     .item-name {
-        width: 120px;
+        min-width: 30px;
+        max-width: 120px;
         background-color: unset;
         color: white;
         border: unset;
