@@ -9,7 +9,11 @@
                 :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
                 :data="data"
             ></ChatMsg>
-            <LoaderMsg v-if="isLastOfType(flatStacks[flatStacks.length - 1], flatStacks) && flatStacks[flatStacks.length - 1].sender.type === 'human'"></LoaderMsg>
+            <LoaderMsg
+                v-if="!flatStacks.length ||
+                isLastOfType(flatStacks[flatStacks.length - 1], flatStacks) &&
+                flatStacks[flatStacks.length - 1].sender.type === 'human'"
+            ></LoaderMsg>
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
