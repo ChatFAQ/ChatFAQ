@@ -1,4 +1,12 @@
 from chatfaq_sdk.api.retrieval import ChatfaqRetrievalAPI
+import tempfile
+
+from logging import getLogger
+from typing import List
+
+import requests
+
+logger = getLogger(__name__)
 
 
 class Layer:
@@ -8,7 +16,10 @@ class Layer:
 
     _type = None
 
-    def dict_repr(self, ctx) -> dict:
+    def __init__(self, allow_feedback=True):
+        self.allow_feedback = allow_feedback
+
+    def _dict_repr(self, ctx) -> List[dict]:
         """
         Used to represent the layer as a dictionary which will be sent through the WS to the ChatFAQ's back-end server
         It is cached since there are layers as such as the LMGeneratedText which are computationally expensive
@@ -18,6 +29,14 @@ class Layer:
         """
         raise NotImplementedError
 
+    def dict_repr(self, ctx) -> List[dict]:
+        repr = self._dict_repr(ctx)
+        for r in repr:
+            r["type"] = self._type
+            r["meta"] = {}
+            r["meta"]["allow_feedback"] = self.allow_feedback
+        return repr
+
 
 class Text(Layer):
     """
@@ -26,11 +45,12 @@ class Text(Layer):
 
     _type = "text"
 
-    def __init__(self, payload):
+    def __init__(self, payload, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.payload = payload
 
-    def dict_repr(self, ctx):
-        return [{"type": self._type, "payload": self.payload}]
+    def _dict_repr(self, ctx):
+        return [{"payload": self.payload}]
 
 
 class LMGeneratedText(Layer):
@@ -41,7 +61,8 @@ class LMGeneratedText(Layer):
     _type = "lm_generated_text"
     loaded_model = {}
 
-    def __init__(self, input_text, model_id):
+    def __init__(self, input_text, model_id, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.input_text = input_text
         self.model_id = model_id
 

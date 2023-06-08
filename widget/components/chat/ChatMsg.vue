@@ -19,7 +19,7 @@
             <TextMsg v-if="props.data.type === MSG_TYPES.text" :data="props.data" :is-last-of-type="props.isLastOfType"/>
             <LMMsg v-if="props.data.type === MSG_TYPES.lm_generated_text" :data="props.data" :is-last-of-type="props.isLastOfType"/>
             <UserFeedback
-                v-if="props.isLastOfType && props.data.sender.type === 'bot'"
+                v-if="props.isLastOfType && props.data.sender.type === 'bot' && props.data.meta.allow_feedback"
                 :msg-id="data.id"
                 @feedbacking="feedbacking = true"
                 @collapse="feedbacking = false"
@@ -47,6 +47,7 @@ const MSG_TYPES = {
 </script>
 <style scoped lang="scss">
 @import "assets/styles/variables";
+$phone-breakpoint: 600px;
 
 .message-wrapper {
     display: flex;
@@ -58,7 +59,7 @@ const MSG_TYPES = {
 
         &.maximized {
             @media only screen and (min-width: $phone-breakpoint) {
-                margin-right: 404px;
+                margin-right: 35vw;
             }
         }
     }
@@ -69,7 +70,7 @@ const MSG_TYPES = {
 
         &.maximized {
             @media only screen and (min-width: $phone-breakpoint) {
-                margin-left: 404px;
+                margin-left: 35vw;
             }
         }
     }
@@ -120,7 +121,7 @@ const MSG_TYPES = {
         flex-direction: column;
         max-width: 100%;
         height: 100%;
-        margin: 8px 5px 0px;
+        margin: 8px 0px 0px;
 
 
         &.is-first-of-type {

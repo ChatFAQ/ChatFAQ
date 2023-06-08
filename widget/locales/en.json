@@ -16,5 +16,6 @@
     "feedbacksent" : "Feedback sent succesfully!",
     "reason1": "This is harmful/unsafe",
     "reason2": "This is not true",
-    "reason3": "This is not helpful"
+    "reason3": "This is not helpful",
+    "feedbacksent": "Feedback sent successfully!",
 }

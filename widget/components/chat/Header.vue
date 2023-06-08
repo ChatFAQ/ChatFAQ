@@ -7,7 +7,7 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="maximizer" @click="store.maximized = !store.maximized">
+        <div class="maximizer" @click="store.maximized = !store.maximized; store.scrollToBottom += 1">
             <i :class="{'maximized': store.maximized}" />
         </div>
         <div class="minimizer" @click="store.opened = false">
@@ -59,7 +59,7 @@ $phone-breakpoint: 600px;
             }
 
             i {
-                width: 28px;
+                width: 24px;
                 margin: auto;
             }
         }
@@ -71,7 +71,7 @@ $phone-breakpoint: 600px;
                     width: 20px;
                     @media only screen and (min-width: $phone-breakpoint) {
                         content: $chatfaq-minimize-icon;
-                        width: 28px;
+                        width: 24px;
                     }
                 }
             }

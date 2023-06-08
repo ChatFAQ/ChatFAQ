@@ -160,8 +160,6 @@ class Payload(serializers.Field):
 
 
 class MessageStackSerializer(serializers.Serializer):
-    # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
-
     type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType])
     payload = Payload()
     id = serializers.CharField(required=False, max_length=255)

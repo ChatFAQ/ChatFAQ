@@ -1,6 +1,6 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
-        <div class="conversation-content" ref="conversationContent">
+        <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <ChatMsg
                 v-for="data in flatStacks"
                 :is-last-of-type="isLastOfType(data, flatStacks)"
@@ -9,7 +9,9 @@
                 :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
                 :data="data"
             ></ChatMsg>
+            <!-- <Loader/> -->
         </div>
+        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <div
                 :placeholder="$t('writeaquestionhere')"
@@ -19,28 +21,45 @@
                 @keyup.enter="sendMessage"
                 @keypress.enter.prevent
                 contenteditable
+                oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
+                @input="($event)=>thereIsContent = $event.target.innerHTML.length != 0"
             />
-            <i class="chat-send-button" :class="{'dark-mode': store.darkMode}" @click="sendMessage"></i>
+            <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent}" @click="sendMessage"></i>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from "vue";
-import { useGlobalStore } from "~/store";
+import {ref, computed, watch, nextTick} from "vue";
+import {useGlobalStore} from "~/store";
+import Loader from "~/components/generic/Loader.vue";
 
 const store = useGlobalStore();
 
 const chatInput = ref(null);
 const conversationContent = ref(null)
+const feedbackSentDisabled = ref(true)
+const thereIsContent = ref(false)
 
 let ws = undefined
+
+watch(() => store.scrollToBottom, scrollConversationDown)
+watch(() => store.newConversation, createConnection)
+watch(() => store.feedbackSent, animateFeedbackSent)
+
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
 }
-watch(() => store.scrollToBottom, scrollConversationDown)
+
+function animateFeedbackSent() {
+    feedbackSentDisabled.value = false
+    setTimeout(() => {
+        feedbackSentDisabled.value = true
+    }, 1500)
+}
+
 
 function createConnection() {
     if (ws)
@@ -70,8 +89,6 @@ function createConnection() {
 
 createConnection();
 
-watch(() => store.newConversation, createConnection)
-
 const flatStacks = computed(() => {
     const res = [];
     const _messages = store.messages;
@@ -79,7 +96,7 @@ const flatStacks = computed(() => {
         for (let j = 0; j < _messages[i].stacks.length; j++) {
             for (let k = 0; k < _messages[i].stacks[j].length; k++) {
                 const data = _messages[i].stacks[j][k];
-                res.push({ ...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"] });
+                res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
             }
         }
     }
@@ -128,6 +145,7 @@ function isFirstOfType(msg, flatStack) {
 </script>
 <style scoped lang="scss">
 @import "assets/styles/variables";
+@import "assets/styles/mixins";
 
 .chat-wrapper {
     font: $chatfaq-font-body-s;
@@ -159,24 +177,29 @@ function isFirstOfType(msg, flatStack) {
     }
 }
 
+.feedback-message {
+    margin-bottom: -16px;
+    text-align: center;
+    color: $chatfaq-color-greyscale-800;
+    .fade-out {
+        animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        transform: translate3d(0, 0, 0);
+    }
+}
+.fade-out {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s 2s, opacity 2s linear;
+}
+
 .conversation-content {
     height: 100%;
     width: 100%;
-    overflow: scroll;
+    overflow-x: hidden;
 
-    /* Scroll */
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 6px 6px transparent;
-        border: solid 2px transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
-        border: solid 2px transparent;
+    @include scroll-style();
+    &.dark-mode {
+        @include scroll-style(white);
     }
 }
 
@@ -186,9 +209,23 @@ function isFirstOfType(msg, flatStack) {
     outline: 0;
     margin-left: 16px;
     background-color: $chatfaq-color-primary-300;
+    @include scroll-style();
+    &.dark-mode {
+        @include scroll-style(white);
+    }
 }
 
-
+[contenteditable][placeholder]:empty:before {
+    content: attr(placeholder);
+    position: absolute;
+    color: rgba(2, 12, 28, 0.6);
+    background-color: transparent;
+    font-style: italic;
+    cursor: text;
+}
+.dark-mode[contenteditable][placeholder]:empty:before {
+    color: $chatfaq-color-primary-200;
+}
 .chat-prompt {
     font: $chatfaq-font-caption-md;
     font-style: normal;
@@ -198,23 +235,11 @@ function isFirstOfType(msg, flatStack) {
     margin-top: auto;
     margin-bottom: auto;
     max-height: 80px;
+
     &.maximized {
         max-height: 190px;
     }
-    /* Scroll */
-    /*
-    &::-webkit-scrollbar {
-        width: 6px;
-    }
-    &::-webkit-scrollbar-track {
-        box-shadow: inset 0 0 6px 6px transparent;
-        border: solid 2px transparent;
-    }
-    &::-webkit-scrollbar-thumb {
-        box-shadow: inset 0 0 6px 6px $chatfaq-color-primary-500;
-        border: solid 2px transparent;
-    }
-    */
+
     &::placeholder {
         font-style: italic;
         color: rgb(2, 12, 28);
@@ -236,8 +261,13 @@ function isFirstOfType(msg, flatStack) {
     cursor: pointer;
     height: 16px;
     align-self: end;
+    opacity: 0.6;
+
     &.dark-mode {
         content: $chatfaq-send-dark-icon;
+    }
+    &.active {
+        opacity: 1;
     }
 }
 

@@ -143,6 +143,7 @@ async function userFeedback(value, _collapse) {
     if (_collapse) {
         collapse.value = true
         emit("collapse")
+        store.feedbackSent += 1;
     }
     store.scrollToBottom += 1;
 }
@@ -193,13 +194,13 @@ async function userFeedback(value, _collapse) {
     }
 
     .feedback-input-wrapper {
-        margin-top: 12px;
-        margin: 15px;
+        margin: 12px;
         display: flex;
         border-radius: 4px;
         border: 1px solid $chatfaq-color-neutral-purple !important;
         background-color: $chatfaq-color-primary-200;
         box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+        font-weight: 400;
 
         &.dark-mode {
             background-color: $chatfaq-color-neutral-purple;
@@ -215,6 +216,7 @@ async function userFeedback(value, _collapse) {
 
 
         .feedback-input {
+            padding: 0px;
             height: 38px;
             border-radius: 10px;
             font: $chatfaq-font-caption-md;
@@ -223,6 +225,9 @@ async function userFeedback(value, _collapse) {
             &::placeholder {
                 font-style: italic;
                 color: rgb(2, 12, 28);
+                letter-spacing: -0.5px;
+                font-style: italic;
+                font-weight: 400;
             }
 
             &.dark-mode {
@@ -239,8 +244,8 @@ async function userFeedback(value, _collapse) {
     .control {
         cursor: pointer;
         color: #9a8eb5;
-        padding: 0px 4px 4px;
-        margin-top: 6px;
+        padding: 4px;
+        margin-top: 2px;
         display: flex;
         &.dark-mode {
             color: $chatfaq-color-primary-300;
@@ -251,7 +256,7 @@ async function userFeedback(value, _collapse) {
 
     }
 
-    .selected {
+    .selected, .control:not(.collapse):hover {
         color: $chatfaq-color-primary-500;
         background: rgba(70, 48, 117, 0.1);
         border-radius: 2px;

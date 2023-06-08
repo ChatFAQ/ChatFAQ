@@ -69,6 +69,7 @@ watch(() => store.downloading, (newVal) => {
 
 <style lang="scss" scoped>
 @import "assets/styles/variables";
+@import "assets/styles/mixins";
 
 $phone-breakpoint: 600px;
 $history-width: 220px;
@@ -88,24 +89,13 @@ $history-width: 220px;
 
     .conversations {
         height: 100%;
-        overflow-y: scroll;
+        overflow-x: hidden;
 
         &:first-child {
             margin-top: 16px;
         }
 
-        /* Scroll */
-        &::-webkit-scrollbar {
-            width: 6px;
-        }
-        &::-webkit-scrollbar-track {
-            box-shadow: inset 0 0 6px 6px transparent;
-            border: solid 2px transparent;
-        }
-        &::-webkit-scrollbar-thumb {
-            box-shadow: inset 0 0 6px 6px $chatfaq-color-tertiary-blue-500;
-            border: solid 2px transparent;
-        }
+        @include scroll-style($chatfaq-color-tertiary-blue-500);
     }
 
 
