@@ -262,6 +262,7 @@ async function userFeedback(value, _collapse) {
         border-radius: 2px;
         &.dark-mode {
             background-color: $chatfaq-color-primary-900;
+            color: white;
         }
     }
 
