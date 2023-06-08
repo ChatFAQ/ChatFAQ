@@ -2,7 +2,7 @@
     <div>
         <div class="footer-content">
             <div class="text">
-                Powered By
+                Powered by
             </div>
             <i alt="ChatFAQ" class="logo-long"/>
         </div>

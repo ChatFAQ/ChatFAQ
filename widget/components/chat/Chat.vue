@@ -22,7 +22,7 @@
                 @keypress.enter.prevent
                 contenteditable
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
-                @input="($event)=>thereIsContent = $event.target.innerHTML.length != 0"
+                @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
             />
             <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent}" @click="sendMessage"></i>
         </div>
