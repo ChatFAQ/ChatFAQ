@@ -66,6 +66,7 @@ class ChatFAQSDK:
         self._rpcs = {}
         self.uri = ""
         self.ws = None
+        self.rpc_llm_request_future = None
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -118,6 +119,12 @@ class ChatFAQSDK:
         logger.info(f"Disconnecting from: {self.uri}")
         await self.ws.close()
 
+    def llm_result_streaming_generator(self, payload):
+        if payload["status"] == "finished":
+            return payload, False
+        self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
+        return payload, True
+
     async def receive_loop(self):
         logger.info(" ---------------------- Listening...")
         while True:
@@ -127,7 +134,7 @@ class ChatFAQSDK:
                 data = data["payload"]
                 logger.info(f"Executing RPC ::: {data['name']}")
                 for handler in self.rpcs[data["name"]]:
-                    res = self._run_handler(handler, data["ctx"])
+                    res = await self._run_handler(handler, data["ctx"])
                     await self.ws.send(
                         json.dumps(
                             {
@@ -139,9 +146,24 @@ class ChatFAQSDK:
                             }
                         )
                     )
+            elif data.get("type") == MessageType.rpc_llm_request_result.value:
+                data = data["payload"]
+                self.rpc_llm_request_future.set_result(self.llm_result_streaming_generator(data))
             elif data.get("type") == MessageType.error.value:
                 data = data["payload"]
                 logger.error(f"Error from ChatFAQ's back-end server: {data}")
+
+    async def send_llm_request(self, model_id, input_text):
+        self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
+        await self.ws.send(
+            json.dumps({
+                "type": MessageType.rpc_llm_request.value,
+                "data": {
+                    "model_id": model_id,
+                    "input_text": input_text
+                },
+            })
+        )
 
     def rpc(self, name: str) -> Callable:
         """
@@ -167,15 +189,15 @@ class ChatFAQSDK:
 
         return outer
 
-    def _run_handler(self, handler, data):
-        res = handler(data)
-        if inspect.isgenerator(res):
-            return [self._layer_to_dict(item) for item in res]
-        return self._layer_to_dict(res)
+    async def _run_handler(self, handler, data):
+        layer = handler(data)
+        if inspect.isgenerator(layer):
+            return [await self._layer_to_dict(layer) for layer in layer]
+        return await self._layer_to_dict(layer)
 
-    def _layer_to_dict(self, rpc_result):
-        if not isinstance(rpc_result, Layer) and not isinstance(rpc_result, Result):
+    async def _layer_to_dict(self, layer):
+        if not isinstance(layer, Layer) and not isinstance(layer, Result):
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        return rpc_result.dict_repr(self)
+        return await layer.dict_repr(self)
