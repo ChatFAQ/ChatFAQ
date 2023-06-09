@@ -1,58 +1,40 @@
 <template>
-    <div class="loader-wrapper">
-        <div class="loader"></div>
-    </div>
+    <div class="custom-loader"></div>
 </template>
 
 
 <script setup>
-
+defineProps({
+    color: {
+        type: String,
+        default: "white"
+    }
+})
 </script>
 
 <style lang="scss" scoped>
 @import "assets/styles/variables";
 
-.loader-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: calc(3.5em + (2.5em)/2);
-}
-.loader, .loader:before, .loader:after {
-    border-radius: 50%;
-    width: 2.5em;
-    height: 2.5em;
-    animation: bblFadInOut 1.8s infinite ease-in-out;
+.custom-loader {
+    width: 50px;
+    height: 9px;
+    background: radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 0% 50%,
+    radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 50% 50%,
+    radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 100% 50%;
+    background-size: calc(100% / 3) 100%;
+    background-repeat: no-repeat;
+    animation: d7 1s infinite linear;
 }
 
-.loader {
-    color: #FFF;
-    font-size: 7px;
-    transform: translateZ(0);
-    animation-delay: -0.16s;
-}
-
-.loader:before,
-.loader:after {
-    content: '';
-    position: absolute;
-}
-
-.loader:before {
-    left: -3.5em;
-    animation-delay: -0.32s;
-}
-
-.loader:after {
-    left: 3.5em;
-}
-
-@keyframes bblFadInOut {
-    0%, 80%, 100% {
-        box-shadow: 0 2.5em 0 -1.3em
+@keyframes d7 {
+    33% {
+        background-size: calc(100% / 3) 0%, calc(100% / 3) 100%, calc(100% / 3) 100%
     }
-    40% {
-        box-shadow: 0 2.5em 0 0
+    50% {
+        background-size: calc(100% / 3) 100%, calc(100% / 3) 0%, calc(100% / 3) 100%
+    }
+    66% {
+        background-size: calc(100% / 3) 100%, calc(100% / 3) 100%, calc(100% / 3) 0%
     }
 }
 

@@ -50,8 +50,8 @@ if (props.historyOpened !== undefined)
 @import "assets/styles/variables";
 
 $widget-open-button-margin: 24px;
-$history-width: 12vw;
-$history-width-mobile: 220px;
+$history-width: 230px;
+$history-width-mobile: 260px;
 $phone-breakpoint: 600px;
 $widget-margin: 16px;
 
@@ -75,13 +75,16 @@ $widget-margin: 16px;
 
     @media only screen and (max-width: $phone-breakpoint) {
         width: $history-width-mobile;
+        border-right: 1px solid $chatfaq-color-neutral-purple;
     }
     &.maximized {
         height: 85vh;
     }
 
     border-radius: 10px 0px 0px 10px;
-    border: 1px solid $chatfaq-color-neutral-purple;
+    border-top: 1px solid $chatfaq-color-neutral-purple;
+    border-left: 1px solid $chatfaq-color-neutral-purple;
+    border-bottom: 1px solid $chatfaq-color-neutral-purple;
 }
 
 .widget-wrapper {
@@ -149,7 +152,7 @@ $widget-margin: 16px;
     border-radius: 0px 0px 10px 0px;
 
     &.history {
-        border-left: 0px;
+        // border-left: 0px;
     }
 
     @media only screen and (max-width: $phone-breakpoint) {

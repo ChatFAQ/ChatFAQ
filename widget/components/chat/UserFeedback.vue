@@ -262,6 +262,7 @@ async function userFeedback(value, _collapse) {
         border-radius: 2px;
         &.dark-mode {
             background-color: $chatfaq-color-primary-900;
+            color: white;
         }
     }
 
@@ -290,6 +291,10 @@ async function userFeedback(value, _collapse) {
             color: white;
             font-weight: 600;
             cursor: pointer;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-style: normal;
+
             &.dark-mode {
                 background-color: $chatfaq-color-primary-900;
             }
