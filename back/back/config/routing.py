@@ -1,6 +1,7 @@
 from django.urls import re_path
 
 from back.apps.broker.consumers.rpc_consumer import RPCConsumer
+from back.apps.language_model.consumers import LLMConsumer
 from back.common.abs.bot_consumers import BrokerMetaClass
 from back.common.abs.bot_consumers.http import HTTPBotConsumer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
@@ -14,6 +15,10 @@ websocket_urlpatterns = [
     re_path(
         r"back/ws/broker/rpc/$",
         RPCConsumer.as_asgi(),
+    ),
+    re_path(
+        r"back/ws/broker/llm/$",
+        LLMConsumer.as_asgi(),
     ),
 ]
 

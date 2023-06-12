@@ -28,7 +28,7 @@ class RPCResultSerializer(serializers.Serializer):
     payload = serializers.JSONField(default=dict)
 
 
-class RPCRequestSerializer(serializers.Serializer):
+class LLMRequestSerializer(serializers.Serializer):
     model_id = serializers.CharField()
     input_text = serializers.CharField()
 

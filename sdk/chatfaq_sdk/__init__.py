@@ -66,6 +66,7 @@ class ChatFAQSDK:
         self._rpcs = {}
         self.uri = ""
         self.ws = None
+        self.ws_llm = None
         self.rpc_llm_request_future = None
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
@@ -73,7 +74,7 @@ class ChatFAQSDK:
         # for model_id in fsm_definition.pre_load_models:
         #     LMGeneratedText.get_model(model_id, self)
 
-    async def _connect(self):
+    async def _connect_rpc(self):
         self.uri = urllib.parse.urljoin(self.chatfaq_ws, "back/ws/broker/rpc/")
         if self.fsm_name is not None and self.fsm_def is None:
             self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/rpc/{self.fsm_name}/")
@@ -82,21 +83,46 @@ class ChatFAQSDK:
         connection_error = True
         while connection_error:
             try:
-                logger.info(f"Connecting to: {self.uri}")
+                logger.info(f"Connecting to RPC: {self.uri}")
                 async with websockets.connect(self.uri) as ws:
-                    logger.info(f"Connected")
+                    logger.info(f"Connected RPC")
                     self.ws = ws
                     await self.on_connect()
-                    await self.receive_loop()
+                    await self.receive_loop_rpc()
             except (websockets.WebSocketException, ConnectionRefusedError):
                 logger.info(f"Disconnected from {self.uri}, trying to reconnect in 1s")
                 await asyncio.sleep(1)
             else:
                 connection_error = False
 
+    async def _connect_llm(self):
+        self.llm_uri = urllib.parse.urljoin(self.chatfaq_ws, "back/ws/broker/llm/")
+        parsed_token = urllib.parse.quote(self.token)
+        self.llm_uri = f"{self.llm_uri}?token={parsed_token}"
+        connection_error = True
+        while connection_error:
+            try:
+                logger.info(f"Connecting to LLM: {self.llm_uri}")
+                async with websockets.connect(self.llm_uri) as ws:
+                    logger.info(f"Connected LLM")
+                    self.ws_llm = ws
+                    await self.receive_loop_llm()
+            except (websockets.WebSocketException, ConnectionRefusedError) as e:
+                print(e)
+                logger.info(f"Disconnected from {self.llm_uri}, trying to reconnect in 1s")
+                await asyncio.sleep(1)
+            else:
+                connection_error = False
+
+    async def connexions(self):
+        await asyncio.gather(
+            self._connect_rpc(),
+            self._connect_llm(),
+        )
+
     def connect(self):
         try:
-            asyncio.run(self._connect())
+            asyncio.run(self.connexions())
         except KeyboardInterrupt:
             asyncio.run(self._disconnect())
 
@@ -125,8 +151,8 @@ class ChatFAQSDK:
         self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
         return payload, True
 
-    async def receive_loop(self):
-        logger.info(" ---------------------- Listening...")
+    async def receive_loop_rpc(self):
+        logger.info(" ---------------------- Listening RPC...")
         while True:
             data = await self.ws.recv()
             data = json.loads(data)
@@ -146,7 +172,16 @@ class ChatFAQSDK:
                             }
                         )
                     )
-            elif data.get("type") == MessageType.rpc_llm_request_result.value:
+            elif data.get("type") == MessageType.error.value:
+                data = data["payload"]
+                logger.error(f"Error from ChatFAQ's back-end server: {data}")
+
+    async def receive_loop_llm(self):
+        logger.info(" ------------------- Listening LLM...")
+        while True:
+            data = await self.ws_llm.recv()
+            data = json.loads(data)
+            if data.get("type") == MessageType.llm_request_result.value:
                 data = data["payload"]
                 self.rpc_llm_request_future.set_result(self.llm_result_streaming_generator(data))
             elif data.get("type") == MessageType.error.value:
@@ -155,9 +190,9 @@ class ChatFAQSDK:
 
     async def send_llm_request(self, model_id, input_text):
         self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
-        await self.ws.send(
+        await self.ws_llm.send(
             json.dumps({
-                "type": MessageType.rpc_llm_request.value,
+                "type": MessageType.llm_request.value,
                 "data": {
                     "model_id": model_id,
                     "input_text": input_text

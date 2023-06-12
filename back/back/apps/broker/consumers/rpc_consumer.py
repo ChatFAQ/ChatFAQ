@@ -9,7 +9,7 @@ from back.apps.broker.consumers.message_types import RPCMessageType
 from back.apps.broker.serializers.rpc import (
     RPCFSMDefSerializer,
     RPCResponseSerializer,
-    RPCResultSerializer, RPCRequestSerializer,
+    RPCResultSerializer,
 )
 from back.apps.fsm.models import FSMDefinition
 from back.apps.fsm.serializers import FSMSerializer
@@ -96,8 +96,6 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             await self.manage_fsm_def(serializer.validated_data["data"])
         elif serializer.validated_data["type"] == RPCMessageType.rpc_result.value:
             await self.manage_rpc_result(serializer.validated_data["data"])
-        elif serializer.validated_data["type"] == RPCMessageType.rpc_llm_request.value:
-            await self.manage_rpc_request(serializer.validated_data["data"])
 
     async def manage_fsm_def(self, data):
         serializer = RPCFSMDefSerializer(data=data)
@@ -148,23 +146,6 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_send(
             WSBotConsumer.create_group_name(conversation_id), res
         )
-
-    async def manage_rpc_request(self, data):
-        serializer = RPCRequestSerializer(data=data)
-        if not serializer.is_valid():
-            await self.error_response({"payload": serializer.errors})
-            return
-        data = serializer.validated_data
-        res = {
-            "type": RPCMessageType.rpc_llm_request_result.value,
-            "status": WSStatusCodes.ok.value,
-            "payload": {
-                "status": "finished",
-                "res": f"LLM ({data['model_id']}) generated text from {data['input_text']}",
-                "context": [{"url": "https://www.google.com"}, {"url": "https://www.shopify.com"}]
-            },
-        }
-        await self.send(json.dumps(res))
 
     async def rpc_call(self, data: dict):
         data["status"] = WSStatusCodes.ok.value
