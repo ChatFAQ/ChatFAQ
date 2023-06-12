@@ -71,30 +71,11 @@ class ChatFAQSDK:
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
-    async def _connect(self, consumer_route, actions, on_connect=None, rpc=False):
-        self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
-        if rpc and self.fsm_name is not None and self.fsm_def is None:
-            self.uri = f"{self.uri}{self.fsm_name}/"
-
-        parsed_token = urllib.parse.quote(self.token)
-        self.uri = f"{self.uri}?token={parsed_token}"
-        connection_error = True
-        while connection_error:
-            try:
-                logger.info(f"{'[RPC]' if rpc else '[LLM]'} Connecting to {self.uri}")
-                async with websockets.connect(self.uri) as ws:
-                    logger.info(f"{'[RPC]' if rpc else '[LLM]'} Connected")
-                    if rpc:
-                        self.ws_rpc = ws
-                    else:
-                        self.ws_llm = ws
-                    if on_connect is not None:
-                        await on_connect()
-                    logger.info(f"{'[RPC]' if rpc else '[LLM]'} ---------------------- Listening...")
-                    await self.receive_loop(actions, rpc)
-            except (websockets.WebSocketException, ConnectionRefusedError):
-                logger.info(f"{'[RPC]' if rpc else '[LLM]'} Connection error, retrying...")
-                await asyncio.sleep(1)
+    def connect(self):
+        try:
+            asyncio.run(self.connexions())
+        except KeyboardInterrupt:
+            asyncio.run(self._disconnect())
 
     async def connexions(self):
         rpc_actions = {
@@ -107,9 +88,43 @@ class ChatFAQSDK:
         }
 
         await asyncio.gather(
-            self._connect("rpc", rpc_actions, on_connect=self.on_connect_rpc, rpc=True),
-            self._connect("llm", llm_actions, on_connect=None, rpc=False),
+            self._connect("rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True),
+            self._connect("llm", llm_actions, on_connect=None),
         )
+
+    async def _connect(self, consumer_route, actions, on_connect=None, is_rpc=False):
+        self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
+        if is_rpc and self.fsm_name is not None and self.fsm_def is None:
+            self.uri = f"{self.uri}{self.fsm_name}/"
+
+        parsed_token = urllib.parse.quote(self.token)
+        self.uri = f"{self.uri}?token={parsed_token}"
+        connection_error = True
+        while connection_error:
+            try:
+                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connecting to {self.uri}")
+                async with websockets.connect(self.uri) as ws:
+                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connected")
+                    if is_rpc:
+                        self.ws_rpc = ws
+                    else:
+                        self.ws_llm = ws
+                    if on_connect is not None:
+                        await on_connect()
+                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} ---------------------- Listening...")
+                    await self.receive_loop(actions, is_rpc)  # <----- "infinite" Connection Loop
+            except (websockets.WebSocketException, ConnectionRefusedError):
+                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying...")
+                await asyncio.sleep(1)
+
+    async def receive_loop(self, actions, is_rpc):
+        while True:
+            data = json.loads(await self.ws_rpc.recv()) if is_rpc else json.loads(await self.ws_llm.recv())
+
+            if actions.get(data.get("type")) is not None:
+                await actions[data.get("type")](data["payload"])
+            else:
+                logger.error(f"Unknown action type: {data.get('type')}")
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
@@ -131,29 +146,11 @@ class ChatFAQSDK:
         await self.ws_rpc.close()
         await self.ws_llm.close()
 
-    def connect(self):
-        try:
-            asyncio.run(self.connexions())
-        except KeyboardInterrupt:
-            asyncio.run(self._disconnect())
-
     def llm_result_streaming_generator(self, payload):
         if payload["status"] == "finished":
             return payload, False
         self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
         return payload, True
-
-    async def receive_loop(self, actions, rpc):
-        while True:
-            if rpc:
-                data = json.loads(await self.ws_rpc.recv())
-            else:
-                data = json.loads(await self.ws_llm.recv())
-
-            if actions.get(data.get("type")) is not None:
-                await actions[data.get("type")](data["payload"])
-            else:
-                logger.error(f"Unknown action type: {data.get('type')}")
 
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
