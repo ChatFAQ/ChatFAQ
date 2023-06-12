@@ -9,7 +9,7 @@ import websockets
 from chatfaq_sdk import settings
 from chatfaq_sdk.conditions import Result
 from chatfaq_sdk.fsm import FSMDefinition
-from chatfaq_sdk.layers import Layer #  , LMGeneratedText
+from chatfaq_sdk.layers import Layer
 from chatfaq_sdk.api.messages import MessageType
 
 settings.configure()
