@@ -66,9 +66,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
                 "context": [{"url": "https://www.google.com"}, {"url": "https://www.shopify.com"}]
             },
         }
-        print(111)
         await self.send(json.dumps(res))
-        print(222)
 
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value
