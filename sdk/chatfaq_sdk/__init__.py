@@ -168,11 +168,11 @@ class ChatFAQSDK:
                 )
             )
 
-    def llm_request_result_callback(self, payload):
+    async def llm_request_result_callback(self, payload):
         self.rpc_llm_request_future.set_result(self.llm_result_streaming_generator(payload))
 
     @staticmethod
-    def error_callback(payload):
+    async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
     async def send_llm_request(self, model_id, input_text):
