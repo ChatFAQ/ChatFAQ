@@ -10,6 +10,7 @@ from back.apps.broker.serializers.rpc import (
     RPCResponseSerializer, LLMRequestSerializer,
 )
 from back.utils import WSStatusCodes
+from back.apps.language_model.tasks import debug_task
 
 logger = getLogger(__name__)
 
@@ -52,6 +53,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             await self.manage_llm_request(serializer.validated_data["data"])
 
     async def manage_llm_request(self, data):
+        debug_task.delay()
         serializer = LLMRequestSerializer(data=data)
         if not serializer.is_valid():
             await self.error_response({"payload": serializer.errors})

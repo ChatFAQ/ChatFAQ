@@ -184,3 +184,5 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     REST_KNOX = {
         'TOKEN_TTL': None,
     }
+    # Celery
+    CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"
