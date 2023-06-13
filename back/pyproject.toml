@@ -36,6 +36,8 @@ django-storages = "^1.13.2"
 boto3 = "^1.26.138"
 celery = "^5.3.0"
 sqlalchemy = "^2.0.16"
+chatfaq-retrieval = "^0.1.5"
+gevent = "^22.10.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
@@ -49,3 +51,8 @@ known_first_party = "back"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+secondary = true

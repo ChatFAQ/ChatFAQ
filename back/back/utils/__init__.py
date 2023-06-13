@@ -128,3 +128,21 @@ class PrettyJSONWidget(widgets.Textarea):
         except Exception as e:
             logger.warning("Error while formatting JSON: {}".format(e))
             return super(PrettyJSONWidget, self).format_value(value)
+
+
+def is_celery_worker():
+    """
+    There is a more integrated solution although the signal doens't seems to work properly:
+    celery.py:
+
+    app.running = False
+
+    @worker_init.connect
+    def set_running(*args, **kwargs):
+        app.running = True
+
+    tasks.py:
+    if app.running:
+        # do something
+    """
+    return sys.argv and sys.argv[0].endswith('celery') and 'worker' in sys.argv

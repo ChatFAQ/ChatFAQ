@@ -10,7 +10,7 @@ from back.apps.broker.serializers.rpc import (
     RPCResponseSerializer, LLMRequestSerializer,
 )
 from back.utils import WSStatusCodes
-from back.apps.language_model.tasks import debug_task
+from back.apps.language_model.tasks import llm_query_task
 
 logger = getLogger(__name__)
 
@@ -50,25 +50,25 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             return
 
         if serializer.validated_data["type"] == RPCMessageType.llm_request.value:
-            await self.manage_llm_request(serializer.validated_data["data"])
+            await self.llm_request_action(serializer.validated_data["data"])
 
-    async def manage_llm_request(self, data):
-        debug_task.delay()
+    async def llm_request_action(self, data):
         serializer = LLMRequestSerializer(data=data)
         if not serializer.is_valid():
             await self.error_response({"payload": serializer.errors})
             return
         data = serializer.validated_data
-        res = {
+        llm_query_task.delay(self.channel_name, data["model_id"], data["input_text"])
+
+    async def send_llm_response(self, event):
+        await self.send(json.dumps({
             "type": RPCMessageType.llm_request_result.value,
             "status": WSStatusCodes.ok.value,
             "payload": {
                 "status": "finished",
-                "res": f"LLM ({data['model_id']}) generated text from {data['input_text']}",
-                "context": [{"url": "https://www.google.com"}, {"url": "https://www.shopify.com"}]
-            },
-        }
-        await self.send(json.dumps(res))
+                **event['message']
+            }
+        }))
 
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value
