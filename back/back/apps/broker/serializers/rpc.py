@@ -28,6 +28,11 @@ class RPCResultSerializer(serializers.Serializer):
     payload = serializers.JSONField(default=dict)
 
 
+class LLMRequestSerializer(serializers.Serializer):
+    model_id = serializers.CharField()
+    input_text = serializers.CharField()
+
+
 class RPCFSMDefSerializer(serializers.Serializer):
     """
     Used for when a RPC Server push a FSM definition

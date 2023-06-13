@@ -9,9 +9,13 @@
                 :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
                 :data="data"
             ></ChatMsg>
-            <!-- <Loader/> -->
+            <LoaderMsg
+                v-if="!flatStacks.length ||
+                isLastOfType(flatStacks[flatStacks.length - 1], flatStacks) &&
+                flatStacks[flatStacks.length - 1].sender.type === 'human'"
+            ></LoaderMsg>
         </div>
-        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled }">{{ $t("feedbacksent") }}</div>
+        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <div
                 :placeholder="$t('writeaquestionhere')"
@@ -22,7 +26,7 @@
                 @keypress.enter.prevent
                 contenteditable
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
-                @input="($event)=>thereIsContent = $event.target.innerHTML.length != 0"
+                @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
             />
             <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent}" @click="sendMessage"></i>
         </div>
@@ -32,7 +36,7 @@
 <script setup>
 import {ref, computed, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
-import Loader from "~/components/generic/Loader.vue";
+import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 
 const store = useGlobalStore();
 
@@ -184,6 +188,9 @@ function isFirstOfType(msg, flatStack) {
     .fade-out {
         animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
         transform: translate3d(0, 0, 0);
+    }
+    &.dark-mode {
+        color: $chatfaq-color-primary-200;
     }
 }
 .fade-out {
