@@ -58,7 +58,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             await self.error_response({"payload": serializer.errors})
             return
         data = serializer.validated_data
-        llm_query_task.delay(self.channel_name, data["model_id"], data["input_text"])
+        llm_query_task.delay(self.channel_name, data["model_id"], data["input_text"], data["bot_channel_name"])
 
     async def send_llm_response(self, event):
         await self.send(json.dumps({

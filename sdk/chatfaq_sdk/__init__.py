@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import json
+import queue
 import urllib.parse
 from logging import getLogger
 from typing import Callable, Union, Optional
@@ -67,7 +68,10 @@ class ChatFAQSDK:
         self.uri = ""
         self.ws_rpc = None
         self.ws_llm = None
-        self.rpc_llm_request_future = None
+        self.queue_rpc = queue.Queue()
+        self.queue_llm = queue.Queue()
+
+        self.rpc_llm_request_futures = {}
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -88,8 +92,10 @@ class ChatFAQSDK:
         }
 
         await asyncio.gather(
-            self._connect("rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True),
-            self._connect("llm", llm_actions, on_connect=None),
+            self.consumer("rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True),
+            self.consumer("llm", llm_actions, on_connect=None),
+            self.producer(rpc_actions, is_rpc=True),
+            self.producer(llm_actions),
         )
 
     async def _connect(self, consumer_route, actions, on_connect=None, is_rpc=False):
@@ -116,6 +122,57 @@ class ChatFAQSDK:
             except (websockets.WebSocketException, ConnectionRefusedError):
                 logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying...")
                 await asyncio.sleep(1)
+
+    async def consumer(self, consumer_route, actions, on_connect=None, is_rpc=False):
+        self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
+        if is_rpc and self.fsm_name is not None and self.fsm_def is None:
+            self.uri = f"{self.uri}{self.fsm_name}/"
+
+        parsed_token = urllib.parse.quote(self.token)
+        self.uri = f"{self.uri}?token={parsed_token}"
+        connection_error = True
+        while connection_error:
+            try:
+                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connecting to {self.uri}")
+                async with websockets.connect(self.uri) as ws:
+                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connected")
+                    if is_rpc:
+                        self.ws_rpc = ws
+                    else:
+                        self.ws_llm = ws
+                    if on_connect is not None:
+                        await on_connect()
+                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} ---------------------- Listening...")
+                    await self._consume_loop(is_rpc)  # <----- "infinite" Connection Loop
+            except (websockets.WebSocketException, ConnectionRefusedError):
+                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying...")
+                await asyncio.sleep(1)
+
+    async def _consume_loop(self, is_rpc=False):
+        while True:
+            data = json.loads(await self.ws_rpc.recv()) if is_rpc else json.loads(await self.ws_llm.recv())
+            if is_rpc:
+                self.queue_rpc.put(data)
+            else:
+                self.queue_llm.put(data)
+
+    async def producer(self, actions, is_rpc=False):
+        while True:
+            if not self.ws_rpc or not self.ws_llm or not self.ws_rpc.open or not self.ws_llm.open:
+                await asyncio.sleep(0.01)
+                continue
+            try:
+                data = self.queue_rpc.get(False) if is_rpc else self.queue_llm.get(False)
+            except queue.Empty:
+                await asyncio.sleep(0.01)
+                continue
+
+            if actions.get(data.get("type")) is not None:
+                print(f"Action: {data.get('type')}")
+                await actions[data.get("type")](data["payload"])
+                # asyncio.create_task(actions[data.get("type")](data["payload"]))
+            else:
+                logger.error(f"Unknown action type: {data.get('type')}")
 
     async def receive_loop(self, actions, is_rpc):
         while True:
@@ -146,12 +203,6 @@ class ChatFAQSDK:
         await self.ws_rpc.close()
         await self.ws_llm.close()
 
-    def llm_result_streaming_generator(self, payload):
-        if payload["status"] == "finished":
-            return payload, False
-        self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
-        return payload, True
-
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         for handler in self.rpcs[payload["name"]]:
@@ -169,20 +220,28 @@ class ChatFAQSDK:
             )
 
     async def llm_request_result_callback(self, payload):
-        self.rpc_llm_request_future.set_result(self.llm_result_streaming_generator(payload))
+        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(self.llm_result_streaming_generator(payload))
+
+    def llm_result_streaming_generator(self, payload):
+        if payload["status"] == "finished":
+            return payload, False
+        self.rpc_llm_request_futures[payload["bot_channel_name"]] = asyncio.get_event_loop().create_future()
+        return payload, True
 
     @staticmethod
     async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
-    async def send_llm_request(self, model_id, input_text):
-        self.rpc_llm_request_future = asyncio.get_event_loop().create_future()
+    async def send_llm_request(self, model_id, input_text, bot_channel_name):
+        logger.info(f"[LLM] Requesting LLM (model {model_id})")
+        self.rpc_llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
         await self.ws_llm.send(
             json.dumps({
                 "type": MessageType.llm_request.value,
                 "data": {
                     "model_id": model_id,
-                    "input_text": input_text
+                    "input_text": input_text,
+                    "bot_channel_name": bot_channel_name,
                 },
             })
         )
@@ -214,12 +273,12 @@ class ChatFAQSDK:
     async def _run_handler(self, handler, data):
         layer = handler(data)
         if inspect.isgenerator(layer):
-            return [await self._layer_to_dict(layer) for layer in layer]
-        return await self._layer_to_dict(layer)
+            return [await self._layer_to_dict(layer, data) for layer in layer]
+        return await self._layer_to_dict(layer, data)
 
-    async def _layer_to_dict(self, layer):
+    async def _layer_to_dict(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Result):
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        return await layer.dict_repr(self)
+        return await layer.dict_repr(self, data)

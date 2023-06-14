@@ -34,12 +34,12 @@ class LLMCacheOnWorkerTask(Task):
 
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
-def llm_query_task(self, chanel_name, model_id, input_text):
+def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     channel_layer = get_channel_layer()
     res = self.CACHED_MODELS[str(model_id)].query(input_text)
     for c in res["context"]:
         c["role"] = None
-
+    res["bot_channel_name"] = bot_channel_name
     async_to_sync(channel_layer.send)(chanel_name, {
         'type': 'send_llm_response',
         'message': res

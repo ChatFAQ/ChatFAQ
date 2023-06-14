@@ -14,7 +14,7 @@ class Layer:
     def __init__(self, allow_feedback=True):
         self.allow_feedback = allow_feedback
 
-    async def build_payloads(self, ctx) -> List[dict]:
+    async def build_payloads(self, ctx, data) -> List[dict]:
         """
         Used to represent the layer as a dictionary which will be sent through the WS to the ChatFAQ's back-end server
         It is cached since there are layers as such as the LMGeneratedText which are computationally expensive
@@ -24,8 +24,8 @@ class Layer:
         """
         raise NotImplementedError
 
-    async def dict_repr(self, ctx) -> List[dict]:
-        _repr = await self.build_payloads(ctx)
+    async def dict_repr(self, ctx, data) -> List[dict]:
+        _repr = await self.build_payloads(ctx, data)
         for r in _repr:
             r["type"] = self._type
             r["meta"] = {}
@@ -44,7 +44,7 @@ class Text(Layer):
         super().__init__(*args, **kwargs)
         self.payload = payload
 
-    async def build_payloads(self, ctx):
+    async def build_payloads(self, ctx, data):
         return [{"payload": self.payload}]
 
 
@@ -61,19 +61,19 @@ class LMGeneratedText(Layer):
         self.input_text = input_text
         self.model_id = model_id
 
-    async def build_payloads(self, ctx):
+    async def build_payloads(self, ctx, data):
         # model_response = ChatfaqRetrievalAPI(ctx.chatfaq_retrieval_http, ctx.token).query(self.model_id,
         #                                                                                   self.input_text)
 
         logger.debug(f"Waiting for LLM...")
-        await ctx.send_llm_request(self.model_id, self.input_text)
+        await ctx.send_llm_request(self.model_id, self.input_text, data["bot_channel_name"])
         model_response = ""
         context = []
-        result, more = await ctx.rpc_llm_request_future
+        result, more = await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
         logger.debug(f"...Receive LLM res")
         model_response += result["res"]
         while more:
-            result, more = await ctx.rpc_llm_request_future
+            result, more = await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
             model_response += result["res"]
             if not more:
                 context = result["context"]

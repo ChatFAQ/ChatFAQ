@@ -134,6 +134,7 @@ class FSM:
         group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
         for event_name in self.current_state.events:
+            self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
                 "type": "rpc_call",
                 "status": WSStatusCodes.ok.value,
@@ -146,7 +147,6 @@ class FSM:
                 },
             }
             await self.channel_layer.group_send(group_name, data)
-            self.rpc_result_future = asyncio.get_event_loop().create_future()
             logger.debug(f"Waiting for RCP call {event_name}...")
             stacks = await self.rpc_result_future
             logger.debug(f"...Receive RCP call {event_name}")

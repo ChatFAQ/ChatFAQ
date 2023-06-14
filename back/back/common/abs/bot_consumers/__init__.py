@@ -127,6 +127,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return {
             "conversation_id": self.conversation.pk,
             "last_mml": last_mml,
+            "bot_channel_name": self.channel_name,
         }
 
     # ---------- Broker methods ----------
