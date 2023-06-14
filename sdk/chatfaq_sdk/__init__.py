@@ -169,8 +169,8 @@ class ChatFAQSDK:
 
             if actions.get(data.get("type")) is not None:
                 print(f"Action: {data.get('type')}")
-                await actions[data.get("type")](data["payload"])
-                # asyncio.create_task(actions[data.get("type")](data["payload"]))
+                # await actions[data.get("type")](data["payload"])
+                asyncio.create_task(actions[data.get("type")](data["payload"]))
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
 

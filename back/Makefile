@@ -27,7 +27,7 @@ apply_fixtures:
 	./pmanage loaddata back/apps/people/fixtures/initial.json --app auth.group
 
 celery_worker:
-	poetry run celery -A back.config worker -l INFO -P gevent
+	poetry run celery -A back.config worker -l INFO -P threads
 
 # create_fsm_fixtures:
 # 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > back/apps/fsm/fixtures/initial.json
