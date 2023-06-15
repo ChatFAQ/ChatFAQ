@@ -148,9 +148,11 @@ class FSM:
             }
             await self.channel_layer.group_send(group_name, data)
             logger.debug(f"Waiting for RCP call {event_name}...")
-            stacks = await self.rpc_result_future
+            more = True
+            while more:
+                stacks, more = await self.rpc_result_future
+                await self.ctx.send_response(await self.save_bot_mml(stacks))
             logger.debug(f"...Receive RCP call {event_name}")
-            await self.ctx.send_response(await self.save_bot_mml(stacks))
 
     def get_initial_state(self):
 

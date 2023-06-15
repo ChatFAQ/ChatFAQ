@@ -2,6 +2,7 @@ from abc import ABC
 from logging import getLogger
 from typing import TYPE_CHECKING, Union
 
+import asyncio
 from asgiref.sync import sync_to_async
 from django.forms import model_to_dict
 from django.urls import re_path
@@ -83,7 +84,14 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        self.fsm.rpc_result_future.set_result(data["payload"])
+        self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator(data["payload"]))
+
+    def rpc_result_streaming_generator(self, payload):
+        last_msg = payload[-1][-1]
+        if last_msg.get("final"):
+            return payload, False
+        self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
+        return payload, True
 
     async def disconnect(self, code=None):
         logger.debug(
