@@ -40,7 +40,7 @@
     "dependencies": {
         "@rollup/plugin-buble": "^1.0.2",
         "@rollup/plugin-commonjs": "^24.0.1",
-        "pinia": "^2.0.32",
+        "pinia": "^2.1.4",
         "rollup-plugin-vue": "^6.0.0",
         "sass": "^1.58.0",
         "sass-loader": "^13.2.0"
