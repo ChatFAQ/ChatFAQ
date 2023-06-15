@@ -7,14 +7,14 @@
       <env name="PYTHONUNBUFFERED" value="1" />
       <env name="TOKENIZERS_PARALLELISM" value="false" />
     </envs>
-    <option name="SDK_HOME" value="$PROJECT_DIR$/.venv/bin/python" />
-    <option name="SDK_NAME" value="Python 3.10 (back)" />
+    <option name="SDK_HOME" value="$USER_HOME$/.cache/pypoetry/virtualenvs/back-mVK3jSOz-py3.10/bin/python" />
+    <option name="SDK_NAME" value="Python 3.10 (back-mVK3jSOz-py3.10)" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/.venv/bin/celery" />
+    <option name="SCRIPT_NAME" value="$USER_HOME$/.cache/pypoetry/virtualenvs/back-mVK3jSOz-py3.10/bin/celery" />
     <option name="PARAMETERS" value="-A back.config worker -l INFO -P threads" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
