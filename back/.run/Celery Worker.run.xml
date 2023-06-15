@@ -15,7 +15,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$USER_HOME$/.cache/pypoetry/virtualenvs/back-mVK3jSOz-py3.10/bin/celery" />
-    <option name="PARAMETERS" value="-A back.config worker -l INFO -P threads" />
+    <option name="PARAMETERS" value="-A back.config worker -l INFO -P solo" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
