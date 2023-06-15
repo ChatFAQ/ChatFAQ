@@ -67,22 +67,17 @@ class LMGeneratedText(Layer):
 
         logger.debug(f"Waiting for LLM...")
         await ctx.send_llm_request(self.model_id, self.input_text, data["bot_channel_name"])
-        model_response = ""
-        context = []
-        result, more = await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
+
         logger.debug(f"...Receive LLM res")
-        model_response += result["res"]
+        more = True
         while more:
             result, more = await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
-            model_response += result["res"]
-            if not more:
-                context = result["context"]
-            logger.debug(f"...Receive LLM res")
+            yield [{
+                "payload": {
+                    "model_response": result,
+                    "finish": not more,
+                    "references": [c["url"] for c in result["context"]],
+                    "model": self.model_id
+                }
+            }]
         logger.debug(f"LLM res Finished")
-        return [{
-            "payload": {
-                "model_response": model_response,
-                "references": [c["url"] for c in context],
-                "model": self.model_id
-            }
-        }]

@@ -206,24 +206,24 @@ class ChatFAQSDK:
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         for handler in self.rpcs[payload["name"]]:
-            res = await self._run_handler(handler, payload["ctx"])
-            await self.ws_rpc.send(
-                json.dumps(
-                    {
-                        "type": MessageType.rpc_result.value,
-                        "data": {
-                            "ctx": payload["ctx"],
-                            "payload": res,
-                        },
-                    }
+            async for res in self._run_handler(handler, payload["ctx"]):
+                await self.ws_rpc.send(
+                    json.dumps(
+                        {
+                            "type": MessageType.rpc_result.value,
+                            "data": {
+                                "ctx": payload["ctx"],
+                                "payload": [res],
+                            },
+                        }
+                    )
                 )
-            )
 
     async def llm_request_result_callback(self, payload):
         self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(self.llm_result_streaming_generator(payload))
 
     def llm_result_streaming_generator(self, payload):
-        if payload["status"] == "finished":
+        if payload["final"]:
             return payload, False
         self.rpc_llm_request_futures[payload["bot_channel_name"]] = asyncio.get_event_loop().create_future()
         return payload, True
@@ -271,14 +271,24 @@ class ChatFAQSDK:
         return outer
 
     async def _run_handler(self, handler, data):
-        layer = handler(data)
-        if inspect.isgenerator(layer):
-            return [await self._layer_to_dict(layer, data) for layer in layer]
-        return await self._layer_to_dict(layer, data)
+        layers = handler(data)
+        if inspect.isgenerator(layers):
+            for layer in layers:
+                async for _repr in self._layer_to_dict(layer, data):
+                    yield _repr
+        else:
+            async for _repr in self._layer_to_dict(layers, data):
+                yield _repr
 
     async def _layer_to_dict(self, layer, data):
-        if not isinstance(layer, Layer) and not isinstance(layer, Result):
+        if False and not isinstance(layer, Layer) and not isinstance(layer, Result):
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        return await layer.dict_repr(self, data)
+        _repr = layer.dict_repr(self, data)
+        # check if is generator
+        if inspect.isgenerator(_repr):
+            async for r in _repr:
+                yield r
+        else:
+            yield await _repr

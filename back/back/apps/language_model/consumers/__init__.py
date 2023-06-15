@@ -65,7 +65,6 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             "type": RPCMessageType.llm_request_result.value,
             "status": WSStatusCodes.ok.value,
             "payload": {
-                "status": "finished",
                 **event['message']
             }
         }))
