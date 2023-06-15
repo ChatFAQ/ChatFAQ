@@ -1,3 +1,5 @@
+import copy
+
 from abc import ABC
 from logging import getLogger
 from typing import TYPE_CHECKING, Union
@@ -51,7 +53,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         self.user_id: Union[str, None] = None
 
         self.fsm_def: "FSMDefinition" = None
-
+        self.message_buffer = []
         super().__init__(*args, **kwargs)
         if self.serializer_class is None or not issubclass(
             self.serializer_class, BotMessageSerializer
@@ -84,14 +86,18 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator(data["payload"]))
+        print("setting future", data["payload"])
+        self.message_buffer += data["payload"]
+        self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
 
-    def rpc_result_streaming_generator(self, payload):
-        last_msg = payload[-1][-1]
-        if last_msg.get("final"):
-            return payload, False
+    def rpc_result_streaming_generator(self):
         self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
-        return payload, True
+        _message_buffer = copy.deepcopy(self.message_buffer)
+        self.message_buffer = []
+        last_msg = _message_buffer[-1][-1]
+        if last_msg.get("final"):
+            return _message_buffer, False
+        return _message_buffer, True
 
     async def disconnect(self, code=None):
         logger.debug(

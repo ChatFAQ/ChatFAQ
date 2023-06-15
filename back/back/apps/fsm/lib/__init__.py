@@ -150,7 +150,7 @@ class FSM:
             logger.debug(f"Waiting for RCP call {event_name}...")
             more = True
             while more:
-                stacks, more = await self.rpc_result_future
+                stacks, more = (await self.rpc_result_future)()
                 await self.ctx.send_response(await self.save_bot_mml(stacks))
             logger.debug(f"...Receive RCP call {event_name}")
 

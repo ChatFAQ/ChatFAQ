@@ -1,3 +1,5 @@
+import copy
+
 import asyncio
 import inspect
 import json
@@ -72,6 +74,7 @@ class ChatFAQSDK:
         self.queue_llm = queue.Queue()
 
         self.rpc_llm_request_futures = {}
+        self.rpc_llm_request_msg_buffer = {}
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -220,13 +223,22 @@ class ChatFAQSDK:
                 )
 
     async def llm_request_result_callback(self, payload):
-        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(self.llm_result_streaming_generator(payload))
+        if self.rpc_llm_request_msg_buffer.get(payload["bot_channel_name"]) is None:
+            self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]] = []
 
-    def llm_result_streaming_generator(self, payload):
-        if payload["final"]:
-            return payload, False
-        self.rpc_llm_request_futures[payload["bot_channel_name"]] = asyncio.get_event_loop().create_future()
-        return payload, True
+        self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]].append(payload)
+        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(self.llm_result_streaming_generator(payload["bot_channel_name"]))
+
+    def llm_result_streaming_generator(self, bot_channel_name):
+        def _llm_result_streaming_generator():
+            self.rpc_llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
+            _message_buffer = copy.deepcopy(self.rpc_llm_request_msg_buffer[bot_channel_name])
+            self.rpc_llm_request_msg_buffer[bot_channel_name] = []
+
+            if _message_buffer[-1]["final"]:
+                return _message_buffer, False
+            return _message_buffer, True
+        return _llm_result_streaming_generator
 
     @staticmethod
     async def error_callback(payload):
@@ -287,8 +299,5 @@ class ChatFAQSDK:
             )
         _repr = layer.dict_repr(self, data)
         # check if is generator
-        if inspect.isgenerator(_repr):
-            async for r in _repr:
-                yield r
-        else:
-            yield await _repr
+        async for r in _repr:
+            yield r

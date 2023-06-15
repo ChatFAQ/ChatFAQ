@@ -25,12 +25,13 @@ class Layer:
         raise NotImplementedError
 
     async def dict_repr(self, ctx, data) -> List[dict]:
-        _repr = await self.build_payloads(ctx, data)
-        for r in _repr:
-            r["type"] = self._type
-            r["meta"] = {}
-            r["meta"]["allow_feedback"] = self.allow_feedback
-        return _repr
+        repr_gen = self.build_payloads(ctx, data)
+        async for _repr in repr_gen:
+            for r in _repr:
+                r["type"] = self._type
+                r["meta"] = {}
+                r["meta"]["allow_feedback"] = self.allow_feedback
+            yield _repr
 
 
 class Text(Layer):
@@ -45,7 +46,7 @@ class Text(Layer):
         self.payload = payload
 
     async def build_payloads(self, ctx, data):
-        return [{"payload": self.payload}]
+        yield [{"payload": self.payload}]
 
 
 class LMGeneratedText(Layer):
@@ -71,13 +72,14 @@ class LMGeneratedText(Layer):
         logger.debug(f"...Receive LLM res")
         more = True
         while more:
-            result, more = await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
-            yield [{
-                "payload": {
-                    "model_response": result,
-                    "finish": not more,
-                    "references": [c["url"] for c in result["context"]],
-                    "model": self.model_id
-                }
-            }]
+            results, more = (await ctx.rpc_llm_request_futures[data["bot_channel_name"]])()
+            for result in results:
+                yield [{
+                    "payload": {
+                        "model_response": result["res"],
+                        "finish": not more,
+                        "references": [c["url"] for c in result["context"]],
+                        "model": self.model_id
+                    }
+                }]
         logger.debug(f"LLM res Finished")
