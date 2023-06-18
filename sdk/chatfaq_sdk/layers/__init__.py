@@ -79,7 +79,8 @@ class LMGeneratedText(Layer):
                         "model_response": result["res"],
                         "finish": not more,
                         "references": [c["url"] for c in result["context"]],
-                        "model": self.model_id
+                        "model": self.model_id,
+                        "lm_msg_id": result["lm_msg_id"]
                     }
                 }]
         logger.debug(f"LLM res Finished")

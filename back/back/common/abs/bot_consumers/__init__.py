@@ -86,7 +86,6 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        print("setting future", data["payload"])
         self.message_buffer += data["payload"]
         self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
 

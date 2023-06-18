@@ -1,3 +1,5 @@
+import uuid
+
 import time
 
 from celery import Task
@@ -25,7 +27,7 @@ class LLMCacheOnWorkerTask(Task):
         for m in Model.objects.all():
             logger.info(f"Loading models {m.name}")
             cache[str(m.pk)] = RetrieverAnswerer(
-               m.dataset.original_file.file,
+                m.dataset.original_file.file,
                 m.base_model,
                 "answer",
                 "intent",
@@ -42,18 +44,21 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     for c in res["context"]:
         c["role"] = None
     res["bot_channel_name"] = bot_channel_name
-
     # Faking streaming ------>>
     full_sentence = res["res"]
-    full_sentence = "this is a test blah blah"
+    # full_sentence = "this is a test blah blah"
+
     def split_by_n(seq, n):
         while seq:
             yield seq[:n]
             seq = seq[n:]
+
     splitted = list(split_by_n(full_sentence, 5))
+    lm_msg_id = str(uuid.uuid4())
     for index, word in enumerate(splitted):
         res["res"] = word
         res["final"] = False
+        res["lm_msg_id"] = lm_msg_id
         if index == len(splitted) - 1:
             res["final"] = True
         async_to_sync(channel_layer.send)(chanel_name, {
