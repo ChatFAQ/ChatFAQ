@@ -1,7 +1,5 @@
 import uuid
 
-import time
-
 from celery import Task
 from logging import getLogger
 from asgiref.sync import async_to_sync
@@ -40,29 +38,27 @@ class LLMCacheOnWorkerTask(Task):
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
 def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     channel_layer = get_channel_layer()
-    res = self.CACHED_MODELS[str(model_id)].query(input_text)
-    for c in res["context"]:
-        c["role"] = None
-    res["bot_channel_name"] = bot_channel_name
-    # Faking streaming ------>>
-    full_sentence = res["res"]
-    # full_sentence = "this is a test blah blah"
 
-    def split_by_n(seq, n):
-        while seq:
-            yield seq[:n]
-            seq = seq[n:]
-
-    splitted = list(split_by_n(full_sentence, 5))
     lm_msg_id = str(uuid.uuid4())
-    for index, word in enumerate(splitted):
-        res["res"] = word
+    _last_res = {"lm_msg_id": lm_msg_id}
+    for res in self.CACHED_MODELS[str(model_id)].query(input_text, streaming=True):
+        if not res["res"]:
+            continue
+        for c in res["context"]:
+            c["role"] = None
+        res["bot_channel_name"] = bot_channel_name
         res["final"] = False
         res["lm_msg_id"] = lm_msg_id
-        if index == len(splitted) - 1:
-            res["final"] = True
+
         async_to_sync(channel_layer.send)(chanel_name, {
             'type': 'send_llm_response',
-            'message': res
+            'message': res,
         })
-        time.sleep(0.5)
+        _last_res = res
+
+    _last_res["final"] = True
+    _last_res["res"] = "."
+    async_to_sync(channel_layer.send)(chanel_name, {
+        'type': 'send_llm_response',
+        'message': _last_res,
+    })

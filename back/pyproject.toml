@@ -36,7 +36,7 @@ django-storages = "^1.13.2"
 boto3 = "^1.26.138"
 celery = "^5.3.0"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = "^0.1.6"
+chatfaq-retrieval = "^0.1.7"
 gevent = "^22.10.2"
 
 [tool.poetry.group.dev.dependencies]
