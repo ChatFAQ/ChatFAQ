@@ -22,8 +22,6 @@ class RetrieverAnswerer:
     cached_models = {}
 
     def __init__(self, base_data: str, model_name: str, context_col: str, embedding_col: str, use_cpu: bool = False):
-        if not base_data.endswith(".csv"):
-            raise "Only csv supported for base data file"
         self.use_cpu = use_cpu
         # --- Set Up Retriever ---
 
