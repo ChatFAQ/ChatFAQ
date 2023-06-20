@@ -6,13 +6,15 @@
         'dark-mode': store.darkMode,
         'maximized': store.maximized,
         'feedbacking': props.feedbacking,
-    }">{{ props.data.payload.model_response }}
+    }">
+        {{ props.data.payload.model_response }}
+        <References :references="props.data.payload.references"></References>
     </div>
-    <div v-for="ref in props.data.payload.references"><a :href="ref.url">{{ ref.url_title ? ref.url_title : ref.url }}</a></div>
 </template>
 
 <script setup>
 import {useGlobalStore} from "~/store";
+import References from "~/components/chat/msgs/llm/References.vue";
 
 const props = defineProps(["data", "isLastOfType", "feedbacking"]);
 const store = useGlobalStore();
@@ -20,7 +22,7 @@ const store = useGlobalStore();
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
+@import "../../../../assets/styles/variables";
 
 .msg {
     border-radius: 6px;

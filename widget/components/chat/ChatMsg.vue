@@ -32,7 +32,7 @@
 import {useGlobalStore} from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
 import TextMsg from "~/components/chat/msgs/TextMsg.vue";
-import LMMsg from "~/components/chat/msgs/LMMsg.vue";
+import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
 
 const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
