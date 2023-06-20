@@ -40,25 +40,31 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     channel_layer = get_channel_layer()
 
     lm_msg_id = str(uuid.uuid4())
-    _last_res = {"lm_msg_id": lm_msg_id}
+    context = []
+    msg_template = {
+        "bot_channel_name": bot_channel_name,
+        "lm_msg_id": lm_msg_id,
+        "context": context,
+        "final": False,
+        "res": "",
+    }
     for res in self.CACHED_MODELS[str(model_id)].query(input_text, streaming=True):
         if not res["res"]:
             continue
-        for c in res["context"]:
-            c["role"] = None
-        res["bot_channel_name"] = bot_channel_name
-        res["final"] = False
-        res["lm_msg_id"] = lm_msg_id
+        if not context:
+            context = res["context"]
+            for c in context:
+                c["role"] = None
+        msg_template["res"] = res["res"]
 
         async_to_sync(channel_layer.send)(chanel_name, {
             'type': 'send_llm_response',
-            'message': res,
+            'message': msg_template,
         })
-        _last_res = res
 
-    _last_res["final"] = True
-    _last_res["res"] = "."
+    msg_template["res"] = ""
+    msg_template["final"] = True
     async_to_sync(channel_layer.send)(chanel_name, {
         'type': 'send_llm_response',
-        'message': _last_res,
+        'message': msg_template,
     })
