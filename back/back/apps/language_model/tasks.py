@@ -52,7 +52,7 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
         if not res["res"]:
             continue
         if not context:
-            context = res["context"]
+            [context.append(c) for c in res["context"]]
             for c in context:
                 c["role"] = None
         msg_template["res"] = res["res"]
