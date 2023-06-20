@@ -102,7 +102,7 @@ class TextPayload(serializers.Serializer):
 
 class LMGeneratedTextPayload(serializers.Serializer):
     class _LMGeneratedTextPayload(serializers.Serializer):
-        model_response = serializers.CharField(trim_whitespace=False)
+        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
         model = serializers.CharField()
         references = serializers.ListField(child=serializers.CharField())
         lm_msg_id = serializers.CharField()

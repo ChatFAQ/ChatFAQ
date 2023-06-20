@@ -63,9 +63,6 @@ class LMGeneratedText(Layer):
         self.model_id = model_id
 
     async def build_payloads(self, ctx, data):
-        # model_response = ChatfaqRetrievalAPI(ctx.chatfaq_retrieval_http, ctx.token).query(self.model_id,
-        #                                                                                   self.input_text)
-
         logger.debug(f"Waiting for LLM...")
         await ctx.send_llm_request(self.model_id, self.input_text, data["bot_channel_name"])
 
