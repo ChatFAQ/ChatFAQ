@@ -67,7 +67,6 @@ class ChatFAQSDK:
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
         # already registered that rpc under that name and avoid duplicates
         self._rpcs = {}
-        self.uri = ""
         self.ws_rpc = None
         self.ws_llm = None
         self.queue_rpc = queue.Queue()
@@ -101,43 +100,18 @@ class ChatFAQSDK:
             self.producer(llm_actions),
         )
 
-    async def _connect(self, consumer_route, actions, on_connect=None, is_rpc=False):
-        self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
-        if is_rpc and self.fsm_name is not None and self.fsm_def is None:
-            self.uri = f"{self.uri}{self.fsm_name}/"
-
-        parsed_token = urllib.parse.quote(self.token)
-        self.uri = f"{self.uri}?token={parsed_token}"
-        connection_error = True
-        while connection_error:
-            try:
-                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connecting to {self.uri}")
-                async with websockets.connect(self.uri) as ws:
-                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connected")
-                    if is_rpc:
-                        self.ws_rpc = ws
-                    else:
-                        self.ws_llm = ws
-                    if on_connect is not None:
-                        await on_connect()
-                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} ---------------------- Listening...")
-                    await self.receive_loop(actions, is_rpc)  # <----- "infinite" Connection Loop
-            except (websockets.WebSocketException, ConnectionRefusedError):
-                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying...")
-                await asyncio.sleep(1)
-
     async def consumer(self, consumer_route, actions, on_connect=None, is_rpc=False):
-        self.uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
+        uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
         if is_rpc and self.fsm_name is not None and self.fsm_def is None:
-            self.uri = f"{self.uri}{self.fsm_name}/"
+            uri = f"{uri}{self.fsm_name}/"
 
         parsed_token = urllib.parse.quote(self.token)
-        self.uri = f"{self.uri}?token={parsed_token}"
+        uri = f"{uri}?token={parsed_token}"
         connection_error = True
         while connection_error:
             try:
-                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connecting to {self.uri}")
-                async with websockets.connect(self.uri) as ws:
+                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connecting to {uri}")
+                async with websockets.connect(uri) as ws:
                     logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connected")
                     if is_rpc:
                         self.ws_rpc = ws
@@ -202,7 +176,7 @@ class ChatFAQSDK:
             )
 
     async def _disconnect(self):
-        logger.info(f"Disconnecting from: {self.uri}")
+        logger.info(f"Shutting Down...")
         await self.ws_rpc.close()
         await self.ws_llm.close()
 
