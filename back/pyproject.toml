@@ -38,6 +38,7 @@ celery = "^5.3.0"
 sqlalchemy = "^2.0.16"
 chatfaq-retrieval = "^0.1.7"
 gevent = "^22.10.2"
+beautifulsoup4 = "^4.12.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

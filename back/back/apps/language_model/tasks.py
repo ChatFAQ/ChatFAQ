@@ -1,4 +1,6 @@
 import uuid
+import requests
+from bs4 import BeautifulSoup
 
 from celery import Task
 from logging import getLogger
@@ -34,6 +36,17 @@ class LLMCacheOnWorkerTask(Task):
             logger.info("...model loaded.")
         return cache
 
+    @staticmethod
+    def postprocess_context(context):
+        for c in context:
+            c["role"] = None
+            if c.get("url"):
+                soup = BeautifulSoup(requests.get(c["url"]).text)
+                c["url_title"] = soup.title.get_text()
+                icon_link = soup.find("link", rel="shortcut icon")
+                icon_link = icon_link if icon_link else soup.find("link", rel="icon")
+                c["url_icon"] = icon_link["href"]
+
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
 def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
@@ -53,8 +66,6 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
             continue
         if not context:
             [context.append(c) for c in res["context"]]
-            for c in context:
-                c["role"] = None
         msg_template["res"] = res["res"]
 
         async_to_sync(channel_layer.send)(chanel_name, {
@@ -64,6 +75,7 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
 
     msg_template["res"] = ""
     msg_template["final"] = True
+    self.postprocess_context(msg_template["context"])
     async_to_sync(channel_layer.send)(chanel_name, {
         'type': 'send_llm_response',
         'message': msg_template,

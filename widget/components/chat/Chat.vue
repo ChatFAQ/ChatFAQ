@@ -104,6 +104,7 @@ const flatStacks = computed(() => {
                 if (data.type === "lm_generated_text") {
                     if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
                         last_lm_msg_payload.model_response += data.payload.model_response
+                        last_lm_msg_payload.references = data.payload.references
                     } else {
                         last_lm_msg_payload = data.payload
                         res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});

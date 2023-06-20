@@ -75,7 +75,9 @@ class LMGeneratedText(Layer):
                     "payload": {
                         "model_response": result["res"],
                         "finish": not more,
-                        "references": [c["url"] for c in result["context"]],
+                        "references": [{
+                            "url": c.get("url"), "url_title": c.get("url_title"), "url_icon": c.get("url_icon")
+                        } for c in result["context"]],
                         "model": self.model_id,
                         "lm_msg_id": result["lm_msg_id"]
                     }
