@@ -13,9 +13,8 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 
-const props = defineProps(["data", "isLastOfType"]);
+const props = defineProps(["data", "isLastOfType", "feedbacking"]);
 const store = useGlobalStore();
-const feedbacking = ref(null)
 
 
 </script>

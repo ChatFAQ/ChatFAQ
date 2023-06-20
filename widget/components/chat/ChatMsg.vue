@@ -16,8 +16,8 @@
                 'is-last': props.isLast,
                 'maximized': store.maximized
             }">
-            <TextMsg v-if="props.data.type === MSG_TYPES.text" :data="props.data" :is-last-of-type="props.isLastOfType"/>
-            <LMMsg v-if="props.data.type === MSG_TYPES.lm_generated_text" :data="props.data" :is-last-of-type="props.isLastOfType"/>
+            <TextMsg v-if="props.data.type === MSG_TYPES.text" :feedbacking="feedbacking" :data="props.data" :is-last-of-type="props.isLastOfType"/>
+            <LMMsg v-if="props.data.type === MSG_TYPES.lm_generated_text" :feedbacking="feedbacking" :data="props.data" :is-last-of-type="props.isLastOfType"/>
             <UserFeedback
                 v-if="props.isLastOfType && props.data.sender.type === 'bot' && props.data.meta.allow_feedback"
                 :msg-id="data.id"

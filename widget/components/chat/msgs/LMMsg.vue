@@ -5,7 +5,7 @@
         'is-last-of-type': props.isLastOfType,
         'dark-mode': store.darkMode,
         'maximized': store.maximized,
-        'feedbacking': feedbacking,
+        'feedbacking': props.feedbacking,
     }">{{ props.data.payload.model_response }}
     </div>
     <div v-for="ref in props.data.payload.references"><a :href="ref.url">{{ ref.url_title ? ref.url_title : ref.url }}</a></div>
@@ -14,9 +14,8 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 
-const props = defineProps(["data", "isLastOfType"]);
+const props = defineProps(["data", "isLastOfType", "feedbacking"]);
 const store = useGlobalStore();
-const feedbacking = ref(null)
 
 
 </script>
