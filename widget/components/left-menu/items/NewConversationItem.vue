@@ -1,5 +1,5 @@
 <template>
-    <MenuItem @click="store.newConversation++">
+    <MenuItem @click="store.createNewConversation">
         <i class="plus"/>
         <span>{{ $t("newconversation") }}</span>
     </MenuItem>

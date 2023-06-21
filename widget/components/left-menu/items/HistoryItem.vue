@@ -1,7 +1,12 @@
 <template>
-    <MenuItem class="item-wrapper" :editable="true" :class="{editing}">
+    <MenuItem
+        class="item-wrapper conversation-loader"
+        :editable="true"
+        :class="{editing, open: store.loadedPlConversationId === props.platformConversationId}"
+        @click="openConversation"
+    >
         <Checkbox v-model="selected"/>
-        <input v-if="!editing" disabled class="item-name" rows="1" :value="name"/>
+        <input v-if="!editing" disabled class="item-name disabled conversation-loader" rows="1" :value="name"/>
         <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name"  @keyup.enter="submit" />
 
         <div class="edit-controls" v-if="!editing">
@@ -22,7 +27,7 @@ import Checkbox from "~/components/generic/Checkbox.vue";
 
 const store = useGlobalStore();
 
-const props = defineProps(["name", "conversationId"]);
+const props = defineProps(["name", "conversationId", "platformConversationId"])
 
 const selected = ref(false)
 let editing = ref(false)
@@ -40,6 +45,12 @@ async function submit() {
     editing.value = false
     if (itemTitleEdit.value.value !== originalValue) {
         await store.renameConversationName(props.conversationId, itemTitleEdit.value.value)
+    }
+}
+
+function openConversation(ev) {
+    if(ev.target.classList.contains("conversation-loader")) {
+        store.openConversation(props.platformConversationId)
     }
 }
 
@@ -65,7 +76,7 @@ function timestampToSentence(isoString) {
     display: flex;
     align-items: center;
 
-    &:hover, &.editing {
+    &:hover, &.editing, &.open {
         background-color: $chatfaq-color-primary-900;
 
         i.edit {
@@ -104,6 +115,9 @@ function timestampToSentence(isoString) {
         text-align: left;
         border: 1px solid transparent;
         text-overflow: ellipsis;
+        &.disabled {
+            cursor: pointer;
+        }
         &.edit {
             border: 1px solid $chatfaq-color-tertiary-blue-500;
             text-overflow: unset;

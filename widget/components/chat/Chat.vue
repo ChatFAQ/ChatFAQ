@@ -49,6 +49,7 @@ let ws = undefined
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.newConversation, createConnection)
+watch(() => store.loadedPlConversationId, () => createConnection(store.loadedPlConversationId))
 watch(() => store.feedbackSent, animateFeedbackSent)
 
 function scrollConversationDown() {
@@ -65,11 +66,14 @@ function animateFeedbackSent() {
 }
 
 
-function createConnection() {
+function createConnection(_conversationID = undefined) {
     if (ws)
         ws.close()
 
-    const conversationID = Math.floor(Math.random() * 1000000000);
+    let conversationID = _conversationID;
+    if (!conversationID)
+        conversationID = Math.floor(Math.random() * 1000000000);
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
@@ -85,9 +89,6 @@ function createConnection() {
 
         store.messages.push(JSON.parse(e.data));
         store.scrollToBottom += 1;
-    };
-    ws.onopen = async function (e) {
-        store.messages = [];
     };
 }
 
