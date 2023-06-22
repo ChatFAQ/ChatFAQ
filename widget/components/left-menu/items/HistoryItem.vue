@@ -76,7 +76,10 @@ function timestampToSentence(isoString) {
     display: flex;
     align-items: center;
 
-    &:hover, &.editing, &.open {
+    &.open {
+        background-color: $chatfaq-color-primary-900;
+    }
+    &:hover, &.editing {
         background-color: $chatfaq-color-primary-900;
 
         i.edit {
