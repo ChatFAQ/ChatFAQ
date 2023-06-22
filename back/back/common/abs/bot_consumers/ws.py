@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+from back.apps.fsm.models import CachedFSM
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -30,15 +31,21 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         self.set_user_id(await self.gather_user_id())
 
         # TODO: Support cached FSM ???
-        self.fsm = self.fsm_def.build_fsm(self)
-
+        self.fsm = await sync_to_async(CachedFSM.build_fsm)(self)
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
         await self.accept()
-        await self.fsm.start()
-        logger.debug(
-            f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
-        )
+        if self.fsm:
+            logger.debug(
+                f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
+            )
+            # await self.fsm.next_state()
+        else:
+            self.fsm = self.fsm_def.build_fsm(self)
+            await self.fsm.start()
+            logger.debug(
+                f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
+            )
 
     async def receive_json(self, content, **kwargs):
         serializer = self.serializer_class(data=content)

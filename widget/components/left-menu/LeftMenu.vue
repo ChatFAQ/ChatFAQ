@@ -11,8 +11,12 @@
         </div>
         <div class="conversations">
             <div v-for="conversation in store.conversations" class="left-menu-item">
-                <HistoryItem ref="historyItems" :key="conversation[0]" :conversation-id="conversation[0]"
-                             :name="conversation[1]"/>
+                <HistoryItem
+                    ref="historyItems"
+                    :key="conversation.pk"
+                    :conversation-id="conversation.pk"
+                    :platform-conversation-id="conversation.platform_conversation_id"
+                    :name="conversation.name"/>
             </div>
         </div>
         <div class="other-buttons">
