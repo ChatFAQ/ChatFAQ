@@ -56,7 +56,7 @@ class Conversation(ChangesMixin):
 
     @classmethod
     def conversations_from_sender(cls, sender_id):
-        conversations = cls.objects.values_list("pk", "name", "created_date").filter(
+        conversations = cls.objects.values("pk", "platform_conversation_id", "name", "created_date").filter(
             Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
         ).distinct().order_by("-created_date")
 

@@ -33,12 +33,12 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         self.fsm = await sync_to_async(CachedFSM.build_fsm)(self)
         if self.fsm:
             logger.debug(
-                f"Continuing conversation ({self.conversation_id}), reusing cached conversation's FSM ({await sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
+                f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
             )
             await self.fsm.next_state()
         else:
             logger.debug(
-                f"Starting new conversation ({self.conversation_id}), creating new FSM"
+                f"Starting new conversation ({self.conversation}), creating new FSM"
             )
             self.fsm = self.fsm_def.build_fsm(self)
             await self.fsm.start()

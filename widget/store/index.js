@@ -15,10 +15,10 @@ export const useGlobalStore = defineStore('globalStore', {
             conversations: [],
             messages: [],
             selectedConversations: [],
-            // The value of this properties (newConversation, scrollToBottom, feedbackSent) is irrelevant, what it
+            selectedPlConversationId: undefined,
+            // The value of this properties (scrollToBottom, feedbackSent) is irrelevant, what it
             // really matters is the fact that its value changed, which happens every time "New Conversation" button is
             // clicked, then other components will subscribe for any change and react to the fact that has been clicked
-            newConversation: 0,
             scrollToBottom: 0,
             feedbackSent: 0,
             opened: false,
@@ -39,10 +39,24 @@ export const useGlobalStore = defineStore('globalStore', {
             });
             this.conversations.find((conversation) => conversation[0] === id)[1] = name;
         },
+        async openConversation(_selectedPlConversationId) {
+            const conversationId = this.conversations.find(conv => conv.platform_conversation_id === _selectedPlConversationId).pk
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            response = await response.json();
+            this.messages = response.mml_chain
+            this.selectedPlConversationId = _selectedPlConversationId;
+        },
+        createNewConversation() {
+            this.messages = [];
+            this.selectedPlConversationId = Math.floor(Math.random() * 1000000000);
+        }
     },
     getters: {
         conversationsIds() {
-            return this.conversations.reduce((acc, current) => acc.concat([current[0]]), [])
+            return this.conversations.reduce((acc, current) => acc.concat([current.pk]), [])
         },
         getStacks() {
             return (msgId) => {
