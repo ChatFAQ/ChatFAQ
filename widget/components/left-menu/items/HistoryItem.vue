@@ -2,7 +2,7 @@
     <MenuItem
         class="item-wrapper conversation-loader"
         :editable="true"
-        :class="{editing, open: store.loadedPlConversationId === props.platformConversationId}"
+        :class="{editing, open: store.selectedPlConversationId == props.platformConversationId}"
         @click="openConversation"
     >
         <Checkbox v-model="selected"/>

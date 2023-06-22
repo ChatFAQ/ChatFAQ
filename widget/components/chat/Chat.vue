@@ -48,8 +48,7 @@ const thereIsContent = ref(false)
 let ws = undefined
 
 watch(() => store.scrollToBottom, scrollConversationDown)
-watch(() => store.newConversation, createConnection)
-watch(() => store.loadedPlConversationId, () => createConnection(store.loadedPlConversationId))
+watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 
 function scrollConversationDown() {
@@ -66,18 +65,14 @@ function animateFeedbackSent() {
 }
 
 
-function createConnection(_conversationID = undefined) {
+function createConnection() {
     if (ws)
         ws.close()
-
-    let conversationID = _conversationID;
-    if (!conversationID)
-        conversationID = Math.floor(Math.random() * 1000000000);
 
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
-        + conversationID
+        + store.selectedPlConversationId
         + "/"
         + store.fsmDef
         + "/"
@@ -92,7 +87,7 @@ function createConnection(_conversationID = undefined) {
     };
 }
 
-createConnection();
+store.createNewConversation()
 
 const flatStacks = computed(() => {
     const res = [];
