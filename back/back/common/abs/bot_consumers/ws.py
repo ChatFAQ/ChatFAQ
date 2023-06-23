@@ -24,9 +24,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
 
     async def connect(self):
-        await self.set_conversation(
-            self.gather_conversation_id()
-        )
+        await self.set_conversation(self.gather_conversation_id())
         self.set_fsm_def(await self.gather_fsm_def())
         self.set_user_id(await self.gather_user_id())
 

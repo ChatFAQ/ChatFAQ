@@ -28,7 +28,6 @@ class ExampleWSSerializer(BotMessageSerializer):
     sender = AgentSerializer()
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
-
         if not self.is_valid():
             return False
 

@@ -1,12 +1,13 @@
 import uuid
-import requests
-from bs4 import BeautifulSoup
-
-from celery import Task
 from logging import getLogger
+
+import requests
 from asgiref.sync import async_to_sync
-from chatfaq_retrieval import RetrieverAnswerer
+from bs4 import BeautifulSoup
+from celery import Task
 from channels.layers import get_channel_layer
+from chatfaq_retrieval import RetrieverAnswerer
+
 from back.apps.language_model.models import Model
 from back.config.celery import app
 from back.utils import is_celery_worker
@@ -31,7 +32,7 @@ class LLMCacheOnWorkerTask(Task):
                 m.base_model,
                 "answer",
                 "intent",
-                use_cpu=True
+                use_cpu=True,
             )
             logger.info("...model loaded.")
         return cache
@@ -68,15 +69,21 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
             [context.append(c) for c in res["context"]]
         msg_template["res"] = res["res"]
 
-        async_to_sync(channel_layer.send)(chanel_name, {
-            'type': 'send_llm_response',
-            'message': msg_template,
-        })
+        async_to_sync(channel_layer.send)(
+            chanel_name,
+            {
+                "type": "send_llm_response",
+                "message": msg_template,
+            },
+        )
 
     msg_template["res"] = ""
     msg_template["final"] = True
     self.postprocess_context(msg_template["context"])
-    async_to_sync(channel_layer.send)(chanel_name, {
-        'type': 'send_llm_response',
-        'message': msg_template,
-    })
+    async_to_sync(channel_layer.send)(
+        chanel_name,
+        {
+            "type": "send_llm_response",
+            "message": msg_template,
+        },
+    )

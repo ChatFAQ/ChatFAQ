@@ -6,11 +6,9 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
 from back.apps.broker.consumers.message_types import RPCMessageType
-from back.apps.broker.serializers.rpc import (
-    RPCResponseSerializer, LLMRequestSerializer,
-)
-from back.utils import WSStatusCodes
+from back.apps.broker.serializers.rpc import LLMRequestSerializer, RPCResponseSerializer
 from back.apps.language_model.tasks import llm_query_task
+from back.utils import WSStatusCodes
 
 logger = getLogger(__name__)
 
@@ -58,16 +56,23 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             await self.error_response({"payload": serializer.errors})
             return
         data = serializer.validated_data
-        llm_query_task.delay(self.channel_name, data["model_id"], data["input_text"], data["bot_channel_name"])
+        llm_query_task.delay(
+            self.channel_name,
+            data["model_id"],
+            data["input_text"],
+            data["bot_channel_name"],
+        )
 
     async def send_llm_response(self, event):
-        await self.send(json.dumps({
-            "type": RPCMessageType.llm_request_result.value,
-            "status": WSStatusCodes.ok.value,
-            "payload": {
-                **event['message']
-            }
-        }))
+        await self.send(
+            json.dumps(
+                {
+                    "type": RPCMessageType.llm_request_result.value,
+                    "status": WSStatusCodes.ok.value,
+                    "payload": {**event["message"]},
+                }
+            )
+        )
 
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value

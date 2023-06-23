@@ -155,7 +155,6 @@ class FSM:
             logger.debug(f"...Receive RCP call {event_name}")
 
     def get_initial_state(self):
-
         for state in self.states:
             if state.initial:
                 return state
@@ -240,10 +239,7 @@ class FSM:
             "send_time": int(time.time() * 1000),
         }
         if self.ctx.user_id is not None:
-            data["receiver"] = {
-                "type": AgentType.human.value,
-                "id": self.ctx.user_id
-            }
+            data["receiver"] = {"type": AgentType.human.value, "id": self.ctx.user_id}
         serializer = MessageSerializer(data=data)
 
         await sync_to_async(serializer.is_valid)()

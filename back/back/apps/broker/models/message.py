@@ -1,5 +1,4 @@
 import itertools
-
 from enum import Enum
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -33,6 +32,7 @@ class Conversation(ChangesMixin):
     """
     Table that holds the conversation information, all messages that belong to the same conversation will have the same conversation_id
     """
+
     platform_conversation_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
 
@@ -52,13 +52,20 @@ class Conversation(ChangesMixin):
         return [MessageSerializer(m).data for m in first_message.get_chain()]
 
     def get_last_mml(self):
-        return Message.objects.filter(conversation=self).order_by("-created_date").first()
+        return (
+            Message.objects.filter(conversation=self).order_by("-created_date").first()
+        )
 
     @classmethod
     def conversations_from_sender(cls, sender_id):
-        conversations = cls.objects.values("pk", "platform_conversation_id", "name", "created_date").filter(
-            Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
-        ).distinct().order_by("-created_date")
+        conversations = (
+            cls.objects.values("pk", "platform_conversation_id", "name", "created_date")
+            .filter(
+                Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
+            )
+            .distinct()
+            .order_by("-created_date")
+        )
 
         return list(conversations.all())
 
@@ -167,7 +174,7 @@ class Message(ChangesMixin):
         return chain
 
     def to_text(self):
-        stacks_text = '\n'.join([s["payload"] for s in itertools.chain(*self.stacks)])
+        stacks_text = "\n".join([s["payload"] for s in itertools.chain(*self.stacks)])
         return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stacks_text}"
 
     def save(self, *args, **kwargs):
@@ -177,19 +184,23 @@ class Message(ChangesMixin):
 
 class UserFeedback(ChangesMixin):
     VALUE_CHOICES = (
-        ("positive", 'Positive'),
-        ("negative", 'Negative'),
+        ("positive", "Positive"),
+        ("negative", "Negative"),
     )
-    message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
+    message = models.OneToOneField(
+        Message, null=True, unique=True, on_delete=models.SET_NULL
+    )
     value = models.CharField(max_length=255, choices=VALUE_CHOICES)
     feedback = models.TextField(null=True, blank=True)
 
 
 class AdminReview(ChangesMixin):
     VALUE_CHOICES = (
-        ("positive", 'Positive'),
-        ("negative", 'Negative'),
+        ("positive", "Positive"),
+        ("negative", "Negative"),
     )
-    message = models.OneToOneField(Message, null=True, unique=True, on_delete=models.SET_NULL)
+    message = models.OneToOneField(
+        Message, null=True, unique=True, on_delete=models.SET_NULL
+    )
     value = models.CharField(max_length=255, choices=VALUE_CHOICES)
     review = models.TextField()

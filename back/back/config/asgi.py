@@ -20,8 +20,8 @@ def make_app(django_app):
         Output of get_asgi_application()
     """
 
-    from back.config.routing import http_urlpatterns, websocket_urlpatterns
     from back.config.middelware import TokenAuthMiddleWare  # noqa B101
+    from back.config.routing import http_urlpatterns, websocket_urlpatterns
 
     return ProtocolTypeRouter(
         {

@@ -1,4 +1,3 @@
-
 import os
 from importlib import metadata
 
@@ -118,8 +117,10 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
 
     REST_FRAMEWORK = {
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-        "DEFAULT_AUTHENTICATION_CLASSES": ('knox.auth.TokenAuthentication',),
-        "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
+        "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+        "DEFAULT_FILTER_BACKENDS": [
+            "django_filters.rest_framework.DjangoFilterBackend"
+        ],
     }
 
     SPECTACULAR_SETTINGS = {
@@ -182,7 +183,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     # }
 
     REST_KNOX = {
-        'TOKEN_TTL': None,
+        "TOKEN_TTL": None,
     }
     # Celery
     CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"

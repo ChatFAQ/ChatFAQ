@@ -145,4 +145,4 @@ def is_celery_worker():
     if app.running:
         # do something
     """
-    return sys.argv and sys.argv[0].endswith('celery') and 'worker' in sys.argv
+    return sys.argv and sys.argv[0].endswith("celery") and "worker" in sys.argv
