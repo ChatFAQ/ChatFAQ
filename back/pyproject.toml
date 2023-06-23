@@ -36,9 +36,12 @@ django-storages = "^1.13.2"
 boto3 = "^1.26.138"
 celery = "^5.3.0"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = "^0.1.8"
+chatfaq-retrieval = "^0.1.11"
 gevent = "^22.10.2"
 beautifulsoup4 = "^4.12.2"
+torch = [
+    { version = "^2.0.1", source = "torch" },
+]
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
@@ -56,4 +59,9 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "test"
 url = "https://test.pypi.org/simple/"
+secondary = true
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cpu"
 secondary = true
