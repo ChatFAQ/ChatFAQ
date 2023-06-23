@@ -67,6 +67,11 @@ workers:
     image: sdk
     envs: [ sentry, sdk ]
     instance_size: XS
+  - name: celery_worker
+    image: back
+    envs: [ sentry, django ]
+    instance_size: XS
+    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool solo
 
 jobs:
   - name: migrate
