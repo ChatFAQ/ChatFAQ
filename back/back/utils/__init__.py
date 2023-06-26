@@ -145,4 +145,7 @@ def is_celery_worker():
     if app.running:
         # do something
     """
-    return sys.argv and "celery" in sys.argv[0] and "worker" in sys.argv
+    # checks if the list sys.argv has any string element that contains "celery"
+    exists_celery = any("celery" in s for s in sys.argv)
+    worker_celery = any("worker" in s for s in sys.argv)
+    return exists_celery and worker_celery
