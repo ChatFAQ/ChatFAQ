@@ -63,7 +63,7 @@ services:
       - "/back"
 
 workers:
-  - name: fsm_example
+  - name: fsm_llm
     image: sdk
     envs: [ sentry, sdk ]
     instance_size: XS
