@@ -27,13 +27,7 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-preset = ModelWDjango(enable_storages=True)
-
-dotenv_path = None
-if os.getenv("DOCKER_CONTAINER"):
-    dotenv_path = False
-
-with EnvManager(preset, dotenv_path=dotenv_path) as env:
+with EnvManager(ModelWDjango(enable_storages=True)) as env:
     # ---
     # Apps
     # ---
@@ -48,6 +42,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "django.contrib.staticfiles",
         "django_extensions",
         "channels_postgres",
+        "django_celery_results",
         "corsheaders",
         "django_better_admin_arrayfield",
         "rest_framework",
