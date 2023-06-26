@@ -64,22 +64,33 @@ class LMGeneratedText(Layer):
 
     async def build_payloads(self, ctx, data):
         logger.debug(f"Waiting for LLM...")
-        await ctx.send_llm_request(self.model_id, self.input_text, data["bot_channel_name"])
+        await ctx.send_llm_request(
+            self.model_id, self.input_text, data["bot_channel_name"]
+        )
 
         logger.debug(f"...Receive LLM res")
         more = True
         while more:
-            results, more = (await ctx.rpc_llm_request_futures[data["bot_channel_name"]])()
+            results, more = (
+                await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
+            )()
             for result in results:
-                yield [{
-                    "payload": {
-                        "model_response": result["res"],
-                        "finish": not more,
-                        "references": [{
-                            "url": c.get("url"), "url_title": c.get("url_title"), "url_icon": c.get("url_icon")
-                        } for c in result["context"]],
-                        "model": self.model_id,
-                        "lm_msg_id": result["lm_msg_id"]
+                yield [
+                    {
+                        "payload": {
+                            "model_response": result["res"],
+                            "finish": not more,
+                            "references": [
+                                {
+                                    "url": c.get("url"),
+                                    "url_title": c.get("url_title"),
+                                    "url_icon": c.get("url_icon"),
+                                }
+                                for c in result["context"]
+                            ],
+                            "model": self.model_id,
+                            "lm_msg_id": result["lm_msg_id"],
+                        }
                     }
-                }]
+                ]
         logger.debug(f"LLM res Finished")

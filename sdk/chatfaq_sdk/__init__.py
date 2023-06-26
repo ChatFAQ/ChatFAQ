@@ -1,19 +1,18 @@
-import copy
-
 import asyncio
+import copy
 import inspect
 import json
 import queue
 import urllib.parse
 from logging import getLogger
-from typing import Callable, Union, Optional
+from typing import Callable, Optional, Union
 
 import websockets
 from chatfaq_sdk import settings
+from chatfaq_sdk.api.messages import MessageType
 from chatfaq_sdk.conditions import Result
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
-from chatfaq_sdk.api.messages import MessageType
 
 settings.configure()
 
@@ -34,7 +33,7 @@ class ChatFAQSDK:
         chatfaq_ws: str,
         token: str,
         fsm_name: Optional[Union[int, str]],
-        fsm_definition: Optional[FSMDefinition] = None
+        fsm_definition: Optional[FSMDefinition] = None,
     ):
         """
         Parameters
@@ -94,7 +93,9 @@ class ChatFAQSDK:
         }
 
         await asyncio.gather(
-            self.consumer("rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True),
+            self.consumer(
+                "rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True
+            ),
             self.consumer("llm", llm_actions, on_connect=None),
             self.producer(rpc_actions, is_rpc=True),
             self.producer(llm_actions),
@@ -119,15 +120,25 @@ class ChatFAQSDK:
                         self.ws_llm = ws
                     if on_connect is not None:
                         await on_connect()
-                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} ---------------------- Listening...")
-                    await self._consume_loop(is_rpc)  # <----- "infinite" Connection Loop
+                    logger.info(
+                        f"{'[RPC]' if is_rpc else '[LLM]'} ---------------------- Listening..."
+                    )
+                    await self._consume_loop(
+                        is_rpc
+                    )  # <----- "infinite" Connection Loop
             except (websockets.WebSocketException, ConnectionRefusedError):
-                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying...")
+                logger.info(
+                    f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying..."
+                )
                 await asyncio.sleep(1)
 
     async def _consume_loop(self, is_rpc=False):
         while True:
-            data = json.loads(await self.ws_rpc.recv()) if is_rpc else json.loads(await self.ws_llm.recv())
+            data = (
+                json.loads(await self.ws_rpc.recv())
+                if is_rpc
+                else json.loads(await self.ws_llm.recv())
+            )
             if is_rpc:
                 self.queue_rpc.put(data)
             else:
@@ -135,11 +146,18 @@ class ChatFAQSDK:
 
     async def producer(self, actions, is_rpc=False):
         while True:
-            if not self.ws_rpc or not self.ws_llm or not self.ws_rpc.open or not self.ws_llm.open:
+            if (
+                not self.ws_rpc
+                or not self.ws_llm
+                or not self.ws_rpc.open
+                or not self.ws_llm.open
+            ):
                 await asyncio.sleep(0.01)
                 continue
             try:
-                data = self.queue_rpc.get(False) if is_rpc else self.queue_llm.get(False)
+                data = (
+                    self.queue_rpc.get(False) if is_rpc else self.queue_llm.get(False)
+                )
             except queue.Empty:
                 await asyncio.sleep(0.01)
                 continue
@@ -153,7 +171,11 @@ class ChatFAQSDK:
 
     async def receive_loop(self, actions, is_rpc):
         while True:
-            data = json.loads(await self.ws_rpc.recv()) if is_rpc else json.loads(await self.ws_llm.recv())
+            data = (
+                json.loads(await self.ws_rpc.recv())
+                if is_rpc
+                else json.loads(await self.ws_llm.recv())
+            )
 
             if actions.get(data.get("type")) is not None:
                 await actions[data.get("type")](data["payload"])
@@ -201,17 +223,24 @@ class ChatFAQSDK:
             self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]] = []
 
         self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]].append(payload)
-        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(self.llm_result_streaming_generator(payload["bot_channel_name"]))
+        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(
+            self.llm_result_streaming_generator(payload["bot_channel_name"])
+        )
 
     def llm_result_streaming_generator(self, bot_channel_name):
         def _llm_result_streaming_generator():
-            self.rpc_llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
-            _message_buffer = copy.deepcopy(self.rpc_llm_request_msg_buffer[bot_channel_name])
+            self.rpc_llm_request_futures[
+                bot_channel_name
+            ] = asyncio.get_event_loop().create_future()
+            _message_buffer = copy.deepcopy(
+                self.rpc_llm_request_msg_buffer[bot_channel_name]
+            )
             self.rpc_llm_request_msg_buffer[bot_channel_name] = []
 
             if _message_buffer[-1]["final"]:
                 return _message_buffer, False
             return _message_buffer, True
+
         return _llm_result_streaming_generator
 
     @staticmethod
@@ -220,16 +249,20 @@ class ChatFAQSDK:
 
     async def send_llm_request(self, model_id, input_text, bot_channel_name):
         logger.info(f"[LLM] Requesting LLM (model {model_id})")
-        self.rpc_llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
+        self.rpc_llm_request_futures[
+            bot_channel_name
+        ] = asyncio.get_event_loop().create_future()
         await self.ws_llm.send(
-            json.dumps({
-                "type": MessageType.llm_request.value,
-                "data": {
-                    "model_id": model_id,
-                    "input_text": input_text,
-                    "bot_channel_name": bot_channel_name,
-                },
-            })
+            json.dumps(
+                {
+                    "type": MessageType.llm_request.value,
+                    "data": {
+                        "model_id": model_id,
+                        "input_text": input_text,
+                        "bot_channel_name": bot_channel_name,
+                    },
+                }
+            )
         )
 
     def rpc(self, name: str) -> Callable:

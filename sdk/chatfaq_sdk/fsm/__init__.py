@@ -12,7 +12,12 @@ class FSMDefinition:
     and will do all the validation of the states/transitions and will register all the RPCs
     """
 
-    def __init__(self, states: List[State] = [], transitions: List[Transition] = [], pre_load_models: List[int] = []):
+    def __init__(
+        self,
+        states: List[State] = [],
+        transitions: List[Transition] = [],
+        pre_load_models: List[int] = [],
+    ):
         """
 
         Parameters

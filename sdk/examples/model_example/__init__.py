@@ -1,5 +1,5 @@
-from examples.model_example.fsm_definition import fsm_definition
 from examples import make_chatfaq_sdk
+from examples.model_example.fsm_definition import fsm_definition
 
 
 def main():
