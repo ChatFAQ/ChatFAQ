@@ -70,7 +70,7 @@ workers:
   - name: celery_worker
     image: back
     envs: [ sentry, django ]
-    instance_size: XS
+    instance_size: M
     command: modelw-docker run python -m celery -A back.config worker -l INFO --pool solo
 
 jobs:
