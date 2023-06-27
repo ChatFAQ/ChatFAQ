@@ -39,6 +39,7 @@ beautifulsoup4 = "^4.12.2"
 torch = [
     { version = "^2.0.1", source = "torch" },
 ]
+boto3 = "^1.26.161"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
