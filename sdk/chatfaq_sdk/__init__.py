@@ -94,14 +94,14 @@ class ChatFAQSDK:
 
         await asyncio.gather(
             self.consumer(
-                "rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True
+                "rpc", on_connect=self.on_connect_rpc, is_rpc=True
             ),
-            self.consumer("llm", llm_actions, on_connect=None),
+            self.consumer("llm", on_connect=None),
             self.producer(rpc_actions, is_rpc=True),
             self.producer(llm_actions),
         )
 
-    async def consumer(self, consumer_route, actions, on_connect=None, is_rpc=False):
+    async def consumer(self, consumer_route, on_connect=None, is_rpc=False):
         uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
         if is_rpc and self.fsm_name is not None and self.fsm_def is None:
             uri = f"{uri}{self.fsm_name}/"
