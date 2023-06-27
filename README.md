@@ -1,5 +1,14 @@
-# ChatFAQ - The GPT alternative Open Source chatbot!
 ![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)
+
+# [ChatFAQ](https://www.chatfaq.io/) - The GPT alternative Open Source chatbot!
+
+An open-source conversational search platform as an alternative to commercial GPT solutions:
+
+- Redefine your customer engagement with a generative-AI assistant
+- Designed to scale in your complex business ecosystem  today
+- Architected to stay in control
+- 100% secure
+
 ## Development environment setup
 3 docker compose files are provided:
 - docker-compose.yaml: defines the structure of the whole project, and the relationships between components
