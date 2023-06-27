@@ -1,4 +1,3 @@
-
 import os
 from importlib import metadata
 
@@ -28,13 +27,7 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-preset = ModelWDjango(enable_storages=True)
-
-dotenv_path = None
-if os.getenv("DOCKER_CONTAINER"):
-    dotenv_path = False
-
-with EnvManager(preset, dotenv_path=dotenv_path) as env:
+with EnvManager(ModelWDjango(enable_storages=True)) as env:
     # ---
     # Apps
     # ---
@@ -49,6 +42,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
         "django.contrib.staticfiles",
         "django_extensions",
         "channels_postgres",
+        "django_celery_results",
         "corsheaders",
         "django_better_admin_arrayfield",
         "rest_framework",
@@ -118,8 +112,10 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
 
     REST_FRAMEWORK = {
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-        "DEFAULT_AUTHENTICATION_CLASSES": ('knox.auth.TokenAuthentication',),
-        "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
+        "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+        "DEFAULT_FILTER_BACKENDS": [
+            "django_filters.rest_framework.DjangoFilterBackend"
+        ],
     }
 
     SPECTACULAR_SETTINGS = {
@@ -182,5 +178,7 @@ with EnvManager(preset, dotenv_path=dotenv_path) as env:
     # }
 
     REST_KNOX = {
-        'TOKEN_TTL': None,
+        "TOKEN_TTL": None,
     }
+    # Celery
+    CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"

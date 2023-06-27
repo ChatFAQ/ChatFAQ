@@ -134,6 +134,7 @@ class FSM:
         group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
         for event_name in self.current_state.events:
+            self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
                 "type": "rpc_call",
                 "status": WSStatusCodes.ok.value,
@@ -146,14 +147,14 @@ class FSM:
                 },
             }
             await self.channel_layer.group_send(group_name, data)
-            self.rpc_result_future = asyncio.get_event_loop().create_future()
             logger.debug(f"Waiting for RCP call {event_name}...")
-            stacks = await self.rpc_result_future
+            more = True
+            while more:
+                stacks, more = (await self.rpc_result_future)()
+                await self.ctx.send_response(await self.save_bot_mml(stacks))
             logger.debug(f"...Receive RCP call {event_name}")
-            await self.ctx.send_response(await self.save_bot_mml(stacks))
 
     def get_initial_state(self):
-
         for state in self.states:
             if state.initial:
                 return state
@@ -238,10 +239,7 @@ class FSM:
             "send_time": int(time.time() * 1000),
         }
         if self.ctx.user_id is not None:
-            data["receiver"] = {
-                "type": AgentType.human.value,
-                "id": self.ctx.user_id
-            }
+            data["receiver"] = {"type": AgentType.human.value, "id": self.ctx.user_id}
         serializer = MessageSerializer(data=data)
 
         await sync_to_async(serializer.is_valid)()

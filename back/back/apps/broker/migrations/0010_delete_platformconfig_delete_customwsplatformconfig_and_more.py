@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("broker", "0009_alter_platformconfig_platform_meta"),
     ]

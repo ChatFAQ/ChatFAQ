@@ -100,10 +100,18 @@ class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
 
 
+class Reference(serializers.Serializer):
+    url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    url_title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    url_icon = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
 class LMGeneratedTextPayload(serializers.Serializer):
     class _LMGeneratedTextPayload(serializers.Serializer):
-        model_response = serializers.CharField()
+        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
         model = serializers.CharField()
+        references = Reference(many=True, required=False, allow_null=True)
+        lm_msg_id = serializers.CharField()
 
     payload = _LMGeneratedTextPayload()
 
@@ -178,6 +186,8 @@ class MessageStackSerializer(serializers.Serializer):
         elif data.get("type") == StackPayloadType.quick_replies.value:
             s = QuickRepliesPayload(data=data)
         else:
+            # TODO: support any other structure? just mark it as a JSONField and let the user handle it in the FE?
+            #  letting the database record the payload as unknow structure?
             raise serializers.ValidationError(f'type not supported {data.get("type")}')
         s.is_valid(raise_exception=True)
         data["payload"] = s.validated_data["payload"]

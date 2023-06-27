@@ -1,6 +1,6 @@
-FROM modelw/base:2023.01
+FROM modelw/base:2023.04
 
-COPY --chown=user README.md pyproject.toml poetry.lock ./
+COPY --chown=user README.md pyproject.toml poetry.lock README.md ./
 
 RUN modelw-docker install
 

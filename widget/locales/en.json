@@ -17,5 +17,6 @@
     "reason1": "This is harmful/unsafe",
     "reason2": "This is not true",
     "reason3": "This is not helpful",
-    "feedbacksent": "Feedback sent successfully!",
+    "summarygeneratedfrom": "Summary generated from:",
+    "sources": "sources"
 }

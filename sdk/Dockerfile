@@ -12,7 +12,7 @@ WORKDIR /var/apps/sdk
 COPY poetry.lock pyproject.toml README.md ./
 
 # System deps:
-ENV POETRY_VERSION=1.4.2
+ENV POETRY_VERSION=1.5.1
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr python - \
     && poetry --version \
     && poetry config installer.max-workers 10 \
@@ -23,4 +23,4 @@ RUN apt-get -y purge --auto-remove build-essential make curl
 
 COPY . .
 
-CMD ["poetry", "run", "python", "-m", "examples.simple_example"]
+CMD ["poetry", "run", "python", "-m", "examples.model_example"]

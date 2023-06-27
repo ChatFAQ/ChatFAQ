@@ -88,9 +88,7 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def build_fsm(cls, ctx: BotConsumer) -> FSM:
-        instance: CachedFSM = cls.objects.filter(
-            conversation=ctx.conversation
-        ).first()
+        instance: CachedFSM = cls.objects.filter(conversation=ctx.conversation).first()
         if instance:
             return instance.fsm_def.build_fsm(
                 ctx, typefit(State, instance.current_state)

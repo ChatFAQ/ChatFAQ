@@ -34,8 +34,6 @@ env:
   - name: sdk
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
-      CHATFAQ_BACKEND_EMAIL: '{{ secret("CHATFAQ_BACKEND_EMAIL") }}'
-      CHATFAQ_BACKEND_PASSWORD: '{{ secret("CHATFAQ_BACKEND_PASSWORD") }}'
       CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
       CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
@@ -63,10 +61,15 @@ services:
       - "/back"
 
 workers:
-  - name: fsm_example
+  - name: fsm_llm
     image: sdk
     envs: [ sentry, sdk ]
     instance_size: XS
+  - name: celery_worker
+    image: back
+    envs: [ sentry, django ]
+    instance_size: M
+    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool solo
 
 jobs:
   - name: migrate

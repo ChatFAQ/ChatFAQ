@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("broker", "0004_rename_fsm_platformbot_fsm_def"),
         ("fsm", "0001_initial"),

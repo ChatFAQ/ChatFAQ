@@ -8,7 +8,6 @@ from rest_framework import viewsets
 )
 class DynamicFieldsView(viewsets.ModelViewSet):
     def get_serializer(self, *args, **kwargs):
-
         serializer_class = self.get_serializer_class()
 
         fields = None

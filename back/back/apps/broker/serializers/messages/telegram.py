@@ -49,7 +49,6 @@ class TelegramMessageSerializer(BotMessageSerializer):
     message = TelegramPayloadSerializer()
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
-
         if not self.is_valid():
             return False
         s = MessageSerializer(

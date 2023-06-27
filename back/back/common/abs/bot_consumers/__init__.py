@@ -1,3 +1,5 @@
+import asyncio
+import copy
 from abc import ABC
 from logging import getLogger
 from typing import TYPE_CHECKING, Union
@@ -6,8 +8,8 @@ from asgiref.sync import sync_to_async
 from django.forms import model_to_dict
 from django.urls import re_path
 
+from back.apps.broker.models.message import Conversation, Message
 from back.utils.custom_channels import CustomAsyncConsumer
-from back.apps.broker.models.message import Message, Conversation
 
 if TYPE_CHECKING:
     from back.apps.fsm.lib import FSM
@@ -50,7 +52,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         self.user_id: Union[str, None] = None
 
         self.fsm_def: "FSMDefinition" = None
-
+        self.message_buffer = []
         super().__init__(*args, **kwargs)
         if self.serializer_class is None or not issubclass(
             self.serializer_class, BotMessageSerializer
@@ -83,7 +85,17 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        self.fsm.rpc_result_future.set_result(data["payload"])
+        self.message_buffer += data["payload"]
+        self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
+
+    def rpc_result_streaming_generator(self):
+        self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
+        _message_buffer = copy.deepcopy(self.message_buffer)
+        self.message_buffer = []
+        last_msg = _message_buffer[-1][-1]
+        if last_msg.get("final"):
+            return _message_buffer, False
+        return _message_buffer, True
 
     async def disconnect(self, code=None):
         logger.debug(
@@ -98,7 +110,9 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         )
 
     def gather_conversation_id(self, mml: "Message"):
-        raise NotImplemented("Implement a method that creates/gathers the conversation id")
+        raise NotImplemented(
+            "Implement a method that creates/gathers the conversation id"
+        )
 
     async def gather_fsm_def(self, mml: "Message"):
         raise NotImplemented("Implement a method that gathers the conversation id")
@@ -107,7 +121,9 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return None
 
     async def set_conversation(self, platform_conversation_id):
-        self.conversation, _ = await Conversation.objects.aget_or_create(platform_conversation_id=platform_conversation_id)
+        self.conversation, _ = await Conversation.objects.aget_or_create(
+            platform_conversation_id=platform_conversation_id
+        )
 
     def set_fsm_def(self, fsm_def):
         self.fsm_def = fsm_def
@@ -120,6 +136,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         We serialize the ctx just so we can send it to the RPC Servers
         """
         from back.apps.broker.models.message import Conversation  # TODO: CI
+
         conv = await sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
         last_mml = await sync_to_async(conv.get_last_mml)()
 
@@ -127,6 +144,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return {
             "conversation_id": self.conversation.pk,
             "last_mml": last_mml,
+            "bot_channel_name": self.channel_name,
         }
 
     # ---------- Broker methods ----------
