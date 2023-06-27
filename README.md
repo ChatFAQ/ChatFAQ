@@ -1,6 +1,5 @@
 # ChatFAQ - The GPT alternative Open Source chatbot!
-![alt text]([http://url/to/img.png](https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/649164df52b043f1d5307c5c_ChatFAQ-Light.webp))
-
+![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)
 ## Development environment setup
 3 docker compose files are provided:
 - docker-compose.yaml: defines the structure of the whole project, and the relationships between components
