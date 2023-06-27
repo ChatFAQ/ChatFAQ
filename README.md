@@ -1,5 +1,5 @@
-[![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)
-](https://www.chatfaq.io/) - The GPT alternative Open Source chatbot!
+## [![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)
+## ](https://www.chatfaq.io/) - The GPT alternative Open Source chatbot!
 
 An open-source conversational search platform as an alternative to commercial GPT solutions:
 
