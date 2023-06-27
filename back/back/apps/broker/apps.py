@@ -15,6 +15,7 @@ class BrokerConfig(AppConfig):
         if is_migrating():
             return
 
+        from back.apps.broker.consumers import bots  # noqa  ## This is needed to self register the bots in the BrokerMetaClass
         from back.common.abs.bot_consumers import BrokerMetaClass
         from back.apps.broker.models import RPCConsumerRoundRobinQueue
 
