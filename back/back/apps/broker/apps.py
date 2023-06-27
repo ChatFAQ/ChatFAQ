@@ -14,8 +14,11 @@ class BrokerConfig(AppConfig):
     def ready(self):
         if is_migrating():
             return
-        from back.apps.broker.consumers import bots
+
         from back.common.abs.bot_consumers import BrokerMetaClass
+        from back.apps.broker.models import RPCConsumerRoundRobinQueue
 
         for pc in BrokerMetaClass.registry:
             pc.register()
+
+        RPCConsumerRoundRobinQueue.clear()
