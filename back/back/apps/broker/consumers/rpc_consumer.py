@@ -1,3 +1,5 @@
+import uuid
+
 import json
 from logging import getLogger
 
@@ -12,6 +14,7 @@ from back.apps.broker.serializers.rpc import (
     RPCResultSerializer,
 )
 from back.apps.fsm.models import FSMDefinition
+from back.apps.broker.models import RPCConsumerRoundRobinQueue
 from back.apps.fsm.serializers import FSMSerializer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
 from back.utils import WSStatusCodes
@@ -31,13 +34,10 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fsm_id = None
-
-    @staticmethod
-    def create_group_name(fsm_id):
-        return f"rpc_{fsm_id}"
+        self.uuid = str(uuid.uuid4())
 
     def get_group_name(self):
-        return self.create_group_name(self.fsm_id)
+        return f"rpc_{self.fsm_id}_{self.uuid}"
 
     async def is_auth(self, scope):
         return (
@@ -66,6 +66,9 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             )
             self.fsm_id = fsm.pk
             await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
+            await sync_to_async(RPCConsumerRoundRobinQueue.add)(
+                self.get_group_name(), self.fsm_id
+            )  # Add to round robin queue
         await self.accept()
         if fsm is None and fsm_id_or_name is not None:
             await self.error_response(
@@ -83,6 +86,9 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         logger.debug(f"Disconnecting from RPC consumer")
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
+        await sync_to_async(RPCConsumerRoundRobinQueue.remove)(
+            self.get_group_name()
+        )  # Remove from round robin queue
 
     async def receive_json(self, content, **kwargs):
         serializer = RPCResponseSerializer(data=content)
@@ -129,6 +135,9 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
                 f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by provided definition"
             )
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
+        await sync_to_async(RPCConsumerRoundRobinQueue.add)(
+            self.get_group_name(), self.fsm_id
+        )  # Add to round robin queue
 
     async def manage_rpc_result(self, data):
         serializer = RPCResultSerializer(data=data)

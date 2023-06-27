@@ -2,6 +2,7 @@ import asyncio
 import time
 from logging import getLogger
 from typing import List, NamedTuple, Text, Union
+from back.apps.broker.models import RPCConsumerRoundRobinQueue
 
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
@@ -131,9 +132,10 @@ class FSM:
             transition_data = {}
         from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
 
-        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
         for event_name in self.current_state.events:
+            group_name = await sync_to_async(RPCConsumerRoundRobinQueue.get_next_rpc_consumer_group_name)(self.ctx.fsm_def.pk)
+
             self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
                 "type": "rpc_call",
@@ -206,9 +208,8 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+        group_name = await sync_to_async(RPCConsumerRoundRobinQueue.get_next_rpc_consumer_group_name)(self.ctx.fsm_def.pk)
 
-        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
         data = {
             "type": "rpc_call",
             "status": WSStatusCodes.ok.value,

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models.message import Message, UserFeedback
+from .models import RPCConsumerRoundRobinQueue
 
 
 class MessageAdmin(admin.ModelAdmin):
@@ -19,3 +20,4 @@ class UserFeedbackAdmin(admin.ModelAdmin):
 
 admin.site.register(Message, MessageAdmin)
 admin.site.register(UserFeedback, UserFeedbackAdmin)
+admin.site.register(RPCConsumerRoundRobinQueue)
