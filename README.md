@@ -1,4 +1,5 @@
-# ChatFAQ
+# ChatFAQ - The GPT alternative Open Source chatbot!
+![alt text]([http://url/to/img.png](https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/649164df52b043f1d5307c5c_ChatFAQ-Light.webp))
 
 ## Development environment setup
 3 docker compose files are provided:
