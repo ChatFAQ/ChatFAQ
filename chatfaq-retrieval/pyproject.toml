@@ -18,6 +18,8 @@ python-dotenv = "^0.21.0"
 torch = [
     { version = "^2.0.1", source = "torch" },
 ]
+ctransformers = "^0.2.10"
+tqdm = "^4.65.0"
 
 [build-system]
 requires = ["poetry-core"]
