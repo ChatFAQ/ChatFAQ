@@ -3,12 +3,11 @@
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <div class="stacks" v-for="(layers, index) in gropedStacks">
                 <ChatMsg
-                    v-for="data in layers"
-                    :is-last-of-type="isLastOfType(data, layers)"
-                    :is-first-of-type="isFirstOfType(data, layers)"
-                    :is-first="!layers.indexOf(data)"
-                    :is-last="layers.indexOf(data) === layers.length -1"
-                    :data="data"
+                    :layers="layers"
+                    :is-last-of-type="true"
+                    :is-first-of-type="true"
+                    :is-first="index === 0"
+                    :is-last="index === gropedStacks.length - 1"
                 ></ChatMsg>
             </div>
             <LoaderMsg v-if="showLoader" ></LoaderMsg>
