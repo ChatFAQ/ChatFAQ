@@ -197,6 +197,7 @@ class MessageStackSerializer(serializers.Serializer):
 class MessageSerializer(serializers.ModelSerializer):
     stack = serializers.ListField(child=MessageStackSerializer())
     stack_id = serializers.CharField(required=False, max_length=255)
+    last = serializers.BooleanField(default=False)
     sender = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()

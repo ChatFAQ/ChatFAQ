@@ -151,7 +151,7 @@ class FSM:
             last = False
             while not last:
                 stack, stack_id, last = (await self.rpc_result_future)()
-                await self.ctx.send_response(await self.save_bot_mml(stack, stack_id))
+                await self.ctx.send_response(await self.save_bot_mml(stack, stack_id, last))
             logger.debug(f"...Receive RCP call {event_name} (action)")
 
     def get_initial_state(self):
@@ -225,7 +225,7 @@ class FSM:
 
         await sync_to_async(CachedFSM.update_or_create)(self)
 
-    async def save_bot_mml(self, stack, stack_id):
+    async def save_bot_mml(self, stack, stack_id, last):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         data = {
@@ -235,6 +235,7 @@ class FSM:
             "confidence": 1,
             "stack": stack,
             "stack_id": stack_id,
+            "last": last,
             "conversation": self.ctx.conversation.pk,
             "send_time": int(time.time() * 1000),
         }

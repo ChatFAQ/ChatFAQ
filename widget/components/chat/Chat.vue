@@ -1,19 +1,24 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <ChatMsg
-                v-for="data in flatStacks"
-                :is-last-of-type="isLastOfType(data, flatStacks)"
-                :is-first-of-type="isFirstOfType(data, flatStacks)"
-                :is-first="!flatStacks.indexOf(data)"
-                :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
-                :data="data"
-            ></ChatMsg>
-            <LoaderMsg
-                v-if="!flatStacks.length ||
-                isLastOfType(flatStacks[flatStacks.length - 1], flatStacks) &&
-                flatStacks[flatStacks.length - 1].sender.type === 'human'"
-            ></LoaderMsg>
+            <div class="stacks" v-for="(layers, index) in stacksGropedByStackId">
+                <ChatMsg
+                    v-for="data in layers"
+                    :is-last-of-type="isLastOfType(data, layers)"
+                    :is-first-of-type="isFirstOfType(data, layers)"
+                    :is-first="!layers.indexOf(data)"
+                    :is-last="layers.indexOf(data) === layers.length -1"
+                    :data="data"
+                ></ChatMsg>
+                <LoaderMsg
+                    v-if="!layers.length ||
+                    (index === stacksGropedByStackId.length - 1 &&
+                    layers[layers.length - 1].sender.type === 'human') ||
+                    (index === stacksGropedByStackId.length - 1 &&
+                    layers[layers.length - 1].sender.type === 'bot' &&
+                    !layers[layers.length - 1].last)"
+                ></LoaderMsg>
+            </div>
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -102,14 +107,28 @@ const flatStacks = computed(() => {
                     last_lm_msg_payload.references = data.payload.references
                 } else {
                     last_lm_msg_payload = data.payload
-                    res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
+                    res.push({..._messages[i], ...data});
                 }
             } else {
-                res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
+                res.push({..._messages[i], ...data});
             }
         }
     }
     return res;
+});
+
+const stacksGropedByStackId = computed(() => {
+    const res = []
+    let last_stack_id = undefined
+    for (let i = 0; i < flatStacks.value.length; i++) {
+        if (flatStacks.value[i].stack_id !== last_stack_id) {
+            res.push([flatStacks.value[i]])
+            last_stack_id = flatStacks.value[i].stack_id
+        } else {
+            res[res.length - 1].push(flatStacks.value[i])
+        }
+    }
+    return res
 });
 
 function sendMessage(ev) {
