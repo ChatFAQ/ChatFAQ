@@ -1,7 +1,7 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <div class="stacks" v-for="(layers, index) in stacksGropedByStackId">
+            <div class="stacks" v-for="(layers, index) in gropedStacks">
                 <ChatMsg
                     v-for="data in layers"
                     :is-last-of-type="isLastOfType(data, layers)"
@@ -10,15 +10,8 @@
                     :is-last="layers.indexOf(data) === layers.length -1"
                     :data="data"
                 ></ChatMsg>
-                <LoaderMsg
-                    v-if="!layers.length ||
-                    (index === stacksGropedByStackId.length - 1 &&
-                    layers[layers.length - 1].sender.type === 'human') ||
-                    (index === stacksGropedByStackId.length - 1 &&
-                    layers[layers.length - 1].sender.type === 'bot' &&
-                    !layers[layers.length - 1].last)"
-                ></LoaderMsg>
             </div>
+            <LoaderMsg v-if="showLoader" ></LoaderMsg>
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -117,7 +110,8 @@ const flatStacks = computed(() => {
     return res;
 });
 
-const stacksGropedByStackId = computed(() => {
+const gropedStacks = computed(() => {
+    // Group stacks by stack_id
     const res = []
     let last_stack_id = undefined
     for (let i = 0; i < flatStacks.value.length; i++) {
@@ -130,6 +124,14 @@ const stacksGropedByStackId = computed(() => {
     }
     return res
 });
+const showLoader = computed(() => {
+    const gs = gropedStacks.value
+    return !gs.length ||
+    (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'human') ||
+    (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'bot' &&
+    !gs[gs.length - 1][gs[gs.length - 1].length - 1].last)
+})
+
 
 function sendMessage(ev) {
     const promptValue = chatInput.value.innerText.trim()
