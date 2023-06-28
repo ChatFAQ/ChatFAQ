@@ -94,20 +94,18 @@ const flatStacks = computed(() => {
     const _messages = JSON.parse(JSON.stringify(store.messages));
     let last_lm_msg_payload = {}
     for (let i = 0; i < _messages.length; i++) {
-        for (let j = 0; j < _messages[i].stacks.length; j++) {
-            for (let k = 0; k < _messages[i].stacks[j].length; k++) {
-                const data = _messages[i].stacks[j][k];
-                if (data.type === "lm_generated_text") {
-                    if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
-                        last_lm_msg_payload.model_response += data.payload.model_response
-                        last_lm_msg_payload.references = data.payload.references
-                    } else {
-                        last_lm_msg_payload = data.payload
-                        res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
-                    }
+        for (let j = 0; j < _messages[i].stack.length; j++) {
+            const data = _messages[i].stack[j];
+            if (data.type === "lm_generated_text") {
+                if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
+                    last_lm_msg_payload.model_response += data.payload.model_response
+                    last_lm_msg_payload.references = data.payload.references
                 } else {
+                    last_lm_msg_payload = data.payload
                     res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
                 }
+            } else {
+                res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
             }
         }
     }
@@ -123,10 +121,12 @@ function sendMessage(ev) {
             "type": "human",
             "platform": "WS",
         },
-        "stacks": [[{
+        "stack": [{
             "type": "text",
             "payload": promptValue,
-        }]],
+        }],
+        "stack_id": "0",
+        "last": true,
     };
     if (store.userId !== undefined)
         m["sender"]["id"] = store.userId

@@ -130,8 +130,6 @@ class FSM:
         """
         if transition_data is None:
             transition_data = {}
-        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
-
 
         for event_name in self.current_state.events:
             group_name = await sync_to_async(RPCConsumerRoundRobinQueue.get_next_rpc_consumer_group_name)(self.ctx.fsm_def.pk)
@@ -149,12 +147,12 @@ class FSM:
                 },
             }
             await self.channel_layer.group_send(group_name, data)
-            logger.debug(f"Waiting for RCP call {event_name}...")
-            more = True
-            while more:
-                stacks, more = (await self.rpc_result_future)()
-                await self.ctx.send_response(await self.save_bot_mml(stacks))
-            logger.debug(f"...Receive RCP call {event_name}")
+            logger.debug(f"Waiting for RCP call {event_name} (action)...")
+            last = False
+            while not last:
+                stack, stack_id, last = (await self.rpc_result_future)()
+                await self.ctx.send_response(await self.save_bot_mml(stack, stack_id))
+            logger.debug(f"...Receive RCP call {event_name} (action)")
 
     def get_initial_state(self):
         for state in self.states:
@@ -217,9 +215,9 @@ class FSM:
         }
         await self.channel_layer.group_send(group_name, data)
         self.rpc_result_future = asyncio.get_event_loop().create_future()
-        logger.debug(f"Waiting for RCP call {condition_name}...")
+        logger.debug(f"Waiting for RCP call {condition_name} (condition)...")
         payload = await self.rpc_result_future
-        logger.debug(f"...Receive RCP call {condition_name}")
+        logger.debug(f"...Receive RCP call {condition_name} (condition)")
         return payload["score"], payload["data"]
 
     async def save_cache(self):
@@ -227,7 +225,7 @@ class FSM:
 
         await sync_to_async(CachedFSM.update_or_create)(self)
 
-    async def save_bot_mml(self, stacks):
+    async def save_bot_mml(self, stack, stack_id):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         data = {
@@ -235,7 +233,8 @@ class FSM:
                 "type": AgentType.bot.value,
             },
             "confidence": 1,
-            "stacks": stacks,
+            "stack": stack,
+            "stack_id": stack_id,
             "conversation": self.ctx.conversation.pk,
             "send_time": int(time.time() * 1000),
         }

@@ -146,12 +146,14 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             await self.error_response({"payload": serializer.errors})
             return
         data = serializer.validated_data
+        ctx = data["ctx"]
+        del data["ctx"]
         res = {
             "type": "rpc_response",
             "status": WSStatusCodes.ok.value,
-            "payload": data["payload"],
+            **data,
         }
-        conversation_id = data["ctx"]["conversation_id"]
+        conversation_id = ctx["conversation_id"]
         await self.channel_layer.group_send(
             WSBotConsumer.create_group_name(conversation_id), res
         )

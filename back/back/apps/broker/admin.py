@@ -5,7 +5,7 @@ from .models import RPCConsumerRoundRobinQueue
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ["sender_type", "conversation", "stacks", "created_date"]
+    list_display = ["sender_type", "conversation", "stack", "created_date"]
 
     def payload_text(self, obj):
         return obj.payload["text"]

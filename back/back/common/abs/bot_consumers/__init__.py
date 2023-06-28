@@ -8,6 +8,7 @@ from asgiref.sync import sync_to_async
 from django.forms import model_to_dict
 from django.urls import re_path
 
+from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models.message import Conversation, Message
 from back.utils.custom_channels import CustomAsyncConsumer
 
@@ -85,17 +86,31 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        self.message_buffer += data["payload"]
-        self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
+        if data["node_type"] == RPCNodeType.action.value:
+            self.message_buffer.append(data)
+            self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
+        else:
+            self.fsm.rpc_result_future.set_result(data["stack"])
 
     def rpc_result_streaming_generator(self):
         self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
-        _message_buffer = copy.deepcopy(self.message_buffer)
-        self.message_buffer = []
-        last_msg = _message_buffer[-1][-1]
-        if last_msg.get("final"):
-            return _message_buffer, False
-        return _message_buffer, True
+
+        first_stack_id = self.message_buffer[0]["stack_id"]
+        last_index_diff_stack_id = 0
+        for index, msg in enumerate(self.message_buffer):
+            if msg["stack_id"] != first_stack_id:
+                break
+            last_index_diff_stack_id = index
+        _message_buffer = self.message_buffer[: last_index_diff_stack_id + 1]
+        self.message_buffer = self.message_buffer[last_index_diff_stack_id + 1:]
+        _stack = []
+        for msg in _message_buffer:
+            _stack += msg["stack"]
+        if not self.message_buffer:
+            return _stack, _message_buffer[-1]["stack_id"], _message_buffer[-1]["last"]
+        else:
+            self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
+            return _stack, _message_buffer[-1]["stack_id"], _message_buffer[-1]["last"]
 
     async def disconnect(self, code=None):
         logger.debug(
@@ -104,7 +119,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
 
-    async def send_response(self, stacks: list):
+    async def send_response(self, stack: list):
         raise NotImplementedError(
             "All classes that behave as contexts for machines should implement 'send_response'"
         )
@@ -140,7 +155,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         conv = await sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
         last_mml = await sync_to_async(conv.get_last_mml)()
 
-        last_mml = model_to_dict(last_mml, fields=["stacks"]) if last_mml else None
+        last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
         return {
             "conversation_id": self.conversation.pk,
             "last_mml": last_mml,

@@ -53,7 +53,7 @@ class TelegramMessageSerializer(BotMessageSerializer):
             return False
         s = MessageSerializer(
             data={
-                "stacks": [
+                "stack": [
                     [
                         {
                             "type": "text",
@@ -76,14 +76,13 @@ class TelegramMessageSerializer(BotMessageSerializer):
 
     @staticmethod
     def to_platform(mml: "Message", ctx: BotConsumer):
-        for stack in mml.stacks:
-            for layer in stack:
-                if layer.get("type") == "text":
-                    data = {
-                        "chat_id": ctx.conversation.platform_conversation_id,
-                        "text": layer["payload"],
-                        "parse_mode": "Markdown",
-                    }
-                    yield data
-                else:
-                    logger.warning(f"Layer not supported: {layer}")
+        for layer in mml.stack:
+            if layer.get("type") == "text":
+                data = {
+                    "chat_id": ctx.conversation.platform_conversation_id,
+                    "text": layer["payload"],
+                    "parse_mode": "Markdown",
+                }
+                yield data
+            else:
+                logger.warning(f"Layer not supported: {layer}")

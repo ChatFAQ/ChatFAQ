@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from back.apps.broker.consumers.message_types import RPCMessageType
+from back.apps.broker.consumers.message_types import RPCMessageType, RPCNodeType
 
 
 class CtxSerializer(serializers.Serializer):
@@ -25,7 +25,10 @@ class RPCResultSerializer(serializers.Serializer):
     """
 
     ctx = CtxSerializer()
-    payload = serializers.JSONField(default=dict)
+    node_type = serializers.ChoiceField(choices=[n.value for n in RPCNodeType])
+    stack_id = serializers.CharField(max_length=255)
+    stack = serializers.JSONField(default=dict)
+    last = serializers.BooleanField(default=False)
 
 
 class LLMRequestSerializer(serializers.Serializer):

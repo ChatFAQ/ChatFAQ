@@ -123,7 +123,7 @@ class Message(ChangesMixin):
         The minimal confidence the user would accept from the bot (required when sender = human)
     meta: JSONField
         any extra info out of the bot domain the agen considers to put in
-    stacks: list
+    stack: list
         contains the payload of the message itself.
         * text str:
             Plain text
@@ -143,6 +143,8 @@ class Message(ChangesMixin):
             In case the response is an indexed item on a database (as such the answer of a FAQ)
         * satisfaction str:
             For the user to express its satisfaction to the given bot’s answer
+    stack_id: str
+        The id of the stack to which this message belongs to. This is used to group stacks
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -159,7 +161,8 @@ class Message(ChangesMixin):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     meta = models.JSONField(null=True)
-    stacks = models.JSONField(null=True)
+    stack = models.JSONField(null=True)
+    stack_id = models.CharField(max_length=255, null=True)
 
     def cycle_fsm(self):
         pass

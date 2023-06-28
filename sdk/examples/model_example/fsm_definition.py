@@ -10,7 +10,7 @@ def send_greeting(ctx: dict):
 
 
 def send_answer(ctx: dict):
-    last_payload = ctx["last_mml"]["stacks"][0][0]["payload"]
+    last_payload = ctx["last_mml"]["stack"][0]["payload"]
     yield LMGeneratedText(last_payload, 1)
     yield Text(f"Tell me more")
 

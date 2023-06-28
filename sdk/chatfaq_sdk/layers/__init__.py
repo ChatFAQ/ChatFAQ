@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List
+from typing import List, Tuple
 
 logger = getLogger(__name__)
 
@@ -14,24 +14,26 @@ class Layer:
     def __init__(self, allow_feedback=True):
         self.allow_feedback = allow_feedback
 
-    async def build_payloads(self, ctx, data) -> List[dict]:
+    async def build_payloads(self, ctx, data) -> tuple[List[dict], bool]:
         """
         Used to represent the layer as a dictionary which will be sent through the WS to the ChatFAQ's back-end server
         It is cached since there are layers as such as the LMGeneratedText which are computationally expensive
         :return:
             dict
                 A json compatible dict
+            bool
+                If it is the last stack's layer or there are more stacks
         """
         raise NotImplementedError
 
-    async def dict_repr(self, ctx, data) -> List[dict]:
+    async def result(self, ctx, data) -> List[dict]:
         repr_gen = self.build_payloads(ctx, data)
-        async for _repr in repr_gen:
+        async for _repr, last in repr_gen:
             for r in _repr:
                 r["type"] = self._type
                 r["meta"] = {}
                 r["meta"]["allow_feedback"] = self.allow_feedback
-            yield _repr
+            yield [_repr, last]
 
 
 class Text(Layer):
@@ -46,7 +48,7 @@ class Text(Layer):
         self.payload = payload
 
     async def build_payloads(self, ctx, data):
-        yield [{"payload": self.payload}]
+        yield [{"payload": self.payload}], True
 
 
 class LMGeneratedText(Layer):
@@ -92,5 +94,5 @@ class LMGeneratedText(Layer):
                             "lm_msg_id": result["lm_msg_id"],
                         }
                     }
-                ]
+                ], not more
         logger.debug(f"LLM res Finished")
