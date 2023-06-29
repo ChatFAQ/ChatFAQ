@@ -85,8 +85,7 @@ class LMGeneratedText(Layer):
                             "references": [
                                 {
                                     "url": c.get("url"),
-                                    "url_title": c.get("url_title"),
-                                    "url_icon": c.get("url_icon"),
+                                    "intent": c.get("intent"),
                                 }
                                 for c in result["context"]
                             ],
