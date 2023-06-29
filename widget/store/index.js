@@ -37,7 +37,8 @@ export const useGlobalStore = defineStore('globalStore', {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: name })
             });
-            this.conversations.find((conversation) => conversation[0] === id)[1] = name;
+            console.log(this.conversations)
+            this.conversations.find((conversation) => conversation.pk === id).name = name;
         },
         async openConversation(_selectedPlConversationId) {
             const conversationId = this.conversations.find(conv => conv.platform_conversation_id === _selectedPlConversationId).pk
