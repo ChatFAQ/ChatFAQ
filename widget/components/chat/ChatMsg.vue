@@ -11,7 +11,6 @@
             class="message"
             :class="{
                 [props.layers[0].sender.type]: true,
-                'is-first-of-type': props.isFirstOfType,
                 'is-first': props.isFirst,
                 'is-last': props.isLast,
                 'maximized': store.maximized
@@ -21,7 +20,6 @@
                 <div class="stack"
                     :class="{
                         [props.layers[props.layers.length - 1].sender.type]: true,
-                        'is-last-of-type': props.isLastOfType,
                         'dark-mode': store.darkMode,
                         'maximized': store.maximized,
                         'feedbacking': feedbacking
@@ -52,7 +50,7 @@ import UserFeedback from "~/components/chat/UserFeedback.vue";
 import TextMsg from "~/components/chat/msgs/TextMsg.vue";
 import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
 
-const props = defineProps(["layers", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
+const props = defineProps(["layers", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null)
 
@@ -106,10 +104,6 @@ $phone-breakpoint: 600px;
                 background-color: $chatfaq-color-primary-800;
                 color: $chatfaq-color-neutral-white;
             }
-
-            &.is-last-of-type {
-                border-radius: 6px 6px 6px 0px;
-            }
         }
 
         &.human {
@@ -120,10 +114,6 @@ $phone-breakpoint: 600px;
             &.dark-mode {
                 background-color: $chatfaq-color-primary-900;
                 color: $chatfaq-color-neutral-white;
-            }
-
-            &.is-last-of-type {
-                border-radius: 6px 6px 0px 6px;
             }
         }
 

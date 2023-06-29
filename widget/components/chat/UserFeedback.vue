@@ -172,7 +172,6 @@ async function userFeedback(value, _collapse) {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-left: auto;
         .feedback-top-text {
             margin-left: 15px;
         }
@@ -180,6 +179,7 @@ async function userFeedback(value, _collapse) {
             margin-left: 15px;
             margin-right: 10px;
             display: flex;
+            margin-left: auto;
         }
     }
 
