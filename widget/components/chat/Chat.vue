@@ -78,8 +78,12 @@ function createConnection() {
     ws.onmessage = async function (e) {
         if (!store.messages.length) // First message, update list of conversations
             await store.gatherConversations()
-
-        store.messages.push(JSON.parse(e.data));
+        const msg = JSON.parse(e.data);
+        if (msg.status === 400) {
+            console.error(`Error in message from WS: ${msg.payload}`)
+            return
+        }
+        store.messages.push(msg);
         store.scrollToBottom += 1;
     };
 }
@@ -88,7 +92,7 @@ store.createNewConversation()
 
 function sendMessage(ev) {
     const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length || store.waitingForResponse)
+    if (!promptValue.length)
         return;
     const m = {
         "sender": {
