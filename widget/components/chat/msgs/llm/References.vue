@@ -61,5 +61,10 @@ const collapsed = ref(true);
         margin-bottom: 8px;
         margin-right: 8px;
         width: fit-content;
+
+        a {
+            text-decoration: none;
+            color: #463075;
+        }
     }
 </style>
