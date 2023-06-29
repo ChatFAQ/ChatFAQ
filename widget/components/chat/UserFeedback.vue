@@ -247,7 +247,7 @@ async function userFeedback(value, _collapse) {
     .control {
         cursor: pointer;
         color: #9a8eb5;
-        padding: 4px;
+        padding: 5px;
         margin-top: 2px;
         display: flex;
         &.dark-mode {
