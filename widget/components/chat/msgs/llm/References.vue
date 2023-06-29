@@ -10,7 +10,7 @@
                 @click="collapsed = !collapsed"
                 :class="{ 'dark-mode': store.darkMode }"
             >
-                +{{ references.length }} {{ $t('sources') }}
+                +{{ references.length }} <span v-if="references.length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span>
             </div>
         </div>
         <div class="references" v-if="!collapsed">

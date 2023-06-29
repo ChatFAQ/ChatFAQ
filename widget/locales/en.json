@@ -18,5 +18,6 @@
     "reason2": "This is not true",
     "reason3": "This is not helpful",
     "summarygeneratedfrom": "Summary generated from:",
-    "sources": "sources"
+    "sources": "sources",
+    "source": "source"
 }
