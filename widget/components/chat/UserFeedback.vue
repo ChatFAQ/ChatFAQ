@@ -238,7 +238,7 @@ async function userFeedback(value, _collapse) {
                 color: $chatfaq-color-primary-200;
 
                 &::placeholder {
-                    color: $chatfaq-color-neutral-white;
+                    color: $chatfaq-color-greyscale-500;
                 }
             }
         }
