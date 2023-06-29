@@ -17,29 +17,31 @@
                 'maximized': store.maximized
             }">
             <div
-                class="stack"
-                :class="{
-                    [props.layers[props.layers.length - 1].sender.type]: true,
-                    'is-last-of-type': props.isLastOfType,
-                    'dark-mode': store.darkMode,
-                    'maximized': store.maximized,
-                    'feedbacking': feedbacking
-                }">
-                <div v-for="layer in props.layers">
-                    <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
-                    <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer"/>
+                class="stack-wrapper">
+                <div class="stack"
+                    :class="{
+                        [props.layers[props.layers.length - 1].sender.type]: true,
+                        'is-last-of-type': props.isLastOfType,
+                        'dark-mode': store.darkMode,
+                        'maximized': store.maximized,
+                        'feedbacking': feedbacking
+                    }">
+                    <div class="layer" v-for="layer in props.layers">
+                        <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
+                        <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer"/>
+                    </div>
                 </div>
+                <UserFeedback
+                    v-if="
+                        props.isLastOfType && props.layers[0].sender.type === 'bot' &&
+                        props.layers[props.layers.length - 1].meta.allow_feedback &&
+                        props.layers[props.layers.length - 1].last
+                    "
+                    :msg-id="props.layers[props.layers.length - 1].id"
+                    @feedbacking="feedbacking = true"
+                    @collapse="feedbacking = false"
+                ></UserFeedback>
             </div>
-            <UserFeedback
-                v-if="
-                    props.isLastOfType && props.layers[0].sender.type === 'bot' &&
-                    props.layers[props.layers.length - 1].meta.allow_feedback &&
-                    props.layers[props.layers.length - 1].last
-                "
-                :msg-id="props.layers[props.layers.length - 1].id"
-                @feedbacking="feedbacking = true"
-                @collapse="feedbacking = false"
-            ></UserFeedback>
         </div>
     </div>
 </template>
@@ -195,6 +197,9 @@ $phone-breakpoint: 600px;
     &.feedbacking {
         border-radius: 6px 6px 0px 0px !important;
         min-width: 100%;
+    }
+    .layer:not(:last-child) {
+        margin-bottom: 5px;
     }
 }
 </style>
