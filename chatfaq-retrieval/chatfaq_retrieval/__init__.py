@@ -14,6 +14,27 @@ logger = getLogger(__name__)
 
 # RetrieverAnswerer('../data/interim/chanel.csv', "google/flan-t5-base", "title", "text")
 
+def get_model(model_id: str, use_cpu: bool = False, model_filename: str = None):
+    """
+    Returns an instance of the corresponding Answer Generator Model.
+    Parameters
+    ----------
+    model_id: str
+        The huggingface model id
+    use_cpu: bool
+        Whether to use cpu or gpu
+    model_filename: str
+        The filename of the model to load
+    Returns
+    -------
+    model:
+        A Transformers Model or CTransformers Model, depending on the model_id.
+    """
+    pass
+    
+
+
+
 class RetrieverAnswerer:
     RETRIEVER_MODEL = 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1'
     MAX_GPU_MEM = "18GiB"
@@ -67,6 +88,7 @@ class RetrieverAnswerer:
         prompt, n_of_contexts = self.prompt_gen.create_prompt(text, contexts, lang='en1', max_length=512)
 
         tokenizer_to = "cuda" if (not self.use_cpu and torch.cuda.is_available()) else 'cpu'
+        
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(tokenizer_to)
 
