@@ -10,7 +10,7 @@
                     :is-last="index === gropedStacks.length - 1"
                 ></ChatMsg>
             </div>
-            <LoaderMsg v-if="showLoader" ></LoaderMsg>
+            <LoaderMsg v-if="waitingForResponse" ></LoaderMsg>
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -123,7 +123,7 @@ const gropedStacks = computed(() => {
     }
     return res
 });
-const showLoader = computed(() => {
+const waitingForResponse = computed(() => {
     const gs = gropedStacks.value
     return !gs.length ||
     (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'human') ||

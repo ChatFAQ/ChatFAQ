@@ -64,7 +64,7 @@ export const useGlobalStore = defineStore('globalStore', {
                 // Returns the block of messages of the same type that ends with the last message being msg_id
                 for (let i = this.messages.length - 1; i >= 0; i--) {
                     if (this.messages[i].id === msgId)
-                        return this.messages[i].stacks;
+                        return this.messages[i].stack;
                 }
             }
         }
