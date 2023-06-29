@@ -23,5 +23,5 @@ class BrokerConfig(AppConfig):
         for pc in BrokerMetaClass.registry:
             pc.register()
 
-        if not os.getenv("BUILD_MODE"):
+        if not (os.getenv("BUILD_MODE") in ["yes", "true"]):
             RPCConsumerRoundRobinQueue.clear()
