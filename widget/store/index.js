@@ -23,7 +23,8 @@ export const useGlobalStore = defineStore('globalStore', {
             feedbackSent: 0,
             opened: false,
             deleting: false,
-            downloading: false
+            downloading: false,
+            disconnected: true,
         }
     },
     actions: {

@@ -19,5 +19,6 @@
     "reason3": "This is not helpful",
     "summarygeneratedfrom": "Summary generated from:",
     "sources": "sources",
-    "source": "source"
+    "source": "source",
+    "connectingtoserver": "Connecting to server..."
 }
