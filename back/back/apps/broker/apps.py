@@ -1,3 +1,4 @@
+import os
 from logging import getLogger
 
 from django.apps import AppConfig
@@ -22,4 +23,5 @@ class BrokerConfig(AppConfig):
         for pc in BrokerMetaClass.registry:
             pc.register()
 
-        RPCConsumerRoundRobinQueue.clear()
+        if not os.getenv("BUILD_MODE"):
+            RPCConsumerRoundRobinQueue.clear()
