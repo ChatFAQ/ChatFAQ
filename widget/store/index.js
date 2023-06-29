@@ -67,6 +67,49 @@ export const useGlobalStore = defineStore('globalStore', {
                         return this.messages[i].stack;
                 }
             }
+        },
+        flatStacks() {
+            const res = [];
+            const _messages = JSON.parse(JSON.stringify(this.messages));
+            let last_lm_msg_payload = {}
+            for (let i = 0; i < _messages.length; i++) {
+                for (let j = 0; j < _messages[i].stack.length; j++) {
+                    const data = _messages[i].stack[j];
+                    if (data.type === "lm_generated_text") {
+                        if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
+                            last_lm_msg_payload.model_response += data.payload.model_response
+                            last_lm_msg_payload.references = data.payload.references
+                        } else {
+                            last_lm_msg_payload = data.payload
+                            res.push({..._messages[i], ...data});
+                        }
+                    } else {
+                        res.push({..._messages[i], ...data});
+                    }
+                }
+            }
+            return res;
+        },
+        gropedStacks() {
+            // Group stacks by stack_id
+            const res = []
+            let last_stack_id = undefined
+            for (let i = 0; i < this.flatStacks.length; i++) {
+                if (this.flatStacks[i].stack_id !== last_stack_id) {
+                    res.push([this.flatStacks[i]])
+                    last_stack_id = this.flatStacks[i].stack_id
+                } else {
+                    res[res.length - 1].push(this.flatStacks[i])
+                }
+            }
+            return res
+        },
+        waitingForResponse() {
+            const gs = this.gropedStacks
+            return !gs.length ||
+            (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'human') ||
+            (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'bot' &&
+            !gs[gs.length - 1][gs[gs.length - 1].length - 1].last)
         }
     }
 })

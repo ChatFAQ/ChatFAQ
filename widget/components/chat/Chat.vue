@@ -1,16 +1,16 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <div class="stacks" v-for="(layers, index) in gropedStacks">
+            <div class="stacks" v-for="(layers, index) in store.gropedStacks">
                 <ChatMsg
                     :layers="layers"
                     :is-last-of-type="true"
                     :is-first-of-type="true"
                     :is-first="index === 0"
-                    :is-last="index === gropedStacks.length - 1"
+                    :is-last="index === store.gropedStacks.length - 1"
                 ></ChatMsg>
             </div>
-            <LoaderMsg v-if="waitingForResponse" ></LoaderMsg>
+            <LoaderMsg v-if="store.waitingForResponse" ></LoaderMsg>
         </div>
         <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -25,7 +25,7 @@
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
             />
-            <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent}" @click="sendMessage"></i>
+            <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"></i>
         </div>
     </div>
 </template>
@@ -86,55 +86,9 @@ function createConnection() {
 
 store.createNewConversation()
 
-const flatStacks = computed(() => {
-    const res = [];
-    const _messages = JSON.parse(JSON.stringify(store.messages));
-    let last_lm_msg_payload = {}
-    for (let i = 0; i < _messages.length; i++) {
-        for (let j = 0; j < _messages[i].stack.length; j++) {
-            const data = _messages[i].stack[j];
-            if (data.type === "lm_generated_text") {
-                if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
-                    last_lm_msg_payload.model_response += data.payload.model_response
-                    last_lm_msg_payload.references = data.payload.references
-                } else {
-                    last_lm_msg_payload = data.payload
-                    res.push({..._messages[i], ...data});
-                }
-            } else {
-                res.push({..._messages[i], ...data});
-            }
-        }
-    }
-    return res;
-});
-
-const gropedStacks = computed(() => {
-    // Group stacks by stack_id
-    const res = []
-    let last_stack_id = undefined
-    for (let i = 0; i < flatStacks.value.length; i++) {
-        if (flatStacks.value[i].stack_id !== last_stack_id) {
-            res.push([flatStacks.value[i]])
-            last_stack_id = flatStacks.value[i].stack_id
-        } else {
-            res[res.length - 1].push(flatStacks.value[i])
-        }
-    }
-    return res
-});
-const waitingForResponse = computed(() => {
-    const gs = gropedStacks.value
-    return !gs.length ||
-    (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'human') ||
-    (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'bot' &&
-    !gs[gs.length - 1][gs[gs.length - 1].length - 1].last)
-})
-
-
 function sendMessage(ev) {
     const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length)
+    if (!promptValue.length || store.waitingForResponse)
         return;
     const m = {
         "sender": {
