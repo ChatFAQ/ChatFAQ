@@ -60,6 +60,7 @@ const collapsed = ref(true);
         margin-left: 8px;
         color: $chatfaq-color-primary-500;
         cursor: pointer;
+        font-size: 12px;
         &.dark-mode {
             color: $chatfaq-color-primary-200;
         }
