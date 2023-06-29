@@ -31,7 +31,7 @@
                 </div>
                 <UserFeedback
                     v-if="
-                        props.isLastOfType && props.layers[0].sender.type === 'bot' &&
+                        props.layers[0].sender.type === 'bot' &&
                         props.layers[props.layers.length - 1].meta.allow_feedback &&
                         props.layers[props.layers.length - 1].last
                     "
