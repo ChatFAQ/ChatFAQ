@@ -14,7 +14,7 @@ from back.apps.broker.serializers.rpc import (
     RPCResultSerializer,
 )
 from back.apps.fsm.models import FSMDefinition
-from back.apps.broker.models import RPCConsumerRoundRobinQueue
+from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.fsm.serializers import FSMSerializer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
 from back.utils import WSStatusCodes
@@ -65,10 +65,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
                 f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by ID/name"
             )
             self.fsm_id = fsm.pk
-            await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
-            await sync_to_async(RPCConsumerRoundRobinQueue.add)(
-                self.get_group_name(), self.fsm_id
-            )  # Add to round robin queue
+            await self.channel_layer.group_add(self.get_group_name(), self.channel_name, rr_group_key=fsm.pk)
         await self.accept()
         if fsm is None and fsm_id_or_name is not None:
             await self.error_response(
@@ -86,9 +83,6 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         logger.debug(f"Disconnecting from RPC consumer")
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
-        await sync_to_async(RPCConsumerRoundRobinQueue.remove)(
-            self.get_group_name()
-        )  # Remove from round robin queue
 
     async def receive_json(self, content, **kwargs):
         serializer = RPCResponseSerializer(data=content)
@@ -135,7 +129,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
                 f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by provided definition"
             )
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
-        await sync_to_async(RPCConsumerRoundRobinQueue.add)(
+        await sync_to_async(ConsumerRoundRobinQueue.add)(
             self.get_group_name(), self.fsm_id
         )  # Add to round robin queue
 

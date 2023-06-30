@@ -17,9 +17,9 @@ class BrokerConfig(AppConfig):
 
         from back.apps.broker.consumers import bots  # noqa  ## This is needed to self register the bots in the BrokerMetaClass
         from back.common.abs.bot_consumers import BrokerMetaClass
-        from back.apps.broker.models import RPCConsumerRoundRobinQueue
+        from back.apps.broker.models import ConsumerRoundRobinQueue
 
         for pc in BrokerMetaClass.registry:
             pc.register()
 
-        RPCConsumerRoundRobinQueue.clear()
+        ConsumerRoundRobinQueue.clear()
