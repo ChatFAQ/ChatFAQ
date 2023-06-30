@@ -172,10 +172,13 @@ async function userFeedback(value, _collapse) {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-left: 15px;
+        margin-left: auto;
+        .feedback-top-text {
+            margin-left: 15px;
+        }
         .feedback-controls {
             margin-left: 15px;
-            margin-right: 18px;
+            margin-right: 10px;
             display: flex;
         }
     }
