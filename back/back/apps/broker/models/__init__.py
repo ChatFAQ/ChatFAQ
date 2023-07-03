@@ -2,37 +2,38 @@ from django.db import models
 from back.common.models import ChangesMixin
 from django.utils import timezone
 
-class RPCConsumerRoundRobinQueue(ChangesMixin):
+
+class ConsumerRoundRobinQueue(ChangesMixin):
     """
     RPCConsumerRoundRobinQueue: This table is used to keep track of the round robin queue of the RPC consumers.
     This is used to distribute the RPC messages between the RPC consumers from the Bot Consumers.
     """
-    rpc_group_name = models.CharField(max_length=255, unique=True)
-    fsm_id = models.CharField(max_length=255)
+    layer_group_name = models.CharField(max_length=255, unique=True)
+    rr_group_key = models.CharField(max_length=255)
 
     @classmethod
-    def get_next_rpc_consumer_group_name(cls, fsm_id):
+    def get_next_consumer_group_name(cls, rr_group_key):
         """
         This method implements the Round Robin.
         """
-        rpc_consumer = cls.objects.filter(fsm_id=fsm_id).order_by("updated_date").first()
+        rpc_consumer = cls.objects.filter(rr_group_key=rr_group_key).order_by("updated_date").first()
         rpc_consumer.updated_date = timezone.now()
         rpc_consumer.save()
-        return rpc_consumer.rpc_group_name
+        return rpc_consumer.layer_group_name
 
     @classmethod
-    def add(cls, rpc_group_name, fsm_id):
+    def add(cls, layer_group_name, rr_group_key):
         """
         This method is used to add a new RPC consumer to the round robin queue.
         """
-        cls.objects.create(rpc_group_name=rpc_group_name, fsm_id=fsm_id)
+        cls.objects.create(layer_group_name=layer_group_name, rr_group_key=rr_group_key)
 
     @classmethod
-    def remove(cls, rpc_group_name):
+    def remove(cls, layer_group_name):
         """
         This method is used to remove a RPC consumer from the round robin queue.
         """
-        cls.objects.filter(rpc_group_name=rpc_group_name).delete()
+        cls.objects.filter(layer_group_name=layer_group_name).delete()
 
     @classmethod
     def clear(cls):

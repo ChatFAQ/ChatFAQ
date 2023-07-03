@@ -1,4 +1,7 @@
 from channels_postgres.core import PostgresChannelLayer
+from asgiref.sync import sync_to_async
+
+from back.apps.broker.models import ConsumerRoundRobinQueue
 
 
 class CustomPostgresChannelLayer(PostgresChannelLayer):
@@ -57,3 +60,14 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
             message = self.deserialize(message[0])
 
             return message
+
+    async def group_add(self, group, channel, rr_group_key=None):
+        await super().group_add(group, channel)
+        if rr_group_key:
+            await sync_to_async(ConsumerRoundRobinQueue.add)(
+                group, rr_group_key
+            )  # Add to round robin queue
+
+    async def group_discard(self, group, channel, expire=None):
+        await super().group_discard(group, channel, expire)
+        await sync_to_async(ConsumerRoundRobinQueue.remove)(group)  # Remove from round robin queue

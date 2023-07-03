@@ -2,7 +2,7 @@ import asyncio
 import time
 from logging import getLogger
 from typing import List, NamedTuple, Text, Union
-from back.apps.broker.models import RPCConsumerRoundRobinQueue
+from back.apps.broker.models import ConsumerRoundRobinQueue
 
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
@@ -132,7 +132,7 @@ class FSM:
             transition_data = {}
 
         for event_name in self.current_state.events:
-            group_name = await sync_to_async(RPCConsumerRoundRobinQueue.get_next_rpc_consumer_group_name)(self.ctx.fsm_def.pk)
+            group_name = await sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
             self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
@@ -206,7 +206,7 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        group_name = await sync_to_async(RPCConsumerRoundRobinQueue.get_next_rpc_consumer_group_name)(self.ctx.fsm_def.pk)
+        group_name = await sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
         data = {
             "type": "rpc_call",
