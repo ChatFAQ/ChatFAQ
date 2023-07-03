@@ -1,7 +1,7 @@
 from threading import Thread
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, T5Tokenizer, T5ForConditionalGeneration
 
 
 class HFModel:
@@ -9,13 +9,13 @@ class HFModel:
     MAX_GPU_MEM = "18GiB" # Why this
     MAX_CPU_MEM = '12GiB'
 
-    def __init__(self, model_id: str, use_cpu: bool, tokenizer_kwargs: dict = None, model_kwargs: dict = None):
+    def __init__(self, repo_id: str, use_cpu: bool, tokenizer_kwargs: dict = None, model_kwargs: dict = None):
         """
         Initializes the model and tokenizer.
         Parameters
         ----------
-        model_id : str
-            The huggingface model id.
+        repo_id : str
+            The huggingface repo id.
         use_cpu : bool
             Whether to use cpu or gpu.
         tokenizer_kwargs : dict
@@ -24,15 +24,21 @@ class HFModel:
             Keyword arguments for the model.
         """
 
+
+        ######### JUST FOR TESTING #########
+        if 't5' in repo_id: 
+            self.tokenizer, self.model = self.get_t5(repo_id)
+
+
         device_map = "auto" if (not use_cpu and torch.cuda.is_available()) else None # use gpu if available
         self.device = "cuda:0" if (not use_cpu and torch.cuda.is_available()) else None  # For moving tensors to the GPU
         memory_device = {'cpu': self.MAX_CPU_MEM}
         if not use_cpu and torch.cuda.is_available():
             memory_device = {0: self.MAX_GPU_MEM} 
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, **tokenizer_kwargs)
+        self.tokenizer = AutoTokenizer.from_pretrained(repo_id, **tokenizer_kwargs)
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_id, 
+            repo_id, 
             device_map=device_map,
             torch_dtype="auto",
             max_memory=memory_device,
@@ -41,6 +47,23 @@ class HFModel:
         )
         self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
 
+    def get_t5(self, repo_id):
+        ######### JUST FOR TESTING #########
+        tokenizer = T5Tokenizer.from_pretrained(repo_id)
+
+        device_map = "auto" if (not self.use_cpu and torch.cuda.is_available()) else None # use gpu if available
+        memory_device = {'cpu': self.MAX_CPU_MEM}
+        dtype = torch.float32 # much faster for cpu, but consumes more memory
+        if not self.use_cpu and torch.cuda.is_available():
+            memory_device = {0: self.MAX_GPU_MEM}
+            dtype = torch.bfloat16
+
+        return tokenizer, T5ForConditionalGeneration.from_pretrained(
+                repo_id,
+                device_map=device_map,
+                torch_dtype=dtype,
+                max_memory=memory_device
+            )
 
     def generate(self, prompt, seed=42, streaming=False, generation_kwargs: dict = None) -> str:
         """
