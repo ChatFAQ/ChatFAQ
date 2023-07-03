@@ -61,16 +61,16 @@
                 />
             </div>
             <div class="quick-responses" v-if="feedbackValue === 'negative'">
-                <div class="quick-response">
-                    <Checkbox v-model="quickAnswer1" :dark="true"/>
+                <div class="quick-response" @click="quickAnswer1 = !quickAnswer1">
+                    <Checkbox v-model="quickAnswer1" :dark="true" :not-reactive="true"/>
                     <span>{{ $t("reason1") }}</span>
                 </div>
-                <div class="quick-response">
-                    <Checkbox v-model="quickAnswer2" :dark="true"/>
+                <div class="quick-response" @click="quickAnswer2 = !quickAnswer2">
+                    <Checkbox v-model="quickAnswer2" :dark="true" :not-reactive="true"/>
                     <span>{{ $t("reason2") }}</span>
                 </div>
-                <div class="quick-response">
-                    <Checkbox v-model="quickAnswer3" :dark="true"/>
+                <div class="quick-response" @click="quickAnswer3 = !quickAnswer3">
+                    <Checkbox v-model="quickAnswer3" :dark="true" :not-reactive="true"/>
                     <span>{{ $t("reason3") }}</span>
                 </div>
             </div>
@@ -276,6 +276,7 @@ async function userFeedback(value, _collapse) {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
+            cursor: pointer;
 
             > span {
                 margin-left: 6px;

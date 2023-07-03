@@ -44,7 +44,7 @@
 <script setup>
 import {defineEmits} from 'vue';
 
-const props = defineProps(["modelValue", "dark"]);
+const props = defineProps(["modelValue", "dark", "notReactive"]);
 const emit = defineEmits(['update:modelValue'])
 const _modelValue = ref(props.modelValue);
 _modelValue.value = false;
@@ -52,6 +52,8 @@ watch(() => props.modelValue, (value) => {
     _modelValue.value = value;
 })
 function change() {
+    if (props.notReactive)
+        return;
     _modelValue.value = !_modelValue.value
     emit('update:modelValue', _modelValue.value)
 }
