@@ -3,6 +3,8 @@ from django.db import models
 
 from back.common.models import ChangesMixin
 
+from fernet_fields import EncryptedCharField
+
 
 class Dataset(models.Model):
     """
@@ -85,5 +87,13 @@ class Model(models.Model):
 
     name = models.CharField(max_length=100)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    base_model = models.CharField(max_length=100, default="google/flan-t5-base")
+    repo_id = models.CharField(max_length=100, default="google/flan-t5-base")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="created")
+    ggml_model_filename = models.CharField(max_length=255, blank=True, null=True)
+    model_config = models.CharField(max_length=255, blank=True, null=True)
+    hugginface_auth_token = EncryptedCharField(max_length=255, blank=True, null=True)
+    load_in_8bit = models.BooleanField(default=False)
+    trust_remote_code_tokenizer = models.BooleanField(default=False)
+    trust_remote_code_model = models.BooleanField(default=False)
+    revision = models.CharField(max_length=255, blank=True, null=True)
+

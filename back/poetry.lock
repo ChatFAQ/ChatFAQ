@@ -1158,6 +1158,19 @@ files = [
 djangorestframework = "*"
 
 [[package]]
+name = "djfernet"
+version = "0.8.1"
+description = ""
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "djfernet-0.8.1.tar.gz", hash = "sha256:40a490faf09e80b2d177a933b33f0e1882587ef53249bc6a1ccaffcbfe3e96be"},
+]
+
+[package.dependencies]
+cryptography = "*"
+
+[[package]]
 name = "docutils"
 version = "0.19"
 description = "Docutils -- Python Documentation Utilities"
@@ -4217,4 +4230,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "8879875a2e1d58bace483058dc78bac546a1741863421af8c683278d3addaaf1"
+content-hash = "578beaee16da663a988f5f01869a54b9c2f2c9250456fd8e700363cdc81bbf3a"

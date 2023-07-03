@@ -6,44 +6,41 @@ from ctransformers import AutoModelForCausalLM, AutoConfig
 
 class GGMLModel:
 
-    def __init__(self, repo_id: str, model_filename: str, model_config: str, model_kwargs: dict = None):
+    def __init__(self, repo_id: str, ggml_model_filename: str, model_config: str):
         """
         Initializes the ggml model. Optimized for CPU inference
         Parameters
         ----------
         repo_id : str
             The huggingface repo id.
-        model_filename: str
+        ggml_model_filename: str
             The filename of the model to load
         model_config: str
             The id of the model config to load
-        model_kwargs : dict
-            Keyword arguments for the model.
         """
 
         local_path = os.path.abspath("models/")
-        filename_path = os.path.join(local_path, model_filename)
+        filename_path = os.path.join(local_path, ggml_model_filename)
 
 
         if not os.path.exists(filename_path):
-            self.download_ggml_file(repo_id, model_filename, local_path)
+            self.download_ggml_file(repo_id, ggml_model_filename, local_path)
 
 
         config = AutoConfig.from_pretrained(model_config)
         self.model = AutoModelForCausalLM.from_pretrained(
             filename_path, 
             config=config,
-            **model_kwargs,
         )
 
-    def download_ggml_file(self, repo_id: str, model_filename: str, local_path: str):
+    def download_ggml_file(self, repo_id: str, ggml_model_filename: str, local_path: str):
         """
         Downloads the ggml model file from the huggingface hub.
         Parameters
         ----------
         repo_id : str
             The huggingface repo id.
-        model_filename: str
+        ggml_model_filename: str
             The filename of the model to load
         local_path: str
             The local path to save the model file to.
@@ -54,7 +51,7 @@ class GGMLModel:
         """
         return hf_hub_download(
             repo_id=repo_id,
-            filename=model_filename,
+            filename=ggml_model_filename,
             local_dir=local_path,
             local_dir_use_symlinks=True,
         )
