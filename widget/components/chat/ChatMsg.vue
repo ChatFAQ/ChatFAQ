@@ -1,7 +1,7 @@
 <template>
     <div class="message-wrapper"
         :class="{
-            [props.data.sender.type]: true,
+            [props.layers[0].sender.type]: true,
             'is-first-of-type': props.isFirstOfType,
             'is-first': props.isFirst,
             'is-last': props.isLast,
@@ -10,20 +10,36 @@
         <div
             class="message"
             :class="{
-                [props.data.sender.type]: true,
-                'is-first-of-type': props.isFirstOfType,
+                [props.layers[0].sender.type]: true,
                 'is-first': props.isFirst,
                 'is-last': props.isLast,
                 'maximized': store.maximized
             }">
-            <TextMsg v-if="props.data.type === MSG_TYPES.text" :feedbacking="feedbacking" :data="props.data" :is-last-of-type="props.isLastOfType"/>
-            <LMMsg v-if="props.data.type === MSG_TYPES.lm_generated_text" :feedbacking="feedbacking" :data="props.data" :is-last-of-type="props.isLastOfType"/>
-            <UserFeedback
-                v-if="props.isLastOfType && props.data.sender.type === 'bot' && props.data.meta.allow_feedback"
-                :msg-id="data.id"
-                @feedbacking="feedbacking = true"
-                @collapse="feedbacking = false"
-            ></UserFeedback>
+            <div
+                class="stack-wrapper">
+                <div class="stack"
+                    :class="{
+                        [props.layers[props.layers.length - 1].sender.type]: true,
+                        'dark-mode': store.darkMode,
+                        'maximized': store.maximized,
+                        'feedbacking': feedbacking
+                    }">
+                    <div class="layer" v-for="layer in props.layers">
+                        <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
+                        <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer"/>
+                    </div>
+                </div>
+                <UserFeedback
+                    v-if="
+                        props.layers[0].sender.type === 'bot' &&
+                        props.layers[props.layers.length - 1].meta.allow_feedback &&
+                        props.layers[props.layers.length - 1].last
+                    "
+                    :msg-id="props.layers[props.layers.length - 1].id"
+                    @feedbacking="feedbacking = true"
+                    @collapse="feedbacking = false"
+                ></UserFeedback>
+            </div>
         </div>
     </div>
 </template>
@@ -34,7 +50,7 @@ import UserFeedback from "~/components/chat/UserFeedback.vue";
 import TextMsg from "~/components/chat/msgs/TextMsg.vue";
 import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
 
-const props = defineProps(["data", "isLastOfType", "isFirstOfType", "isLast", "isFirst"]);
+const props = defineProps(["layers", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null)
 
@@ -88,10 +104,6 @@ $phone-breakpoint: 600px;
                 background-color: $chatfaq-color-primary-800;
                 color: $chatfaq-color-neutral-white;
             }
-
-            &.is-last-of-type {
-                border-radius: 6px 6px 6px 0px;
-            }
         }
 
         &.human {
@@ -102,10 +114,6 @@ $phone-breakpoint: 600px;
             &.dark-mode {
                 background-color: $chatfaq-color-primary-900;
                 color: $chatfaq-color-neutral-white;
-            }
-
-            &.is-last-of-type {
-                border-radius: 6px 6px 0px 6px;
             }
         }
 
@@ -139,6 +147,53 @@ $phone-breakpoint: 600px;
             align-self: end;
         }
     }
+}
 
+.stack-wrapper {
+    max-width: 100%;
+
+    .stack {
+        max-width: 100%;
+        border-radius: 6px;
+        padding: 9px 15px 9px 15px;
+        word-wrap: break-word;
+
+        &.bot {
+            background-color: $chatfaq-color-primary-300;
+            color: $chatfaq-color-neutral-black;
+
+            &.dark-mode {
+                background-color: $chatfaq-color-primary-800;
+                color: $chatfaq-color-neutral-white;
+            }
+
+            &.is-last-of-type {
+                border-radius: 6px 6px 6px 0px;
+            }
+        }
+
+        &.human {
+            border: none;
+            background-color: $chatfaq-color-primary-500;
+            color: $chatfaq-color-neutral-white;
+
+            &.dark-mode {
+                background-color: $chatfaq-color-primary-900;
+                color: $chatfaq-color-neutral-white;
+            }
+
+            &.is-last-of-type {
+                border-radius: 6px 6px 0px 6px;
+            }
+        }
+
+        &.feedbacking {
+            border-radius: 6px 6px 0px 0px !important;
+            min-width: 100%;
+        }
+        .layer:not(:last-child) {
+            margin-bottom: 5px;
+        }
+    }
 }
 </style>

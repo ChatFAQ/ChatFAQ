@@ -172,11 +172,14 @@ async function userFeedback(value, _collapse) {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-left: 15px;
+        .feedback-top-text {
+            margin-left: 15px;
+        }
         .feedback-controls {
             margin-left: 15px;
-            margin-right: 18px;
+            margin-right: 10px;
             display: flex;
+            margin-left: auto;
         }
     }
 
@@ -235,7 +238,7 @@ async function userFeedback(value, _collapse) {
                 color: $chatfaq-color-primary-200;
 
                 &::placeholder {
-                    color: $chatfaq-color-neutral-white;
+                    color: $chatfaq-color-greyscale-500;
                 }
             }
         }
@@ -244,7 +247,7 @@ async function userFeedback(value, _collapse) {
     .control {
         cursor: pointer;
         color: #9a8eb5;
-        padding: 4px;
+        padding: 5px;
         margin-top: 2px;
         display: flex;
         &.dark-mode {
