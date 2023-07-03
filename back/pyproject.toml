@@ -35,7 +35,6 @@ django-storages = "*"
 sqlalchemy = "^2.0.16"
 chatfaq-retrieval = { version = "^0.1.11", source = "test" }
 gevent = "^22.10.2"
-beautifulsoup4 = "^4.12.2"
 torch = [
     { version = "^2.0.1", source = "torch" },
 ]

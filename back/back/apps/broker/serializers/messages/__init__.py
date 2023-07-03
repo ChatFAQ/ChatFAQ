@@ -102,8 +102,7 @@ class TextPayload(serializers.Serializer):
 
 class Reference(serializers.Serializer):
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    url_title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    url_icon = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    intent = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class LMGeneratedTextPayload(serializers.Serializer):

@@ -1,9 +1,7 @@
 import uuid
 from logging import getLogger
 
-import requests
 from asgiref.sync import async_to_sync
-from bs4 import BeautifulSoup
 from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
@@ -37,36 +35,24 @@ class LLMCacheOnWorkerTask(Task):
             logger.info("...model loaded.")
         return cache
 
-    @staticmethod
-    def postprocess_context(context):
-        for c in context:
-            c["role"] = None
-            if c.get("url"):
-                soup = BeautifulSoup(requests.get(c["url"]).text)
-                c["url_title"] = soup.title.get_text()
-                icon_link = soup.find("link", rel="shortcut icon")
-                icon_link = icon_link if icon_link else soup.find("link", rel="icon")
-                c["url_icon"] = icon_link["href"]
-
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
 def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     channel_layer = get_channel_layer()
 
     lm_msg_id = str(uuid.uuid4())
-    context = []
     msg_template = {
         "bot_channel_name": bot_channel_name,
         "lm_msg_id": lm_msg_id,
-        "context": context,
+        "context": None,
         "final": False,
         "res": "",
     }
     for res in self.CACHED_MODELS[str(model_id)].query(input_text, streaming=True):
         if not res["res"]:
             continue
-        if not context:
-            [context.append(c) for c in res["context"]]
+        if not msg_template["context"]:
+            msg_template["context"] = res["context"]
         msg_template["res"] = res["res"]
 
         async_to_sync(channel_layer.send)(
@@ -79,7 +65,7 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
 
     msg_template["res"] = ""
     msg_template["final"] = True
-    self.postprocess_context(msg_template["context"])
+
     async_to_sync(channel_layer.send)(
         chanel_name,
         {

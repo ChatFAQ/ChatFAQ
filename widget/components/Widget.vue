@@ -26,7 +26,16 @@ import Chat from "~/components/chat/Chat.vue";
 
 const store = useGlobalStore();
 
-const props = defineProps(["chatfaqWs", "chatfaqApi", "fsmDef", "userId", "title", "subtitle", "maximized", "historyOpened"]);
+const props = defineProps([
+    "chatfaqWs",
+    "chatfaqApi",
+    "fsmDef",
+    "userId",
+    "title",
+    "subtitle",
+    "maximized",
+    "historyOpened"
+]);
 
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
