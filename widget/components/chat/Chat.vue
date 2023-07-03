@@ -107,7 +107,7 @@ store.createNewConversation()
 
 function sendMessage(ev) {
     const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length)
+    if (!promptValue.length || store.waitingForResponse)
         return;
     const m = {
         "sender": {
