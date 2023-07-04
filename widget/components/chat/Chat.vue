@@ -28,6 +28,7 @@
                 contenteditable
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
+                @paste="managePaste"
             />
             <i class="chat-send-button"
                :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}"
@@ -53,7 +54,11 @@ let ws = undefined
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
-
+function managePaste(ev)  {
+  ev.preventDefault()
+  const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
+  ev.target.innerHTML = text
+}
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({ top: conversationContent.value.scrollHeight, behavior: "smooth" })
