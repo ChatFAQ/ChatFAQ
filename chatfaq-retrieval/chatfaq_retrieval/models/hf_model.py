@@ -1,4 +1,6 @@
 from threading import Thread
+from logging import getLogger
+from typing import List
 
 import torch
 from transformers import (
@@ -8,6 +10,9 @@ from transformers import (
     T5Tokenizer,
     T5ForConditionalGeneration,
 )
+
+logger = getLogger(__name__)
+
 
 
 class HFModel:
@@ -46,30 +51,34 @@ class HFModel:
 
         ######### JUST FOR TESTING #########
         if "t5" in repo_id:
+            logger.info(f"Loading T5 model from {repo_id}...")
             self.tokenizer, self.model = self.get_t5(repo_id)
+        
+        else:
+            device_map = (
+                "auto" if (not use_cpu and torch.cuda.is_available()) else None
+            )  # use gpu if available
+            self.device = (
+                "cuda:0" if (not use_cpu and torch.cuda.is_available()) else None
+            )  # For moving tensors to the GPU
+            memory_device = {"cpu": self.MAX_CPU_MEM}
+            if not use_cpu and torch.cuda.is_available():
+                memory_device = {0: self.MAX_GPU_MEM}
 
-        device_map = (
-            "auto" if (not use_cpu and torch.cuda.is_available()) else None
-        )  # use gpu if available
-        self.device = (
-            "cuda:0" if (not use_cpu and torch.cuda.is_available()) else None
-        )  # For moving tensors to the GPU
-        memory_device = {"cpu": self.MAX_CPU_MEM}
-        if not use_cpu and torch.cuda.is_available():
-            memory_device = {0: self.MAX_GPU_MEM}
 
-        self.tokenizer = AutoTokenizer.from_pretrained(repo_id, use_auth_token=huggingface_auth_token, revision=revision, trust_remote_code=trust_remote_code_tokenizer)
-        self.model = AutoModelForCausalLM.from_pretrained(
-            repo_id,
-            device_map=device_map,
-            torch_dtype="auto",
-            max_memory=memory_device,
-            low_cpu_mem_usage=True,
-            use_auth_token=huggingface_auth_token,
-            revision=revision,
-            trust_remote_code=trust_remote_code_model,
-        )
-        self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
+            logger.info(f"Loading HF model from {repo_id}...")
+            self.tokenizer = AutoTokenizer.from_pretrained(repo_id, use_auth_token=huggingface_auth_token, revision=revision, trust_remote_code=trust_remote_code_tokenizer)
+            self.model = AutoModelForCausalLM.from_pretrained(
+                repo_id,
+                device_map=device_map,
+                torch_dtype="auto",
+                max_memory=memory_device,
+                low_cpu_mem_usage=True,
+                use_auth_token=huggingface_auth_token,
+                revision=revision,
+                trust_remote_code=trust_remote_code_model,
+            )
+            self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
 
     def get_t5(self, repo_id):
         ######### JUST FOR TESTING #########
@@ -89,7 +98,7 @@ class HFModel:
         )
 
     def generate(
-        self, prompt, seed=42, streaming=False, generation_kwargs: dict = None
+        self, prompt, stop_words: List[str], streaming=False, generation_config_dict: dict = None
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -97,37 +106,37 @@ class HFModel:
         ----------
         prompt : str
             The prompt to generate text from.
-        seed : int
-            The seed to use for generation.
+        stop_words : List[str]
+            The stop words to use to stop generation.
         streaming : bool
             Whether to use streaming generation.
-        generation_kwargs : dict
+        generation_config_dict : dict
             Keyword arguments for the generation.
         Returns
         -------
         str
             The generated text.
         """
-        torch.manual_seed(seed)
+        torch.manual_seed(generation_config_dict['seed'])
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
         )
 
-        generation_kwargs = dict(
+        generation_config_dict = dict(
             input_ids=input_ids,
             do_sample=True,
-            **generation_kwargs,
+            **generation_config_dict,
         )
         if streaming:
-            generation_kwargs["streamer"] = self.streamer
-            thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
+            generation_config_dict["streamer"] = self.streamer
+            thread = Thread(target=self.model.generate, kwargs=generation_config_dict)
             thread.start()
             for new_text in self.streamer:
                 yield new_text
         else:
             with torch.inference_mode():
-                outputs = self.model.generate(**generation_kwargs)
+                outputs = self.model.generate(**generation_config_dict)
             if self.device is not None:
                 torch.cuda.empty_cache()
 

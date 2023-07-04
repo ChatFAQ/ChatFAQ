@@ -1,7 +1,36 @@
 import os
+from logging import getLogger
+from typing import List
 
 from huggingface_hub import hf_hub_download
 from ctransformers import AutoModelForCausalLM, AutoConfig
+
+logger = getLogger(__name__)
+
+
+def download_ggml_file(repo_id: str, ggml_model_filename: str, local_path: str):
+    """
+    Downloads the ggml model file from the huggingface hub.
+    Parameters
+    ----------
+    repo_id : str
+        The huggingface repo id.
+    ggml_model_filename: str
+        The filename of the model to load
+    local_path: str
+        The local path to save the model file to.
+    Returns
+    -------
+    str
+        The path to the downloaded model file.
+    """
+    logger.info(f"Downloading {ggml_model_filename} from {repo_id}...")
+    return hf_hub_download(
+        repo_id=repo_id,
+        filename=ggml_model_filename,
+        local_dir=local_path,
+        local_dir_use_symlinks=True,
+    )
 
 
 class GGMLModel:
@@ -22,53 +51,31 @@ class GGMLModel:
         local_path = os.path.abspath("models/")
         filename_path = os.path.join(local_path, ggml_model_filename)
 
-
         if not os.path.exists(filename_path):
-            self.download_ggml_file(repo_id, ggml_model_filename, local_path)
+            download_ggml_file(repo_id, ggml_model_filename, local_path)
 
-
+        logger.info(f"Loading GGML {ggml_model_filename} from {filename_path}...")
         config = AutoConfig.from_pretrained(model_config)
+        logger.info("Loaded model config")
+        logger.info(config)
         self.model = AutoModelForCausalLM.from_pretrained(
-            filename_path, 
+            filename_path,
             config=config,
         )
+        logger.info(f"Loaded GGML {ggml_model_filename} from {filename_path}!")
 
-    def download_ggml_file(self, repo_id: str, ggml_model_filename: str, local_path: str):
-        """
-        Downloads the ggml model file from the huggingface hub.
-        Parameters
-        ----------
-        repo_id : str
-            The huggingface repo id.
-        ggml_model_filename: str
-            The filename of the model to load
-        local_path: str
-            The local path to save the model file to.
-        Returns
-        -------
-        str
-            The path to the downloaded model file.
-        """
-        return hf_hub_download(
-            repo_id=repo_id,
-            filename=ggml_model_filename,
-            local_dir=local_path,
-            local_dir_use_symlinks=True,
-        )
-
-
-    def generate(self, prompt, seed=42, streaming=False, generation_kwargs: dict = None) -> str:
+    def generate(self, prompt, stop_words: List[str], streaming=False, generation_config_dict: dict = None) -> str:
         """
         Generate text from a prompt using the model.
         Parameters
         ----------
         prompt : str
             The prompt to generate text from.
-        seed : int
-            The seed to use for generation.
+        stop_words : List[str]
+            The stop words to use to stop generation.
         streaming : bool
             Whether to use streaming generation.
-        generation_kwargs : dict
+        generation_config_dict : dict
             Keyword arguments for the generation.
         Returns
         -------
@@ -76,20 +83,16 @@ class GGMLModel:
             The generated text.
         """
 
-        assert streaming == generation_kwargs['stream'], "Streaming must be set in generation_kwargs"
-
         # if threads not in generation_kwargs, then set threads to half of the available cores
-        if 'threads' not in generation_kwargs:
-            generation_kwargs['threads'] = os.cpu_count() // 2
-
+        if 'threads' not in generation_config_dict or generation_config_dict['threads'] is None:
+            generation_config_dict['threads'] = os.cpu_count() // 2
+        
+        generation_config_dict['stop'] = stop_words
 
         if streaming:
-            streamer = self.model(prompt, **generation_kwargs) # returns a generator
+            streamer = self.model(prompt, **generation_config_dict)  # returns a generator
             for word in streamer:
                 yield word
         else:
-            text = self.model(prompt, **generation_kwargs)
+            text = self.model(prompt, **generation_config_dict)
             return text
-            
-
-
