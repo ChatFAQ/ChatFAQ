@@ -35,9 +35,7 @@ django-storages = "*"
 sqlalchemy = "^2.0.16"
 chatfaq-retrieval = { version = "^0.1.11", source = "test" }
 gevent = "^22.10.2"
-torch = [
-    { version = "^2.0.1", source = "torch" },
-]
+torch = { url = "https://download.pytorch.org/whl/cu118/torch-2.0.1%2Bcu118-cp310-cp310-linux_x86_64.whl"}
 boto3 = "^1.26.161"
 djfernet = "^0.8.1"
 

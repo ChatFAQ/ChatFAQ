@@ -186,14 +186,13 @@ class RetrieverAnswerer:
 
         return prompt
 
-    def query(
+    def stream(
         self,
         text,
         prompt_structure_dict: dict,
         generation_config_dict: dict,
         stop_words: List[str] = None,
         lang: str = "en",
-        streaming=False,
     ):
         matches = self.retriever.get_top_matches(text, top_k=5)
         contexts = self.retriever.get_contexts(matches)
@@ -206,28 +205,47 @@ class RetrieverAnswerer:
 
         logger.info(f"Prompt: {prompt}")
 
-        if streaming:
-            for new_text in self.model.generate(
-                prompt, stop_words=stop_words, streaming=True, generation_config_dict=generation_config_dict
-            ):
-                yield {
-                    "res": new_text,
-                    "context": [
-                        match[0]
-                        for match in matches[
-                            : prompt_structure_dict["n_contexts_to_use"]
-                        ]
-                    ],
-                }
-        else:
-            output_text = self.model.generate(
-                prompt, stop_words=stop_words, streaming=False, generation_config_dict=generation_config_dict
-            )
-
-            return {
-                "res": output_text,
+        for new_text in self.model.stream(
+            prompt, stop_words=stop_words, generation_config_dict=generation_config_dict
+        ):
+            yield {
+                "res": new_text,
                 "context": [
                     match[0]
-                    for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
+                    for match in matches[
+                    : prompt_structure_dict["n_contexts_to_use"]
+                    ]
                 ],
             }
+
+    
+    def generate(
+        self,
+        text,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict,
+        stop_words: List[str] = None,
+        lang: str = "en",
+    ):
+        matches = self.retriever.get_top_matches(text, top_k=5)
+        contexts = self.retriever.get_contexts(matches)
+        prompt = self.format_prompt(
+            text,
+            contexts,
+            **prompt_structure_dict,
+            lang=lang,
+        )
+
+        logger.info(f"Prompt: {prompt}")
+
+        output_text = self.model.generate(
+            prompt, stop_words=stop_words, generation_config_dict=generation_config_dict
+        )
+
+        return {
+            "res": output_text,
+            "context": [
+                match[0]
+                for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
+            ],
+        }

@@ -14,7 +14,6 @@ from transformers import (
 logger = getLogger(__name__)
 
 
-
 class HFModel:
     MAX_GPU_MEM = "18GiB"  # Why this
     MAX_CPU_MEM = "12GiB"
@@ -48,12 +47,12 @@ class HFModel:
         revision: str
             The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
         """
-
+        self.use_cpu = use_cpu
         ######### JUST FOR TESTING #########
         if "t5" in repo_id:
             logger.info(f"Loading T5 model from {repo_id}...")
             self.tokenizer, self.model = self.get_t5(repo_id)
-        
+
         else:
             device_map = (
                 "auto" if (not use_cpu and torch.cuda.is_available()) else None
@@ -65,9 +64,10 @@ class HFModel:
             if not use_cpu and torch.cuda.is_available():
                 memory_device = {0: self.MAX_GPU_MEM}
 
-
             logger.info(f"Loading HF model from {repo_id}...")
-            self.tokenizer = AutoTokenizer.from_pretrained(repo_id, use_auth_token=huggingface_auth_token, revision=revision, trust_remote_code=trust_remote_code_tokenizer)
+            self.tokenizer = AutoTokenizer.from_pretrained(repo_id, use_auth_token=huggingface_auth_token,
+                                                           revision=revision,
+                                                           trust_remote_code=trust_remote_code_tokenizer)
             self.model = AutoModelForCausalLM.from_pretrained(
                 repo_id,
                 device_map=device_map,
@@ -78,7 +78,7 @@ class HFModel:
                 revision=revision,
                 trust_remote_code=trust_remote_code_model,
             )
-            self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
+            self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True, skip_prompt=True)
 
     def get_t5(self, repo_id):
         ######### JUST FOR TESTING #########
@@ -98,7 +98,7 @@ class HFModel:
         )
 
     def generate(
-        self, prompt, stop_words: List[str], streaming=False, generation_config_dict: dict = None
+        self, prompt, stop_words: List[str], generation_config_dict: dict = None
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -108,8 +108,6 @@ class HFModel:
             The prompt to generate text from.
         stop_words : List[str]
             The stop words to use to stop generation.
-        streaming : bool
-            Whether to use streaming generation.
         generation_config_dict : dict
             Keyword arguments for the generation.
         Returns
@@ -119,25 +117,65 @@ class HFModel:
         """
         torch.manual_seed(generation_config_dict['seed'])
 
+        generation_config_dict.pop("seed")
+
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
         )
 
         generation_config_dict = dict(
-            input_ids=input_ids,
-            do_sample=True,
-            **generation_config_dict,
-        )
-        if streaming:
-            generation_config_dict["streamer"] = self.streamer
-            thread = Thread(target=self.model.generate, kwargs=generation_config_dict)
-            thread.start()
-            for new_text in self.streamer:
-                yield new_text
-        else:
-            with torch.inference_mode():
-                outputs = self.model.generate(**generation_config_dict)
-            if self.device is not None:
-                torch.cuda.empty_cache()
+                input_ids=input_ids,
+                do_sample=True,
+                **generation_config_dict,
+            )
 
-            return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        with torch.inference_mode():
+            outputs = self.model.generate(**generation_config_dict)
+            outputs = outputs[:, len(input_ids[0]):]  # Remove the prompt
+        if self.device is not None:
+            torch.cuda.empty_cache()
+
+        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    def stream(
+        self, prompt, stop_words: List[str], generation_config_dict: dict = None
+    ) -> str:
+        """
+        Generate text from a prompt using the model in streaming mode.
+        Parameters
+        ----------
+        prompt : str
+            The prompt to generate text from.
+        stop_words : List[str]
+            The stop words to use to stop generation.
+        generation_config_dict : dict
+            Keyword arguments for the generation.
+        Returns
+        -------
+        str
+            The generated text.
+        """
+
+        torch.manual_seed(generation_config_dict['seed'])
+
+        generation_config_dict.pop("seed")
+
+        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
+            self.device
+        )
+
+        generation_config_dict = dict(
+                input_ids=input_ids,
+                do_sample=True,
+                **generation_config_dict,
+            )
+
+        generation_config_dict["streamer"] = self.streamer
+        thread = Thread(target=self.model.generate, kwargs=generation_config_dict)
+        thread.start()
+        for new_text in self.streamer:
+            logger.info(f"Generated text: {new_text}")
+            if new_text.strip() in stop_words:
+                thread.join()
+                break
+            yield new_text

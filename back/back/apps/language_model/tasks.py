@@ -34,7 +34,7 @@ class LLMCacheOnWorkerTask(Task):
                 context_col="answer",
                 embedding_col="intent",
                 ggml_model_filename=m.ggml_model_filename,
-                use_cpu=True,
+                use_cpu=False,
                 model_config=m.model_config,
                 huggingface_auth_token=m.huggingface_auth_token,
                 load_in_8bit=m.load_in_8bit,
@@ -70,19 +70,41 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     generation_config.pop("id")
     generation_config.pop("model")
 
-    stop_words = [prompt_structure["user_tag"], prompt_structure["assistant_tag"]]
+    stop_words = [prompt_structure["user_tag"].strip(), prompt_structure["assistant_tag"].strip(), prompt_structure["user_end"].strip(), prompt_structure["assistant_end"].strip()]
 
-    for res in model.query(
-        input_text,
-        prompt_structure_dict=prompt_structure,
-        generation_config_dict=generation_config,
-        stop_words=stop_words,
-        lang=Model.objects.get(pk=model_id).dataset.lang,
-        streaming=True,
-    ):
+    streaming = True
 
-        if not res["res"]:
-            continue
+    if streaming:
+        for res in model.stream(
+            input_text,
+            prompt_structure_dict=prompt_structure,
+            generation_config_dict=generation_config,
+            stop_words=stop_words,
+            lang=Model.objects.get(pk=model_id).dataset.lang,
+        ):
+            logger.info(f"Res type {res['res']}")
+            if not res["res"]:
+                continue
+            if not msg_template["context"]:
+                msg_template["context"] = res["context"]
+            msg_template["res"] = res["res"]
+
+            async_to_sync(channel_layer.send)(
+                chanel_name,
+                {
+                    "type": "send_llm_response",
+                    "message": msg_template,
+                },
+            )
+    else:
+        res = model.generate(
+            input_text,
+            prompt_structure_dict=prompt_structure,
+            generation_config_dict=generation_config,
+            stop_words=stop_words,
+            lang=Model.objects.get(pk=model_id).dataset.lang,
+        )
+
         if not msg_template["context"]:
             msg_template["context"] = res["context"]
         msg_template["res"] = res["res"]
@@ -94,6 +116,8 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
                 "message": msg_template,
             },
         )
+
+
 
     msg_template["res"] = ""
     msg_template["final"] = True

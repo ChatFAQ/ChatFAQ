@@ -64,7 +64,7 @@ class GGMLModel:
         )
         logger.info(f"Loaded GGML {ggml_model_filename} from {filename_path}!")
 
-    def generate(self, prompt, stop_words: List[str], streaming=False, generation_config_dict: dict = None) -> str:
+    def generate(self, prompt, stop_words: List[str], generation_config_dict: dict = None) -> str:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -73,8 +73,6 @@ class GGMLModel:
             The prompt to generate text from.
         stop_words : List[str]
             The stop words to use to stop generation.
-        streaming : bool
-            Whether to use streaming generation.
         generation_config_dict : dict
             Keyword arguments for the generation.
         Returns
@@ -89,10 +87,34 @@ class GGMLModel:
         
         generation_config_dict['stop'] = stop_words
 
-        if streaming:
-            streamer = self.model(prompt, **generation_config_dict)  # returns a generator
-            for word in streamer:
-                yield word
-        else:
-            text = self.model(prompt, **generation_config_dict)
-            return text
+
+        text = self.model(prompt, **generation_config_dict)
+        return text
+        
+    def stream(self, prompt, stop_words: List[str], generation_config_dict: dict = None) -> str:
+        """
+        Generate text from a prompt using the model in streaming mode.
+        Parameters
+        ----------
+        prompt : str
+            The prompt to generate text from.
+        stop_words : List[str]
+            The stop words to use to stop generation.
+        generation_config_dict : dict
+            Keyword arguments for the generation.
+        Returns
+        -------
+        str
+            The generated text.
+        """
+
+        # if threads not in generation_kwargs, then set threads to half of the available cores
+        if 'threads' not in generation_config_dict or generation_config_dict['threads'] is None:
+            generation_config_dict['threads'] = os.cpu_count() // 2
+        
+        generation_config_dict['stop'] = stop_words
+
+        streamer = self.model(prompt, **generation_config_dict)  # returns a generator
+        for word in streamer:
+            yield word
+        
