@@ -1,7 +1,7 @@
 <template>
     <Suspense>
         <div class="chatfaq-widget">
-            <div v-if="store.opened" class="widget-wrapper">
+            <div v-if="store.opened" class="widget-wrapper" :class="{'history': store.historyOpened}">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
                 <div class="widget-body" :class="{'maximized': store.maximized, 'history-closed': !store.historyOpened}">
@@ -158,10 +158,10 @@ $widget-margin: 16px;
     border-left: 1px solid $chatfaq-color-neutral-purple;
     border-right: 1px solid $chatfaq-color-neutral-purple;
     border-bottom: 1px solid $chatfaq-color-neutral-purple;
-    border-radius: 0px 0px 10px 0px;
+    border-radius: 0px 0px 10px 10px;
 
     &.history {
-        // border-left: 0px;
+        border-radius: 0px 0px 10px 0px;
     }
 
     @media only screen and (max-width: $phone-breakpoint) {
