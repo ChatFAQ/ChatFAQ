@@ -137,6 +137,7 @@ function timestampToSentence(isoString) {
 
         &.disabled {
             cursor: pointer;
+            pointer-events: none;
         }
 
         &.edit {
