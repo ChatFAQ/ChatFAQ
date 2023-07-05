@@ -30,8 +30,9 @@ def get_model(
     ggml_model_filename: str = None,
     use_cpu: bool = False,
     model_config: str = None,
-    huggingface_auth_token: str = None,
+    auth_token: str = None,
     load_in_8bit: bool = False,
+    use_fast_tokenizer: bool = True,
     trust_remote_code_tokenizer: bool = False,
     trust_remote_code_model: bool = False,
     revision: str = "main",
@@ -48,10 +49,12 @@ def get_model(
         Whether to use cpu or gpu
     model_config: str
         The filename of the model config to load if using a ggml model
-    huggingface_auth_token: str
-        The huggingface auth token to use when loading the model
+    auth_token: str
+        An auth token to access models, it could be a huggingface token, openai token, etc.
     load_in_8bit: bool
         Whether to load the model in 8bit mode
+    use_fast_tokenizer: bool
+        Whether to use the fast tokenizer
     trust_remote_code_tokenizer: bool
         Whether to trust the remote code when loading the tokenizer
     trust_remote_code_model: bool
@@ -74,8 +77,9 @@ def get_model(
         return HFModel(
             repo_id,
             use_cpu=use_cpu,
-            huggingface_auth_token=huggingface_auth_token,
+            auth_token=auth_token,
             load_in_8bit=load_in_8bit,
+            use_fast_tokenizer=use_fast_tokenizer,
             trust_remote_code_tokenizer=trust_remote_code_tokenizer,
             trust_remote_code_model=trust_remote_code_model,
             revision=revision,
@@ -98,8 +102,9 @@ class RetrieverAnswerer:
         ggml_model_filename: str = None,
         use_cpu: bool = False,
         model_config: str = None,
-        huggingface_auth_token: str = None,
+        auth_token: str = None,
         load_in_8bit: bool = False,
+        use_fast_tokenizer: bool = True,
         trust_remote_code_tokenizer: bool = False,
         trust_remote_code_model: bool = False,
         revision: str = "main",
@@ -122,8 +127,9 @@ class RetrieverAnswerer:
                 ggml_model_filename=ggml_model_filename,
                 use_cpu=use_cpu,
                 model_config=model_config,
-                huggingface_auth_token=huggingface_auth_token,
+                auth_token=auth_token,
                 load_in_8bit=load_in_8bit,
+                use_fast_tokenizer=use_fast_tokenizer,
                 trust_remote_code_tokenizer=trust_remote_code_tokenizer,
                 trust_remote_code_model=trust_remote_code_model,
                 revision=revision,
@@ -202,9 +208,7 @@ class RetrieverAnswerer:
             **prompt_structure_dict,
             lang=lang,
         )
-
         logger.info(f"Prompt: {prompt}")
-
         for new_text in self.model.stream(
             prompt, stop_words=stop_words, generation_config_dict=generation_config_dict
         ):
@@ -218,7 +222,7 @@ class RetrieverAnswerer:
                 ],
             }
 
-    
+
     def generate(
         self,
         text,
@@ -235,8 +239,6 @@ class RetrieverAnswerer:
             **prompt_structure_dict,
             lang=lang,
         )
-
-        logger.info(f"Prompt: {prompt}")
 
         output_text = self.model.generate(
             prompt, stop_words=stop_words, generation_config_dict=generation_config_dict

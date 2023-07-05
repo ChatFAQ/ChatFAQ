@@ -149,6 +149,34 @@ files = [
 ]
 
 [[package]]
+name = "ctransformers"
+version = "0.2.11"
+description = "Python bindings for the Transformer models implemented in C/C++ using GGML library."
+optional = false
+python-versions = "*"
+files = [
+    {file = "ctransformers-0.2.11-py3-none-any.whl", hash = "sha256:06aa3b2a42112fb688b0d9a54b9958501af7db8557bda067ffbc43645590c522"},
+    {file = "ctransformers-0.2.11.tar.gz", hash = "sha256:993a3ba05d37822d0111393ab214856b9fe40d28b48af1306ee63e94e716a4e2"},
+]
+
+[package.dependencies]
+huggingface-hub = "*"
+
+[package.extras]
+tests = ["pytest"]
+
+[[package]]
+name = "einops"
+version = "0.6.1"
+description = "A new flavour of deep learning operations"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "einops-0.6.1-py3-none-any.whl", hash = "sha256:99149e46cc808956b174932fe563d920db4d6e5dadb8c6ecdaa7483b7ef7cfc3"},
+    {file = "einops-0.6.1.tar.gz", hash = "sha256:f95f8d00f4ded90dbc4b19b6f98b177332614b0357dde66997f3ae5d474dc8c8"},
+]
+
+[[package]]
 name = "filelock"
 version = "3.12.2"
 description = "A platform independent file lock."
@@ -1317,4 +1345,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "10009665296b2b017d37a96e0affae3b1729c2f80c27b411d1c287c128e8387e"
+content-hash = "f1992446c1b9e041800192a121c682b3af6cad23a56b2c02a891421796bb6b0e"

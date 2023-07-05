@@ -36,7 +36,7 @@ class LLMCacheOnWorkerTask(Task):
                 ggml_model_filename=m.ggml_model_filename,
                 use_cpu=False,
                 model_config=m.model_config,
-                huggingface_auth_token=m.huggingface_auth_token,
+                auth_token=m.auth_token,
                 load_in_8bit=m.load_in_8bit,
                 trust_remote_code_tokenizer=m.trust_remote_code_tokenizer,
                 trust_remote_code_model=m.trust_remote_code_model,
@@ -65,12 +65,17 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     prompt_structure = model_to_dict(prompt_structure)
     generation_config = model_to_dict(generation_config)
 
+    # remove the id and model fields from the prompt structure and generation config
     prompt_structure.pop("id")
     prompt_structure.pop("model")
     generation_config.pop("id")
     generation_config.pop("model")
 
-    stop_words = [prompt_structure["user_tag"].strip(), prompt_structure["assistant_tag"].strip(), prompt_structure["user_end"].strip(), prompt_structure["assistant_end"].strip()]
+    # remove the tags and end tokens from the stop words
+    stop_words = [prompt_structure["user_tag"], prompt_structure["assistant_tag"], prompt_structure["user_end"], prompt_structure["assistant_end"]]
+
+    # remove empty stop words
+    stop_words = [word for word in stop_words if word]
 
     streaming = True
 
@@ -82,7 +87,6 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
             stop_words=stop_words,
             lang=Model.objects.get(pk=model_id).dataset.lang,
         ):
-            logger.info(f"Res type {res['res']}")
             if not res["res"]:
                 continue
             if not msg_template["context"]:
@@ -116,8 +120,6 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
                 "message": msg_template,
             },
         )
-
-
 
     msg_template["res"] = ""
     msg_template["final"] = True

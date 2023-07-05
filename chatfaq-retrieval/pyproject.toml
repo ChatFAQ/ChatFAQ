@@ -20,6 +20,7 @@ torch = [
 ]
 ctransformers = "^0.2.10"
 tqdm = "^4.65.0"
+einops = "^0.6.1"
 
 [build-system]
 requires = ["poetry-core"]

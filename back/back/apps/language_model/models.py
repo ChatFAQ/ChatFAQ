@@ -89,8 +89,8 @@ class Model(models.Model):
         The GGML filename of the model.
     model_config: str
         The huggingface model config of the model.
-    hugginface_auth_token: str
-        The huggingface auth token to download from private repos.
+    auth_token: str
+        An auth token to access models, it could be a huggingface token, openai token, etc.
     load_in_8bit: bool
         Whether to load the model in 8bit or not.
     trust_remote_code_tokenizer: bool
@@ -113,8 +113,9 @@ class Model(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="created")
     ggml_model_filename = models.CharField(max_length=255, blank=True, null=True)
     model_config = models.CharField(max_length=255, blank=True, null=True)
-    huggingface_auth_token = EncryptedCharField(max_length=255, blank=True, null=True)
+    auth_token = EncryptedCharField(max_length=255, blank=True, null=True)
     load_in_8bit = models.BooleanField(default=False)
+    use_fast_tokenizer = models.BooleanField(default=True)
     trust_remote_code_tokenizer = models.BooleanField(default=False)
     trust_remote_code_model = models.BooleanField(default=False)
     revision = models.CharField(max_length=255, blank=True, null=True, default="main")
@@ -150,9 +151,9 @@ class PromptStructure(models.Model):
     system_tag = models.CharField(max_length=255, blank=True, default="")
     system_end = models.CharField(max_length=255, blank=True, default="")
     user_tag = models.CharField(max_length=255, blank=True, default="<|prompt|>")
-    user_end = models.CharField(max_length=255, blank=True, default="\n")
+    user_end = models.CharField(max_length=255, blank=True, default="")
     assistant_tag = models.CharField(max_length=255, blank=True, default="<|answer|>")
-    assistant_end = models.CharField(max_length=255, blank=True, default="\n")
+    assistant_end = models.CharField(max_length=255, blank=True, default="")
     n_contexts_to_use = models.IntegerField(default=3)
     model = models.ForeignKey(Model, on_delete=models.PROTECT)
 
