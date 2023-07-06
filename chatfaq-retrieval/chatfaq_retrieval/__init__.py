@@ -4,25 +4,12 @@ from typing import List
 import pandas as pd
 
 from chatfaq_retrieval.inf_retrieval.retriever import Retriever
-from chatfaq_retrieval.models import GGMLModel, HFModel
+from chatfaq_retrieval.models import GGMLModel, HFModel, OpenAIModel
 
 logger = getLogger(__name__)
 
 
 # RetrieverAnswerer('../data/interim/chanel.csv', "google/flan-t5-base", "title", "text")
-
-
-CONTEXT_PREFIX = {
-    "en": "Context: ",
-    "fr": "Contexte: ",
-    "es": "Contexto: ",
-}
-
-QUESTION_PREFIX = {
-    "en": "Question: ",
-    "fr": "Question: ",
-    "es": "Pregunta: ",
-}
 
 
 def get_model(
@@ -42,7 +29,7 @@ def get_model(
     Parameters
     ----------
     repo_id: str
-        The huggingface repo id which contains the model to load
+        The model id, it could be a hugginface repo id, a ggml repo id, or an openai model id.
     ggml_model_filename: str
         The filename of the model to load if using a ggml model
     use_cpu: bool
@@ -64,7 +51,7 @@ def get_model(
     Returns
     -------
     model:
-        A Transformers Model or GGML Model (using CTransformers), depending on the model_id.
+        A Transformers Model, GGML Model (using CTransformers) or OpenAI Model depending on the repo_id.
     """
 
     if ggml_model_filename is not None:  # Need to load the ggml model file
@@ -73,6 +60,13 @@ def get_model(
             ggml_model_filename,
             model_config=model_config,
         )
+    
+    elif repo_id.startswith("gpt-3.5") or repo_id.startswith("gpt-4"):
+        return OpenAIModel(
+            repo_id,
+            auth_token=auth_token,
+        )
+
     else:
         return HFModel(
             repo_id,
@@ -137,61 +131,6 @@ class RetrieverAnswerer:
 
         self.model = self.cached_models[repo_id]
 
-    def format_prompt(
-        self,
-        query: str,
-        contexts: List[str],
-        system_prefix: str,
-        system_tag: str,
-        system_end: str,
-        user_tag: str,
-        user_end: str,
-        assistant_tag: str,
-        assistant_end: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-    ) -> str:
-        """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        query : str
-            The query to answer.
-        contexts : list
-            The context to use.
-        system_prefix : str
-            The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
-        n_contexts_to_use : int, optional
-            The number of contexts to use, by default 3
-        lang : str, optional
-            The language of the prompt, by default 'en'
-        """
-        contexts_prompt = CONTEXT_PREFIX[lang]
-        for context in contexts[:n_contexts_to_use]:
-            contexts_prompt += f"{context}\n"
-
-        if (
-            system_tag == "" or system_tag is None
-        ):  # To avoid adding the role_end tag if there is no system prefix
-            prompt = f"{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
-        else:
-            prompt = f"{system_tag}{system_prefix}{system_end}{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
-
-        return prompt
-
     def stream(
         self,
         text,
@@ -202,26 +141,22 @@ class RetrieverAnswerer:
     ):
         matches = self.retriever.get_top_matches(text, top_k=5)
         contexts = self.retriever.get_contexts(matches)
-        prompt = self.format_prompt(
+
+        for new_text in self.model.stream(
             text,
             contexts,
-            **prompt_structure_dict,
+            prompt_structure_dict=prompt_structure_dict,
+            generation_config_dict=generation_config_dict,
             lang=lang,
-        )
-        logger.info(f"Prompt: {prompt}")
-        for new_text in self.model.stream(
-            prompt, stop_words=stop_words, generation_config_dict=generation_config_dict
+            stop_words=stop_words,
         ):
             yield {
                 "res": new_text,
                 "context": [
                     match[0]
-                    for match in matches[
-                    : prompt_structure_dict["n_contexts_to_use"]
-                    ]
+                    for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
                 ],
             }
-
 
     def generate(
         self,
@@ -233,15 +168,14 @@ class RetrieverAnswerer:
     ):
         matches = self.retriever.get_top_matches(text, top_k=5)
         contexts = self.retriever.get_contexts(matches)
-        prompt = self.format_prompt(
-            text,
-            contexts,
-            **prompt_structure_dict,
-            lang=lang,
-        )
 
         output_text = self.model.generate(
-            prompt, stop_words=stop_words, generation_config_dict=generation_config_dict
+            text,
+            contexts,
+            prompt_structure_dict=prompt_structure_dict,
+            generation_config_dict=generation_config_dict,
+            lang=lang,
+            stop_words=stop_words,
         )
 
         return {

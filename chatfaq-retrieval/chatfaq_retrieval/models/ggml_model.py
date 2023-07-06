@@ -5,6 +5,9 @@ from typing import List
 from huggingface_hub import hf_hub_download
 from ctransformers import AutoModelForCausalLM, AutoConfig
 
+from chatfaq_retrieval.models import BaseModel
+
+
 logger = getLogger(__name__)
 
 
@@ -33,8 +36,7 @@ def download_ggml_file(repo_id: str, ggml_model_filename: str, local_path: str):
     )
 
 
-class GGMLModel:
-
+class GGMLModel(BaseModel):
     def __init__(self, repo_id: str, ggml_model_filename: str, model_config: str):
         """
         Initializes the ggml model. Optimized for CPU inference
@@ -64,17 +66,31 @@ class GGMLModel:
         )
         logger.info(f"Loaded GGML {ggml_model_filename} from {filename_path}!")
 
-    def generate(self, prompt, stop_words: List[str], generation_config_dict: dict = None) -> str:
+    def generate(
+        self,
+        query,
+        contexts,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict = None,
+        lang: str = "en",
+        stop_words: List[str] = None,
+    ) -> str:
         """
         Generate text from a prompt using the model.
         Parameters
         ----------
-        prompt : str
-            The prompt to generate text from.
-        stop_words : List[str]
-            The stop words to use to stop generation.
+        query : str
+            The query to generate text from.
+        contexts : List[str]
+            The contexts to use for generation.
+        prompt_structure_dict : dict
+            Dictionary containing the structure of the prompt.
         generation_config_dict : dict
             Keyword arguments for the generation.
+        lang : str
+            The language of the prompt.
+        stop_words : List[str]
+            The stop words to use to stop generation.
         Returns
         -------
         str
@@ -82,26 +98,44 @@ class GGMLModel:
         """
 
         # if threads not in generation_kwargs, then set threads to half of the available cores
-        if 'threads' not in generation_config_dict or generation_config_dict['threads'] is None:
-            generation_config_dict['threads'] = os.cpu_count() // 2
-        
-        generation_config_dict['stop'] = stop_words
+        if (
+            "threads" not in generation_config_dict
+            or generation_config_dict["threads"] is None
+        ):
+            generation_config_dict["threads"] = os.cpu_count() // 2
 
+        generation_config_dict["stop"] = stop_words
+
+        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
 
         text = self.model(prompt, **generation_config_dict)
         return text
-        
-    def stream(self, prompt, stop_words: List[str], generation_config_dict: dict = None) -> str:
+
+    def stream(
+        self,
+        query,
+        contexts,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict = None,
+        lang: str = "en",
+        stop_words: List[str] = None,
+    ) -> str:
         """
         Generate text from a prompt using the model in streaming mode.
         Parameters
         ----------
-        prompt : str
-            The prompt to generate text from.
-        stop_words : List[str]
-            The stop words to use to stop generation.
+        query : str
+            The query to generate text from.
+        contexts : List[str]
+            The contexts to use for generation.
+        prompt_structure_dict : dict
+            Dictionary containing the structure of the prompt.
         generation_config_dict : dict
             Keyword arguments for the generation.
+        lang : str
+            The language of the prompt.
+        stop_words : List[str]
+            The stop words to use to stop generation.
         Returns
         -------
         str
@@ -109,12 +143,18 @@ class GGMLModel:
         """
 
         # if threads not in generation_kwargs, then set threads to half of the available cores
-        if 'threads' not in generation_config_dict or generation_config_dict['threads'] is None:
-            generation_config_dict['threads'] = os.cpu_count() // 2
-        
-        generation_config_dict['stop'] = stop_words
+        if(
+            "threads" not in generation_config_dict
+            or generation_config_dict["threads"] is None
+        ):
+            generation_config_dict["threads"] = os.cpu_count() // 2
+
+        generation_config_dict["stop"] = stop_words
+
+        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+
+        logger.info(f"Prompt: {prompt}")
 
         streamer = self.model(prompt, **generation_config_dict)  # returns a generator
         for word in streamer:
             yield word
-        

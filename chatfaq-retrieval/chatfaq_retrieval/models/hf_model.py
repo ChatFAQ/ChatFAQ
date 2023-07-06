@@ -14,6 +14,8 @@ from transformers import (
     StoppingCriteriaList,
 )
 
+from chatfaq_retrieval.models import BaseModel
+
 logger = getLogger(__name__)
 
 
@@ -22,18 +24,22 @@ class StopPatternCriteria(StoppingCriteria):
     Stopping criteria that checks if the text generation contains a stop pattern.
     Inspired by https://github.com/microsoft/guidance/blob/e3c6fe93fa00cb86efc130bbce22aa29100936d4/guidance/llms/_transformers.py#L567
     """
+
     def __init__(self, stop_pattern, tokenizer, prefix_length):
         if isinstance(stop_pattern, str):
             self.stop_patterns = [regex.compile(stop_pattern)]
         else:
-            self.stop_patterns = [regex.compile(pattern.strip()) for pattern in stop_pattern]
+            self.stop_patterns = [
+                regex.compile(pattern.strip()) for pattern in stop_pattern
+            ]
         self.tokenizer = tokenizer
         self.prefix_length = prefix_length
 
     def __call__(self, input_ids, scores):
-
         # handle 1D inputs
-        if not isinstance(input_ids[0], Sequence) and not (hasattr(input_ids[0], "shape") and len(input_ids[0].shape) > 0):
+        if not isinstance(input_ids[0], Sequence) and not (
+            hasattr(input_ids[0], "shape") and len(input_ids[0].shape) > 0
+        ):
             input_ids = [input_ids]
 
         text_generations = self.tokenizer.batch_decode(input_ids)
@@ -43,7 +49,7 @@ class StopPatternCriteria(StoppingCriteria):
         for text_generation in text_generations:
             found = False
             for stop_pattern in self.stop_patterns:
-                if stop_pattern.search(text_generation[self.prefix_length:].strip()):
+                if stop_pattern.search(text_generation[self.prefix_length :].strip()):
                     found = True
             if not found:
                 all_done = False
@@ -52,7 +58,7 @@ class StopPatternCriteria(StoppingCriteria):
         return all_done
 
 
-class HFModel:
+class HFModel(BaseModel):
     MAX_GPU_MEM = "18GiB"  # Why this
     MAX_CPU_MEM = "12GiB"
 
@@ -124,18 +130,30 @@ class HFModel:
         )
 
     def generate(
-        self, prompt, stop_words: List[str], generation_config_dict: dict = None
+        self,
+        query,
+        contexts,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict = None,
+        lang: str = "en",
+        stop_words: List[str] = None,
     ) -> str:
         """
         Generate text from a prompt using the model.
         Parameters
         ----------
-        prompt : str
-            The prompt to generate text from.
-        stop_words : List[str]
-            The stop words to use to stop generation.
+        query : str
+            The query to generate text from.
+        contexts : List[str]
+            The contexts to use for generation.
+        prompt_structure_dict : dict
+            Dictionary containing the structure of the prompt.
         generation_config_dict : dict
             Keyword arguments for the generation.
+        lang : str
+            The language of the prompt.
+        stop_words : List[str]
+            The stop words to use to stop generation.
         Returns
         -------
         str
@@ -144,6 +162,8 @@ class HFModel:
         torch.manual_seed(generation_config_dict["seed"])
 
         generation_config_dict.pop("seed")
+
+        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
@@ -180,18 +200,30 @@ class HFModel:
         return output
 
     def stream(
-        self, prompt, stop_words: List[str], generation_config_dict: dict = None
+        self,
+        query,
+        contexts,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict = None,
+        lang: str = "en",
+        stop_words: List[str] = None,
     ) -> str:
         """
         Generate text from a prompt using the model in streaming mode.
         Parameters
         ----------
-        prompt : str
-            The prompt to generate text from.
-        stop_words : List[str]
-            The stop words to use to stop generation.
+        query : str
+            The query to generate text from.
+        contexts : List[str]
+            The contexts to use for generation.
+        prompt_structure_dict : dict
+            Dictionary containing the structure of the prompt.
         generation_config_dict : dict
             Keyword arguments for the generation.
+        lang : str
+            The language of the prompt.
+        stop_words : List[str]
+            The stop words to use to stop generation.
         Returns
         -------
         str
@@ -201,6 +233,8 @@ class HFModel:
         torch.manual_seed(generation_config_dict["seed"])
 
         generation_config_dict.pop("seed")
+
+        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
@@ -220,7 +254,9 @@ class HFModel:
         thread = Thread(target=self.model.generate, kwargs=generation_config_dict)
         thread.start()
         for new_text in self.streamer:
-            if new_text in stop_words: # TODO: This is a hack, we should use the stopping criteria, but it's not easy when one stop word is longer than one token
+            if (
+                new_text in stop_words
+            ):  # TODO: This is a hack, we should use the stopping criteria, but it's not easy when one stop word is longer than one token
                 thread.join()
                 break
             yield new_text
