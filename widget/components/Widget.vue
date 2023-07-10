@@ -1,17 +1,25 @@
 <template>
     <Suspense>
-        <div class="chatfaq-widget">
-            <div v-if="store.opened" class="widget-wrapper" :class="{'history': store.historyOpened}">
-                <div class="dark-filter" v-if="store.historyOpened"></div>
-                <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
-                <div class="widget-body" :class="{'maximized': store.maximized, 'history-closed': !store.historyOpened}">
-                    <Header class="header" :class="{'history': store.historyOpened}"/>
-                    <Chat class="chat" :class="{'history': store.historyOpened}"/>
+        <div>
+            <div v-if="landscapePhone" class="chatfaq-widget">
+                <div class="not-supported">
+                    Landscape mode is not supported on mobile devices.
                 </div>
             </div>
-            <div class="widget-open-button" :class="{'opened': store.opened}"
-                 @click="store.opened = !store.opened">
-                <i :class="store.opened ? 'close' : 'open'"/>
+            <div v-else class="chatfaq-widget">
+                <div v-if="store.opened" class="widget-wrapper" :class="{'history': store.historyOpened}">
+                    <div class="dark-filter" v-if="store.historyOpened"></div>
+                    <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
+                    <div class="widget-body"
+                         :class="{'maximized': store.maximized, 'history-closed': !store.historyOpened}">
+                        <Header class="header" :class="{'history': store.historyOpened}"/>
+                        <Chat class="chat" :class="{'history': store.historyOpened}"/>
+                    </div>
+                </div>
+                <div class="widget-open-button" :class="{'opened': store.opened}"
+                     @click="store.opened = !store.opened">
+                    <i :class="store.opened ? 'close' : 'open'"/>
+                </div>
             </div>
         </div>
     </Suspense>
@@ -25,6 +33,7 @@ import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
 
 const store = useGlobalStore();
+const landscapePhone = ref(false);
 
 const props = defineProps([
     "chatfaqWs",
@@ -48,6 +57,26 @@ if (props.maximized !== undefined)
     store.maximized = props.maximized;
 if (props.historyOpened !== undefined)
     store.historyOpened = props.historyOpened;
+
+function isPhone() {
+    let a = false;
+    if (navigator.userAgent.match(/Android/i)
+        || navigator.userAgent.match(/webOS/i)
+        || navigator.userAgent.match(/iPhone/i)
+        || navigator.userAgent.match(/iPad/i)
+        || navigator.userAgent.match(/iPod/i)
+        || navigator.userAgent.match(/BlackBerry/i)
+        || navigator.userAgent.match(/Windows Phone/i)) {
+        a = true;
+    }
+    return a;
+}
+
+window.addEventListener('resize', function (event) {
+    if (isPhone() && window.matchMedia("(orientation: landscape)").matches) {
+        landscapePhone.value = true
+    }
+}, true);
 
 </script>
 
@@ -86,6 +115,7 @@ $widget-margin: 16px;
         width: $history-width-mobile;
         border-right: 1px solid $chatfaq-color-neutral-purple;
     }
+
     &.maximized {
         height: 85vh;
     }
@@ -111,6 +141,7 @@ $widget-margin: 16px;
                 width: calc(100vw - $history-width - $widget-margin * 2);
                 height: 85vh;
             }
+
             &.history-closed {
                 @media only screen and (min-width: $phone-breakpoint) {
                     width: calc(100vw - $widget-margin * 2);
@@ -186,6 +217,12 @@ $widget-margin: 16px;
 
 */
 
+.not-supported {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    margin: $widget-open-button-margin;
+}
 .widget-open-button {
     cursor: pointer;
     background: $chatfaq-color-gradient-pink;
