@@ -79,7 +79,7 @@ addEventListener("resize", (event) => {
 @import "assets/styles/variables";
 
 $widget-open-button-margin: 24px;
-$history-width: 230px;
+$history-width: 260px;
 $history-width-mobile: 260px;
 $phone-breakpoint: 600px;
 $widget-margin: 16px;
