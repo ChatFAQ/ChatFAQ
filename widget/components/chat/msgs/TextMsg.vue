@@ -1,8 +1,11 @@
 <template>
-    <div class="marked-down-content" v-html="markedDown"></div>
+    <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
 </template>
 
 <script setup>
+import {useGlobalStore} from "~/store";
+
+const store = useGlobalStore();
 const props = defineProps(["data"]);
 import {marked} from "marked";
 
