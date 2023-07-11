@@ -47,9 +47,8 @@
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
                     ref="feedbackInput"
-                    @keyup.enter="userFeedback(feedbackValue)"
+                    @keydown="(ev) => manageEnterInput(ev, () => userFeedback(feedbackValue, true))"
                     contenteditable
-                    @keypress.enter.prevent
                     oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 />
                 <div
@@ -58,9 +57,8 @@
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
                     ref="feedbackInput"
-                    @keyup.enter="userFeedback(feedbackValue)"
+                    @keydown="(ev) => manageEnterInput(ev, () => userFeedback(feedbackValue, true))"
                     contenteditable
-                    @keypress.enter.prevent
                     oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 />
             </div>
@@ -106,6 +104,13 @@ const quickAnswer2 = ref(false);
 const quickAnswer3 = ref(false);
 const emit = defineEmits(['feedbacking', 'collapse'])
 const {t} = useI18n()
+
+function manageEnterInput(ev, cb) {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+        ev.preventDefault()
+        cb();
+    }
+};
 
 async function userFeedback(value, _collapse) {
     if (collapse.value)
