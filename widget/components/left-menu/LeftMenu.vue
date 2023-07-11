@@ -110,7 +110,7 @@ $history-width: 220px;
 
         .menu-item {
             display: flex;
-            padding: 10px 4px !important;
+            padding: 10px 8px !important;
         }
     }
 
