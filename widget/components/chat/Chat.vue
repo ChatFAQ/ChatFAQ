@@ -102,7 +102,10 @@ function createConnection() {
     ws.onopen = function (e) {
         store.disconnected = false;
     };
+    const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
+        if (plConversationId !== store.selectedPlConversationId)
+            return;
         store.disconnected = true;
         setTimeout(function () {
             createConnection();
