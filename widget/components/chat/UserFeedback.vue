@@ -234,7 +234,7 @@ async function userFeedback(value, _collapse) {
 
         .feedback-input {
             padding: 0px;
-            max-height: 30px;
+            max-height: 35px;
             margin-bottom: 10px;
             margin-top: 10px;
             font: $chatfaq-font-caption-md;
