@@ -50,9 +50,6 @@ const historyItems = ref(null)
 
 const store = useGlobalStore();
 
-await store.gatherConversations()
-
-
 watch(() => store.deleting, (newVal) => {
     if (newVal && !store.selectedConversations.length) {
         historyItems.value.forEach(el => el.selected = true)
