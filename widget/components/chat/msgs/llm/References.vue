@@ -24,11 +24,11 @@
         <div class="references" v-if="!collapsed">
             <div
                 class="reference purple-background"
-                v-for="ref in references"
+                v-for="(ref, index) in references"
                 :class="{
                     'dark-mode': store.darkMode
                 }">
-                    <a :href="ref.url" target="_blank">{{
+                    <a :href="ref.url" target="_blank">{{ index + 1 }}. {{
                         ref.intent ? ref.intent : ref.url
                     }}</a>
             </div>
