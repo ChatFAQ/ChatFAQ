@@ -47,7 +47,7 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
-import TextMsg from "~/components/chat/msgs/TextMsg.vue";
+import TextMsg from "~/components/chat/msgs/text/TextMsg.vue";
 import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
 
 const props = defineProps(["layers", "isFirstOfType", "isLast", "isFirst"]);
