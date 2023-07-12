@@ -28,6 +28,7 @@
                         <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
                         <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer"/>
                     </div>
+                    <References v-if="props.references.length" :references="props.references"></References>
                 </div>
                 <UserFeedback
                     v-if="
@@ -49,8 +50,9 @@ import {useGlobalStore} from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
 import TextMsg from "~/components/chat/msgs/text/TextMsg.vue";
 import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
+import References from "~/components/chat/msgs/llm/References.vue";
 
-const props = defineProps(["layers", "isFirstOfType", "isLast", "isFirst"]);
+const props = defineProps(["layers", "references", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null)
 

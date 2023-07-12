@@ -1,14 +1,13 @@
 <template>
     <div>
         <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
-        <References :references="props.data.payload.references"></References>
+        <span class="reference-index" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex }}</span>
     </div>
 </template>
 
 <script setup>
 import { marked } from "marked";
 import { useGlobalStore } from "~/store";
-import References from "~/components/chat/msgs/llm/References.vue";
 const store = useGlobalStore();
 
 const props = defineProps(["data"]);
@@ -25,6 +24,10 @@ const markedDown = computed(() => {
 @import "assets/styles/variables";
 
 .marked-down-content {
+    display: inline;
+    * {
+        display: inline;
+    }
     p {
         margin: 0;
     }
@@ -40,6 +43,18 @@ const markedDown = computed(() => {
             background: $chatfaq-color-primary-900;
             color: $chatfaq-color-primary-200;
         }
+    }
+}
+.reference-index {
+    margin-right: 2px;
+    font-size: 8px;
+    padding: 0px 3px 0px 3px;
+    border-radius: 2px;
+    color: $chatfaq-color-primary-500;
+    background: rgba(70, 48, 117, 0.1);
+    &.dark-mode {
+        background: $chatfaq-color-primary-900;
+        color: $chatfaq-color-primary-200;
     }
 }
 </style>

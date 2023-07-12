@@ -4,6 +4,7 @@
             <div class="stacks" v-for="(layers_data, index) in store.gropedStacks">
                 <ChatMsg
                     :layers="layers_data.layers"
+                    :references="layers_data.references"
                     :is-first-of-type="true"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
