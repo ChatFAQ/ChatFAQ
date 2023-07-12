@@ -1,9 +1,9 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <div class="stacks" v-for="(layers, index) in store.gropedStacks">
+            <div class="stacks" v-for="(layers_data, index) in store.gropedStacks">
                 <ChatMsg
-                    :layers="layers"
+                    :layers="layers_data.layers"
                     :is-first-of-type="true"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
