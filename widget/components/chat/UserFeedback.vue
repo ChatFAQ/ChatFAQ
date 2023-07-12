@@ -238,6 +238,7 @@ async function userFeedback(value, _collapse) {
 
 
         .feedback-input {
+            word-wrap: break-word;
             padding: 0px;
             max-height: 35px;
             margin-bottom: 10px;

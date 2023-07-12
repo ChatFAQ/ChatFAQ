@@ -251,6 +251,7 @@ function isFirstOfType(msg, flatStack) {
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
     width: 100%;
+    word-wrap: break-word;
     border: 0;
     outline: 0;
     margin-left: 16px;
