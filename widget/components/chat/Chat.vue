@@ -1,9 +1,10 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <div class="stacks" v-for="(layers, index) in store.gropedStacks">
+            <div class="stacks" v-for="(layers_data, index) in store.gropedStacks">
                 <ChatMsg
-                    :layers="layers"
+                    :layers="layers_data.layers"
+                    :references="layers_data.references"
                     :is-first-of-type="true"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
@@ -14,7 +15,8 @@
         <div class="alert-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">
             {{ $t("feedbacksent") }}
         </div>
-        <div class="alert-message" :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
+        <div class="alert-message"
+             :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
             {{ $t("connectingtoserver") }}
         </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
@@ -23,11 +25,11 @@
                 class="chat-prompt"
                 :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
                 ref="chatInput"
-                @keyup.enter="sendMessage"
-                @keypress.enter.prevent
+                @keydown="(ev) => manageEnterInput(ev, sendMessage)"
                 contenteditable
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
+                @paste="managePaste"
             />
             <i class="chat-send-button"
                :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}"
@@ -37,8 +39,8 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from "vue";
-import { useGlobalStore } from "~/store";
+import {ref, watch, nextTick} from "vue";
+import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 
 const store = useGlobalStore();
@@ -54,9 +56,15 @@ watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 
+function managePaste(ev) {
+    ev.preventDefault()
+    const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
+    ev.target.innerHTML = text
+}
+
 function scrollConversationDown() {
     nextTick(() => {
-        conversationContent.value.scroll({ top: conversationContent.value.scrollHeight, behavior: "smooth" })
+        conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
 }
 
@@ -95,7 +103,10 @@ function createConnection() {
     ws.onopen = function (e) {
         store.disconnected = false;
     };
+    const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
+        if (plConversationId !== store.selectedPlConversationId)
+            return;
         store.disconnected = true;
         setTimeout(function () {
             createConnection();
@@ -105,7 +116,14 @@ function createConnection() {
 
 store.createNewConversation()
 
-function sendMessage(ev) {
+function manageEnterInput(ev, cb) {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+        ev.preventDefault()
+        cb();
+    }
+};
+
+function sendMessage() {
     const promptValue = chatInput.value.innerText.trim()
     if (!promptValue.length || store.waitingForResponse)
         return;
@@ -218,6 +236,7 @@ function isFirstOfType(msg, flatStack) {
     opacity: 0;
     transition: visibility 0s 2s, opacity 2s linear;
 }
+
 .conversation-content {
     height: 100%;
     width: 100%;

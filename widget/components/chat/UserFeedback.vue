@@ -41,36 +41,38 @@
         </div>
         <div v-if="feedbacked && !collapse">
             <div class="feedback-input-wrapper" :class="{ 'dark-mode': store.darkMode }">
-                <input
+                <div
                     v-if="feedbackValue === 'negative'"
                     :placeholder="$t('whatwastheissue')"
-                    v-model="feedback"
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
-                    ref="chatInput"
-                    @keyup.enter="userFeedback(feedbackValue)"
+                    ref="feedbackInput"
+                    @keydown="(ev) => manageEnterInput(ev, () => userFeedback(feedbackValue, true))"
+                    contenteditable
+                    oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 />
-                <input
+                <div
                     v-else
                     :placeholder="$t('whatdidyoulike')"
-                    v-model="feedback"
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
-                    ref="chatInput"
-                    @keyup.enter="userFeedback(feedbackValue)"
+                    ref="feedbackInput"
+                    @keydown="(ev) => manageEnterInput(ev, () => userFeedback(feedbackValue, true))"
+                    contenteditable
+                    oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 />
             </div>
             <div class="quick-responses" v-if="feedbackValue === 'negative'">
-                <div class="quick-response">
-                    <Checkbox v-model="quickAnswer1" :dark="true"/>
+                <div class="quick-response" @click="quickAnswer1 = !quickAnswer1">
+                    <Checkbox v-model="quickAnswer1" :dark="true" :not-reactive="true"/>
                     <span>{{ $t("reason1") }}</span>
                 </div>
-                <div class="quick-response">
-                    <Checkbox v-model="quickAnswer2" :dark="true"/>
+                <div class="quick-response" @click="quickAnswer2 = !quickAnswer2">
+                    <Checkbox v-model="quickAnswer2" :dark="true" :not-reactive="true"/>
                     <span>{{ $t("reason2") }}</span>
                 </div>
-                <div class="quick-response">
-                    <Checkbox v-model="quickAnswer3" :dark="true"/>
+                <div class="quick-response" @click="quickAnswer3 = !quickAnswer3">
+                    <Checkbox v-model="quickAnswer3" :dark="true" :not-reactive="true"/>
                     <span>{{ $t("reason3") }}</span>
                 </div>
             </div>
@@ -94,7 +96,7 @@ const props = defineProps(["msgId"]);
 
 const store = useGlobalStore();
 const feedbacked = ref(null)
-const feedback = ref(null)
+const feedbackInput = ref(null);
 const collapse = ref(false)
 const feedbackValue = ref(null)
 const quickAnswer1 = ref(false);
@@ -102,6 +104,13 @@ const quickAnswer2 = ref(false);
 const quickAnswer3 = ref(false);
 const emit = defineEmits(['feedbacking', 'collapse'])
 const {t} = useI18n()
+
+function manageEnterInput(ev, cb) {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+        ev.preventDefault()
+        cb();
+    }
+};
 
 async function userFeedback(value, _collapse) {
     if (collapse.value)
@@ -113,8 +122,11 @@ async function userFeedback(value, _collapse) {
         value: value,
         feedback: ""
     };
-    if (feedback.value)
-        feedbackData["feedback"] += feedback.value
+    if (feedbackInput.value) {
+        const feedback = feedbackInput.value.innerText.trim()
+        if (feedback)
+            feedbackData["feedback"] += feedback
+    }
     if (quickAnswer1.value)
         feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason1")}`
     if (quickAnswer2.value)
@@ -151,6 +163,7 @@ async function userFeedback(value, _collapse) {
 </script>
 <style scoped lang="scss">
 @import "assets/styles/variables";
+@import "assets/styles/mixins";
 
 
 .voting {
@@ -215,15 +228,24 @@ async function userFeedback(value, _collapse) {
             outline: 0;
             margin-left: 16px;
             background-color: $chatfaq-color-primary-200;
+
+            @include scroll-style();
+
+            &.dark-mode {
+                @include scroll-style(white);
+            }
         }
 
 
         .feedback-input {
             padding: 0px;
-            height: 38px;
-            border-radius: 10px;
+            max-height: 35px;
+            margin-bottom: 10px;
+            margin-top: 10px;
             font: $chatfaq-font-caption-md;
             font-style: normal;
+            overflow-x: hidden;
+            overflow-y: auto;
 
             &::placeholder {
                 font-style: italic;
@@ -241,6 +263,18 @@ async function userFeedback(value, _collapse) {
                     color: $chatfaq-color-greyscale-500;
                 }
             }
+        }
+
+        [contenteditable][placeholder]:empty:before {
+            content: attr(placeholder);
+            color: rgba(2, 12, 28, 0.6);
+            background-color: transparent;
+            font-style: italic;
+            cursor: text;
+        }
+
+        .dark-mode[contenteditable][placeholder]:empty:before {
+            color: $chatfaq-color-primary-200;
         }
     }
 
@@ -276,6 +310,7 @@ async function userFeedback(value, _collapse) {
             display: flex;
             align-items: center;
             margin-bottom: 15px;
+            cursor: pointer;
 
             > span {
                 margin-left: 6px;

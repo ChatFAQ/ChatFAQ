@@ -1,20 +1,18 @@
 <template>
-    <div>
-        <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
-        <span class="reference-index" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
-    </div>
+    <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
+    <span class="reference-index" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
 </template>
 
 <script setup>
-import { marked } from "marked";
 import { useGlobalStore } from "~/store";
-const store = useGlobalStore();
+import { marked } from "marked";
 
+const store = useGlobalStore();
 const props = defineProps(["data"]);
 
 
 const markedDown = computed(() => {
-    let res = marked(props.data.payload.model_response);
+    let res = marked(props.data.payload);
     res = res.replace('<a href="', '<a target="_blank" href="')
     return res
 });
@@ -30,22 +28,19 @@ const markedDown = computed(() => {
     }
     p {
         margin: 0;
-    }
-    a {
-        color: $chatfaq-color-primary-500;
-        background: rgba(70, 48, 117, 0.1);
-        border-radius: 4px;
-        padding: 0px 6px 0px 6px;
-        text-decoration: none;
-    }
-    &.dark-mode {
+
         a {
-            background: $chatfaq-color-primary-900;
-            color: $chatfaq-color-primary-200;
+            color: $chatfaq-color-primary-500;
+            background: rgba(70, 48, 117, 0.1);
+            border-radius: 4px;
+            padding: 0px 6px 0px 6px;
+            text-decoration: none;
         }
     }
 }
 .reference-index {
+    position: relative;
+    top: -7px;
     margin-right: 2px;
     font-size: 8px;
     padding: 0px 3px 0px 3px;
@@ -58,4 +53,3 @@ const markedDown = computed(() => {
     }
 }
 </style>
-

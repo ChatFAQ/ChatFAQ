@@ -5,22 +5,30 @@
             <div class="references-title" :class="{ 'dark-mode': store.darkMode }">{{ $t('summarygeneratedfrom') }}
             </div>
             <div
-                v-if="collapsed"
-                class="collapsed-references purple-background"
+                class="collapsed-references-button purple-background"
                 @click="collapsed = !collapsed"
                 :class="{ 'dark-mode': store.darkMode }"
             >
-                +{{ references.length }} <span v-if="references.length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span>
+                <span v-if="collapsed">{{ references.length }} <span v-if="references.length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span></span>
+                <span v-else>Show Less</span>
+                <svg v-if="collapsed" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 7.33398L8 9.33398L6 7.33398" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 8.66602L8 6.66602L10 8.66602" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </div>
         </div>
         <div class="references" v-if="!collapsed">
             <div
                 class="reference purple-background"
-                v-for="ref in references"
+                v-for="(ref, index) in references"
                 :class="{
                     'dark-mode': store.darkMode
                 }">
-                    <a :href="ref.url" target="_blank">{{
+                    <a :href="ref.url" target="_blank">{{ index + 1 }}. {{
                         ref.intent ? ref.intent : ref.url
                     }}</a>
             </div>
@@ -56,13 +64,18 @@ const collapsed = ref(true);
         }
     }
 
-    .collapsed-references {
+    .collapsed-references-button {
         margin-left: 8px;
         color: $chatfaq-color-primary-500;
         cursor: pointer;
         font-size: 12px;
+        display: flex;
+        align-items: center;
         &.dark-mode {
             color: $chatfaq-color-primary-200;
+        }
+        svg {
+            margin-left: 4px;
         }
 
     }
