@@ -6,15 +6,18 @@
 </template>
 
 <script setup>
-import References from "~/components/chat/msgs/llm/References.vue";
 import { marked } from "marked";
-import {useGlobalStore} from "~/store";
+import { useGlobalStore } from "~/store";
+import References from "~/components/chat/msgs/llm/References.vue";
 const store = useGlobalStore();
 
 const props = defineProps(["data"]);
 
+
 const markedDown = computed(() => {
-    return marked(props.data.payload.model_response);
+    let res = marked(props.data.payload.model_response);
+    res = res.replace('<a href="', '<a target="_blank" href="')
+    return res
 });
 
 </script>
