@@ -54,17 +54,17 @@ def get_model(
         A Transformers Model, GGML Model (using CTransformers) or OpenAI Model depending on the repo_id.
     """
 
-    if ggml_model_filename is not None:  # Need to load the ggml model file
+    if repo_id.startswith("gpt-3.5") or repo_id.startswith("gpt-4"):
+        return OpenAIModel(
+            repo_id,
+            auth_token=auth_token,
+        )
+
+    elif ggml_model_filename is not None:  # Need to load the ggml model file
         return GGMLModel(
             repo_id,
             ggml_model_filename,
             model_config=model_config,
-        )
-    
-    elif repo_id.startswith("gpt-3.5") or repo_id.startswith("gpt-4"):
-        return OpenAIModel(
-            repo_id,
-            auth_token=auth_token,
         )
 
     else:
