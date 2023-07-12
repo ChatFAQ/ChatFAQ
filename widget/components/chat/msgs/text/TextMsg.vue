@@ -3,14 +3,17 @@
 </template>
 
 <script setup>
-import {useGlobalStore} from "~/store";
+import { useGlobalStore } from "~/store";
+import { marked } from "marked";
 
 const store = useGlobalStore();
 const props = defineProps(["data"]);
-import {marked} from "marked";
+
 
 const markedDown = computed(() => {
-    return marked(props.data.payload);
+    let res = marked(props.data.payload);
+    res = res.replace('<a href="', '<a target="_blank" href="')
+    return res
 });
 
 </script>

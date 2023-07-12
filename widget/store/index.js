@@ -97,10 +97,11 @@ export const useGlobalStore = defineStore('globalStore', {
             let last_stack_id = undefined
             for (let i = 0; i < this.flatStacks.length; i++) {
                 if (this.flatStacks[i].stack_id !== last_stack_id) {
-                    res.push([this.flatStacks[i]])
+                    res.push({ "layers": [ this.flatStacks[i] ], "references": this.flatStacks[i].payload.references || [] })
                     last_stack_id = this.flatStacks[i].stack_id
                 } else {
-                    res[res.length - 1].push(this.flatStacks[i])
+                    res[res.length - 1].layers.push(this.flatStacks[i])
+                    res[res.length - 1].references = res[res.length - 1].references.concat(this.flatStacks[i].payload.references || [])
                 }
             }
             return res
@@ -108,9 +109,9 @@ export const useGlobalStore = defineStore('globalStore', {
         waitingForResponse() {
             const gs = this.gropedStacks
             return !gs.length ||
-            (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'human') ||
-            (gs[gs.length - 1][gs[gs.length - 1].length - 1].sender.type === 'bot' &&
-            !gs[gs.length - 1][gs[gs.length - 1].length - 1].last)
+            (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'human') ||
+            (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'bot' &&
+            !gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].last)
         }
     }
 })
