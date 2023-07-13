@@ -6,7 +6,7 @@
 ChatFAQ's documentation
 ===================================
 
-ChatFAQ is an comprehensive platform for creating a wide variety of chatbots: generic ones, business-trained, or even capable of redirecting requests to human operators.
+ChatFAQ is an open-source comprehensive platform for creating a wide variety of chatbots: generic ones, business-trained, or even capable of redirecting requests to human operators.
 
 The system is comprised of three main components that you need to install:
 
