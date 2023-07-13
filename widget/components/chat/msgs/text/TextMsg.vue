@@ -5,15 +5,14 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
-import { marked } from "marked";
 
 const store = useGlobalStore();
 const props = defineProps(["data"]);
 
 
 const markedDown = computed(() => {
-    let res = marked(props.data.payload);
-    res = res.replace('<a href="', '<a target="_blank" href="')
+    const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
+    const res = props.data.payload.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
     return res
 });
 
