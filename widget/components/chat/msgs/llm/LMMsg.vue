@@ -6,17 +6,15 @@
 </template>
 
 <script setup>
-import { marked } from "marked";
 import { useGlobalStore } from "~/store";
 import References from "~/components/chat/msgs/llm/References.vue";
 const store = useGlobalStore();
 
 const props = defineProps(["data"]);
 
-
 const markedDown = computed(() => {
-    let res = marked(props.data.payload.model_response);
-    res = res.replace('<a href="', '<a target="_blank" href="')
+    const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
+    const res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
     return res
 });
 
