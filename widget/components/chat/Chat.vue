@@ -4,6 +4,7 @@
             <div class="stacks" v-for="(layers_data, index) in store.gropedStacks">
                 <ChatMsg
                     :layers="layers_data.layers"
+                    :references="layers_data.references"
                     :is-first-of-type="true"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
@@ -250,6 +251,7 @@ function isFirstOfType(msg, flatStack) {
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
     width: 100%;
+    word-wrap: break-word;
     border: 0;
     outline: 0;
     margin-left: 16px;

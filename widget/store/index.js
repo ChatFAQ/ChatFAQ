@@ -1,4 +1,18 @@
 import { defineStore } from 'pinia'
+function _indexLayerRefs(groupedStack) {
+    for (let i = 0; i < groupedStack.length; i++) {
+        // first remove the duplicates from the references (same url)
+        groupedStack[i].references = groupedStack[i].references.filter((v, i, a) => a.findIndex(t => (t.url === v.url)) === i)
+        // add the reference index to the layer index inside layerToReferences
+        let refs = groupedStack[i].references;
+        for (let j = 0; j < groupedStack[i].layers.length; j++) {
+            const layer = groupedStack[i].layers[j]
+            if (layer.payload.references) {
+                layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url)).filter(i => i !== -1)
+            }
+        }
+    }
+}
 export const useGlobalStore = defineStore('globalStore', {
     state: () => {
         return {
@@ -97,13 +111,14 @@ export const useGlobalStore = defineStore('globalStore', {
             let last_stack_id = undefined
             for (let i = 0; i < this.flatStacks.length; i++) {
                 if (this.flatStacks[i].stack_id !== last_stack_id) {
-                    res.push({ "layers": [ this.flatStacks[i] ], "references": this.flatStacks[i].payload.references || [] })
+                    res.push({ "layers": [ this.flatStacks[i] ], "references": this.flatStacks[i].payload.references || [], layerToReferences: {} })
                     last_stack_id = this.flatStacks[i].stack_id
                 } else {
                     res[res.length - 1].layers.push(this.flatStacks[i])
                     res[res.length - 1].references = res[res.length - 1].references.concat(this.flatStacks[i].payload.references || [])
                 }
             }
+            _indexLayerRefs(res)
             return res
         },
         waitingForResponse() {
