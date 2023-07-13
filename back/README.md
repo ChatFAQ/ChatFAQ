@@ -15,6 +15,10 @@ Make sure the next list of packages are installed on your system:
 
 ## Installation
 
+### Local build
+
+#### Set Up:
+
 Install project dependencies:
 
     poetry install
@@ -46,10 +50,9 @@ Create a superuser
 When creating the superuser, it will ask if it belongs to the RPC group; it is critical to answer "yes" (y) so that later you can create an RPC Server with this same user
 
 
-## Running
+#### Run
 
-
-First of all, create a `.env` file with the needed variables set. You can see an example of those on `.env_example` file. Next you can see the explanation of each variable:
+First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
 
 `DEBUG`: Set to "yes" to enable debug mode
 
@@ -67,6 +70,19 @@ Run the server
 
     make run
 
+### Docker
+
+Alternatively you can simply run the server using docker.
+
+#### Build
+
+    docker build -t chatfaq-back .
+
+#### Run
+
+    docker run -p 8000:8000 chatfaq-back
+
+
 ## Usage
 ### Useful Endpoints
 
@@ -77,3 +93,13 @@ Auth Token Generation: http://localhost:8000/back/api/login/
 Swagger Docs: http://localhost:8000/back/api/schema/swagger-ui/
 
 Redoc Docs: http://localhost:8000/back/api/schema/redoc/
+
+
+## Other useful info
+### Build the docs
+
+go inside the `doc` directory and run:
+
+```
+poetry run make html
+```

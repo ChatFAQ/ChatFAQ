@@ -1,6 +1,6 @@
 POETRY_RUN ?= poetry run
 
-PYTHON_BIN ?= $(PYTHON_BIN) run python
+PYTHON_BIN ?= $(POETRY_RUN) python
 
 format: isort black
 
