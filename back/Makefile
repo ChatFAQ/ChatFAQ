@@ -1,4 +1,6 @@
-PYTHON_BIN ?= poetry run python
+POETRY_RUN ?= poetry run
+
+PYTHON_BIN ?= $(PYTHON_BIN) run python
 
 format: isort black
 
@@ -9,25 +11,25 @@ isort:
 	$(PYTHON_BIN) -m isort .
 
 run:
-	./pmanage runserver 8000
+	$(POETRY_RUN) ./pmanage runserver 8000
 
 run_daphne:
 	$(PYTHON_BIN) daphne back.config.asgi:application
 
 spectacular:
-	./pmanage spectacular --file schema.yml
+	$(POETRY_RUN) ./pmanage spectacular --file schema.yml
 
 docs:
-	poetry run $(MAKE) -f doc/Makefile html
+	$(POETRY_RUN) $(MAKE) -f doc/Makefile html
 
 create_fixtures:
-	./pmanage dumpdata auth.group --indent 4 > back/apps/people/fixtures/initial.json
+	$(POETRY_RUN) ./pmanage dumpdata auth.group --indent 4 > back/apps/people/fixtures/initial.json
 
 apply_fixtures:
-	./pmanage loaddata back/apps/people/fixtures/initial.json --app auth.group
+	$(POETRY_RUN) ./pmanage loaddata back/apps/people/fixtures/initial.json --app auth.group
 
 celery_worker:
-	poetry run celery -A back.config worker -l INFO -P solo
+	$(POETRY_RUN) celery -A back.config worker -l INFO -P solo
 
 # create_fsm_fixtures:
 # 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > back/apps/fsm/fixtures/initial.json

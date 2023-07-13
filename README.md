@@ -4,7 +4,7 @@ ChatFAQ is an open-source comprehensive platform for creating a wide variety of 
 
 The solution comprises three main components although only one (the back-end) is required to be installed:
 
-- [Back-end](back/README.md): This is the core component, the orchestrator of ChatGPT. It manages client-to-messaging platform connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
+- [Back-end](back/README.md): This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages client-to-messaging platform connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
 
 
 - [SDK](back/README.md): For those chatbots with complex FSM behaviours, you will probably want to run them on a separate process, that is what for the SDK is made for. Its primary function is to execute the FSM's computations (transition's conditions and states) by running Remote Procedure Call (RPC) server that listen to the back-end requests.
