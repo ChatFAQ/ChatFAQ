@@ -9,6 +9,7 @@ function _indexLayerRefs(groupedStack) {
             const layer = groupedStack[i].layers[j]
             if (layer.payload.references) {
                 layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url)).filter(i => i !== -1)
+                layer.referenceIndexes = [...new Set(layer.referenceIndexes)];
             }
         }
     }
