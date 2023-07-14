@@ -66,6 +66,8 @@ This is just a dummy example that displays the basic usage of the library.
 
 We are going to build the next FSM:
 
+![fsm](../doc/source/_static/images/fsm_diagram.png)
+
 Import basic modules to build your first FMS:
 
 ```python
