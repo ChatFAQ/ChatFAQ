@@ -33,12 +33,14 @@ pgvector = "^0.1.7"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = { version = "^0.1.11", source = "test" }
+chatfaq-retrieval = { version = "^0.1.13", source = "test" }
 gevent = "^22.10.2"
 torch = [
     { version = "^2.0.1", source = "torch" },
 ]
 boto3 = "^1.26.161"
+djfernet = "^0.8.1"
+openai = "^0.27.8"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

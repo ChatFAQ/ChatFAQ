@@ -12,10 +12,6 @@ The `Retriever` is the main class for the information retrieval system. It takes
 
 # Chatbot
 
-## Prompt Generator
-
-The `PromptGenerator` is the main class for generating the prompts.
-
 
 ## Chatbot
 
