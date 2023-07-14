@@ -1,112 +1,187 @@
-import time
 from logging import getLogger
-from threading import Thread
+from typing import List
 
 import pandas as pd
-import torch
 
 from chatfaq_retrieval.inf_retrieval.retriever import Retriever
-from chatfaq_retrieval.prompt_generator.prompt_generator import PromptGenerator
-from transformers import T5Tokenizer, T5ForConditionalGeneration, TextIteratorStreamer
+from chatfaq_retrieval.models import GGMLModel, HFModel, OpenAIModel
 
 logger = getLogger(__name__)
 
 
 # RetrieverAnswerer('../data/interim/chanel.csv', "google/flan-t5-base", "title", "text")
 
+
+def get_model(
+    repo_id: str,
+    ggml_model_filename: str = None,
+    use_cpu: bool = False,
+    model_config: str = None,
+    auth_token: str = None,
+    load_in_8bit: bool = False,
+    use_fast_tokenizer: bool = True,
+    trust_remote_code_tokenizer: bool = False,
+    trust_remote_code_model: bool = False,
+    revision: str = "main",
+):
+    """
+    Returns an instance of the corresponding Answer Generator Model.
+    Parameters
+    ----------
+    repo_id: str
+        The model id, it could be a hugginface repo id, a ggml repo id, or an openai model id.
+    ggml_model_filename: str
+        The filename of the model to load if using a ggml model
+    use_cpu: bool
+        Whether to use cpu or gpu
+    model_config: str
+        The filename of the model config to load if using a ggml model
+    auth_token: str
+        An auth token to access models, it could be a huggingface token, openai token, etc.
+    load_in_8bit: bool
+        Whether to load the model in 8bit mode
+    use_fast_tokenizer: bool
+        Whether to use the fast tokenizer
+    trust_remote_code_tokenizer: bool
+        Whether to trust the remote code when loading the tokenizer
+    trust_remote_code_model: bool
+        Whether to trust the remote code when loading the model
+    revision: str
+        The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
+    Returns
+    -------
+    model:
+        A Transformers Model, GGML Model (using CTransformers) or OpenAI Model depending on the repo_id.
+    """
+
+    if repo_id.startswith("gpt-3.5") or repo_id.startswith("gpt-4"):
+        return OpenAIModel(
+            repo_id,
+            auth_token=auth_token,
+        )
+
+    elif ggml_model_filename is not None:  # Need to load the ggml model file
+        return GGMLModel(
+            repo_id,
+            ggml_model_filename,
+            model_config=model_config,
+        )
+
+    else:
+        return HFModel(
+            repo_id,
+            use_cpu=use_cpu,
+            auth_token=auth_token,
+            load_in_8bit=load_in_8bit,
+            use_fast_tokenizer=use_fast_tokenizer,
+            trust_remote_code_tokenizer=trust_remote_code_tokenizer,
+            trust_remote_code_model=trust_remote_code_model,
+            revision=revision,
+        )
+
+
 class RetrieverAnswerer:
-    RETRIEVER_MODEL = 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1'
+    RETRIEVER_MODEL = "intfloat/e5-small-v2"
     MAX_GPU_MEM = "18GiB"
-    MAX_CPU_MEM = '12GiB'
+    MAX_CPU_MEM = "12GiB"
     cached_tokenizers = {}
     cached_models = {}
 
-    def __init__(self, base_data: str, model_name: str, context_col: str, embedding_col: str, use_cpu: bool = False):
+    def __init__(
+        self,
+        base_data: str,
+        repo_id: str,
+        context_col: str,
+        embedding_col: str,
+        ggml_model_filename: str = None,
+        use_cpu: bool = False,
+        model_config: str = None,
+        auth_token: str = None,
+        load_in_8bit: bool = False,
+        use_fast_tokenizer: bool = True,
+        trust_remote_code_tokenizer: bool = False,
+        trust_remote_code_model: bool = False,
+        revision: str = "main",
+    ):
         self.use_cpu = use_cpu
         # --- Set Up Retriever ---
 
-        self.prompt_gen = PromptGenerator()
         self.retriever = Retriever(
             pd.read_csv(base_data),
             model_name=self.RETRIEVER_MODEL,
             context_col=context_col,
-            use_cpu=use_cpu
+            use_cpu=use_cpu,
         )
 
         self.retriever.build_embeddings(embedding_col=embedding_col)
 
-        # --- Set Up LLM ---
-        if model_name not in self.cached_tokenizers:
-            self.cached_tokenizers[model_name] = T5Tokenizer.from_pretrained(model_name)
-        self.tokenizer = self.cached_tokenizers[model_name]
-        self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
-
-        device_map = "auto" if (not self.use_cpu and torch.cuda.is_available()) else None # use gpu if available
-        memory_device = {'cpu': self.MAX_CPU_MEM}
-        dtype = torch.float32 # much faster for cpu, but consumes more memory
-        if not self.use_cpu and torch.cuda.is_available():
-            memory_device = {0: self.MAX_GPU_MEM}
-            dtype = torch.bfloat16
-
-        if model_name not in self.cached_models:
-            self.cached_models[model_name] = T5ForConditionalGeneration.from_pretrained(
-                model_name,
-                device_map=device_map,
-                torch_dtype=dtype,
-                max_memory=memory_device
+        if repo_id not in self.cached_models:
+            self.cached_models[repo_id] = get_model(
+                repo_id,
+                ggml_model_filename=ggml_model_filename,
+                use_cpu=use_cpu,
+                model_config=model_config,
+                auth_token=auth_token,
+                load_in_8bit=load_in_8bit,
+                use_fast_tokenizer=use_fast_tokenizer,
+                trust_remote_code_tokenizer=trust_remote_code_tokenizer,
+                trust_remote_code_model=trust_remote_code_model,
+                revision=revision,
             )
-        self.model = self.cached_models[model_name]
 
-        self._log_models_info()
+        self.model = self.cached_models[repo_id]
 
-    def query(self, text, seed=2, streaming=False):
-        torch.manual_seed(seed)
-
+    def stream(
+        self,
+        text,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict,
+        stop_words: List[str] = None,
+        lang: str = "en",
+    ):
         matches = self.retriever.get_top_matches(text, top_k=5)
         contexts = self.retriever.get_contexts(matches)
-        prompt, n_of_contexts = self.prompt_gen.create_prompt(text, contexts, lang='en1', max_length=512)
 
-        tokenizer_to = "cuda" if (not self.use_cpu and torch.cuda.is_available()) else 'cpu'
-
-        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(tokenizer_to)
-
-        generation_kwargs = dict(
-            input_ids=input_ids,
-            max_length=256,
-            do_sample=True,
-            top_k=50,
-            top_p=0.95,
-        )
-        if streaming:
-            generation_kwargs['streamer'] = self.streamer
-            thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
-            thread.start()
-            for new_text in self.streamer:
-                yield {
-                    "res": new_text,
-                    "context": [match[0] for match in matches[:n_of_contexts]]
-                }
-        else:
-            with torch.inference_mode():
-                start_time = time.perf_counter()
-                outputs = self.model.generate(**generation_kwargs)
-                end_time = time.perf_counter()
-                n_tokens = outputs.shape[1]
-                logger.debug(f"Time per token: {(end_time - start_time) / n_tokens * 1000:.2f} ms")
-            if tokenizer_to:
-                torch.cuda.empty_cache()
-
-            return {
-                "res": self.tokenizer.decode(outputs[0], skip_special_tokens=True),
-                "context": [match[0] for match in matches[:n_of_contexts]]
+        for new_text in self.model.stream(
+            text,
+            contexts,
+            prompt_structure_dict=prompt_structure_dict,
+            generation_config_dict=generation_config_dict,
+            lang=lang,
+            stop_words=stop_words,
+        ):
+            yield {
+                "res": new_text,
+                "context": [
+                    match[0]
+                    for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
+                ],
             }
 
-    def _log_models_info(self):
-        logger.debug(f"Mem needed: {self.retriever.model.get_memory_footprint() / 1024 / 1024:.2f} MB")
-        mb = self.retriever.embeddings.element_size() * self.retriever.embeddings.nelement() / 1024 / 1024
-        logger.debug(f"Embeddings size: {mb} MB")
+    def generate(
+        self,
+        text,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict,
+        stop_words: List[str] = None,
+        lang: str = "en",
+    ):
+        matches = self.retriever.get_top_matches(text, top_k=5)
+        contexts = self.retriever.get_contexts(matches)
 
-        # count number of parameters
-        num = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-        logger.debug(f'The model has {num / 1e9:.2f} billion trainable parameters')
-        logger.debug(f"Mem needed: {self.model.get_memory_footprint() / 1024 / 1024 / 1024:.2f} GB")
+        output_text = self.model.generate(
+            text,
+            contexts,
+            prompt_structure_dict=prompt_structure_dict,
+            generation_config_dict=generation_config_dict,
+            lang=lang,
+            stop_words=stop_words,
+        )
+
+        return {
+            "res": output_text,
+            "context": [
+                match[0]
+                for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
+            ],
+        }
