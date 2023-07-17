@@ -41,7 +41,7 @@ You can obtain this token by login into http://localhost:8000/back/api/login/ wi
 
 add repository to poetry config
 
-    poetry config repositories.chatfaq-sdk https://test.pypi.org/legacy/
+    poetry config repositories.chatfaq-cli https://test.pypi.org/legacy/
 
 get token from https://test.pypi.org/manage/account/token/
 
