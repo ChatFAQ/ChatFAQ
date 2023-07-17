@@ -47,6 +47,11 @@ class LLMCacheOnWorkerTask(Task):
 
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
+def recache_models(self):
+    self.CACHED_MODELS = self.preload_models()
+
+
+@app.task(bind=True, base=LLMCacheOnWorkerTask)
 def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     channel_layer = get_channel_layer()
 
