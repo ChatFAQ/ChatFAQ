@@ -2,15 +2,15 @@ import sys
 from urllib.parse import urljoin
 
 from rich import print
-from helpers import CONFIG_FILE_PATH, get_config
+from cli.helpers import CONFIG_FILE_PATH, get_config
 import typer
 import requests
-import config
-import conversations
-import datasets
-import models
-import senders
-import reviews
+from cli import config
+from cli import conversations
+from cli import datasets
+from cli import models
+from cli import senders
+from cli import reviews
 
 app = typer.Typer()
 app.add_typer(config.app, name="config")
@@ -78,6 +78,3 @@ def main(ctx: typer.Context):
         ctx.ensure_object(dict)
         ctx.obj["r"] = Requester(get_config()["token"])
 
-
-if __name__ == "__main__":
-    app()

@@ -4,7 +4,7 @@ import typer
 import json
 from rich import print
 from typing_extensions import Annotated
-from helpers import CONFIG_FILE_PATH, set_config
+from cli.helpers import CONFIG_FILE_PATH, set_config
 
 app = typer.Typer(help="Configuration commands")
 
