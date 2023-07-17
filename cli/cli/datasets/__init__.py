@@ -1,12 +1,13 @@
 import time
 from pathlib import Path
-from tqdm import tqdm
+
 import typer
 from rich import print
 from rich.console import Console
+from tqdm import tqdm
 from typing_extensions import Annotated
-from . import items
-from . import utterances
+
+from . import items, utterances
 
 app = typer.Typer(help="Datasets commands")
 app.add_typer(items.app, name="items", help="Dataset's items commands")
@@ -15,9 +16,13 @@ app.add_typer(utterances.app, name="utterances", help="Items's utterances comman
 
 @app.command(rich_help_panel="Datasets commands")
 def create(
-        ctx: typer.Context,
-        name: Annotated[str, typer.Argument(help="The name you wish to give to the dataset.")],
-        source: Annotated[str, typer.Argument(help="The path to the CSV, PDF or URL to upload.")]
+    ctx: typer.Context,
+    name: Annotated[
+        str, typer.Argument(help="The name you wish to give to the dataset.")
+    ],
+    source: Annotated[
+        str, typer.Argument(help="The path to the CSV, PDF or URL to upload.")
+    ],
 ):
     """
     Create a new dataset.
@@ -25,19 +30,20 @@ def create(
     for i in tqdm(range(100)):
         time.sleep(0.01)
     print(f"\n")
-    Console().print(f"Dataset \'{name}\' Created!", style="#52ad8d")
+    Console().print(f"Dataset '{name}' Created!", style="#52ad8d")
     print(f"\n")
     return
     res = ctx.parent.obj["r"].post(
         "language-model/datasets/",
         data={"name": name},
-        files={"original_file": open(source, "rb")})
+        files={"original_file": open(source, "rb")},
+    )
     print(res)
 
 
 @app.command(rich_help_panel="Datasets commands", name="list")
 def _list(
-        ctx: typer.Context,
+    ctx: typer.Context,
 ):
     """
     List all datasets.
@@ -47,8 +53,10 @@ def _list(
 
 @app.command(rich_help_panel="Datasets commands")
 def delete(
-        ctx: typer.Context,
-        id: Annotated[str, typer.Argument(help="The id of the dataset you wish to delete.")],
+    ctx: typer.Context,
+    id: Annotated[
+        str, typer.Argument(help="The id of the dataset you wish to delete.")
+    ],
 ):
     """
     Delete an existing dataset.
@@ -62,19 +70,25 @@ def delete(
 
 @app.command(rich_help_panel="Datasets commands")
 def download_csv(
-        ctx: typer.Context,
-        id: Annotated[str, typer.Argument(help="The id of the dataset you wish to download.")],
-        download_path: Annotated[str, typer.Option(help="The path where you want to download the file.")] = None,
+    ctx: typer.Context,
+    id: Annotated[
+        str, typer.Argument(help="The id of the dataset you wish to download.")
+    ],
+    download_path: Annotated[
+        str, typer.Option(help="The path where you want to download the file.")
+    ] = None,
 ):
     """
     Download the dataset as a CSV file.
     """
     print("Downloading...")
-    r = ctx.parent.obj["r"].get(f"language-model/datasets/{id}/download_csv", json=False)
-    filename = r.headers['content-disposition'].split("attachment; filename=")[1]
+    r = ctx.parent.obj["r"].get(
+        f"language-model/datasets/{id}/download_csv", json=False
+    )
+    filename = r.headers["content-disposition"].split("attachment; filename=")[1]
     if not download_path:
         download_path = str(Path.home() / "Downloads" / filename)
-    open(download_path, 'wb').write(r.content)
+    open(download_path, "wb").write(r.content)
     print(f"Downloaded into {download_path}")
 
 

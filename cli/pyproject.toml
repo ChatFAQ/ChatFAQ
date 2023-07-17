@@ -13,6 +13,10 @@ requests = "^2.30.0"
 tqdm = "^4.65.0"
 
 
+[tool.poetry.group.dev.dependencies]
+isort = "^5.12.0"
+black = "^23.7.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -1,7 +1,7 @@
 import json
-from os.path import exists
 from io import UnsupportedOperation
 from json import JSONDecodeError
+from os.path import exists
 from pathlib import Path
 
 CONFIG_FILE_PATH = f"{str(Path.home())}/.chatfaq-cli-config"

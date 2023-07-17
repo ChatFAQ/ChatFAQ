@@ -1,14 +1,11 @@
-from enum import Enum
-
-from typing_extensions import Annotated
 import time
-
-from tqdm import tqdm
-
-from rich.console import Console
+from enum import Enum
 
 import typer
 from rich import print
+from rich.console import Console
+from tqdm import tqdm
+from typing_extensions import Annotated
 
 app = typer.Typer(help="Model commands")
 
@@ -23,10 +20,16 @@ class Models(str, Enum):
 
 @app.command(rich_help_panel="Model commands")
 def create(
-        ctx: typer.Context,
-        name: Annotated[str, typer.Argument(help="The name you want to give to the model.")],
-        dataset: Annotated[str, typer.Argument(help="The name of the dataset associated with this model.")],
-        base_model: Annotated[Models, typer.Option(help="The base model to use.")] = Models.mpt,
+    ctx: typer.Context,
+    name: Annotated[
+        str, typer.Argument(help="The name you want to give to the model.")
+    ],
+    dataset: Annotated[
+        str, typer.Argument(help="The name of the dataset associated with this model.")
+    ],
+    base_model: Annotated[
+        Models, typer.Option(help="The base model to use.")
+    ] = Models.mpt,
 ):
     """
     Create a new model.
@@ -34,20 +37,20 @@ def create(
     for i in tqdm(range(300)):
         time.sleep(0.01)
     print(f"\n")
-    Console().print(f"Model \'{name}\' Deployed!", style="#52ad8d")
+    Console().print(f"Model '{name}' Deployed!", style="#52ad8d")
     print(f"\n")
     return
     res = ctx.parent.obj["r"].post(
         "language-model/models/",
-        data={"name": name, "dataset": dataset, "base_model": base_model}
+        data={"name": name, "dataset": dataset, "base_model": base_model},
     )
     print(res)
 
 
 @app.command(rich_help_panel="Model commands")
 def delete(
-        ctx: typer.Context,
-        id: Annotated[str, typer.Argument(help="The id of the model you want to delete.")],
+    ctx: typer.Context,
+    id: Annotated[str, typer.Argument(help="The id of the model you want to delete.")],
 ):
     """
     Delete an existing model.
@@ -58,7 +61,7 @@ def delete(
 
 @app.command(rich_help_panel="Model commands", name="list")
 def _list(
-        ctx: typer.Context,
+    ctx: typer.Context,
 ):
     """
     List all the models.

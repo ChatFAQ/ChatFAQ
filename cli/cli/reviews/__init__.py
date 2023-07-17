@@ -14,19 +14,30 @@ class ReviewValues(str, Enum):
 
 @app.command(rich_help_panel="Review commands")
 def create(
-        ctx: typer.Context,
-        message_id: Annotated[int, typer.Argument(help="The id of the message you are going to create the feedback to.")],
-        value: Annotated[ReviewValues, typer.Argument(help="The value of the feedback.")],
-        review: Annotated[str, typer.Argument(help="In case of a negative review, the correct answer it should have been")],
+    ctx: typer.Context,
+    message_id: Annotated[
+        int,
+        typer.Argument(
+            help="The id of the message you are going to create the feedback to."
+        ),
+    ],
+    value: Annotated[ReviewValues, typer.Argument(help="The value of the feedback.")],
+    review: Annotated[
+        str,
+        typer.Argument(
+            help="In case of a negative review, the correct answer it should have been"
+        ),
+    ],
 ):
     """
     Create a new review.
     """
-    print(ctx.parent.obj["r"].post("broker/admin-reviews/", data={
-        "message_id": message_id,
-        "value": value,
-        "review": review
-    }))
+    print(
+        ctx.parent.obj["r"].post(
+            "broker/admin-reviews/",
+            data={"message_id": message_id, "value": value, "review": review},
+        )
+    )
 
 
 @app.command(rich_help_panel="Review commands", name="list")
