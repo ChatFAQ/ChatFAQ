@@ -5,8 +5,8 @@ import requests
 import typer
 from rich import print
 
-from cli import config, conversations, datasets, models, reviews, senders
-from cli.helpers import CONFIG_FILE_PATH, get_config
+from chatfaq_cli import config, conversations, datasets, models, reviews, senders
+from chatfaq_cli.helpers import CONFIG_FILE_PATH, get_config
 
 app = typer.Typer()
 app.add_typer(config.app, name="config")

@@ -1,9 +1,13 @@
 [tool.poetry]
-name = "cli"
+name = "chatfaq_cli"
 version = "0.1.0"
 description = ""
 authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 readme = "README.md"
+
+packages = [
+    { include = "chatfaq_cli" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"

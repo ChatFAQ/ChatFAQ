@@ -34,3 +34,49 @@ You can obtain this token by login into http://localhost:8000/back/api/login/ wi
 ## Commands
 
 `chatfaq --help`
+
+### Publish package
+
+#### PYPI test
+
+add repository to poetry config
+
+    poetry config repositories.chatfaq-sdk https://test.pypi.org/legacy/
+
+get token from https://test.pypi.org/manage/account/token/
+
+store token using
+
+    poetry config pypi-token.chatfaq-cli pypi-YYYYYYYY
+
+#### PYPI production
+
+get token from https://pypi.org/manage/account/token/
+
+store token using
+
+    poetry config pypi-token.chatfaq-cli pypi-XXXXXXXX
+
+Each time you need to publish
+
+Bump version
+
+    poetry version prerelease
+
+or
+
+    poetry version patch
+
+#### Poetry Build
+
+    poetry build -r chatfaq-cli
+
+#### Poetry Publish
+
+To TestPyPi
+
+    poetry publish -r chatfaq-cli
+
+To PyPi
+
+    poetry publish

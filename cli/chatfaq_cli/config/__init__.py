@@ -5,7 +5,7 @@ import typer
 from rich import print
 from typing_extensions import Annotated
 
-from cli.helpers import CONFIG_FILE_PATH, set_config
+from chatfaq_cli.helpers import CONFIG_FILE_PATH, set_config
 
 app = typer.Typer(help="Configuration commands")
 
