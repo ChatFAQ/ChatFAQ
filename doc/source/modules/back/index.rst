@@ -78,6 +78,12 @@ Apply django migrations
 
     poetry run ./manage.py migrate
 
+Apply fixtures
+
+.. code-block:: console
+
+    poetry run make apply_fixtures
+
 Create a superuser
 
 .. code-block:: console
@@ -85,12 +91,6 @@ Create a superuser
     poetry run ./manage.py createsuperuser
 
 When creating the superuser, it will ask if it belongs to the RPC group; it is critical to answer "yes" (y) so that later you can create an RPC Server with this same user
-
-Apply fixtures
-
-.. code-block:: console
-
-    poetry run make apply_fixtures
 
 Run the server
 

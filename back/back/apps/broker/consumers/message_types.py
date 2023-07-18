@@ -8,3 +8,8 @@ class RPCMessageType(Enum):
     llm_request = "llm_request"
     llm_request_result = "llm_request_result"
     error = "error"
+
+
+class RPCNodeType(Enum):
+    action = "action"
+    condition = "condition"

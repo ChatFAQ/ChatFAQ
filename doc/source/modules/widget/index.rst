@@ -110,9 +110,9 @@ Web-Component
 
 .. code-block:: html
 
-    import { ChatfaqWidgetCustomElement } from "chatfaq-widget/dist/widget-loader.esm";
 
     <script>
+        import { ChatfaqWidgetCustomElement } from "chatfaq-widget/dist/widget-loader.esm";
 
         customElements.define("chatfaq-widget", ChatfaqWidgetCustomElement)
 

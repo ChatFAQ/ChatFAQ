@@ -2,6 +2,7 @@ import asyncio
 import time
 from logging import getLogger
 from typing import List, NamedTuple, Text, Union
+from back.apps.broker.models import ConsumerRoundRobinQueue
 
 from asgiref.sync import sync_to_async
 from channels.layers import get_channel_layer
@@ -129,11 +130,10 @@ class FSM:
         """
         if transition_data is None:
             transition_data = {}
-        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
-
-        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
         for event_name in self.current_state.events:
+            group_name = await sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
+
             self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
                 "type": "rpc_call",
@@ -147,12 +147,12 @@ class FSM:
                 },
             }
             await self.channel_layer.group_send(group_name, data)
-            logger.debug(f"Waiting for RCP call {event_name}...")
-            more = True
-            while more:
-                stacks, more = (await self.rpc_result_future)()
-                await self.ctx.send_response(await self.save_bot_mml(stacks))
-            logger.debug(f"...Receive RCP call {event_name}")
+            logger.debug(f"Waiting for RCP call {event_name} (action)...")
+            last = False
+            while not last:
+                stack, stack_id, last = (await self.rpc_result_future)()
+                await self.ctx.send_response(await self.save_bot_mml(stack, stack_id, last))
+            logger.debug(f"...Receive RCP call {event_name} (action)")
 
     def get_initial_state(self):
         for state in self.states:
@@ -206,9 +206,8 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+        group_name = await sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
-        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
         data = {
             "type": "rpc_call",
             "status": WSStatusCodes.ok.value,
@@ -216,9 +215,9 @@ class FSM:
         }
         await self.channel_layer.group_send(group_name, data)
         self.rpc_result_future = asyncio.get_event_loop().create_future()
-        logger.debug(f"Waiting for RCP call {condition_name}...")
+        logger.debug(f"Waiting for RCP call {condition_name} (condition)...")
         payload = await self.rpc_result_future
-        logger.debug(f"...Receive RCP call {condition_name}")
+        logger.debug(f"...Receive RCP call {condition_name} (condition)")
         return payload["score"], payload["data"]
 
     async def save_cache(self):
@@ -226,7 +225,7 @@ class FSM:
 
         await sync_to_async(CachedFSM.update_or_create)(self)
 
-    async def save_bot_mml(self, stacks):
+    async def save_bot_mml(self, stack, stack_id, last):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         data = {
@@ -234,7 +233,9 @@ class FSM:
                 "type": AgentType.bot.value,
             },
             "confidence": 1,
-            "stacks": stacks,
+            "stack": stack,
+            "stack_id": stack_id,
+            "last": last,
             "conversation": self.ctx.conversation.pk,
             "send_time": int(time.time() * 1000),
         }

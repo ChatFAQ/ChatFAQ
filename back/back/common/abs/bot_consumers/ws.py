@@ -58,7 +58,19 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
                 },
             )
             return
-
+        """
+        if not self.fsm.rpc_result_future.done():
+            # TODO: Is this possible on the http consumer?
+            await self.channel_layer.group_send(
+                self.get_group_name(),
+                {
+                    "type": "response",
+                    "status": WSStatusCodes.bad_request.value,
+                    "payload": "Wait for the previous menssage to be processed",
+                },
+            )
+            return
+        """
         # It seems like django does not support transactions on async code
         # The commented code seems right but it is not: it blocks the save()
         # methods inside from the RPCResponseConsumer

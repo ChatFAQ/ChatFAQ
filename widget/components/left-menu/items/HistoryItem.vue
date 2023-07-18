@@ -7,7 +7,7 @@
     >
         <Checkbox v-model="selected"/>
         <input v-if="!editing" disabled class="item-name disabled conversation-loader" rows="1" :value="name"/>
-        <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name"  @keyup.enter="submit" />
+        <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name" @keyup.enter="submit"/>
 
         <div class="edit-controls" v-if="!editing">
             <i class="edit" @click="edit"/>
@@ -20,9 +20,9 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue';
+import { ref, watch } from 'vue';
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
-import {useGlobalStore} from "~/store";
+import { useGlobalStore } from "~/store";
 import Checkbox from "~/components/generic/Checkbox.vue";
 
 const store = useGlobalStore();
@@ -41,6 +41,7 @@ function edit() {
         itemTitleEdit.value.selectionStart = itemTitleEdit.value.value.length;
     })
 }
+
 async function submit() {
     editing.value = false
     if (itemTitleEdit.value.value !== originalValue) {
@@ -48,9 +49,22 @@ async function submit() {
     }
 }
 
+
+let counter = 0;
+let timer = undefined;
 function openConversation(ev) {
-    if(ev.target.classList.contains("conversation-loader")) {
-        store.openConversation(props.platformConversationId)
+    if (ev.target.classList.contains("conversation-loader")) {
+        counter++;
+        if (counter === 1) {
+            timer = setTimeout(() => {
+                counter = 0;
+                store.openConversation(props.platformConversationId)
+            }, 200);
+            return;
+        }
+        clearTimeout(timer);
+        counter = 0;
+        edit();
     }
 }
 
@@ -60,7 +74,7 @@ watch(selected, (newVal) => {
     else
         store.selectedConversations.splice(store.selectedConversations.indexOf(props.conversationId), 1);
 })
-defineExpose({selected})
+defineExpose({ selected })
 
 function timestampToSentence(isoString) {
     return (new Date(isoString)).toString().split(" GMT")[0]
@@ -79,6 +93,7 @@ function timestampToSentence(isoString) {
     &.open {
         background-color: $chatfaq-color-primary-900;
     }
+
     &:hover, &.editing {
         background-color: $chatfaq-color-primary-900;
 
@@ -90,7 +105,6 @@ function timestampToSentence(isoString) {
     .edit-controls {
         display: flex;
         margin-left: auto;
-        margin-right: auto;
 
         .check-icon {
             content: $chatfaq-check-icon;
@@ -101,9 +115,10 @@ function timestampToSentence(isoString) {
             content: $chatfaq-close-icon;
         }
     }
+
     .item-name {
         min-width: 30px;
-        max-width: 120px;
+        max-width: 155px;
         background-color: unset;
         color: white;
         border: unset;
@@ -118,9 +133,12 @@ function timestampToSentence(isoString) {
         text-align: left;
         border: 1px solid transparent;
         text-overflow: ellipsis;
+
         &.disabled {
             cursor: pointer;
+            pointer-events: none;
         }
+
         &.edit {
             border: 1px solid $chatfaq-color-tertiary-blue-500;
             text-overflow: unset;

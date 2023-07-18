@@ -243,3 +243,5 @@ sw.*
 # zsh autoenv
 .in
 .out
+
+back/models/

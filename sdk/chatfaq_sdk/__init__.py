@@ -1,3 +1,5 @@
+import uuid
+
 import asyncio
 import copy
 import inspect
@@ -9,8 +11,8 @@ from typing import Callable, Optional, Union
 
 import websockets
 from chatfaq_sdk import settings
-from chatfaq_sdk.api.messages import MessageType
-from chatfaq_sdk.conditions import Result
+from chatfaq_sdk.api.messages import MessageType, RPCNodeType
+from chatfaq_sdk.conditions import Condition
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
 
@@ -94,14 +96,14 @@ class ChatFAQSDK:
 
         await asyncio.gather(
             self.consumer(
-                "rpc", rpc_actions, on_connect=self.on_connect_rpc, is_rpc=True
+                "rpc", on_connect=self.on_connect_rpc, is_rpc=True
             ),
-            self.consumer("llm", llm_actions, on_connect=None),
+            self.consumer("llm", on_connect=None),
             self.producer(rpc_actions, is_rpc=True),
             self.producer(llm_actions),
         )
 
-    async def consumer(self, consumer_route, actions, on_connect=None, is_rpc=False):
+    async def consumer(self, consumer_route, on_connect=None, is_rpc=False):
         uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
         if is_rpc and self.fsm_name is not None and self.fsm_def is None:
             uri = f"{uri}{self.fsm_name}/"
@@ -163,8 +165,6 @@ class ChatFAQSDK:
                 continue
 
             if actions.get(data.get("type")) is not None:
-                print(f"Action: {data.get('type')}")
-                # await actions[data.get("type")](data["payload"])
                 asyncio.create_task(actions[data.get("type")](data["payload"]))
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
@@ -204,15 +204,19 @@ class ChatFAQSDK:
 
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
-        for handler in self.rpcs[payload["name"]]:
-            async for res in self._run_handler(handler, payload["ctx"]):
+        for handler_index, handler in enumerate(self.rpcs[payload["name"]]):
+            stack_id = str(uuid.uuid4())
+            async for res, last_from_handler, node_type in self._run_handler(handler, payload["ctx"]):
                 await self.ws_rpc.send(
                     json.dumps(
                         {
                             "type": MessageType.rpc_result.value,
                             "data": {
                                 "ctx": payload["ctx"],
-                                "payload": [res],
+                                "node_type": node_type,
+                                "stack_id": stack_id,
+                                "stack": res,
+                                "last": handler_index == len(self.rpcs[payload["name"]]) - 1 and last_from_handler,
                             },
                         }
                     )
@@ -292,19 +296,27 @@ class ChatFAQSDK:
     async def _run_handler(self, handler, data):
         layers = handler(data)
         if inspect.isgenerator(layers):
-            for layer in layers:
-                async for _repr in self._layer_to_dict(layer, data):
-                    yield _repr
-        else:
-            async for _repr in self._layer_to_dict(layers, data):
-                yield _repr
+            is_last = False
+            layer = next(layers)
+            while not is_last:
+                try:
+                    _layer = next(layers)
+                except StopIteration:
+                    is_last = True
 
-    async def _layer_to_dict(self, layer, data):
-        if False and not isinstance(layer, Layer) and not isinstance(layer, Result):
+                async for results in self._layer_results(layer, data):
+                    yield [results[0], results[1] and is_last, results[2]]
+                layer = _layer
+        else:
+            async for results in self._layer_results(layers, data):
+                yield results
+
+    async def _layer_results(self, layer, data):
+        if not isinstance(layer, Layer) and not isinstance(layer, Condition):
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        _repr = layer.dict_repr(self, data)
+        results = layer.result(self, data)
         # check if is generator
-        async for r in _repr:
-            yield r
+        async for r in results:
+            yield r + [RPCNodeType.action.value if isinstance(layer, Layer) else RPCNodeType.condition.value]

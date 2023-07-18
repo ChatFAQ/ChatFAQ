@@ -50,9 +50,6 @@ const historyItems = ref(null)
 
 const store = useGlobalStore();
 
-await store.gatherConversations()
-
-
 watch(() => store.deleting, (newVal) => {
     if (newVal && !store.selectedConversations.length) {
         historyItems.value.forEach(el => el.selected = true)
@@ -113,7 +110,7 @@ $history-width: 220px;
 
         .menu-item {
             display: flex;
-            padding: 10px 4px !important;
+            padding: 10px 8px !important;
         }
     }
 
@@ -171,7 +168,7 @@ $history-width: 220px;
         @media only screen and (max-width: $phone-breakpoint) {
             position: absolute;
             left: $history-width;
-            margin-left: 20px;
+            margin-left: 60px;
             margin-top: 30px;
             cursor: pointer;
             border-radius: 32px;

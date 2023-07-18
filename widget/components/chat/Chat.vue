@@ -1,40 +1,45 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <ChatMsg
-                v-for="data in flatStacks"
-                :is-last-of-type="isLastOfType(data, flatStacks)"
-                :is-first-of-type="isFirstOfType(data, flatStacks)"
-                :is-first="!flatStacks.indexOf(data)"
-                :is-last="flatStacks.indexOf(data) === flatStacks.length -1"
-                :data="data"
-            ></ChatMsg>
-            <LoaderMsg
-                v-if="!flatStacks.length ||
-                isLastOfType(flatStacks[flatStacks.length - 1], flatStacks) &&
-                flatStacks[flatStacks.length - 1].sender.type === 'human'"
-            ></LoaderMsg>
+            <div class="stacks" v-for="(layers_data, index) in store.gropedStacks">
+                <ChatMsg
+                    :layers="layers_data.layers"
+                    :references="layers_data.references"
+                    :is-first-of-type="true"
+                    :is-first="index === 0"
+                    :is-last="index === store.gropedStacks.length - 1"
+                ></ChatMsg>
+            </div>
+            <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
-        <div class="feedback-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">{{ $t("feedbacksent") }}</div>
+        <div class="alert-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">
+            {{ $t("feedbacksent") }}
+        </div>
+        <div class="alert-message"
+             :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
+            {{ $t("connectingtoserver") }}
+        </div>
         <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
             <div
                 :placeholder="$t('writeaquestionhere')"
                 class="chat-prompt"
                 :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
                 ref="chatInput"
-                @keyup.enter="sendMessage"
-                @keypress.enter.prevent
+                @keydown="(ev) => manageEnterInput(ev, sendMessage)"
                 contenteditable
                 oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
+                @paste="managePaste"
             />
-            <i class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent}" @click="sendMessage"></i>
+            <i class="chat-send-button"
+               :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}"
+               @click="sendMessage"></i>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, computed, watch, nextTick} from "vue";
+import {ref, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 
@@ -50,6 +55,12 @@ let ws = undefined
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+
+function managePaste(ev) {
+    ev.preventDefault()
+    const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
+    ev.target.innerHTML = text
+}
 
 function scrollConversationDown() {
     nextTick(() => {
@@ -81,52 +92,52 @@ function createConnection() {
     ws.onmessage = async function (e) {
         if (!store.messages.length) // First message, update list of conversations
             await store.gatherConversations()
-
-        store.messages.push(JSON.parse(e.data));
+        const msg = JSON.parse(e.data);
+        if (msg.status === 400) {
+            console.error(`Error in message from WS: ${msg.payload}`)
+            return
+        }
+        store.messages.push(msg);
         store.scrollToBottom += 1;
+    };
+    ws.onopen = function (e) {
+        store.disconnected = false;
+    };
+    const plConversationId = store.selectedPlConversationId
+    ws.onclose = function (e) {
+        if (plConversationId !== store.selectedPlConversationId)
+            return;
+        store.disconnected = true;
+        setTimeout(function () {
+            createConnection();
+        }, 1000);
     };
 }
 
 store.createNewConversation()
 
-const flatStacks = computed(() => {
-    const res = [];
-    const _messages = JSON.parse(JSON.stringify(store.messages));
-    let last_lm_msg_payload = {}
-    for (let i = 0; i < _messages.length; i++) {
-        for (let j = 0; j < _messages[i].stacks.length; j++) {
-            for (let k = 0; k < _messages[i].stacks[j].length; k++) {
-                const data = _messages[i].stacks[j][k];
-                if (data.type === "lm_generated_text") {
-                    if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
-                        last_lm_msg_payload.model_response += data.payload.model_response
-                        last_lm_msg_payload.references = data.payload.references
-                    } else {
-                        last_lm_msg_payload = data.payload
-                        res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
-                    }
-                } else {
-                    res.push({...data, "sender": _messages[i]["sender"], "id": _messages[i]["id"]});
-                }
-            }
-        }
+function manageEnterInput(ev, cb) {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+        ev.preventDefault()
+        cb();
     }
-    return res;
-});
+};
 
-function sendMessage(ev) {
+function sendMessage() {
     const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length)
+    if (!promptValue.length || store.waitingForResponse)
         return;
     const m = {
         "sender": {
             "type": "human",
             "platform": "WS",
         },
-        "stacks": [[{
+        "stack": [{
             "type": "text",
             "payload": promptValue,
-        }]],
+        }],
+        "stack_id": "0",
+        "last": true,
     };
     if (store.userId !== undefined)
         m["sender"]["id"] = store.userId
@@ -188,19 +199,39 @@ function isFirstOfType(msg, flatStack) {
     }
 }
 
-.feedback-message {
+.alert-message {
     margin-bottom: -16px;
     text-align: center;
     color: $chatfaq-color-greyscale-800;
-    .fade-out {
-        animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-        transform: translate3d(0, 0, 0);
-    }
+
     &.dark-mode {
         color: $chatfaq-color-primary-200;
     }
 }
+
+
+.pulsating {
+    animation-duration: 2s;
+    animation-name: pulsating;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+@keyframes pulsating {
+    0% {
+        opacity: 100%;
+    }
+    50% {
+        opacity: 30%;
+    }
+    100% {
+        opacity: 100%;
+    }
+}
+
 .fade-out {
+    animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    transform: translate3d(0, 0, 0);
     visibility: hidden;
     opacity: 0;
     transition: visibility 0s 2s, opacity 2s linear;
@@ -212,6 +243,7 @@ function isFirstOfType(msg, flatStack) {
     overflow-x: hidden;
 
     @include scroll-style();
+
     &.dark-mode {
         @include scroll-style(white);
     }
@@ -219,11 +251,13 @@ function isFirstOfType(msg, flatStack) {
 
 .chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
     width: 100%;
+    word-wrap: break-word;
     border: 0;
     outline: 0;
     margin-left: 16px;
     background-color: $chatfaq-color-primary-300;
     @include scroll-style();
+
     &.dark-mode {
         @include scroll-style(white);
     }
@@ -237,9 +271,11 @@ function isFirstOfType(msg, flatStack) {
     font-style: italic;
     cursor: text;
 }
+
 .dark-mode[contenteditable][placeholder]:empty:before {
     color: $chatfaq-color-primary-200;
 }
+
 .chat-prompt {
     font: $chatfaq-font-caption-md;
     font-style: normal;
@@ -280,6 +316,7 @@ function isFirstOfType(msg, flatStack) {
     &.dark-mode {
         content: $chatfaq-send-dark-icon;
     }
+
     &.active {
         opacity: 1;
     }

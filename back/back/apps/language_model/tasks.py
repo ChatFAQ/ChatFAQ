@@ -1,16 +1,17 @@
 import uuid
 from logging import getLogger
 
-import requests
 from asgiref.sync import async_to_sync
-from bs4 import BeautifulSoup
 from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
 
 from back.apps.language_model.models import Model
+from back.apps.language_model.models import PromptStructure
+from back.apps.language_model.models import GenerationConfig
 from back.config.celery import app
 from back.utils import is_celery_worker
+from django.forms.models import model_to_dict
 
 logger = getLogger(__name__)
 
@@ -28,25 +29,26 @@ class LLMCacheOnWorkerTask(Task):
         for m in Model.objects.all():
             logger.info(f"Loading models {m.name}")
             cache[str(m.pk)] = RetrieverAnswerer(
-                m.dataset.original_file.file,
-                m.base_model,
-                "answer",
-                "intent",
-                use_cpu=True,
+                base_data=m.dataset.original_file.file,
+                repo_id=m.repo_id,
+                context_col="answer",
+                embedding_col="intent",
+                ggml_model_filename=m.ggml_model_filename,
+                use_cpu=False,
+                model_config=m.model_config,
+                auth_token=m.auth_token,
+                load_in_8bit=m.load_in_8bit,
+                trust_remote_code_tokenizer=m.trust_remote_code_tokenizer,
+                trust_remote_code_model=m.trust_remote_code_model,
+                revision=m.revision,
             )
             logger.info("...model loaded.")
         return cache
 
-    @staticmethod
-    def postprocess_context(context):
-        for c in context:
-            c["role"] = None
-            if c.get("url"):
-                soup = BeautifulSoup(requests.get(c["url"]).text)
-                c["url_title"] = soup.title.get_text()
-                icon_link = soup.find("link", rel="shortcut icon")
-                icon_link = icon_link if icon_link else soup.find("link", rel="icon")
-                c["url_icon"] = icon_link["href"]
+
+@app.task(bind=True, base=LLMCacheOnWorkerTask)
+def recache_models(self):
+    self.CACHED_MODELS = self.preload_models()
 
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
@@ -54,19 +56,66 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     channel_layer = get_channel_layer()
 
     lm_msg_id = str(uuid.uuid4())
-    context = []
     msg_template = {
         "bot_channel_name": bot_channel_name,
         "lm_msg_id": lm_msg_id,
-        "context": context,
+        "context": None,
         "final": False,
         "res": "",
     }
-    for res in self.CACHED_MODELS[str(model_id)].query(input_text, streaming=True):
-        if not res["res"]:
-            continue
-        if not context:
-            [context.append(c) for c in res["context"]]
+    model = self.CACHED_MODELS[str(model_id)]
+    # get the prompt structure corresponding to the model using the foreign key
+    prompt_structure = PromptStructure.objects.filter(model=model_id).first()
+    generation_config = GenerationConfig.objects.filter(model=model_id).first()
+    prompt_structure = model_to_dict(prompt_structure)
+    generation_config = model_to_dict(generation_config)
+
+    # remove the id and model fields from the prompt structure and generation config
+    prompt_structure.pop("id")
+    prompt_structure.pop("model")
+    generation_config.pop("id")
+    generation_config.pop("model")
+
+    # remove the tags and end tokens from the stop words
+    stop_words = [prompt_structure["user_tag"], prompt_structure["assistant_tag"], prompt_structure["user_end"], prompt_structure["assistant_end"]]
+
+    # remove empty stop words
+    stop_words = [word for word in stop_words if word]
+
+    streaming = True
+
+    if streaming:
+        for res in model.stream(
+            input_text,
+            prompt_structure_dict=prompt_structure,
+            generation_config_dict=generation_config,
+            stop_words=stop_words,
+            lang=Model.objects.get(pk=model_id).dataset.lang,
+        ):
+            if not res["res"]:
+                continue
+            if not msg_template["context"]:
+                msg_template["context"] = res["context"]
+            msg_template["res"] = res["res"]
+
+            async_to_sync(channel_layer.send)(
+                chanel_name,
+                {
+                    "type": "send_llm_response",
+                    "message": msg_template,
+                },
+            )
+    else:
+        res = model.generate(
+            input_text,
+            prompt_structure_dict=prompt_structure,
+            generation_config_dict=generation_config,
+            stop_words=stop_words,
+            lang=Model.objects.get(pk=model_id).dataset.lang,
+        )
+
+        if not msg_template["context"]:
+            msg_template["context"] = res["context"]
         msg_template["res"] = res["res"]
 
         async_to_sync(channel_layer.send)(
@@ -79,7 +128,7 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
 
     msg_template["res"] = ""
     msg_template["final"] = True
-    self.postprocess_context(msg_template["context"])
+
     async_to_sync(channel_layer.send)(
         chanel_name,
         {

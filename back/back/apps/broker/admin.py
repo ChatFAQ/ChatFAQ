@@ -1,10 +1,11 @@
 from django.contrib import admin
 
 from .models.message import Message, UserFeedback
+from .models import ConsumerRoundRobinQueue
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ["sender_type", "conversation", "stacks", "created_date"]
+    list_display = ["sender_type", "conversation", "stack", "created_date"]
 
     def payload_text(self, obj):
         return obj.payload["text"]
@@ -19,3 +20,4 @@ class UserFeedbackAdmin(admin.ModelAdmin):
 
 admin.site.register(Message, MessageAdmin)
 admin.site.register(UserFeedback, UserFeedbackAdmin)
+admin.site.register(ConsumerRoundRobinQueue)

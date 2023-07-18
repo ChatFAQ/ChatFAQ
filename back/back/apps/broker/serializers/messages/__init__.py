@@ -102,8 +102,7 @@ class TextPayload(serializers.Serializer):
 
 class Reference(serializers.Serializer):
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    url_title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    url_icon = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    intent = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class LMGeneratedTextPayload(serializers.Serializer):
@@ -195,9 +194,9 @@ class MessageStackSerializer(serializers.Serializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    stacks = serializers.ListField(
-        child=serializers.ListField(child=MessageStackSerializer())
-    )
+    stack = serializers.ListField(child=MessageStackSerializer())
+    stack_id = serializers.CharField(required=False, max_length=255)
+    last = serializers.BooleanField(default=False)
     sender = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()

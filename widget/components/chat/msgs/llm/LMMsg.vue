@@ -1,66 +1,59 @@
 <template>
-    <div class="msg"
-         :class="{
-        [props.data.sender.type]: true,
-        'is-last-of-type': props.isLastOfType,
-        'dark-mode': store.darkMode,
-        'maximized': store.maximized,
-        'feedbacking': props.feedbacking,
-    }">
-        {{ props.data.payload.model_response }}
-        <References :references="props.data.payload.references"></References>
+    <div>
+        <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
+        <span class="reference-index" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
     </div>
 </template>
 
 <script setup>
-import {useGlobalStore} from "~/store";
-import References from "~/components/chat/msgs/llm/References.vue";
-
-const props = defineProps(["data", "isLastOfType", "feedbacking"]);
+import { useGlobalStore } from "~/store";
 const store = useGlobalStore();
 
+const props = defineProps(["data"]);
+
+const markedDown = computed(() => {
+    const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
+    const res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
+    return res
+});
 
 </script>
-<style scoped lang="scss">
-@import "../../../../assets/styles/variables";
+<style lang="scss">
+@import "assets/styles/variables";
 
-.msg {
-    border-radius: 6px;
-    padding: 9px 15px 9px 15px;
-    word-wrap: break-word;
-
-    &.bot {
-        background-color: $chatfaq-color-primary-300;
-        color: $chatfaq-color-neutral-black;
-
-        &.dark-mode {
-            background-color: $chatfaq-color-primary-800;
-            color: $chatfaq-color-neutral-white;
-        }
-
-        &.is-last-of-type {
-            border-radius: 6px 6px 6px 0px;
+.marked-down-content {
+    display: inline;
+    * {
+        display: inline;
+    }
+    p {
+        margin: 0;
+    }
+    a {
+        color: $chatfaq-color-primary-500;
+        background: rgba(70, 48, 117, 0.1);
+        border-radius: 4px;
+        padding: 0px 6px 0px 6px;
+        text-decoration: none;
+    }
+    &.dark-mode {
+        a {
+            background: $chatfaq-color-primary-900;
+            color: $chatfaq-color-primary-200;
         }
     }
-
-    &.human {
-        border: none;
-        background-color: $chatfaq-color-primary-500;
-        color: $chatfaq-color-neutral-white;
-
-        &.dark-mode {
-            background-color: $chatfaq-color-primary-900;
-            color: $chatfaq-color-neutral-white;
-        }
-
-        &.is-last-of-type {
-            border-radius: 6px 6px 0px 6px;
-        }
-    }
-
-    &.feedbacking {
-        border-radius: 6px 6px 0px 0px !important;
-        min-width: 100%;
+}
+.reference-index {
+    margin-right: 2px;
+    font-size: 8px;
+    padding: 0px 3px 0px 3px;
+    border-radius: 2px;
+    color: $chatfaq-color-primary-500;
+    background: rgba(70, 48, 117, 0.1);
+    &.dark-mode {
+        background: $chatfaq-color-primary-900;
+        color: $chatfaq-color-primary-200;
     }
 }
 </style>
+

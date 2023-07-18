@@ -1,4 +1,4 @@
-import itertools
+from logging import getLogger
 from enum import Enum
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -6,6 +6,9 @@ from django.db import models
 from django.db.models import Q
 
 from back.common.models import ChangesMixin
+
+
+logger = getLogger(__name__)
 
 
 class Satisfaction(Enum):
@@ -123,7 +126,7 @@ class Message(ChangesMixin):
         The minimal confidence the user would accept from the bot (required when sender = human)
     meta: JSONField
         any extra info out of the bot domain the agen considers to put in
-    stacks: list
+    stack: list
         contains the payload of the message itself.
         * text str:
             Plain text
@@ -143,6 +146,10 @@ class Message(ChangesMixin):
             In case the response is an indexed item on a database (as such the answer of a FAQ)
         * satisfaction str:
             For the user to express its satisfaction to the given bot’s answer
+    stack_id: str
+        The id of the stack to which this message belongs to. This is used to group stacks
+    last: bool
+        Whether this message is the last one of the stack_id
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -159,7 +166,9 @@ class Message(ChangesMixin):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     meta = models.JSONField(null=True)
-    stacks = models.JSONField(null=True)
+    stack = models.JSONField(null=True)
+    stack_id = models.CharField(max_length=255, null=True)
+    last = models.BooleanField(default=False)
 
     def cycle_fsm(self):
         pass
@@ -174,8 +183,17 @@ class Message(ChangesMixin):
         return chain
 
     def to_text(self):
-        stacks_text = "\n".join([s["payload"] for s in itertools.chain(*self.stacks)])
-        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stacks_text}"
+        stack_text = ""
+        for layer in self.stack:
+            if layer["type"] == StackPayloadType.text.value:
+                stack_text += layer["payload"] + "\n"
+            elif layer["type"] == StackPayloadType.lm_generated_text.value:
+                if layer["payload"]["model_response"]:
+                    stack_text += layer["payload"]["model_response"]
+            else:
+                logger.error(f"Unknown stack payload type to export as csv: {layer['type']}")
+
+        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stack_text}"
 
     def save(self, *args, **kwargs):
         self.prev = self.conversation.get_last_mml()
