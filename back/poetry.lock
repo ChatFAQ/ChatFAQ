@@ -2,13 +2,13 @@
 
 [[package]]
 name = "accelerate"
-version = "0.19.0"
+version = "0.21.0"
 description = "Accelerate"
 optional = false
-python-versions = ">=3.7.0"
+python-versions = ">=3.8.0"
 files = [
-    {file = "accelerate-0.19.0-py3-none-any.whl", hash = "sha256:2866b0bf9fff08f51e6384c95fa96725838b70f1988d1cce42e56b820d8a91dd"},
-    {file = "accelerate-0.19.0.tar.gz", hash = "sha256:84920226b9e642e453ef37593ee55b956b08d8200dea4087c546c34e26157e76"},
+    {file = "accelerate-0.21.0-py3-none-any.whl", hash = "sha256:e2609d37f2c6a56e36a0612feae6ff6d9daac9759f4899432b86b1dc97024ebb"},
+    {file = "accelerate-0.21.0.tar.gz", hash = "sha256:e2959a0bf74d97c0b3c0e036ed96065142a060242281d27970d4c4e34f11ca59"},
 ]
 
 [package.dependencies]
@@ -16,7 +16,7 @@ numpy = ">=1.17"
 packaging = ">=20.0"
 psutil = "*"
 pyyaml = "*"
-torch = ">=1.6.0"
+torch = ">=1.10.0"
 
 [package.extras]
 dev = ["black (>=23.1,<24.0)", "datasets", "deepspeed", "evaluate", "hf-doc-builder (>=0.3.0)", "parameterized", "pytest", "pytest-subtests", "pytest-xdist", "rich", "ruff (>=0.0.241)", "scikit-learn", "scipy", "tqdm", "transformers", "urllib3 (<2.0.0)"]
@@ -805,17 +805,17 @@ files = [
 
 [[package]]
 name = "chatfaq-retrieval"
-version = "0.1.14"
+version = "0.1.15"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chatfaq_retrieval-0.1.14-py3-none-any.whl", hash = "sha256:98a2134ce2325595dc585d61be24d742de8b45de3e358426b65e4314f0c86c65"},
-    {file = "chatfaq_retrieval-0.1.14.tar.gz", hash = "sha256:3ee66503d5aecd965ad15ad04e88a2cdaa34ec8753733688a599d2c8f0d173e4"},
+    {file = "chatfaq_retrieval-0.1.15-py3-none-any.whl", hash = "sha256:afde4fde9b378ce36edd25e6694efc9a3e88912d3ddc46ac4335b1b754adf6e2"},
+    {file = "chatfaq_retrieval-0.1.15.tar.gz", hash = "sha256:824f685e178636dbfbcba66a05ba223f430299b12678c37f9e4f972fc5db103b"},
 ]
 
 [package.dependencies]
-accelerate = ">=0.19.0,<0.20.0"
+accelerate = ">=0.21.0,<0.22.0"
 ctransformers = ">=0.2.10,<0.3.0"
 einops = ">=0.6.1,<0.7.0"
 numpy = "1.23.5"
@@ -4764,4 +4764,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "1b0dfa7b4a1f4e694077d9d5c5c2a2fdab10bb13495104402865c9748455066a"
+content-hash = "87c31a6a10e7e8f7f625b15320a8bb24a8a5506bffb1bcb70afedbc83d75e7e9"
