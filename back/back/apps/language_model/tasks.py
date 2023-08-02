@@ -46,7 +46,7 @@ class LLMCacheOnWorkerTask(Task):
         return cache
 
 
-@app.task(bind=True, base=LLMCacheOnWorkerTask)
+@app.task(bind=True, ignore_result=True, base=LLMCacheOnWorkerTask)
 def recache_models(self):
     self.CACHED_MODELS = self.preload_models()
 

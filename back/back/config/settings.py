@@ -182,3 +182,11 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
     }
     # Celery
     CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"
+    # from kombu.common import Broadcast
+    # CELERY_QUEUES = (Broadcast('broadcast_tasks'),)
+    # CELERY_ROUTES = {
+    #     'back.apps.language_model.tasks.recache_models': {
+    #         'queue': 'broadcast_tasks',
+    #         'exchange': 'broadcast_tasks'
+    #     },
+    # }
