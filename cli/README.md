@@ -69,7 +69,7 @@ or
 
 #### Poetry Build
 
-    poetry build -r chatfaq-cli
+    poetry build
 
 #### Poetry Publish
 
