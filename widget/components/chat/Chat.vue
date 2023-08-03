@@ -90,8 +90,6 @@ function createConnection() {
         + (store.userId ? `${store.userId}/` : "")
     );
     ws.onmessage = async function (e) {
-        if (!store.messages.length) // First message, update list of conversations
-            await store.gatherConversations()
         const msg = JSON.parse(e.data);
         if (msg.status === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
@@ -99,6 +97,8 @@ function createConnection() {
         }
         store.messages.push(msg);
         store.scrollToBottom += 1;
+        if (store.messages.length === 1) // First message, update list of conversations
+            await store.gatherConversations()
     };
     ws.onopen = function (e) {
         store.disconnected = false;
