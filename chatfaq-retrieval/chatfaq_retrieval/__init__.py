@@ -81,7 +81,7 @@ def get_model(
 
 
 class RetrieverAnswerer:
-    RETRIEVER_MODEL = "intfloat/e5-small-v2"
+    RETRIEVER_MODEL = "with-madrid/with-e5-small-v2"
     MAX_GPU_MEM = "18GiB"
     MAX_CPU_MEM = "12GiB"
     cached_tokenizers = {}

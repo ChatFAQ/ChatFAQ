@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq-retrieval"
-version = "0.1.13"
+version = "0.1.15"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
@@ -13,7 +13,6 @@ pandas = "1.4.4"
 transformers = "^4.29.2"
 sentence-transformers = "^2.2.2"
 pyarrow = "^12.0.0"
-accelerate = "^0.19.0"
 python-dotenv = "^0.21.0"
 torch = [
     { version = "^2.0.1", source = "torch" },
@@ -22,6 +21,7 @@ ctransformers = "^0.2.10"
 tqdm = "^4.65.0"
 einops = "^0.6.1"
 openai = "^0.27.8"
+accelerate = "^0.21.0"
 
 [build-system]
 requires = ["poetry-core"]
