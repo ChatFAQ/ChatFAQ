@@ -17,7 +17,7 @@ Make sure the next list of packages are installed on your system:
 
 ### PYPI
 
-`poetry add chatfaq-cli`
+`pip install chatfaq-cli`
 
 ## Usage
 
@@ -69,7 +69,7 @@ or
 
 #### Poetry Build
 
-    poetry build -r chatfaq-cli
+    poetry build
 
 #### Poetry Publish
 

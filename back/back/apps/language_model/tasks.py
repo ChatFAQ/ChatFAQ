@@ -6,6 +6,7 @@ from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
 
+from back.apps.broker.models.message import Conversation
 from back.apps.language_model.models import Model
 from back.apps.language_model.models import PromptStructure
 from back.apps.language_model.models import GenerationConfig
@@ -46,19 +47,18 @@ class LLMCacheOnWorkerTask(Task):
         return cache
 
 
-@app.task(bind=True, base=LLMCacheOnWorkerTask)
+@app.task(bind=True, ignore_result=True, base=LLMCacheOnWorkerTask)
 def recache_models(self):
     self.CACHED_MODELS = self.preload_models()
 
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
-def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
+def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name):
     channel_layer = get_channel_layer()
 
-    lm_msg_id = str(uuid.uuid4())
     msg_template = {
         "bot_channel_name": bot_channel_name,
-        "lm_msg_id": lm_msg_id,
+        "lm_msg_id": str(uuid.uuid4()),
         "context": None,
         "final": False,
         "res": "",
@@ -82,8 +82,10 @@ def llm_query_task(self, chanel_name, model_id, input_text, bot_channel_name):
     # remove empty stop words
     stop_words = [word for word in stop_words if word]
 
-    streaming = True
+    # # Gatherings all the previous messages from the conversation
+    # prev_messages = Conversation.objects.get(pk=conversation_id).get_mml_chain()
 
+    streaming = True
     if streaming:
         for res in model.stream(
             input_text,

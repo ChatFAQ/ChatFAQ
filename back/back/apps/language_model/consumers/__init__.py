@@ -60,6 +60,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             self.channel_name,
             data["model_id"],
             data["input_text"],
+            data["conversation_id"],
             data["bot_channel_name"],
         )
 

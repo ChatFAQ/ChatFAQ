@@ -67,7 +67,7 @@ class LMGeneratedText(Layer):
     async def build_payloads(self, ctx, data):
         logger.debug(f"Waiting for LLM...")
         await ctx.send_llm_request(
-            self.model_id, self.input_text, data["bot_channel_name"]
+            self.model_id, self.input_text, data["conversation_id"], data["bot_channel_name"]
         )
 
         logger.debug(f"...Receive LLM res")
