@@ -41,6 +41,9 @@ torch = [
 boto3 = "^1.26.161"
 djfernet = "^0.8.1"
 openai = "^0.27.8"
+scrapy = "^2.10.0"
+scrapy-playwright = "^0.0.28"
+undetected-playwright = "^0.1.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
