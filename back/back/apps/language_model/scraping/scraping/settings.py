@@ -11,8 +11,8 @@
 
 BOT_NAME = 'scraping'
 
-SPIDER_MODULES = ['scraping.spiders']
-NEWSPIDER_MODULE = 'scraping.spiders'
+SPIDER_MODULES = ['back.apps.language_model.scraping.scraping.spiders']
+NEWSPIDER_MODULE = 'back.apps.language_model.scraping.scraping.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -27,7 +27,7 @@ ROBOTSTXT_OBEY = False
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -65,7 +65,7 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'scraping.pipelines.GenericPipeline': 300,
+    'back.apps.language_model.scraping.scraping.pipelines.GenericPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -92,13 +92,13 @@ ITEM_PIPELINES = {
 LOG_LEVEL = 'INFO'
 
 # Playwright
+# Because we are running it from Celery it seems the reactor is not compatible with Celery, disable Playwright ftm
+# TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
 
-TWISTED_REACTOR = 'twisted.internet.asyncioreactor.AsyncioSelectorReactor'
-
-DOWNLOAD_HANDLERS = {
-    "http": "scraping.middlewares.ScrapyCustomPlaywrightDownloadHandler",
-    "https": "scraping.middlewares.ScrapyCustomPlaywrightDownloadHandler",
-}
+# DOWNLOAD_HANDLERS = {
+#     "http": "back.apps.language_model.scraping.scraping.middlewares.ScrapyCustomPlaywrightDownloadHandler",
+#     "https": "back.apps.language_model.scraping.scraping.middlewares.ScrapyCustomPlaywrightDownloadHandler",
+# }
 
 PLAYWRIGHT_BROWSER_TYPE = "firefox"
 PLAYWRIGHT_LAUNCH_OPTIONS = {

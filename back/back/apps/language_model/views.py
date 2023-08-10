@@ -1,15 +1,16 @@
 import csv
 
 from django.http import HttpResponse
-from rest_framework import generics, viewsets
+from django.http import JsonResponse
+from rest_framework import viewsets
 from rest_framework.decorators import action
-
+from .tasks import initiate_crawl
 from .models import Dataset, Item, Model, Utterance
 from .serializers import (
     DatasetSerializer,
     ItemSerializer,
     ModelSerializer,
-    UtteranceSerializer,
+    UtteranceSerializer, DatasetFromUrlSerializer,
 )
 
 
@@ -20,19 +21,7 @@ class DatasetAPIViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         super().perform_create(serializer)
         ds = Dataset.objects.get(pk=serializer.data["id"])
-        decoded_file = ds.original_file.read().decode("utf-8").splitlines()
-        reader = csv.DictReader(decoded_file)
-
-        for row in reader:
-            item = Item(
-                dataset=ds,
-                intent=row["intent"],
-                answer=row["answer"],
-                url=row["url"],
-                context=row.get("context"),
-                role=row.get("role"),
-            )
-            item.save()
+        ds.update_items_from_file()
 
     @action(detail=True)
     def download_csv(self, request, *args, **kwargs):
@@ -40,18 +29,25 @@ class DatasetAPIViewSet(viewsets.ModelViewSet):
         A view to download all the dataset's items as a csv file:
         """
         ds = Dataset.objects.get(pk=kwargs["pk"])
-        items = Item.objects.filter(dataset=ds)
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = "attachment; filename={}".format(
+        response["Content-Disposition"] = 'attachment; filename={}'.format(
             ds.name + ".csv"
         )
-        writer = csv.writer(response)
-        writer.writerow(["intent", "answer", "url", "context", "role"])
-        for item in items:
-            writer.writerow(
-                [item.intent, item.answer, item.url, item.context, item.role]
-            )
+        response.write(ds.to_csv())
         return response
+
+    @action(methods=("POST", ), detail=False, serializer_class=DatasetFromUrlSerializer)
+    def create_from_url(self, request, *args, **kwargs):
+        """
+        A view to download all the dataset's items as a csv file:
+        """
+        s = DatasetFromUrlSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+        url = s.validated_data["url"]
+        del s.validated_data["url"]
+        ds = s.save()
+        initiate_crawl.delay(ds.id, url)
+        return JsonResponse(DatasetSerializer(ds).data, status=201)
 
 
 class ItemAPIViewSet(viewsets.ModelViewSet):

@@ -1,10 +1,7 @@
-import time
 from pathlib import Path
 
 import typer
 from rich import print
-from rich.console import Console
-from tqdm import tqdm
 from typing_extensions import Annotated
 
 from . import items, utterances
@@ -27,12 +24,6 @@ def create(
     """
     Create a new dataset.
     """
-    for i in tqdm(range(100)):
-        time.sleep(0.01)
-    print(f"\n")
-    Console().print(f"Dataset '{name}' Created!", style="#52ad8d")
-    print(f"\n")
-    return
     res = ctx.parent.obj["r"].post(
         "language-model/datasets/",
         data={"name": name},
@@ -90,6 +81,23 @@ def download_csv(
         download_path = str(Path.home() / "Downloads" / filename)
     open(download_path, "wb").write(r.content)
     print(f"Downloaded into {download_path}")
+
+
+@app.command(rich_help_panel="Datasets commands")
+def create_from_url(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="The name of the dataset to be created.")],
+    language: Annotated[str, typer.Argument(help="The language of the dataset to be created.")],
+    url: Annotated[str, typer.Argument(help="The url to scrape and download the dataset from.")],
+):
+    """
+    Download the dataset as a CSV file.
+    """
+    print("Downloading...")
+    r = ctx.parent.obj["r"].post(
+        f"language-model/datasets/create_from_url", data={"name": name, "language": language, "url": url}
+    )
+    print(r)
 
 
 if __name__ == "__main__":

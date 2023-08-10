@@ -1,14 +1,16 @@
 import scrapy
 from urllib.parse import urlparse
 
+from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
+
 
 class GenericSpider(scrapy.Spider):
     name = "generic"
     allowed_domains = []
     start_urls = []
 
-    def __init__(self, start_urls='', name='', *a, **kw):
-        self.dataset_name = name
+    def __init__(self, start_urls='', dataset_id='', *a, **kw):
+        self.dataset_id = dataset_id
         self.start_urls = start_urls.split(',')
         for url in self.start_urls:
             self.allowed_domains.append(urlparse(url).netloc)
@@ -21,10 +23,14 @@ class GenericSpider(scrapy.Spider):
             yield scrapy.Request(url, meta={"playwright": True})
 
     def parse(self, response):
+
         texts = response.xpath("//body//text()").getall()
         texts = [text.strip(" \n") for text in texts if text.strip(" \n") != '']
         for text in texts:
-            yield {"text": text, "url": response.url}
+            item_loader = CustomItemLoader(item=GenericItem())
+            item_loader.add_value("text", text)
+            item_loader.add_value("url", response.url)
+            yield item_loader.load_item()
 
         return
         for link in response.xpath("//a"):

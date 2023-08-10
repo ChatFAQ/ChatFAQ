@@ -27,6 +27,14 @@ class DatasetSerializer(serializers.ModelSerializer):
         return data
 
 
+class DatasetFromUrlSerializer(DatasetSerializer):
+    url = serializers.URLField()
+
+    class Meta:
+        model = Dataset
+        fields = ["name", "lang", "url"]
+
+
 class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item

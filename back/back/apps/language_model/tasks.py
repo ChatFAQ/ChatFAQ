@@ -1,18 +1,20 @@
 import uuid
+from io import StringIO
 from logging import getLogger
-
+from twisted.internet import reactor
 from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
-
-from back.apps.broker.models.message import Conversation
+from scrapy.utils.project import get_project_settings
 from back.apps.language_model.models import Model
 from back.apps.language_model.models import PromptStructure
 from back.apps.language_model.models import GenerationConfig
 from back.config.celery import app
 from back.utils import is_celery_worker
 from django.forms.models import model_to_dict
+from scrapy.crawler import CrawlerRunner
+from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider
 
 logger = getLogger(__name__)
 
@@ -30,7 +32,7 @@ class LLMCacheOnWorkerTask(Task):
         for m in Model.objects.all():
             logger.info(f"Loading models {m.name}")
             cache[str(m.pk)] = RetrieverAnswerer(
-                base_data=m.dataset.original_file.file,
+                base_data=StringIO(m.dataset.to_csv()),
                 repo_id=m.repo_id,
                 context_col="answer",
                 embedding_col="intent",
@@ -138,3 +140,12 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
             "message": msg_template,
         },
     )
+
+
+@app.task()
+def initiate_crawl(dataset_id, url):
+    runner = CrawlerRunner(get_project_settings())
+    d = runner.crawl(GenericSpider, start_urls=url, dataset_id=dataset_id)
+    d.addBoth(lambda _: reactor.stop())
+    reactor.run()
+

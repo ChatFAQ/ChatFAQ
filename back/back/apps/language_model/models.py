@@ -1,3 +1,5 @@
+import csv
+from io import StringIO
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -24,8 +26,49 @@ class Dataset(models.Model):
         ("fr", "French"),
     )
     name = models.CharField(max_length=100)
-    original_file = models.FileField()
+    original_file = models.FileField(blank=True, null=True)
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
+
+    def update_items_from_file(self):
+        decoded_file = self.original_file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(decoded_file)
+
+        new_items = []
+        for row in reader:
+            item = Item(
+                dataset=self,
+                intent=row["intent"],
+                answer=row["answer"],
+                url=row["url"],
+                context=row.get("context"),
+                role=row.get("role"),
+            )
+            new_items.append(item)
+
+        # Delete all items from this dataset:
+        Item.objects.filter(dataset=self).delete()
+        # Bulk create the new items:
+        Item.objects.bulk_create(new_items)
+
+    def to_csv(self):
+        items = Item.objects.filter(dataset=self)
+        f = StringIO()
+        writer = csv.DictWriter(f, fieldnames=["intent", "answer", "url", "context", "role"],)
+        writer.writeheader()
+        for item in items:
+            writer.writerow(
+                {
+                    "intent": item.intent,
+                    "answer": item.answer,
+                    "url": item.url,
+                    "context": item.context,
+                    "role": item.role,
+                }
+            )
+        return f.getvalue()
+
+    def __str__(self):
+        return self.name or "Dataset {}".format(self.id)
 
 
 class Item(ChangesMixin):
@@ -49,10 +92,10 @@ class Item(ChangesMixin):
     """
 
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    intent = models.TextField()
+    intent = models.TextField(blank=True, null=True)
     answer = models.TextField()
     url = models.URLField()
-    context = models.TextField()
+    context = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
     embedding = ArrayField(models.FloatField(), blank=True, null=True)
 
@@ -183,4 +226,4 @@ class GenerationConfig(models.Model):
     seed = models.IntegerField(default=42)
     max_new_tokens = models.IntegerField(default=256)
     model = models.ForeignKey(Model, on_delete=models.PROTECT)
-    
+
