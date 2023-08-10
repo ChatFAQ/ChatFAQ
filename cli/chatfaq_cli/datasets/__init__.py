@@ -95,7 +95,7 @@ def create_from_url(
     """
     print("Downloading...")
     r = ctx.parent.obj["r"].post(
-        f"language-model/datasets/create_from_url", data={"name": name, "language": language, "url": url}
+        f"language-model/datasets/create_from_url/", data={"name": name, "language": language, "url": url}
     )
     print(r)
 

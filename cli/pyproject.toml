@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq_cli"
-version = "0.1.4"
+version = "0.1.6"
 description = ""
 authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 readme = "README.md"
