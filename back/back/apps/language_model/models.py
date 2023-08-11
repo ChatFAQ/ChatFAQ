@@ -81,8 +81,9 @@ class Dataset(models.Model):
             _update_items_from_file = True
         super().save(*args, **kw)
         if _update_items_from_file:
-            self.update_items_from_file()
-            recache_models.delay()
+            if self.original_file:
+                self.update_items_from_file()
+                recache_models.delay()
 
 
 class Item(ChangesMixin):
