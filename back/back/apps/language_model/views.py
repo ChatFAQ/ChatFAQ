@@ -18,11 +18,6 @@ class DatasetAPIViewSet(viewsets.ModelViewSet):
     queryset = Dataset.objects.all()
     serializer_class = DatasetSerializer
 
-    def perform_create(self, serializer):
-        super().perform_create(serializer)
-        ds = Dataset.objects.get(pk=serializer.data["id"])
-        ds.update_items_from_file()
-
     @action(detail=True)
     def download_csv(self, request, *args, **kwargs):
         """

@@ -2,6 +2,7 @@ import scrapy
 from urllib.parse import urlparse
 
 from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
+from back.apps.language_model.tasks import recache_models
 
 
 class GenericSpider(scrapy.Spider):
@@ -35,3 +36,6 @@ class GenericSpider(scrapy.Spider):
         return
         for link in response.xpath("//a"):
             yield response.follow(link, callback=self.parse, meta={"playwright": True})
+
+    def spider_closed(self, spider):
+        recache_models.delay()

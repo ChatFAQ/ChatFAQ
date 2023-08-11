@@ -7,14 +7,11 @@ from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
 from scrapy.utils.project import get_project_settings
-from back.apps.language_model.models import Model
-from back.apps.language_model.models import PromptStructure
-from back.apps.language_model.models import GenerationConfig
+from django.apps import apps
 from back.config.celery import app
 from back.utils import is_celery_worker
 from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
-from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider
 
 logger = getLogger(__name__)
 
@@ -28,6 +25,7 @@ class LLMCacheOnWorkerTask(Task):
     @staticmethod
     def preload_models():
         logger.info("Preloading models...")
+        Model = apps.get_model('language_model', 'Model')
         cache = {}
         for m in Model.objects.all():
             logger.info(f"Loading models {m.name}")
@@ -56,6 +54,9 @@ def recache_models(self):
 
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
 def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name):
+    Model = apps.get_model('language_model', 'Model')
+    PromptStructure = apps.get_model('language_model', 'PromptStructure')
+    GenerationConfig = apps.get_model('language_model', 'GenerationConfig')
     channel_layer = get_channel_layer()
 
     msg_template = {
@@ -144,6 +145,7 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
 
 @app.task()
 def initiate_crawl(dataset_id, url):
+    from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
     runner = CrawlerRunner(get_project_settings())
     d = runner.crawl(GenericSpider, start_urls=url, dataset_id=dataset_id)
     d.addBoth(lambda _: reactor.stop())

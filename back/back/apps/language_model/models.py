@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from back.apps.language_model.tasks import recache_models
 
 from back.common.models import ChangesMixin
 
@@ -69,6 +70,19 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name or "Dataset {}".format(self.id)
+
+    def save(self, *args, **kw):
+        _update_items_from_file = False
+        if self.pk is not None:
+            orig = Dataset.objects.get(pk=self.pk)
+            if orig.original_file != self.original_file:
+                _update_items_from_file = True
+        else:
+            _update_items_from_file = True
+        super().save(*args, **kw)
+        if _update_items_from_file:
+            self.update_items_from_file()
+            recache_models.delay()
 
 
 class Item(ChangesMixin):
