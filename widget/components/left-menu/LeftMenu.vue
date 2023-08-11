@@ -45,6 +45,7 @@ import LightMode from "~/components/left-menu/items/LightMode.vue";
 import DownloadHistory from "~/components/left-menu/items/DownloadHistory.vue";
 import DeleteHistory from "~/components/left-menu/items/DeleteHistory.vue";
 import Footer from "~/components/left-menu/items/Footer.vue";
+import {ref, watch} from "vue";
 
 const historyItems = ref(null)
 

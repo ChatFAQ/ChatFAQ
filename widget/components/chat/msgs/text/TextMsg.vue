@@ -5,6 +5,7 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
+import {computed} from "vue";
 
 const store = useGlobalStore();
 const props = defineProps(["data"]);

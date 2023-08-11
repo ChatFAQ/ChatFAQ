@@ -51,6 +51,7 @@ import UserFeedback from "~/components/chat/UserFeedback.vue";
 import TextMsg from "~/components/chat/msgs/text/TextMsg.vue";
 import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
 import References from "~/components/chat/msgs/llm/References.vue";
+import {ref} from "vue";
 
 const props = defineProps(["layers", "references", "isFirstOfType", "isLast", "isFirst"]);
 const store = useGlobalStore();

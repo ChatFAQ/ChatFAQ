@@ -42,7 +42,7 @@
 
 
 <script setup>
-import {defineEmits} from 'vue';
+import {ref, watch, defineEmits} from "vue";
 
 const props = defineProps(["modelValue", "dark", "notReactive"]);
 const emit = defineEmits(['update:modelValue'])

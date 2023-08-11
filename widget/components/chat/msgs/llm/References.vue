@@ -39,6 +39,7 @@
 <script setup>
 
 import { useGlobalStore } from "~/store";
+import {ref} from "vue";
 
 const props = defineProps(["references"]);
 const store = useGlobalStore();
