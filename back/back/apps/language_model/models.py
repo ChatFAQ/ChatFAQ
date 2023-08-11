@@ -113,6 +113,9 @@ class Item(ChangesMixin):
     role = models.CharField(max_length=255, blank=True, null=True)
     embedding = ArrayField(models.FloatField(), blank=True, null=True)
 
+    def __str__(self):
+        return f"{self.answer} ds ({self.dataset.pk})"
+
 
 class Utterance(models.Model):
     """
