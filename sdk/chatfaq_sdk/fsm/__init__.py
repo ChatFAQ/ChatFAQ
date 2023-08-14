@@ -15,8 +15,7 @@ class FSMDefinition:
     def __init__(
         self,
         states: List[State] = [],
-        transitions: List[Transition] = [],
-        pre_load_models: List[int] = [],
+        transitions: List[Transition] = []
     ):
         """
 
@@ -26,13 +25,9 @@ class FSMDefinition:
             All the states conforming the FSM
         transitions: list of Transition
             All the transitions conforming the FSM
-        pre_load_models: list of int
-            List of models to be pre-loaded during the FSM initialization, instead of loading them on the fly right when
-            the LMGeneratedText layer is called
         """
         self.states = states
         self.transitions = transitions
-        self.pre_load_models = pre_load_models
 
     def register_rpcs(self, chatfaq_sdk: ChatFAQSDK):
         for state in self.states:
