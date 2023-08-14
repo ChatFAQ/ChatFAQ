@@ -31,7 +31,6 @@ class ChatFAQSDK:
 
     def __init__(
         self,
-        chatfaq_retrieval_http: str,
         chatfaq_ws: str,
         token: str,
         fsm_name: Optional[Union[int, str]],
@@ -40,9 +39,6 @@ class ChatFAQSDK:
         """
         Parameters
         ----------
-        chatfaq_retrieval_http: str
-            The HTTP address of your ChatFAQ's back-end server
-
         chatfaq_ws: str
             The WS address of your ChatFAQ's back-end server
 
@@ -59,7 +55,6 @@ class ChatFAQSDK:
         """
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
-        self.chatfaq_retrieval_http = chatfaq_retrieval_http
         self.chatfaq_ws = chatfaq_ws
         self.token = token
         self.fsm_name = fsm_name
