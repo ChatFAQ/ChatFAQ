@@ -84,170 +84,175 @@ $history-width-mobile: 260px;
 $phone-breakpoint: 600px;
 $widget-margin: 16px;
 
-.dark-filter {
-    display: none;
+.chatfaq-widget {
+    position: sticky;
+    bottom: 0px;
 
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(2, 12, 28, 0.7);
-    z-index: 1;
-    @media only screen and (max-width: $phone-breakpoint) {
-        display: unset;
-    }
-}
+    .dark-filter {
+        display: none;
 
-.widget-history {
-    background: $chatfaq-color-gradient-purple;
-    width: $history-width;
-    height: 580px;
-
-    @media only screen and (max-width: $phone-breakpoint) {
-        width: $history-width-mobile;
-        border-right: 1px solid $chatfaq-color-neutral-purple;
-    }
-    &.maximized {
-        height: 85vh;
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(2, 12, 28, 0.7);
+        z-index: 1;
+        @media only screen and (max-width: $phone-breakpoint) {
+            display: unset;
+        }
     }
 
-    border-radius: 10px 0px 0px 10px;
-    border-top: 1px solid $chatfaq-color-neutral-purple;
-    border-left: 1px solid $chatfaq-color-neutral-purple;
-    border-bottom: 1px solid $chatfaq-color-neutral-purple;
-}
+    .widget-history {
+        background: $chatfaq-color-gradient-purple;
+        width: $history-width;
+        height: 580px;
 
-.widget-wrapper {
-    position: absolute;
-    display: flex;
-    align-items: stretch;
-    flex-flow: row;
-    bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
-    right: 0px;
-    margin: $widget-margin;
-
-    .widget-body {
+        @media only screen and (max-width: $phone-breakpoint) {
+            width: $history-width-mobile;
+            border-right: 1px solid $chatfaq-color-neutral-purple;
+        }
         &.maximized {
-            @media only screen and (min-width: $phone-breakpoint) {
-                width: calc(100vw - $history-width - $widget-margin * 2);
-                height: 85vh;
-            }
-            &.history-closed {
+            height: 85vh;
+        }
+
+        border-radius: 10px 0px 0px 10px;
+        border-top: 1px solid $chatfaq-color-neutral-purple;
+        border-left: 1px solid $chatfaq-color-neutral-purple;
+        border-bottom: 1px solid $chatfaq-color-neutral-purple;
+    }
+
+    .widget-wrapper {
+        position: absolute;
+        display: flex;
+        align-items: stretch;
+        flex-flow: row;
+        bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
+        right: 0px;
+        margin: $widget-margin;
+
+        .widget-body {
+            &.maximized {
                 @media only screen and (min-width: $phone-breakpoint) {
-                    width: calc(100vw - $widget-margin * 2);
+                    width: calc(100vw - $history-width - $widget-margin * 2);
+                    height: 85vh;
                 }
+                &.history-closed {
+                    @media only screen and (min-width: $phone-breakpoint) {
+                        width: calc(100vw - $widget-margin * 2);
+                    }
+                }
+            }
+
+            display: flex;
+            width: 400px;
+            height: 580px;
+            align-items: stretch;
+            flex-flow: column;
+            @media only screen and (max-width: $phone-breakpoint) {
+                width: 100%;
+                height: 100%;
             }
         }
 
-        display: flex;
-        width: 400px;
-        height: 580px;
-        align-items: stretch;
-        flex-flow: column;
         @media only screen and (max-width: $phone-breakpoint) {
             width: 100%;
             height: 100%;
+            margin: 0px;
+            bottom: 0px;
         }
     }
 
-    @media only screen and (max-width: $phone-breakpoint) {
-        width: 100%;
-        height: 100%;
-        margin: 0px;
-        bottom: 0px;
-    }
-}
 
+    .widget-wrapper > .widget-body > .header {
+        border: 1px solid $chatfaq-color-neutral-purple;
+        border-radius: 10px 10px 0px 0px;
 
-.widget-wrapper > .widget-body > .header {
-    border: 1px solid $chatfaq-color-neutral-purple;
-    border-radius: 10px 10px 0px 0px;
+        &.history {
+            border-radius: 0px 10px 0px 0px;
+            border-left: 0px;
+        }
 
-    &.history {
-        border-radius: 0px 10px 0px 0px;
-        border-left: 0px;
-    }
-
-    @media only screen and (max-width: $phone-breakpoint) {
-        border-radius: unset;
-    }
-}
-
-.widget-wrapper > .widget-body > .chat {
-    position: relative;
-    height: 100%;
-    border-left: 1px solid $chatfaq-color-neutral-purple;
-    border-right: 1px solid $chatfaq-color-neutral-purple;
-    border-bottom: 1px solid $chatfaq-color-neutral-purple;
-    border-radius: 0px 0px 10px 10px;
-
-    &.history {
-        border-radius: 0px 0px 10px 0px;
-    }
-
-    @media only screen and (max-width: $phone-breakpoint) {
-        border-radius: unset;
-    }
-}
-
-/*
-.widget-wrapper > .widget-body > .footer {
-    border: 1px solid $chatfaq-color-neutral-purple;
-    border-radius: 0px 0px 10px 10px;
-
-    &.history {
-        border-radius: 0px 0px 10px 0px;
-        border-left: 0px;
-    }
-
-    @media only screen and (max-width: $phone-breakpoint) {
-        border-radius: unset;
-    }
-}
-
-*/
-
-.widget-open-button {
-    cursor: pointer;
-    background: $chatfaq-color-gradient-pink;
-
-    &:hover {
-        background: $chatfaq-color-gradient-purple;
-    }
-
-    width: $chatfaq-bubble-button-size;
-    height: $chatfaq-bubble-button-size;
-    border-radius: $chatfaq-bubble-button-size;
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-    margin: $widget-open-button-margin;
-
-    &.opened {
         @media only screen and (max-width: $phone-breakpoint) {
-            display: none;
+            border-radius: unset;
         }
     }
 
-    i {
+    .widget-wrapper > .widget-body > .chat {
+        position: relative;
+        height: 100%;
+        border-left: 1px solid $chatfaq-color-neutral-purple;
+        border-right: 1px solid $chatfaq-color-neutral-purple;
+        border-bottom: 1px solid $chatfaq-color-neutral-purple;
+        border-radius: 0px 0px 10px 10px;
+
+        &.history {
+            border-radius: 0px 0px 10px 0px;
+        }
+
+        @media only screen and (max-width: $phone-breakpoint) {
+            border-radius: unset;
+        }
+    }
+
+    /*
+    .widget-wrapper > .widget-body > .footer {
+        border: 1px solid $chatfaq-color-neutral-purple;
+        border-radius: 0px 0px 10px 10px;
+
+        &.history {
+            border-radius: 0px 0px 10px 0px;
+            border-left: 0px;
+        }
+
+        @media only screen and (max-width: $phone-breakpoint) {
+            border-radius: unset;
+        }
+    }
+
+    */
+
+    .widget-open-button {
+        cursor: pointer;
+        background: $chatfaq-color-gradient-pink;
+
+        &:hover {
+            background: $chatfaq-color-gradient-purple;
+        }
+
+        width: $chatfaq-bubble-button-size;
+        height: $chatfaq-bubble-button-size;
+        border-radius: $chatfaq-bubble-button-size;
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        bottom: 0px;
+        right: 0px;
+        margin: $widget-open-button-margin;
 
-        &.open {
-            content: $chatfaq-bubble-button-open-icon;
+        &.opened {
+            @media only screen and (max-width: $phone-breakpoint) {
+                display: none;
+            }
         }
 
-        &.close {
-            content: $chatfaq-bubble-button-close-icon;
+        i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            &.open {
+                content: $chatfaq-bubble-button-open-icon;
+            }
+
+            &.close {
+                content: $chatfaq-bubble-button-close-icon;
+            }
         }
     }
-}
-.not-supported {
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-    margin: $widget-open-button-margin;
+    .not-supported {
+        position: absolute;
+        bottom: 0px;
+        right: 0px;
+        margin: $widget-open-button-margin;
+    }
 }
 </style>
 
