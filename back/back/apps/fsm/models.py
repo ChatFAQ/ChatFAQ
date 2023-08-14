@@ -39,7 +39,7 @@ class FSMDefinition(ChangesMixin):
         cls, name, definition
     ) -> Tuple[Union[FSMDefinition, None], bool, str]:
         for item in cls.objects.all():
-            if item.definition == definition:
+            if item.definition == definition and item.name == name:
                 return item, False, ""
         if cls.objects.filter(name=name).first():
             return (
