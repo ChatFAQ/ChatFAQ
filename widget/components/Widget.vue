@@ -86,7 +86,10 @@ $widget-margin: 16px;
 
 .chatfaq-widget {
     position: sticky;
+    height: 100vh;
+    width: 100vw;
     bottom: 0px;
+    right: 0px;
 
     .dark-filter {
         display: none;

@@ -98,12 +98,12 @@ If you declare data attributes and a config object and its keys collide, then th
 <chatfaq-widget
     data-chatfaq-api="http://127.0.0.1:8000"
     data-chatfaq-ws="ws://127.0.0.1:8000"
-    user-id="1234567890"
+    data-user-id="1234567890"
     data-fsm-def="simple_fsm"
     data-title="Hello there 👋"
     data-subtitle="How can we help you?"
-    history-opened="true"
-    maximized="false"
+    data-history-opened="true"
+    data-maximized="false"
 ></chatfaq-widget>
 ```
 
