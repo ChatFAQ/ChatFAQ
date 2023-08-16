@@ -295,6 +295,7 @@ class ChatFAQSDK:
             is_last = False
             layer = next(layers)
             while not is_last:
+                _layer = None
                 try:
                     _layer = next(layers)
                 except StopIteration:
