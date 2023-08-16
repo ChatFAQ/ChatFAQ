@@ -42,7 +42,7 @@
 import {ref, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
-import ChatMsg from "~/components/chat/ChatMsg.vue";
+import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
 
 const store = useGlobalStore();
 
