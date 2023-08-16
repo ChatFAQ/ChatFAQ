@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.0.8",
+    "version": "0.0.10",
     "private": false,
     "scripts": {
         "main": "dist/widget-loader.esm.js",
@@ -35,7 +35,10 @@
         "rollup-plugin-styles": "^4.0.0",
         "rollup-plugin-terser": "^7.0.2",
         "unplugin-vue-components": "^0.24.0",
-        "vue-i18n": "^9.2.2"
+        "vue-i18n": "^9.2.2",
+        "@nuxt/devtools": "^0.8.0",
+        "@nuxt/kit": "^3.6.5",
+        "@nuxt/module-builder": "^0.4.0"
     },
     "dependencies": {
         "@rollup/plugin-buble": "^1.0.2",
