@@ -109,7 +109,7 @@ class Item(ChangesMixin):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     intent = models.TextField(blank=True, null=True)
     answer = models.TextField()
-    url = models.URLField()
+    url = models.URLField(max_length=2083)
     context = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
     embedding = ArrayField(models.FloatField(), blank=True, null=True)
