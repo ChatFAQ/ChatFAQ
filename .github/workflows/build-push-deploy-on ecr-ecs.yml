@@ -64,7 +64,7 @@ jobs:
           IMAGE_TAG: ${{ github.ref_name }}
           DOCKER_TAG_TO_DEPLOY: ${{ vars.DOCKER_TAG_TO_DEPLOY }}
           ECR_REPOSITORY: "chatfaq-${{ matrix.target-folder }}"
-        if: steps.filter.outputs.folder == 'true'
+        #if: steps.filter.outputs.folder == 'true'
         run: |
           # Build a docker container and apply two tags
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY -f Dockerfile .
