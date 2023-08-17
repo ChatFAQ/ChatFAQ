@@ -1,0 +1,99 @@
+name: Build, Push and Deploy to ECS on DEV
+
+on:
+    push:
+        paths:
+            - "back/**"
+            - "widget/**"
+            - "sdk/**"
+    
+        tags:
+        - "v*.*.*-dev"
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+jobs:
+  default:
+    strategy:
+        fail-fast: false
+        matrix:
+            target-folder:
+                [
+                "back",
+                "widget",
+                "sdk"
+                ]
+    runs-on: ubuntu-latest
+    environment: dev
+    name: Build Image, Push to ECR, Deploy to ECS
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      
+      - name: filter path
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+            filters: |
+              folder:
+                - './${{ matrix.target-folder }}/**'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GithubDeployRole
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ vars.AWS_REGION }}
+          mask-aws-account-id: false
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registries: ${{ vars.AWS_ECR_ACCOUNT_ID }}
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        working-directory: ./${{ matrix.target-folder }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}
+          DOCKER_TAG_TO_DEPLOY: ${{ vars.DOCKER_TAG_TO_DEPLOY }}
+          ECR_REPOSITORY: "chatfaq-${{ matrix.target-folder }}"
+        if: steps.filter.outputs.folder == 'true'
+        run: |
+          # Build a docker container and apply two tags
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY -f Dockerfile .
+
+          # Push both tags to ECR
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY
+
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    #   - name: Fetch latest task definition
+    #     run: |
+    #       latest_task_def=$(aws ecs list-task-definitions --family-prefix ${{ vars.ECS_TASK_FAMILY }} --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
+    #       echo $latest_task_def
+    #       aws ecs describe-task-definition --task-definition $latest_task_def --query taskDefinition > task-definition.json
+    #       cat task-definition.json
+
+    #   - name: Fill in the new image ID in the Amazon ECS task definition
+    #     id: task-def
+    #     uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #     with:
+    #       task-definition: task-definition.json
+    #       container-name: main
+    #       image: ${{ steps.build-image.outputs.image }}
+
+    #   - name: Deploy Amazon ECS task definition
+    #     uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #     with:
+    #       task-definition: ${{ steps.task-def.outputs.task-definition }}
+    #       cluster: ${{ vars.ECS_CLUSTER_NAME }}
+    #       service: ${{ vars.ECS_SERVICE_NAME }}
+    #       wait-for-service-stability: false
