@@ -40,7 +40,6 @@ jobs:
             filters: |
               folder:
                 - './${{ matrix.target-folder }}/**'
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -68,14 +67,11 @@ jobs:
         run: |
           # Build a docker container and apply two tags
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY -f Dockerfile .
-
           # Push both tags to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY
-
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-
     #   - name: Fetch latest task definition
     #     run: |
     #       latest_task_def=$(aws ecs list-task-definitions --family-prefix ${{ vars.ECS_TASK_FAMILY }} --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
