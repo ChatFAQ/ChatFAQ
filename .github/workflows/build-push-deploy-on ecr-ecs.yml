@@ -26,7 +26,7 @@ jobs:
                 "sdk"
                 ]
     runs-on: ubuntu-latest
-    environment: develop
+    environment: dev
     name: Build Image, Push to ECR, Deploy to ECS
 
     steps:
@@ -45,7 +45,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/GithubDeployRole
-          #{{ vars.AWS_ACCOUNT_ID }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC_for_${{ matrix.target-folder }}
           aws-region: ${{ vars.AWS_REGION }}
           mask-aws-account-id: false
