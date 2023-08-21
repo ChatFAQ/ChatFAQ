@@ -74,7 +74,7 @@ jobs:
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
     #   - name: Fetch latest task definition
     #     run: |
-    #       latest_task_def=$(aws ecs list-task-definitions --family-prefix ${{ vars.ECS_TASK_FAMILY }} --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
+    #       latest_task_def=$(aws ecs list-task-definitions --family-prefix {{ vars.ECS_TASK_FAMILY }} --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
     #       echo $latest_task_def
     #       aws ecs describe-task-definition --task-definition $latest_task_def --query taskDefinition > task-definition.json
     #       cat task-definition.json
@@ -85,12 +85,12 @@ jobs:
     #     with:
     #       task-definition: task-definition.json
     #       container-name: main
-    #       image: ${{ steps.build-image.outputs.image }}
+    #       image: {{ steps.build-image.outputs.image }}
 
     #   - name: Deploy Amazon ECS task definition
     #     uses: aws-actions/amazon-ecs-deploy-task-definition@v1
     #     with:
-    #       task-definition: ${{ steps.task-def.outputs.task-definition }}
-    #       cluster: ${{ vars.ECS_CLUSTER_NAME }}
-    #       service: ${{ vars.ECS_SERVICE_NAME }}
+    #       task-definition: {{ steps.task-def.outputs.task-definition }}
+    #       cluster: {{ vars.ECS_CLUSTER_NAME }}
+    #       service: {{ vars.ECS_SERVICE_NAME }}
     #       wait-for-service-stability: false
