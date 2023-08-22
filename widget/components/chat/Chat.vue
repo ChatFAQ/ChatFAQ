@@ -5,7 +5,7 @@
                 <ChatMsg
                     :layers="layers_data.layers"
                     :references="layers_data.references"
-                    :is-first-of-type="true"
+                    :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
                 ></ChatMsg>
@@ -56,6 +56,10 @@ let ws = undefined
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+
+function isLastOfType(index) {
+    return index === store.gropedStacks.length - 1 || store.gropedStacks[index + 1].layers[0].sender.type !== store.gropedStacks[index].layers[0].sender.type
+}
 
 function managePaste(ev) {
     ev.preventDefault()
@@ -156,14 +160,6 @@ function sendMessage() {
     ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
     store.scrollToBottom += 1;
-}
-
-function isLastOfType(msg, flatStack) {
-    if (flatStack.indexOf(msg) === flatStack.length - 1)
-        return true
-    if (flatStack[flatStack.indexOf(msg) + 1].sender.type !== msg.sender.type)
-        return true
-    return false
 }
 
 function isFirstOfType(msg, flatStack) {

@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
-        <span class="reference-index" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
+        <span class="reference-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
     </div>
 </template>
 
@@ -11,7 +11,7 @@ import {computed} from "vue";
 
 const store = useGlobalStore();
 
-const props = defineProps(["data"]);
+const props = defineProps(["data", "isLast"]);
 
 const markedDown = computed(() => {
     const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
