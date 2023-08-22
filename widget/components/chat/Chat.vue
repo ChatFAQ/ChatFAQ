@@ -69,6 +69,10 @@ function scrollConversationDown() {
     })
 }
 
+function isFullyScrolled() {
+    return conversationContent.value.scrollHeight - conversationContent.value.scrollTop === conversationContent.value.clientHeight
+}
+
 function animateFeedbackSent() {
     feedbackSentDisabled.value = false
     setTimeout(() => {
@@ -96,8 +100,13 @@ function createConnection() {
             console.error(`Error in message from WS: ${msg.payload}`)
             return
         }
+
+        if (store.lastLayer && store.lastLayer.sender.type === 'human')  // Scroll down if brand a new message from bot just came
+            store.scrollToBottom += 1;
+        if (isFullyScrolled())  // Scroll down if user is at the bottom
+            store.scrollToBottom += 1;
+
         store.messages.push(msg);
-        store.scrollToBottom += 1;
         if (store.messages.length === 1) // First message, update list of conversations
             await store.gatherConversations()
     };

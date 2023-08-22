@@ -127,6 +127,12 @@ export const useGlobalStore = defineStore('globalStore', {
             (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'human') ||
             (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'bot' &&
             !gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].last)
+        },
+        lastLayer() {
+            const gs = this.gropedStacks;
+            if (!gs.length || !gs[gs.length - 1].layers.length)
+                return undefined
+            return gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1]
         }
     }
 })
