@@ -8,8 +8,13 @@ class PromptStructureAdmin(admin.ModelAdmin):
     form = PromptStructureForm
 
 
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ["answer", "url"]
+    list_filter = ["dataset"]
+
+
 admin.site.register(Dataset)
-admin.site.register(Item)
+admin.site.register(Item, ItemAdmin)
 admin.site.register(Utterance)
 admin.site.register(Model)
 admin.site.register(PromptStructure, PromptStructureAdmin)
