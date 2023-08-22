@@ -2,13 +2,13 @@ import { defineStore } from 'pinia'
 function _indexLayerRefs(groupedStack) {
     for (let i = 0; i < groupedStack.length; i++) {
         // first remove the duplicates from the references (same url)
-        groupedStack[i].references = groupedStack[i].references.filter((v, i, a) => a.findIndex(t => (t.url === v.url)) === i)
+        groupedStack[i].references = groupedStack[i].references.filter((v, i, a) => a.findIndex(t => (t.url === v.url && t.intent === v.intent)) === i)
         // add the reference index to the layer index inside layerToReferences
         let refs = groupedStack[i].references;
         for (let j = 0; j < groupedStack[i].layers.length; j++) {
             const layer = groupedStack[i].layers[j]
             if (layer.payload.references) {
-                layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url)).filter(i => i !== -1)
+                layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url && r.intent === ref.intent)).filter(i => i !== -1)
             }
         }
     }
