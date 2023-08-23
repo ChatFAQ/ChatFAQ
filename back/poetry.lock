@@ -1214,6 +1214,17 @@ django = ">=3.2"
 djangorestframework = "*"
 
 [[package]]
+name = "django-simple-history"
+version = "3.3.0"
+description = "Store model history and view/revert changes from admin site."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "django-simple-history-3.3.0.tar.gz", hash = "sha256:2313d2d346f15a1e7a92adb3b6696b226f1cd0c1d920869ec40c4c4076614c41"},
+    {file = "django_simple_history-3.3.0-py3-none-any.whl", hash = "sha256:dc1f98e558a0a1e0b6371c3b8efb85f86e02a6db56e83d0ec198343b7408d00a"},
+]
+
+[[package]]
 name = "django-sms"
 version = "0.6.0"
 description = "A Django app for sending SMS with interchangeable backends."
@@ -4998,4 +5009,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "637db0a57611056ae35a34f1d9f40470d860f40bbcc815cdda0c1ea3770ba8db"
+content-hash = "6898062d6c9722be62435940184ce6cf954825056a373e72a17e1832876b8bb2"

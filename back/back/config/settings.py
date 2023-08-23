@@ -41,6 +41,7 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
         "django.contrib.messages",
         "django.contrib.staticfiles",
         "django_extensions",
+        "simple_history",
         "channels_postgres",
         "django_celery_results",
         "corsheaders",
@@ -59,6 +60,7 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
+        "simple_history.middleware.HistoryRequestMiddleware",
     ]
 
     CORS_ALLOW_ALL_ORIGINS = True
