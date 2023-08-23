@@ -173,13 +173,12 @@ class Message(ChangesMixin):
     def cycle_fsm(self):
         pass
 
-    def get_chain(self, chain=None):
-        chain = chain if chain else []
-        # chain.append(MessageSerializer(self).data)
-        chain.append(self)
-        _next = Message.objects.filter(prev=self).first()
-        if _next:
-            return _next.get_chain(chain)
+    def get_chain(self):
+        next_msg = self
+        chain = []
+        while next_msg:
+            chain.append(next_msg)
+            next_msg = Message.objects.filter(prev=next_msg).first()
         return chain
 
     def to_text(self):
