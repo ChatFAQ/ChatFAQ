@@ -5,7 +5,7 @@
                 <ChatMsg
                     :layers="layers_data.layers"
                     :references="layers_data.references"
-                    :is-first-of-type="true"
+                    :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
                 ></ChatMsg>
@@ -57,6 +57,10 @@ watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 
+function isLastOfType(index) {
+    return index === store.gropedStacks.length - 1 || store.gropedStacks[index + 1].layers[0].sender.type !== store.gropedStacks[index].layers[0].sender.type
+}
+
 function managePaste(ev) {
     ev.preventDefault()
     const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
@@ -67,6 +71,10 @@ function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
+}
+
+function isFullyScrolled() {
+    return conversationContent.value.scrollHeight - conversationContent.value.scrollTop === conversationContent.value.clientHeight
 }
 
 function animateFeedbackSent() {
@@ -96,8 +104,13 @@ function createConnection() {
             console.error(`Error in message from WS: ${msg.payload}`)
             return
         }
+
+        if (store.lastLayer && store.lastLayer.sender.type === 'human')  // Scroll down if brand a new message from bot just came
+            store.scrollToBottom += 1;
+        if (isFullyScrolled())  // Scroll down if user is at the bottom
+            store.scrollToBottom += 1;
+
         store.messages.push(msg);
-        store.scrollToBottom += 1;
         if (store.messages.length === 1) // First message, update list of conversations
             await store.gatherConversations()
     };
@@ -147,14 +160,6 @@ function sendMessage() {
     ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
     store.scrollToBottom += 1;
-}
-
-function isLastOfType(msg, flatStack) {
-    if (flatStack.indexOf(msg) === flatStack.length - 1)
-        return true
-    if (flatStack[flatStack.indexOf(msg) + 1].sender.type !== msg.sender.type)
-        return true
-    return false
 }
 
 function isFirstOfType(msg, flatStack) {

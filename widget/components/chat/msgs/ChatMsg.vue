@@ -2,7 +2,6 @@
     <div class="message-wrapper"
         :class="{
             [props.layers[0].sender.type]: true,
-            'is-first-of-type': props.isFirstOfType,
             'is-first': props.isFirst,
             'is-last': props.isLast,
             'maximized': store.maximized
@@ -26,9 +25,9 @@
                     }">
                     <div class="layer" v-for="layer in props.layers">
                         <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
-                        <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer"/>
+                        <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer" :is-last="isLastOfType && layersFinished"/>
                     </div>
-                    <References v-if="props.references.length" :references="props.references"></References>
+                    <References v-if="props.references.length && isLastOfType && layersFinished" :references="props.references"></References>
                 </div>
                 <UserFeedback
                     v-if="
@@ -53,7 +52,7 @@ import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
 import References from "~/components/chat/msgs/llm/References.vue";
 import {ref} from "vue";
 
-const props = defineProps(["layers", "references", "isFirstOfType", "isLast", "isFirst"]);
+const props = defineProps(["layers", "references", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null)
 
@@ -61,7 +60,7 @@ const MSG_TYPES = {
     text: "text",
     lm_generated_text: "lm_generated_text",
 }
-
+const layersFinished = computed(() =>  props.layers[props.layers.length - 1].last)
 
 </script>
 <style scoped lang="scss">
@@ -132,12 +131,7 @@ $phone-breakpoint: 600px;
         flex-direction: column;
         max-width: 100%;
         height: 100%;
-        margin: 8px 0px 0px;
-
-
-        &.is-first-of-type {
-            margin-top: 16px;
-        }
+        margin: 16px 0px 0px;
 
         &.is-first {
             margin-top: 30px;
