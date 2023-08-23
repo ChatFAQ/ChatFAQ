@@ -3,10 +3,12 @@
 **ChatFAQ** is an open-source comprehensive platform for creating a wide variety of chatbots: 
 - generic ones, 
 - business-trained, 
-- or even capable of redirecting requests to human operators.
+- or even capable of redirecting requests to human operators. 
 
-Is a solution that converts FAQ content into interactive chatbots using **open source large language models**,
-providing **flexibility and costs-effectiveness**.
+**ChatFAQ** is a solution that:
+- converts FAQ content into interactive chatbots
+- using **open source large language models**,
+- providing flexibility and **costs-effectiveness**.
 
 It includes a **specialized NLP/NLG engine** and customized chat widgets,
 ensuring a tailored experience for users and avoiding vendor lock-in.
