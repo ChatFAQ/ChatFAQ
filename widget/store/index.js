@@ -94,6 +94,7 @@ export const useGlobalStore = defineStore('globalStore', {
                         if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
                             last_lm_msg_payload.model_response += data.payload.model_response
                             last_lm_msg_payload.references = data.payload.references
+                            res[res.length - 1].last = _messages[i].last
                         } else {
                             last_lm_msg_payload = data.payload
                             res.push({..._messages[i], ...data});
