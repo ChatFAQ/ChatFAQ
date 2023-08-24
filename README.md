@@ -36,4 +36,4 @@ For more information about ChatFAQ and any additional needs, feel free to visit 
 
 Simply go to [www.chatfaq.io](https://www.chatfaq.io/) to learn more!
 
-![logo_redes](https://with-madrid.com/logo-kit-digital.png)
+![logo_redes](https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/64a2c8b1643f13e58e9c0fd0_redes-p-500.webp)
