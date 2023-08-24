@@ -35,3 +35,5 @@ There also is a CLI tool to help interfacing with the back-end server.
 For more information about ChatFAQ and any additional needs, feel free to visit our website.
 
 Simply go to [www.chatfaq.io](https://www.chatfaq.io/) to learn more!
+
+![logo_redes](https://with-madrid.com/logo-kit-digital.png)
