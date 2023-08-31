@@ -40,7 +40,6 @@
     "dependencies": {
         "@rollup/plugin-buble": "^1.0.2",
         "@rollup/plugin-commonjs": "^24.0.1",
-        "chatfaq-widget": "^0.0.10",
         "pinia": "^2.0.32",
         "rollup-plugin-vue": "^6.0.0",
         "sass": "^1.58.0",
