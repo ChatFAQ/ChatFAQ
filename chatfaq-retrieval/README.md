@@ -50,11 +50,15 @@ or
 
     poetry version patch
 
+Then build
+
+    poetry build
+
 ### Poetry Publish
 
 To TestPyPi
 
-    poetry publish -r chatfaq-retrieval
+    poetry publish -r test-pypi
 
 To PyPi
 

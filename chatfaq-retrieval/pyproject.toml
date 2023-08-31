@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq-retrieval"
-version = "0.1.15"
+version = "0.1.16"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
