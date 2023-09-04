@@ -8,3 +8,4 @@ chatfaq-widget-*
 .env
 dist
 .idea/
+components.d.ts
