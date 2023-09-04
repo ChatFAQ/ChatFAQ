@@ -2,7 +2,7 @@ import csv
 from io import StringIO
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from back.apps.language_model.tasks import recache_models
+from back.apps.language_model.tasks import llm_query_task
 from back.common.models import ChangesMixin
 from fernet_fields import EncryptedCharField
 from simple_history.models import HistoricalRecords
@@ -82,7 +82,7 @@ class Dataset(models.Model):
         if _update_items_from_file:
             if self.original_file:
                 self.update_items_from_file()
-                recache_models.delay()
+                llm_query_task.delay(None, None, None, None, None, True)
 
 
 class Item(ChangesMixin):

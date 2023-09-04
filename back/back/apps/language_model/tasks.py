@@ -17,9 +17,10 @@ logger = getLogger(__name__)
 
 
 class LLMCacheOnWorkerTask(Task):
+    CACHED_MODELS = {}
+
     def __init__(self):
-        self.CACHED_MODELS = {}
-        if is_celery_worker():
+        if is_celery_worker() and not self.CACHED_MODELS:
             self.CACHED_MODELS = self.preload_models()
 
     @staticmethod
@@ -47,13 +48,12 @@ class LLMCacheOnWorkerTask(Task):
         return cache
 
 
-@app.task(bind=True, ignore_result=True, base=LLMCacheOnWorkerTask)
-def recache_models(self):
-    self.CACHED_MODELS = self.preload_models()
-
-
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
-def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name):
+def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name, recache_models):
+    if recache_models:
+        self.CACHED_MODELS = self.preload_models()
+        return
+
     Model = apps.get_model('language_model', 'Model')
     PromptStructure = apps.get_model('language_model', 'PromptStructure')
     GenerationConfig = apps.get_model('language_model', 'GenerationConfig')
