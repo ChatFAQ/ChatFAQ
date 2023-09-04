@@ -25,11 +25,11 @@ class LLMCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
-        logger.info("Preloading models...")
+        print("Preloading models...")
         Model = apps.get_model('language_model', 'Model')
         cache = {}
         for m in Model.objects.all():
-            logger.info(f"Loading models {m.name}")
+            print(f"Loading model: {m.name} with dataset: {m.dataset.name}")
             cache[str(m.pk)] = RetrieverAnswerer(
                 base_data=StringIO(m.dataset.to_csv()),
                 repo_id=m.repo_id,
@@ -44,7 +44,7 @@ class LLMCacheOnWorkerTask(Task):
                 trust_remote_code_model=m.trust_remote_code_model,
                 revision=m.revision,
             )
-            logger.info("...model loaded.")
+            print("...model loaded.")
         return cache
 
 
