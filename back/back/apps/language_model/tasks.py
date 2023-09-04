@@ -33,7 +33,7 @@ class LLMCacheOnWorkerTask(Task):
                 base_data=StringIO(m.dataset.to_csv()),
                 repo_id=m.repo_id,
                 context_col="answer",
-                embedding_col="intent",
+                embedding_col="answer",
                 ggml_model_filename=m.ggml_model_filename,
                 use_cpu=False,
                 model_config=m.model_config,

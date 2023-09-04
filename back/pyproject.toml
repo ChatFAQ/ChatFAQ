@@ -33,7 +33,7 @@ pgvector = "^0.1.7"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = { version = "^0.1.15", source = "test" }
+chatfaq-retrieval = { version = "^0.1.16", source = "test" }
 gevent = "^22.10.2"
 torch = [
     { version = "^2.0.1", source = "torch" },
@@ -44,6 +44,7 @@ openai = "^0.27.8"
 scrapy = "^2.10.0"
 scrapy-playwright = "^0.0.28"
 undetected-playwright = "^0.1.0"
+django-simple-history = "^3.3.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

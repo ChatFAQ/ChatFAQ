@@ -5,15 +5,13 @@ from chatfaq_sdk.layers import LMGeneratedText, Text
 
 
 def send_greeting(ctx: dict):
-    yield Text("Hello! How are you?")
-    yield Text("I'm a chatbot for With Madrid. I can answer your questions about our website and its content.")
-    yield Text("Feel free to ask me anything you need assistance with!", allow_feedback=False)
+    yield Text("How can we help you?", allow_feedback=False)
 
 
 def send_answer(ctx: dict):
     last_payload = ctx["last_mml"]["stack"][0]["payload"]
     yield LMGeneratedText(last_payload, 1)
-    yield Text(f"Tell me more")
+    # yield Text(f"Tell me more")
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

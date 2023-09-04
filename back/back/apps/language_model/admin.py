@@ -2,9 +2,10 @@ from django.contrib import admin
 
 from .forms import PromptStructureForm
 from .models import Dataset, Item, Utterance, Model, PromptStructure, GenerationConfig
+from simple_history.admin import SimpleHistoryAdmin
 
 
-class PromptStructureAdmin(admin.ModelAdmin):
+class PromptStructureAdmin(SimpleHistoryAdmin):
     form = PromptStructureForm
 
 
