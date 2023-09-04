@@ -29,7 +29,11 @@ Then you can log in into the remote server:
 
 `chatfaq config auth <TOKEN>`
 
-You can obtain this token by login into http://localhost:8000/back/api/login/ with an admin user.
+You can retrieve the auth token from the backend server:
+
+`curl -X POST -u username:password http://localhost:8000/back/api/login/`
+
+by using an admin's user and password.
 
 ## Commands
 
