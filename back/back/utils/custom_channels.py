@@ -47,6 +47,9 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
                 await task
             except asyncio.CancelledError:
                 pass
+            except asyncio.TimeoutError:
+                print(f"timeout canceling task: {task}")
+                pass
 
 
 class CustomAsyncConsumer:
