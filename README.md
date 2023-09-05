@@ -1,9 +1,9 @@
 ## [![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)](https://www.chatfaq.io/) - The GPT alternative Open Source chatbot!
 
-**ChatFAQ** is an open-source comprehensive platform for creating a wide variety of chatbots: 
-- generic ones, 
-- business-trained, 
-- or even capable of redirecting requests to human operators. 
+**ChatFAQ** is an open-source comprehensive platform for creating a wide variety of chatbots:
+- generic ones,
+- business-trained,
+- or even capable of redirecting requests to human operators.
 
 **ChatFAQ** is a solution that:
 - converts FAQ content into interactive chatbots
