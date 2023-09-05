@@ -18,7 +18,7 @@ def create(
         str, typer.Argument(help="The name you wish to give to the dataset.")
     ],
     source: Annotated[
-        str, typer.Argument(help="The path to the CSV, PDF or URL to upload.")
+        str, typer.Argument(help="The path to the CSV to upload.")
     ],
 ):
     """
@@ -91,13 +91,32 @@ def create_from_url(
     url: Annotated[str, typer.Argument(help="The url to scrape and download the dataset from.")],
 ):
     """
-    Download the dataset as a CSV file.
+    Creates a new dataset from a url.
     """
     print("Downloading...")
     r = ctx.parent.obj["r"].post(
         f"language-model/datasets/create_from_url/", data={"name": name, "language": language, "url": url}
     )
     print(r)
+
+@app.command(rich_help_panel="Datasets commands")
+def create_from_pdf(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="The name of the dataset to be created.")],
+    language: Annotated[str, typer.Argument(help="The language of the dataset to be created.")],
+    pdf: Annotated[str, typer.Argument(help="The pdf file path to scrape and extract the dataset from.")],
+):
+    """
+    Creates a new dataset from a pdf file.
+    """
+    print("Downloading...")
+    r = ctx.parent.obj["r"].post(
+        f"language-model/datasets/create_from_pdf/", data={"name": name, "language": language}, files={"original_file": open(pdf, "rb")}
+    )
+    print(r)
+
+
+
 
 
 if __name__ == "__main__":
