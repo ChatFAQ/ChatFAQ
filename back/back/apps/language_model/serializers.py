@@ -2,7 +2,7 @@ import csv
 
 from rest_framework import serializers
 
-from .models import Dataset, Item, Model, Utterance
+from .models import Dataset, Item, LLMConfig, Utterance
 
 
 class DatasetSerializer(serializers.ModelSerializer):
@@ -47,9 +47,9 @@ class UtteranceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ModelSerializer(serializers.ModelSerializer):
+class LLMConfigSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
 
     class Meta:
-        model = Model
+        model = LLMConfig
         fields = "__all__"

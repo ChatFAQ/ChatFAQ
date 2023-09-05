@@ -5,11 +5,11 @@ from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from .tasks import initiate_crawl
-from .models import Dataset, Item, Model, Utterance
+from .models import Dataset, Item, LLMConfig, Utterance
 from .serializers import (
     DatasetSerializer,
     ItemSerializer,
-    ModelSerializer,
+    LLMConfigSerializer,
     UtteranceSerializer, DatasetFromUrlSerializer,
 )
 
@@ -58,5 +58,5 @@ class UtteranceAPIViewSet(viewsets.ModelViewSet):
 
 
 class ModelAPIViewSet(viewsets.ModelViewSet):
-    queryset = Model.objects.all()
-    serializer_class = ModelSerializer
+    queryset = LLMConfig.objects.all()
+    serializer_class = LLMConfigSerializer

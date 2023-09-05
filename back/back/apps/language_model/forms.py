@@ -1,15 +1,15 @@
 from django.forms import ModelForm
 
-from .models import PromptStructure
+from .models import PromptConfig
 
 
-class PromptStructureForm(ModelForm):
+class PromptConfigForm(ModelForm):
     def __init__(self, *args, **kwargs):
-        super(PromptStructureForm, self).__init__(*args, **kwargs)
+        super(PromptConfigForm, self).__init__(*args, **kwargs)
         self.fields['user_tag'].strip = False
         self.fields['assistant_tag'].strip = False
         self.fields['system_tag'].strip = False
 
     class Meta:
-        model = PromptStructure
+        model = PromptConfig
         fields = "__all__"

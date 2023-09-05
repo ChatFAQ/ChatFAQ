@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from .forms import PromptStructureForm
-from .models import Dataset, Item, Utterance, Model, PromptStructure, GenerationConfig
+from .forms import PromptConfigForm
+from .models import Dataset, Item, Utterance, LLMConfig, PromptConfig, GenerationConfig
 from simple_history.admin import SimpleHistoryAdmin
 
 
-class PromptStructureAdmin(SimpleHistoryAdmin):
-    form = PromptStructureForm
+class PromptConfigAdmin(SimpleHistoryAdmin):
+    form = PromptConfigForm
 
 
 class ItemAdmin(admin.ModelAdmin):
@@ -17,6 +17,6 @@ class ItemAdmin(admin.ModelAdmin):
 admin.site.register(Dataset)
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Utterance)
-admin.site.register(Model)
-admin.site.register(PromptStructure, PromptStructureAdmin)
+admin.site.register(LLMConfig)
+admin.site.register(PromptConfig, PromptConfigAdmin)
 admin.site.register(GenerationConfig)

@@ -25,7 +25,7 @@ class Dataset(models.Model):
         ("es", "Spanish"),
         ("fr", "French"),
     )
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255, unique=True)
     original_file = models.FileField(blank=True, null=True)
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
 
@@ -134,7 +134,7 @@ class Utterance(models.Model):
     embedding = ArrayField(models.FloatField(), blank=True, null=True)
 
 
-class Model(models.Model):
+class LLMConfig(models.Model):
     """
     A model is a dataset associated with a base model, trained or not.
     name: str
@@ -167,8 +167,7 @@ class Model(models.Model):
         ("trained", "Trained"),
     )
 
-    name = models.CharField(max_length=100)
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255, unique=True)
     repo_id = models.CharField(max_length=100, default="google/flan-t5-base")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="created")
     ggml_model_filename = models.CharField(max_length=255, blank=True, null=True)
@@ -181,7 +180,7 @@ class Model(models.Model):
     revision = models.CharField(max_length=255, blank=True, null=True, default="main")
 
 
-class PromptStructure(models.Model):
+class PromptConfig(models.Model):
     """
     Defines the structure of the prompt for a model.
     system_prefix : str
@@ -206,7 +205,7 @@ class PromptStructure(models.Model):
     model : Model
         The model this prompt structure belongs to.
     """
-
+    name = models.CharField(max_length=255, unique=True)
     system_prefix = models.TextField(blank=True, default="")
     system_tag = models.CharField(max_length=255, blank=True, default="")
     system_end = models.CharField(max_length=255, blank=True, default="")
@@ -215,7 +214,6 @@ class PromptStructure(models.Model):
     assistant_tag = models.CharField(max_length=255, blank=True, default="<|answer|>")
     assistant_end = models.CharField(max_length=255, blank=True, default="")
     n_contexts_to_use = models.IntegerField(default=3)
-    model = models.ForeignKey(Model, on_delete=models.PROTECT)
     history = HistoricalRecords()
 
 
@@ -237,11 +235,22 @@ class GenerationConfig(models.Model):
     model : Model
         The model this generation configuration belongs to.
     """
+    name = models.CharField(max_length=255, unique=True)
     top_k = models.IntegerField(default=50)
     top_p = models.FloatField(default=1.0)
     temperature = models.FloatField(default=1.0)
     repetition_penalty = models.FloatField(default=1.0)
     seed = models.IntegerField(default=42)
     max_new_tokens = models.IntegerField(default=256)
-    model = models.ForeignKey(Model, on_delete=models.PROTECT)
+    model = models.ForeignKey(LLMConfig, on_delete=models.PROTECT)
 
+
+class RAGConfig(models.Model):
+    """
+    It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline
+    """
+    name = models.CharField(max_length=255, unique=True)
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    llm_config = models.ForeignKey(LLMConfig, on_delete=models.PROTECT)
+    prompt_config = models.ForeignKey(PromptConfig, on_delete=models.PROTECT)
+    generation_config = models.ForeignKey(GenerationConfig, on_delete=models.PROTECT)
