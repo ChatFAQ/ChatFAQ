@@ -42,7 +42,6 @@ with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None
         "django.contrib.staticfiles",
         "django_extensions",
         "simple_history",
-        "channels_postgres",
         "django_celery_results",
         "corsheaders",
         "django_better_admin_arrayfield",
@@ -57,6 +56,10 @@ with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None
         "back.apps.fsm",
         "back.apps.language_model",
     ]
+    if not os.getenv("REDIS_URL"):
+        INSTALLED_APPS += [
+            "channels_postgres",
+        ]
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -132,19 +135,27 @@ with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None
     # ---
     # Django Channels
     # ---
-
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
-            "CONFIG": {
-                **db_config(conn_max_age=None),
-                "config": {
-                    "maxsize": 0,  # unlimited pool size (but it recycles used connections of course)
+    if not os.getenv("REDIS_URL"):
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
+                "CONFIG": {
+                    **db_config(conn_max_age=None),
+                    "config": {
+                        "maxsize": 0,  # unlimited pool size (but it recycles used connections of course)
+                    },
                 },
             },
-        },
-    }
-
+        }
+    else:
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "channels_redis.core.RedisChannelLayer",
+                "CONFIG": {
+                    "hosts": [os.getenv("REDIS_URL")],
+                },
+            },
+        }
     # ---
     # Logging
     # ---

@@ -8,7 +8,10 @@ databases:
     db_user: "{{ deployment_key }}"
     engine: pg
     version: "15"
-
+  - name: redis
+    cluster_name: 'dogeops-redis-{{ production("prod", default="dev") }}'
+    engine: redis
+    version: "7"
 env:
   - name: sentry
     variables:
@@ -29,6 +32,7 @@ env:
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
       POOL_DB_CONNECTIONS: yes
+      REDIS_URL: '{{ redis.REDIS_URL }}'
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"

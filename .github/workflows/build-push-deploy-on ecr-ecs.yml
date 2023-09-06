@@ -93,18 +93,27 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition-migrate.json
-          container-name: ${{ matrix.target-folder }}-migrate
+          container-name: main
           image: ${{ steps.build-image.outputs.image }}
-      
-      - name: Run Task on Amazon ECS for migrate
+
+      - name: Deploy Amazon ECS task definition for migrate
+        id: task-def-new-version-migrate
         if: steps.get-last-def-migrate.outputs.exists == 'true'
-        uses: smitp/amazon-ecs-run-task@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def-migrate.outputs.task-definition }}
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
+      
+      - name: Run ECS Task for migrate
+        if: steps.get-last-def-migrate.outputs.exists == 'true'
+        uses: researchsquare/run-ecs-task-action@v1
+        with:
+          task-definition-arn: ${{ steps.task-def-new-version-migrate.outputs.task-definition-arn }}
+          cluster: ${{ vars.ECS_CLUSTER_NAME }}
+          wait-for-task-completion: true
           count: 1
-          started-by: github-actions-${{ steps.aws-credentials.role-session-name }}
-          wait-for-finish: true
+      
+      
       
       - name: Fetch latest task definition
         run: |
