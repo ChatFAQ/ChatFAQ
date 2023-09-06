@@ -83,7 +83,7 @@ jobs:
           aws ecs describe-task-definition --task-definition $latest_task_def --query taskDefinition > task-definition-migrate.json
           cat task-definition-migrate.json 
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
+      - name: Fill in the new image ID in the Amazon ECS task definition if back for migrate
         if: ${{ matrix.target-folder }} == "back"
         id: task-def-migrate
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -92,7 +92,7 @@ jobs:
           container-name: ${{ matrix.target-folder }}-migrate
           image: ${{ steps.build-image.outputs.image }}
       
-      - name: Run Task on Amazon ECS
+      - name: Run Task on Amazon ECS for migrate
         if: ${{ matrix.target-folder }} == "back"
         uses: smitp/amazon-ecs-run-task@v1
         with:
