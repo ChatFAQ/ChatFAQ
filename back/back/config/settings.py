@@ -147,15 +147,7 @@ with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None
                 },
             },
         }
-    else:
-        CHANNEL_LAYERS = {
-            "default": {
-                "BACKEND": "channels_redis.core.RedisChannelLayer",
-                "CONFIG": {
-                    "hosts": [os.getenv("REDIS_URL")],
-                },
-            },
-        }
+
     # ---
     # Logging
     # ---
