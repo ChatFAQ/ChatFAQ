@@ -138,7 +138,9 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
             "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
             "CONFIG": {
                 **db_config(conn_max_age=int(os.getenv("CONN_MAX_AGE", 0))),
-                "config": {},
+                "config": {
+                    "maxsize": 0,  # unlimited pool size (but it recycles used connections of course)
+                },
             },
         },
     }
