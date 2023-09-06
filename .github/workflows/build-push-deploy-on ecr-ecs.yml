@@ -95,12 +95,20 @@ jobs:
           task-definition: task-definition-migrate.json
           container-name: main
           image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition for migrate
+        id: task-def-new-version-migrate
+        if: steps.get-last-def-migrate.outputs.exists == 'true'
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          cluster: ${{ vars.ECS_CLUSTER_NAME }}
       
-      - name: Run ECS Task
+      - name: Run ECS Task for migrate
         if: steps.get-last-def-migrate.outputs.exists == 'true'
         uses: researchsquare/run-ecs-task-action@v1
         with:
-          task-definition: steps.task-def-migrate.outputs.task-definition
+          task-definition: ${{ steps.task-def-new-version-migrate.outputs.task-definition-arn }}
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
           wait-for-service-stability: true
       
