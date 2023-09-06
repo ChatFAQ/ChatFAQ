@@ -7,7 +7,7 @@ from back.apps.broker.models import ConsumerRoundRobinQueue
 class CustomPostgresChannelLayer(PostgresChannelLayer):
     """
     This is a modification of the original PostgresChannelLayer to fix the next error:
-    When a bunch og nre messages are added quickly one after the other with channel_layer.group_send
+    When a bunch of new messages are added quickly one after the other with channel_layer.group_send
     then the order of these messages gets messed up apparently.
 
     I figure out it was because when "retrieve_queued_messages_sql" returns no message, then the next query the layer
@@ -17,7 +17,7 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
     What I do not understand is why in the first place there can be no new message
     """
 
-    async def _get_message_from_channel(self, channel):
+    async def _Xget_message_from_channel(self, channel):
         retrieve_events_sql = f'LISTEN "{channel}";'
         retrieve_queued_messages_sql = """
                 DELETE FROM channels_postgres_message

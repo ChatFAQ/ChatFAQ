@@ -23,7 +23,7 @@ env:
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
-      DO_REGION: '{{ get("DO_REGION") }}'
+      DO_REGION: 'ams3'
       STORAGES_MODE: do
       STORAGE_MAKE_FILES_PUBLIC: no
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
