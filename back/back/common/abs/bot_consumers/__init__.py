@@ -88,7 +88,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         """
         if data["node_type"] == RPCNodeType.action.value:
             self.message_buffer.append(data)
-            self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
+            if not self.fsm.rpc_result_future.done():
+                self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
         else:
             self.fsm.rpc_result_future.set_result(data["stack"])
 
