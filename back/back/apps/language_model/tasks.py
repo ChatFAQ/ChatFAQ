@@ -17,23 +17,24 @@ logger = getLogger(__name__)
 
 
 class LLMCacheOnWorkerTask(Task):
+    CACHED_MODELS = {}
+
     def __init__(self):
-        self.CACHED_MODELS = {}
-        if is_celery_worker():
+        if is_celery_worker() and not self.CACHED_MODELS:
             self.CACHED_MODELS = self.preload_models()
 
     @staticmethod
     def preload_models():
-        logger.info("Preloading models...")
+        print("Preloading models...")
         Model = apps.get_model('language_model', 'Model')
         cache = {}
         for m in Model.objects.all():
-            logger.info(f"Loading models {m.name}")
+            print(f"Loading model: {m.name} with dataset: {m.dataset.name}")
             cache[str(m.pk)] = RetrieverAnswerer(
                 base_data=StringIO(m.dataset.to_csv()),
                 repo_id=m.repo_id,
                 context_col="answer",
-                embedding_col="intent",
+                embedding_col="answer",
                 ggml_model_filename=m.ggml_model_filename,
                 use_cpu=False,
                 model_config=m.model_config,
@@ -43,17 +44,16 @@ class LLMCacheOnWorkerTask(Task):
                 trust_remote_code_model=m.trust_remote_code_model,
                 revision=m.revision,
             )
-            logger.info("...model loaded.")
+            print("...model loaded.")
         return cache
 
 
-@app.task(bind=True, ignore_result=True, base=LLMCacheOnWorkerTask)
-def recache_models(self):
-    self.CACHED_MODELS = self.preload_models()
-
-
 @app.task(bind=True, base=LLMCacheOnWorkerTask)
-def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name):
+def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name, recache_models):
+    if recache_models:
+        self.CACHED_MODELS = self.preload_models()
+        return
+
     Model = apps.get_model('language_model', 'Model')
     PromptStructure = apps.get_model('language_model', 'PromptStructure')
     GenerationConfig = apps.get_model('language_model', 'GenerationConfig')

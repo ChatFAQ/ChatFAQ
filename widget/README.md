@@ -147,3 +147,11 @@ We made the widget styles hightly customizable by exposing a set of variables th
 ```
 
 You can find the full list of variables on [assets/styles/_variables.css](assets/styles/_variables.css)
+
+### Build and publish
+
+Change the version on [package.json](package.json)
+
+`npm run package`
+
+`npm publish`

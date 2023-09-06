@@ -60,7 +60,7 @@ class Retriever:
 
 
 
-    def set_df(self, df: pd.DataFrame, batch_size: int = 1024, build_embeddings: bool = True, save_embeddings_path: str = None):
+    def set_df(self, df: pd.DataFrame, batch_size: int = 16, build_embeddings: bool = True, save_embeddings_path: str = None):
         """
         Sets the dataframe containing the context.
         Parameters
@@ -68,7 +68,7 @@ class Retriever:
         df : pd.DataFrame
             Dataframe containing the context to be used for retrieval.
         batch_size : int, optional
-            Batch size to be used for encoding the context, by default 1024
+            Batch size to be used for encoding the context, by default 16
         build_embeddings : bool, optional
             Whether to build the embeddings for the context, by default True
         save_embeddings_path : str, optional
@@ -86,7 +86,7 @@ class Retriever:
                 self.save_embeddings(save_embeddings_path)
 
 
-    def build_embeddings(self, embedding_col: str = 'answer', batch_size: int = 1024):
+    def build_embeddings(self, embedding_col: str = 'answer', batch_size: int = 16):
         """
         Builds the embeddings for the context.
         Parameters
@@ -94,11 +94,12 @@ class Retriever:
         embedding_col : str, optional
             Name of the column to build the embeddings for and to be used for retrieval, by default 'answer'
         batch_size : int, optional
-            Batch size to be used for encoding the context, by default 1024
+            Batch size to be used for encoding the context, by default 16
         """
         print("Building embeddings...")
         answers = self.df[embedding_col].tolist()
         answers = ['passage: ' + answer for answer in answers] # add e5 prefix to answers
+        print(len(answers))
         self.embeddings = self.encode(answers, batch_size)
 
     def save_embeddings(self, path: str):
@@ -246,6 +247,6 @@ class Retriever:
             return doc_score_triplets
 
         return [doc_score_triplets_per_query[:top_k] for doc_score_triplets_per_query in doc_score_triplets]
-    
+
     def get_contexts(self, matches):
         return [match[0][self.context_col] for match in matches]

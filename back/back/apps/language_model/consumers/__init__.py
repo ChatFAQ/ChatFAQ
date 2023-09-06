@@ -62,6 +62,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             data["input_text"],
             data["conversation_id"],
             data["bot_channel_name"],
+            False
         )
 
     async def send_llm_response(self, event):

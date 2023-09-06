@@ -19,6 +19,9 @@ def get_config():
 
 
 def set_config(key, val):
+    if not exists(CONFIG_FILE_PATH):
+        with open(CONFIG_FILE_PATH, "w+") as f:
+            json.dump({}, f)
     with open(CONFIG_FILE_PATH, "r+") as f:
         content = {}
         try:
