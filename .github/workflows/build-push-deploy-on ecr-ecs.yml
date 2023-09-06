@@ -96,15 +96,15 @@ jobs:
           container-name: main
           image: ${{ steps.build-image.outputs.image }}
       
-      - name: Run Task on Amazon ECS for migrate
+      - name: Run ECS Task
         if: steps.get-last-def-migrate.outputs.exists == 'true'
-        uses: smitp/amazon-ecs-run-task@v1
+        uses: researchsquare/run-ecs-task-action@v1
         with:
-          task-definition: ${{ steps.task-def-migrate.outputs.task-definition }}
+          task-definition: steps.task-def-migrate.outputs.task-definition
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
-          count: 1
-          started-by: github-actions-${{ steps.aws-credentials.role-session-name }}
-          wait-for-finish: true
+          wait-for-service-stability: true
+      
+      
       
       - name: Fetch latest task definition
         run: |
