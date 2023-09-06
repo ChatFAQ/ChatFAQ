@@ -27,7 +27,7 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-with EnvManager(ModelWDjango(enable_storages=True)) as env:
+with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None)) as env:
     # ---
     # Apps
     # ---
@@ -137,8 +137,10 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
         "default": {
             "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
             "CONFIG": {
-                **db_config(conn_max_age=int(os.getenv("CONN_MAX_AGE", 0))),
-                "config": {},
+                **db_config(conn_max_age=None),
+                "config": {
+                    "maxsize": 0,  # unlimited pool size (but it recycles used connections of course)
+                },
             },
         },
     }
