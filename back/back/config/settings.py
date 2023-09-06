@@ -27,7 +27,7 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-with EnvManager(ModelWDjango(enable_storages=True)) as env:
+with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None)) as env:
     # ---
     # Apps
     # ---
@@ -42,7 +42,6 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
         "django.contrib.staticfiles",
         "django_extensions",
         "simple_history",
-        "channels_postgres",
         "django_celery_results",
         "corsheaders",
         "django_better_admin_arrayfield",
@@ -57,6 +56,10 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
         "back.apps.fsm",
         "back.apps.language_model",
     ]
+    if not os.getenv("REDIS_URL"):
+        INSTALLED_APPS += [
+            "channels_postgres",
+        ]
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -132,17 +135,27 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
     # ---
     # Django Channels
     # ---
-
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
-            "CONFIG": {
-                **db_config(conn_max_age=int(os.getenv("CONN_MAX_AGE", 0))),
-                "config": {},
+    if not os.getenv("REDIS_URL"):
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
+                "CONFIG": {
+                    **db_config(conn_max_age=None),
+                    "config": {
+                        "maxsize": 0,  # unlimited pool size (but it recycles used connections of course)
+                    },
+                },
             },
-        },
-    }
-
+        }
+    else:
+        CHANNEL_LAYERS = {
+            "default": {
+                "BACKEND": "channels_redis.core.RedisChannelLayer",
+                "CONFIG": {
+                    "hosts": [os.getenv("REDIS_URL")],
+                },
+            },
+        }
     # ---
     # Logging
     # ---

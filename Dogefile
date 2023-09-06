@@ -8,7 +8,10 @@ databases:
     db_user: "{{ deployment_key }}"
     engine: pg
     version: "15"
-
+  - name: redis
+    cluster_name: 'dogeops-redis-{{ production("prod", default="dev") }}'
+    engine: redis
+    version: "7"
 env:
   - name: sentry
     variables:
@@ -23,11 +26,13 @@ env:
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
-      DO_REGION: '{{ get("DO_REGION") }}'
+      DO_REGION: 'ams3'
       STORAGES_MODE: do
       STORAGE_MAKE_FILES_PUBLIC: no
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
+      POOL_DB_CONNECTIONS: yes
+      REDIS_URL: '{{ redis.REDIS_URL }}'
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
