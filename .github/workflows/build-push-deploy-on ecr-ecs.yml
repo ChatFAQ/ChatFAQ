@@ -76,7 +76,7 @@ jobs:
     
       - name: Fetch latest task definition if back for migrate
         id: get-last-def
-        if: ${{ matrix.target-folder }} == "back"
+        if: ${{ matrix.target-folder }} == 'back'
         run: |
           latest_task_def=$(aws ecs list-task-definitions --family-prefix chatfaq-${{ matrix.target-folder }}-migrate --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
           echo $latest_task_def
@@ -84,7 +84,7 @@ jobs:
           cat task-definition-migrate.json 
 
       - name: Fill in the new image ID in the Amazon ECS task definition if back for migrate
-        if: ${{ matrix.target-folder }} == "back"
+        if: ${{ matrix.target-folder }} == 'back'
         id: task-def-migrate
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
@@ -93,7 +93,7 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
       
       - name: Run Task on Amazon ECS for migrate
-        if: ${{ matrix.target-folder }} == "back"
+        if: ${{ matrix.target-folder }} == 'back'
         uses: smitp/amazon-ecs-run-task@v1
         with:
           task-definition: ${{ steps.task-def-migrate.outputs.task-definition }}
