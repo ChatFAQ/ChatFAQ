@@ -12,7 +12,6 @@ Make sure the next list of packages are installed on your system:
 - python3.10-distutils
 - poetry
 
-
 ## Installation
 
 ### PYPI
