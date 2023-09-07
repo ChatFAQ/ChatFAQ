@@ -27,7 +27,7 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None)) as env:
+with EnvManager(ModelWDjango(enable_storages=True)) as env:
     # ---
     # Apps
     # ---
@@ -42,7 +42,6 @@ with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None
         "django.contrib.staticfiles",
         "django_extensions",
         "simple_history",
-        "django_celery_results",
         "corsheaders",
         "django_better_admin_arrayfield",
         "rest_framework",
@@ -188,7 +187,7 @@ with EnvManager(ModelWDjango(enable_storages=True, conn_max_age_when_pooled=None
         "TOKEN_TTL": None,
     }
     # Celery
-    CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"
+    # CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"
     # from kombu.common import Broadcast
     # CELERY_QUEUES = (Broadcast('broadcast_tasks'),)
     # CELERY_ROUTES = {
