@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from back.apps.language_model.models import Dataset, Item
-from asgiref.sync import sync_to_async
-
+from channels.db import database_sync_to_async
 # Define your item pipelines here
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
@@ -13,13 +12,13 @@ class GenericPipeline(object):
 
     async def process_item(self, item, spider):
         if not self.ds:
-            self.ds = await sync_to_async(Dataset.objects.get)(id=spider.dataset_id)
+            self.ds = await database_sync_to_async(Dataset.objects.get)(id=spider.dataset_id)
 
-        _item = await sync_to_async(Item.objects.create)(
+        _item = await database_sync_to_async(Item.objects.create)(
             dataset=self.ds,
             answer=item['text'],
             url=item['url'],
         )
-        await sync_to_async(_item.save)()
+        await database_sync_to_async(_item.save)()
 
         return item

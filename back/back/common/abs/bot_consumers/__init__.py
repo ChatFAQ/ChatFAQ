@@ -4,7 +4,7 @@ from abc import ABC
 from logging import getLogger
 from typing import TYPE_CHECKING, Union
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from django.forms import model_to_dict
 from django.urls import re_path
 
@@ -153,8 +153,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         """
         from back.apps.broker.models.message import Conversation  # TODO: CI
 
-        conv = await sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
-        last_mml = await sync_to_async(conv.get_last_mml)()
+        conv = await database_sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
+        last_mml = await database_sync_to_async(conv.get_last_mml)()
 
         last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
         return {

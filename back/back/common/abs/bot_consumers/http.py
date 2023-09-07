@@ -1,7 +1,7 @@
 import json
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.http import AsyncHttpConsumer
 
 from back.apps.broker.models.message import Message
@@ -30,10 +30,10 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
             If returns False most likely it is going be because a wrongly provided FSM name
         """
 
-        self.fsm = await sync_to_async(CachedFSM.build_fsm)(self)
+        self.fsm = await database_sync_to_async(CachedFSM.build_fsm)(self)
         if self.fsm:
             logger.debug(
-                f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
+                f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await database_sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
             )
             await self.fsm.next_state()
         else:
@@ -69,7 +69,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         self.set_fsm_def(await self.gather_fsm_def(serializer.validated_data))
         self.set_user_id(await self.gather_user_id(serializer.validated_data))
 
-        mml = await sync_to_async(serializer.to_mml)(self)
+        mml = await database_sync_to_async(serializer.to_mml)(self)
         if not mml:
             await self.send_json(serializer.errors)
             return
