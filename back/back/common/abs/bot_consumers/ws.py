@@ -39,7 +39,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             )
             # await self.fsm.next_state()
         else:
-            self.fsm = self.fsm_def.build_fsm(self)
+            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self)
             await self.fsm.start()
             logger.debug(
                 f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"

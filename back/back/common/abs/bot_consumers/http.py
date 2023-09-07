@@ -40,7 +40,7 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
             logger.debug(
                 f"Starting new conversation ({self.conversation}), creating new FSM"
             )
-            self.fsm = self.fsm_def.build_fsm(self)
+            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self)
             await self.fsm.start()
 
         return True
