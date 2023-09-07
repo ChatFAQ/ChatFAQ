@@ -18,7 +18,7 @@ def create(
         str, typer.Argument(help="The name you wish to give to the dataset.")
     ],
     source: Annotated[
-        str, typer.Argument(help="The path to the CSV to upload.")
+        str, typer.Argument(help="The path to the CSV or PDF to upload.")
     ],
 ):
     """

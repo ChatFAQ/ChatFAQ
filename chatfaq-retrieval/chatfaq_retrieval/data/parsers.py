@@ -10,7 +10,7 @@ from unstructured.documents.elements import (
 
 from unstructured.partition.auto import partition_pdf, partition_html
 
-from chatfaq_retrieval.data.models import Context
+from chatfaq_retrieval.data.models import KnowledgeItem
 
 
 def is_strict_instance(obj, class_type):
@@ -136,59 +136,49 @@ def parse_elements(
     return sections
 
 
-def transform_to_context(
-    sections: List[List[Element]],
-    file_type: str = "pdf",
-) -> List[Context]:
+def transform_to_kitems(sections: List[List[Element]], file_type: str = 'pdf',) -> List[KnowledgeItem]:
     """
-    Transforms a list of sections into a list of contexts and adds metadata.
+    Transforms a list of sections into a list of KnowledgeItems.
     Parameters
     ----------
-    sections : List[List[Element]]
+    sections : List[List[KnowledgeItem]]
         A list of sections, where each section is a list of elements.
     file_type: str
         The type of file that was used to generate the sections.
     Returns
     -------
-    List[Context]
-        A list of contexts.
+    List[KnowledgeItem]
+        A list of KnowledgeItems.
     """
 
-    sections_context = []
-    prev_title = None  # save previous title to use if no title is found
+    sections_kitems = []
+    prev_title = None
     for ndx, section in enumerate(sections):
         title = None
         for element in section:
             if isinstance(element, Title):
                 title = element.text
                 break
-        if title is None:  # if no title is found take the previous title
+        if title is None: # if no title is found take the previous title
             title = prev_title
-            if ndx == 0:  # first section and no title found
+            if ndx == 0: # first section and no title found
                 # first 5 words as title
                 title = " ".join([word for word in section[0].text.split()[:5]])
 
-        section_context = Context(
-            content="\n".join([element.text for element in section]), title=title
-        )
 
-        if file_type == "pdf":  # add page number
-            section_context.page_number = section[0].metadata.page_number
+        section_kitems = KnowledgeItem(content="\n".join([element.text for element in section]), title=title)
+        if file_type == 'pdf':
+            section_kitems.page_number = section[0].metadata.page_number
+        elif file_type == 'html':
+            url = section[0].metadata.url if section[0].metadata.url else section[0].metadata.filename # use url if available, otherwise filename
+            section_kitems.url = url
 
-        elif file_type == "html":  # add url
-            url = (
-                section[0].metadata.url
-                if section[0].metadata.url
-                else section[0].metadata.filename
-            )  # use url if available, otherwise filename
-            section_context.url = url
+        if section_kitems.content.strip() != "":
+            sections_kitems.append(section_kitems)
 
-        if section_context.content.strip() != "":
-            sections_context.append(section_context)
+        prev_title = title # save title for next section
 
-        prev_title = title  # save title for next section
-
-    return sections_context
+    return sections_kitems
 
 
 def parse_pdf(
@@ -197,7 +187,7 @@ def parse_pdf(
     strategy: str = "auto",
     combine_section_under_n_chars: int = 500,
     new_after_n_chars: int = 1000,
-) -> List[Context]:
+) -> List[KnowledgeItem]:
     """
     Parse a pdf file into sections.
     Parameters
@@ -215,8 +205,8 @@ def parse_pdf(
         Cuts off new sections once they reach a length of n characters
     Returns
     -------
-    List[Context]
-        A list of contexts.
+    List[KnowledgeItem]
+        A list of KnowledgeItem.
     """
     elements = partition_pdf(filename=filename, file=file, strategy=strategy)
     sections = parse_elements(
@@ -226,9 +216,9 @@ def parse_pdf(
         new_after_n_chars=new_after_n_chars,
     )
 
-    contexts = transform_to_context(sections, file_type="pdf")
+    kitems = transform_to_kitems(sections, file_type="pdf")
 
-    return contexts
+    return kitems
 
 
 def parse_html(
@@ -239,7 +229,7 @@ def parse_html(
     encoding: Optional[str] = None,
     combine_section_under_n_chars: int = 500,
     new_after_n_chars: int = 1000,
-) -> List[Context]:
+) -> List[KnowledgeItem]:
     """
     Parse an html file into sections.
     Parameters
@@ -261,8 +251,8 @@ def parse_html(
         Cuts off new sections once they reach a length of n characters
     Returns
     -------
-    List[Context]
-        A list of contexts.
+    List[KnowledgeItem]
+        A list of KnowledgeItems.
     """
     elements = partition_html(
         filename=filename,
@@ -278,6 +268,6 @@ def parse_html(
         new_after_n_chars=new_after_n_chars,
     )
 
-    contexts = transform_to_context(sections, file_type="html")
+    kitems = transform_to_kitems(sections, file_type="html")
 
-    return contexts
+    return kitems
