@@ -5,7 +5,7 @@ from chatfaq_sdk.layers import LMGeneratedText, Text
 
 
 def send_greeting(ctx: dict):
-    yield Text("How can we help you?", allow_feedback=False)
+    yield Text("Bonjour, comment puis-je vous aider ?", allow_feedback=False)
 
 
 def send_answer(ctx: dict):

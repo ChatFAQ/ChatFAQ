@@ -10,8 +10,8 @@ const conf = useRuntimeConfig()
 const chatfaqWS = ref(conf.public.chatfaqWS)
 const chatfaqAPI = ref(conf.public.chatfaqAPI)
 const userId = ref(undefined)
-const title = ref("Hello there 👋")
-const subtitle = ref("How can we help you?")
+const title = ref("Bonjour 👋")
+const subtitle = ref("Crédit Agricole Payment Services")
 const fsmDef = ref("model_fsm")
 const historyOpened = ref(false);
 
