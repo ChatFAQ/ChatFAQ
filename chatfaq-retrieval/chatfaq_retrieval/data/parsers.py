@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, BinaryIO, IO
+from typing import List, Optional, Union, BinaryIO, IO, Callable
 from tempfile import SpooledTemporaryFile
 
 import pandas as pd
@@ -136,7 +136,7 @@ def parse_elements(
     return sections
 
 
-def transform_to_kitems(sections: List[List[Element]], file_type: str = 'pdf',) -> List[KnowledgeItem]:
+def transform_to_k_items(sections: List[List[Element]], file_type: str = 'pdf',) -> List[KnowledgeItem]:
     """
     Transforms a list of sections into a list of KnowledgeItems.
     Parameters
@@ -151,7 +151,7 @@ def transform_to_kitems(sections: List[List[Element]], file_type: str = 'pdf',) 
         A list of KnowledgeItems.
     """
 
-    sections_kitems = []
+    sections_k_items = []
     prev_title = None
     for ndx, section in enumerate(sections):
         title = None
@@ -166,19 +166,44 @@ def transform_to_kitems(sections: List[List[Element]], file_type: str = 'pdf',) 
                 title = " ".join([word for word in section[0].text.split()[:5]])
 
 
-        section_kitems = KnowledgeItem(content="\n".join([element.text for element in section]), title=title)
+        section_k_items = KnowledgeItem(content="\n".join([element.text for element in section]), title=title)
         if file_type == 'pdf':
-            section_kitems.page_number = section[0].metadata.page_number
+            section_k_items.page_number = section[0].metadata.page_number
         elif file_type == 'html':
             url = section[0].metadata.url if section[0].metadata.url else section[0].metadata.filename # use url if available, otherwise filename
-            section_kitems.url = url
+            section_k_items.url = url
 
-        if section_kitems.content.strip() != "":
-            sections_kitems.append(section_kitems)
+        if section_k_items.content.strip() != "":
+            sections_k_items.append(section_k_items)
 
         prev_title = title # save title for next section
 
-    return sections_kitems
+    return sections_k_items
+
+
+def split_k_items(k_items: List[KnowledgeItem], split_function: Callable = lambda x: [x]) -> List[KnowledgeItem]:
+    """
+    Splits a list of knowledge items into a list of more knowledge items when the content is split if needed.
+    Parameters
+    ----------
+    k_items : List[KnowledgeItem]
+        A list of KnowledgeItems.
+    split_function: Callable
+        A function that takes a knowledge item and returns a list of knowledge items. The default does not split.
+    Returns
+    -------
+    List[KnowledgeItem]
+        A list of KnowledgeItems.
+    """
+
+    new_k_items = []
+    for k_item in k_items:
+        text_splitted = split_function(k_items.content)
+        for text in text_splitted:
+            c = KnowledgeItem(content=text, title=k_item.title, url=k_item.url, section=k_item.section, page_number=k_item.page_number)
+            new_k_items.append(c)
+
+    return new_k_items
 
 
 def parse_pdf(
@@ -186,7 +211,8 @@ def parse_pdf(
     file: Optional[Union[BinaryIO, SpooledTemporaryFile]] = None,
     strategy: str = "auto",
     combine_section_under_n_chars: int = 500,
-    new_after_n_chars: int = 1000,
+    new_after_n_chars: int = 1500,
+    split_function: Callable = lambda x: [x],
 ) -> List[KnowledgeItem]:
     """
     Parse a pdf file into sections.
@@ -203,6 +229,8 @@ def parse_pdf(
         a length of n characters.
     new_after_n_chars: int
         Cuts off new sections once they reach a length of n characters
+    split_function: Callable
+        A function that takes a knowledge item and returns a list of knowledge items. The default does not split.
     Returns
     -------
     List[KnowledgeItem]
@@ -216,9 +244,11 @@ def parse_pdf(
         new_after_n_chars=new_after_n_chars,
     )
 
-    kitems = transform_to_kitems(sections, file_type="pdf")
+    k_items = transform_to_k_items(sections, file_type="pdf")
 
-    return kitems
+    k_items = split_k_items(k_items, split_function=split_function)
+
+    return k_items
 
 
 def parse_html(
@@ -229,6 +259,7 @@ def parse_html(
     encoding: Optional[str] = None,
     combine_section_under_n_chars: int = 500,
     new_after_n_chars: int = 1000,
+    split_function: Callable = lambda x: [x],
 ) -> List[KnowledgeItem]:
     """
     Parse an html file into sections.
@@ -249,6 +280,8 @@ def parse_html(
         a length of n characters.
     new_after_n_chars: int
         Cuts off new sections once they reach a length of n characters
+    split_function: Callable
+        A function that takes a knowledge item and returns a list of knowledge items. The default does not split.
     Returns
     -------
     List[KnowledgeItem]
@@ -268,6 +301,8 @@ def parse_html(
         new_after_n_chars=new_after_n_chars,
     )
 
-    kitems = transform_to_kitems(sections, file_type="html")
+    k_items = transform_to_k_items(sections, file_type="html")
 
-    return kitems
+    k_items = split_k_items(k_items, split_function=split_function)
+
+    return k_items

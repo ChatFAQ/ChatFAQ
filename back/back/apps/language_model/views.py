@@ -4,13 +4,13 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from .tasks import initiate_crawl
+from .tasks import initiate_crawl, parse_pdf_task
 from .models import Dataset, Item, Model, Utterance
 from .serializers import (
     DatasetSerializer,
     ItemSerializer,
     ModelSerializer,
-    UtteranceSerializer, DatasetFromUrlSerializer,
+    UtteranceSerializer, DatasetFromUrlSerializer
 )
 
 

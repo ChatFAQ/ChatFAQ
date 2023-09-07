@@ -12,13 +12,10 @@ class DatasetSerializer(serializers.ModelSerializer):
         model = Dataset
         fields = "__all__"
 
-    # extra step when validating: the file must contain the following columns: intent, answer, url if it's a csv
+    # extra step when validating CSVs: the file must contain the following columns: intent, answer, url
     def validate(self, data):
-        if "original_file" in data:
-            f = data["original_file"]
-            print(f"Validating {f.name}")
-            if f.name.endswith(".pdf"): # if pdf then don't check the columns
-                return data
+        if "original_csv" in data:
+            f = data["original_csv"]
             decoded_file = f.read().decode("utf-8").splitlines()
             reader = csv.DictReader(decoded_file)
             if not all(elem in reader.fieldnames for elem in self.MANDATORY_COLUMNS):

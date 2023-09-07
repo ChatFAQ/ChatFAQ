@@ -151,3 +151,65 @@ def initiate_crawl(dataset_id, url):
     d.addBoth(lambda _: reactor.stop())
     reactor.run()
 
+
+@app.task()
+def parse_pdf_task(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
+    """
+    Parse a pdf file and return a list of KnowledgeItem objects.
+    Parameters
+    ----------
+    pdf_file : File
+        The pdf file to parse.
+    strategy : str
+        The strategy to use to extract the text from the pdf.
+    splitter : str
+        The splitter to use to split the text into knowledge units
+    chunk_size : int
+        The chunk size to use when splitting the text into knowledge units
+    chunk_overlap : int
+        The chunk overlap to use when splitting the text into knowledge units
+    Returns
+    -------
+    k_items : list
+        A list of KnowledgeItem objects.
+    """
+    from chatfaq_retrieval.data.parsers import parse_pdf
+
+    
+
+    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
+
+    k_items = parse_pdf(pdf_file, strategy=strategy, splitter=splitter)
+    return k_items
+
+
+def get_splitter(splitter, chunk_size, chunk_overlap):
+    """
+    Returns the splitter object corresponding to the splitter name.
+    """
+
+    # check if chunk_size and chunk_overlap are valid and that the chunk_overlap is smaller than the chunk_size
+    if chunk_size < 1:
+        raise ValueError(f"chunk_size must be >= 1, got {chunk_size}")
+    if chunk_overlap < 0:
+        raise ValueError(f"chunk_overlap must be >= 0, got {chunk_overlap}")
+    if chunk_overlap >= chunk_size:
+        raise ValueError(f"chunk_overlap must be smaller than chunk_size, got chunk_overlap={chunk_overlap} and chunk_size={chunk_size}")
+    
+
+    if splitter == 'sentences':
+        from chatfaq_retrieval.data.splitters import SentenceTokenSplitter
+        return SentenceTokenSplitter(chunk_size=chunk_size)
+    elif splitter == 'words':
+        from chatfaq_retrieval.data.splitters import WordSplitter
+        return WordSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    elif splitter == 'tokens':
+        from chatfaq_retrieval.data.splitters import TokenSplitter
+        return TokenSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    elif splitter == 'smart':
+        from chatfaq_retrieval.data.splitters import SmartSplitter
+        return SmartSplitter()
+    else:
+        raise ValueError(f"Unknown splitter: {splitter}, must be one of: sentences, words, tokens, smart")
+
+        

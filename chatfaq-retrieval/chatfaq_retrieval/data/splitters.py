@@ -184,7 +184,7 @@ class TokenSplitter:
         return chunks
     
 
-class SentenceSplitter:
+class SentenceTokenSplitter:
     """
     Splits a text into chunks of sentences according to the number of tokens.
     """
