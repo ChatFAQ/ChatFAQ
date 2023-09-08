@@ -167,12 +167,13 @@ def create_from_pdf(
     """
     Creates a new dataset from a pdf file.
     """
+
     r = ctx.parent.obj["r"].post(
         f"language-model/datasets/",
         data={
             "name": name,
             "language": language,
-            "splitter": splitter,
+            "splitter": splitter.value,
             "chunk_size": chunk_size,
             "chunk_overlap": chunk_overlap,
         },

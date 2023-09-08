@@ -49,7 +49,7 @@ class Dataset(models.Model):
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
 
     # PDF parsing options
-    strategy = models.CharField(max_length=10, default="auto", choices=STRATEGY_CHOICES)
+    strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
     splitter = models.CharField(max_length=10, default="sentences", choices=SPLITTERS_CHOICES)
     chunk_size = models.IntegerField(default=128)
     chunk_overlap = models.IntegerField(default=16)
@@ -78,7 +78,7 @@ class Dataset(models.Model):
         self._replace_dataset_items(new_items)
 
     def update_items_from_pdf(self):
-        parsed_data = parse_pdf_task.delay(self.original_pdf)
+        parsed_data = parse_pdf_task.delay(self.pk).get()
 
         new_items = [
             Item(
@@ -236,6 +236,10 @@ class Model(models.Model):
     trust_remote_code_model = models.BooleanField(default=False)
     revision = models.CharField(max_length=255, blank=True, null=True, default="main")
 
+    def __str__(self):
+        dataset_name = self.dataset.name
+        return self.name or f"{self.repo_id} - {dataset_name}".format(self.id)
+
 
 class PromptStructure(models.Model):
     """
@@ -274,6 +278,10 @@ class PromptStructure(models.Model):
     model = models.ForeignKey(Model, on_delete=models.PROTECT)
     history = HistoricalRecords()
 
+    def __str__(self):
+        model_name = Model.objects.get(pk=self.model.pk).name
+        return f"Prompt Configuration for {model_name}"
+
 
 class GenerationConfig(models.Model):
     """
@@ -300,4 +308,8 @@ class GenerationConfig(models.Model):
     seed = models.IntegerField(default=42)
     max_new_tokens = models.IntegerField(default=256)
     model = models.ForeignKey(Model, on_delete=models.PROTECT)
+
+    def __str__(self):
+        model_name = Model.objects.get(pk=self.model.pk).name
+        return f"Generation Configuration for {model_name}"
 

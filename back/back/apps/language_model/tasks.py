@@ -1,5 +1,5 @@
 import uuid
-from io import StringIO
+from io import StringIO, BytesIO
 from logging import getLogger
 from twisted.internet import reactor
 from asgiref.sync import async_to_sync
@@ -153,21 +153,13 @@ def initiate_crawl(dataset_id, url):
 
 
 @app.task()
-def parse_pdf_task(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
+def parse_pdf_task(pdf_file_pk):
     """
     Parse a pdf file and return a list of KnowledgeItem objects.
     Parameters
     ----------
-    pdf_file : File
-        The pdf file to parse.
-    strategy : str
-        The strategy to use to extract the text from the pdf.
-    splitter : str
-        The splitter to use to split the text into knowledge units
-    chunk_size : int
-        The chunk size to use when splitting the text into knowledge units
-    chunk_overlap : int
-        The chunk overlap to use when splitting the text into knowledge units
+    pdf_file_pk : int
+        The primary key of the pdf file to parse.
     Returns
     -------
     k_items : list
@@ -175,11 +167,22 @@ def parse_pdf_task(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
     """
     from chatfaq_retrieval.data.parsers import parse_pdf
 
-    
+    Datasets = apps.get_model('language_model', 'Dataset')
+    pdf_file = Datasets.objects.get(pk=pdf_file_pk).original_pdf.read()
+    strategy = Datasets.objects.get(pk=pdf_file_pk).strategy
+    splitter = Datasets.objects.get(pk=pdf_file_pk).splitter
+    chunk_size = Datasets.objects.get(pk=pdf_file_pk).chunk_size
+    chunk_overlap = Datasets.objects.get(pk=pdf_file_pk).chunk_overlap
+
+    pdf_file = BytesIO(pdf_file)
 
     splitter = get_splitter(splitter, chunk_size, chunk_overlap)
 
-    k_items = parse_pdf(pdf_file, strategy=strategy, splitter=splitter)
+    k_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
+
+    # serialize the KnowledgeItem objects
+    k_items = [k_item.__dict__ for k_item in k_items]
+
     return k_items
 
 

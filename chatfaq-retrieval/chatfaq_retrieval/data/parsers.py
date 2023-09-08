@@ -198,7 +198,7 @@ def split_k_items(k_items: List[KnowledgeItem], split_function: Callable = lambd
 
     new_k_items = []
     for k_item in k_items:
-        text_splitted = split_function(k_items.content)
+        text_splitted = split_function(k_item.content)
         for text in text_splitted:
             c = KnowledgeItem(content=text, title=k_item.title, url=k_item.url, section=k_item.section, page_number=k_item.page_number)
             new_k_items.append(c)
@@ -237,6 +237,7 @@ def parse_pdf(
         A list of KnowledgeItem.
     """
     elements = partition_pdf(filename=filename, file=file, strategy=strategy)
+
     sections = parse_elements(
         elements,
         file_type="pdf",
