@@ -27,7 +27,9 @@ def is_true(s):
     return str(s).lower() in ["yes", "true", "1"]
 
 
-with EnvManager(ModelWDjango(enable_storages=True)) as env:
+model_w_django = ModelWDjango(enable_storages=True)
+
+with EnvManager(model_w_django) as env:
     # ---
     # Apps
     # ---
@@ -146,7 +148,17 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
                 },
             },
         }
-
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [model_w_django._redis_url(env)],
+                "prefix": model_w_django._redis_prefix(env, "channels"),
+                "capacity": 1500,  # default 100
+                "expiry": 5,  # default 60
+            },
+        },
+    }
     # ---
     # Logging
     # ---
