@@ -10,7 +10,7 @@ on:
       - "Dogefile"
     branches:
       - "develop"
-      - "feature/**"
+      - "feature/**caps**"
   workflow_dispatch:
 
 jobs:
