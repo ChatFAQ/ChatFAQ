@@ -150,7 +150,7 @@ with EnvManager(model_w_django) as env:
         }
     CHANNEL_LAYERS = {
         "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
             "CONFIG": {
                 "hosts": [model_w_django._redis_url(env)],
                 "prefix": model_w_django._redis_prefix(env, "channels"),
