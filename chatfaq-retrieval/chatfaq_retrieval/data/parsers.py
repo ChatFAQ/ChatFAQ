@@ -211,7 +211,7 @@ def parse_pdf(
     file: Optional[Union[BinaryIO, SpooledTemporaryFile]] = None,
     strategy: str = "auto",
     combine_section_under_n_chars: int = 500,
-    new_after_n_chars: int = 1500,
+    new_after_n_chars: int = -1,
     split_function: Callable = lambda x: [x],
 ) -> List[KnowledgeItem]:
     """
@@ -236,7 +236,12 @@ def parse_pdf(
     List[KnowledgeItem]
         A list of KnowledgeItem.
     """
+
+    if strategy in ['ocr_only', 'hi_res']:
+        print(f'Using strategy {strategy}. This might take a few minutes.')
+
     elements = partition_pdf(filename=filename, file=file, strategy=strategy)
+    print(f"N elements: {len(elements)}")
 
     sections = parse_elements(
         elements,
@@ -245,9 +250,15 @@ def parse_pdf(
         new_after_n_chars=new_after_n_chars,
     )
 
+    print(f"N sections: {len(sections)}")
+
     k_items = transform_to_k_items(sections, file_type="pdf")
 
+    print(f"N k_items: {len(k_items)}")
+
     k_items = split_k_items(k_items, split_function=split_function)
+
+    print(f"N k_items after split: {len(k_items)}")
 
     return k_items
 
