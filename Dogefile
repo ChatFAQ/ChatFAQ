@@ -9,7 +9,7 @@ databases:
     engine: pg
     version: "15"
   - name: redis
-    cluster_name: 'dogeops-redis-{{ production("prod", default="dev") }}'
+    cluster_name: 'chatfaq-redis-{{ production("prod", default="dev") }}'
     engine: redis
     version: "7"
 env:
