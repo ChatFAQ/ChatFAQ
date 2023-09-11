@@ -1,9 +1,9 @@
 ## [![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)](https://www.chatfaq.io/) - The GPT alternative Open Source chatbot!
 
-**ChatFAQ** is an open-source comprehensive platform for creating a wide variety of chatbots: 
-- generic ones, 
-- business-trained, 
-- or even capable of redirecting requests to human operators. 
+**ChatFAQ** is an open-source comprehensive platform for creating a wide variety of chatbots:
+- generic ones,
+- business-trained,
+- or even capable of redirecting requests to human operators.
 
 **ChatFAQ** is a solution that:
 - converts FAQ content into interactive chatbots
@@ -32,8 +32,8 @@ There also is a CLI tool to help interfacing with the back-end server.
 - [CLI](cli/README.md): is a command-line interface to the back-end server. It connects to it and allows you to do anything the back-end server can do but from the confort of your terminal.
 
 ### Visit Our Website
-For more information about ChatFAQ and any additional needs, feel free to visit our website.
+For more information about ChatFAQ and any additional needs, feel free to visit our website. 
 
-Simply go to [www.chatfaq.io](https://www.chatfaq.io/) to learn more!
+Go to [www.chatfaq.io](https://www.chatfaq.io/) to learn more!
 
 ![logo_redes](https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/64a2c8b1643f13e58e9c0fd0_redes-p-500.webp)

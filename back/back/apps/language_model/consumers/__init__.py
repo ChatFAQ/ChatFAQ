@@ -1,7 +1,7 @@
 import json
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
@@ -22,7 +22,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
         return (
             self.scope.get("user")
             and not isinstance(self.scope["user"], AnonymousUser)
-            and await sync_to_async(
+            and await database_sync_to_async(
                 self.scope["user"].groups.filter(name="RPC").exists
             )()
         )
