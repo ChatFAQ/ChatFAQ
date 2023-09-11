@@ -1,13 +1,13 @@
 <template>
-    <div class="custom-loader"></div>
+    <div class="custom-loader" :class="{ dark: color }"></div>
 </template>
 
 
 <script setup>
 defineProps({
     color: {
-        type: String,
-        default: "white"
+        type: Boolean,
+        default: false,
     }
 })
 </script>
@@ -18,12 +18,20 @@ defineProps({
 .custom-loader {
     width: 50px;
     height: 9px;
-    background: radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 0% 50%,
-    radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 50% 50%,
-    radial-gradient(circle closest-side,  v-bind(color) 90%, #0000) 100% 50%;
+    $color: $chatfaq-color-loader-light;
+    background: radial-gradient(circle closest-side,  $color 90%, #0000) 0% 50%,
+    radial-gradient(circle closest-side,  $color 90%, #0000) 50% 50%,
+    radial-gradient(circle closest-side,  $color 90%, #0000) 100% 50%;
     background-size: calc(100% / 3) 100%;
     background-repeat: no-repeat;
     animation: d7 1s infinite linear;
+
+    &.dark {
+        $color: $chatfaq-color-loader-dark;
+        background: radial-gradient(circle closest-side,  $color 90%, #0000) 0% 50%,
+        radial-gradient(circle closest-side,  $color 90%, #0000) 50% 50%,
+        radial-gradient(circle closest-side,  $color 90%, #0000) 100% 50%;
+    }
 }
 
 @keyframes d7 {

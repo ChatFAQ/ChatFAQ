@@ -66,7 +66,7 @@ function change() {
 .checkbox {
     min-width: 16px;
     &.dark {
-        fill: $chatfaq-color-primary-500;
+        fill: $chatfaq-color-chatMessageReference-text-light;
     }
 }
 .unchecked {

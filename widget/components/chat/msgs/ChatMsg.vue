@@ -99,28 +99,28 @@ $phone-breakpoint: 600px;
         max-width: 100%;
 
         &.bot {
-            background-color: $chatfaq-color-primary-300;
-            color: $chatfaq-color-neutral-black;
+            background-color: $chatfaq-color-chatMessageBot-background-light;
+            color: $chatfaq-color-chatMessageBot-text-light;
 
             &.dark-mode {
-                background-color: $chatfaq-color-primary-800;
-                color: $chatfaq-color-neutral-white;
+                background-color: $chatfaq-color-chatMessageBot-background-dark;
+                color: $chatfaq-color-chatMessageBot-text-dark;
             }
         }
 
         &.human {
             border: none;
-            background-color: $chatfaq-color-primary-500;
-            color: $chatfaq-color-neutral-white;
+            background-color: $chatfaq-color-chatMessageHuman-background-light;
+            color: $chatfaq-color-chatMessageHuman-text-light;
 
             &.dark-mode {
-                background-color: $chatfaq-color-primary-900;
-                color: $chatfaq-color-neutral-white;
+                background-color: $chatfaq-color-chatMessageHuman-background-dark;
+                color: $chatfaq-color-chatMessageHuman-text-dark;
             }
         }
 
         &.feedbacking {
-            border-radius: 6px 6px 0px 0px !important;
+            border-radius: 6px 6px 0 0 !important;
             min-width: 100%;
         }
     }
@@ -131,7 +131,7 @@ $phone-breakpoint: 600px;
         flex-direction: column;
         max-width: 100%;
         height: 100%;
-        margin: 16px 0px 0px;
+        margin: 16px 0 0;
 
         &.is-first {
             margin-top: 30px;
@@ -156,36 +156,34 @@ $phone-breakpoint: 600px;
         word-wrap: break-word;
 
         &.bot {
-            background-color: $chatfaq-color-primary-300;
-            color: $chatfaq-color-neutral-black;
+            background-color: $chatfaq-color-chatMessageBot-background-light;
+            color: $chatfaq-color-chatMessageBot-text-light;
 
             &.dark-mode {
-                background-color: $chatfaq-color-primary-800;
-                color: $chatfaq-color-neutral-white;
+                background-color: $chatfaq-color-chatMessageBot-background-dark;
+                color: $chatfaq-color-chatMessageBot-text-dark;
             }
-
             &.is-last-of-type {
-                border-radius: 6px 6px 6px 0px;
+                border-radius: 6px 6px 6px 0;
             }
         }
 
         &.human {
             border: none;
-            background-color: $chatfaq-color-primary-500;
-            color: $chatfaq-color-neutral-white;
+            background-color: $chatfaq-color-chatMessageHuman-background-light;
+            color: $chatfaq-color-chatMessageHuman-text-light;
 
             &.dark-mode {
-                background-color: $chatfaq-color-primary-900;
-                color: $chatfaq-color-neutral-white;
+                background-color: $chatfaq-color-chatMessageHuman-background-dark;
+                color: $chatfaq-color-chatMessageHuman-text-dark;
             }
-
             &.is-last-of-type {
-                border-radius: 6px 6px 0px 6px;
+                border-radius: 6px 6px 0 6px;
             }
         }
 
         &.feedbacking {
-            border-radius: 6px 6px 0px 0px !important;
+            border-radius: 6px 6px 0 0 !important;
             min-width: 100%;
         }
         .layer:not(:last-child) {

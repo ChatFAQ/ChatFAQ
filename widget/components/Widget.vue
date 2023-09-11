@@ -88,8 +88,8 @@ $widget-margin: 16px;
     position: sticky;
     height: 100vh;
     width: 100vw;
-    bottom: 0px;
-    right: 0px;
+    bottom: 0;
+    right: 0;
 
     .dark-filter {
         display: none;
@@ -97,7 +97,7 @@ $widget-margin: 16px;
         position: absolute;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(2, 12, 28, 0.7);
+        background-color: $chatfaq-color-darkFilter;
         z-index: 1;
         @media only screen and (max-width: $phone-breakpoint) {
             display: unset;
@@ -105,22 +105,22 @@ $widget-margin: 16px;
     }
 
     .widget-history {
-        background: $chatfaq-color-gradient-purple;
+        background: $chatfaq-color-menu-background;
         width: $history-width;
         height: 580px;
 
         @media only screen and (max-width: $phone-breakpoint) {
             width: $history-width-mobile;
-            border-right: 1px solid $chatfaq-color-neutral-purple;
+            border-right: 1px solid $chatfaq-color-menu-border;
         }
         &.maximized {
             height: 85vh;
         }
 
         border-radius: 10px 0px 0px 10px;
-        border-top: 1px solid $chatfaq-color-neutral-purple;
-        border-left: 1px solid $chatfaq-color-neutral-purple;
-        border-bottom: 1px solid $chatfaq-color-neutral-purple;
+        border-top: 1px solid $chatfaq-color-menu-border;
+        border-left: 1px solid $chatfaq-color-menu-border;
+        border-bottom: 1px solid $chatfaq-color-menu-border;
     }
 
     .widget-wrapper {
@@ -128,7 +128,7 @@ $widget-margin: 16px;
         display: flex;
         align-items: stretch;
         flex-flow: row;
-        bottom: calc($chatfaq-bubble-button-size + $widget-open-button-margin);
+        bottom: calc($chatfaq-size-bubbleButton + $widget-open-button-margin);
         right: 0px;
         margin: $widget-margin;
 
@@ -166,7 +166,7 @@ $widget-margin: 16px;
 
 
     .widget-wrapper > .widget-body > .header {
-        border: 1px solid $chatfaq-color-neutral-purple;
+        border: 1px solid $chatfaq-color-menu-border;
         border-radius: 10px 10px 0px 0px;
 
         &.history {
@@ -182,9 +182,9 @@ $widget-margin: 16px;
     .widget-wrapper > .widget-body > .chat {
         position: relative;
         height: 100%;
-        border-left: 1px solid $chatfaq-color-neutral-purple;
-        border-right: 1px solid $chatfaq-color-neutral-purple;
-        border-bottom: 1px solid $chatfaq-color-neutral-purple;
+        border-left: 1px solid $chatfaq-color-menu-border;
+        border-right: 1px solid $chatfaq-color-menu-border;
+        border-bottom: 1px solid $chatfaq-color-menu-border;
         border-radius: 0px 0px 10px 10px;
 
         &.history {
@@ -215,15 +215,15 @@ $widget-margin: 16px;
 
     .widget-open-button {
         cursor: pointer;
-        background: $chatfaq-color-gradient-pink;
+        background: $chatfaq-color-bubbleButton-background;
 
         &:hover {
-            background: $chatfaq-color-gradient-purple;
+            background: $chatfaq-color-bubbleButton-background-hover;
         }
 
-        width: $chatfaq-bubble-button-size;
-        height: $chatfaq-bubble-button-size;
-        border-radius: $chatfaq-bubble-button-size;
+        width: $chatfaq-size-bubbleButton;
+        height: $chatfaq-size-bubbleButton;
+        border-radius: $chatfaq-size-bubbleButton;
         position: absolute;
         bottom: 0px;
         right: 0px;

@@ -1,0 +1,182 @@
+@import "fonts";
+
+:root {
+     /* Colors */
+
+    // Necesitamos variables genéricas y específicas para poder cambiar asignaciones de colores.
+    // No puedo acceder a las variables del "custom-loader".
+
+    --chatfaq-color-primary-200: #FFFFFF;
+    --chatfaq-color-primary-300: #F0F7F8;
+    --chatfaq-color-primary-500: #007D8F;
+    --chatfaq-color-primary-800: #3c2d52;
+    --chatfaq-color-primary-900: #003B43;
+
+    --chatfaq-color-secondary-pink-500: #CE0578;
+
+    --chatfaq-color-tertiary-blue-500: #9FFFFF;
+    --chatfaq-color-tertiary-green-500: #43F6AB;
+
+    --chatfaq-color-neutral-white: #FFFFFF;
+    --chatfaq-color-neutral-black: #020C1C;
+    --chatfaq-color-neutral-purple: #058CA0;
+
+    --chatfaq-color-gradient-purple: linear-gradient(135deg, #026270 0%, #00292F 100%);
+    --chatfaq-color-gradient-pink: #E4007A;
+    // --chatfaq-color-gradient-green: linear-gradient(135deg, #43F6AB 0%, #9FFFFF 100%);
+
+    --chatfaq-color-greyscale-200: #e7e8e9;
+    --chatfaq-color-greyscale-500: #aaafb5;
+    --chatfaq-color-greyscale-800: #545a64;
+
+    --chatfaq-color-transparent-purple-10: rgba(223, 218, 234, 0.1);
+    --chatfaq-color-transparent-purple-40: rgba(223, 218, 234, 0.4);
+
+     /* Fonts */
+
+    --chatfaq-font-title-xl: normal normal 700 56px/68px 'Montserrat';
+    --chatfaq-font-title-l: normal normal 700 48px/59px 'Montserrat';
+    --chatfaq-font-title-sm: normal normal 700 24px/29px 'Montserrat';
+    --chatfaq-font-title-xs: normal normal 700 18px/22px 'Montserrat';
+
+    --chatfaq-font-body-xl: normal normal 400 24px/33px 'Open Sans';
+    --chatfaq-font-body-m: normal normal 400 24px/33px 'Open Sans';
+    --chatfaq-font-body-m-bold: normal normal 600 16px/22px 'Open Sans';
+    --chatfaq-font-body-s: normal normal 400 14px/19px 'Open Sans';
+    --chatfaq-font-body-xs: normal normal 400 14px/19px 'Open Sans';
+
+    --chatfaq-font-caption-md: italic normal 600 14px/19px 'Open Sans';
+    --chatfaq-font-caption-sm: normal normal 400 12px/16px 'Open Sans';
+
+    --chatfaq-font-button: normal normal 600 14px/17px 'Montserrat';
+
+     /* Icons */
+
+    --chatfaq-bubble-button-open-icon: url('~/assets/icons/bubble-button-open.svg');
+    --chatfaq-bubble-button-close-icon: url('~/assets/icons/bubble-button-close.svg');
+    --chatfaq-maximize-icon: url('~/assets/icons/maximize.svg');
+    --chatfaq-minimize-icon: url('~/assets/icons/minimize.svg');
+    --chatfaq-dot-menu-icon: url('~/assets/icons/dot-menu.svg');
+    --chatfaq-burger-menu-icon: url('~/assets/icons/burger-menu.svg');
+    --chatfaq-dot-menu-hovered-icon: url('~/assets/icons/dot-menu-hovered.svg');
+    --chatfaq-clock: url('~/assets/icons/clock.svg');
+    --chatfaq-logo-icon: url('~/assets/icons/logo.svg');
+    --chatfaq-logo-long-icon: url('~/assets/icons/logo-long.svg');
+    --chatfaq-send-icon: url('~/assets/icons/send.svg');
+    --chatfaq-send-dark-icon: url('~/assets/icons/send-dark.svg');
+    --chatfaq-moon-icon: url('~/assets/icons/moon.svg');
+    --chatfaq-sun-icon: url('~/assets/icons/sun.svg');
+    --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
+    --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
+    --chatfaq-checkbox-icon: url('~/assets/icons/checkbox.svg');
+    --chatfaq-checkbox-checked-icon: url('~/assets/icons/checkbox-checked.svg');
+    --chatfaq-plus-icon: url('~/assets/icons/plus.svg');
+    --chatfaq-double-arrow-right-icon: url('~/assets/icons/double-arrow-right.svg');
+    --chatfaq-double-arrow-left-icon: url('~/assets/icons/double-arrow-left.svg');
+    --chatfaq-arrow-down-icon: url('~/assets/icons/arrow-down.svg');
+    --chatfaq-trash-icon: url('~/assets/icons/trash.svg');
+    --chatfaq-check-icon: url('~/assets/icons/check.svg');
+    --chatfaq-close-icon: url('~/assets/icons/close.svg');
+    --chatfaq-download-icon: url('~/assets/icons/download.svg');
+    --chatfaq-edit-icon: url('~/assets/icons/edit.svg');
+    --chatfaq-copy-icon: url('~/assets/icons/copy.svg');
+    --chatfaq-thumb-up-icon: url('~/assets/icons/thumb-up.svg');
+    --chatfaq-thumb-down-icon: url('~/assets/icons/thumb-down.svg');
+
+     /* Sizes */
+
+    --chatfaq-bubble-button-size: 60px;
+
+     /* Breakpoints */
+
+    /* Extra small devices (phones, 600px and down) */
+    --phone-breakpoint: 600px;
+}
+
+
+/* Colors */
+
+$chatfaq-color-primary-200: var(--chatfaq-color-primary-200);
+$chatfaq-color-primary-300: var(--chatfaq-color-primary-300);
+$chatfaq-color-primary-500: var(--chatfaq-color-primary-500);
+$chatfaq-color-primary-800: var(--chatfaq-color-primary-800);
+$chatfaq-color-primary-900: var(--chatfaq-color-primary-900);
+
+$chatfaq-color-secondary-pink-500: var(--chatfaq-color-secondary-pink-500);
+
+$chatfaq-color-tertiary-blue-500: var(--chatfaq-color-tertiary-blue-500);
+$chatfaq-color-tertiary-green-500: var(--chatfaq-color-tertiary-green-500);
+
+$chatfaq-color-neutral-white: var(--chatfaq-color-neutral-white);
+$chatfaq-color-neutral-black: var(--chatfaq-color-neutral-black);
+$chatfaq-color-neutral-purple: var(--chatfaq-color-neutral-purple);
+
+$chatfaq-color-gradient-purple: var(--chatfaq-color-gradient-purple);
+$chatfaq-color-gradient-pink: var(--chatfaq-color-gradient-pink);
+// $chatfaq-color-gradient-green: var(--chatfaq-color-gradient-green);
+
+$chatfaq-color-greyscale-200: var(--chatfaq-color-greyscale-200);
+$chatfaq-color-greyscale-500: var(--chatfaq-color-greyscale-500);
+$chatfaq-color-greyscale-800: var(--chatfaq-color-greyscale-800);
+
+$chatfaq-color-transparent-purple-10: var(--chatfaq-color-transparent-purple-10);
+$chatfaq-color-transparent-purple-40: var(--chatfaq-color-transparent-purple-40);
+
+/* Fonts */
+
+$chatfaq-font-title-xl: var(--chatfaq-font-title-xl);
+$chatfaq-font-title-l: var(--chatfaq-font-title-l);
+$chatfaq-font-title-sm: var(--chatfaq-font-title-sm);
+$chatfaq-font-title-xs: var(--chatfaq-font-title-xs);
+
+$chatfaq-font-body-xl: var(--chatfaq-font-body-xl);
+$chatfaq-font-body-m: var(--chatfaq-font-body-m);
+$chatfaq-font-body-m-bold: var(--chatfaq-font-body-m-bold);
+$chatfaq-font-body-s: var(--chatfaq-font-body-s);
+$chatfaq-font-body-xs: var(--chatfaq-font-body-xs);
+
+$chatfaq-font-caption-md: var(--chatfaq-font-caption-md);
+$chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
+
+$chatfaq-font-button: var(--chatfaq-font-button);
+
+/* Icons */
+
+$chatfaq-bubble-button-open-icon: var(--chatfaq-bubble-button-open-icon);
+$chatfaq-bubble-button-close-icon: var(--chatfaq-bubble-button-close-icon);
+$chatfaq-maximize-icon: var(--chatfaq-maximize-icon);
+$chatfaq-minimize-icon: var(--chatfaq-minimize-icon);
+$chatfaq-dot-menu-icon: var(--chatfaq-dot-menu-icon);
+$chatfaq-burger-menu-icon: var(--chatfaq-burger-menu-icon);
+$chatfaq-dot-menu-hovered-icon: var(--chatfaq-dot-menu-hovered-icon);
+$chatfaq-clock: var(--chatfaq-clock);
+$chatfaq-logo-icon: var(--chatfaq-logo-icon);
+$chatfaq-logo-long-icon: var(--chatfaq-logo-long-icon);
+$chatfaq-send-icon: var(--chatfaq-send-icon);
+$chatfaq-send-dark-icon: var(--chatfaq-send-dark-icon);
+$chatfaq-moon-icon: var(--chatfaq-moon-icon);
+$chatfaq-sun-icon: var(--chatfaq-sun-icon);
+$chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
+$chatfaq-mail-icon: var(--chatfaq-mail-icon);
+$chatfaq-checkbox-icon: var(--chatfaq-checkbox-icon);
+$chatfaq-checkbox-checked-icon: var(--chatfaq-checkbox-checked-icon);
+$chatfaq-plus-icon: var(--chatfaq-plus-icon);
+$chatfaq-double-arrow-right-icon: var(--chatfaq-double-arrow-right-icon);
+$chatfaq-double-arrow-left-icon: var(--chatfaq-double-arrow-left-icon);
+$chatfaq-arrow-down-icon: var(--chatfaq-arrow-down-icon);
+$chatfaq-trash-icon: var(--chatfaq-trash-icon);
+$chatfaq-check-icon: var(--chatfaq-check-icon);
+$chatfaq-close-icon: var(--chatfaq-close-icon);
+$chatfaq-download-icon: var(--chatfaq-download-icon);
+$chatfaq-edit-icon: var(--chatfaq-edit-icon);
+$chatfaq-copy-icon: var(--chatfaq-copy-icon);
+$chatfaq-thumb-up-icon: var(--chatfaq-thumb-up-icon);
+$chatfaq-thumb-down-icon: var(--chatfaq-thumb-down-icon);
+
+ /* Sizes */
+
+$chatfaq-bubble-button-size: var(--chatfaq-bubble-button-size);
+
+ /* Breakpoints */
+
+$phone-breakpoint: var(--phone-breakpoint);

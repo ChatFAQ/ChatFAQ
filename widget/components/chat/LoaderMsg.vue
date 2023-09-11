@@ -7,8 +7,9 @@
                 'dark-mode': store.darkMode,
                 'maximized': store.maximized,
             }">
-                <Loader v-if="store.darkMode"/>
-                <Loader v-else color="#463075"/>
+                <!--<Loader v-if="store.darkMode"/>
+                <Loader v-else color="#463075"/>-->
+                <Loader :color="store.darkMode" />
             </div>
         </div>
     </div>
@@ -45,13 +46,13 @@ $phone-breakpoint: 600px;
     word-wrap: break-word;
     max-width: 100%;
 
-    background-color: $chatfaq-color-primary-300;
-    color: $chatfaq-color-neutral-black;
+    background-color: $chatfaq-color-chatMessageBot-background-light;
+    color: $chatfaq-color-chatMessageBot-text-light;
     border-radius: 6px 6px 6px 0px;
 
     &.dark-mode {
-        background-color: $chatfaq-color-primary-800;
-        color: $chatfaq-color-neutral-white;
+        background-color: $chatfaq-color-chatMessageBot-background-dark;
+        color: $chatfaq-color-chatMessageBot-text-dark;
     }
 }
 
