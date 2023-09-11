@@ -23,11 +23,63 @@ def get_package_version() -> str:
         return "0.0.0"
 
 
-def is_true(s):
-    return str(s).lower() in ["yes", "true", "1"]
+class CustomPreset(ModelWDjango):
+    """
+    We override the default ModelWDjango preset to add some custom logic:
+    This project is being deployed in 2 different cloud providers,
+    each one of them defines the environment variables for the databases
+    (postgreSQL and Redis) in a different way, so we need to add some logic
+    to handle this.
+    """
+    def _redis_url(self, env: EnvManager):
+        if (_redis_url := env.get("REDIS_URL", None)) is None:
+            proto = env.get("REDIS_PROTO", "redis")
+            user = env.get("REDIS_USER", "")
+            password = env.get("REDIS_PASSWORD", "")
+            host = env.get("REDIS_HOST", "localhost")
+            port = int(env.get("REDIS_PORT", 6379))
+            db = env.get("REDIS_DATABASE", 0)
+
+            if password:
+                password = f":{password}"
+
+            _redis_url = f"{proto}://{user}{password}@{host}:{port}/{db}"
+
+        os.environ["REDIS_URL"] = _redis_url
+
+        return _redis_url
+
+    def pre_database(self, env: EnvManager):
+        if all([
+            (user := env.get("DATABASE_USER", None)),
+            (password := env.get("DATABASE_PASSWORD", None)),
+            (host := env.get("DATABASE_HOST", None)),
+            (db := env.get("DATABASE_NAME", None)),
+        ]):
+            proto = env.get("DATABASE_PROTO", "postgis" if self.enable_postgis else "postgres")
+            port = int(env.get("DATABASE_PORT", 5432))
+            args = env.get("DATABASE_ARGS", None)
+
+            _url = f"{proto}://{user}:{password}@{host}:{port}/{db}"
+            if args:
+                _url += f"?{args}"
+            os.environ["DATABASE_URL"] = _url
+        return super().pre_database(env)
+
+    def pre_channels(self, env: EnvManager):
+        if not (channel_layers_config := next(super().pre_channels(env))):
+            return channel_layers_config
+
+        channel_layers_config[1]["default"]["BACKEND"] = "channels_redis.pubsub.RedisPubSubChannelLayer"
+        channel_layers_config[1]["default"]["CONFIG"]["capacity"] = 1500
+        channel_layers_config[1]["default"]["CONFIG"]["expiry"] = 5
+
+        yield channel_layers_config
 
 
-with EnvManager(ModelWDjango(enable_storages=True)) as env:
+model_w_django = CustomPreset(enable_storages=True, enable_celery=True)
+
+with EnvManager(model_w_django) as env:
     # ---
     # Apps
     # ---
@@ -134,6 +186,8 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
     # ---
     # Django Channels
     # ---
+    # For the moment postgres as channel layer is not supported
+    """
     if not os.getenv("REDIS_URL"):
         CHANNEL_LAYERS = {
             "default": {
@@ -146,6 +200,7 @@ with EnvManager(ModelWDjango(enable_storages=True)) as env:
                 },
             },
         }
+    """
 
     # ---
     # Logging

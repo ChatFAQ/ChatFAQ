@@ -3,7 +3,7 @@
 For those chatbots with complex Finite State Machine (FSM) behaviours, you will probably want to run them on a separate process, that is what for the SDK is made for. Its primary function is to execute the FSM's computations (transition's conditions and states) by running Remote Procedure Call (RPC) server that listen to the back-end requests.
 
 
-## Prerequisites
+## Prerequisites 
 
 Make sure the next list of packages are installed on your system:
 
