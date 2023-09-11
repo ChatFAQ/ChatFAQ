@@ -8,7 +8,7 @@
 **ChatFAQ** is a solution that:
 - converts FAQ content into interactive chatbots
 - using **open source large language models**,
-- providing flexibility and **costs-effectiveness**.
+- providing flexibility and **costs-effectiveness**. 
 
 It includes a **specialized NLP/NLG engine** and customized chat widgets,
 ensuring a tailored experience for users and avoiding vendor lock-in.
