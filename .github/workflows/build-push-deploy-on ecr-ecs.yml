@@ -75,43 +75,7 @@ jobs:
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
     
-      - name: Fetch latest task definition if back for migrate
-        id: get-last-def-migrate
-        run: |
-          if [[ "${{ matrix.target-folder }}" == "back" ]]; then
-            latest_task_def=$(aws ecs list-task-definitions --family-prefix chatfaq-${{ matrix.target-folder }}-migrate --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
-            echo $latest_task_def
-            aws ecs describe-task-definition --task-definition $latest_task_def --query taskDefinition > task-definition-migrate.json
-            cat task-definition-migrate.json
-            echo "::set-output name=exists::true"
-          fi
-          exit 0 
-
-      - name: Fill in the new image ID in the Amazon ECS task definition if back for migrate
-        if: steps.get-last-def-migrate.outputs.exists == 'true'
-        id: task-def-migrate
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition-migrate.json
-          container-name: main
-          image: ${{ steps.build-image.outputs.image }}
-
-      - name: Deploy Amazon ECS task definition for migrate
-        id: task-def-new-version-migrate
-        if: steps.get-last-def-migrate.outputs.exists == 'true'
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def-migrate.outputs.task-definition }}
-          cluster: ${{ vars.ECS_CLUSTER_NAME }}
       
-      - name: Run ECS Task for migrate
-        if: steps.get-last-def-migrate.outputs.exists == 'true'
-        uses: researchsquare/run-ecs-task-action@v1
-        with:
-          task-definition-arn: ${{ steps.task-def-new-version-migrate.outputs.task-definition-arn }}
-          cluster: ${{ vars.ECS_CLUSTER_NAME }}
-          wait-for-task-completion: true
-          count: 1
       
       
       
