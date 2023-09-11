@@ -38,19 +38,19 @@ env:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-  # - name: sdk
-  #   variables:
-  #     SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
-  #     CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-  #     CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
+  - name: sdk
+    variables:
+      SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
+      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+      CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
 images:
   - name: widget
     build_context: widget
   - name: back
     build_context: back
-  # - name: sdk
-  #   build_context: sdk
+  - name: sdk
+    build_context: sdk
 
 services:
   - name: widget
@@ -67,10 +67,10 @@ services:
       - "/back"
 
 workers:
-  # - name: fsm_llm
-  #   image: sdk
-  #   envs: [ sentry, sdk ]
-  #   instance_size: XS
+  - name: fsm_llm
+    image: sdk
+    envs: [ sentry, sdk ]
+    instance_size: XS
   - name: celery_worker
     image: back
     envs: [ sentry, django ]
