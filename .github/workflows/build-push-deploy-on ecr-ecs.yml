@@ -110,7 +110,7 @@ jobs:
         with:
           task-definition-arn: ${{ steps.task-def-new-version-migrate.outputs.task-definition-arn }}
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
-          #wait-for-task-completion: true
+          wait-for-task-completion: true
           count: 1
       
       
