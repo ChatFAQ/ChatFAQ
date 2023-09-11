@@ -7,23 +7,23 @@ from transformers import AutoTokenizer
 
 class WordSplitter:
     """
-    Splits a text into chunks of num_words words with an overlap of overlap words.
+    Splits a text into chunks of num_words words with an overlap of chunk_overlap words.
     """
-    def __init__(self, num_words: int = 200, overlap: int = 20):
+    def __init__(self, chunk_size: int = 200, chunk_overlap: int = 20):
         """
         Parameters
         ----------
-        num_words : int
+        chunk_size : int
             The number of words per chunk.
         overlap : int
             The number of words that overlap between two chunks.
         """
-        self.num_words = num_words
-        self.overlap = overlap
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
         
     def __call__(self, text: str) -> List[str]:
         """
-        Splits a text into chunks of num_words words with an overlap of overlap words.
+        Splits a text into chunks of chunk_size words with an overlap of chunk_overlap words.
         Parameters
         ----------
         text : str
@@ -34,19 +34,19 @@ class WordSplitter:
             A list of chunks.
         """
         words = text.split()
-        if len(words) <= self.num_words:
-            return [text]  # Do not split if text has fewer words than num_words
+        if len(words) <= self.chunk_size:
+            return [text]  # Do not split if text has fewer words than chunk_size
         chunks = []
         start = 0
         while start < len(words):
-            end = start + self.num_words
+            end = start + self.chunk_size
             chunk = " ".join(words[start:end])
             # check if this chunk is a subset of the previous chunk
             if chunks and chunk in chunks[-1]:
-                start += self.num_words - self.overlap
+                start += self.chunk_size - self.chunk_overlap
                 continue
             chunks.append(chunk)
-            start = end - self.overlap  # Move the start index for the next chunk
+            start = end - self.chunk_overlap  # Move the start index for the next chunk
         return chunks
     
 

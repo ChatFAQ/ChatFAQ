@@ -144,12 +144,38 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
 
 
 @app.task()
-def initiate_crawl(dataset_id, url):
-    from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
-    runner = CrawlerRunner(get_project_settings())
-    d = runner.crawl(GenericSpider, start_urls=url, dataset_id=dataset_id)
-    d.addBoth(lambda _: reactor.stop())
-    reactor.run()
+def parse_url_task(dataset_id, url):
+    """
+    Get the html from the url and parse it.
+    Parameters
+    ----------
+    dataset_id : int
+        The primary key of the dataset to which the crawled items will be added.
+    url : str
+        The url to crawl.
+    Returns
+    -------
+    k_items : list
+        A list of KnowledgeItem objects.
+    """
+    from chatfaq_retrieval.data.parsers import parse_html
+
+    Datasets = apps.get_model('language_model', 'Dataset')
+    dataset = Datasets.objects.get(pk=dataset_id)
+    splitter = dataset.splitter
+    chunk_size = dataset.chunk_size
+    chunk_overlap = dataset.chunk_overlap
+
+    # get the splitter object
+    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
+
+    # parse the html
+    k_items = parse_html(url=url, split_function=splitter)
+
+    # serialize the items
+    k_items = [k_item.__dict__ for k_item in k_items]
+
+    return k_items
 
 
 @app.task()

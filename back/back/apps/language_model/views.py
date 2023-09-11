@@ -4,7 +4,6 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from .tasks import initiate_crawl, parse_pdf_task
 from .models import Dataset, Item, Model, Utterance
 from .serializers import (
     DatasetSerializer,
@@ -30,19 +29,6 @@ class DatasetAPIViewSet(viewsets.ModelViewSet):
         )
         response.write(ds.to_csv())
         return response
-
-    @action(methods=("POST", ), detail=False, serializer_class=DatasetFromUrlSerializer)
-    def create_from_url(self, request, *args, **kwargs):
-        """
-        A view to download all the dataset's items as a csv file:
-        """
-        s = DatasetFromUrlSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        url = s.validated_data["url"]
-        del s.validated_data["url"]
-        ds = s.save()
-        initiate_crawl.delay(ds.id, url)
-        return JsonResponse(DatasetSerializer(ds).data, status=201)
 
 
 class ItemAPIViewSet(viewsets.ModelViewSet):

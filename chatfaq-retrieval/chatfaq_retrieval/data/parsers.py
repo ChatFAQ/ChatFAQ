@@ -270,7 +270,7 @@ def parse_html(
     url: Optional[str] = None,
     encoding: Optional[str] = None,
     combine_section_under_n_chars: int = 500,
-    new_after_n_chars: int = 1000,
+    new_after_n_chars: int = -1,
     split_function: Callable = lambda x: [x],
 ) -> List[KnowledgeItem]:
     """

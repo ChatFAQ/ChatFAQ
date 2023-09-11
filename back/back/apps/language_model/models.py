@@ -6,7 +6,7 @@ from back.apps.language_model.tasks import llm_query_task
 from back.common.models import ChangesMixin
 from fernet_fields import EncryptedCharField
 from simple_history.models import HistoricalRecords
-from .tasks import parse_pdf_task
+from .tasks import parse_pdf_task, parse_url_task
 
 
 class Dataset(models.Model):
@@ -94,6 +94,23 @@ class Dataset(models.Model):
 
         self._replace_dataset_items(new_items)
 
+    def update_items_from_url(self):
+        parsed_data = parse_url_task.delay(self.pk, self.original_url).get()
+
+        new_items = [
+            Item(
+                dataset=self,
+                intent=data["title"],
+                answer=data["content"],
+                url=data["url"],
+                context=data["section"],
+                page_number=data["page_number"],
+            )
+            for data in parsed_data
+        ]
+
+        self._replace_dataset_items(new_items)
+
     def _replace_dataset_items(self, new_items):
         Item.objects.filter(dataset=self).delete()
         Item.objects.bulk_create(new_items)
@@ -136,8 +153,9 @@ class Dataset(models.Model):
             self.update_items_from_csv()
         elif self.original_pdf:
             self.update_items_from_pdf()
+        elif self.original_url:
+            self.update_items_from_url()
         llm_query_task.delay(None, None, None, None, None, True)
-
 
 
 class Item(ChangesMixin):

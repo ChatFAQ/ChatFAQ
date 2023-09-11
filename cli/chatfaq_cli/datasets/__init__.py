@@ -1,15 +1,16 @@
 from pathlib import Path
-from enum import Enum
 
 import typer
 from rich import print
 from typing_extensions import Annotated
 
 from . import items, utterances
+from .utils import Splitter, Strategy, verify_smart_splitter
 
 app = typer.Typer(help="Datasets commands")
 app.add_typer(items.app, name="items", help="Dataset's items commands")
 app.add_typer(utterances.app, name="utterances", help="Items's utterances commands")
+
 
 
 @app.command(rich_help_panel="Datasets commands")
@@ -92,36 +93,45 @@ def create_from_url(
     url: Annotated[
         str, typer.Argument(help="The url to scrape and download the dataset from.")
     ],
+    splitter: Annotated[
+        Splitter,
+        typer.Option(
+            help="The splitter to use to split the text into knowledge units",
+            case_sensitive=False,
+        ),
+    ] = Splitter.sentences,
+    chunk_size: Annotated[
+        int,
+        typer.Option(
+            help="The chunk size to use when splitting the text into knowledge units"
+        ),
+    ] = 128,
+    chunk_overlap: Annotated[
+        int,
+        typer.Option(
+            help="The chunk overlap to use when splitting the text into knowledge units"
+        ),
+    ] = 16,
+
 ):
     """
     Creates a new dataset from a url.
     """
-    print("Downloading...")
+
+    splitter = verify_smart_splitter(splitter)
+
     r = ctx.parent.obj["r"].post(
-        f"language-model/datasets/create_from_url/",
-        data={"name": name, "language": language, "url": url},
+        f"language-model/datasets/",
+        data={
+            "name": name,
+            "language": language, 
+            "original_url": url,
+            "splitter": splitter.value,
+            "chunk_size": chunk_size,
+            "chunk_overlap": chunk_overlap,
+            },
     )
     print(r)
-
-
-class Strategy(str, Enum):
-    """
-    The strategy to use to extract the text from the pdf.
-    https://unstructured-io.github.io/unstructured/bricks/partition.html#partition-pdf
-    """
-    auto = "auto"
-    fast = "fast"
-    ocr_only = "ocr_only"
-    hi_res = "hi_res"
-
-class Splitter(str, Enum):
-    """
-    The splitter to use to split the text into knowledge units
-    """
-    words = "words"
-    sentences = "sentences"
-    tokens = "tokens"
-    smart = "smart"
 
 
 @app.command(rich_help_panel="Datasets commands")
@@ -168,11 +178,14 @@ def create_from_pdf(
     Creates a new dataset from a pdf file.
     """
 
+    splitter = verify_smart_splitter(splitter)
+
     r = ctx.parent.obj["r"].post(
         f"language-model/datasets/",
         data={
             "name": name,
             "language": language,
+            "strategy": strategy.value,
             "splitter": splitter.value,
             "chunk_size": chunk_size,
             "chunk_overlap": chunk_overlap,
