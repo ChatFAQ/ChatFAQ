@@ -8,7 +8,7 @@
 **ChatFAQ** is a solution that:
 - converts FAQ content into interactive chatbots
 - using **open source large language models**,
-- providing flexibility and **costs-effectiveness**.
+- providing flexibility and **costs-effectiveness**. 
 
 It includes a **specialized NLP/NLG engine** and customized chat widgets,
 ensuring a tailored experience for users and avoiding vendor lock-in.
@@ -32,7 +32,7 @@ There also is a CLI tool to help interfacing with the back-end server.
 - [CLI](cli/README.md): is a command-line interface to the back-end server. It connects to it and allows you to do anything the back-end server can do but from the confort of your terminal.
 
 ### Visit Our Website
-For more information about ChatFAQ and any additional needs, feel free to visit our website.
+For more information about ChatFAQ and any additional needs, feel free to visit our website. 
 
 Go to [www.chatfaq.io](https://www.chatfaq.io/) to learn more!
 
