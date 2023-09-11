@@ -3,7 +3,7 @@ name: ChatFAQ
 
 databases:
   - name: psql
-    cluster_name: "chatfaq-psql-dev"
+    cluster_name: 'chatfaq-psql-{{ production("prod", default="dev") }}'
     db_name: "{{ deployment_key }}"
     db_user: "{{ deployment_key }}"
     engine: pg
@@ -12,6 +12,7 @@ databases:
     cluster_name: 'chatfaq-redis-{{ production("prod", default="dev") }}'
     engine: redis
     version: "7"
+
 env:
   - name: sentry
     variables:
