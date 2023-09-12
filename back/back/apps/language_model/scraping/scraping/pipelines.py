@@ -17,7 +17,9 @@ class GenericPipeline(object):
 
         _item = await sync_to_async(Item.objects.create)(
             dataset=self.ds,
-            answer=item['text'],
+            answer=item['content'],
+            intent=item['title'],
+            #context=item['section'],
             url=item['url'],
         )
         await sync_to_async(_item.save)()
