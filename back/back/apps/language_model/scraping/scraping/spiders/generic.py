@@ -10,8 +10,8 @@ class GenericSpider(scrapy.Spider):
     allowed_domains = []
     start_urls = []
 
-    def __init__(self, start_urls='', dataset_id='', *a, **kw):
-        self.dataset_id = dataset_id
+    def __init__(self, start_urls='', knowledge_base_id='', *a, **kw):
+        self.knowledge_base_id = knowledge_base_id
         self.start_urls = start_urls.split(',')
         for url in self.start_urls:
             self.allowed_domains.append(urlparse(url).netloc)
@@ -38,4 +38,4 @@ class GenericSpider(scrapy.Spider):
             yield response.follow(link, callback=self.parse, meta={"playwright": True})
 
     def spider_closed(self, spider):
-        llm_query_task.delay(None, None, None, None, None, True)
+        llm_query_task.delay(recache_models=True)

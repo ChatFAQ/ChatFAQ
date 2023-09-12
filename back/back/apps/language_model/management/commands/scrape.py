@@ -6,7 +6,7 @@ from back.apps.language_model.scraping.scraping.spiders.generic import GenericSp
 # ./manage.py scrape https://www.ca-moncommerce.com test
 
 class Command(BaseCommand):
-    help = "Scrape and creates a dataset from given url"
+    help = "Scrape and creates a knowledge base from given url"
 
     def add_arguments(self, parser):
         parser.add_argument("url", type=str)

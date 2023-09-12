@@ -6,4 +6,4 @@ class DatasetConfig(AppConfig):
     name = "back.apps.language_model"
 
     def ready(self):
-        from .signals import on_model_or_dataset_change # noqa
+        from .signals import on_llm_config_change # noqa

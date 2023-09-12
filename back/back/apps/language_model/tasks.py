@@ -16,48 +16,58 @@ from scrapy.crawler import CrawlerRunner
 logger = getLogger(__name__)
 
 
-class LLMCacheOnWorkerTask(Task):
-    CACHED_MODELS = {}
+class RAGCacheOnWorkerTask(Task):
+    CACHED_RAGS = {}
 
     def __init__(self):
-        if is_celery_worker() and not self.CACHED_MODELS:
-            self.CACHED_MODELS = self.preload_models()
+        if is_celery_worker() and not self.CACHED_RAGS:
+            self.CACHED_RAGS = self.preload_models()
 
     @staticmethod
     def preload_models():
         print("Preloading models...")
-        Model = apps.get_model('language_model', 'Model')
+        RAGConfig = apps.get_model('language_model', 'RAGConfig')
         cache = {}
-        for m in Model.objects.all():
-            print(f"Loading model: {m.name} with dataset: {m.dataset.name}")
-            cache[str(m.pk)] = RetrieverAnswerer(
-                base_data=StringIO(m.dataset.to_csv()),
-                repo_id=m.repo_id,
-                context_col="answer",
-                embedding_col="answer",
-                ggml_model_filename=m.ggml_model_filename,
+        for rag_conf in RAGConfig.objects.all():
+            print(
+                f"Loading RAG config: {rag_conf.name} "
+                f"with model: {rag_conf.llm_config.name} "
+                f"and knowledge base: {rag_conf.knowledge_base.name}"
+            )
+            cache[str(rag_conf.name)] = RetrieverAnswerer(
+                base_data=StringIO(rag_conf.knowledge_base.to_csv()),
+                repo_id=rag_conf.llm_config.repo_id,
+                context_col="content",
+                embedding_col="content",
+                ggml_model_filename=rag_conf.llm_config.ggml_model_filename,
                 use_cpu=False,
-                model_config=m.model_config,
-                auth_token=m.auth_token,
-                load_in_8bit=m.load_in_8bit,
-                trust_remote_code_tokenizer=m.trust_remote_code_tokenizer,
-                trust_remote_code_model=m.trust_remote_code_model,
-                revision=m.revision,
+                model_config=rag_conf.llm_config.model_config,
+                auth_token=rag_conf.llm_config.auth_token,
+                load_in_8bit=rag_conf.llm_config.load_in_8bit,
+                trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
+                trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
+                revision=rag_conf.llm_config.revision,
             )
             print("...model loaded.")
         return cache
 
 
-@app.task(bind=True, base=LLMCacheOnWorkerTask)
-def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot_channel_name, recache_models):
+@app.task(bind=True, base=RAGCacheOnWorkerTask)
+def llm_query_task(
+    self,
+    chanel_name=None,
+    rag_config_name=None,
+    input_text=None,
+    conversation_id=None,
+    bot_channel_name=None,
+    recache_models=False
+):
     if recache_models:
-        self.CACHED_MODELS = self.preload_models()
+        self.CACHED_RAGS = self.preload_models()
         return
-
-    Model = apps.get_model('language_model', 'Model')
-    PromptStructure = apps.get_model('language_model', 'PromptStructure')
-    GenerationConfig = apps.get_model('language_model', 'GenerationConfig')
     channel_layer = get_channel_layer()
+
+    RAGConfig = apps.get_model('language_model', 'RAGConfig')
 
     msg_template = {
         "bot_channel_name": bot_channel_name,
@@ -66,12 +76,9 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
         "final": False,
         "res": "",
     }
-    model = self.CACHED_MODELS[str(model_id)]
-    # get the prompt structure corresponding to the model using the foreign key
-    prompt_structure = PromptStructure.objects.filter(model=model_id).first()
-    generation_config = GenerationConfig.objects.filter(model=model_id).first()
-    prompt_structure = model_to_dict(prompt_structure)
-    generation_config = model_to_dict(generation_config)
+    rag_config = RAGConfig.objects.get(name=rag_config_name)
+    prompt_structure = model_to_dict(rag_config.prompt_structure)
+    generation_config = model_to_dict(rag_config.generation_config)
 
     # remove the id and model fields from the prompt structure and generation config
     prompt_structure.pop("id")
@@ -88,14 +95,15 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
     # # Gatherings all the previous messages from the conversation
     # prev_messages = Conversation.objects.get(pk=conversation_id).get_mml_chain()
 
+    rag = self.CACHED_RAGS[rag_config_name]
     streaming = True
     if streaming:
-        for res in model.stream(
+        for res in rag.stream(
             input_text,
             prompt_structure_dict=prompt_structure,
             generation_config_dict=generation_config,
             stop_words=stop_words,
-            lang=Model.objects.get(pk=model_id).dataset.lang,
+            lang=rag.knowledge_base.lang,
         ):
             if not res["res"]:
                 continue
@@ -111,12 +119,12 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
                 },
             )
     else:
-        res = model.generate(
+        res = rag.generate(
             input_text,
             prompt_structure_dict=prompt_structure,
             generation_config_dict=generation_config,
             stop_words=stop_words,
-            lang=Model.objects.get(pk=model_id).dataset.lang,
+            lang=rag.knowledge_base.lang,
         )
 
         if not msg_template["context"]:
@@ -144,10 +152,10 @@ def llm_query_task(self, chanel_name, model_id, input_text, conversation_id, bot
 
 
 @app.task()
-def initiate_crawl(dataset_id, url):
+def initiate_crawl(knowledge_base_id, url):
     from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
     runner = CrawlerRunner(get_project_settings())
-    d = runner.crawl(GenericSpider, start_urls=url, dataset_id=dataset_id)
+    d = runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
     d.addBoth(lambda _: reactor.stop())
     reactor.run()
 

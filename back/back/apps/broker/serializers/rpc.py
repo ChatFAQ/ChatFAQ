@@ -32,7 +32,7 @@ class RPCResultSerializer(serializers.Serializer):
 
 
 class LLMRequestSerializer(serializers.Serializer):
-    model_id = serializers.CharField()
+    rag_config_name = serializers.CharField()
     input_text = serializers.CharField()
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()

@@ -7,5 +7,5 @@ from back.apps.language_model.tasks import llm_query_task
 
 @receiver(post_save, sender=LLMConfig)
 @receiver(post_delete, sender=LLMConfig)
-def on_llm_config_or_dataset_change(instance, *args, **kwargs):
-    llm_query_task.delay(None, None, None, None, None, True)
+def on_llm_config_change(instance, *args, **kwargs):
+    llm_query_task.delay(recache_models=True)
