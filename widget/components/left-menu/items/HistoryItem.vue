@@ -91,11 +91,11 @@ function timestampToSentence(isoString) {
     align-items: center;
 
     &.open {
-        background-color: $chatfaq-color-primary-900;
+        background-color: $chatfaq-color-menuItem-background-hover;
     }
 
     &:hover, &.editing {
-        background-color: $chatfaq-color-primary-900;
+        background-color: $chatfaq-color-menuItem-background-hover;
 
         i.edit {
             content: $chatfaq-edit-icon;
@@ -120,7 +120,7 @@ function timestampToSentence(isoString) {
         min-width: 30px;
         max-width: 155px;
         background-color: unset;
-        color: white;
+        color: $chatfaq-color-menu-text;
         border: unset;
         outline: none;
         font-family: "Open Sans";
@@ -140,7 +140,7 @@ function timestampToSentence(isoString) {
         }
 
         &.edit {
-            border: 1px solid $chatfaq-color-tertiary-blue-500;
+            border: 1px solid $chatfaq-color-menuItem-border-edit;
             text-overflow: unset;
         }
 

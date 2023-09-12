@@ -1,7 +1,7 @@
 import os
 from importlib import metadata
 
-from dj_database_url import config as db_config
+from urllib.parse import quote as urlquote
 from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
 
@@ -60,6 +60,7 @@ class CustomPreset(ModelWDjango):
             port = int(env.get("DATABASE_PORT", 5432))
             args = env.get("DATABASE_ARGS", None)
 
+            password = urlquote(password)
             _url = f"{proto}://{user}:{password}@{host}:{port}/{db}"
             if args:
                 _url += f"?{args}"

@@ -83,6 +83,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         logger.debug(f"Disconnecting from RPC consumer")
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
+        await database_sync_to_async(ConsumerRoundRobinQueue.remove)(self.get_group_name())  # Remove from round robin queue
 
     async def receive_json(self, content, **kwargs):
         serializer = RPCResponseSerializer(data=content)

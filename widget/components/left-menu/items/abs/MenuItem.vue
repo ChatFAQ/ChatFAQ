@@ -24,7 +24,7 @@
         }
     }
     &:hover {
-        background-color: $chatfaq-color-primary-900;
+        background-color: $chatfaq-color-menuItem-background-hover;
         i.edit {
             content: $chatfaq-edit-icon;
         }

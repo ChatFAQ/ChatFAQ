@@ -146,7 +146,12 @@ class FSM:
                     },
                 },
             }
-            await self.channel_layer.group_send(group_name, data)
+            try:
+                await self.channel_layer.group_send(group_name, data)
+            except Exception as e:
+                logger.error(f"Error while sending to RPC group {group_name}: {data}")
+                raise e
+
             logger.debug(f"Waiting for RCP call {event_name} (action)...")
             last = False
             while not last:
