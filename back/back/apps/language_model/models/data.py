@@ -14,9 +14,6 @@ class KnowledgeBase(models.Model):
 
     name: str
         Just a name for the knowledge base.
-    original_file: File
-        The original file used to create the knowledge base.
-        Just a name for the dataset.
     original_csv: FileField
         The original CSV file.
     original_pdf: FileField
@@ -33,7 +30,6 @@ class KnowledgeBase(models.Model):
         ("fr", "French"),
     )
     name = models.CharField(max_length=255, unique=True)
-    original_file = models.FileField(blank=True, null=True)
 
     STRATEGY_CHOICES = (
         ("auto", "Auto"),

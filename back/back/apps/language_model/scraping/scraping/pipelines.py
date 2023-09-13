@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from back.apps.language_model.models import KnowledgeBase, KnowledgeItem
+from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from channels.db import database_sync_to_async
 # Define your item pipelines here
 #
