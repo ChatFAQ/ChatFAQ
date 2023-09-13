@@ -184,10 +184,10 @@ function isFirstOfType(msg, flatStack) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: $chatfaq-color-primary-200;
+    background-color: $chatfaq-color-chat-background-light;
 
     &.dark-mode {
-        background-color: $chatfaq-color-neutral-purple;
+        background-color: $chatfaq-color-chat-background-dark;
     }
 }
 
@@ -195,23 +195,23 @@ function isFirstOfType(msg, flatStack) {
     margin: 24px;
     display: flex;
     border-radius: 4px;
-    border: 1px solid $chatfaq-color-neutral-purple !important;
-    background-color: $chatfaq-color-primary-300;
+    border: 1px solid $chatfaq-color-chatInput-border-light !important;
+    background-color: $chatfaq-color-chatInput-background-light;
     box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
 
     &.dark-mode {
-        background-color: $chatfaq-color-primary-800;
-        border: 1px solid $chatfaq-color-primary-900 !important;
+        background-color: $chatfaq-color-chatInput-background-dark;
+        border: 1px solid $chatfaq-color-chatInput-border-dark !important;
     }
 }
 
 .alert-message {
     margin-bottom: -16px;
     text-align: center;
-    color: $chatfaq-color-greyscale-800;
+    color: $chatfaq-color-alertMessage-text-light;
 
     &.dark-mode {
-        color: $chatfaq-color-primary-200;
+        color: $chatfaq-color-alertMessage-text-dark;
     }
 }
 
@@ -261,7 +261,7 @@ function isFirstOfType(msg, flatStack) {
     border: 0;
     outline: 0;
     margin-left: 16px;
-    background-color: $chatfaq-color-primary-300;
+    background-color: transparent;
     @include scroll-style();
 
     &.dark-mode {
@@ -272,14 +272,14 @@ function isFirstOfType(msg, flatStack) {
 [contenteditable][placeholder]:empty:before {
     content: attr(placeholder);
     position: absolute;
-    color: rgba(2, 12, 28, 0.6);
+    color: $chatfaq-color-chatPlaceholder-text-light;
     background-color: transparent;
     font-style: italic;
     cursor: text;
 }
 
 .dark-mode[contenteditable][placeholder]:empty:before {
-    color: $chatfaq-color-primary-200;
+    color: $chatfaq-color-chatPlaceholder-text-dark;
 }
 
 .chat-prompt {
@@ -298,15 +298,14 @@ function isFirstOfType(msg, flatStack) {
 
     &::placeholder {
         font-style: italic;
-        color: rgb(2, 12, 28);
+        color: $chatfaq-color-chatInput-text-light;
     }
 
     &.dark-mode {
-        background-color: $chatfaq-color-primary-800;
-        color: $chatfaq-color-primary-200;
+        color: $chatfaq-color-chatPlaceholder-text-dark;
 
         &::placeholder {
-            color: $chatfaq-color-neutral-white;
+            color: $chatfaq-color-chatInput-text-dark;
         }
     }
 }

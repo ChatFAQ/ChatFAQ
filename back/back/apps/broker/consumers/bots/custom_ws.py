@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 
 from back.apps.broker.serializers.messages.custom_ws import ExampleWSSerializer
 from back.apps.fsm.models import FSMDefinition
@@ -21,7 +21,7 @@ class CustomWSBotConsumer(WSBotConsumer):
 
     async def gather_fsm_def(self):
         name = self.scope["url_route"]["kwargs"]["fsm_def"]
-        return await sync_to_async(FSMDefinition.objects.get)(name=name)
+        return await database_sync_to_async(FSMDefinition.objects.get)(name=name)
 
     async def gather_user_id(self):
         return self.scope["url_route"]["kwargs"]["sender_id"]

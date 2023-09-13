@@ -4,7 +4,7 @@ from logging import getLogger
 from typing import List, NamedTuple, Text, Union
 from back.apps.broker.models import ConsumerRoundRobinQueue
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
 from back.apps.broker.models.message import AgentType
@@ -132,7 +132,7 @@ class FSM:
             transition_data = {}
 
         for event_name in self.current_state.events:
-            group_name = await sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
+            group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
             self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
@@ -146,7 +146,12 @@ class FSM:
                     },
                 },
             }
-            await self.channel_layer.group_send(group_name, data)
+            try:
+                await self.channel_layer.group_send(group_name, data)
+            except Exception as e:
+                logger.error(f"Error while sending to RPC group {group_name}: {data}")
+                raise e
+
             logger.debug(f"Waiting for RCP call {event_name} (action)...")
             last = False
             while not last:
@@ -206,7 +211,7 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        group_name = await sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
+        group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
         data = {
             "type": "rpc_call",
@@ -223,7 +228,7 @@ class FSM:
     async def save_cache(self):
         from back.apps.fsm.models import CachedFSM  # TODO: Resolve CI
 
-        await sync_to_async(CachedFSM.update_or_create)(self)
+        await database_sync_to_async(CachedFSM.update_or_create)(self)
 
     async def save_bot_mml(self, stack, stack_id, last):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
@@ -243,7 +248,7 @@ class FSM:
             data["receiver"] = {"type": AgentType.human.value, "id": self.ctx.user_id}
         serializer = MessageSerializer(data=data)
 
-        await sync_to_async(serializer.is_valid)()
+        await database_sync_to_async(serializer.is_valid)()
         if serializer.errors:
             logger.error(serializer.errors)
-        return await sync_to_async(serializer.save)()
+        return await database_sync_to_async(serializer.save)()

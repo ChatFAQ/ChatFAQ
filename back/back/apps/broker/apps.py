@@ -24,4 +24,7 @@ class BrokerConfig(AppConfig):
             pc.register()
 
         if not (os.getenv("BUILD_MODE") in ["yes", "true"]) and not is_celery_worker():
-            ConsumerRoundRobinQueue.clear()
+            try:
+                ConsumerRoundRobinQueue.clear()
+            except Exception as e:
+                logger.warning(f"Could not clear the round robin queue: {e}")

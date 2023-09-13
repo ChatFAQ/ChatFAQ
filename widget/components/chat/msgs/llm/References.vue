@@ -59,21 +59,21 @@ const collapsed = ref(true);
     .references-title {
         font-style: italic;
         line-height: 20px;
-        color: $chatfaq-color-neutral-purple;
+        color: $chatfaq-color-chatMessageReferenceTitle-text-light;
         &.dark-mode {
-            color: $chatfaq-color-greyscale-500;
+            color: $chatfaq-color-chatMessageReferenceTitle-text-dark;
         }
     }
 
     .collapsed-references-button {
         margin-left: 8px;
-        color: $chatfaq-color-primary-500;
+        color: $chatfaq-color-chatMessageReference-text-light;
         cursor: pointer;
         font-size: 12px;
         display: flex;
         align-items: center;
         &.dark-mode {
-            color: $chatfaq-color-primary-200;
+            color: $chatfaq-color-chatMessageReference-text-dark;
         }
         svg {
             margin-left: 4px;
@@ -84,23 +84,23 @@ const collapsed = ref(true);
 
 .separator-line {
     height: 1px;
-    background-color: rgba(70, 48, 117, 0.2);
+    background-color: $chatfaq-color-separator-light;
     align-content: center;
     text-align: center;
     margin-top: 8px;
     margin-bottom: 8px;
 
     &.dark-mode {
-        background-color: $chatfaq-color-neutral-purple;
+        background-color: $chatfaq-color-separator-dark;
     }
 }
 
 .purple-background {
-    background: rgba(70, 48, 117, 0.1);
+    background: $chatfaq-color-chatMessageReference-background-light;
     border-radius: 4px;
     padding: 2px 6px 2px 6px;
     &.dark-mode {
-        background: $chatfaq-color-primary-900;
+        background: $chatfaq-color-chatMessageReference-background-dark;
     }
 }
 
@@ -110,11 +110,11 @@ const collapsed = ref(true);
     width: fit-content;
     a {
         text-decoration: none;
-        color: #463075;
+        color: $chatfaq-color-chatMessageReference-text-light;
     }
     &.dark-mode {
         a {
-            color: $chatfaq-color-primary-200;
+            color: $chatfaq-color-chatMessageReference-text-dark;
         }
     }
 }

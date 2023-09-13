@@ -3,7 +3,8 @@ from urllib.parse import urljoin
 
 import httpx
 import requests
-from asgiref.sync import sync_to_async
+
+from channels.db import database_sync_to_async
 from django.conf import settings
 
 from back.apps.broker.models.message import Message
@@ -23,7 +24,7 @@ class TelegramBotConsumer(HTTPBotConsumer):
         return validated_data["message"]["chat"]["id"]
 
     async def gather_fsm_def(self, validated_data):
-        return await sync_to_async(FSMDefinition.objects.first)()
+        return await database_sync_to_async(FSMDefinition.objects.first)()
 
     @classmethod
     def platform_url_paths(self) -> str:

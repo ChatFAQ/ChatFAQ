@@ -29,8 +29,8 @@ $phone-breakpoint: 600px;
 
 .widget-wrapper-header {
     display: flex;
-    background: $chatfaq-color-gradient-purple;
-    color: $chatfaq-color-neutral-white !important;
+    background: $chatfaq-color-menu-background;
+    color: $chatfaq-color-menu-text !important;
     /*
     .menu {
         margin: 0px;
@@ -52,10 +52,10 @@ $phone-breakpoint: 600px;
             display: flex;
             width: 40px;
             border-radius: 32px;
-            border: 1px solid $chatfaq-color-neutral-purple;
+            border: 1px solid $chatfaq-color-menu-border;
 
             &:hover {
-                background: $chatfaq-color-primary-900;
+                background: $chatfaq-color-menuItem-background-hover;
             }
 
             i {
@@ -64,7 +64,7 @@ $phone-breakpoint: 600px;
             }
         }
         &.maximizer {
-            border: 1px solid $chatfaq-color-neutral-purple;
+            border: 1px solid $chatfaq-color-menu-border;
             i {
                 content: $chatfaq-maximize-icon;
                 &.maximized {
@@ -97,10 +97,10 @@ $phone-breakpoint: 600px;
             border-radius: 32px;
             width: 40px;
             display: flex;
-            border: 1px solid $chatfaq-color-neutral-purple;
+            border: 1px solid $chatfaq-color-menu-border;
 
             &:hover {
-                background: $chatfaq-color-primary-900;
+                background: $chatfaq-color-menuItem-background-hover;
                 i {
                     width: 20px;
                     margin: auto;

@@ -80,7 +80,7 @@ $history-width: 220px;
     display: flex;
     flex-direction: column;
     font-size: 14px;
-    color: $chatfaq-color-neutral-white;
+    color: $chatfaq-color-menu-text;
 
     @media only screen and (max-width: $phone-breakpoint) {
         position: absolute;
@@ -97,7 +97,7 @@ $history-width: 220px;
             margin-top: 16px;
         }
 
-        @include scroll-style($chatfaq-color-tertiary-blue-500);
+        @include scroll-style($chatfaq-color-menu-scrollColor);
     }
 
 
@@ -105,7 +105,7 @@ $history-width: 220px;
         .left-menu-item {
             margin-top: 16px;
             margin-bottom: 8px;
-            background: rgba(223, 218, 234, 0.1);
+            background: $chatfaq-color-menuItem-background;
             border-radius: 4px;
         }
 
@@ -132,7 +132,7 @@ $history-width: 220px;
         flex-direction: column-reverse;
 
         > .left-menu-item:last-child {
-            border-top: 1px solid $chatfaq-color-neutral-purple;
+            border-top: 1px solid $chatfaq-color-menu-border;
             padding-top: 12px;
         }
 
@@ -141,7 +141,7 @@ $history-width: 220px;
         }
 
         > .footer {
-            border-top: 1px solid $chatfaq-color-neutral-purple;
+            border-top: 1px solid $chatfaq-color-menu-border;
             padding-top: 20px;
             padding-bottom: 20px;
             height: 60px;
@@ -176,8 +176,8 @@ $history-width: 220px;
             height: 40px;
             width: 40px;
             display: flex;
-            border: 1px solid $chatfaq-color-neutral-purple;
-            background: $chatfaq-color-primary-500;
+            border: 1px solid $chatfaq-color-menu-border;
+            background: $chatfaq-color-menuButton-background;
             i {
                 width: 20px;
                 margin: auto;

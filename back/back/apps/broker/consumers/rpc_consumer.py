@@ -3,7 +3,7 @@ import uuid
 import json
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
@@ -43,7 +43,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         return (
             self.scope.get("user")
             and not isinstance(self.scope["user"], AnonymousUser)
-            and await sync_to_async(
+            and await database_sync_to_async(
                 self.scope["user"].groups.filter(name="RPC").exists
             )()
         )
@@ -54,7 +54,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             return
 
         fsm_id_or_name = self.scope["url_route"]["kwargs"].get("fsm_id")
-        fsm = await sync_to_async(FSMDefinition.get_by_id_or_name)(fsm_id_or_name)
+        fsm = await database_sync_to_async(FSMDefinition.get_by_id_or_name)(fsm_id_or_name)
         if fsm is None:
             logger.debug(
                 "New RPC WS Connection without fsm_id, the fsm definition will have to be declared later on "
@@ -83,6 +83,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         logger.debug(f"Disconnecting from RPC consumer")
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
+        await database_sync_to_async(ConsumerRoundRobinQueue.remove)(self.get_group_name())  # Remove from round robin queue
 
     async def receive_json(self, content, **kwargs):
         serializer = RPCResponseSerializer(data=content)
@@ -110,7 +111,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(
                 self.get_group_name(), self.channel_name
             )
-        fsm, created, errors = await sync_to_async(
+        fsm, created, errors = await database_sync_to_async(
             FSMDefinition.get_or_create_from_definition
         )(data["name"], data["definition"])
         if errors:
@@ -129,7 +130,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
                 f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by provided definition"
             )
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
-        await sync_to_async(ConsumerRoundRobinQueue.add)(
+        await database_sync_to_async(ConsumerRoundRobinQueue.add)(
             self.get_group_name(), self.fsm_id
         )  # Add to round robin queue
 

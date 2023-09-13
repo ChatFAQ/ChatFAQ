@@ -222,9 +222,10 @@ class ChatFAQSDK:
             self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]] = []
 
         self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]].append(payload)
-        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(
-            self.llm_result_streaming_generator(payload["bot_channel_name"])
-        )
+        if not self.rpc_llm_request_futures[payload["bot_channel_name"]].done():
+            self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(
+                self.llm_result_streaming_generator(payload["bot_channel_name"])
+            )
 
     def llm_result_streaming_generator(self, bot_channel_name):
         def _llm_result_streaming_generator():
