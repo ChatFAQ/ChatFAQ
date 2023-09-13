@@ -1,11 +1,13 @@
 import uuid
-from io import StringIO
+from io import StringIO, BytesIO
 from logging import getLogger
 from twisted.internet import reactor
 from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
+from chatfaq_retrieval.data.splitters import get_splitter
+from chatfaq_retrieval.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
 from django.apps import apps
 from back.config.celery import app
@@ -139,10 +141,66 @@ def llm_query_task(
 
 
 @app.task()
-def initiate_crawl(knowledge_base_id, url):
+def parse_url_task(knowledge_base_id, url):
+    """
+    Get the html from the url and parse it.
+    Parameters
+    ----------
+    dataset_id : int
+        The primary key of the dataset to which the crawled items will be added.
+    url : str
+        The url to crawl.
+    """
     from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
     runner = CrawlerRunner(get_project_settings())
     d = runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
     d.addBoth(lambda _: reactor.stop())
     reactor.run()
+
+
+@app.task()
+def parse_pdf_task(pdf_file_pk):
+    """
+    Parse a pdf file and return a list of KnowledgeItem objects.
+    Parameters
+    ----------
+    pdf_file_pk : int
+        The primary key of the pdf file to parse.
+    Returns
+    -------
+    k_items : list
+        A list of KnowledgeItem objects.
+    """
+
+    KnowledgeBase = apps.get_model('language_model', 'KnowledgeBase')
+    kb = KnowledgeBase.objects.get(pk=pdf_file_pk)
+    pdf_file = kb.original_pdf.read()
+    strategy = kb.strategy
+    splitter = kb.splitter
+    chunk_size = kb.chunk_size
+    chunk_overlap = kb.chunk_overlap
+
+    pdf_file = BytesIO(pdf_file)
+
+    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
+
+    k_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
+
+    KnowledgeItem = apps.get_model('language_model', 'KnowledgeItem')
+
+    new_items = [
+            KnowledgeItem(
+                dataset=kb,
+                title=k_item.title,
+                content=k_item.content,
+                url=k_item.url,
+                section=k_item.section,
+                page_number=k_item.page_number
+            )
+            for k_item in k_items
+        ]
+
+    KnowledgeItem.objects.filter(dataset=pdf_file_pk).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+    KnowledgeItem.objects.bulk_create(new_items)
+
 

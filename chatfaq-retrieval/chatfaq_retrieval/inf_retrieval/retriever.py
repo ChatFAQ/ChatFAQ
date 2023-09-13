@@ -60,7 +60,7 @@ class Retriever:
 
 
 
-    def set_df(self, df: pd.DataFrame, batch_size: int = 16, build_embeddings: bool = True, save_embeddings_path: str = None):
+    def set_df(self, df: pd.DataFrame, batch_size: int = 1, build_embeddings: bool = True, save_embeddings_path: str = None):
         """
         Sets the dataframe containing the context.
         Parameters
@@ -68,7 +68,7 @@ class Retriever:
         df : pd.DataFrame
             Dataframe containing the context to be used for retrieval.
         batch_size : int, optional
-            Batch size to be used for encoding the context, by default 16
+            Batch size to be used for encoding the context, by default 1
         build_embeddings : bool, optional
             Whether to build the embeddings for the context, by default True
         save_embeddings_path : str, optional
@@ -86,7 +86,7 @@ class Retriever:
                 self.save_embeddings(save_embeddings_path)
 
 
-    def build_embeddings(self, embedding_col: str = 'answer', batch_size: int = 16):
+    def build_embeddings(self, embedding_col: str = 'answer', batch_size: int = 1):
         """
         Builds the embeddings for the context.
         Parameters
@@ -94,7 +94,7 @@ class Retriever:
         embedding_col : str, optional
             Name of the column to build the embeddings for and to be used for retrieval, by default 'answer'
         batch_size : int, optional
-            Batch size to be used for encoding the context, by default 16
+            Batch size to be used for encoding the context, by default 1
         """
         print("Building embeddings...")
         answers = self.df[embedding_col].tolist()
@@ -152,15 +152,16 @@ class Retriever:
         if batch_size == -1:
             batch_size = len(queries)
 
-        # Tokenize sentences
-        encoded_input = self.tokenizer(queries, padding=True, truncation=True, return_tensors='pt').to(self.device)
-
         all_embeddings = torch.tensor([])
 
         # Compute token embeddings
         with torch.inference_mode():
-            for i in tqdm(range(0, len(encoded_input['input_ids']), batch_size), disable=disable_progess_bar):
-                inputs = {key: val[i:i + batch_size] for key, val in encoded_input.items()}
+            for i in tqdm(range(0, len(queries), batch_size), disable=disable_progess_bar):
+
+                # Tokenize sentences
+                encoded_input = self.tokenizer(queries[i:i+batch_size], padding=True, truncation=True, return_tensors='pt').to(self.device)
+                inputs = {key: val for key, val in encoded_input.items()}
+
                 model_output = self.model(**inputs, return_dict=True)
 
                 embeddings = self.average_pool(model_output.last_hidden_state, inputs['attention_mask'])

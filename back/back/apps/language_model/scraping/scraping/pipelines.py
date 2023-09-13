@@ -16,7 +16,9 @@ class GenericPipeline(object):
 
         _item = await database_sync_to_async(KnowledgeItem.objects.create)(
             knowledge_base=self.kb,
-            answer=item['text'],
+            title=item['title'],
+            content=item['content'],
+            #context=item['section'],
             url=item['url'],
         )
         await database_sync_to_async(_item.save)()

@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, BinaryIO, IO
+from typing import List, Optional, Union, BinaryIO, IO, Callable
 from tempfile import SpooledTemporaryFile
 
 import pandas as pd
@@ -10,7 +10,7 @@ from unstructured.documents.elements import (
 
 from unstructured.partition.auto import partition_pdf, partition_html
 
-from chatfaq_retrieval.data.models import Context
+from chatfaq_retrieval.data.models import KnowledgeItem
 
 
 def is_strict_instance(obj, class_type):
@@ -136,59 +136,74 @@ def parse_elements(
     return sections
 
 
-def transform_to_context(
-    sections: List[List[Element]],
-    file_type: str = "pdf",
-) -> List[Context]:
+def transform_to_k_items(sections: List[List[Element]], file_type: str = 'pdf',) -> List[KnowledgeItem]:
     """
-    Transforms a list of sections into a list of contexts and adds metadata.
+    Transforms a list of sections into a list of KnowledgeItems.
     Parameters
     ----------
-    sections : List[List[Element]]
+    sections : List[List[KnowledgeItem]]
         A list of sections, where each section is a list of elements.
     file_type: str
         The type of file that was used to generate the sections.
     Returns
     -------
-    List[Context]
-        A list of contexts.
+    List[KnowledgeItem]
+        A list of KnowledgeItems.
     """
 
-    sections_context = []
-    prev_title = None  # save previous title to use if no title is found
+    sections_k_items = []
+    prev_title = None
     for ndx, section in enumerate(sections):
         title = None
         for element in section:
             if isinstance(element, Title):
                 title = element.text
                 break
-        if title is None:  # if no title is found take the previous title
+        if title is None: # if no title is found take the previous title
             title = prev_title
-            if ndx == 0:  # first section and no title found
+            if ndx == 0: # first section and no title found
                 # first 5 words as title
                 title = " ".join([word for word in section[0].text.split()[:5]])
 
-        section_context = Context(
-            content="\n".join([element.text for element in section]), title=title
-        )
 
-        if file_type == "pdf":  # add page number
-            section_context.page_number = section[0].metadata.page_number
+        section_k_items = KnowledgeItem(content="\n".join([element.text for element in section]), title=title)
+        if file_type == 'pdf':
+            section_k_items.page_number = section[0].metadata.page_number
+        elif file_type == 'html':
+            url = section[0].metadata.url if section[0].metadata.url else section[0].metadata.filename # use url if available, otherwise filename
+            section_k_items.url = url
 
-        elif file_type == "html":  # add url
-            url = (
-                section[0].metadata.url
-                if section[0].metadata.url
-                else section[0].metadata.filename
-            )  # use url if available, otherwise filename
-            section_context.url = url
+        if section_k_items.content.strip() != "":
+            sections_k_items.append(section_k_items)
 
-        if section_context.content.strip() != "":
-            sections_context.append(section_context)
+        prev_title = title # save title for next section
 
-        prev_title = title  # save title for next section
+    return sections_k_items
 
-    return sections_context
+
+def split_k_items(k_items: List[KnowledgeItem], split_function: Callable = lambda x: [x]) -> List[KnowledgeItem]:
+    """
+    Splits a list of knowledge items into a list of more knowledge items when the content is split if needed.
+    Parameters
+    ----------
+    k_items : List[KnowledgeItem]
+        A list of KnowledgeItems.
+    split_function: Callable
+        A function that takes a knowledge item and returns a list of knowledge items. The default does not split.
+    Returns
+    -------
+    List[KnowledgeItem]
+        A list of KnowledgeItems.
+    """
+
+    new_k_items = []
+    for k_item in k_items:
+        text_splitted = split_function(k_item.content)
+        for text in text_splitted:
+            c = KnowledgeItem(content=text, title=k_item.title, url=k_item.url, section=k_item.section, page_number=k_item.page_number)
+            new_k_items.append(c)
+
+    return new_k_items
 
 
 def parse_pdf(
@@ -196,8 +211,9 @@ def parse_pdf(
     file: Optional[Union[BinaryIO, SpooledTemporaryFile]] = None,
     strategy: str = "auto",
     combine_section_under_n_chars: int = 500,
-    new_after_n_chars: int = 1000,
-) -> List[Context]:
+    new_after_n_chars: int = -1,
+    split_function: Callable = lambda x: [x],
+) -> List[KnowledgeItem]:
     """
     Parse a pdf file into sections.
     Parameters
@@ -213,12 +229,20 @@ def parse_pdf(
         a length of n characters.
     new_after_n_chars: int
         Cuts off new sections once they reach a length of n characters
+    split_function: Callable
+        A function that takes a knowledge item and returns a list of knowledge items. The default does not split.
     Returns
     -------
-    List[Context]
-        A list of contexts.
+    List[KnowledgeItem]
+        A list of KnowledgeItem.
     """
+
+    if strategy in ['ocr_only', 'hi_res']:
+        print(f'Using strategy {strategy}. This might take a few minutes.')
+
     elements = partition_pdf(filename=filename, file=file, strategy=strategy)
+    print(f"N elements: {len(elements)}")
+
     sections = parse_elements(
         elements,
         file_type="pdf",
@@ -226,9 +250,17 @@ def parse_pdf(
         new_after_n_chars=new_after_n_chars,
     )
 
-    contexts = transform_to_context(sections, file_type="pdf")
+    print(f"N sections: {len(sections)}")
 
-    return contexts
+    k_items = transform_to_k_items(sections, file_type="pdf")
+
+    print(f"N k_items: {len(k_items)}")
+
+    k_items = split_k_items(k_items, split_function=split_function)
+
+    print(f"N k_items after split: {len(k_items)}")
+
+    return k_items
 
 
 def parse_html(
@@ -238,8 +270,9 @@ def parse_html(
     url: Optional[str] = None,
     encoding: Optional[str] = None,
     combine_section_under_n_chars: int = 500,
-    new_after_n_chars: int = 1000,
-) -> List[Context]:
+    new_after_n_chars: int = -1,
+    split_function: Callable = lambda x: [x],
+) -> List[KnowledgeItem]:
     """
     Parse an html file into sections.
     Parameters
@@ -259,10 +292,12 @@ def parse_html(
         a length of n characters.
     new_after_n_chars: int
         Cuts off new sections once they reach a length of n characters
+    split_function: Callable
+        A function that takes a knowledge item and returns a list of knowledge items. The default does not split.
     Returns
     -------
-    List[Context]
-        A list of contexts.
+    List[KnowledgeItem]
+        A list of KnowledgeItems.
     """
     elements = partition_html(
         filename=filename,
@@ -278,6 +313,8 @@ def parse_html(
         new_after_n_chars=new_after_n_chars,
     )
 
-    contexts = transform_to_context(sections, file_type="html")
+    k_items = transform_to_k_items(sections, file_type="html")
 
-    return contexts
+    k_items = split_k_items(k_items, split_function=split_function)
+
+    return k_items
