@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from back.apps.language_model.models import LLMConfig
+from back.apps.language_model.models.rag_pipeline import LLMConfig
 from back.apps.language_model.tasks import llm_query_task
 
 

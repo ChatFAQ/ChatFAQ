@@ -15,4 +15,4 @@ def _list(
     """
     List all knowledge items from a knowledge base.
     """
-    print(ctx.parent.obj["r"].get(f"language-model/knowledge_items/?knowledge_base__id={id}"))
+    print(ctx.parent.obj["r"].get(f"language-model/knowledge-items/?knowledge_base__id={id}"))

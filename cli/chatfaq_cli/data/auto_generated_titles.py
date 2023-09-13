@@ -19,7 +19,7 @@ def create(
     """
 
     res = ctx.parent.obj["r"].post(
-        "language-model/utterances/", data={"item": auto_generated_title_id, "title": title}
+        "language-model/auto-generated-titles/", data={"item": auto_generated_title_id, "title": title}
     )
     print(res)
 
@@ -34,4 +34,4 @@ def _list(
     """
     List all Auto Generated Titles from a Knowledge Item.
     """
-    print(ctx.parent.obj["r"].get(f"language-model/auto_generated_titles/?knowledge_item__id={id}"))
+    print(ctx.parent.obj["r"].get(f"language-model/auto-generated-titles/?knowledge_item__id={id}"))

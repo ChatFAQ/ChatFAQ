@@ -4,12 +4,9 @@ import typer
 from rich import print
 from typing_extensions import Annotated
 
-from . import knowledge_items, auto_generated_titles
 from .utils import Splitter, Strategy, verify_smart_splitter
 
 app = typer.Typer(help="Knowledge bases commands")
-app.add_typer(knowledge_items.app, name="knowledge_items", help="Knowledge Items commands")
-app.add_typer(auto_generated_titles.app, name="auto_generated_titles", help="Auto Generated Titles commands")
 
 
 @app.command(rich_help_panel="Knowledge Base commands")
@@ -24,7 +21,7 @@ def create_from_csv(
     Create a new Knowledge Base.
     """
     res = ctx.parent.obj["r"].post(
-        "language-model/knowledge_bases/",
+        "language-model/knowledge-bases/",
         data={"name": name},
         files={"original_csv": open(source, "rb")},
     )
@@ -38,7 +35,7 @@ def _list(
     """
     List all Knowledge Bases.
     """
-    print(ctx.parent.obj["r"].get("language-model/knowledge_bases/"))
+    print(ctx.parent.obj["r"].get("language-model/knowledge-bases/"))
 
 
 @app.command(rich_help_panel="Knowledge Base commands")
@@ -51,7 +48,7 @@ def delete(
     """
     Delete an existing Knowledge Base.
     """
-    res = ctx.parent.obj["r"].delete(f"language-model/knowledge_bases/{id}/", json=False)
+    res = ctx.parent.obj["r"].delete(f"language-model/knowledge-bases/{id}/", json=False)
     if res.ok:
         print(f"Knowledge Base {id} deleted.")
     else:
@@ -73,7 +70,7 @@ def download_csv(
     """
     print("Downloading...")
     r = ctx.parent.obj["r"].get(
-        f"language-model/knowledge_bases/{id}/download_csv", json=False
+        f"language-model/knowledge-bases/{id}/download_csv", json=False
     )
     filename = r.headers["content-disposition"].split("attachment; filename=")[1]
     if not download_path:
@@ -127,7 +124,7 @@ def create_from_url(
     splitter = verify_smart_splitter(splitter)
 
     r = ctx.parent.obj["r"].post(
-        f"language-model/knowledge_bases/",
+        f"language-model/knowledge-bases/",
         data={
             "name": name,
             "language": language,
@@ -188,7 +185,7 @@ def create_from_pdf(
     splitter = verify_smart_splitter(splitter)
 
     r = ctx.parent.obj["r"].post(
-        f"language-model/knowledge_bases/",
+        f"language-model/knowledge-bases/",
         data={
             "name": name,
             "language": language,
@@ -200,7 +197,3 @@ def create_from_pdf(
         files={"original_pdf": open(pdf, "rb")},
     )
     print(r)
-
-
-if __name__ == "__main__":
-    app()

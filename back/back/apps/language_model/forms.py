@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 
-from .models import PromptConfig
+from back.apps.language_model.models.rag_pipeline import PromptConfig
 
 
 class PromptConfigForm(ModelForm):
