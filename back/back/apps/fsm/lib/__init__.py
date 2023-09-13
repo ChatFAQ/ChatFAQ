@@ -248,7 +248,5 @@ class FSM:
             data["receiver"] = {"type": AgentType.human.value, "id": self.ctx.user_id}
         serializer = MessageSerializer(data=data)
 
-        await database_sync_to_async(serializer.is_valid)()
-        if serializer.errors:
-            logger.error(serializer.errors)
+        await database_sync_to_async(serializer.is_valid)(raise_exception=True)
         return await database_sync_to_async(serializer.save)()

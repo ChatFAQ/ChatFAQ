@@ -102,13 +102,13 @@ class TextPayload(serializers.Serializer):
 
 class Reference(serializers.Serializer):
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    intent = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class LMGeneratedTextPayload(serializers.Serializer):
     class _LMGeneratedTextPayload(serializers.Serializer):
         model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
-        model = serializers.CharField()
+        rag_config_name = serializers.CharField()
         references = Reference(many=True, required=False, allow_null=True)
         lm_msg_id = serializers.CharField()
 

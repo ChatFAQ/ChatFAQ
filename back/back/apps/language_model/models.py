@@ -37,10 +37,10 @@ class KnowledgeBase(models.Model):
         for row in reader:
             item = KnowledgeItem(
                 knowledge_base=self,
-                intent=row["intent"],
-                answer=row["answer"],
+                title=row["title"],
+                content=row["content"],
                 url=row["url"],
-                context=row.get("context"),
+                section=row.get("section"),
                 role=row.get("role"),
             )
             new_items.append(item)
@@ -53,7 +53,7 @@ class KnowledgeBase(models.Model):
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
         f = StringIO()
-        writer = csv.DictWriter(f, fieldnames=["intent", "answer", "url", "context", "role"],)
+        writer = csv.DictWriter(f, fieldnames=["title", "content", "url", "section", "role"],)
         writer.writeheader()
         for item in items:
             writer.writerow(

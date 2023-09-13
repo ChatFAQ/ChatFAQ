@@ -52,6 +52,30 @@ class RAGCacheOnWorkerTask(Task):
         return cache
 
 
+msg_template = {
+    "context": None,
+    "final": False,
+    "res": "",
+}
+
+
+def _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg={}, final=False):
+    msg_template["bot_channel_name"] = bot_channel_name
+    msg_template["lm_msg_id"] = lm_msg_id
+    if not msg_template["context"] and msg.get("context"):
+        msg_template["context"] = msg["context"]
+    msg_template["res"] = msg.get("res", "")
+    msg_template["final"] = final
+
+    async_to_sync(channel_layer.send)(
+        chanel_name,
+        {
+            "type": "send_llm_response",
+            "message": msg_template,
+        },
+    )
+
+
 @app.task(bind=True, base=RAGCacheOnWorkerTask)
 def llm_query_task(
     self,
@@ -66,29 +90,24 @@ def llm_query_task(
         self.CACHED_RAGS = self.preload_models()
         return
     channel_layer = get_channel_layer()
+    lm_msg_id = str(uuid.uuid4())
 
     RAGConfig = apps.get_model('language_model', 'RAGConfig')
+    try:
+        rag_conf = RAGConfig.objects.get(name=rag_config_name)
+    except RAGConfig.DoesNotExist:
+        logger.error(f"RAG config with name: {rag_config_name} does not exist.")
+        _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True)
+        return
 
-    msg_template = {
-        "bot_channel_name": bot_channel_name,
-        "lm_msg_id": str(uuid.uuid4()),
-        "context": None,
-        "final": False,
-        "res": "",
-    }
-    rag_config = RAGConfig.objects.get(name=rag_config_name)
-    prompt_structure = model_to_dict(rag_config.prompt_structure)
-    generation_config = model_to_dict(rag_config.generation_config)
+    p_conf = model_to_dict(rag_conf.prompt_config)
+    g_conf = model_to_dict(rag_conf.generation_config)
 
-    # remove the id and model fields from the prompt structure and generation config
-    prompt_structure.pop("id")
-    prompt_structure.pop("model")
-    generation_config.pop("id")
-    generation_config.pop("model")
-
+    # remove the ids
+    p_conf.pop("id")
+    g_conf.pop("id")
     # remove the tags and end tokens from the stop words
-    stop_words = [prompt_structure["user_tag"], prompt_structure["assistant_tag"], prompt_structure["user_end"], prompt_structure["assistant_end"]]
-
+    stop_words = [p_conf["user_tag"], p_conf["assistant_tag"], p_conf["user_end"], p_conf["assistant_end"]]
     # remove empty stop words
     stop_words = [word for word in stop_words if word]
 
@@ -100,55 +119,23 @@ def llm_query_task(
     if streaming:
         for res in rag.stream(
             input_text,
-            prompt_structure_dict=prompt_structure,
-            generation_config_dict=generation_config,
+            prompt_structure_dict=p_conf,
+            generation_config_dict=g_conf,
             stop_words=stop_words,
-            lang=rag.knowledge_base.lang,
+            lang=rag_conf.knowledge_base.lang,
         ):
-            if not res["res"]:
-                continue
-            if not msg_template["context"]:
-                msg_template["context"] = res["context"]
-            msg_template["res"] = res["res"]
-
-            async_to_sync(channel_layer.send)(
-                chanel_name,
-                {
-                    "type": "send_llm_response",
-                    "message": msg_template,
-                },
-            )
+            _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
     else:
         res = rag.generate(
             input_text,
-            prompt_structure_dict=prompt_structure,
-            generation_config_dict=generation_config,
+            prompt_structure_dict=p_conf,
+            generation_config_dict=g_conf,
             stop_words=stop_words,
-            lang=rag.knowledge_base.lang,
+            lang=rag_conf.knowledge_base.lang,
         )
+        _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
 
-        if not msg_template["context"]:
-            msg_template["context"] = res["context"]
-        msg_template["res"] = res["res"]
-
-        async_to_sync(channel_layer.send)(
-            chanel_name,
-            {
-                "type": "send_llm_response",
-                "message": msg_template,
-            },
-        )
-
-    msg_template["res"] = ""
-    msg_template["final"] = True
-
-    async_to_sync(channel_layer.send)(
-        chanel_name,
-        {
-            "type": "send_llm_response",
-            "message": msg_template,
-        },
-    )
+    _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True)
 
 
 @app.task()
