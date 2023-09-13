@@ -45,7 +45,6 @@ class KnowledgeBase(models.Model):
         ("smart", "Smart"),
     )
 
-    name = models.CharField(max_length=100)
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
 
     # PDF parsing options
