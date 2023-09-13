@@ -41,7 +41,7 @@ class CustomPreset(ModelWDjango):
             db = env.get("REDIS_DATABASE", 0)
 
             if password:
-                password = f":{password}"
+                password = f":{urlquote(password)}"
 
             _redis_url = f"{proto}://{user}{password}@{host}:{port}/{db}"
 
