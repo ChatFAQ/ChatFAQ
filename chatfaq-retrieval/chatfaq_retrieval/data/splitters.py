@@ -325,3 +325,28 @@ class SmartSplitter:
         final_chunks = response.choices[0]["message"]["content"].split("###")
 
         return final_chunks
+    
+
+def get_splitter(splitter, chunk_size, chunk_overlap):
+    """
+    Returns the splitter object corresponding to the splitter name.
+    """
+
+    # check if chunk_size and chunk_overlap are valid and that the chunk_overlap is smaller than the chunk_size
+    if chunk_size < 1:
+        raise ValueError(f"chunk_size must be >= 1, got {chunk_size}")
+    if chunk_overlap < 0:
+        raise ValueError(f"chunk_overlap must be >= 0, got {chunk_overlap}")
+    if chunk_overlap >= chunk_size:
+        raise ValueError(f"chunk_overlap must be smaller than chunk_size, got chunk_overlap={chunk_overlap} and chunk_size={chunk_size}")
+    
+    if splitter == 'sentences':
+        return SentenceTokenSplitter(chunk_size=chunk_size)
+    elif splitter == 'words':
+        return WordSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    elif splitter == 'tokens':
+        return TokenSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    elif splitter == 'smart':
+        return SmartSplitter()
+    else:
+        raise ValueError(f"Unknown splitter: {splitter}, must be one of: sentences, words, tokens, smart")

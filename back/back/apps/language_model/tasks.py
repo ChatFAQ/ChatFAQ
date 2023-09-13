@@ -6,6 +6,8 @@ from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
+from chatfaq_retrieval.data.splitters import get_splitter
+from chatfaq_retrieval.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
 from django.apps import apps
 from back.config.celery import app
@@ -153,29 +155,12 @@ def parse_url_task(dataset_id, url):
         The primary key of the dataset to which the crawled items will be added.
     url : str
         The url to crawl.
-    Returns
-    -------
-    k_items : list
-        A list of KnowledgeItem objects.
     """
-    from chatfaq_retrieval.data.parsers import parse_html
-
-    Datasets = apps.get_model('language_model', 'Dataset')
-    dataset = Datasets.objects.get(pk=dataset_id)
-    splitter = dataset.splitter
-    chunk_size = dataset.chunk_size
-    chunk_overlap = dataset.chunk_overlap
-
-    # get the splitter object
-    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
-
-    # parse the html
-    k_items = parse_html(url=url, split_function=splitter)
-
-    # serialize the items
-    k_items = [k_item.__dict__ for k_item in k_items]
-
-    return k_items
+    from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
+    runner = CrawlerRunner(get_project_settings())
+    d = runner.crawl(GenericSpider, start_urls=url, dataset_id=dataset_id)
+    d.addBoth(lambda _: reactor.stop())
+    reactor.run()
 
 
 @app.task()
@@ -191,14 +176,14 @@ def parse_pdf_task(pdf_file_pk):
     k_items : list
         A list of KnowledgeItem objects.
     """
-    from chatfaq_retrieval.data.parsers import parse_pdf
 
     Datasets = apps.get_model('language_model', 'Dataset')
-    pdf_file = Datasets.objects.get(pk=pdf_file_pk).original_pdf.read()
-    strategy = Datasets.objects.get(pk=pdf_file_pk).strategy
-    splitter = Datasets.objects.get(pk=pdf_file_pk).splitter
-    chunk_size = Datasets.objects.get(pk=pdf_file_pk).chunk_size
-    chunk_overlap = Datasets.objects.get(pk=pdf_file_pk).chunk_overlap
+    ds = Datasets.objects.get(pk=pdf_file_pk)
+    pdf_file = ds.original_pdf.read()
+    strategy = ds.strategy
+    splitter = ds.splitter
+    chunk_size = ds.chunk_size
+    chunk_overlap = ds.chunk_overlap
 
     pdf_file = BytesIO(pdf_file)
 
@@ -206,39 +191,22 @@ def parse_pdf_task(pdf_file_pk):
 
     k_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
 
-    # serialize the KnowledgeItem objects
-    k_items = [k_item.__dict__ for k_item in k_items]
+    Item = apps.get_model('language_model', 'Item')
 
-    return k_items
+    new_items = [
+            Item(
+                dataset=ds,
+                intent=k_item.title,
+                answer=k_item.content,
+                url=k_item.url,
+                context=k_item.section,
+                page_number=k_item.page_number
+            )
+            for k_item in k_items
+        ]
 
+    Item.objects.filter(dataset=pdf_file_pk).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+    Item.objects.bulk_create(new_items)   
 
-def get_splitter(splitter, chunk_size, chunk_overlap):
-    """
-    Returns the splitter object corresponding to the splitter name.
-    """
-
-    # check if chunk_size and chunk_overlap are valid and that the chunk_overlap is smaller than the chunk_size
-    if chunk_size < 1:
-        raise ValueError(f"chunk_size must be >= 1, got {chunk_size}")
-    if chunk_overlap < 0:
-        raise ValueError(f"chunk_overlap must be >= 0, got {chunk_overlap}")
-    if chunk_overlap >= chunk_size:
-        raise ValueError(f"chunk_overlap must be smaller than chunk_size, got chunk_overlap={chunk_overlap} and chunk_size={chunk_size}")
-    
-
-    if splitter == 'sentences':
-        from chatfaq_retrieval.data.splitters import SentenceTokenSplitter
-        return SentenceTokenSplitter(chunk_size=chunk_size)
-    elif splitter == 'words':
-        from chatfaq_retrieval.data.splitters import WordSplitter
-        return WordSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    elif splitter == 'tokens':
-        from chatfaq_retrieval.data.splitters import TokenSplitter
-        return TokenSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    elif splitter == 'smart':
-        from chatfaq_retrieval.data.splitters import SmartSplitter
-        return SmartSplitter()
-    else:
-        raise ValueError(f"Unknown splitter: {splitter}, must be one of: sentences, words, tokens, smart")
 
         

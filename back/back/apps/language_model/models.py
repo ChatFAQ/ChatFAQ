@@ -53,6 +53,7 @@ class Dataset(models.Model):
     splitter = models.CharField(max_length=10, default="sentences", choices=SPLITTERS_CHOICES)
     chunk_size = models.IntegerField(default=128)
     chunk_overlap = models.IntegerField(default=16)
+    recursive = models.BooleanField(default=True)
 
     original_csv = models.FileField(blank=True, null=True)
     original_pdf = models.FileField(blank=True, null=True)
@@ -75,47 +76,9 @@ class Dataset(models.Model):
             for row in csv_rows
         ]
 
-        self._replace_dataset_items(new_items)
-
-    def update_items_from_pdf(self):
-        parsed_data = parse_pdf_task.delay(self.pk).get()
-
-        new_items = [
-            Item(
-                dataset=self,
-                intent=data["title"],
-                answer=data["content"],
-                url=data["url"],
-                context=data["section"],
-                page_number=data["page_number"],
-            )
-            for data in parsed_data
-        ]
-
-        self._replace_dataset_items(new_items)
-
-    def update_items_from_url(self):
-        parsed_data = parse_url_task.delay(self.pk, self.original_url).get()
-
-        new_items = [
-            Item(
-                dataset=self,
-                intent=data["title"],
-                answer=data["content"],
-                url=data["url"],
-                context=data["section"],
-                page_number=data["page_number"],
-            )
-            for data in parsed_data
-        ]
-
-        self._replace_dataset_items(new_items)
-
-    def _replace_dataset_items(self, new_items):
-        Item.objects.filter(dataset=self).delete()
+        Item.objects.filter(dataset=self).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
         Item.objects.bulk_create(new_items)
         
-
     def to_csv(self):
         items = Item.objects.filter(dataset=self)
         f = StringIO()
@@ -152,9 +115,9 @@ class Dataset(models.Model):
         if self.original_csv:
             self.update_items_from_csv()
         elif self.original_pdf:
-            self.update_items_from_pdf()
+            parse_pdf_task.delay(self.pk).get()
         elif self.original_url:
-            self.update_items_from_url()
+            parse_url_task.delay(self.pk, self.original_url) 
         llm_query_task.delay(None, None, None, None, None, True)
 
 

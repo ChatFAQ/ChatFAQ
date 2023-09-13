@@ -28,5 +28,8 @@ class CustomItemLoader(ItemLoader):
 
 
 class GenericItem(scrapy.Item):
-    text = scrapy.Field()
+    content = scrapy.Field()
+    title = scrapy.Field()
+    # section = scrapy.Field()
     url = scrapy.Field()
+    page_number = scrapy.Field(output_processor=TakeFirst(), input_processor=MapCompose(int))

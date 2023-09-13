@@ -112,6 +112,13 @@ def create_from_url(
             help="The chunk overlap to use when splitting the text into knowledge units"
         ),
     ] = 16,
+    recursive: Annotated[
+        bool,
+        typer.Option(
+            help="Whether to recursively scrape the website or not.",
+            case_sensitive=False,
+        ),
+    ] = True,
 
 ):
     """
@@ -129,6 +136,7 @@ def create_from_url(
             "splitter": splitter.value,
             "chunk_size": chunk_size,
             "chunk_overlap": chunk_overlap,
+            "recursive": recursive,
             },
     )
     print(r)
