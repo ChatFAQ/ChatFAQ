@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="recursive",
             field=models.BooleanField(default=True),
         ),

@@ -10,32 +10,32 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             old_name="original_file",
             new_name="original_csv",
         ),
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="chunk_overlap",
             field=models.IntegerField(default=16),
         ),
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="chunk_size",
             field=models.IntegerField(default=128),
         ),
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="original_pdf",
             field=models.FileField(blank=True, null=True, upload_to=""),
         ),
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="original_url",
             field=models.URLField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="splitter",
             field=models.CharField(
                 choices=[
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="strategy",
             field=models.CharField(
                 choices=[
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name="item",
+            model_name="KnowledgeItem",
             name="page_number",
             field=models.IntegerField(blank=True, null=True),
         ),

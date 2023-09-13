@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="strategy",
             field=models.CharField(
                 choices=[
