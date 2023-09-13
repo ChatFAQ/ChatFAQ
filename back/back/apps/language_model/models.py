@@ -120,7 +120,7 @@ class KnowledgeBase(models.Model):
         if self.original_csv:
             self.update_items_from_csv()
         elif self.original_pdf:
-            parse_pdf_task.delay(self.pk).get()
+            parse_pdf_task.delay(self.pk)
         elif self.original_url:
             parse_url_task.delay(self.pk, self.original_url)
         llm_query_task.delay(recache_models=True)
