@@ -4,77 +4,76 @@ import typer
 from rich import print
 from typing_extensions import Annotated
 
-from . import items, utterances
+from . import knowledge_items, auto_generated_titles
 from .utils import Splitter, Strategy, verify_smart_splitter
 
-app = typer.Typer(help="Datasets commands")
-app.add_typer(items.app, name="items", help="Dataset's items commands")
-app.add_typer(utterances.app, name="utterances", help="Items's utterances commands")
+app = typer.Typer(help="Knowledge bases commands")
+app.add_typer(knowledge_items.app, name="knowledge_items", help="Knowledge Items commands")
+app.add_typer(auto_generated_titles.app, name="auto_generated_titles", help="Auto Generated Titles commands")
 
 
-
-@app.command(rich_help_panel="Datasets commands")
+@app.command(rich_help_panel="Knowledge Base commands")
 def create_from_csv(
     ctx: typer.Context,
     name: Annotated[
-        str, typer.Argument(help="The name you wish to give to the dataset.")
+        str, typer.Argument(help="The name you wish to give to the Knowledge Base.")
     ],
     source: Annotated[str, typer.Argument(help="The path to the CSV to upload.")],
 ):
     """
-    Create a new dataset.
+    Create a new Knowledge Base.
     """
     res = ctx.parent.obj["r"].post(
-        "language-model/datasets/",
+        "language-model/knowledge_bases/",
         data={"name": name},
         files={"original_csv": open(source, "rb")},
     )
     print(res)
 
 
-@app.command(rich_help_panel="Datasets commands", name="list")
+@app.command(rich_help_panel="Knowledge Base commands", name="list")
 def _list(
     ctx: typer.Context,
 ):
     """
-    List all datasets.
+    List all Knowledge Bases.
     """
-    print(ctx.parent.obj["r"].get("language-model/datasets/"))
+    print(ctx.parent.obj["r"].get("language-model/knowledge_bases/"))
 
 
-@app.command(rich_help_panel="Datasets commands")
+@app.command(rich_help_panel="Knowledge Base commands")
 def delete(
     ctx: typer.Context,
     id: Annotated[
-        str, typer.Argument(help="The id of the dataset you wish to delete.")
+        str, typer.Argument(help="The id of the Knowledge Base you wish to delete.")
     ],
 ):
     """
-    Delete an existing dataset.
+    Delete an existing Knowledge Base.
     """
-    res = ctx.parent.obj["r"].delete(f"language-model/datasets/{id}/", json=False)
+    res = ctx.parent.obj["r"].delete(f"language-model/knowledge_bases/{id}/", json=False)
     if res.ok:
-        print(f"Dataset {id} deleted.")
+        print(f"Knowledge Base {id} deleted.")
     else:
         print(res)
 
 
-@app.command(rich_help_panel="Datasets commands")
+@app.command(rich_help_panel="Knowledge Base commands")
 def download_csv(
     ctx: typer.Context,
     id: Annotated[
-        str, typer.Argument(help="The id of the dataset you wish to download.")
+        str, typer.Argument(help="The id of the Knowledge Base you wish to download.")
     ],
     download_path: Annotated[
         str, typer.Option(help="The path where you want to download the file.")
     ] = None,
 ):
     """
-    Download the dataset as a CSV file.
+    Download the Knowledge Base as a CSV file.
     """
     print("Downloading...")
     r = ctx.parent.obj["r"].get(
-        f"language-model/datasets/{id}/download_csv", json=False
+        f"language-model/knowledge_bases/{id}/download_csv", json=False
     )
     filename = r.headers["content-disposition"].split("attachment; filename=")[1]
     if not download_path:
@@ -83,15 +82,15 @@ def download_csv(
     print(f"Downloaded into {download_path}")
 
 
-@app.command(rich_help_panel="Datasets commands")
+@app.command(rich_help_panel="Knowledge Base commands")
 def create_from_url(
     ctx: typer.Context,
-    name: Annotated[str, typer.Argument(help="The name of the dataset to be created.")],
+    name: Annotated[str, typer.Argument(help="The name of the Knowledge Base to be created.")],
     language: Annotated[
-        str, typer.Argument(help="The language of the dataset to be created.")
+        str, typer.Argument(help="The language of the Knowledge Base to be created.")
     ],
     url: Annotated[
-        str, typer.Argument(help="The url to scrape and download the dataset from.")
+        str, typer.Argument(help="The url to scrape and download the Knowledge Base from.")
     ],
     splitter: Annotated[
         Splitter,
@@ -122,16 +121,16 @@ def create_from_url(
 
 ):
     """
-    Creates a new dataset from a url.
+    Creates a new Knowledge Base from a url.
     """
 
     splitter = verify_smart_splitter(splitter)
 
     r = ctx.parent.obj["r"].post(
-        f"language-model/datasets/",
+        f"language-model/knowledge_bases/",
         data={
             "name": name,
-            "language": language, 
+            "language": language,
             "original_url": url,
             "splitter": splitter.value,
             "chunk_size": chunk_size,
@@ -142,17 +141,17 @@ def create_from_url(
     print(r)
 
 
-@app.command(rich_help_panel="Datasets commands")
+@app.command(rich_help_panel="Knowledge Base commands")
 def create_from_pdf(
     ctx: typer.Context,
-    name: Annotated[str, typer.Argument(help="The name of the dataset to be created.")],
+    name: Annotated[str, typer.Argument(help="The name of the Knowledge Base to be created.")],
     language: Annotated[
-        str, typer.Argument(help="The language of the dataset to be created.")
+        str, typer.Argument(help="The language of the Knowledge Base to be created.")
     ],
     pdf: Annotated[
         str,
         typer.Argument(
-            help="The pdf file path to scrape and extract the dataset from."
+            help="The pdf file path to scrape and extract the Knowledge Base from."
         ),
     ],
     strategy: Annotated[
@@ -183,13 +182,13 @@ def create_from_pdf(
     ] = 16,
 ):
     """
-    Creates a new dataset from a pdf file.
+    Creates a new Knowledge Base from a pdf file.
     """
 
     splitter = verify_smart_splitter(splitter)
 
     r = ctx.parent.obj["r"].post(
-        f"language-model/datasets/",
+        f"language-model/knowledge_bases/",
         data={
             "name": name,
             "language": language,
