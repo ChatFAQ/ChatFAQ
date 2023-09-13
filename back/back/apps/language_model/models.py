@@ -6,6 +6,7 @@ from back.apps.language_model.tasks import llm_query_task
 from back.common.models import ChangesMixin
 from fernet_fields import EncryptedCharField
 from simple_history.models import HistoricalRecords
+from .tasks import parse_pdf_task, parse_url_task
 
 
 class Dataset(models.Model):
@@ -14,8 +15,12 @@ class Dataset(models.Model):
 
     name: str
         Just a name for the dataset.
-    original_file: File
-        The original file used to create the dataset.
+    original_csv: FileField
+        The original CSV file.
+    original_pdf: FileField
+        The original PDF file.
+    original_url: URLField
+        The original URL.
     lang: en, es, fr
         The language of the dataset.
     """
@@ -25,17 +30,42 @@ class Dataset(models.Model):
         ("es", "Spanish"),
         ("fr", "French"),
     )
+
+    STRATEGY_CHOICES = (
+        ("auto", "Auto"),
+        ("fast", "Fast"),
+        ("ocr_only", "OCR Only"),
+        ("hi_res", "Hi Res"),
+    )
+
+    SPLITTERS_CHOICES = (
+        ("sentences", "Sentences"),
+        ("words", "Words"),
+        ("tokens", "Tokens"),
+        ("smart", "Smart"),
+    )
+
     name = models.CharField(max_length=100)
-    original_file = models.FileField(blank=True, null=True)
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
 
-    def update_items_from_file(self):
-        decoded_file = self.original_file.read().decode("utf-8").splitlines()
-        reader = csv.DictReader(decoded_file)
+    # PDF parsing options
+    strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
+    splitter = models.CharField(max_length=10, default="sentences", choices=SPLITTERS_CHOICES)
+    chunk_size = models.IntegerField(default=128)
+    chunk_overlap = models.IntegerField(default=16)
+    recursive = models.BooleanField(default=True)
 
-        new_items = []
-        for row in reader:
-            item = Item(
+    original_csv = models.FileField(blank=True, null=True)
+    original_pdf = models.FileField(blank=True, null=True)
+    original_url = models.URLField(blank=True, null=True)
+
+
+    def update_items_from_csv(self):
+        csv_content = self.original_csv.read().decode("utf-8").splitlines()
+        csv_rows = csv.DictReader(csv_content)
+
+        new_items = [
+            Item(
                 dataset=self,
                 intent=row["intent"],
                 answer=row["answer"],
@@ -43,13 +73,12 @@ class Dataset(models.Model):
                 context=row.get("context"),
                 role=row.get("role"),
             )
-            new_items.append(item)
+            for row in csv_rows
+        ]
 
-        # Delete all items from this dataset:
-        Item.objects.filter(dataset=self).delete()
-        # Bulk create the new items:
+        Item.objects.filter(dataset=self).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
         Item.objects.bulk_create(new_items)
-
+        
     def to_csv(self):
         items = Item.objects.filter(dataset=self)
         f = StringIO()
@@ -69,20 +98,27 @@ class Dataset(models.Model):
 
     def __str__(self):
         return self.name or "Dataset {}".format(self.id)
-
+    
     def save(self, *args, **kw):
-        _update_items_from_file = False
-        if self.pk is not None:
-            orig = Dataset.objects.get(pk=self.pk)
-            if orig.original_file != self.original_file:
-                _update_items_from_file = True
-        else:
-            _update_items_from_file = True
-        super().save(*args, **kw)
-        if _update_items_from_file:
-            if self.original_file:
-                self.update_items_from_file()
-                llm_query_task.delay(None, None, None, None, None, True)
+        if self._should_update_items_from_file():
+            super().save(*args, **kw)
+            self.update_items_from_file()
+
+    def _should_update_items_from_file(self):
+        if not self.pk:
+            return True
+        
+        orig = Dataset.objects.get(pk=self.pk)
+        return orig.original_csv != self.original_csv or orig.original_pdf != self.original_pdf
+
+    def update_items_from_file(self):
+        if self.original_csv:
+            self.update_items_from_csv()
+        elif self.original_pdf:
+            parse_pdf_task.delay(self.pk).get()
+        elif self.original_url:
+            parse_url_task.delay(self.pk, self.original_url) 
+        llm_query_task.delay(None, None, None, None, None, True)
 
 
 class Item(ChangesMixin):
@@ -112,6 +148,7 @@ class Item(ChangesMixin):
     context = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
     embedding = ArrayField(models.FloatField(), blank=True, null=True)
+    page_number = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.answer} ds ({self.dataset.pk})"
@@ -180,6 +217,10 @@ class Model(models.Model):
     trust_remote_code_model = models.BooleanField(default=False)
     revision = models.CharField(max_length=255, blank=True, null=True, default="main")
 
+    def __str__(self):
+        dataset_name = self.dataset.name
+        return self.name or f"{self.repo_id} - {dataset_name}".format(self.id)
+
 
 class PromptStructure(models.Model):
     """
@@ -218,6 +259,10 @@ class PromptStructure(models.Model):
     model = models.ForeignKey(Model, on_delete=models.PROTECT)
     history = HistoricalRecords()
 
+    def __str__(self):
+        model_name = Model.objects.get(pk=self.model.pk).name
+        return f"Prompt Configuration for {model_name}"
+
 
 class GenerationConfig(models.Model):
     """
@@ -244,4 +289,8 @@ class GenerationConfig(models.Model):
     seed = models.IntegerField(default=42)
     max_new_tokens = models.IntegerField(default=256)
     model = models.ForeignKey(Model, on_delete=models.PROTECT)
+
+    def __str__(self):
+        model_name = Model.objects.get(pk=self.model.pk).name
+        return f"Generation Configuration for {model_name}"
 
