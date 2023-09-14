@@ -15,7 +15,9 @@ from back.utils import is_celery_worker
 from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
 from crochet import setup
-setup()
+
+if is_celery_worker():
+    setup()
 
 logger = getLogger(__name__)
 
