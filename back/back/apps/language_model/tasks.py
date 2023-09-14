@@ -14,6 +14,8 @@ from back.config.celery import app
 from back.utils import is_celery_worker
 from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
+from crochet import setup
+setup()
 
 logger = getLogger(__name__)
 
@@ -153,9 +155,7 @@ def parse_url_task(knowledge_base_id, url):
     """
     from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
     runner = CrawlerRunner(get_project_settings())
-    d = runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
-    d.addBoth(lambda _: reactor.stop())
-    reactor.run()
+    runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
 
 
 @app.task()
