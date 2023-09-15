@@ -5,14 +5,14 @@ import requests
 import typer
 from rich import print
 
-from chatfaq_cli import config, conversations, datasets, models, reviews, senders
+from chatfaq_cli import config, conversations, data, rag_pipeline, reviews, senders
 from chatfaq_cli.helpers import CONFIG_FILE_PATH, get_config
 
 app = typer.Typer()
 app.add_typer(config.app, name="config")
 app.add_typer(conversations.app, name="conversations")
-app.add_typer(datasets.app, name="datasets")
-app.add_typer(models.app, name="models")
+app.add_typer(data.app, name="data")
+app.add_typer(rag_pipeline.app, name="rag_pipeline")
 app.add_typer(senders.app, name="senders")
 app.add_typer(reviews.app, name="reviews")
 

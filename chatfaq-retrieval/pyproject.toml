@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq-retrieval"
-version = "0.1.17"
+version = "0.1.19"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
@@ -22,6 +22,7 @@ tqdm = "^4.65.0"
 einops = "^0.6.1"
 openai = "^0.27.8"
 accelerate = "^0.21.0"
+unstructured = {extras = ["pdf"], version = "^0.10.12"}
 
 [build-system]
 requires = ["poetry-core"]
