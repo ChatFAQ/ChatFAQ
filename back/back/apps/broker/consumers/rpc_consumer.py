@@ -7,12 +7,13 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from back.apps.broker.consumers.message_types import RPCMessageType
+from back.apps.broker.consumers.message_types import RPCMessageType, RPCNodeType
 from back.apps.broker.serializers.rpc import (
     RPCFSMDefSerializer,
     RPCResponseSerializer,
     RPCResultSerializer,
 )
+from back.apps.fsm.lib import FSM
 from back.apps.fsm.models import FSMDefinition
 from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.fsm.serializers import FSMSerializer
@@ -141,16 +142,16 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             await self.error_response({"payload": serializer.errors})
             return
         data = serializer.validated_data
-        ctx = data["ctx"]
-        del data["ctx"]
         res = {
             "type": "rpc_response",
             "status": WSStatusCodes.ok.value,
             **data,
         }
-        conversation_id = ctx["conversation_id"]
+        if data["node_type"] == RPCNodeType.action.value:
+            mml = await FSM.save_bot_mml_(data["stack"], data["stack_id"], data["last"], data["ctx"]["conversation_id"], data["ctx"]["user_id"])
+            res["mml_id"] = mml.pk
         await self.channel_layer.group_send(
-            WSBotConsumer.create_group_name(conversation_id), res
+            WSBotConsumer.create_group_name(data["ctx"]["conversation_id"]), res
         )
 
     async def rpc_call(self, data: dict):

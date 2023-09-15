@@ -87,11 +87,10 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
         """
         if data["node_type"] == RPCNodeType.action.value:
-            self.message_buffer.append(data)
-            if not self.fsm.rpc_result_future.done():
-                self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
+            mml = await database_sync_to_async(Message.objects.get)(pk=data["mml_id"])
+            await self.send_response(mml)
         else:
-            self.fsm.rpc_result_future.set_result(data["stack"])
+            self.fsm.rpc_result_future.set_result(data)
 
     def rpc_result_streaming_generator(self):
         self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
@@ -159,6 +158,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
         return {
             "conversation_id": self.conversation.pk,
+            "user_id": self.user_id,
             "last_mml": last_mml,
             "bot_channel_name": self.channel_name,
         }

@@ -5,6 +5,7 @@ from back.apps.broker.consumers.message_types import RPCMessageType, RPCNodeType
 
 class CtxSerializer(serializers.Serializer):
     conversation_id = serializers.CharField(max_length=255)
+    user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
 
 class PayloadSerializer(serializers.Serializer):
@@ -36,6 +37,7 @@ class LLMRequestSerializer(serializers.Serializer):
     input_text = serializers.CharField()
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
+    user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
 
 class RPCFSMDefSerializer(serializers.Serializer):

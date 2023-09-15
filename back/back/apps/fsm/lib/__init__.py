@@ -134,7 +134,6 @@ class FSM:
         for event_name in self.current_state.events:
             group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
-            self.rpc_result_future = asyncio.get_event_loop().create_future()
             data = {
                 "type": "rpc_call",
                 "status": WSStatusCodes.ok.value,
@@ -151,13 +150,6 @@ class FSM:
             except Exception as e:
                 logger.error(f"Error while sending to RPC group {group_name}: {data}")
                 raise e
-
-            logger.debug(f"Waiting for RCP call {event_name} (action)...")
-            last = False
-            while not last:
-                stack, stack_id, last = (await self.rpc_result_future)()
-                await self.ctx.send_response(await self.save_bot_mml(stack, stack_id, last))
-            logger.debug(f"...Receive RCP call {event_name} (action)")
 
     def get_initial_state(self):
         for state in self.states:
@@ -223,7 +215,7 @@ class FSM:
         logger.debug(f"Waiting for RCP call {condition_name} (condition)...")
         payload = await self.rpc_result_future
         logger.debug(f"...Receive RCP call {condition_name} (condition)")
-        return payload["score"], payload["data"]
+        return payload["stack"]["score"], payload["stack"]["data"]
 
     async def save_cache(self):
         from back.apps.fsm.models import CachedFSM  # TODO: Resolve CI
@@ -231,6 +223,10 @@ class FSM:
         await database_sync_to_async(CachedFSM.update_or_create)(self)
 
     async def save_bot_mml(self, stack, stack_id, last):
+        return await self.save_bot_mml_(stack, stack_id, last, self.ctx.conversation.pk, self.ctx.user_id)
+
+    @staticmethod
+    async def save_bot_mml_(stack, stack_id, last, conversation_id, user_id):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         data = {
@@ -241,11 +237,11 @@ class FSM:
             "stack": stack,
             "stack_id": stack_id,
             "last": last,
-            "conversation": self.ctx.conversation.pk,
+            "conversation": conversation_id,
             "send_time": int(time.time() * 1000),
         }
-        if self.ctx.user_id is not None:
-            data["receiver"] = {"type": AgentType.human.value, "id": self.ctx.user_id}
+        if user_id is not None:
+            data["receiver"] = {"type": AgentType.human.value, "id": user_id}
         serializer = MessageSerializer(data=data)
 
         await database_sync_to_async(serializer.is_valid)(raise_exception=True)
