@@ -1,13 +1,14 @@
 import asyncio
-import time
 from logging import getLogger
 from typing import List, NamedTuple, Text, Union
+
+from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models import ConsumerRoundRobinQueue
 
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
-from back.apps.broker.models.message import AgentType
+from back.apps.broker.models.message import Message
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -151,6 +152,16 @@ class FSM:
                 logger.error(f"Error while sending to RPC group {group_name}: {data}")
                 raise e
 
+    async def manage_rpc_response(self, data):
+        """
+        It will be called by the RPC Consumer when it receives a response from the RPC worker
+        """
+        if data["node_type"] == RPCNodeType.action.value:
+            mml = await database_sync_to_async(Message.objects.get)(pk=data["mml_id"])
+            await self.ctx.send_response(mml)
+        else:
+            self.rpc_result_future.set_result(data)
+
     def get_initial_state(self):
         for state in self.states:
             if state.initial:
@@ -221,28 +232,3 @@ class FSM:
         from back.apps.fsm.models import CachedFSM  # TODO: Resolve CI
 
         await database_sync_to_async(CachedFSM.update_or_create)(self)
-
-    async def save_bot_mml(self, stack, stack_id, last):
-        return await self.save_bot_mml_(stack, stack_id, last, self.ctx.conversation.pk, self.ctx.user_id)
-
-    @staticmethod
-    async def save_bot_mml_(stack, stack_id, last, conversation_id, user_id):
-        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
-
-        data = {
-            "sender": {
-                "type": AgentType.bot.value,
-            },
-            "confidence": 1,
-            "stack": stack,
-            "stack_id": stack_id,
-            "last": last,
-            "conversation": conversation_id,
-            "send_time": int(time.time() * 1000),
-        }
-        if user_id is not None:
-            data["receiver"] = {"type": AgentType.human.value, "id": user_id}
-        serializer = MessageSerializer(data=data)
-
-        await database_sync_to_async(serializer.is_valid)(raise_exception=True)
-        return await database_sync_to_async(serializer.save)()

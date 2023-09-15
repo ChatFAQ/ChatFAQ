@@ -13,7 +13,6 @@ from back.apps.broker.serializers.rpc import (
     RPCResponseSerializer,
     RPCResultSerializer,
 )
-from back.apps.fsm.lib import FSM
 from back.apps.fsm.models import FSMDefinition
 from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.fsm.serializers import FSMSerializer
@@ -141,17 +140,16 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         if not serializer.is_valid():
             await self.error_response({"payload": serializer.errors})
             return
-        data = serializer.validated_data
         res = {
             "type": "rpc_response",
             "status": WSStatusCodes.ok.value,
-            **data,
+            **serializer.validated_data,
         }
-        if data["node_type"] == RPCNodeType.action.value:
-            mml = await FSM.save_bot_mml_(data["stack"], data["stack_id"], data["last"], data["ctx"]["conversation_id"], data["ctx"]["user_id"])
+        if serializer.validated_data["node_type"] == RPCNodeType.action.value:
+            mml = await database_sync_to_async(serializer.save_as_mml)()
             res["mml_id"] = mml.pk
         await self.channel_layer.group_send(
-            WSBotConsumer.create_group_name(data["ctx"]["conversation_id"]), res
+            WSBotConsumer.create_group_name(serializer.validated_data["ctx"]["conversation_id"]), res
         )
 
     async def rpc_call(self, data: dict):

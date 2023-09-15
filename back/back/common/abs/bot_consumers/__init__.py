@@ -1,6 +1,4 @@
 import asyncio
-import copy
-from abc import ABC
 from logging import getLogger
 from typing import TYPE_CHECKING, Union
 
@@ -8,7 +6,6 @@ from channels.db import database_sync_to_async
 from django.forms import model_to_dict
 from django.urls import re_path
 
-from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models.message import Conversation, Message
 from back.utils.custom_channels import CustomAsyncConsumer
 
@@ -86,11 +83,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        if data["node_type"] == RPCNodeType.action.value:
-            mml = await database_sync_to_async(Message.objects.get)(pk=data["mml_id"])
-            await self.send_response(mml)
-        else:
-            self.fsm.rpc_result_future.set_result(data)
+        await self.fsm.manage_rpc_response(data)
 
     def rpc_result_streaming_generator(self):
         self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
