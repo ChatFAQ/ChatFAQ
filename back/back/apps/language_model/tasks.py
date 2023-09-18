@@ -1,7 +1,6 @@
 import uuid
 from io import StringIO, BytesIO
 from logging import getLogger
-from twisted.internet import reactor
 from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer

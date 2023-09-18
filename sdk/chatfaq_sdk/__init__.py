@@ -247,7 +247,7 @@ class ChatFAQSDK:
     async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
-    async def send_llm_request(self, rag_config_name, input_text, conversation_id, bot_channel_name):
+    async def send_llm_request(self, rag_config_name, input_text, conversation_id, bot_channel_name, user_id=None):
         logger.info(f"[LLM] Requesting LLM (model {rag_config_name})")
         self.rpc_llm_request_futures[
             bot_channel_name
@@ -260,6 +260,7 @@ class ChatFAQSDK:
                         "rag_config_name": rag_config_name,
                         "input_text": input_text,
                         "conversation_id": conversation_id,
+                        "user_id": user_id,
                         "bot_channel_name": bot_channel_name,
                     },
                 }
