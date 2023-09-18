@@ -59,18 +59,18 @@ class LLMConfig(models.Model):
         The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
     """
 
-    STATUS_CHOICES = (
-        ("created", "Created"),
-        ("training", "Training"),
-        ("trained", "Trained"),
+    LLM_CHOICES = (
+        ('cpu', 'CPU Model'),      # GGML models optimized for CPU inference
+        ('local', 'Local Model'),  # Use locally (VLLM) or via HuggingFace for GPU inference
+        ('vllm', 'VLLM Client'),   # Access VLLM engine remotely
+        ('openai', 'OpenAI Model') # ChatGPT models from OpenAI
     )
 
     name = models.CharField(max_length=255, unique=True)
-    repo_id = models.CharField(max_length=100, default="google/flan-t5-base")
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="created")
-    ggml_model_filename = models.CharField(max_length=255, blank=True, null=True)
+    llm_type = models.CharField(max_length=10, choices=LLM_CHOICES, default="local")
+    llm_name = models.CharField(max_length=100, default="gpt2")
+    ggml_llm_filename = models.CharField(max_length=255, blank=True, null=True)
     model_config = models.CharField(max_length=255, blank=True, null=True)
-    auth_token = EncryptedCharField(max_length=255, blank=True, null=True)
     load_in_8bit = models.BooleanField(default=False)
     use_fast_tokenizer = models.BooleanField(default=True)
     trust_remote_code_tokenizer = models.BooleanField(default=False)
