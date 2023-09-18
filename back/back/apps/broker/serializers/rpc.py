@@ -1,10 +1,14 @@
-from rest_framework import serializers
+import time
 
+from rest_framework import serializers
+from back.apps.broker.models.message import AgentType
+from back.apps.broker.serializers.messages import MessageSerializer
 from back.apps.broker.consumers.message_types import RPCMessageType, RPCNodeType
 
 
 class CtxSerializer(serializers.Serializer):
     conversation_id = serializers.CharField(max_length=255)
+    user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
 
 class PayloadSerializer(serializers.Serializer):
@@ -30,12 +34,36 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last = serializers.BooleanField(default=False)
 
+    def save_as_mml(self, **kwargs):
+        if not self.is_valid():
+            raise serializers.ValidationError("RPCResultSerializer is not valid")
+        if self.validated_data["node_type"] != RPCNodeType.action.value:
+            raise serializers.ValidationError("RPCResultSerializer is not valid")
+
+        data = {
+            "sender": {
+                "type": AgentType.bot.value,
+            },
+            "confidence": 1,
+            "stack": self.validated_data["stack"],
+            "stack_id": self.validated_data["stack_id"],
+            "last": self.validated_data["last"],
+            "conversation": self.validated_data["ctx"]["conversation_id"],
+            "send_time": int(time.time() * 1000),
+        }
+        if self.validated_data["ctx"]["user_id"] is not None:
+            data["receiver"] = {"type": AgentType.human.value, "id": self.validated_data["ctx"]["user_id"]}
+        serializer = MessageSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        return serializer.save(**kwargs)
+
 
 class LLMRequestSerializer(serializers.Serializer):
-    model_id = serializers.CharField()
+    rag_config_name = serializers.CharField()
     input_text = serializers.CharField()
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
+    user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
 
 class RPCFSMDefSerializer(serializers.Serializer):

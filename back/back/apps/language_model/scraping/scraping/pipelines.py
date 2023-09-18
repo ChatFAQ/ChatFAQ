@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from back.apps.language_model.models import Dataset, Item
+from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from channels.db import database_sync_to_async
 # Define your item pipelines here
 #
@@ -8,16 +8,16 @@ from channels.db import database_sync_to_async
 
 
 class GenericPipeline(object):
-    ds = None
+    kb = None
 
     async def process_item(self, item, spider):
-        if not self.ds:
-            self.ds = await database_sync_to_async(Dataset.objects.get)(id=spider.dataset_id)
+        if not self.kb:
+            self.kb = await database_sync_to_async(KnowledgeBase.objects.get)(id=spider.knowledge_base_id)
 
-        _item = await database_sync_to_async(Item.objects.create)(
-            dataset=self.ds,
-            answer=item['content'],
-            intent=item['title'],
+        _item = await database_sync_to_async(KnowledgeItem.objects.create)(
+            knowledge_base=self.kb,
+            title=item['title'],
+            content=item['content'],
             #context=item['section'],
             url=item['url'],
         )

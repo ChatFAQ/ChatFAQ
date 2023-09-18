@@ -57,12 +57,11 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             return
         data = serializer.validated_data
         llm_query_task.delay(
-            self.channel_name,
-            data["model_id"],
-            data["input_text"],
-            data["conversation_id"],
-            data["bot_channel_name"],
-            False
+            chanel_name=self.channel_name,
+            rag_config_name=data["rag_config_name"],
+            input_text=data["input_text"],
+            conversation_id=data["conversation_id"],
+            bot_channel_name=data["bot_channel_name"],
         )
 
     async def send_llm_response(self, event):

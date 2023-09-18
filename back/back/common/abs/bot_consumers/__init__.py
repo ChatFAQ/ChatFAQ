@@ -1,6 +1,4 @@
 import asyncio
-import copy
-from abc import ABC
 from logging import getLogger
 from typing import TYPE_CHECKING, Union
 
@@ -8,7 +6,6 @@ from channels.db import database_sync_to_async
 from django.forms import model_to_dict
 from django.urls import re_path
 
-from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models.message import Conversation, Message
 from back.utils.custom_channels import CustomAsyncConsumer
 
@@ -86,12 +83,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             None
 
         """
-        if data["node_type"] == RPCNodeType.action.value:
-            self.message_buffer.append(data)
-            if not self.fsm.rpc_result_future.done():
-                self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
-        else:
-            self.fsm.rpc_result_future.set_result(data["stack"])
+        await self.fsm.manage_rpc_response(data)
 
     def rpc_result_streaming_generator(self):
         self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
@@ -159,6 +151,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
         return {
             "conversation_id": self.conversation.pk,
+            "user_id": self.user_id,
             "last_mml": last_mml,
             "bot_channel_name": self.channel_name,
         }

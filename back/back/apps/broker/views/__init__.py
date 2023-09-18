@@ -38,7 +38,7 @@ class ConversationAPIViewSet(
     @action(methods=("post",), detail=True)
     def download(self, request, *args, **kwargs):
         """
-        A view to download all the dataset's items as a csv file:
+        A view to download all the knowledge base's items as a csv file:
         """
         ids = kwargs["pk"].split(",")
         if len(ids) == 1:

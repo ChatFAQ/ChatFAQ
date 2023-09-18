@@ -5,12 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("language_model", "0013_alter_dataset_strategy"),
+        ("language_model", "0014_alter_dataset_strategy"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="recursive",
             field=models.BooleanField(default=True),
         ),

@@ -139,7 +139,7 @@ function manageEnterInput(ev, cb) {
 
 function sendMessage() {
     const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length || store.waitingForResponse)
+    if (!promptValue.length || store.waitingForResponse || store.disconnected)
         return;
     const m = {
         "sender": {

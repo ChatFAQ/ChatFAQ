@@ -5,12 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("language_model", "0012_rename_original_file_dataset_original_csv_and_more"),
+        ("language_model", "0013_rename_original_file_dataset_original_csv_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="dataset",
+            model_name="KnowledgeBase",
             name="strategy",
             field=models.CharField(
                 choices=[

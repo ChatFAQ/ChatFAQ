@@ -2,11 +2,10 @@ import scrapy
 from urllib.parse import urlparse
 
 from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
-from back.apps.language_model.models import Dataset
+from back.apps.language_model.models.data import KnowledgeBase
 from back.apps.language_model.tasks import llm_query_task
 from chatfaq_retrieval.data.parsers import parse_html
 from chatfaq_retrieval.data.splitters import get_splitter
-
 
 
 class GenericSpider(scrapy.Spider):
@@ -14,16 +13,16 @@ class GenericSpider(scrapy.Spider):
     allowed_domains = []
     start_urls = []
 
-    def __init__(self, start_urls='', dataset_id='', *a, **kw):
-        self.dataset_id = dataset_id
+    def __init__(self, start_urls='', knowledge_base_id='', *a, **kw):
+        self.knowledge_base_id = knowledge_base_id
         self.start_urls = start_urls.split(',')
         for url in self.start_urls:
             self.allowed_domains.append(urlparse(url).netloc)
             self.allowed_domains = list(set(self.allowed_domains))
 
-        ds = Dataset.objects.get(id=dataset_id)
-        self.splitter = get_splitter(ds.splitter, ds.chunk_size, ds.chunk_overlap)
-        self.recursive = ds.recursive
+        kb = KnowledgeBase.objects.get(id=knowledge_base_id)
+        self.splitter = get_splitter(kb.splitter, kb.chunk_size, kb.chunk_overlap)
+        self.recursive = kb.recursive
 
         super().__init__(*a, **kw)
 
@@ -48,4 +47,4 @@ class GenericSpider(scrapy.Spider):
                 yield response.follow(link, callback=self.parse, meta={"playwright": True})
 
     def spider_closed(self, spider):
-        llm_query_task.delay(None, None, None, None, None, True)
+        llm_query_task.delay(recache_models=True)
