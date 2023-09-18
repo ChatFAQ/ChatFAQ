@@ -58,16 +58,15 @@ class KnowledgeBase(models.Model):
     original_pdf = models.FileField(blank=True, null=True)
     original_url = models.URLField(blank=True, null=True)
 
-
     def update_items_from_csv(self):
         csv_content = self.original_csv.read().decode("utf-8").splitlines()
         csv_rows = csv.DictReader(csv_content)
 
         new_items = [
             KnowledgeItem(
-                dataset=self,
-                intent=row["intent"],
-                answer=row["answer"],
+                knowledge_base=self,
+                title=row["title"],
+                content=row["content"],
                 url=row["url"],
                 section=row.get("section"),
                 role=row.get("role"),
@@ -75,7 +74,7 @@ class KnowledgeBase(models.Model):
             for row in csv_rows
         ]
 
-        KnowledgeItem.objects.filter(dataset=self).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+        KnowledgeItem.objects.filter(knowledge_base=self).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
         KnowledgeItem.objects.bulk_create(new_items)
 
     def to_csv(self):
