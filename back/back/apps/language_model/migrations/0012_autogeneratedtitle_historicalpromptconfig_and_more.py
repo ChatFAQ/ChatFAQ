@@ -10,6 +10,13 @@ import fernet_fields.fields
 import simple_history.models
 
 
+def create_uuid(apps, schema_editor):
+    GenerationConfig = apps.get_model("language_model", "GenerationConfig")
+    for gc in GenerationConfig.objects.all():
+        gc.name = uuid.uuid4()
+        gc.save()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -306,10 +313,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="generationconfig",
             name="name",
-            field=models.CharField(
-                default=uuid.uuid4, max_length=255, unique=True
-            ),
+            field=models.CharField(max_length=255, blank=True, null=True),
             preserve_default=False,
+        ),
+        migrations.RunPython(create_uuid),
+        migrations.AlterField(
+            model_name='generationconfig',
+            name='name',
+            field=models.UUIDField(max_length=255, unique=True)
         ),
         migrations.DeleteModel(
             name="Dataset",
