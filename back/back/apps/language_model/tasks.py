@@ -41,13 +41,13 @@ class RAGCacheOnWorkerTask(Task):
             )
             cache[str(rag_conf.name)] = RetrieverAnswerer(
                 base_data=StringIO(rag_conf.knowledge_base.to_csv()),
-                repo_id=rag_conf.llm_config.repo_id,
+                llm_name=rag_conf.llm_config.llm_name,
+                llm_type=rag_conf.llm_config.llm_type,
                 context_col="content",
                 embedding_col="content",
                 ggml_model_filename=rag_conf.llm_config.ggml_model_filename,
                 use_cpu=False,
                 model_config=rag_conf.llm_config.model_config,
-                auth_token=rag_conf.llm_config.auth_token,
                 load_in_8bit=rag_conf.llm_config.load_in_8bit,
                 trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
                 trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,

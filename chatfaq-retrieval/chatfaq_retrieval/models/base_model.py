@@ -81,6 +81,7 @@ class BaseModel:
         generation_config_dict: dict = None,
         lang: str = "en",
         stop_words: List[str] = None,
+        **kwargs,
     ) -> str:
         pass
 
@@ -92,5 +93,6 @@ class BaseModel:
         generation_config_dict: dict = None,
         lang: str = "en",
         stop_words: List[str] = None,
+        **kwargs,
     ) -> str:
         pass

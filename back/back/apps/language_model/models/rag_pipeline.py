@@ -39,16 +39,14 @@ class LLMConfig(models.Model):
     A model config with all the settings to configure an LLM.
     name: str
         Just a name for the model.
-    repo_id: str
-        The hugginface repo id of the base model.
-    status: created, training, trained
-        The status of the model.
+    llm_type: str
+        The type of LLM to use.
+    llm_name: str
+        The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc.
     ggml_model_filename: str
-        The GGML filename of the model.
+        The GGML filename of the model, if it is a GGML model.
     model_config: str
-        The huggingface model config of the model.
-    auth_token: str
-        An auth token to access models, it could be a huggingface token, openai token, etc.
+        The huggingface model config of the model, needed for GGML models.
     load_in_8bit: bool
         Whether to load the model in 8bit or not.
     trust_remote_code_tokenizer: bool
@@ -60,8 +58,8 @@ class LLMConfig(models.Model):
     """
 
     LLM_CHOICES = (
-        ('cpu', 'CPU Model'),      # GGML models optimized for CPU inference
-        ('local', 'Local Model'),  # Use locally (VLLM) or via HuggingFace for GPU inference
+        ('local_cpu', 'CPU Model'), # GGML models optimized for CPU inference
+        ('local_gpu', 'Local Model'), # Use locally (VLLM) or via HuggingFace for GPU inference
         ('vllm', 'VLLM Client'),   # Access VLLM engine remotely
         ('openai', 'OpenAI Model') # ChatGPT models from OpenAI
     )

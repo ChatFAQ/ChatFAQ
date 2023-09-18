@@ -3,6 +3,7 @@ from logging import getLogger
 from typing import List
 import regex
 from collections.abc import Sequence
+import os
 
 import torch
 from torch import Tensor
@@ -64,9 +65,8 @@ class HFModel(BaseModel):
 
     def __init__(
         self,
-        repo_id: str,
+        llm_name: str,
         use_cpu: bool,
-        auth_token: str = None,
         load_in_8bit: bool = False,
         use_fast_tokenizer: bool = True,
         trust_remote_code_tokenizer: bool = False,
@@ -77,12 +77,10 @@ class HFModel(BaseModel):
         Initializes the model and tokenizer.
         Parameters
         ----------
-        repo_id : str
+        llm_name : str
             The huggingface repo id.
         use_cpu : bool
             Whether to use cpu or gpu.
-        auth_token: str
-            The huggingface auth token to use when loading the model
         load_in_8bit: bool
             Whether to load the model in 8bit mode
         use_fast_tokenizer: bool
@@ -95,6 +93,7 @@ class HFModel(BaseModel):
             The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
         """
         self.use_cpu = use_cpu
+        auth_token = os.environ['HUGGINGFACE_KEY']
 
         device_map = (
             "auto" if (not use_cpu and torch.cuda.is_available()) else None
@@ -106,16 +105,16 @@ class HFModel(BaseModel):
         if not use_cpu and torch.cuda.is_available():
             memory_device = {0: self.MAX_GPU_MEM}
 
-        logger.info(f"Loading HF model from {repo_id}...")
+        logger.info(f"Loading HF model from {llm_name}...")
         self.tokenizer = AutoTokenizer.from_pretrained(
-            repo_id,
+            llm_name,
             use_auth_token=auth_token,
             use_fast=use_fast_tokenizer,
             revision=revision,
             trust_remote_code=trust_remote_code_tokenizer,
         )
         self.model = AutoModelForCausalLM.from_pretrained(
-            repo_id,
+            llm_name,
             device_map=device_map,
             torch_dtype="auto",
             max_memory=memory_device,
@@ -137,6 +136,7 @@ class HFModel(BaseModel):
         generation_config_dict: dict = None,
         lang: str = "en",
         stop_words: List[str] = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -207,6 +207,7 @@ class HFModel(BaseModel):
         generation_config_dict: dict = None,
         lang: str = "en",
         stop_words: List[str] = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model in streaming mode.

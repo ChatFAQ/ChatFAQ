@@ -13,11 +13,11 @@ logger = getLogger(__name__)
 
 
 def get_model(
-    repo_id: str,
+    llm_name: str,
+    llm_type: str,
     ggml_model_filename: str = None,
     use_cpu: bool = False,
     model_config: str = None,
-    auth_token: str = None,
     load_in_8bit: bool = False,
     use_fast_tokenizer: bool = True,
     trust_remote_code_tokenizer: bool = False,
@@ -28,16 +28,16 @@ def get_model(
     Returns an instance of the corresponding Answer Generator Model.
     Parameters
     ----------
-    repo_id: str
+    llm_name: str
         The model id, it could be a hugginface repo id, a ggml repo id, or an openai model id.
+    llm_type: str
+        The type of LLM to use.
     ggml_model_filename: str
         The filename of the model to load if using a ggml model
     use_cpu: bool
         Whether to use cpu or gpu
     model_config: str
         The filename of the model config to load if using a ggml model
-    auth_token: str
-        An auth token to access models, it could be a huggingface token, openai token, etc.
     load_in_8bit: bool
         Whether to load the model in 8bit mode
     use_fast_tokenizer: bool
@@ -51,27 +51,25 @@ def get_model(
     Returns
     -------
     model:
-        A Transformers Model, GGML Model (using CTransformers) or OpenAI Model depending on the repo_id.
+        A Transformers Model, GGML Model (using CTransformers) or OpenAI Model depending on the llm_name.
     """
 
-    if repo_id.startswith("gpt-3.5") or repo_id.startswith("gpt-4"):
+    if llm_name.startswith("gpt-3.5") or llm_name.startswith("gpt-4"):
         return OpenAIModel(
-            repo_id,
-            auth_token=auth_token,
+            llm_name,
         )
 
     elif ggml_model_filename is not None:  # Need to load the ggml model file
         return GGMLModel(
-            repo_id,
+            llm_name,
             ggml_model_filename,
             model_config=model_config,
         )
 
     else:
         return HFModel(
-            repo_id,
+            llm_name,
             use_cpu=use_cpu,
-            auth_token=auth_token,
             load_in_8bit=load_in_8bit,
             use_fast_tokenizer=use_fast_tokenizer,
             trust_remote_code_tokenizer=trust_remote_code_tokenizer,
@@ -90,7 +88,8 @@ class RetrieverAnswerer:
     def __init__(
         self,
         base_data: str,
-        repo_id: str,
+        llm_name: str,
+        llm_type: str,
         context_col: str,
         embedding_col: str,
         ggml_model_filename: str = None,
@@ -115,9 +114,9 @@ class RetrieverAnswerer:
 
         self.retriever.build_embeddings(embedding_col=embedding_col)
 
-        if repo_id not in self.cached_models:
-            self.cached_models[repo_id] = get_model(
-                repo_id,
+        if llm_name not in self.cached_models:
+            self.cached_models[llm_name] = get_model(
+                llm_name,
                 ggml_model_filename=ggml_model_filename,
                 use_cpu=use_cpu,
                 model_config=model_config,
@@ -129,7 +128,7 @@ class RetrieverAnswerer:
                 revision=revision,
             )
 
-        self.model = self.cached_models[repo_id]
+        self.model = self.cached_models[llm_name]
 
     def stream(
         self,
