@@ -5,7 +5,9 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 RUN bash ~/miniconda.sh -b -p $HOME/miniconda
 
 # Create the environment
-RUN /root/miniconda/bin/conda create -n vllm_venv python=3.8 -y
+RUN /root/miniconda/bin/conda create -n vllm_venv python=3.10 -y
+
+RUN /root/miniconda/envs/vllm_venv/bin/pip install https://download.pytorch.org/whl/cu118/torch-2.0.1%2Bcu118-cp310-cp310-linux_x86_64.whl
 
 # Use the full path to the pip in the created environment
 RUN /root/miniconda/envs/vllm_venv/bin/pip install vllm
