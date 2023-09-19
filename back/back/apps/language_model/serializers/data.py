@@ -13,7 +13,7 @@ class KnowledgeBaseSerializer(serializers.ModelSerializer):
         model = KnowledgeBase
         fields = "__all__"
 
-    # extra step when validating CSVs: the file must contain the following columns: intent, answer, url
+    # extra step when validating CSVs: the file must contain the following columns: title, content, url
     def validate(self, data):
         if "original_csv" in data:
             f = data["original_csv"]

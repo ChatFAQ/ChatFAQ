@@ -29,7 +29,7 @@
                     'dark-mode': store.darkMode
                 }">
                     <a :href="ref.url" target="_blank">{{ index + 1 }}. {{
-                        ref.intent ? ref.intent : ref.url
+                        ref.title ? ref.title : ref.url
                     }}</a>
             </div>
         </div>

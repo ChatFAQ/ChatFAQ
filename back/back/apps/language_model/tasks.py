@@ -41,6 +41,7 @@ def get_model(
     trust_remote_code_tokenizer: bool = False,
     trust_remote_code_model: bool = False,
     revision: str = "main",
+    model_max_length: int = None,
 ):
     """
     Returns an instance of the corresponding Answer Generator Model.
@@ -66,6 +67,8 @@ def get_model(
         Whether to trust the remote code when loading the model
     revision: str
         The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
+    model_max_length: int
+        The maximum length of the model.
     Returns
     -------
     model:
@@ -82,6 +85,7 @@ def get_model(
         trust_remote_code_tokenizer=trust_remote_code_tokenizer,
         trust_remote_code_model=trust_remote_code_model,
         revision=revision,
+        model_max_length=model_max_length,
     )
 
 
@@ -109,7 +113,7 @@ class RAGCacheOnWorkerTask(Task):
                 context_col="content",
                 embedding_col="content",
                 use_cpu=False,
-                retriever_model=rag_conf.retriever_model,
+                retriever_model=rag_conf.retriever_name,
                 llm_model=get_model(
                     llm_name=rag_conf.llm_config.llm_name,
                     llm_type=rag_conf.llm_config.llm_type,
@@ -121,6 +125,7 @@ class RAGCacheOnWorkerTask(Task):
                     trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
                     trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
                     revision=rag_conf.llm_config.revision,
+                    model_max_length=rag_conf.llm_config.model_max_length,
                 ),
             )
             print("...model loaded.")
@@ -198,7 +203,7 @@ def llm_query_task(
             generation_config_dict=g_conf,
             stop_words=stop_words,
             lang=rag_conf.knowledge_base.lang,
-        ):
+        ):  
             _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
     else:
         res = rag.generate(

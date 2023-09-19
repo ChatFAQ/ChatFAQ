@@ -1,4 +1,5 @@
 from typing import List
+from transformers import AutoTokenizer, AutoConfig
 
 
 CONTEXT_PREFIX = {
@@ -15,8 +16,16 @@ QUESTION_PREFIX = {
 
 
 class BaseModel:
-    def __init__(self, **kwargs) -> None:
-        pass
+    def __init__(self, llm_name: str, model_max_length: int = None, **kwargs) -> None:
+        self.tokenizer = AutoTokenizer.from_pretrained(llm_name)
+
+        if model_max_length is not None:
+            self.model_max_length = model_max_length
+        else:
+            self.config = AutoConfig.from_pretrained(llm_name)
+            self.model_max_length = self.config.max_position_embeddings if self.config.max_position_embeddings is not None else self.tokenizer.model_max_length
+        
+        print(f"Model max length: {self.model_max_length}")
 
     def format_prompt(
         self,
@@ -31,6 +40,7 @@ class BaseModel:
         assistant_end: str,
         n_contexts_to_use: int = 3,
         lang: str = "en",
+        **kwargs,
     ) -> str:
         """
         Formats the prompt to be used by the model.
@@ -60,18 +70,28 @@ class BaseModel:
         lang : str, optional
             The language of the prompt, by default 'en'
         """
-        contexts_prompt = CONTEXT_PREFIX[lang]
-        for context in contexts[:n_contexts_to_use]:
-            contexts_prompt += f"- {context}\n"
 
-        if (
-            system_tag == "" or system_tag is None
-        ):  # To avoid adding the role_end tag if there is no system prefix
-            prompt = f"{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
-        else:
-            prompt = f"{system_tag}{system_prefix}{system_end}{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
+        for n_contexts in range(n_contexts_to_use, 0, -1):
 
-        return prompt
+            contexts_prompt = CONTEXT_PREFIX[lang]
+            for context in contexts[:n_contexts]:
+                contexts_prompt += f"- {context}\n"
+
+            if (
+                system_tag == "" or system_tag is None
+            ):  # To avoid adding the role_end tag if there is no system prefix
+                prompt = f"{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
+            else:
+                prompt = f"{system_tag}{system_prefix}{system_end}{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
+
+            # get number of tokens
+            num_tokens = len(self.tokenizer.tokenize(prompt))
+
+            if num_tokens < self.model_max_length:
+                print(f"Prompt length: {num_tokens}")
+                return prompt
+            
+        raise Exception("Prompt is too long for the model, please try to reduce the size of the contents")
 
     def generate(
         self,

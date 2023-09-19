@@ -11,7 +11,7 @@ class VLLModel(BaseModel):
     A client that sends requests to the VLLM server.
     """
     def __init__(self, endpoint_url: str = None, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         if endpoint_url is None:
             self.endpoint_url = os.environ["VLLM_ENDPOINT_URL"]
         else:

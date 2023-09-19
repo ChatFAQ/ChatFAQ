@@ -53,7 +53,7 @@ class RetrieverAnswerer:
         stop_words: List[str] = None,
         lang: str = "en",
     ):
-        matches = self.retriever.get_top_matches(text, top_k=5)
+        matches = self.retriever.get_top_matches(text, top_k=prompt_structure_dict["n_contexts_to_use"])
         contexts = self.retriever.get_contexts(matches)
 
         for new_text in self.model.stream(
@@ -80,7 +80,7 @@ class RetrieverAnswerer:
         stop_words: List[str] = None,
         lang: str = "en",
     ):
-        matches = self.retriever.get_top_matches(text, top_k=5)
+        matches = self.retriever.get_top_matches(text, top_k=prompt_structure_dict["n_contexts_to_use"])
         contexts = self.retriever.get_contexts(matches)
 
         output_text = self.model.generate(

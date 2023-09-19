@@ -7,8 +7,8 @@ from back.apps.language_model.models.data import KnowledgeItem, KnowledgeBase
 
 
 LLM_CHOICES = (
-        ('local_cpu', 'CPU Model'), # GGML models optimized for CPU inference
-        ('local_gpu', 'Local Model'), # Use locally VLLM or HuggingFace for GPU inference.
+        ('local_cpu', 'Local CPU Model'), # GGML models optimized for CPU inference
+        ('local_gpu', 'Local GPU Model'), # Use locally VLLM or HuggingFace for GPU inference.
         ('vllm', 'VLLM Client'),   # Access VLLM engine remotely
         ('openai', 'OpenAI Model') # ChatGPT models from OpenAI
     )
@@ -41,6 +41,9 @@ class RAGConfig(models.Model):
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_name = models.CharField(max_length=255, default="intfloat/e5-small-v2") # For dev and demo purposes.
 
+    def __str__(self):
+        return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
+
 
 class LLMConfig(models.Model):
     """
@@ -63,6 +66,8 @@ class LLMConfig(models.Model):
         Whether to trust the remote code for the model or not.
     revision: str
         The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
+    model_max_length: int
+        The maximum length of the model.
     """
 
     name = models.CharField(max_length=255, unique=True)
@@ -75,6 +80,7 @@ class LLMConfig(models.Model):
     trust_remote_code_tokenizer = models.BooleanField(default=False)
     trust_remote_code_model = models.BooleanField(default=False)
     revision = models.CharField(max_length=255, blank=True, null=True, default="main")
+    model_max_length = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.name

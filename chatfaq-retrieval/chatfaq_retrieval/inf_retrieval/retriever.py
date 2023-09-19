@@ -33,6 +33,7 @@ class Retriever:
             Whether to use CPU for encoding, by default False
         """
 
+        print(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
         self.df = df
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
 

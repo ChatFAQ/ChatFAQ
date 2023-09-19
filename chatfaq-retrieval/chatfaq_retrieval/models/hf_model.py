@@ -93,6 +93,7 @@ class HFModel(BaseModel):
         revision: str
             The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
         """
+        super().__init__(llm_name, **kwargs)
         self.use_cpu = use_cpu
         auth_token = os.environ['HUGGINGFACE_KEY']
 
@@ -186,6 +187,8 @@ class HFModel(BaseModel):
             pad_token_id=self.tokenizer.pad_token_id,
         )
 
+        generation_config_dict.pop('name')
+
         with torch.inference_mode():
             outputs = self.model.generate(**generation_config_dict)
             outputs = outputs[:, len(input_ids[0]) :]  # Remove the prompt
@@ -251,6 +254,8 @@ class HFModel(BaseModel):
             eos_token_id=self.tokenizer.eos_token_id,
             pad_token_id=self.tokenizer.pad_token_id,
         )
+
+        generation_config_dict.pop('name')
 
         generation_config_dict["streamer"] = self.streamer
         thread = Thread(target=self.model.generate, kwargs=generation_config_dict)

@@ -50,7 +50,7 @@ class GGMLModel(BaseModel):
         model_config: str
             The id of the model config to load
         """
-
+        super().__init__(llm_name, **kwargs)
         local_path = os.path.abspath("models/")
         filename_path = os.path.join(local_path, ggml_model_filename)
 
