@@ -30,7 +30,7 @@
                 <DownloadHistory/>
             </div>
 
-            <div class="left-menu-item">
+            <div class="left-menu-item" v-if="!store.selectedConversations || !store.selectedConversations.length">
                 <LightMode/>
             </div>
         </div>
