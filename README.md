@@ -31,9 +31,14 @@ There also is a CLI tool to help interfacing with the back-end server.
 
 - [CLI](cli/README.md): is a command-line interface to the back-end server. It connects to it and allows you to do anything the back-end server can do but from the confort of your terminal.
 
-### Visit Our Website
-For more information about ChatFAQ and any additional needs, feel free to visit our website. 
 
-Go to [www.chatfaq.io](https://www.chatfaq.io/) to learn more!
+### Visit Us!
 
-![logo_redes](https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/64a2c8b1643f13e58e9c0fd0_redes-p-500.webp)
+For more information about ChatFAQ and any additional needs, feel free to visit our [website](https://www.chatfaq.io/) 
+
+<img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6918e57475a843f59f_icon_clyde_black_RGB.svg" alt="logo_discord" width="25"> Or chat with us on [Discord](https://discord.gg/szXJkRXS) for any requests or inquiries about this repository.
+
+
+<div align="center">
+  <img src="https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/64a2c8b1643f13e58e9c0fd0_redes-p-500.webp" alt="logo_redes">
+</div>
