@@ -224,8 +224,8 @@ def parse_url_task(knowledge_base_id, url):
     Get the html from the url and parse it.
     Parameters
     ----------
-    dataset_id : int
-        The primary key of the dataset to which the crawled items will be added.
+    knowledge_base_id : int
+        The primary key of the knowledge base to which the crawled items will be added.
     url : str
         The url to crawl.
     """
@@ -266,7 +266,7 @@ def parse_pdf_task(pdf_file_pk):
 
     new_items = [
             KnowledgeItem(
-                dataset=kb,
+                knowledge_base=kb,
                 title=k_item.title,
                 content=k_item.content,
                 url=k_item.url,
@@ -276,7 +276,7 @@ def parse_pdf_task(pdf_file_pk):
             for k_item in k_items
         ]
 
-    KnowledgeItem.objects.filter(dataset=pdf_file_pk).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+    KnowledgeItem.objects.filter(knowledge_base=pdf_file_pk).delete() # TODO: give the option to reset the knowledge_base or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
     KnowledgeItem.objects.bulk_create(new_items)
 
 

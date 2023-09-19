@@ -95,7 +95,7 @@ class KnowledgeBase(models.Model):
         return f.getvalue()
 
     def __str__(self):
-        return self.name or "Dataset {}".format(self.id)
+        return self.name or "Knowledge Base {}".format(self.id)
 
     def save(self, *args, **kw):
         super().save(*args, **kw)
