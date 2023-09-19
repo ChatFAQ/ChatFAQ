@@ -38,7 +38,7 @@ def download_ggml_file(llm_name: str, ggml_model_filename: str, local_path: str)
 
 
 class GGMLModel(BaseModel):
-    def __init__(self, llm_name: str, ggml_model_filename: str, model_config: str):
+    def __init__(self, llm_name: str, ggml_model_filename: str, model_config: str, **kwargs):
         """
         Initializes the ggml model. Optimized for CPU inference
         Parameters

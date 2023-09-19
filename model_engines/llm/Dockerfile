@@ -15,9 +15,12 @@ RUN /root/miniconda/envs/vllm_venv/bin/pip install vllm
 # Update PATH so that the vllm_venv environment is the default
 ENV PATH="/root/miniconda/envs/vllm_venv/bin:${PATH}"
 
+ENV HOST=0.0.0.0
 ENV PORT=5000
 ENV SWAP_SPACE=2
 ENV MODEL=facebook/opt-125m
+ENV NUM_GPUS=1
+ENV GPU_MEMORY_UTILIZATION=0.9
 
 
 COPY entrypoint.sh /entrypoint.sh

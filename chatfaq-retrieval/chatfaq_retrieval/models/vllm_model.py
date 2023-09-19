@@ -10,9 +10,12 @@ class VLLModel(BaseModel):
     """
     A client that sends requests to the VLLM server.
     """
-    def __init__(self):
+    def __init__(self, endpoint_url: str = None, **kwargs):
         super().__init__()
-        self.endpoint_url = os.environ["VLLM_ENDPOINT_URL"]
+        if endpoint_url is None:
+            self.endpoint_url = os.environ["VLLM_ENDPOINT_URL"]
+        else:
+            self.endpoint_url = endpoint_url
 
     def generate(
         self,
@@ -63,9 +66,15 @@ class VLLModel(BaseModel):
 
         response = requests.post(self.endpoint_url, json=pload, stream=False)
 
+        if response.status_code != 200:
+            raise Exception(f"Error with the request to the VLLM server: {response.content}, {response.status_code}")
+
         data = json.loads(response.content)
 
-        return data["text"]
+        # return the difference between the prompt and the output
+        output = data["text"][0][len(prompt):]
+
+        return output
     
     def stream(
         self,
@@ -115,11 +124,15 @@ class VLLModel(BaseModel):
         }
 
         response = requests.post(self.endpoint_url, json=pload, stream=True)
-
+        
+        prev_output = pload['prompt']
         for chunk in response.iter_lines(chunk_size=8192,
                                  decode_unicode=False,
                                  delimiter=b"\0"):
             if chunk:
                 data = json.loads(chunk.decode("utf-8"))
                 output = data["text"]
+                # yield the difference between the previous output and the current output
+                output = output[0][len(prev_output):]
+                prev_output += output
                 yield output

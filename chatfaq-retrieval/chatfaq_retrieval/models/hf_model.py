@@ -72,6 +72,7 @@ class HFModel(BaseModel):
         trust_remote_code_tokenizer: bool = False,
         trust_remote_code_model: bool = False,
         revision: str = "main",
+        **kwargs,
     ):
         """
         Initializes the model and tokenizer.

@@ -23,6 +23,7 @@ class OpenAIModel(BaseModel):
     def __init__(
         self,
         llm_name: str,
+        **kwargs,
     ):
         openai.api_key = os.environ["OPENAI_API_KEY"]
         self.llm_name = llm_name

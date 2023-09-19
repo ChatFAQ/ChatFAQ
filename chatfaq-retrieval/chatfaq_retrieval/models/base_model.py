@@ -15,7 +15,7 @@ QUESTION_PREFIX = {
 
 
 class BaseModel:
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         pass
 
     def format_prompt(
