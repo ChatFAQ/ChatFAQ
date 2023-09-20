@@ -151,8 +151,8 @@ jobs:
           with:
               task-definition-arn: ${{ steps.task-def-new-version-celery.outputs.task-definition-arn }}
               cluster: ${{ vars.ECS_CLUSTER_NAME }}
+              service: chatfaq-celery-service
               wait-for-service-stability: false
-
 
 
 
