@@ -86,8 +86,8 @@ $widget-margin: 16px;
 
 .chatfaq-widget {
     position: sticky;
-    height: 100vh;
-    width: 100vw;
+    height: 100dvh;
+    width: 100dvw;
     bottom: 0;
     right: 0;
 
@@ -95,8 +95,8 @@ $widget-margin: 16px;
         display: none;
 
         position: absolute;
-        width: 100vw;
-        height: 100vh;
+        width: 100dvw;
+        height: 100dvh;
         background-color: $chatfaq-color-darkFilter;
         z-index: 1;
         @media only screen and (max-width: $phone-breakpoint) {
@@ -114,7 +114,7 @@ $widget-margin: 16px;
             border-right: 1px solid $chatfaq-color-menu-border;
         }
         &.maximized {
-            height: 85vh;
+            height: 85dvh;
         }
 
         border-radius: 10px 0px 0px 10px;
@@ -135,12 +135,12 @@ $widget-margin: 16px;
         .widget-body {
             &.maximized {
                 @media only screen and (min-width: $phone-breakpoint) {
-                    width: calc(100vw - $history-width - $widget-margin * 2);
+                    width: calc(100dvw - $history-width - $widget-margin * 2);
                     height: 85vh;
                 }
                 &.history-closed {
                     @media only screen and (min-width: $phone-breakpoint) {
-                        width: calc(100vw - $widget-margin * 2);
+                        width: calc(100dvw - $widget-margin * 2);
                     }
                 }
             }
