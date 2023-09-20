@@ -34,7 +34,7 @@ First of all, create a `.env` file with the needed variables set. You can see an
 
 `CHATFAQ_BACKEND_WS`: The address for the WS of the back-end server.
 
-`CHATFAQ_TOKEN`: The token to authenticate with the back-end server. You can obtain this token by login into http://localhost:8000/back/api/login/ with an admin user.
+`CHATFAQ_TOKEN`: The token to authenticate with the back-end server. You can obtain this token by login into [http://localhost:8000/back/api/login/](http://localhost:8000/back/api/login/) with an admin user.
 
 
 Run the example:
@@ -50,11 +50,11 @@ Alternatively you can simply run the server using docker.
 
 #### Build
 
-    docker build -t chatfaq-back .
+    docker build -t chatfaq-sdk .
 
 #### Run
 
-    docker run -p 8000:8000 chatfaq-back
+    docker run chatfaq-sdk
 
 
 ## Usage
