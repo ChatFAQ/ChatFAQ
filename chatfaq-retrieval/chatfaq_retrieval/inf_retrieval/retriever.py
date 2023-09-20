@@ -17,7 +17,7 @@ class Retriever:
     cached_models = {}
 
     def __init__(self, data: Dict[str, List[str]] = None,
-                    embeddings: List[np.ndarray] = None,
+                    embeddings: np.ndarray = None,
                     model_name: str = 'intfloat/e5-small-v2',
                     use_cpu: bool = False,
                 ):
@@ -43,7 +43,7 @@ class Retriever:
         self.data = data
         self.len_data = len(data[list(data.keys())[0]]) if data is not None else None
 
-        self.embeddings = embeddings
+        self.embeddings = torch.from_numpy(embeddings) if embeddings is not None else None
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
 
         print(f"Using device {self.device}")

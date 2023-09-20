@@ -77,13 +77,11 @@ class KnowledgeBase(models.Model):
         KnowledgeItem.objects.filter(knowledge_base=self).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
         KnowledgeItem.objects.bulk_create(new_items)
 
-    def to_csv(self, embeddings=False, rag_config=None):
+    def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
         f = StringIO()
 
         fieldnames = ["title", "content", "url", "section", "role", "page_number"]
-        if embeddings and rag_config:
-            fieldnames.append("embedding")
 
         writer = csv.DictWriter(f, fieldnames=fieldnames,)
         writer.writeheader()
@@ -97,13 +95,22 @@ class KnowledgeBase(models.Model):
                     "role": item.role if item.role else None,
                     "page_number": item.page_number if item.page_number else None,  
                 }
-            
-            if embeddings and rag_config:
-                row["embedding"] = Embedding.objects.get(knowledge_item=item, rag_config=rag_config).embedding
-
             writer.writerow(row)
 
         return f.getvalue()
+
+    def get_data(self):
+        items = KnowledgeItem.objects.filter(knowledge_base=self)
+        result = {}
+        for item in items:
+            result.setdefault("title", []).append(item.title)
+            result.setdefault("content", []).append(item.content)
+            result.setdefault("url", []).append(item.url)
+            result.setdefault("section", []).append(item.section)
+            result.setdefault("role", []).append(item.role)
+            result.setdefault("page_number", []).append(item.page_number)   
+
+        return result
 
     def __str__(self):
         return self.name or "Knowledge Base {}".format(self.id)
