@@ -6,7 +6,7 @@
 SDK's documentation
 =======================================
 
-.. image:: ../../_static/images/chatfaq_components_rpc.png
+.. image:: ../../_static/images/chatfaq_components_s.png
 
 Prerequisites
 -------------

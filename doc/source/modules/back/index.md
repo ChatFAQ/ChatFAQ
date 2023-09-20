@@ -1,6 +1,11 @@
-# ChatFAQ's back-end
+# ChatFAQ Documentation
 
-This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages client-to-messaging platform connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
+This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages all the widgets and SDks connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
+
+![ChatFAQ Components](../../_static/images/chatfaq_components_b.png)
+
+## Setting it up Locally
+
 
 ## Prerequisites
 
@@ -93,13 +98,3 @@ Auth Token Generation: http://localhost:8000/back/api/login/
 Swagger Docs: http://localhost:8000/back/api/schema/swagger-ui/
 
 Redoc Docs: http://localhost:8000/back/api/schema/redoc/
-
-
-## Other useful info
-### Build the docs
-
-go inside the `doc` directory and run:
-
-```
-poetry run make html
-```

@@ -3,7 +3,7 @@ Widget's documentation
 
 This is a simple implementation of a client chatbot that connects to ChatFAQ back-end server and offers an interface to communicate with a selected FSM
 
-.. image:: ../../_static/images/chatfaq_components_mp.png
+.. image:: ../../_static/images/chatfaq_components_w.png
 
 Prerequisite
 ---------------------
