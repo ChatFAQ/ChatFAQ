@@ -71,7 +71,7 @@ class LLMConfig(models.Model):
     """
 
     name = models.CharField(max_length=255, unique=True)
-    llm_type = models.CharField(max_length=10, choices=LLM_CHOICES, default="local")
+    llm_type = models.CharField(max_length=10, choices=LLM_CHOICES, default="openai")
     llm_name = models.CharField(max_length=100, default="gpt2")
     ggml_llm_filename = models.CharField(max_length=255, blank=True, null=True)
     model_config = models.CharField(max_length=255, blank=True, null=True)

@@ -1,7 +1,6 @@
-# ChatFAQ's SDK
+# SDK Documentation
 
 For those chatbots with complex Finite State Machine (FSM) behaviours, you will probably want to run them on a separate process, that is what for the SDK is made for. Its primary function is to execute the FSM's computations (transition's conditions and states) by running Remote Procedure Call (RPC) server that listen to the back-end requests.
-
 
 ## Prerequisites
 
@@ -65,7 +64,7 @@ This is just a dummy example that displays the basic usage of the library.
 
 We are going to build the next FSM:
 
-![fsm](../doc/source/_static/images/fsm_diagram.png)
+![fsm](../../../../doc/source/_static/images/fsm_diagram.png)
 
 Import basic modules to build your first FMS:
 
@@ -162,55 +161,3 @@ sdk.connect()
 ```
 
 The resulting FSM looks like this:
-
-## Other useful info
-### Build the docs
-
-go inside the `doc` directory and run:
-
-```
-poetry run make html
-```
-
-
-### Publish package
-
-#### PYPI test
-
-add repository to poetry config
-
-    poetry config repositories.chatfaq-sdk https://test.pypi.org/legacy/
-
-get token from https://test.pypi.org/manage/account/token/
-
-store token using
-
-    poetry config pypi-token.chatfaq-sdk pypi-YYYYYYYY
-
-#### PYPI production
-
-get token from https://pypi.org/manage/account/token/
-
-store token using
-
-    poetry config pypi-token.chatfaq-sdk pypi-XXXXXXXX
-
-Each time you need to publish
-
-Bump version
-
-    poetry version prerelease
-
-or
-
-    poetry version patch
-
-#### Poetry Publish
-
-To TestPyPi
-
-    poetry publish -r chatfaq-sdk
-
-To PyPi
-
-    poetry publish
