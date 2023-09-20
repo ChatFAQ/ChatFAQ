@@ -203,7 +203,7 @@ def llm_query_task(
             generation_config_dict=g_conf,
             stop_words=stop_words,
             lang=rag_conf.knowledge_base.lang,
-        ):  
+        ):
             _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
     else:
         res = rag.generate(
