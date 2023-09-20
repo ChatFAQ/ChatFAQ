@@ -4,3 +4,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 
 - [ ] We should support filesystem storage as default storage.
 - [ ] We should support PostgreSQL as the default Channel Layer backend and as default Celery broker.
+- [ ] Document the model example on the SDK docs

@@ -86,13 +86,13 @@ Alternatively you can simply run the server using docker.
 ## Usage
 ### Useful Endpoints
 
-Admin: http://localhost:8000/back/admin/
+Admin: [http://localhost:8000/back/admin/](http://localhost:8000/back/admin/)
 
-Auth Token Generation: http://localhost:8000/back/api/login/
+Auth Token Generation: [http://localhost:8000/back/api/login/](http://localhost:8000/back/api/login/)
 
-Swagger Docs: http://localhost:8000/back/api/schema/swagger-ui/
+Swagger Docs: [http://localhost:8000/back/api/schema/swagger-ui/](http://localhost:8000/back/api/schema/swagger-ui/)
 
-Redoc Docs: http://localhost:8000/back/api/schema/redoc/
+Redoc Docs: [http://localhost:8000/back/api/schema/redoc/](http://localhost:8000/back/api/schema/redoc/)
 
 
 ## Other useful info

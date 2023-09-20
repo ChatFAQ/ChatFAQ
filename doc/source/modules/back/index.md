@@ -1,4 +1,4 @@
-# ChatFAQ Documentation
+# Back Documentation
 
 This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages all the widgets and SDks connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
 
@@ -91,10 +91,10 @@ Alternatively you can simply run the server using docker.
 ## Usage
 ### Useful Endpoints
 
-Admin: http://localhost:8000/back/admin/
+Admin: [http://localhost:8000/back/admin/](http://localhost:8000/back/admin/)
 
-Auth Token Generation: http://localhost:8000/back/api/login/
+Auth Token Generation: [http://localhost:8000/back/api/login/](http://localhost:8000/back/api/login/)
 
-Swagger Docs: http://localhost:8000/back/api/schema/swagger-ui/
+Swagger Docs: [http://localhost:8000/back/api/schema/swagger-ui/](http://localhost:8000/back/api/schema/swagger-ui/)
 
-Redoc Docs: http://localhost:8000/back/api/schema/redoc/
+Redoc Docs: [http://localhost:8000/back/api/schema/redoc/](http://localhost:8000/back/api/schema/redoc/)
