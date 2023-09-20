@@ -1,6 +1,6 @@
 # ChatFAQ's documentation
 
-Welcome to the official documentation of ChatFAQ, A comprehensive open-source community-driven platform for creating AI chatbots.
+Welcome to the official documentation of ChatFAQ, a comprehensive open-source community-driven platform for creating AI chatbots.
 
 If you are new to this documentation, we recommend that you read the [introduction](introduction.md) page to get an overview of what this documentation has to offer.
 

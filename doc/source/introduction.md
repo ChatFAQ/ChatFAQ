@@ -17,6 +17,4 @@ The system comprises three main components that you need to install:
 
 ## Quick Start
 
-Although ChatFAQ is designed extensible and flexible to be able to modify its core functionality, it is also designed to be easy to use.
-
-Therefore if you want to get started quickly, after installing the three main components mentioned above, you can set up your own RPC server which will define and execute the FSMs for your chatbot.
+Learning <a href="/riddler/doc/build/html/modules/sdk/index.html#usage">how to use the SDK</a> is the only requirement to start building your own chatbots with ChatFAQ.
