@@ -6,7 +6,7 @@ on:
         #     - "back/**"
         #     - "widget/**"
         #     - "sdk/**"
-    
+
         tags:
         - "v*.*.*-dev"
 
@@ -27,13 +27,13 @@ jobs:
                 ]
     runs-on: ubuntu-latest
     environment: dev
-    
+
     name: Build Image, Push to ECR, Deploy to ECS
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-      
+
       - name: filter path
         uses: dorny/paths-filter@v2
         id: filter
@@ -75,7 +75,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-    
+
       - name: Fetch latest task definition if back for migrate
         id: get-last-def-migrate
         run: |
@@ -86,7 +86,7 @@ jobs:
             cat task-definition-migrate.json
             echo "::set-output name=exists::true"
           fi
-          exit 0 
+          exit 0
 
       - name: Fill in the new image ID in the Amazon ECS task definition if back for migrate
         if: steps.get-last-def-migrate.outputs.exists == 'true'
@@ -104,7 +104,7 @@ jobs:
         with:
           task-definition: ${{ steps.task-def-migrate.outputs.task-definition }}
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
-      
+
       - name: Run ECS Task for migrate
         if: steps.get-last-def-migrate.outputs.exists == 'true'
         uses: researchsquare/run-ecs-task-action@v1
@@ -113,9 +113,49 @@ jobs:
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
           wait-for-task-completion: true
           count: 1
-      
-      
-      
+
+
+
+      -   name: Fetch latest task definition if back for celery
+          id: get-last-def-celery
+          run: |
+              if [[ "${{ matrix.target-folder }}" == "back" ]]; then
+                latest_task_def=$(aws ecs list-task-definitions --family-prefix chatfaq-${{ matrix.target-folder }}-celery --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
+                echo $latest_task_def
+                aws ecs describe-task-definition --task-definition $latest_task_def --query taskDefinition > task-definition-celery.json
+                cat task-definition-celery.json
+                echo "::set-output name=exists::true"
+              fi
+              exit 0
+
+      -   name: Fill in the new image ID in the Amazon ECS task definition if back for celery
+          if: steps.get-last-def-celery.outputs.exists == 'true'
+          id: task-def-celery
+          uses: aws-actions/amazon-ecs-render-task-definition@v1
+          with:
+              task-definition: task-definition-celery.json
+              container-name: main
+              image: ${{ steps.build-image.outputs.image }}
+
+      -   name: Deploy Amazon ECS task definition for celery
+          id: task-def-new-version-celery
+          if: steps.get-last-def-celery.outputs.exists == 'true'
+          uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+          with:
+              task-definition: ${{ steps.task-def-celery.outputs.task-definition }}
+              cluster: ${{ vars.ECS_CLUSTER_NAME }}
+
+      -   name: Run ECS Task for celery
+          if: steps.get-last-def-celery.outputs.exists == 'true'
+          uses: researchsquare/run-ecs-task-action@v1
+          with:
+              task-definition-arn: ${{ steps.task-def-new-version-celery.outputs.task-definition-arn }}
+              cluster: ${{ vars.ECS_CLUSTER_NAME }}
+              service: chatfaq-celery-service
+              wait-for-service-stability: false
+
+
+
       - name: Fetch latest task definition
         run: |
           latest_task_def=$(aws ecs list-task-definitions --family-prefix chatfaq-${{ matrix.target-folder }} --sort DESC --max-items 1 | jq -r ".taskDefinitionArns[0]")
