@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 import pandas as pd
@@ -16,29 +16,35 @@ class Retriever:
     cached_tokenizers = {}
     cached_models = {}
 
-    def __init__(self, df: pd.DataFrame = None,
-                 context_col: str = 'answer',
-                 model_name: str = 'intfloat/e5-small-v2',
-                 use_cpu: bool = False,
-                 ):
+    def __init__(self, data: Dict[str, List[str]] = None,
+                    embeddings: List[np.ndarray] = None,
+                    model_name: str = 'intfloat/e5-small-v2',
+                    use_cpu: bool = False,
+                ):
         """
         Parameters
         ----------
-        df : pd.DataFrame
-            Dataframe containing the context to be used for retrieval.
+        data: Dict[str, List[str]], optional
+            Dictionary containing the context to be used for retrieval, by default None
+        embeddings: List[np.ndarray], optional
+            List of embeddings to be used for retrieval, by default None
         model_name : str, optional
             Name of the model to be used for encoding the context, by default 'intfloat/multilingual-e5-base'
-        context_col : str, optional
-            Name of the column containing the context, by default 'answer'
         use_cpu : bool, optional
             Whether to use CPU for encoding, by default False
         """
 
-        print(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
-        self.df = df
-        self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
+        # assert that the length of every column is the same
+        if data is not None:
+            assert len(set([len(data[col]) for col in data])) == 1, "All columns must have the same length"
 
-        self.df.replace({np.nan: None}, inplace=True) # Replace nan with None
+        print(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
+
+        self.data = data
+        self.len_data = len(data[list(data.keys())[0]]) if data is not None else None
+
+        self.embeddings = embeddings
+        self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
 
         print(f"Using device {self.device}")
         print(f"Loading model {model_name}")
@@ -55,68 +61,28 @@ class Retriever:
                                                                        ).to(self.device)
         self.model = self.cached_models[model_name]
 
-        self.context_col = context_col
 
-        if self.df is not None:
-            if 'embedding' in self.df.columns:
-                self.embeddings = torch.tensor(self.df['embedding'].tolist(), dtype=torch.float32).to(self.device)
-                print(f"Embeddings loaded from dataframe with shape {self.embeddings.shape}")
-
-
-
-    def set_df(self, df: pd.DataFrame, batch_size: int = 1, build_embeddings: bool = True, save_embeddings_path: str = None):
-        """
-        Sets the dataframe containing the context.
-        Parameters
-        ----------
-        df : pd.DataFrame
-            Dataframe containing the context to be used for retrieval.
-        batch_size : int, optional
-            Batch size to be used for encoding the context, by default 1
-        build_embeddings : bool, optional
-            Whether to build the embeddings for the context, by default True
-        save_embeddings_path : str, optional
-            Path to save the embeddings to, by default None
-        """
-        # if exists self.embeddings clear them
-        if hasattr(self, 'embeddings'):
-            print("Clearing embeddings...")
-            del self.embeddings
-
-        self.df = df
-        if build_embeddings:
-            self.build_embeddings(batch_size=batch_size)
-            if save_embeddings_path is not None:
-                self.save_embeddings(save_embeddings_path)
-
-
-    def build_embeddings(self, embedding_col: str = 'answer', batch_size: int = 1):
+    def build_embeddings(self, embedding_key: str = 'content', contents: List[str] = None, batch_size: int = 1, prefix: str = 'passage: '):
         """
         Builds the embeddings for the context.
         Parameters
         ----------
-        embedding_col : str, optional
-            Name of the column to build the embeddings for and to be used for retrieval, by default 'answer'
+        embedding_key : str, optional
+            Name of the column to build the embeddings for and to be used for retrieval, by default 'content'
+        contents : List[str], optional
+            List of contents to be encode, by default None
         batch_size : int, optional
             Batch size to be used for encoding the context, by default 1
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'passage: ' for e5 models.
         """
         print("Building embeddings...")
-        answers = self.df[embedding_col].tolist()
-        answers = ['passage: ' + answer for answer in answers] # add e5 prefix to answers
-        print(len(answers))
-        self.embeddings = self.encode(answers, batch_size)
-
-    def save_embeddings(self, path: str):
-        """
-        Saves the embeddings to a csv file.
-        Parameters
-        ----------
-        path : str
-            Path to the csv file.
-        """
-        print(f"Saving embeddings to {path}...")
-        self.df['embedding'] = self.embeddings.cpu().tolist()
-        self.df.to_parquet(path, index=False)
+        if contents is None: # If contents is not provided, use the contents from the dataframe
+            contents = self.data[embedding_key]
+        contents = [prefix + content for content in contents] # add e5 prefix to answers
+        print(len(contents))
+        self.embeddings = self.encode(contents, batch_size)
+        return self.embeddings
 
     def average_pool(self,
                      last_hidden_states: Tensor,
@@ -179,7 +145,7 @@ class Retriever:
 
         return all_embeddings
 
-    def get_top_matches(self, query: str, top_k: int = 5, disable_progess_bar: bool = True) -> List[Tuple[str, float, int]]:
+    def get_top_matches(self, query: str, top_k: int = 5, disable_progess_bar: bool = True, prefix: str = 'query: ') -> List[Tuple[str, float, int]]:
         """
         Returns the top_k most relevant context for the query.
 
@@ -191,6 +157,8 @@ class Retriever:
             Number of context to be returned, by default 5. If -1, all context are returned.
         disable_progess_bar : bool, optional
             Whether to disable the progress bar, by default True.
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
 
         Returns
         -------
@@ -200,21 +168,21 @@ class Retriever:
 
         assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
 
-        query = 'query: ' + query # Add e5 query prefix
+        query = prefix + query # Add e5 query prefix
         query_embedding = self.encode([query], disable_progess_bar=disable_progess_bar)
         scores = torch.mm(query_embedding, self.embeddings.transpose(0, 1))[0].cpu().tolist()  # Compute dot score between query and all document embeddings
 
-        doc_score_triplets = list(
-            zip(self.df.to_dict('records'), scores, range(len(self.df))))  # Combine docs, scores and an index
+        scores_indexes = zip(scores, range(self.len_data))  # Combine the scores and an index
 
-        doc_score_triplets = sorted(doc_score_triplets, key=lambda x: x[1], reverse=True)  # Sort by decreasing score
+        scores_indexes = sorted(scores_indexes, key=lambda x: x[0], reverse=True)  # Sort by decreasing score
 
         if top_k == -1:  # Return all
-            return doc_score_triplets
+            return scores_indexes
 
-        return doc_score_triplets[:top_k]
+        # add the data to the scores_indexes according to the index
+        return scores_indexes[:top_k]
 
-    def get_top_matches_batch(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False) -> List[List[Tuple[str, float, int]]]:
+    def get_top_matches_batch(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ') -> List[List[Tuple[str, float, int]]]:
         """
         Returns the top_k most relevant context for the query.
 
@@ -226,6 +194,8 @@ class Retriever:
             Number of context to be returned, by default 5. If -1, all context are returned.
         disable_progess_bar : bool, optional
             Whether to disable the progress bar, by default True.
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
 
         Returns
         -------
@@ -235,23 +205,30 @@ class Retriever:
 
         assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
 
-        queries = ['query: ' + query for query in queries] # Add e5 query prefix
+        queries = [prefix + query for query in queries] # Add e5 query prefix
 
         queries_embeddings = self.encode(queries, disable_progess_bar=disable_progess_bar)
         scores = torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().tolist()
 
-        doc_score_triplets = [
-            list(zip(self.df.to_dict('records'), scores_per_query, range(len(self.df))))
+        scores_indexes = [
+            zip(scores_per_query, range(self.len_data))
             for scores_per_query in scores]
 
-        doc_score_triplets = [
-            sorted(doc_score_triplets_per_query, key=lambda x: x[1], reverse=True)
-            for doc_score_triplets_per_query in doc_score_triplets]
+        scores_indexes = [
+            sorted(scores_indexes_per_query, key=lambda x: x[0], reverse=True)
+            for scores_indexes_per_query in scores_indexes]
 
         if top_k == -1:
-            return doc_score_triplets
+            return scores_indexes
 
-        return [doc_score_triplets_per_query[:top_k] for doc_score_triplets_per_query in doc_score_triplets]
+        return [score_indexes_per_query[:top_k] for score_indexes_per_query in scores_indexes]
+    
 
-    def get_contexts(self, matches):
-        return [match[0][self.context_col] for match in matches]
+    def get_contexts(self, matches: List[Tuple[float, int]]):
+        keys = list(self.data.keys())
+        return [{keys[i]: self.data[keys[i]][match[1]] for i in range(len(keys))} for match in matches]
+
+    def get_contexts_batch(self, matches_batch: List[List[Tuple[float, int]]]):
+        keys = list(self.data.keys())
+        return [[{keys[i]: self.data[keys[i]][match[1]] for i in range(len(keys))} for match in matches] for matches in matches_batch]
+        

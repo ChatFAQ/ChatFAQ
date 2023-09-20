@@ -27,6 +27,7 @@ class RetrieverAnswerer:
         llm_name: str,
         use_cpu: bool = False,
         retriever_model: str = "intfloat/e5-small-v2",
+        build_embeddings: bool = False,
     ):
         self.use_cpu = use_cpu
         # --- Set Up Retriever ---
@@ -38,7 +39,8 @@ class RetrieverAnswerer:
             use_cpu=use_cpu,
         )
 
-        self.retriever.build_embeddings(embedding_col=embedding_col)
+        if build_embeddings:
+            self.retriever.build_embeddings(embedding_col=embedding_col)
 
         if llm_model not in self.cached_models:
             self.cached_models[llm_name] = llm_model
