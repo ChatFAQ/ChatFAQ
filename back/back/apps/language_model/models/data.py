@@ -80,22 +80,23 @@ class KnowledgeBase(models.Model):
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
         f = StringIO()
-        writer = csv.DictWriter(f, fieldnames=["title", "content", "url", "section", "role"],)
+        writer = csv.DictWriter(f, fieldnames=["title", "content", "url", "section", "role", "page_number"],)
         writer.writeheader()
         for item in items:
             writer.writerow(
                 {
-                    "title": item.title,
+                    "title": item.title if item.title else None,
                     "content": item.content,
-                    "url": item.url,
-                    "section": item.section,
-                    "role": item.role,
+                    "url": item.url if item.url else None,
+                    "section": item.section if item.section else None,
+                    "role": item.role if item.role else None,
+                    "page_number": item.page_number if item.page_number else None,
                 }
             )
         return f.getvalue()
 
     def __str__(self):
-        return self.name or "Dataset {}".format(self.id)
+        return self.name or "Knowledge Base {}".format(self.id)
 
     def save(self, *args, **kw):
         super().save(*args, **kw)

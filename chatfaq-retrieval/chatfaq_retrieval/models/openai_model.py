@@ -1,5 +1,7 @@
-import openai
 from typing import List, Dict
+import os
+
+import openai
 
 from chatfaq_retrieval.models import BaseModel
 
@@ -20,11 +22,11 @@ QUESTION_PREFIX = {
 class OpenAIModel(BaseModel):
     def __init__(
         self,
-        repo_id: str,
-        auth_token: str = None,
+        llm_name: str,
+        **kwargs,
     ):
-        openai.api_key = auth_token
-        self.repo_id = repo_id
+        openai.api_key = os.environ["OPENAI_API_KEY"]
+        self.llm_name = llm_name
 
     def format_prompt(
         self,
@@ -82,7 +84,7 @@ class OpenAIModel(BaseModel):
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
-        stop_words: List[str] = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -98,8 +100,6 @@ class OpenAIModel(BaseModel):
             Keyword arguments for the generation.
         lang : str
             The language of the prompt.
-        stop_words : List[str]
-            The stop words to use to stop generation.
         Returns
         -------
         str
@@ -114,7 +114,7 @@ class OpenAIModel(BaseModel):
         )
 
         response = openai.ChatCompletion.create(
-            model=self.repo_id,
+            model=self.llm_name,
             messages=messages,
             max_tokens=generation_config_dict["max_new_tokens"],
             temperature=generation_config_dict["temperature"],
@@ -132,7 +132,7 @@ class OpenAIModel(BaseModel):
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
-        stop_words: List[str] = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model in streaming mode.
@@ -148,8 +148,6 @@ class OpenAIModel(BaseModel):
             Keyword arguments for the generation.
         lang : str
             The language of the prompt.
-        stop_words : List[str]
-            The stop words to use to stop generation.
         Returns
         -------
         str
@@ -160,10 +158,11 @@ class OpenAIModel(BaseModel):
             query=query,
             contexts=contexts,
             **prompt_structure_dict,
+            lang=lang,
         )
 
         response = openai.ChatCompletion.create(
-            model=self.repo_id,
+            model=self.llm_name,
             messages=messages,
             max_tokens=generation_config_dict["max_new_tokens"],
             temperature=generation_config_dict["temperature"],

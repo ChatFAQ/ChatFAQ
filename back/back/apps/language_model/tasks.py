@@ -5,6 +5,7 @@ from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
+from chatfaq_retrieval.models import GGMLModel, HFModel, OpenAIModel, VLLModel
 from chatfaq_retrieval.data.splitters import get_splitter
 from chatfaq_retrieval.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
@@ -19,6 +20,73 @@ if is_celery_worker():
     setup()
 
 logger = getLogger(__name__)
+
+
+LLM_CLASSES = {
+    "local_cpu": GGMLModel,
+    "local_gpu": HFModel,
+    "vllm": VLLModel,
+    "openai": OpenAIModel,
+}
+
+
+def get_model(
+    llm_name: str,
+    llm_type: str,
+    ggml_model_filename: str = None,
+    use_cpu: bool = False,
+    model_config: str = None,
+    load_in_8bit: bool = False,
+    use_fast_tokenizer: bool = True,
+    trust_remote_code_tokenizer: bool = False,
+    trust_remote_code_model: bool = False,
+    revision: str = "main",
+    model_max_length: int = None,
+):
+    """
+    Returns an instance of the corresponding Answer Generator Model.
+    Parameters
+    ----------
+    llm_name: str
+        The model id, it could be a hugginface repo id, a ggml repo id, or an openai model id.
+    llm_type: str
+        The type of LLM to use.
+    ggml_model_filename: str
+        The filename of the model to load if using a ggml model
+    use_cpu: bool
+        Whether to use cpu or gpu
+    model_config: str
+        The filename of the model config to load if using a ggml model
+    load_in_8bit: bool
+        Whether to load the model in 8bit mode
+    use_fast_tokenizer: bool
+        Whether to use the fast tokenizer
+    trust_remote_code_tokenizer: bool
+        Whether to trust the remote code when loading the tokenizer
+    trust_remote_code_model: bool
+        Whether to trust the remote code when loading the model
+    revision: str
+        The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
+    model_max_length: int
+        The maximum length of the model.
+    Returns
+    -------
+    model:
+        An instance of the corresponding LLM Model.
+    """
+
+    return LLM_CLASSES[llm_type](
+        llm_name=llm_name,
+        ggml_model_filename=ggml_model_filename,
+        use_cpu=use_cpu,
+        model_config=model_config,
+        load_in_8bit=load_in_8bit,
+        use_fast_tokenizer=use_fast_tokenizer,
+        trust_remote_code_tokenizer=trust_remote_code_tokenizer,
+        trust_remote_code_model=trust_remote_code_model,
+        revision=revision,
+        model_max_length=model_max_length,
+    )
 
 
 class RAGCacheOnWorkerTask(Task):
@@ -41,17 +109,24 @@ class RAGCacheOnWorkerTask(Task):
             )
             cache[str(rag_conf.name)] = RetrieverAnswerer(
                 base_data=StringIO(rag_conf.knowledge_base.to_csv()),
-                repo_id=rag_conf.llm_config.repo_id,
+                llm_name=rag_conf.llm_config.llm_name,
                 context_col="content",
                 embedding_col="content",
-                ggml_model_filename=rag_conf.llm_config.ggml_model_filename,
                 use_cpu=False,
-                model_config=rag_conf.llm_config.model_config,
-                auth_token=rag_conf.llm_config.auth_token,
-                load_in_8bit=rag_conf.llm_config.load_in_8bit,
-                trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
-                trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
-                revision=rag_conf.llm_config.revision,
+                retriever_model=rag_conf.retriever_name,
+                llm_model=get_model(
+                    llm_name=rag_conf.llm_config.llm_name,
+                    llm_type=rag_conf.llm_config.llm_type,
+                    ggml_model_filename=rag_conf.llm_config.ggml_llm_filename,
+                    use_cpu=False,
+                    model_config=rag_conf.llm_config.model_config,
+                    load_in_8bit=rag_conf.llm_config.load_in_8bit,
+                    use_fast_tokenizer=rag_conf.llm_config.use_fast_tokenizer,
+                    trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
+                    trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
+                    revision=rag_conf.llm_config.revision,
+                    model_max_length=rag_conf.llm_config.model_max_length,
+                ),
             )
             print("...model loaded.")
         return cache
@@ -128,7 +203,7 @@ def llm_query_task(
             generation_config_dict=g_conf,
             stop_words=stop_words,
             lang=rag_conf.knowledge_base.lang,
-        ):
+        ):  
             _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
     else:
         res = rag.generate(
@@ -149,8 +224,8 @@ def parse_url_task(knowledge_base_id, url):
     Get the html from the url and parse it.
     Parameters
     ----------
-    dataset_id : int
-        The primary key of the dataset to which the crawled items will be added.
+    knowledge_base_id : int
+        The primary key of the knowledge base to which the crawled items will be added.
     url : str
         The url to crawl.
     """
@@ -191,7 +266,7 @@ def parse_pdf_task(pdf_file_pk):
 
     new_items = [
             KnowledgeItem(
-                dataset=kb,
+                knowledge_base=kb,
                 title=k_item.title,
                 content=k_item.content,
                 url=k_item.url,
@@ -201,7 +276,7 @@ def parse_pdf_task(pdf_file_pk):
             for k_item in k_items
         ]
 
-    KnowledgeItem.objects.filter(dataset=pdf_file_pk).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+    KnowledgeItem.objects.filter(knowledge_base=pdf_file_pk).delete() # TODO: give the option to reset the knowledge_base or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
     KnowledgeItem.objects.bulk_create(new_items)
 
 

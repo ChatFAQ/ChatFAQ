@@ -11,12 +11,12 @@ from chatfaq_retrieval.models import BaseModel
 logger = getLogger(__name__)
 
 
-def download_ggml_file(repo_id: str, ggml_model_filename: str, local_path: str):
+def download_ggml_file(llm_name: str, ggml_model_filename: str, local_path: str):
     """
     Downloads the ggml model file from the huggingface hub.
     Parameters
     ----------
-    repo_id : str
+    llm_name : str
         The huggingface repo id.
     ggml_model_filename: str
         The filename of the model to load
@@ -27,34 +27,35 @@ def download_ggml_file(repo_id: str, ggml_model_filename: str, local_path: str):
     str
         The path to the downloaded model file.
     """
-    logger.info(f"Downloading {ggml_model_filename} from {repo_id}...")
+    logger.info(f"Downloading {ggml_model_filename} from {llm_name}...")
     return hf_hub_download(
-        repo_id=repo_id,
+        llm_name=llm_name,
         filename=ggml_model_filename,
         local_dir=local_path,
         local_dir_use_symlinks=True,
+        token=os.environ["HUGGINGFACE_KEY"],
     )
 
 
 class GGMLModel(BaseModel):
-    def __init__(self, repo_id: str, ggml_model_filename: str, model_config: str):
+    def __init__(self, llm_name: str, ggml_model_filename: str, model_config: str, **kwargs):
         """
         Initializes the ggml model. Optimized for CPU inference
         Parameters
         ----------
-        repo_id : str
+        llm_name : str
             The huggingface repo id.
         ggml_model_filename: str
             The filename of the model to load
         model_config: str
             The id of the model config to load
         """
-
+        super().__init__(llm_name, **kwargs)
         local_path = os.path.abspath("models/")
         filename_path = os.path.join(local_path, ggml_model_filename)
 
         if not os.path.exists(filename_path):
-            download_ggml_file(repo_id, ggml_model_filename, local_path)
+            download_ggml_file(llm_name, ggml_model_filename, local_path)
 
         logger.info(f"Loading GGML {ggml_model_filename} from {filename_path}...")
         config = AutoConfig.from_pretrained(model_config)

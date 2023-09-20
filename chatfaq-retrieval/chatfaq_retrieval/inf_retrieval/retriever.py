@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import torch
@@ -33,8 +34,11 @@ class Retriever:
             Whether to use CPU for encoding, by default False
         """
 
+        print(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
         self.df = df
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
+
+        self.df.replace({np.nan: None}, inplace=True) # Replace nan with None
 
         print(f"Using device {self.device}")
         print(f"Loading model {model_name}")

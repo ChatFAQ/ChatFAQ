@@ -245,3 +245,4 @@ sw.*
 .out
 
 back/models/
+chatfaq-retrieval/*.ipynb
