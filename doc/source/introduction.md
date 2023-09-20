@@ -17,4 +17,4 @@ The system comprises three main components that you need to install:
 
 ## Quick Start
 
-Learning <a href="/riddler/doc/build/html/modules/sdk/index.html#usage">how to use the SDK</a> is the only requirement to start building your own chatbots with ChatFAQ.
+Learning <a href="/en/latest/modules/sdk/index.html#usage">how to use the SDK</a> is the only requirement to start building your own chatbots with ChatFAQ.
