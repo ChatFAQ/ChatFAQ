@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "private": false,
     "scripts": {
         "main": "dist/widget-loader.esm.js",
