@@ -4,9 +4,16 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def create_retriever_config_if_there_is_none(apps, schema_editor):
+    RetrieverConfig = apps.get_model("language_model", "RetrieverConfig")
+    if RetrieverConfig.objects.count() == 0:
+        r = RetrieverConfig.objects.create(name="default")
+        r.save()
+
+
 class Migration(migrations.Migration):
     dependencies = [
-        ("language_model", "0019_llmconfig_model_max_length_alter_llmconfig_llm_type"),
+        ("language_model", "0020_alter_llmconfig_llm_type"),
     ]
 
     operations = [
@@ -56,6 +63,7 @@ class Migration(migrations.Migration):
                 max_length=10,
             ),
         ),
+        migrations.RunPython(create_retriever_config_if_there_is_none),
         migrations.AddField(
             model_name="ragconfig",
             name="retriever",

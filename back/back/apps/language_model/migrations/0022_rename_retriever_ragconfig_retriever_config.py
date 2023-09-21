@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "language_model",
-            "0020_retrieverconfig_remove_ragconfig_retriever_name_and_more",
+            "0021_retrieverconfig_remove_ragconfig_retriever_name_and_more",
         ),
     ]
 

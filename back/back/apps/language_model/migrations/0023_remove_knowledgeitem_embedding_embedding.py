@@ -7,7 +7,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("language_model", "0021_rename_retriever_ragconfig_retriever_config"),
+        ("language_model", "0022_rename_retriever_ragconfig_retriever_config"),
     ]
 
     operations = [
