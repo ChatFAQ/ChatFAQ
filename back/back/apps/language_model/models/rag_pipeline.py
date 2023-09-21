@@ -39,10 +39,37 @@ class RAGConfig(models.Model):
     llm_config = models.ForeignKey("LLMConfig", on_delete=models.PROTECT)
     prompt_config = models.ForeignKey("PromptConfig", on_delete=models.PROTECT)
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
-    retriever_name = models.CharField(max_length=255, default="intfloat/e5-small-v2") # For dev and demo purposes.
+    retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
+    
+
+class RetrieverConfig(models.Model):
+    """
+    A model config with all the settings to configure the retriever.
+    name: str
+        Just a name for the retriever.
+    knowledge_base: KnowledgeBase
+        The knowledge base this retriever belongs to.
+    model_name: str
+        The name of the retriever model to use. It must be a HuggingFace repo id.
+    batch_size: int
+        The batch size to use for the retriever.
+    """
+    DEVICE_CHOICES = (
+        ('cpu', 'CPU'),
+        ('cuda', 'GPU'),
+    )
+
+    name = models.CharField(max_length=255, unique=True)
+    model_name = models.CharField(max_length=255, default="intfloat/e5-small-v2") # For dev and demo purposes.
+    batch_size = models.IntegerField(default=1) # batch size 1 for better default cpu generation
+    device = models.CharField(max_length=10, choices=DEVICE_CHOICES, default="cpu")
+    
+
+    def __str__(self):
+        return self.name if self.name is not None else f"{self.model_name} - {self.knowledge_base.name}"
 
 
 class LLMConfig(models.Model):
