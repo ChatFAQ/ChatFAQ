@@ -1371,13 +1371,13 @@ djangorestframework = "*"
 
 [[package]]
 name = "django-simple-history"
-version = "3.4.0"
+version = "3.3.0"
 description = "Store model history and view/revert changes from admin site."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.7"
 files = [
-    {file = "django-simple-history-3.4.0.tar.gz", hash = "sha256:19bd1a87e1e2eba34dfd43eab1fcf2da5752221f343232f2372b2121c7e3b97d"},
-    {file = "django_simple_history-3.4.0-py3-none-any.whl", hash = "sha256:992dcca3cddc0b67b470fc91f77292e2d2a6010d37c9eac3536e9d80e8754032"},
+    {file = "django-simple-history-3.3.0.tar.gz", hash = "sha256:2313d2d346f15a1e7a92adb3b6696b226f1cd0c1d920869ec40c4c4076614c41"},
+    {file = "django_simple_history-3.3.0-py3-none-any.whl", hash = "sha256:dc1f98e558a0a1e0b6371c3b8efb85f86e02a6db56e83d0ec198343b7408d00a"},
 ]
 
 [[package]]
@@ -5086,13 +5086,13 @@ testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jar
 
 [[package]]
 name = "setuptools-scm"
-version = "8.0.1"
+version = "8.0.2"
 description = "the blessed package to manage your versions by scm tags"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-scm-8.0.1.tar.gz", hash = "sha256:e69bf0b8265fdc8f4e070c98235b1b0816ffa8b7f91153400404bf68496012e3"},
-    {file = "setuptools_scm-8.0.1-py3-none-any.whl", hash = "sha256:c132f5a8dc508c8113f865c709041d1b15f7d500442220174c38397607797a91"},
+    {file = "setuptools-scm-8.0.2.tar.gz", hash = "sha256:e45c8c87719b753b6d47cf09907d1239540c7e150cd44f06f658b602f402b005"},
+    {file = "setuptools_scm-8.0.2-py3-none-any.whl", hash = "sha256:b737bb0f195ae024759188e7080fe15fe6d9353e1b3f6e40b41e4d298f76c147"},
 ]
 
 [package.dependencies]
@@ -6299,4 +6299,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "8c67bb618389dd850996f254c0bb6b211449f39f1dfc7886e418c4cb345a97d1"
+content-hash = "74d9954bf8edaec3a03f6096e60c73f73c0e84e61dba91a8b47a41eda14de072"

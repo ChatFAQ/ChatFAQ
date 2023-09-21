@@ -44,7 +44,7 @@ openai = "^0.27.8"
 scrapy = "^2.10.0"
 scrapy-playwright = "^0.0.28"
 undetected-playwright = "^0.1.0"
-django-simple-history = "^3.3.0"
+django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 
 [tool.poetry.group.dev.dependencies]
