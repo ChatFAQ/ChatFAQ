@@ -6,6 +6,7 @@ from celery import Task
 from channels.layers import get_channel_layer
 from chatfaq_retrieval import RetrieverAnswerer
 from chatfaq_retrieval.models import GGMLModel, HFModel, OpenAIModel, VLLModel
+from chatfaq_retrieval.inf_retrieval.retriever import Retriever
 from chatfaq_retrieval.data.splitters import get_splitter
 from chatfaq_retrieval.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
@@ -15,6 +16,7 @@ from back.utils import is_celery_worker
 from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
 from crochet import setup
+import numpy as np
 
 if is_celery_worker():
     setup()
@@ -107,13 +109,18 @@ class RAGCacheOnWorkerTask(Task):
                 f"with model: {rag_conf.llm_config.name} "
                 f"and knowledge base: {rag_conf.knowledge_base.name}"
             )
+
+            Embedding = apps.get_model('language_model', 'Embedding')
+            embeddings = Embedding.objects.filter(rag_config=rag_conf).values_list("embedding", flat=True)
+            embeddings = np.array(embeddings, dtype=np.float32)
+
+
             cache[str(rag_conf.name)] = RetrieverAnswerer(
-                base_data=StringIO(rag_conf.knowledge_base.to_csv()),
+                data=rag_conf.knowledge_base.get_data(),
+                embeddings=embeddings,
                 llm_name=rag_conf.llm_config.llm_name,
-                context_col="content",
-                embedding_col="content",
                 use_cpu=False,
-                retriever_model=rag_conf.retriever_name,
+                retriever_model=rag_conf.retriever_config.model_name,
                 llm_model=get_model(
                     llm_name=rag_conf.llm_config.llm_name,
                     llm_type=rag_conf.llm_config.llm_type,
@@ -216,6 +223,49 @@ def llm_query_task(
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
 
     _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True)
+
+
+@app.task()
+def generate_embeddings_task(ragconfig):
+    """
+    Generate the embeddings for a knowledge base.
+    Parameters
+    ----------
+    ragconfig : int
+        The primary key of the RAGConfig object.
+    """
+
+    RAGConfig = apps.get_model('language_model', 'RAGConfig')
+    KnowledgeItem = apps.get_model('language_model', 'KnowledgeItem')
+    rag_config = RAGConfig.objects.get(pk=ragconfig)
+    model_name = rag_config.retriever_config.model_name
+    batch_size = rag_config.retriever_config.batch_size
+    device = rag_config.retriever_config.device
+
+    retriever = Retriever(
+        model_name=model_name,
+        use_cpu=device == "cpu",
+    )
+
+    print(f"Generating embeddings for knowledge base: {rag_config.knowledge_base.name}")
+    items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
+    contents = [item.content for item in items]
+    embeddings = retriever.build_embeddings(contents=contents, batch_size=batch_size)
+
+    # from tensor to list
+    embeddings = [embedding.tolist() for embedding in embeddings]
+
+    Embedding = apps.get_model('language_model', 'Embedding')
+    new_embeddings = [
+        Embedding(
+            knowledge_item=item,
+            rag_config=rag_config,
+            embedding=embedding,
+        )
+        for item, embedding in zip(items, embeddings)
+    ]
+    Embedding.objects.bulk_create(new_embeddings)
+    print(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
 
 
 @app.task()

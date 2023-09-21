@@ -1,5 +1,6 @@
+import numpy as np
 from logging import getLogger
-from typing import List
+from typing import List, Dict
 
 import pandas as pd
 
@@ -20,9 +21,8 @@ class RetrieverAnswerer:
 
     def __init__(
         self,
-        base_data: str,
-        context_col: str,
-        embedding_col: str,
+        data: Dict[str, List[str]],
+        embeddings: List[np.ndarray],
         llm_model: BaseModel,
         llm_name: str,
         use_cpu: bool = False,
@@ -32,13 +32,11 @@ class RetrieverAnswerer:
         # --- Set Up Retriever ---
 
         self.retriever = Retriever(
-            pd.read_csv(base_data),
+            data=data,
+            embeddings=embeddings,
             model_name=retriever_model,
-            context_col=context_col,
             use_cpu=use_cpu,
         )
-
-        self.retriever.build_embeddings(embedding_col=embedding_col)
 
         if llm_model not in self.cached_models:
             self.cached_models[llm_name] = llm_model
@@ -67,8 +65,8 @@ class RetrieverAnswerer:
             yield {
                 "res": new_text,
                 "context": [
-                    match[0]
-                    for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
+                    match
+                    for match in contexts[: prompt_structure_dict["n_contexts_to_use"]]
                 ],
             }
 

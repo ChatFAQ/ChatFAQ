@@ -80,20 +80,37 @@ class KnowledgeBase(models.Model):
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
         f = StringIO()
-        writer = csv.DictWriter(f, fieldnames=["title", "content", "url", "section", "role", "page_number"],)
+
+        fieldnames = ["title", "content", "url", "section", "role", "page_number"]
+
+        writer = csv.DictWriter(f, fieldnames=fieldnames,)
         writer.writeheader()
+
         for item in items:
-            writer.writerow(
-                {
+            row = {
                     "title": item.title if item.title else None,
                     "content": item.content,
                     "url": item.url if item.url else None,
                     "section": item.section if item.section else None,
                     "role": item.role if item.role else None,
-                    "page_number": item.page_number if item.page_number else None,
+                    "page_number": item.page_number if item.page_number else None,  
                 }
-            )
+            writer.writerow(row)
+
         return f.getvalue()
+
+    def get_data(self):
+        items = KnowledgeItem.objects.filter(knowledge_base=self)
+        result = {}
+        for item in items:
+            result.setdefault("title", []).append(item.title)
+            result.setdefault("content", []).append(item.content)
+            result.setdefault("url", []).append(item.url)
+            result.setdefault("section", []).append(item.section)
+            result.setdefault("role", []).append(item.role)
+            result.setdefault("page_number", []).append(item.page_number)   
+
+        return result
 
     def __str__(self):
         return self.name or "Knowledge Base {}".format(self.id)
@@ -146,8 +163,25 @@ class KnowledgeItem(ChangesMixin):
     url = models.URLField(max_length=2083)
     section = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
-    embedding = ArrayField(models.FloatField(), blank=True, null=True)
     page_number = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.content} ds ({self.knowledge_base.pk})"
+    
+
+class Embedding(models.Model):
+    """
+    Embedding representation for a KnowledgeItem.
+
+    knowledge_item: KnowledgeItem
+        The KnowledgeItem associated with this embedding.
+    embedding: ArrayField
+        The actual embedding values.
+    """
+
+    knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE)
+    rag_config = models.ForeignKey("RAGConfig", on_delete=models.CASCADE)
+    embedding = ArrayField(models.FloatField(), blank=True, null=True)
+
+    def __str__(self):
+        return f"Embedding for {self.knowledge_item}"
