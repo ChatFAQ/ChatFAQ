@@ -1,5 +1,6 @@
 import csv
 from io import StringIO
+from logging import getLogger
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -7,6 +8,7 @@ from django.db import models
 from back.apps.language_model.tasks import parse_pdf_task, parse_url_task, llm_query_task
 from back.common.models import ChangesMixin
 
+logger = getLogger(__name__)
 
 class KnowledgeBase(models.Model):
     """
@@ -101,6 +103,8 @@ class KnowledgeBase(models.Model):
 
     def get_data(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
+        logger.info(f'Retrieving items from knowledge base "{self.name}')
+        logger.info(f"Number of retrieved items: {len(items)}")
         result = {}
         for item in items:
             result.setdefault("title", []).append(item.title)
@@ -129,10 +133,13 @@ class KnowledgeBase(models.Model):
 
     def update_items_from_file(self):
         if self.original_csv:
+            logger.info("Updating items from CSV")
             self.update_items_from_csv()
         elif self.original_pdf:
+            logger.info("Updating items from PDF")
             parse_pdf_task.delay(self.pk)
         elif self.original_url:
+            logger.info("Updating items from URL")
             parse_url_task.delay(self.pk, self.original_url)
         llm_query_task.delay(recache_models=True)
 

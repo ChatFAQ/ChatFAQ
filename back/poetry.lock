@@ -846,13 +846,13 @@ files = [
 
 [[package]]
 name = "chatfaq-retrieval"
-version = "0.1.22"
+version = "0.1.23"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chatfaq_retrieval-0.1.22-py3-none-any.whl", hash = "sha256:8be6c21d7fedc9d5c62e2f22fe3642620fe4af4b6cfba4e559da9094155a79c5"},
-    {file = "chatfaq_retrieval-0.1.22.tar.gz", hash = "sha256:3047a1f9e56388cadf585099cb2d1d294fe6c223a48c3f89a09f574cdfbb672e"},
+    {file = "chatfaq_retrieval-0.1.23-py3-none-any.whl", hash = "sha256:486f79cf06b4882cc4a5f7769b9f5f5ad6b45ac1b8e95a95d5cf9e6b1e05e764"},
+    {file = "chatfaq_retrieval-0.1.23.tar.gz", hash = "sha256:a1e49efe110d63371110ab6bb1517929fffe8514591b4a1b2434e63ddc551bc1"},
 ]
 
 [package.dependencies]
@@ -5086,13 +5086,13 @@ testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jar
 
 [[package]]
 name = "setuptools-scm"
-version = "8.0.2"
+version = "8.0.3"
 description = "the blessed package to manage your versions by scm tags"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-scm-8.0.2.tar.gz", hash = "sha256:e45c8c87719b753b6d47cf09907d1239540c7e150cd44f06f658b602f402b005"},
-    {file = "setuptools_scm-8.0.2-py3-none-any.whl", hash = "sha256:b737bb0f195ae024759188e7080fe15fe6d9353e1b3f6e40b41e4d298f76c147"},
+    {file = "setuptools-scm-8.0.3.tar.gz", hash = "sha256:0169fd70197efda2f8c4d0b2a7a3d614431b488116f37b79d031e9e7ec884d8c"},
+    {file = "setuptools_scm-8.0.3-py3-none-any.whl", hash = "sha256:813822234453438a13c78d05c8af29918fbc06f88efb33d38f065340bbb48c39"},
 ]
 
 [package.dependencies]
@@ -5952,13 +5952,13 @@ xlsx = ["openpyxl", "pandas", "xlrd"]
 
 [[package]]
 name = "unstructured-inference"
-version = "0.5.31"
+version = "0.6.1"
 description = "A library for performing inference using trained models."
 optional = false
 python-versions = ">=3.7.0"
 files = [
-    {file = "unstructured_inference-0.5.31-py3-none-any.whl", hash = "sha256:2898d4e59887f6cb34df70be202fe39efe5045f235ca3159b83cbbda65e7f701"},
-    {file = "unstructured_inference-0.5.31.tar.gz", hash = "sha256:069204d43ebc0a531b45f60ceed1a0d31621697a4600b66e1fa2fa269c60cbd5"},
+    {file = "unstructured_inference-0.6.1-py3-none-any.whl", hash = "sha256:7f0051507955d33b7f5487f9a50177a4ec318a93a6df68dc848e3448f87bcebc"},
+    {file = "unstructured_inference-0.6.1.tar.gz", hash = "sha256:8fd633e22220d36f38c548bbd35d95c24f9e616b979ae3be4a3a8ce7ad28da9b"},
 ]
 
 [package.dependencies]
@@ -6299,4 +6299,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "74d9954bf8edaec3a03f6096e60c73f73c0e84e61dba91a8b47a41eda14de072"
+content-hash = "ef4e5e16e923db4aba81222def205e68e93df2a8d547bf41a6b92db4b07a2771"

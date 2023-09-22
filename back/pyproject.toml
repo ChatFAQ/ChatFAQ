@@ -33,7 +33,7 @@ pgvector = "^0.1.7"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = {version = "0.1.22", source = "test"}
+chatfaq-retrieval = {version = "0.1.23", source = "test"}
 gevent = "^22.10.2"
 torch = [
     { version = "^2.0.1", source = "torch" },

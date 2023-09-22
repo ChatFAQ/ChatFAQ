@@ -1,4 +1,5 @@
 from typing import List, Tuple, Dict
+from logging import getLogger
 
 import numpy as np
 import pandas as pd
@@ -7,6 +8,8 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 from transformers import AutoTokenizer, AutoModel
+
+logger = getLogger(__name__)
 
 class Retriever:
     """
@@ -38,16 +41,24 @@ class Retriever:
         if data is not None:
             assert len(set([len(data[col]) for col in data])) == 1, "All columns must have the same length"
 
-        print(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
+        logger.debug(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
 
         self.data = data
         self.len_data = len(data[list(data.keys())[0]]) if data is not None else None
 
+        logger.debug(f"Data keys: {list(data.keys())}")
+        logger.debug(f"Data length: {self.len_data}")
+        # some examples of data:
+        # print the first and last 5 elements of each column
+        for col in data:
+            logger.debug(f"First 5 elements of column {col}: {data[col][:5]}")
+            logger.debug(f"Last 5 elements of column {col}: {data[col][-5:]}")
+
         self.embeddings = torch.from_numpy(embeddings) if embeddings is not None else None
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
 
-        print(f"Using device {self.device}")
-        print(f"Loading model {model_name}")
+        logger.debug(f"Using device {self.device}")
+        logger.debug(f"Loading model {model_name}")
 
         if model_name not in self.cached_tokenizers:
             self.cached_tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
@@ -145,7 +156,7 @@ class Retriever:
 
         return all_embeddings
 
-    def get_top_matches(self, query: str, top_k: int = 5, disable_progess_bar: bool = True, prefix: str = 'query: ') -> List[Tuple[str, float, int]]:
+    def get_top_matches(self, query: str, top_k: int = 5, disable_progess_bar: bool = True, prefix: str = 'query: ') -> List[Tuple[float, int]]:
         """
         Returns the top_k most relevant context for the query.
 
@@ -163,7 +174,7 @@ class Retriever:
         Returns
         -------
         list
-            List of tuples containing the context, the score and the index of the context.
+            List of tuples containing the score and the index of the context.
         """
 
         assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
@@ -182,7 +193,7 @@ class Retriever:
         # add the data to the scores_indexes according to the index
         return scores_indexes[:top_k]
 
-    def get_top_matches_batch(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ') -> List[List[Tuple[str, float, int]]]:
+    def get_top_matches_batch(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ') -> List[List[Tuple[float, int]]]:
         """
         Returns the top_k most relevant context for the query.
 
@@ -200,7 +211,7 @@ class Retriever:
         Returns
         -------
         list
-            List of tuples containing the context, the score and the index of the context.
+            List of tuples containing the score and the index of the context.
         """
 
         assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
@@ -224,11 +235,11 @@ class Retriever:
         return [score_indexes_per_query[:top_k] for score_indexes_per_query in scores_indexes]
     
 
-    def get_contexts(self, matches: List[Tuple[float, int]]):
+    def get_contexts(self, matches: List[Tuple[float, int]]) -> List[Dict[str, str]]:
         keys = list(self.data.keys())
         return [{keys[i]: self.data[keys[i]][match[1]] for i in range(len(keys))} for match in matches]
 
-    def get_contexts_batch(self, matches_batch: List[List[Tuple[float, int]]]):
+    def get_contexts_batch(self, matches_batch: List[List[Tuple[float, int]]]) -> List[List[Dict[str, str]]]:
         keys = list(self.data.keys())
         return [[{keys[i]: self.data[keys[i]][match[1]] for i in range(len(keys))} for match in matches] for matches in matches_batch]
         
