@@ -21,6 +21,7 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
+import {ref} from "vue";
 
 const props = defineProps(["msgId"]);
 
@@ -43,13 +44,13 @@ async function copy() {
 
 .control {
     cursor: pointer;
-    color: #9a8eb5;
+    color: $chatfaq-color-clipboard-text-light;
     padding: 4px;
     margin-top: 6px;
     display: flex;
 
     &.dark-mode {
-        color: $chatfaq-color-primary-300;
+        color: $chatfaq-color-clipboard-text-dark;
     }
 }
 

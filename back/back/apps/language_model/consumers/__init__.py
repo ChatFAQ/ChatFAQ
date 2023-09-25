@@ -1,7 +1,7 @@
 import json
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
@@ -22,7 +22,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
         return (
             self.scope.get("user")
             and not isinstance(self.scope["user"], AnonymousUser)
-            and await sync_to_async(
+            and await database_sync_to_async(
                 self.scope["user"].groups.filter(name="RPC").exists
             )()
         )
@@ -57,10 +57,11 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             return
         data = serializer.validated_data
         llm_query_task.delay(
-            self.channel_name,
-            data["model_id"],
-            data["input_text"],
-            data["bot_channel_name"],
+            chanel_name=self.channel_name,
+            rag_config_name=data["rag_config_name"],
+            input_text=data["input_text"],
+            conversation_id=data["conversation_id"],
+            bot_channel_name=data["bot_channel_name"],
         )
 
     async def send_llm_response(self, event):

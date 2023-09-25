@@ -5,6 +5,7 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
+import {computed} from "vue";
 
 const store = useGlobalStore();
 const props = defineProps(["data"]);
@@ -29,8 +30,8 @@ const markedDown = computed(() => {
         margin: 0;
 
         a {
-            color: $chatfaq-color-primary-500;
-            background: rgba(70, 48, 117, 0.1);
+            color: $chatfaq-color-chatMessageReference-text-light;
+            background: $chatfaq-color-chatMessageReference-background-light;
             border-radius: 4px;
             padding: 0px 6px 0px 6px;
             text-decoration: none;
@@ -44,11 +45,11 @@ const markedDown = computed(() => {
     font-size: 8px;
     padding: 0px 3px 0px 3px;
     border-radius: 2px;
-    color: $chatfaq-color-primary-500;
-    background: rgba(70, 48, 117, 0.1);
+    color: $chatfaq-color-chatMessageReference-text-light;
+    background: $chatfaq-color-chatMessageReference-background-light;
     &.dark-mode {
-        background: $chatfaq-color-primary-900;
-        color: $chatfaq-color-primary-200;
+        background: $chatfaq-color-chatMessageReference-background-dark;
+        color: $chatfaq-color-chatMessageReference-text-dark;
     }
 }
 </style>

@@ -1,13 +1,12 @@
 from channels_postgres.core import PostgresChannelLayer
-from asgiref.sync import sync_to_async
-
+from channels.db import database_sync_to_async
 from back.apps.broker.models import ConsumerRoundRobinQueue
 
 
 class CustomPostgresChannelLayer(PostgresChannelLayer):
     """
     This is a modification of the original PostgresChannelLayer to fix the next error:
-    When a bunch og nre messages are added quickly one after the other with channel_layer.group_send
+    When a bunch of new messages are added quickly one after the other with channel_layer.group_send
     then the order of these messages gets messed up apparently.
 
     I figure out it was because when "retrieve_queued_messages_sql" returns no message, then the next query the layer
@@ -17,7 +16,7 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
     What I do not understand is why in the first place there can be no new message
     """
 
-    async def _get_message_from_channel(self, channel):
+    async def _Xget_message_from_channel(self, channel):
         retrieve_events_sql = f'LISTEN "{channel}";'
         retrieve_queued_messages_sql = """
                 DELETE FROM channels_postgres_message
@@ -64,10 +63,10 @@ class CustomPostgresChannelLayer(PostgresChannelLayer):
     async def group_add(self, group, channel, rr_group_key=None):
         await super().group_add(group, channel)
         if rr_group_key:
-            await sync_to_async(ConsumerRoundRobinQueue.add)(
+            await database_sync_to_async(ConsumerRoundRobinQueue.add)(
                 group, rr_group_key
             )  # Add to round robin queue
 
     async def group_discard(self, group, channel, expire=None):
         await super().group_discard(group, channel, expire)
-        await sync_to_async(ConsumerRoundRobinQueue.remove)(group)  # Remove from round robin queue
+        await database_sync_to_async(ConsumerRoundRobinQueue.remove)(group)  # Remove from round robin queue

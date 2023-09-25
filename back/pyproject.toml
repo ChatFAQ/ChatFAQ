@@ -11,7 +11,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.10"
-modelw-preset-django = {extras = ["channels", "celery"], version = "~2023.4b1", allow-prereleases = true}
+modelw-preset-django = {version = "~2023.4.0b2", extras = ["channels", "celery"], allow-prereleases = true}
 drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
 channels = "*"
 daphne = "*"
@@ -33,12 +33,19 @@ pgvector = "^0.1.7"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = { version = "^0.1.11", source = "test" }
+chatfaq-retrieval = {version = "0.1.24", source = "test"}
 gevent = "^22.10.2"
 torch = [
     { version = "^2.0.1", source = "torch" },
 ]
 boto3 = "^1.26.161"
+djfernet = "^0.8.1"
+openai = "^0.27.8"
+scrapy = "^2.10.0"
+scrapy-playwright = "^0.0.28"
+undetected-playwright = "^0.1.0"
+django-simple-history = "~3.3.0"
+crochet = "^2.1.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

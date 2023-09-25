@@ -1,15 +1,16 @@
 import { defineStore } from 'pinia'
 function _indexLayerRefs(groupedStack) {
     for (let i = 0; i < groupedStack.length; i++) {
-        // first remove the duplicates from the references (same url)
-        groupedStack[i].references = groupedStack[i].references.filter((v, i, a) => a.findIndex(t => (t.url === v.url)) === i)
+        // first remove the duplicates from the references (same title and url)
+        groupedStack[i].references = groupedStack[i].references.filter((v, i, a) => a.findIndex(t => (t.url === v.url && t.title === v.title)) === i)
         // add the reference index to the layer index inside layerToReferences
         let refs = groupedStack[i].references;
         for (let j = 0; j < groupedStack[i].layers.length; j++) {
             const layer = groupedStack[i].layers[j]
             if (layer.payload.references) {
-                layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url)).filter(i => i !== -1)
-                layer.referenceIndexes = [...new Set(layer.referenceIndexes)];
+                layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url && r.title === ref.title)).filter(i => i !== -1)
+                // layer.referenceIndexes is a list of integer, no integer should repeat:
+                layer.referenceIndexes = layer.referenceIndexes.filter((v, i, a) => a.findIndex(t => (t === v)) === i)
             }
         }
     }
@@ -95,6 +96,7 @@ export const useGlobalStore = defineStore('globalStore', {
                         if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
                             last_lm_msg_payload.model_response += data.payload.model_response
                             last_lm_msg_payload.references = data.payload.references
+                            res[res.length - 1].last = _messages[i].last
                         } else {
                             last_lm_msg_payload = data.payload
                             res.push({..._messages[i], ...data});
@@ -128,6 +130,12 @@ export const useGlobalStore = defineStore('globalStore', {
             (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'human') ||
             (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'bot' &&
             !gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].last)
+        },
+        lastLayer() {
+            const gs = this.gropedStacks;
+            if (!gs.length || !gs[gs.length - 1].layers.length)
+                return undefined
+            return gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1]
         }
     }
 })

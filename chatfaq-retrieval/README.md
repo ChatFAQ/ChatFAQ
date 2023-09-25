@@ -12,10 +12,6 @@ The `Retriever` is the main class for the information retrieval system. It takes
 
 # Chatbot
 
-## Prompt Generator
-
-The `PromptGenerator` is the main class for generating the prompts.
-
 
 ## Chatbot
 
@@ -54,11 +50,15 @@ or
 
     poetry version patch
 
+Then build
+
+    poetry build
+
 ### Poetry Publish
 
 To TestPyPi
 
-    poetry publish -r chatfaq-retrieval
+    poetry publish -r test-pypi
 
 To PyPi
 

@@ -1,112 +1,115 @@
-import time
+import numpy as np
 from logging import getLogger
-from threading import Thread
+from typing import List, Dict
 
 import pandas as pd
-import torch
 
 from chatfaq_retrieval.inf_retrieval.retriever import Retriever
-from chatfaq_retrieval.prompt_generator.prompt_generator import PromptGenerator
-from transformers import T5Tokenizer, T5ForConditionalGeneration, TextIteratorStreamer
+from chatfaq_retrieval.models import BaseModel
 
 logger = getLogger(__name__)
 
 
 # RetrieverAnswerer('../data/interim/chanel.csv', "google/flan-t5-base", "title", "text")
 
+
 class RetrieverAnswerer:
-    RETRIEVER_MODEL = 'sentence-transformers/multi-qa-MiniLM-L6-cos-v1'
     MAX_GPU_MEM = "18GiB"
-    MAX_CPU_MEM = '12GiB'
+    MAX_CPU_MEM = "12GiB"
     cached_tokenizers = {}
     cached_models = {}
 
-    def __init__(self, base_data: str, model_name: str, context_col: str, embedding_col: str, use_cpu: bool = False):
+    def __init__(
+        self,
+        data: Dict[str, List[str]],
+        embeddings: List[np.ndarray],
+        llm_model: BaseModel,
+        llm_name: str,
+        use_cpu: bool = False,
+        retriever_model: str = "intfloat/e5-small-v2",
+        huggingface_key: str = None,
+    ):
         self.use_cpu = use_cpu
         # --- Set Up Retriever ---
 
-        self.prompt_gen = PromptGenerator()
         self.retriever = Retriever(
-            pd.read_csv(base_data),
-            model_name=self.RETRIEVER_MODEL,
-            context_col=context_col,
-            use_cpu=use_cpu
+            data=data,
+            embeddings=embeddings,
+            model_name=retriever_model,
+            use_cpu=use_cpu,
+            huggingface_key=huggingface_key,
         )
 
-        self.retriever.build_embeddings(embedding_col=embedding_col)
+        if llm_model not in self.cached_models:
+            self.cached_models[llm_name] = llm_model
 
-        # --- Set Up LLM ---
-        if model_name not in self.cached_tokenizers:
-            self.cached_tokenizers[model_name] = T5Tokenizer.from_pretrained(model_name)
-        self.tokenizer = self.cached_tokenizers[model_name]
-        self.streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
+        self.model = self.cached_models[llm_name]
 
-        device_map = "auto" if (not self.use_cpu and torch.cuda.is_available()) else None # use gpu if available
-        memory_device = {'cpu': self.MAX_CPU_MEM}
-        dtype = torch.float32 # much faster for cpu, but consumes more memory
-        if not self.use_cpu and torch.cuda.is_available():
-            memory_device = {0: self.MAX_GPU_MEM}
-            dtype = torch.bfloat16
-
-        if model_name not in self.cached_models:
-            self.cached_models[model_name] = T5ForConditionalGeneration.from_pretrained(
-                model_name,
-                device_map=device_map,
-                torch_dtype=dtype,
-                max_memory=memory_device
-            )
-        self.model = self.cached_models[model_name]
-
-        self._log_models_info()
-
-    def query(self, text, seed=2, streaming=False):
-        torch.manual_seed(seed)
-
-        matches = self.retriever.get_top_matches(text, top_k=5)
+    def stream(
+        self,
+        text,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict,
+        stop_words: List[str] = None,
+        lang: str = "en",
+    ):
+        matches = self.retriever.get_top_matches(text, top_k=prompt_structure_dict["n_contexts_to_use"])
         contexts = self.retriever.get_contexts(matches)
-        prompt, n_of_contexts = self.prompt_gen.create_prompt(text, contexts, lang='en1', max_length=512)
 
-        tokenizer_to = "cuda" if (not self.use_cpu and torch.cuda.is_available()) else 'cpu'
+        # log contexts except the 'content' column 
+        for match, context in zip(matches, contexts):
+            logger.info(f"Match: {match}")
+            for col in context:
+                if col != "content":
+                    logger.info(f"Contexts {col}: {context[col]}")
 
-        input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(tokenizer_to)
-
-        generation_kwargs = dict(
-            input_ids=input_ids,
-            max_length=256,
-            do_sample=True,
-            top_k=50,
-            top_p=0.95,
-        )
-        if streaming:
-            generation_kwargs['streamer'] = self.streamer
-            thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
-            thread.start()
-            for new_text in self.streamer:
-                yield {
-                    "res": new_text,
-                    "context": [match[0] for match in matches[:n_of_contexts]]
-                }
-        else:
-            with torch.inference_mode():
-                start_time = time.perf_counter()
-                outputs = self.model.generate(**generation_kwargs)
-                end_time = time.perf_counter()
-                n_tokens = outputs.shape[1]
-                logger.debug(f"Time per token: {(end_time - start_time) / n_tokens * 1000:.2f} ms")
-            if tokenizer_to:
-                torch.cuda.empty_cache()
-
-            return {
-                "res": self.tokenizer.decode(outputs[0], skip_special_tokens=True),
-                "context": [match[0] for match in matches[:n_of_contexts]]
+        for new_text in self.model.stream(
+            text,
+            contexts,
+            prompt_structure_dict=prompt_structure_dict,
+            generation_config_dict=generation_config_dict,
+            lang=lang,
+            stop_words=stop_words,
+        ):
+            yield {
+                "res": new_text,
+                "context": [
+                    match
+                    for match in contexts[: prompt_structure_dict["n_contexts_to_use"]]
+                ],
             }
 
-    def _log_models_info(self):
-        logger.debug(f"Mem needed: {self.retriever.model.get_memory_footprint() / 1024 / 1024:.2f} MB")
-        mb = self.retriever.embeddings.element_size() * self.retriever.embeddings.nelement() / 1024 / 1024
-        logger.debug(f"Embeddings size: {mb} MB")
+    def generate(
+        self,
+        text,
+        prompt_structure_dict: dict,
+        generation_config_dict: dict,
+        stop_words: List[str] = None,
+        lang: str = "en",
+    ):
+        matches = self.retriever.get_top_matches(text, top_k=prompt_structure_dict["n_contexts_to_use"])
+        contexts = self.retriever.get_contexts(matches)
 
-        # count number of parameters
-        num = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-        logger.debug(f'The model has {num / 1e9:.2f} billion trainable parameters')
-        logger.debug(f"Mem needed: {self.model.get_memory_footprint() / 1024 / 1024 / 1024:.2f} GB")
+        # log contexts except the 'content' column 
+        for match, context in zip(matches, contexts):
+            logger.info(f"Match: {match}")
+            for col in context:
+                if col != "content":
+                    logger.info(f"Contexts {col}: {context[col]}")
+
+        output_text = self.model.generate(
+            text,
+            contexts,
+            prompt_structure_dict=prompt_structure_dict,
+            generation_config_dict=generation_config_dict,
+            lang=lang,
+            stop_words=stop_words,
+        )
+
+        return {
+            "res": output_text,
+            "context": [
+                match[0]
+                for match in matches[: prompt_structure_dict["n_contexts_to_use"]]
+            ],
+        }

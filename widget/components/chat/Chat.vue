@@ -5,7 +5,7 @@
                 <ChatMsg
                     :layers="layers_data.layers"
                     :references="layers_data.references"
-                    :is-first-of-type="true"
+                    :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.gropedStacks.length - 1"
                 ></ChatMsg>
@@ -42,6 +42,7 @@
 import {ref, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
+import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
 
 const store = useGlobalStore();
 
@@ -56,6 +57,10 @@ watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 
+function isLastOfType(index) {
+    return index === store.gropedStacks.length - 1 || store.gropedStacks[index + 1].layers[0].sender.type !== store.gropedStacks[index].layers[0].sender.type
+}
+
 function managePaste(ev) {
     ev.preventDefault()
     const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
@@ -66,6 +71,10 @@ function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
     })
+}
+
+function isFullyScrolled() {
+    return conversationContent.value.scrollHeight - conversationContent.value.scrollTop === conversationContent.value.clientHeight
 }
 
 function animateFeedbackSent() {
@@ -90,15 +99,20 @@ function createConnection() {
         + (store.userId ? `${store.userId}/` : "")
     );
     ws.onmessage = async function (e) {
-        if (!store.messages.length) // First message, update list of conversations
-            await store.gatherConversations()
         const msg = JSON.parse(e.data);
         if (msg.status === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
             return
         }
+
+        if (store.lastLayer && store.lastLayer.sender.type === 'human')  // Scroll down if brand a new message from bot just came
+            store.scrollToBottom += 1;
+        if (isFullyScrolled())  // Scroll down if user is at the bottom
+            store.scrollToBottom += 1;
+
         store.messages.push(msg);
-        store.scrollToBottom += 1;
+        if (store.messages.length === 1) // First message, update list of conversations
+            await store.gatherConversations()
     };
     ws.onopen = function (e) {
         store.disconnected = false;
@@ -125,7 +139,7 @@ function manageEnterInput(ev, cb) {
 
 function sendMessage() {
     const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length || store.waitingForResponse)
+    if (!promptValue.length || store.waitingForResponse || store.disconnected)
         return;
     const m = {
         "sender": {
@@ -146,14 +160,6 @@ function sendMessage() {
     ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
     store.scrollToBottom += 1;
-}
-
-function isLastOfType(msg, flatStack) {
-    if (flatStack.indexOf(msg) === flatStack.length - 1)
-        return true
-    if (flatStack[flatStack.indexOf(msg) + 1].sender.type !== msg.sender.type)
-        return true
-    return false
 }
 
 function isFirstOfType(msg, flatStack) {
@@ -178,10 +184,10 @@ function isFirstOfType(msg, flatStack) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background-color: $chatfaq-color-primary-200;
+    background-color: $chatfaq-color-chat-background-light;
 
     &.dark-mode {
-        background-color: $chatfaq-color-neutral-purple;
+        background-color: $chatfaq-color-chat-background-dark;
     }
 }
 
@@ -189,23 +195,23 @@ function isFirstOfType(msg, flatStack) {
     margin: 24px;
     display: flex;
     border-radius: 4px;
-    border: 1px solid $chatfaq-color-neutral-purple !important;
-    background-color: $chatfaq-color-primary-300;
+    border: 1px solid $chatfaq-color-chatInput-border-light !important;
+    background-color: $chatfaq-color-chatInput-background-light;
     box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
 
     &.dark-mode {
-        background-color: $chatfaq-color-primary-800;
-        border: 1px solid $chatfaq-color-primary-900 !important;
+        background-color: $chatfaq-color-chatInput-background-dark;
+        border: 1px solid $chatfaq-color-chatInput-border-dark !important;
     }
 }
 
 .alert-message {
     margin-bottom: -16px;
     text-align: center;
-    color: $chatfaq-color-greyscale-800;
+    color: $chatfaq-color-alertMessage-text-light;
 
     &.dark-mode {
-        color: $chatfaq-color-primary-200;
+        color: $chatfaq-color-alertMessage-text-dark;
     }
 }
 
@@ -255,7 +261,8 @@ function isFirstOfType(msg, flatStack) {
     border: 0;
     outline: 0;
     margin-left: 16px;
-    background-color: $chatfaq-color-primary-300;
+    background-color: transparent;
+    color: $chatfaq-color-chatInput-text-light;
     @include scroll-style();
 
     &.dark-mode {
@@ -266,14 +273,14 @@ function isFirstOfType(msg, flatStack) {
 [contenteditable][placeholder]:empty:before {
     content: attr(placeholder);
     position: absolute;
-    color: rgba(2, 12, 28, 0.6);
+    color: $chatfaq-color-chatPlaceholder-text-light;
     background-color: transparent;
     font-style: italic;
     cursor: text;
 }
 
 .dark-mode[contenteditable][placeholder]:empty:before {
-    color: $chatfaq-color-primary-200;
+    color: $chatfaq-color-chatPlaceholder-text-dark;
 }
 
 .chat-prompt {
@@ -292,15 +299,14 @@ function isFirstOfType(msg, flatStack) {
 
     &::placeholder {
         font-style: italic;
-        color: rgb(2, 12, 28);
+        color: $chatfaq-color-chatInput-text-light;
     }
 
     &.dark-mode {
-        background-color: $chatfaq-color-primary-800;
-        color: $chatfaq-color-primary-200;
+        color: $chatfaq-color-chatPlaceholder-text-dark;
 
         &::placeholder {
-            color: $chatfaq-color-neutral-white;
+            color: $chatfaq-color-chatInput-text-dark;
         }
     }
 }

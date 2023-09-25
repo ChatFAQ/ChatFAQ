@@ -91,6 +91,7 @@ import {useGlobalStore} from "~/store";
 import Checkbox from "~/components/generic/Checkbox.vue";
 import {useI18n} from 'vue-i18n'
 import CopyToClipboard from "~/components/chat/CopyToClipboard.vue";
+import {ref} from "vue";
 
 const props = defineProps(["msgId"]);
 
@@ -174,10 +175,10 @@ async function userFeedback(value, _collapse) {
 
 
     &.feedbacked {
-        background-color: var(--chatfaq-color-primary-300);
+        background-color: $chatfaq-color-chatMessageBot-background-light;
         &.dark-mode {
-            background-color: $chatfaq-color-primary-800 !important;
-            color: $chatfaq-color-neutral-white !important;
+            background-color: $chatfaq-color-chatMessageBot-background-dark !important;
+            color: $chatfaq-color-chatMessageBot-text-dark !important;
         }
     }
 
@@ -198,14 +199,14 @@ async function userFeedback(value, _collapse) {
 
     .separator-line {
         height: 1px;
-        background-color: rgba(70, 48, 117, 0.2);
+        background-color: $chatfaq-color-separator-light;
         align-content: center;
         text-align: center;
         margin: 15px;
         margin-top: 0px;
         margin-bottom: 8px;
         &.dark-mode {
-            background-color: $chatfaq-color-neutral-purple;
+            background-color: $chatfaq-color-separator-dark;
         }
     }
 
@@ -213,13 +214,13 @@ async function userFeedback(value, _collapse) {
         margin: 12px;
         display: flex;
         border-radius: 4px;
-        border: 1px solid $chatfaq-color-neutral-purple !important;
-        background-color: $chatfaq-color-primary-200;
+        border: 1px solid $chatfaq-color-chatInput-border-light !important;
+        background-color: $chatfaq-color-chat-background-light;
         box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
         font-weight: 400;
 
         &.dark-mode {
-            background-color: $chatfaq-color-neutral-purple;
+            background-color: $chatfaq-color-chat-background-dark;
         }
 
         .feedback-input, .feedback-input:focus, .feedback-input:hover {
@@ -227,12 +228,12 @@ async function userFeedback(value, _collapse) {
             border: 0;
             outline: 0;
             margin-left: 16px;
-            background-color: $chatfaq-color-primary-200;
+            background-color: $chatfaq-color-chat-background-light;
 
             @include scroll-style();
 
             &.dark-mode {
-                @include scroll-style(white);
+                @include scroll-style($chatfaq-color-scrollBar-light);
             }
         }
 
@@ -250,18 +251,18 @@ async function userFeedback(value, _collapse) {
 
             &::placeholder {
                 font-style: italic;
-                color: rgb(2, 12, 28);
+                color: $chatfaq-color-chatInput-text-light;
                 letter-spacing: -0.5px;
                 font-style: italic;
                 font-weight: 400;
             }
 
             &.dark-mode {
-                background-color: $chatfaq-color-neutral-purple;
-                color: $chatfaq-color-primary-200;
+                background-color: $chatfaq-color-chat-background-dark;
+                color: $chatfaq-color-chat-background-light;
 
                 &::placeholder {
-                    color: $chatfaq-color-greyscale-500;
+                    color: $chatfaq-color-chatPlaceholder-text-dark;
                 }
             }
         }
@@ -281,12 +282,12 @@ async function userFeedback(value, _collapse) {
 
     .control {
         cursor: pointer;
-        color: #9a8eb5;
+        color: $chatfaq-color-clipboard-text-light;
         padding: 5px;
         margin-top: 2px;
         display: flex;
         &.dark-mode {
-            color: $chatfaq-color-primary-300;
+            color: $chatfaq-color-clipboard-text-dark;
         }
         &.collapse {
             cursor: unset;
@@ -295,12 +296,12 @@ async function userFeedback(value, _collapse) {
     }
 
     .selected, .control:not(.collapse):hover {
-        color: $chatfaq-color-primary-500;
+        color: $chatfaq-color-chatMessageReference-text-light;
         background: rgba(70, 48, 117, 0.1);
         border-radius: 2px;
         &.dark-mode {
-            background-color: $chatfaq-color-primary-900;
-            color: white;
+            background-color: $chatfaq-color-chatMessageReference-background-dark;
+            color: $chatfaq-color-chatMessageReference-text-dark;
         }
     }
 
@@ -323,7 +324,7 @@ async function userFeedback(value, _collapse) {
         div {
             float: right;
             padding: 8px 16px;
-            background: #463075;
+            background: $chatfaq-color-chatMessageHuman-background-light;
             border-radius: 24px;
             margin-bottom: 16px;
             margin-right: 12px;
@@ -335,7 +336,7 @@ async function userFeedback(value, _collapse) {
             font-style: normal;
 
             &.dark-mode {
-                background-color: $chatfaq-color-primary-900;
+                background-color: $chatfaq-color-chatMessageHuman-background-dark;
             }
         }
     }

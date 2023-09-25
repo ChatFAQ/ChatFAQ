@@ -1,5 +1,5 @@
 ---
-name: Deploy ChatFAQ
+name: ChatFAQ
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
       - "widget/**"
       - "sdk/**"
       - "Dogefile"
+    branches:
+      - "master"
+      - "develop"
+      - "feature/**caps**"
   workflow_dispatch:
 
 jobs:
@@ -20,7 +24,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Upload manifest
+      - name: Deploy via DogeOps
         uses: WithAgency/dogeops-action@v1
         with:
           api_url: ${{ vars.DOGEOPS_API_URL }}

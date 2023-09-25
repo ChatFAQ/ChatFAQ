@@ -1,4 +1,6 @@
-PYTHON_BIN ?= poetry run python
+POETRY_RUN ?= poetry run
+
+PYTHON_BIN ?= $(POETRY_RUN) python
 
 format: isort black
 
@@ -10,4 +12,4 @@ isort:
 	$(PYTHON_BIN) -m isort examples
 
 run_example:
-	poetry run python examples/__init__.py
+	$(PYTHON_BIN) examples/model_example/__main__.py

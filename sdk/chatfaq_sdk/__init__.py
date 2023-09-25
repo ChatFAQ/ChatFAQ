@@ -31,7 +31,6 @@ class ChatFAQSDK:
 
     def __init__(
         self,
-        chatfaq_retrieval_http: str,
         chatfaq_ws: str,
         token: str,
         fsm_name: Optional[Union[int, str]],
@@ -40,9 +39,6 @@ class ChatFAQSDK:
         """
         Parameters
         ----------
-        chatfaq_retrieval_http: str
-            The HTTP address of your ChatFAQ's back-end server
-
         chatfaq_ws: str
             The WS address of your ChatFAQ's back-end server
 
@@ -59,7 +55,6 @@ class ChatFAQSDK:
         """
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
-        self.chatfaq_retrieval_http = chatfaq_retrieval_http
         self.chatfaq_ws = chatfaq_ws
         self.token = token
         self.fsm_name = fsm_name
@@ -227,9 +222,10 @@ class ChatFAQSDK:
             self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]] = []
 
         self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]].append(payload)
-        self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(
-            self.llm_result_streaming_generator(payload["bot_channel_name"])
-        )
+        if not self.rpc_llm_request_futures[payload["bot_channel_name"]].done():
+            self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(
+                self.llm_result_streaming_generator(payload["bot_channel_name"])
+            )
 
     def llm_result_streaming_generator(self, bot_channel_name):
         def _llm_result_streaming_generator():
@@ -251,8 +247,8 @@ class ChatFAQSDK:
     async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
-    async def send_llm_request(self, model_id, input_text, bot_channel_name):
-        logger.info(f"[LLM] Requesting LLM (model {model_id})")
+    async def send_llm_request(self, rag_config_name, input_text, conversation_id, bot_channel_name, user_id=None):
+        logger.info(f"[LLM] Requesting LLM (model {rag_config_name})")
         self.rpc_llm_request_futures[
             bot_channel_name
         ] = asyncio.get_event_loop().create_future()
@@ -261,8 +257,10 @@ class ChatFAQSDK:
                 {
                     "type": MessageType.llm_request.value,
                     "data": {
-                        "model_id": model_id,
+                        "rag_config_name": rag_config_name,
                         "input_text": input_text,
+                        "conversation_id": conversation_id,
+                        "user_id": user_id,
                         "bot_channel_name": bot_channel_name,
                     },
                 }
@@ -299,6 +297,7 @@ class ChatFAQSDK:
             is_last = False
             layer = next(layers)
             while not is_last:
+                _layer = None
                 try:
                     _layer = next(layers)
                 except StopIteration:
