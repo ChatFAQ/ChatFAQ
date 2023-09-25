@@ -9,7 +9,7 @@ on:
       - "sdk/**"
       - "Dogefile"
     branches:
-      - "main"
+      - "master"
       - "develop"
       - "feature/**caps**"
   workflow_dispatch:
