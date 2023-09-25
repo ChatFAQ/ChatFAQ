@@ -23,6 +23,7 @@ class Retriever:
                     embeddings: np.ndarray = None,
                     model_name: str = 'intfloat/e5-small-v2',
                     use_cpu: bool = False,
+                    huggingface_key: str = None
                 ):
         """
         Parameters
@@ -35,33 +36,34 @@ class Retriever:
             Name of the model to be used for encoding the context, by default 'intfloat/multilingual-e5-base'
         use_cpu : bool, optional
             Whether to use CPU for encoding, by default False
+        huggingface_key : str, optional
+            Huggingface key to be used for private models, by default None
         """
 
         # assert that the length of every column is the same
         if data is not None:
             assert len(set([len(data[col]) for col in data])) == 1, "All columns must have the same length"
 
-        logger.debug(f"Use CPU: {use_cpu}, {torch.cuda.is_available()}")
-
         self.data = data
         self.len_data = len(data[list(data.keys())[0]]) if data is not None else None
 
-        logger.debug(f"Data keys: {list(data.keys())}")
-        logger.debug(f"Data length: {self.len_data}")
-        # some examples of data:
-        # print the first and last 5 elements of each column
-        for col in data:
-            logger.debug(f"First 5 elements of column {col}: {data[col][:5]}")
-            logger.debug(f"Last 5 elements of column {col}: {data[col][-5:]}")
+        if data is not None:
+            logger.info(f"Data keys: {list(data.keys())}")
+            logger.info(f"Data length: {self.len_data}")
+            # some examples of data:
+            # print the first and last 5 elements of each column
+            for col in data:
+                logger.info(f"First 5 elements of column {col}: {data[col][:5]}")
+                logger.info(f"Last 5 elements of column {col}: {data[col][-5:]}")
 
         self.embeddings = torch.from_numpy(embeddings) if embeddings is not None else None
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
 
-        logger.debug(f"Using device {self.device}")
-        logger.debug(f"Loading model {model_name}")
+        logger.info(f"Using device {self.device}")
+        logger.info(f"Loading model {model_name}")
 
         if model_name not in self.cached_tokenizers:
-            self.cached_tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
+            self.cached_tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name, token=huggingface_key)
         self.tokenizer = self.cached_tokenizers[model_name]
 
         if model_name == 'intfloat/e5-small-v2':
@@ -69,6 +71,7 @@ class Retriever:
 
         if model_name not in self.cached_models:
             self.cached_models[model_name] = AutoModel.from_pretrained(model_name,
+                                                                       token=huggingface_key,
                                                                        ).to(self.device)
         self.model = self.cached_models[model_name]
 

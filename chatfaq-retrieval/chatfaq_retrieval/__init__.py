@@ -27,6 +27,7 @@ class RetrieverAnswerer:
         llm_name: str,
         use_cpu: bool = False,
         retriever_model: str = "intfloat/e5-small-v2",
+        huggingface_key: str = None,
     ):
         self.use_cpu = use_cpu
         # --- Set Up Retriever ---
@@ -36,6 +37,7 @@ class RetrieverAnswerer:
             embeddings=embeddings,
             model_name=retriever_model,
             use_cpu=use_cpu,
+            huggingface_key=huggingface_key,
         )
 
         if llm_model not in self.cached_models:
