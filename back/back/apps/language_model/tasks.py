@@ -23,7 +23,6 @@ if is_celery_worker():
 
 logger = getLogger(__name__)
 
-
 LLM_CLASSES = {
     "local_cpu": GGMLModel,
     "local_gpu": HFModel,
@@ -100,20 +99,22 @@ class RAGCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
-        print("Preloading models...")
+        logger.debug("Preloading models...")
         RAGConfig = apps.get_model('language_model', 'RAGConfig')
         cache = {}
         for rag_conf in RAGConfig.objects.all():
-            print(
+            logger.debug(
                 f"Loading RAG config: {rag_conf.name} "
-                f"with model: {rag_conf.llm_config.name} "
-                f"and knowledge base: {rag_conf.knowledge_base.name}"
+                f"with llm: {rag_conf.llm_config.llm_name} "
+                f"with llm type: {rag_conf.llm_config.llm_type}"
+                f"with knowledge base: {rag_conf.knowledge_base.name}"
+                f"with retriever: {rag_conf.retriever_config.model_name}"
+                f"and retriever device: {rag_conf.retriever_config.device}"
             )
 
             Embedding = apps.get_model('language_model', 'Embedding')
             embeddings = Embedding.objects.filter(rag_config=rag_conf).values_list("embedding", flat=True)
             embeddings = np.array(embeddings, dtype=np.float32)
-
 
             cache[str(rag_conf.name)] = RetrieverAnswerer(
                 data=rag_conf.knowledge_base.get_data(),
@@ -135,30 +136,22 @@ class RAGCacheOnWorkerTask(Task):
                     model_max_length=rag_conf.llm_config.model_max_length,
                 ),
             )
-            print("...model loaded.")
+            logger.debug("...model loaded.")
         return cache
 
 
-msg_template = {
-    "context": None,
-    "final": False,
-    "res": "",
-}
-
-
-def _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg={}, final=False):
-    msg_template["bot_channel_name"] = bot_channel_name
-    msg_template["lm_msg_id"] = lm_msg_id
-    if not msg_template["context"] and msg.get("context"):
-        msg_template["context"] = msg["context"]
-    msg_template["res"] = msg.get("res", "")
-    msg_template["final"] = final
-
+def _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg={}, references=[], final=False):
     async_to_sync(channel_layer.send)(
         chanel_name,
         {
             "type": "send_llm_response",
-            "message": msg_template,
+            "message": {
+                "context": references,
+                "final": final,
+                "res": msg.get("res", ""),
+                "bot_channel_name": bot_channel_name,
+                "lm_msg_id": lm_msg_id
+            },
         },
     )
 
@@ -186,9 +179,15 @@ def llm_query_task(
         logger.error(f"RAG config with name: {rag_config_name} does not exist.")
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True)
         return
+    
+    logger.info('-'*80)
+    logger.info(f'Input query: {input_text}')
 
     p_conf = model_to_dict(rag_conf.prompt_config)
     g_conf = model_to_dict(rag_conf.generation_config)
+
+    logger.info(f'Prompt config: {p_conf}')
+    logger.info(f'Generation config: {g_conf}')
 
     # remove the ids
     p_conf.pop("id")
@@ -198,11 +197,17 @@ def llm_query_task(
     # remove empty stop words
     stop_words = [word for word in stop_words if word]
 
+    logger.info(f'Stop words: {stop_words}')
+
     # # Gatherings all the previous messages from the conversation
     # prev_messages = Conversation.objects.get(pk=conversation_id).get_mml_chain()
 
     rag = self.CACHED_RAGS[rag_config_name]
+
+    logger.info(f'Using RAG config: {rag_config_name}')
+
     streaming = True
+    references = []
     if streaming:
         for res in rag.stream(
             input_text,
@@ -210,8 +215,9 @@ def llm_query_task(
             generation_config_dict=g_conf,
             stop_words=stop_words,
             lang=rag_conf.knowledge_base.lang,
-        ):
+        ):  
             _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
+            references = res.get("context")
     else:
         res = rag.generate(
             input_text,
@@ -221,8 +227,10 @@ def llm_query_task(
             lang=rag_conf.knowledge_base.lang,
         )
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
+        references = res.get("context")
 
-    _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True)
+    logger.info(f'\nReferences: {references}')
+    _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, references=references, final=True)
 
 
 @app.task()
@@ -298,6 +306,9 @@ def parse_pdf_task(pdf_file_pk):
         A list of KnowledgeItem objects.
     """
 
+    logger.info("Parsing PDF file...")
+    logger.info(f"PDF file pk: {pdf_file_pk}")
+
     KnowledgeBase = apps.get_model('language_model', 'KnowledgeBase')
     kb = KnowledgeBase.objects.get(pk=pdf_file_pk)
     pdf_file = kb.original_pdf.read()
@@ -310,23 +321,29 @@ def parse_pdf_task(pdf_file_pk):
 
     splitter = get_splitter(splitter, chunk_size, chunk_overlap)
 
+    logger.info(f"Splitter: {splitter}")
+    logger.info(f"Strategy: {strategy}")
+    logger.info(f"Chunk size: {chunk_size}")
+    logger.info(f"Chunk overlap: {chunk_overlap}")
+
     k_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
 
     KnowledgeItem = apps.get_model('language_model', 'KnowledgeItem')
 
     new_items = [
-            KnowledgeItem(
-                knowledge_base=kb,
-                title=k_item.title,
-                content=k_item.content,
-                url=k_item.url,
-                section=k_item.section,
-                page_number=k_item.page_number
-            )
-            for k_item in k_items
-        ]
+        KnowledgeItem(
+            knowledge_base=kb,
+            title=k_item.title,
+            content=k_item.content,
+            url=k_item.url,
+            section=k_item.section,
+            page_number=k_item.page_number
+        )
+        for k_item in k_items
+    ]
 
-    KnowledgeItem.objects.filter(knowledge_base=pdf_file_pk).delete() # TODO: give the option to reset the knowledge_base or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+    logger.info(f"Number of new items: {len(new_items)}")
+
+    KnowledgeItem.objects.filter(
+        knowledge_base=pdf_file_pk).delete()  # TODO: give the option to reset the knowledge_base or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
     KnowledgeItem.objects.bulk_create(new_items)
-
-

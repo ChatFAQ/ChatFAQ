@@ -54,6 +54,13 @@ class RetrieverAnswerer:
         matches = self.retriever.get_top_matches(text, top_k=prompt_structure_dict["n_contexts_to_use"])
         contexts = self.retriever.get_contexts(matches)
 
+        # log contexts except the 'content' column 
+        for match, context in zip(matches, contexts):
+            logger.info(f"Match: {match}")
+            for col in context:
+                if col != "content":
+                    logger.info(f"Contexts {col}: {context[col]}")
+
         for new_text in self.model.stream(
             text,
             contexts,
@@ -80,6 +87,13 @@ class RetrieverAnswerer:
     ):
         matches = self.retriever.get_top_matches(text, top_k=prompt_structure_dict["n_contexts_to_use"])
         contexts = self.retriever.get_contexts(matches)
+
+        # log contexts except the 'content' column 
+        for match, context in zip(matches, contexts):
+            logger.info(f"Match: {match}")
+            for col in context:
+                if col != "content":
+                    logger.info(f"Contexts {col}: {context[col]}")
 
         output_text = self.model.generate(
             text,

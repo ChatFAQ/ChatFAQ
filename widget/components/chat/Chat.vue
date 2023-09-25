@@ -262,6 +262,7 @@ function isFirstOfType(msg, flatStack) {
     outline: 0;
     margin-left: 16px;
     background-color: transparent;
+    color: $chatfaq-color-chatInput-text-light;
     @include scroll-style();
 
     &.dark-mode {
