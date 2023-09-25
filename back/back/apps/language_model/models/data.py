@@ -4,13 +4,14 @@ from logging import getLogger
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-
-from back.apps.language_model.tasks import parse_pdf_task, parse_url_task, llm_query_task
+from django.apps import apps
+from back.apps.language_model.tasks import parse_pdf_task, parse_url_task, llm_query_task, generate_embeddings_task
 from back.common.models import ChangesMixin
 
 logger = getLogger(__name__)
 
-class KnowledgeBase(models.Model):
+
+class KnowledgeBase(ChangesMixin):
     """
     A knowledge base groups all its knowledge items under one language and keeps the original file for reference.
 
@@ -76,8 +77,20 @@ class KnowledgeBase(models.Model):
             for row in csv_rows
         ]
 
-        KnowledgeItem.objects.filter(knowledge_base=self).delete() # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+        KnowledgeItem.objects.filter(knowledge_base=self).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
         KnowledgeItem.objects.bulk_create(new_items)
+        self.trigger_generate_embeddings()
+
+    def trigger_generate_embeddings(self):
+        RAGConfig = apps.get_model("language_model", "RAGConfig")
+        rag_configs = RAGConfig.objects.filter(knowledge_base=self)
+        last_i = rag_configs.count() - 1
+        for i, rag_config in enumerate(rag_configs.all()):
+            generate_embeddings_task.delay(
+                list(self.knowledgeitem_set.values_list("pk", flat=True)),
+                rag_config.pk,
+                recache_models=(i == last_i)
+            )
 
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
@@ -95,7 +108,7 @@ class KnowledgeBase(models.Model):
                     "url": item.url if item.url else None,
                     "section": item.section if item.section else None,
                     "role": item.role if item.role else None,
-                    "page_number": item.page_number if item.page_number else None,  
+                    "page_number": item.page_number if item.page_number else None,
                 }
             writer.writerow(row)
 
@@ -112,7 +125,7 @@ class KnowledgeBase(models.Model):
             result.setdefault("url", []).append(item.url)
             result.setdefault("section", []).append(item.section)
             result.setdefault("role", []).append(item.role)
-            result.setdefault("page_number", []).append(item.page_number)   
+            result.setdefault("page_number", []).append(item.page_number)
 
         return result
 
@@ -174,9 +187,32 @@ class KnowledgeItem(ChangesMixin):
 
     def __str__(self):
         return f"{self.content} ds ({self.knowledge_base.pk})"
-    
 
-class Embedding(models.Model):
+    # When saving we want to check if the content has changed and in that case regenerate
+    # all the embeddings for the rag_config this item belongs to.
+    def save(self, *args, **kwargs):
+        changes = False
+        if self.pk is not None:
+            old_item = KnowledgeItem.objects.get(pk=self.pk)
+            if self.content != old_item.content:
+                changes = True
+        super().save(*args, **kwargs)
+        if changes:
+            self.trigger_generate_embeddings()
+
+    def trigger_generate_embeddings(self):
+        RAGConfig = apps.get_model("language_model", "RAGConfig")
+        rag_configs = RAGConfig.objects.filter(knowledge_base=self.knowledge_base)
+        last_i = rag_configs.count() - 1
+        for i, rag_config in enumerate(rag_configs.all()):
+            generate_embeddings_task.delay(
+                [self.pk],
+                rag_config.pk,
+                recache_models=(i == last_i)
+            )
+
+
+class Embedding(ChangesMixin):
     """
     Embedding representation for a KnowledgeItem.
 
