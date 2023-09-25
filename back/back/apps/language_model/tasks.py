@@ -17,6 +17,7 @@ from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
 from crochet import setup
 import numpy as np
+import os
 
 if is_celery_worker():
     setup()
@@ -116,12 +117,15 @@ class RAGCacheOnWorkerTask(Task):
             embeddings = Embedding.objects.filter(rag_config=rag_conf).values_list("embedding", flat=True)
             embeddings = np.array(embeddings, dtype=np.float32)
 
+            hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
+
             cache[str(rag_conf.name)] = RetrieverAnswerer(
                 data=rag_conf.knowledge_base.get_data(),
                 embeddings=embeddings,
                 llm_name=rag_conf.llm_config.llm_name,
                 use_cpu=False,
                 retriever_model=rag_conf.retriever_config.model_name,
+                huggingface_key=hugginface_key,
                 llm_model=get_model(
                     llm_name=rag_conf.llm_config.llm_name,
                     llm_type=rag_conf.llm_config.llm_type,
@@ -250,12 +254,16 @@ def generate_embeddings_task(ragconfig):
     batch_size = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.device
 
+    logger.info(f"Generating embeddings for knowledge base: {rag_config.knowledge_base.name}")
+    logger.info(f"Retriever model: {model_name}")
+    logger.info(f"Batch size: {batch_size}")
+    logger.info(f"Device: {device}")
+
     retriever = Retriever(
         model_name=model_name,
         use_cpu=device == "cpu",
     )
 
-    print(f"Generating embeddings for knowledge base: {rag_config.knowledge_base.name}")
     items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
     contents = [item.content for item in items]
     embeddings = retriever.build_embeddings(contents=contents, batch_size=batch_size)
