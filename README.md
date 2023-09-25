@@ -23,7 +23,7 @@ The official documentation is hosted on [Read the Docs](https://chatfaq.readthed
 
 For more information about ChatFAQ and any additional needs, feel free to visit our [website](https://www.chatfaq.io/)
 
-<img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6918e57475a843f59f_icon_clyde_black_RGB.svg" alt="logo_discord" width="25"/>Or chat with us on [Discord](https://discord.gg/szXJkRXS) for any requests or inquiries about this repository.
+<img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6918e57475a843f59f_icon_clyde_black_RGB.svg" alt="logo_discord" width="25"/>Or chat with us on [Discord](https://discord.gg/MTWF4SRc3M) for any requests or inquiries about this repository.
 
 
 <div align="center">
