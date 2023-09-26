@@ -68,10 +68,10 @@ services:
       - "/back"
 
 workers:
-  - name: fsm_llm
-    image: sdk
-    envs: [ sentry, sdk ]
-    instance_size: XS
+#  - name: fsm_llm
+#    image: sdk
+#    envs: [ sentry, sdk ]
+#    instance_size: XS
   - name: celery_worker
     image: back
     envs: [ sentry, django ]
