@@ -12,6 +12,7 @@ on:
       - "master"
       - "develop"
       - "feature/**caps**"
+      - "feature/**withmadrid**"
   workflow_dispatch:
 
 jobs:

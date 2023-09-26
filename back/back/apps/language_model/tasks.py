@@ -1,5 +1,5 @@
 import uuid
-from io import StringIO, BytesIO
+from io import BytesIO
 from logging import getLogger
 from asgiref.sync import async_to_sync
 from celery import Task
@@ -183,7 +183,7 @@ def llm_query_task(
         logger.error(f"RAG config with name: {rag_config_name} does not exist.")
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True)
         return
-    
+
     logger.info('-'*80)
     logger.info(f'Input query: {input_text}')
 
@@ -219,7 +219,7 @@ def llm_query_task(
             generation_config_dict=g_conf,
             stop_words=stop_words,
             lang=rag_conf.knowledge_base.lang,
-        ):  
+        ):
             _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
             references = res.get("context")
     else:
@@ -238,7 +238,7 @@ def llm_query_task(
 
 
 @app.task()
-def generate_embeddings_task(ragconfig):
+def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     """
     Generate the embeddings for a knowledge base.
     Parameters
@@ -246,15 +246,16 @@ def generate_embeddings_task(ragconfig):
     ragconfig : int
         The primary key of the RAGConfig object.
     """
-
-    RAGConfig = apps.get_model('language_model', 'RAGConfig')
     KnowledgeItem = apps.get_model('language_model', 'KnowledgeItem')
-    rag_config = RAGConfig.objects.get(pk=ragconfig)
+    RAGConfig = apps.get_model('language_model', 'RAGConfig')
+    ki_qs = KnowledgeItem.objects.filter(pk__in=ki_ids)
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+
     model_name = rag_config.retriever_config.model_name
     batch_size = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.device
 
-    logger.info(f"Generating embeddings for knowledge base: {rag_config.knowledge_base.name}")
+    logger.info(f"Generating embeddings for {ki_qs.count()} knowledge items. Knowledge base: {rag_config.knowledge_base.name}")
     logger.info(f"Retriever model: {model_name}")
     logger.info(f"Batch size: {batch_size}")
     logger.info(f"Device: {device}")
@@ -264,8 +265,7 @@ def generate_embeddings_task(ragconfig):
         use_cpu=device == "cpu",
     )
 
-    items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
-    contents = [item.content for item in items]
+    contents = [item.content for item in ki_qs]
     embeddings = retriever.build_embeddings(contents=contents, batch_size=batch_size)
 
     # from tensor to list
@@ -278,10 +278,13 @@ def generate_embeddings_task(ragconfig):
             rag_config=rag_config,
             embedding=embedding,
         )
-        for item, embedding in zip(items, embeddings)
+        for item, embedding in zip(ki_qs, embeddings)
     ]
+
     Embedding.objects.bulk_create(new_embeddings)
     print(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
+    if recache_models:
+        llm_query_task.delay(recache_models=True)
 
 
 @app.task()
@@ -298,6 +301,9 @@ def parse_url_task(knowledge_base_id, url):
     from back.apps.language_model.scraping.scraping.spiders.generic import GenericSpider  # CI
     runner = CrawlerRunner(get_project_settings())
     runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
+    KnowledgeBase = apps.get_model('language_model', 'KnowledgeBase')
+    kb = KnowledgeBase.objects.get(pk=knowledge_base_id)
+    kb.trigger_generate_embeddings()
 
 
 @app.task()
@@ -355,3 +361,4 @@ def parse_pdf_task(pdf_file_pk):
     KnowledgeItem.objects.filter(
         knowledge_base=pdf_file_pk).delete()  # TODO: give the option to reset the knowledge_base or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
     KnowledgeItem.objects.bulk_create(new_items)
+    kb.trigger_generate_embeddings()
