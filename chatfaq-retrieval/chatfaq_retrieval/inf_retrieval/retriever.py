@@ -61,6 +61,10 @@ class Retriever:
 
         logger.info(f"Using device {self.device}")
         logger.info(f"Loading model {model_name}")
+        if embeddings is None:
+            logger.info(f"Embeddings not provided.")
+        else:
+            logger.info(f"Embeddings provided with shape {embeddings.shape}")
 
         if model_name not in self.cached_tokenizers:
             self.cached_tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name, token=huggingface_key)

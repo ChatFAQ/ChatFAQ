@@ -6,6 +6,10 @@ from back.apps.language_model.tasks import generate_embeddings_task
 from back.apps.language_model.models.data import KnowledgeItem, KnowledgeBase
 from back.common.models import ChangesMixin
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 LLM_CHOICES = (
         ('local_cpu', 'Local CPU Model'), # GGML models optimized for CPU inference
         ('local_gpu', 'Local GPU Model'), # Use locally VLLM or HuggingFace for GPU inference.
@@ -48,16 +52,23 @@ class RAGConfig(ChangesMixin):
     # When saving we want to check if the knowledge_base or the retriever_config has changed and in that case regenerate
     # all the embeddings for it.
     def save(self, *args, **kwargs):
-        changes = False
-        if self.pk is not None:
+        generate_and_load = False # flag to indicate if we need to generate the embeddings and load a new RAG
+
+        if self.pk is None: # New rag config
+            generate_and_load = True
+            logger.info(f"New RAG config {self.name} being created...")
+        else:
             old = RAGConfig.objects.get(pk=self.pk)
             if self.knowledge_base != old.knowledge_base:
-                changes = True
-            if self.retriever_config != old.retriever_config:
-                changes = True
+                generate_and_load = True
+                logger.info(f"RAG config {self.name} changed knowledge base...")
+            if self.retriever_config.model_name != old.retriever_config.model_name:
+                generate_and_load = True
+                logger.info(f"RAG config {self.name} changed retriever model...")
+                
         super().save(*args, **kwargs)
 
-        if changes:
+        if generate_and_load:
             self.trigger_generate_embeddings()
 
     def trigger_generate_embeddings(self):

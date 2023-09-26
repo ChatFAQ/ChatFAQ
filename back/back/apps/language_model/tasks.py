@@ -100,11 +100,11 @@ class RAGCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
-        logger.debug("Preloading models...")
+        logger.info("Preloading models...")
         RAGConfig = apps.get_model('language_model', 'RAGConfig')
         cache = {}
         for rag_conf in RAGConfig.objects.all():
-            logger.debug(
+            logger.info(
                 f"Loading RAG config: {rag_conf.name} "
                 f"with llm: {rag_conf.llm_config.llm_name} "
                 f"with llm type: {rag_conf.llm_config.llm_type}"
@@ -116,6 +116,8 @@ class RAGCacheOnWorkerTask(Task):
             Embedding = apps.get_model('language_model', 'Embedding')
             embeddings = Embedding.objects.filter(rag_config=rag_conf).values_list("embedding", flat=True)
             embeddings = np.array(embeddings, dtype=np.float32)
+
+            logger.info(f"Embeddings shape: {embeddings.shape}")
 
             hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
@@ -140,7 +142,7 @@ class RAGCacheOnWorkerTask(Task):
                     model_max_length=rag_conf.llm_config.model_max_length,
                 ),
             )
-            logger.debug("...model loaded.")
+            logger.info("...model loaded.")
         return cache
 
 
