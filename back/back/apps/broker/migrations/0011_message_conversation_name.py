@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("broker", "0010_delete_platformconfig_delete_customwsplatformconfig_and_more"),
     ]

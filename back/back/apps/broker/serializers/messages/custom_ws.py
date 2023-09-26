@@ -22,22 +22,19 @@ logger = getLogger(__name__)
 
 
 class ExampleWSSerializer(BotMessageSerializer):
-    stacks = serializers.ListField(
-        child=serializers.ListField(child=MessageStackSerializer())
-    )
-    transmitter = AgentSerializer()
+    stack = serializers.ListField(child=MessageStackSerializer())
+    sender = AgentSerializer()
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
-
         if not self.is_valid():
             return False
 
         s = MessageSerializer(
             data={
-                "stacks": self.data["stacks"],
-                "transmitter": self.data["transmitter"],
+                "stack": self.data["stack"],
+                "sender": self.data["sender"],
                 "send_time": int(time.time() * 1000),
-                "conversation": ctx.conversation_id,
+                "conversation": ctx.conversation.pk,
             }
         )
         if not s.is_valid():

@@ -13,10 +13,21 @@
 
 .menu-item {
     display: flex;
-    padding: 12px 8px;
+    padding: 8px 8px;
+    margin: 4px 0px;
     letter-spacing: 0.5px;
-    i {
-        margin-right: 10px;
+    border-radius: 4px;
+    *:first-child {
+        margin-right: 8px;
+        svg {
+            margin-right: 8px;
+        }
+    }
+    &:hover {
+        background-color: $chatfaq-color-menuItem-background-hover;
+        i.edit {
+            content: $chatfaq-edit-icon;
+        }
     }
 }
 </style>

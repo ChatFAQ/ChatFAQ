@@ -12,6 +12,10 @@ services:
     env_file:
       - "back/.env"
 
+  worker:
+    env_file:
+      - "back/.env"
+
   widget:
     env_file:
       - "widget/.env"

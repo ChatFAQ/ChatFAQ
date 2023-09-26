@@ -49,12 +49,11 @@ class TelegramMessageSerializer(BotMessageSerializer):
     message = TelegramPayloadSerializer()
 
     def to_mml(self, ctx: BotConsumer) -> Union[bool, "Message"]:
-
         if not self.is_valid():
             return False
         s = MessageSerializer(
             data={
-                "stacks": [
+                "stack": [
                     [
                         {
                             "type": "text",
@@ -62,13 +61,13 @@ class TelegramMessageSerializer(BotMessageSerializer):
                         }
                     ]
                 ],
-                "transmitter": {
+                "sender": {
                     "first_name": self.validated_data["message"]["from"]["first_name"],
                     "type": AgentType.human.value,
                     "platform": "Telegram",
                 },
                 "send_time": self.validated_data["message"]["date"] * 1000,
-                "conversation": self.validated_data["message"]["chat"]["id"],
+                "conversation": ctx.conversation.pk,
             }
         )
         if not s.is_valid():
@@ -77,14 +76,13 @@ class TelegramMessageSerializer(BotMessageSerializer):
 
     @staticmethod
     def to_platform(mml: "Message", ctx: BotConsumer):
-        for stack in mml.stacks:
-            for layer in stack:
-                if layer.get("type") == "text":
-                    data = {
-                        "chat_id": ctx.conversation_id,
-                        "text": layer["payload"],
-                        "parse_mode": "Markdown",
-                    }
-                    yield data
-                else:
-                    logger.warning(f"Layer not supported: {layer}")
+        for layer in mml.stack:
+            if layer.get("type") == "text":
+                data = {
+                    "chat_id": ctx.conversation.platform_conversation_id,
+                    "text": layer["payload"],
+                    "parse_mode": "Markdown",
+                }
+                yield data
+            else:
+                logger.warning(f"Layer not supported: {layer}")

@@ -1,17 +1,20 @@
+import uuid
+
 import json
 from logging import getLogger
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from back.apps.broker.consumers.message_types import RPCMessageType
+from back.apps.broker.consumers.message_types import RPCMessageType, RPCNodeType
 from back.apps.broker.serializers.rpc import (
     RPCFSMDefSerializer,
     RPCResponseSerializer,
     RPCResultSerializer,
 )
 from back.apps.fsm.models import FSMDefinition
+from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.fsm.serializers import FSMSerializer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
 from back.utils import WSStatusCodes
@@ -31,19 +34,16 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fsm_id = None
-
-    @staticmethod
-    def create_group_name(fsm_id):
-        return f"rpc_{fsm_id}"
+        self.uuid = str(uuid.uuid4())
 
     def get_group_name(self):
-        return self.create_group_name(self.fsm_id)
+        return f"rpc_{self.fsm_id}_{self.uuid}"
 
     async def is_auth(self, scope):
         return (
             self.scope.get("user")
             and not isinstance(self.scope["user"], AnonymousUser)
-            and await sync_to_async(
+            and await database_sync_to_async(
                 self.scope["user"].groups.filter(name="RPC").exists
             )()
         )
@@ -54,7 +54,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             return
 
         fsm_id_or_name = self.scope["url_route"]["kwargs"].get("fsm_id")
-        fsm = await sync_to_async(FSMDefinition.get_by_id_or_name)(fsm_id_or_name)
+        fsm = await database_sync_to_async(FSMDefinition.get_by_id_or_name)(fsm_id_or_name)
         if fsm is None:
             logger.debug(
                 "New RPC WS Connection without fsm_id, the fsm definition will have to be declared later on "
@@ -65,7 +65,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
                 f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by ID/name"
             )
             self.fsm_id = fsm.pk
-            await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
+            await self.channel_layer.group_add(self.get_group_name(), self.channel_name, rr_group_key=fsm.pk)
         await self.accept()
         if fsm is None and fsm_id_or_name is not None:
             await self.error_response(
@@ -83,6 +83,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         logger.debug(f"Disconnecting from RPC consumer")
         # Leave room group
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
+        await database_sync_to_async(ConsumerRoundRobinQueue.remove)(self.get_group_name())  # Remove from round robin queue
 
     async def receive_json(self, content, **kwargs):
         serializer = RPCResponseSerializer(data=content)
@@ -110,7 +111,7 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(
                 self.get_group_name(), self.channel_name
             )
-        fsm, created, errors = await sync_to_async(
+        fsm, created, errors = await database_sync_to_async(
             FSMDefinition.get_or_create_from_definition
         )(data["name"], data["definition"])
         if errors:
@@ -129,6 +130,9 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
                 f"Setting existing FSM Definition ({fsm.name} ({fsm.pk})) by provided definition"
             )
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
+        await database_sync_to_async(ConsumerRoundRobinQueue.add)(
+            self.get_group_name(), self.fsm_id
+        )  # Add to round robin queue
 
     async def manage_rpc_result(self, data):
         serializer = RPCResultSerializer(data=data)
@@ -136,15 +140,16 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
         if not serializer.is_valid():
             await self.error_response({"payload": serializer.errors})
             return
-        data = serializer.validated_data
         res = {
             "type": "rpc_response",
             "status": WSStatusCodes.ok.value,
-            "payload": data["payload"],
+            **serializer.validated_data,
         }
-        conversation_id = data["ctx"]["conversation_id"]
+        if serializer.validated_data["node_type"] == RPCNodeType.action.value:
+            mml = await database_sync_to_async(serializer.save_as_mml)()
+            res["mml_id"] = mml.pk
         await self.channel_layer.group_send(
-            WSBotConsumer.create_group_name(conversation_id), res
+            WSBotConsumer.create_group_name(serializer.validated_data["ctx"]["conversation_id"]), res
         )
 
     async def rpc_call(self, data: dict):

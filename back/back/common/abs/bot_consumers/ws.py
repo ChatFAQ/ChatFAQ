@@ -2,9 +2,10 @@ import json
 from logging import getLogger
 from typing import TYPE_CHECKING
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
+from back.apps.fsm.models import CachedFSM
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -23,24 +24,30 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
 
     async def connect(self):
-        self.set_conversation_id(self.gather_conversation_id())
+        await self.set_conversation(self.gather_conversation_id())
         self.set_fsm_def(await self.gather_fsm_def())
         self.set_user_id(await self.gather_user_id())
 
         # TODO: Support cached FSM ???
-        self.fsm = self.fsm_def.build_fsm(self)
-
+        self.fsm = await database_sync_to_async(CachedFSM.build_fsm)(self)
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
         await self.accept()
-        await self.fsm.start()
-        logger.debug(
-            f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
-        )
+        if self.fsm:
+            logger.debug(
+                f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await database_sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
+            )
+            # await self.fsm.next_state()
+        else:
+            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self)
+            await self.fsm.start()
+            logger.debug(
+                f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
+            )
 
     async def receive_json(self, content, **kwargs):
         serializer = self.serializer_class(data=content)
-        mml = await sync_to_async(serializer.to_mml)(self)
+        mml = await database_sync_to_async(serializer.to_mml)(self)
         if not mml:
             await self.channel_layer.group_send(
                 self.get_group_name(),
@@ -51,7 +58,19 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
                 },
             )
             return
-
+        """
+        if not self.fsm.rpc_result_future.done():
+            # TODO: Is this possible on the http consumer?
+            await self.channel_layer.group_send(
+                self.get_group_name(),
+                {
+                    "type": "response",
+                    "status": WSStatusCodes.bad_request.value,
+                    "payload": "Wait for the previous menssage to be processed",
+                },
+            )
+            return
+        """
         # It seems like django does not support transactions on async code
         # The commented code seems right but it is not: it blocks the save()
         # methods inside from the RPCResponseConsumer
@@ -59,7 +78,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         # def _aux(_serializer):
         #     _serializer.save()
         #     async_to_sync(self.fsm.next_state)()
-        # await sync_to_async(_aux)(serializer)
+        # await database_sync_to_async(_aux)(serializer)
 
         await self.fsm.next_state()
 

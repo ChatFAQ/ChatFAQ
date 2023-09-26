@@ -1,5 +1,4 @@
-import itertools
-
+from logging import getLogger
 from enum import Enum
 
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -7,6 +6,9 @@ from django.db import models
 from django.db.models import Q
 
 from back.common.models import ChangesMixin
+
+
+logger = getLogger(__name__)
 
 
 class Satisfaction(Enum):
@@ -22,10 +24,69 @@ class AgentType(Enum):
 
 class StackPayloadType(Enum):
     text = "text"
+    lm_generated_text = "lm_generated_text"
     html = "html"
     image = "image"
     satisfaction = "satisfaction"
     quick_replies = "quick_replies"
+
+
+class Conversation(ChangesMixin):
+    """
+    Table that holds the conversation information, all messages that belong to the same conversation will have the same conversation_id
+    """
+
+    platform_conversation_id = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+
+    def get_first_msg(self):
+        return Message.objects.filter(
+            prev__isnull=True,
+            conversation=self,
+        ).first()
+
+    def get_mml_chain(self):
+        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+
+        first_message = self.get_first_msg()
+
+        if not first_message:
+            return []
+        return [MessageSerializer(m).data for m in first_message.get_chain()]
+
+    def get_last_mml(self):
+        return (
+            Message.objects.filter(conversation=self).order_by("-created_date").first()
+        )
+
+    @classmethod
+    def conversations_from_sender(cls, sender_id):
+        conversations = (
+            cls.objects.values("pk", "platform_conversation_id", "name", "created_date")
+            .filter(
+                Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
+            )
+            .distinct()
+            .order_by("-created_date")
+        )
+
+        return list(conversations.all())
+
+    def conversation_to_text(self):
+        text = ""
+        first_message = self.get_first_msg()
+        msgs = first_message.get_chain()
+
+        for msg in msgs:
+            text = f"{text}{msg.to_text()}\n"
+
+        return text
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.name:
+            self.name = self.created_date.strftime("%Y-%m-%d_%H-%M-%S")
+            super().save(update_fields=["name"])
 
 
 class Message(ChangesMixin):
@@ -37,7 +98,7 @@ class Message(ChangesMixin):
     prev: str
         The id of the previous MML, typically to which this one answers. Thanks to this we can reconstruct the whole
          conversation in order.
-    transmitter: JSONField
+    sender: JSONField
         The type of agent (human/bot) that generated this message.
         * first_name str:
             The first name of the sending agent
@@ -46,7 +107,7 @@ class Message(ChangesMixin):
         * type str:
             Its type: bot or human
     receiver: JSONField
-        The agent to which this message is intended. Is this property ****required? Could it be the transmitter is
+        The agent to which this message is intended. Is this property ****required? Could it be the sender is
         entirely unknown to whom is communicating?
     conversation: str
         A unique identifier that groups all the messages sent within the same conversation.
@@ -60,12 +121,12 @@ class Message(ChangesMixin):
     send_time: str
         The moment at which this message was sent.
     confidence: float
-        How certain the bot is about its answer (required when transmitter = bot)
+        How certain the bot is about its answer (required when sender = bot)
     threshold: float
-        The minimal confidence the user would accept from the bot (required when transmitter = human)
+        The minimal confidence the user would accept from the bot (required when sender = human)
     meta: JSONField
         any extra info out of the bot domain the agen considers to put in
-    stacks: list
+    stack: list
         contains the payload of the message itself.
         * text str:
             Plain text
@@ -85,13 +146,16 @@ class Message(ChangesMixin):
             In case the response is an indexed item on a database (as such the answer of a FAQ)
         * satisfaction str:
             For the user to express its satisfaction to the given bot’s answer
+    stack_id: str
+        The id of the stack to which this message belongs to. This is used to group stacks
+    last: bool
+        Whether this message is the last one of the stack_id
     """
 
-    prev = models.ForeignKey("self", null=True, unique=True, on_delete=models.SET_NULL)
-    transmitter = models.JSONField()
+    conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
+    prev = models.OneToOneField("self", null=True, on_delete=models.SET_NULL)
+    sender = models.JSONField()
     receiver = models.JSONField(null=True)
-    conversation = models.CharField(max_length=255)
-    conversation_name = models.CharField(max_length=255, null=True)
     send_time = models.DateTimeField()
     confidence = models.FloatField(
         null=True,
@@ -102,84 +166,58 @@ class Message(ChangesMixin):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     meta = models.JSONField(null=True)
-    stacks = models.JSONField(null=True)
+    stack = models.JSONField(null=True)
+    stack_id = models.CharField(max_length=255, null=True)
+    last = models.BooleanField(default=False)
 
     def cycle_fsm(self):
         pass
 
-    def get_chain(self, chain=None):
-        chain = chain if chain else []
-        # chain.append(MessageSerializer(self).data)
-        chain.append(self)
-        _next = Message.objects.filter(prev=self).first()
-        if _next:
-            return _next.get_chain(chain)
+    def get_chain(self):
+        next_msg = self
+        chain = []
+        while next_msg:
+            chain.append(next_msg)
+            next_msg = Message.objects.filter(prev=next_msg).first()
         return chain
 
     def to_text(self):
-        stacks_text = '\n'.join([s["payload"] for s in itertools.chain(*self.stacks)])
-        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.transmitter['type']}: {stacks_text}"
+        stack_text = ""
+        for layer in self.stack:
+            if layer["type"] == StackPayloadType.text.value:
+                stack_text += layer["payload"] + "\n"
+            elif layer["type"] == StackPayloadType.lm_generated_text.value:
+                if layer["payload"]["model_response"]:
+                    stack_text += layer["payload"]["model_response"]
+            else:
+                logger.error(f"Unknown stack payload type to export as csv: {layer['type']}")
 
-    @classmethod
-    def get_first_msg(cls, conversation_id):
-        return cls.objects.filter(
-            prev__isnull=True,
-            conversation=conversation_id,
-        ).first()
-
-    @classmethod
-    def get_mml_chain(cls, conversation_id):
-        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
-
-        first_message = cls.get_first_msg(conversation_id)
-
-        if not first_message:
-            return []
-        return [MessageSerializer(m).data for m in first_message.get_chain()]
-
-    @classmethod
-    def delete_conversation(cls, conversation_id):
-        return cls.objects.filter(
-            conversation=conversation_id,
-        ).delete()
-
-    @classmethod
-    def delete_conversations(cls, conversation_ids):
-        return cls.objects.filter(
-            conversation__in=conversation_ids,
-        ).delete()
-
-    @classmethod
-    def conversations_info(cls, transmitter__id):
-        conversations = (
-            cls.objects.filter(Q(transmitter__identifier=transmitter__id) | Q(receiver__identifier=transmitter__id))
-            .values("conversation")
-            .distinct()
-            .all()
-        )
-
-        first_messages = cls.objects.values_list("conversation", "created_date").filter(
-            prev__isnull=True,
-            conversation__in=conversations,
-        ).order_by("-created_date")
-
-        return list(first_messages.all())
-
-    @classmethod
-    def conversation_to_text(cls, conversation_id):
-        text = ""
-        first_message = cls.get_first_msg(conversation_id)
-        msgs = first_message.get_chain()
-
-        for msg in msgs:
-            text = f"{text}{msg.to_text()}\n"
-
-        return text
-
-    @classmethod
-    def get_last_mml(cls, conversation_id):
-        return cls.objects.filter(conversation=conversation_id).order_by("-created_date").first()
+        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stack_text}"
 
     def save(self, *args, **kwargs):
-        self.prev = Message.get_last_mml(self.conversation)
+        self.prev = self.conversation.get_last_mml()
         super(Message, self).save(*args, **kwargs)
+
+
+class UserFeedback(ChangesMixin):
+    VALUE_CHOICES = (
+        ("positive", "Positive"),
+        ("negative", "Negative"),
+    )
+    message = models.OneToOneField(
+        Message, null=True, unique=True, on_delete=models.SET_NULL
+    )
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
+    feedback = models.TextField(null=True, blank=True)
+
+
+class AdminReview(ChangesMixin):
+    VALUE_CHOICES = (
+        ("positive", "Positive"),
+        ("negative", "Negative"),
+    )
+    message = models.OneToOneField(
+        Message, null=True, unique=True, on_delete=models.SET_NULL
+    )
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
+    review = models.TextField()

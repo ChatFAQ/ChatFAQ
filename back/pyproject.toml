@@ -11,29 +11,50 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "~3.10"
-modelw-preset-django = {extras = ["channels"], version = "~2022.10.0b8", allow-prereleases = true}
+modelw-preset-django = {version = "~2023.4.0b2", extras = ["channels", "celery"], allow-prereleases = true}
 drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
-channels = "^4.0.0"
-daphne = "^4.0.0"
-Django = "^4.1.4"
+channels = "*"
+daphne = "*"
+Django = "*"
 django-cors-headers = "^3.13.0"
 django-extensions = "^3.2.1"
 django-better-admin-arrayfield = "^1.4.2"
 typefit = "^0.4.2"
 requests = "^2.28.1"
 python-json-logger = "^2.0.4"
-psycopg2 = "^2.9.5"
-whitenoise = "^6.2.0"
+psycopg2 = "*"
+whitenoise = "*"
 python-dotenv = "^0.21.0"
 httpx = "^0.23.3"
 channels-postgres = "^0.0.5"
-sphinx = "<6"
 myst-parser = "^0.18.1"
+django-rest-knox = "^4.2.0"
+pgvector = "^0.1.7"
+django-filter = "^23.2"
+django-storages = "*"
+sqlalchemy = "^2.0.16"
+chatfaq-retrieval = {version = "0.1.24", source = "test"}
+gevent = "^22.10.2"
+torch = [
+    { version = "^2.0.1", source = "torch" },
+]
+boto3 = "^1.26.161"
+djfernet = "^0.8.1"
+openai = "^0.27.8"
+scrapy = "^2.10.0"
+scrapy-playwright = "^0.0.28"
+undetected-playwright = "^0.1.0"
+django-simple-history = "~3.3.0"
+crochet = "^2.1.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
 ipython = "*"
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "<6"
+
 
 [tool.isort]
 profile = "black"
@@ -42,3 +63,13 @@ known_first_party = "back"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+priority = "explicit"
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"

@@ -22,16 +22,14 @@ const store = useGlobalStore()
 
 async function downloadHistory() {
     let filename = '';
+    const ids = store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
     fetch(
-        store.chatfaqAPI + `/back/api/broker/conversations-download`,
+        store.chatfaqAPI + `/back/api/broker/conversations/${ids}/download/`,
         {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                ids: store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
-            })
         }
     ).then(res => {
         const header = res.headers.get('Content-Disposition');

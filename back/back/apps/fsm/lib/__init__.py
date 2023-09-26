@@ -1,12 +1,14 @@
 import asyncio
-import time
 from logging import getLogger
 from typing import List, NamedTuple, Text, Union
 
-from asgiref.sync import sync_to_async
+from back.apps.broker.consumers.message_types import RPCNodeType
+from back.apps.broker.models import ConsumerRoundRobinQueue
+
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
-from back.apps.broker.models.message import AgentType
+from back.apps.broker.models.message import Message
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -129,11 +131,10 @@ class FSM:
         """
         if transition_data is None:
             transition_data = {}
-        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
-
-        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
 
         for event_name in self.current_state.events:
+            group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
+
             data = {
                 "type": "rpc_call",
                 "status": WSStatusCodes.ok.value,
@@ -145,15 +146,23 @@ class FSM:
                     },
                 },
             }
-            await self.channel_layer.group_send(group_name, data)
-            self.rpc_result_future = asyncio.get_event_loop().create_future()
-            logger.debug(f"Waiting for RCP call {event_name}...")
-            stacks = await self.rpc_result_future
-            logger.debug(f"...Receive RCP call {event_name}")
-            await self.ctx.send_response(await self.save_bot_mml(stacks))
+            try:
+                await self.channel_layer.group_send(group_name, data)
+            except Exception as e:
+                logger.error(f"Error while sending to RPC group {group_name}: {data}")
+                raise e
+
+    async def manage_rpc_response(self, data):
+        """
+        It will be called by the RPC Consumer when it receives a response from the RPC worker
+        """
+        if data["node_type"] == RPCNodeType.action.value:
+            mml = await database_sync_to_async(Message.objects.get)(pk=data["mml_id"])
+            await self.ctx.send_response(mml)
+        else:
+            self.rpc_result_future.set_result(data)
 
     def get_initial_state(self):
-
         for state in self.states:
             if state.initial:
                 return state
@@ -205,9 +214,8 @@ class FSM:
             The first float indicates the score, the returning dictionary is the result of the RPC
 
         """
-        from back.apps.broker.consumers.rpc_consumer import RPCConsumer  # TODO: fix CI
+        group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
-        group_name = RPCConsumer.create_group_name(self.ctx.fsm_def.pk)
         data = {
             "type": "rpc_call",
             "status": WSStatusCodes.ok.value,
@@ -215,36 +223,12 @@ class FSM:
         }
         await self.channel_layer.group_send(group_name, data)
         self.rpc_result_future = asyncio.get_event_loop().create_future()
-        logger.debug(f"Waiting for RCP call {condition_name}...")
+        logger.debug(f"Waiting for RCP call {condition_name} (condition)...")
         payload = await self.rpc_result_future
-        logger.debug(f"...Receive RCP call {condition_name}")
-        return payload["score"], payload["data"]
+        logger.debug(f"...Receive RCP call {condition_name} (condition)")
+        return payload["stack"]["score"], payload["stack"]["data"]
 
     async def save_cache(self):
         from back.apps.fsm.models import CachedFSM  # TODO: Resolve CI
 
-        await sync_to_async(CachedFSM.update_or_create)(self)
-
-    async def save_bot_mml(self, stacks):
-        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
-
-        data = {
-            "transmitter": {
-                "type": AgentType.bot.value,
-            },
-            "confidence": 1,
-            "stacks": stacks,
-            "conversation": self.ctx.conversation_id,
-            "send_time": int(time.time() * 1000),
-        }
-        if self.ctx.user_id is not None:
-            data["receiver"] = {
-                "type": AgentType.human.value,
-                "identifier": self.ctx.user_id
-            }
-        serializer = MessageSerializer(data=data)
-
-        await sync_to_async(serializer.is_valid)()
-        if serializer.errors:
-            logger.error(serializer.errors)
-        return await sync_to_async(serializer.save)()
+        await database_sync_to_async(CachedFSM.update_or_create)(self)

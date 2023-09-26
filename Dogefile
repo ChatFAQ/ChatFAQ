@@ -1,13 +1,18 @@
 ---
 name: ChatFAQ
 
+# for now, we share the database cluster between envs
 databases:
   - name: psql
-    cluster_name: "chatfaq-psql-dev"
+    cluster_name: 'chatfaq-psql-{{ production("dev", default="dev") }}'
     db_name: "{{ deployment_key }}"
     db_user: "{{ deployment_key }}"
     engine: pg
     version: "15"
+  - name: redis
+    cluster_name: 'chatfaq-redis-{{ production("dev", default="dev") }}'
+    engine: redis
+    version: "7"
 
 env:
   - name: sentry
@@ -20,6 +25,15 @@ env:
       SENTRY_ENVIRONMENT: "{{ back.component_key }}"
       ENVIRONMENT: "{{ deployment_key }}"
       DATABASE_URL: "{{ psql.DATABASE_URL }}"
+      AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
+      AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
+      AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
+      DO_REGION: 'ams3'
+      STORAGES_MODE: do
+      STORAGE_MAKE_FILES_PUBLIC: no
+      OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
+      HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
+      REDIS_URL: '{{ redis.REDIS_URL }}'
   - name: widget
     variables:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
@@ -29,8 +43,7 @@ env:
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-      CHATFAQ_BACKEND_EMAIL: '{{ secret("CHATFAQ_BACKEND_EMAIL") }}'
-      CHATFAQ_BACKEND_PASSWORD: '{{ secret("CHATFAQ_BACKEND_PASSWORD") }}'
+      CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
 images:
   - name: widget
@@ -49,16 +62,21 @@ services:
   - name: back
     image: back
     envs: [ sentry, django ]
-    instance_size: XXS
+    instance_size: XS
     port: 8000
     route_prefixes:
       - "/back"
 
 workers:
-  - name: fsm_example
+  - name: fsm_llm
     image: sdk
     envs: [ sentry, sdk ]
-    instance_size: XXS
+    instance_size: XS
+  - name: celery_worker
+    image: back
+    envs: [ sentry, django ]
+    instance_size: M
+    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads
 
 jobs:
   - name: migrate

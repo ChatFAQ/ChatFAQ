@@ -74,8 +74,7 @@ class BotMessageSerializer(serializers.Serializer):
 
 
 class AgentSerializer(serializers.Serializer):
-
-    identifier = serializers.CharField(required=False, max_length=255)
+    id = serializers.CharField(required=False, max_length=255)
     first_name = serializers.CharField(required=False, max_length=255)
     last_name = serializers.CharField(required=False, max_length=255)
     type = serializers.ChoiceField(choices=[n.value for n in AgentType])
@@ -99,6 +98,21 @@ class QuickReplySerializer(serializers.Serializer):
 
 class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
+
+
+class Reference(serializers.Serializer):
+    url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
+class LMGeneratedTextPayload(serializers.Serializer):
+    class _LMGeneratedTextPayload(serializers.Serializer):
+        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
+        rag_config_name = serializers.CharField()
+        references = Reference(many=True, required=False, allow_null=True)
+        lm_msg_id = serializers.CharField()
+
+    payload = _LMGeneratedTextPayload()
 
 
 class HTMLPayload(serializers.Serializer):
@@ -135,6 +149,7 @@ class QuickRepliesPayload(serializers.Serializer):
         resource_type_field_name="payload",
         serializers={
             "TextPayload": TextPayload,
+            "LMGeneratedTextPayload": LMGeneratedTextPayload,
             "HTMLPayload": HTMLPayload,
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,
@@ -151,8 +166,6 @@ class Payload(serializers.Field):
 
 
 class MessageStackSerializer(serializers.Serializer):
-    # TODO: Implement the corresponding validations over the 'payload' depending on the 'type'
-
     type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType])
     payload = Payload()
     id = serializers.CharField(required=False, max_length=255)
@@ -161,6 +174,8 @@ class MessageStackSerializer(serializers.Serializer):
     def validate(self, data):
         if data.get("type") == StackPayloadType.text.value:
             s = TextPayload(data=data)
+        elif data.get("type") == StackPayloadType.lm_generated_text.value:
+            s = LMGeneratedTextPayload(data=data)
         elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
         elif data.get("type") == StackPayloadType.image.value:
@@ -170,6 +185,8 @@ class MessageStackSerializer(serializers.Serializer):
         elif data.get("type") == StackPayloadType.quick_replies.value:
             s = QuickRepliesPayload(data=data)
         else:
+            # TODO: support any other structure? just mark it as a JSONField and let the user handle it in the FE?
+            #  letting the database record the payload as unknow structure?
             raise serializers.ValidationError(f'type not supported {data.get("type")}')
         s.is_valid(raise_exception=True)
         data["payload"] = s.validated_data["payload"]
@@ -177,10 +194,10 @@ class MessageStackSerializer(serializers.Serializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    stacks = serializers.ListField(
-        child=serializers.ListField(child=MessageStackSerializer())
-    )
-    transmitter = AgentSerializer()
+    stack = serializers.ListField(child=MessageStackSerializer())
+    stack_id = serializers.CharField(required=False, max_length=255)
+    last = serializers.BooleanField(default=False)
+    sender = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()
 

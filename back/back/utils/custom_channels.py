@@ -16,29 +16,39 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
     tasks of the same consumer get executed in parallel.
     """
     # Start them all off as tasks
-    loop = asyncio.get_event_loop()
     tasks = [
-        loop.create_task(consumer_callable())
+        asyncio.ensure_future(consumer_callable())
         for consumer_callable in consumer_callables
     ]
-    dispatched = []
+    dispatch_tasks = []
     try:
         while True:
             # Wait for any of them to complete
-            await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-            # Find the completed one(s), yield results, and replace them
-            for i, task in enumerate(tasks):
+            await asyncio.wait(tasks + dispatch_tasks, return_when=asyncio.FIRST_COMPLETED)
+            dispatch_tasks_to_remove = []
+            # Find the completed one(s), create dispatch_tasks with results, and replace them
+            for i, task in enumerate(tasks + dispatch_tasks):
                 if task.done():
-                    result = task.result()
-                    dispatched.append(loop.create_task(dispatch(result)))
-                    tasks[i] = asyncio.ensure_future(consumer_callables[i]())
+                    if task in dispatch_tasks:
+                        dispatch_tasks_to_remove.append(task)
+                    else:
+                        result = task.result()
+                        dispatch_tasks.append(asyncio.create_task(dispatch(result)))
+                        tasks[i] = asyncio.ensure_future(consumer_callables[i]())
+            for task in dispatch_tasks_to_remove:
+                if task.exception():
+                    raise task.exception()
+                dispatch_tasks.remove(task)
     finally:
         # Make sure we clean up tasks on exit
-        for task in (*tasks, *dispatched):
+        for task in (*tasks, *dispatch_tasks):
             task.cancel()
             try:
                 await task
             except asyncio.CancelledError:
+                pass
+            except asyncio.TimeoutError:
+                print(f"timeout canceling task: {task}")
                 pass
 
 

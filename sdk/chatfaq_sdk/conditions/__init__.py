@@ -1,4 +1,4 @@
-class Result:
+class Condition:
     """
     Instances of this class should be always returned by the conditions of the FSM's transitions
     """
@@ -20,5 +20,5 @@ class Result:
         self.score = score
         self.data = data
 
-    def to_json(self):
-        return {"score": self.score, "data": self.data}
+    async def result(self, *args):
+        yield [{"score": self.score, "data": self.data}, True]

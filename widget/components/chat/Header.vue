@@ -7,7 +7,7 @@
             <div class="title"> {{ store.title }}</div>
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
-        <div class="maximizer" @click="store.maximized = !store.maximized">
+        <div class="maximizer" @click="store.maximized = !store.maximized; store.scrollToBottom += 1">
             <i :class="{'maximized': store.maximized}" />
         </div>
         <div class="minimizer" @click="store.opened = false">
@@ -29,8 +29,8 @@ $phone-breakpoint: 600px;
 
 .widget-wrapper-header {
     display: flex;
-    background: $chatfaq-color-gradient-purple;
-    color: $chatfaq-color-neutral-white !important;
+    background: $chatfaq-color-menu-background;
+    color: $chatfaq-color-menu-text !important;
     /*
     .menu {
         margin: 0px;
@@ -52,21 +52,27 @@ $phone-breakpoint: 600px;
             display: flex;
             width: 40px;
             border-radius: 32px;
+            border: 1px solid $chatfaq-color-menu-border;
 
             &:hover {
-                background: $chatfaq-color-primary-900;
+                background: $chatfaq-color-menuItem-background-hover;
             }
 
             i {
-                width: 32px;
+                width: 24px;
                 margin: auto;
             }
         }
         &.maximizer {
+            border: 1px solid $chatfaq-color-menu-border;
             i {
                 content: $chatfaq-maximize-icon;
                 &.maximized {
-                    content: $chatfaq-minimize-icon;
+                    width: 20px;
+                    @media only screen and (min-width: $phone-breakpoint) {
+                        content: $chatfaq-minimize-icon;
+                        width: 24px;
+                    }
                 }
             }
             @media only screen and (max-width: $phone-breakpoint) {
@@ -79,7 +85,7 @@ $phone-breakpoint: 600px;
                 content: $chatfaq-arrow-down-icon;
             }
             @media only screen and (max-width: $phone-breakpoint) {
-                display: unset;
+                display: flex;
             }
         }
 
@@ -91,14 +97,19 @@ $phone-breakpoint: 600px;
             border-radius: 32px;
             width: 40px;
             display: flex;
+            border: 1px solid $chatfaq-color-menu-border;
 
             &:hover {
-                background: $chatfaq-color-primary-900;
+                background: $chatfaq-color-menuItem-background-hover;
+                i {
+                    width: 20px;
+                    margin: auto;
+                }
             }
             i {
                 width: 20px;
                 margin: auto;
-                content: $chatfaq-hamburguer-icon;
+                content: $chatfaq-burger-menu-icon;
                 &.opened {
                     content: $chatfaq-double-arrow-right-icon;
                 }

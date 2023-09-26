@@ -1,6 +1,8 @@
 from django.contrib.auth import authenticate, login, logout
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
+from knox.views import LoginView as KnoxLoginView
 from rest_framework import permissions, viewsets
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -80,3 +82,7 @@ class MeViewSet(viewsets.GenericViewSet):
             logout(request)
 
         return self.list(request)  # noqa
+
+
+class LoginView(KnoxLoginView):
+    authentication_classes = [BasicAuthentication]

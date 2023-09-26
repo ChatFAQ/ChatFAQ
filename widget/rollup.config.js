@@ -132,6 +132,7 @@ if (!argv.format || argv.format === "es") {
             file: "dist/widget.esm.js",
             format: "esm",
             exports: "named",
+            sourcemap: false
         },
         plugins: [
             replace(baseConfig.plugins.replace),
@@ -150,6 +151,11 @@ if (!argv.format || argv.format === "es") {
                     ],
                 ],
             }),
+            terser({
+                output: {
+                    ecma: 5,
+                },
+            }),
         ],
     };
     buildFormats.push(esConfig);
@@ -165,6 +171,7 @@ if (!argv.format || argv.format === "cjs") {
             format: "cjs",
             name: "Widget",
             exports: "auto",
+            sourcemap: false,
             globals,
         },
         plugins: [
@@ -173,6 +180,11 @@ if (!argv.format || argv.format === "cjs") {
             vue(baseConfig.plugins.vue),
             ...baseConfig.plugins.postVue,
             babel(baseConfig.plugins.babel),
+            terser({
+                output: {
+                    ecma: 5,
+                },
+            }),
         ],
     };
     buildFormats.push(umdConfig);
@@ -188,6 +200,7 @@ if (!argv.format || argv.format === "iife") {
             format: "iife",
             name: "Widget",
             exports: "auto",
+            sourcemap: false,
             globals,
         },
         plugins: [

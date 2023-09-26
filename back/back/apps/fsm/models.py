@@ -39,7 +39,7 @@ class FSMDefinition(ChangesMixin):
         cls, name, definition
     ) -> Tuple[Union[FSMDefinition, None], bool, str]:
         for item in cls.objects.all():
-            if item.definition == definition:
+            if item.definition == definition and item.name == name:
                 return item, False, ""
         if cls.objects.filter(name=name).first():
             return (
@@ -69,18 +69,18 @@ class FSMDefinition(ChangesMixin):
 
 
 class CachedFSM(ChangesMixin):
-    conversation_id = models.CharField(unique=True, max_length=255)
+    conversation = models.ForeignKey("broker.Conversation", on_delete=models.CASCADE)
     current_state = models.JSONField(default=dict)
     fsm_def: FSMDefinition = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
 
     @classmethod
     def update_or_create(cls, fsm: FSM):
-        instance = cls.objects.filter(conversation_id=fsm.ctx.conversation_id).first()
+        instance = cls.objects.filter(conversation=fsm.ctx.conversation).first()
         if instance:
             instance.current_state = fsm.current_state._asdict()
         else:
             instance = cls(
-                conversation_id=fsm.ctx.conversation_id,
+                conversation=fsm.ctx.conversation,
                 current_state=fsm.current_state._asdict(),
                 fsm_def=fsm.ctx.fsm_def,
             )
@@ -88,9 +88,7 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def build_fsm(cls, ctx: BotConsumer) -> FSM:
-        instance: CachedFSM = cls.objects.filter(
-            conversation_id=ctx.conversation_id
-        ).first()
+        instance: CachedFSM = cls.objects.filter(conversation=ctx.conversation).first()
         if instance:
             return instance.fsm_def.build_fsm(
                 ctx, typefit(State, instance.current_state)
@@ -100,6 +98,6 @@ class CachedFSM(ChangesMixin):
 
     @classmethod
     def get_conv_updated_date(cls, ctx: BotConsumer):
-        instance = cls.objects.filter(conversation_id=ctx.conversation_id).first()
+        instance = cls.objects.filter(conversation=ctx.conversation).first()
         if instance:
             instance.updated_date.strftime(TIMESTAMP_FORMAT)

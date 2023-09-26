@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("broker", "0005_rename_platformbot_platformconfig"),
     ]

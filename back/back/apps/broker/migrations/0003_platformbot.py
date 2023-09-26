@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("fsm", "0001_initial"),
         ("broker", "0002_remove_message_payload_message_stacks"),

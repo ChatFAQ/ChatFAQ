@@ -8,5 +8,17 @@
     "newconversation": "New conversation",
     "clearhistory": "Clear history",
     "deleteselected": "Delete selected",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "additionalfeedback": "Please provide additional feedback",
+    "whatwastheissue": "What was the issue with this response?",
+    "whatdidyoulike": "What do you like about the response?",
+    "submitfeedback": "Submit feedback",
+    "feedbacksent" : "Feedback sent succesfully!",
+    "reason1": "This is harmful/unsafe",
+    "reason2": "This is not true",
+    "reason3": "This is not helpful",
+    "summarygeneratedfrom": "Summary generated from:",
+    "sources": "sources",
+    "source": "source",
+    "connectingtoserver": "Connecting to server..."
 }
