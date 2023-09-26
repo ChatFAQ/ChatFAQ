@@ -72,6 +72,7 @@ class RAGConfig(ChangesMixin):
             self.trigger_generate_embeddings()
 
     def trigger_generate_embeddings(self):
+        logger.info('Triggering generate embeddings task')
         generate_embeddings_task.delay(
             list(KnowledgeItem.objects.filter(knowledge_base=self.knowledge_base).values_list("pk", flat=True)),
             self.pk,
