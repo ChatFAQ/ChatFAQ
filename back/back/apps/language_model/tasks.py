@@ -170,8 +170,10 @@ def llm_query_task(
     input_text=None,
     conversation_id=None,
     bot_channel_name=None,
-    recache_models=False
+    recache_models=False,
+    log_caller='None'
 ):
+    logger.info(f"Log caller: {log_caller}")
     if recache_models:
         self.CACHED_RAGS = self.preload_models()
         return
@@ -286,7 +288,7 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     Embedding.objects.bulk_create(new_embeddings)
     print(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
-        llm_query_task.delay(recache_models=True)
+        llm_query_task.delay(recache_models=True, log_caller="generate_embeddings_task")
 
 
 @app.task()
