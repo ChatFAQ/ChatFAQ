@@ -53,8 +53,9 @@ class Retriever:
             # some examples of data:
             # print the first and last 5 elements of each column
             for col in data:
-                logger.info(f"First 5 elements of column {col}: {data[col][:5]}")
-                logger.info(f"Last 5 elements of column {col}: {data[col][-5:]}")
+                if col != 'content':
+                    logger.info(f"First 5 elements of column {col}: {data[col][:5]}")
+                    logger.info(f"Last 5 elements of column {col}: {data[col][-5:]}")
 
         self.embeddings = torch.from_numpy(embeddings) if embeddings is not None else None
         self.device = 'cuda' if (not use_cpu and torch.cuda.is_available()) else 'cpu'
