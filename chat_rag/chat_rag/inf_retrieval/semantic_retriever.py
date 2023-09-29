@@ -70,49 +70,9 @@ class SemanticRetriever:
 
         return self.embeddings
 
-
-    def get_top_matches(self, query: str, top_k: int = 5, disable_progess_bar: bool = True, prefix: str = 'query: ', threshold: float = None) -> List[Tuple[float, int]]:
+    def get_top_matches(self, queries: List[str], top_k: int = 5, prefix: str = 'query: ', threshold: float = None, disable_progess_bar: bool = False) -> List[Tuple[List[float], List[int]]]:
         """
-        Returns the top_k most relevant context for the query.
-
-        Parameters
-        ----------
-        query : str
-            Query to be used for retrieval.
-        top_k : int, optional
-            Number of context to be returned, by default 5. If -1, all context are returned.
-        disable_progess_bar : bool, optional
-            Whether to disable the progress bar, by default True.
-        prefix : str, optional
-            Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
-        threshold : float, optional
-            Minimum score to be returned, by default None.
-
-        Returns
-        -------
-        list
-            List of tuples containing the score and the index of the context.
-        """
-
-        assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
-
-        query = prefix + query # Add query prefix
-        query_embedding = self.embedding_model.encode([query], disable_progess_bar=disable_progess_bar)
-        scores = torch.mm(query_embedding, self.embeddings.transpose(0, 1))[0].cpu().tolist()  # Compute dot score between query and all document embeddings
-
-        scores_indexes = zip(scores, range(self.len_data))  # Combine the scores and an index
-
-        scores_indexes = sorted(scores_indexes, key=lambda x: x[0], reverse=True)  # Sort by decreasing score
-
-        if top_k == -1:  # Return all
-            return scores_indexes
-
-        # add the data to the scores_indexes according to the index
-        return scores_indexes[:top_k]
-
-    def get_top_matches_batch(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ', threshold: float = None) -> List[List[Tuple[float, int]]]:
-        """
-        Returns the top_k most relevant context for the query.
+        Returns the top_k most relevant context for the queries.
 
         Parameters
         ----------
@@ -130,7 +90,7 @@ class SemanticRetriever:
         Returns
         -------
         list
-            List of tuples containing the score and the index of the context.
+            List containing tuples of scores and indexes of the context.
         """
 
         assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
@@ -138,35 +98,41 @@ class SemanticRetriever:
         queries = [prefix + query for query in queries] # Add query prefix
 
         queries_embeddings = self.embedding_model.encode(queries, disable_progess_bar=disable_progess_bar)
-        scores = torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().tolist()
+        scores = torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().numpy()
 
-        scores_indexes = [
-            zip(scores_per_query, range(self.len_data))
-            for scores_per_query in scores]
-
-        scores_indexes = [
-            sorted(scores_indexes_per_query, key=lambda x: x[0], reverse=True)
-            for scores_indexes_per_query in scores_indexes]
+        sorted_indices = np.argsort(scores, axis=1)[:, ::-1]
         
-        if threshold is not None:
-            scores_indexes = [
-                [score_index for score_index in score_indexes_per_query if score_index[0] >= threshold]
-                for score_indexes_per_query in scores_indexes]
+        # Use numpy's advanced indexing to get the sorted scores and indices
+        sorted_scores = np.take_along_axis(scores, sorted_indices, axis=1)[:,:,None] # Add a new axis to be able to broadcast
+        sorted_indexes = np.take_along_axis(np.broadcast_to(np.arange(scores.shape[1]), scores.shape), sorted_indices, axis=1)[:,:,None] # Add a new axis to be able to broadcast
 
-        if top_k == -1:
-            return scores_indexes
+        # If threshold is given, create a mask for scores
+        mask = sorted_scores >= threshold if threshold is not None else np.ones_like(sorted_scores, dtype=bool)
+        
+        # Use the mask to filter values
+        sorted_scores = np.where(mask, sorted_scores, -np.inf).squeeze(-1)
+        sorted_indexes = np.where(mask, sorted_indexes, -1).squeeze(-1)
 
-        return [score_indexes_per_query[:top_k] for score_indexes_per_query in scores_indexes]
+        # remove the masked values
+        sorted_scores = sorted_scores[sorted_scores != -np.inf].reshape(len(queries), -1)
+        sorted_indexes = sorted_indexes[sorted_indexes != -1].reshape(len(queries), -1)        
 
+        # If top_k is not -1, truncate results
+        if top_k != -1:
+            sorted_scores = sorted_scores[:, :top_k]
+            sorted_indexes = sorted_indexes[:, :top_k]
+        
+        scores_indexes = [(score_list, index_list) for score_list, index_list in zip(sorted_scores, sorted_indexes)]
+        return scores_indexes
     
 
-    def get_contexts(self, matches: List[Tuple[float, int]]) -> List[Dict[str, str]]:
+    def _get_contexts(self, matches: Tuple[List[float], List[int]]) -> List[Dict[str, str]]:
         """
         Returns the context for the matches.
         Parameters
         ----------
-        matches : List[Tuple[float, int]]
-            List of tuples containing the score and the index of the context.
+        matches : Tuple[List[float], List[int]]
+            Tuple containing the scores and the index of the context.
         Returns
         -------
         List[Dict[str, str]]
@@ -176,7 +142,7 @@ class SemanticRetriever:
         context_list = []
 
         # Iterate through the matches
-        for match in matches:
+        for match in zip(*matches):
             context_dict = {}
             
             # Extract data based on the keys and the matched index
@@ -187,7 +153,7 @@ class SemanticRetriever:
 
         return context_list
 
-    def get_contexts_batch(self, matches_batch: List[List[Tuple[float, int]]]) -> List[List[Dict[str, str]]]:
+    def get_contexts(self, matches_batch: List[Tuple[List[float], List[int]]]) -> List[List[Dict[str, str]]]:
         """
         Returns the context for the matches in a batch.
         Parameters
@@ -199,10 +165,10 @@ class SemanticRetriever:
         List[List[Dict[str, str]]]
             List of lists of dictionaries containing the context.
         """
-        return [self.get_contexts(matches) for matches in matches_batch]
+        return [self._get_contexts(matches) for matches in matches_batch]
 
 
-    def retrieve(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ', threshold: float = None) -> List[List[Dict[str, str]]]:
+    def retrieve(self, queries: List[str], top_k: int = 5, prefix: str = 'query: ', threshold: float = None, disable_progess_bar: bool = False) -> List[List[Dict[str, str]]]:
         """
         Returns the context for the queries.
         Parameters
