@@ -4,8 +4,8 @@ from typing import List, Dict
 
 import pandas as pd
 
-from chatfaq_retrieval.inf_retrieval.retriever import Retriever
-from chatfaq_retrieval.models import BaseModel
+from chat_rag.inf_retrieval.retriever import Retriever
+from chat_rag.llms import BaseLLM
 
 logger = getLogger(__name__)
 
@@ -23,7 +23,7 @@ class RetrieverAnswerer:
         self,
         data: Dict[str, List[str]],
         embeddings: List[np.ndarray],
-        llm_model: BaseModel,
+        llm_model: BaseLLM,
         llm_name: str,
         use_cpu: bool = False,
         retriever_model: str = "intfloat/e5-small-v2",

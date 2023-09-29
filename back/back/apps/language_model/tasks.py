@@ -4,11 +4,11 @@ from logging import getLogger
 from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
-from chatfaq_retrieval import RetrieverAnswerer
-from chatfaq_retrieval.models import GGMLModel, HFModel, OpenAIModel, VLLModel
-from chatfaq_retrieval.inf_retrieval.retriever import Retriever
-from chatfaq_retrieval.data.splitters import get_splitter
-from chatfaq_retrieval.data.parsers import parse_pdf
+from chat_rag import RetrieverAnswerer
+from chat_rag.llms import GGMLModel, HFModel, OpenAIModel, VLLModel
+from chat_rag.inf_retrieval.retriever import Retriever
+from chat_rag.data.splitters import get_splitter
+from chat_rag.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
 from django.apps import apps
 from back.config.celery import app
