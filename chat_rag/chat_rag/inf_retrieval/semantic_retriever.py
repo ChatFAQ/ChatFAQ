@@ -8,15 +8,18 @@ from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
 
 logger = getLogger(__name__)
 
+
 class SemanticRetriever:
     """
     Class for retrieving the context for a given query using embeddings.
     """
 
-    def __init__(self, data: Dict[str, List[str]] = None,
-                    embeddings: Optional[np.ndarray] = None,
-                    embedding_model: Optional[BaseModel] = None,
-                ):
+    def __init__(
+        self,
+        data: Dict[str, List[str]] = None,
+        embeddings: Optional[np.ndarray] = None,
+        embedding_model: Optional[BaseModel] = None,
+    ):
         """
         Parameters
         ----------
@@ -30,13 +33,17 @@ class SemanticRetriever:
 
         # assert that the length of every column is the same
         if data is not None:
-            assert len(set([len(data[col]) for col in data])) == 1, "All columns must have the same length"
+            assert (
+                len(set([len(data[col]) for col in data])) == 1
+            ), "All columns must have the same length"
 
         self.data = data
         self.len_data = len(data[list(data.keys())[0]]) if data is not None else None
         self.keys_list = list(data.keys()) if data is not None else None
 
-        self.embeddings = torch.from_numpy(embeddings) if embeddings is not None else None
+        self.embeddings = (
+            torch.from_numpy(embeddings) if embeddings is not None else None
+        )
 
         if embeddings is None:
             logger.info(f"Embeddings not provided.")
@@ -45,8 +52,13 @@ class SemanticRetriever:
 
         self.embedding_model = embedding_model
 
-
-    def build_embeddings(self, embedding_key: str = 'content', contents: List[str] = None, batch_size: int = 1, prefix: str = 'passage: '):
+    def build_embeddings(
+        self,
+        embedding_key: str = "content",
+        contents: List[str] = None,
+        batch_size: int = 1,
+        prefix: str = "passage: ",
+    ):
         """
         Builds the embeddings for the context.
         Parameters
@@ -62,15 +74,24 @@ class SemanticRetriever:
         """
         logger.info("Building embeddings...")
 
-        if contents is None: # If contents is not provided, use the contents from the dataframe
+        if (
+            contents is None
+        ):  # If contents is not provided, use the contents from the dataframe
             contents = self.data[embedding_key]
 
-        contents = [prefix + content for content in contents] # add prefix to answers
+        contents = [prefix + content for content in contents]  # add prefix to answers
         self.embeddings = self.embedding_model.encode(contents, batch_size)
 
         return self.embeddings
 
-    def get_top_matches(self, queries: List[str], top_k: int = 5, prefix: str = 'query: ', threshold: float = None, disable_progess_bar: bool = False) -> List[Tuple[List[float], List[int]]]:
+    def get_top_matches(
+        self,
+        queries: List[str],
+        top_k: int = 5,
+        prefix: str = "query: ",
+        threshold: float = None,
+        disable_progess_bar: bool = False,
+    ) -> List[Tuple[List[float], List[int]]]:
         """
         Returns the top_k most relevant context for the queries.
 
@@ -93,40 +114,64 @@ class SemanticRetriever:
             List containing tuples of scores and indexes of the context.
         """
 
-        assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
+        assert hasattr(
+            self, "embeddings"
+        ), "Embeddings not built. Call build_embeddings() first."
 
-        queries = [prefix + query for query in queries] # Add query prefix
+        queries = [prefix + query for query in queries]  # Add query prefix
 
-        queries_embeddings = self.embedding_model.encode(queries, disable_progess_bar=disable_progess_bar)
-        scores = torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().numpy()
+        queries_embeddings = self.embedding_model.encode(
+            queries, disable_progess_bar=disable_progess_bar
+        )
+        scores = (
+            torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().numpy()
+        )
 
         sorted_indices = np.argsort(scores, axis=1)[:, ::-1]
-        
+
         # Use numpy's advanced indexing to get the sorted scores and indices
-        sorted_scores = np.take_along_axis(scores, sorted_indices, axis=1)[:,:,None] # Add a new axis to be able to broadcast
-        sorted_indexes = np.take_along_axis(np.broadcast_to(np.arange(scores.shape[1]), scores.shape), sorted_indices, axis=1)[:,:,None] # Add a new axis to be able to broadcast
+        sorted_scores = np.take_along_axis(scores, sorted_indices, axis=1)[
+            :, :, None
+        ]  # Add a new axis to be able to broadcast
+        sorted_indexes = np.take_along_axis(
+            np.broadcast_to(np.arange(scores.shape[1]), scores.shape),
+            sorted_indices,
+            axis=1,
+        )[
+            :, :, None
+        ]  # Add a new axis to be able to broadcast
 
         # If threshold is given, create a mask for scores
-        mask = sorted_scores >= threshold if threshold is not None else np.ones_like(sorted_scores, dtype=bool)
-        
+        mask = (
+            sorted_scores >= threshold
+            if threshold is not None
+            else np.ones_like(sorted_scores, dtype=bool)
+        )
+
         # Use the mask to filter values
         sorted_scores = np.where(mask, sorted_scores, -np.inf).squeeze(-1)
         sorted_indexes = np.where(mask, sorted_indexes, -1).squeeze(-1)
 
         # remove the masked values
-        sorted_scores = sorted_scores[sorted_scores != -np.inf].reshape(len(queries), -1)
-        sorted_indexes = sorted_indexes[sorted_indexes != -1].reshape(len(queries), -1)        
+        sorted_scores = sorted_scores[sorted_scores != -np.inf].reshape(
+            len(queries), -1
+        )
+        sorted_indexes = sorted_indexes[sorted_indexes != -1].reshape(len(queries), -1)
 
         # If top_k is not -1, truncate results
         if top_k != -1:
             sorted_scores = sorted_scores[:, :top_k]
             sorted_indexes = sorted_indexes[:, :top_k]
-        
-        scores_indexes = [(score_list, index_list) for score_list, index_list in zip(sorted_scores, sorted_indexes)]
-        return scores_indexes
-    
 
-    def _get_contexts(self, matches: Tuple[List[float], List[int]]) -> List[Dict[str, str]]:
+        scores_indexes = [
+            (score_list, index_list)
+            for score_list, index_list in zip(sorted_scores, sorted_indexes)
+        ]
+        return scores_indexes
+
+    def _get_contexts(
+        self, matches: Tuple[List[float], List[int]]
+    ) -> List[Dict[str, str]]:
         """
         Returns the context for the matches.
         Parameters
@@ -144,7 +189,7 @@ class SemanticRetriever:
         # Iterate through the matches
         for match in zip(*matches):
             context_dict = {}
-            
+
             # Extract data based on the keys and the matched index
             for key in self.keys_list:  # Using `self.keys_list` here
                 context_dict[key] = self.data[key][match[1]]
@@ -153,7 +198,9 @@ class SemanticRetriever:
 
         return context_list
 
-    def get_contexts(self, matches_batch: List[Tuple[List[float], List[int]]]) -> List[List[Dict[str, str]]]:
+    def get_contexts(
+        self, matches_batch: List[Tuple[List[float], List[int]]]
+    ) -> List[List[Dict[str, str]]]:
         """
         Returns the context for the matches in a batch.
         Parameters
@@ -167,8 +214,14 @@ class SemanticRetriever:
         """
         return [self._get_contexts(matches) for matches in matches_batch]
 
-
-    def retrieve(self, queries: List[str], top_k: int = 5, prefix: str = 'query: ', threshold: float = None, disable_progess_bar: bool = False) -> List[List[Dict[str, str]]]:
+    def retrieve(
+        self,
+        queries: List[str],
+        top_k: int = 5,
+        prefix: str = "query: ",
+        threshold: float = None,
+        disable_progess_bar: bool = False,
+    ) -> List[List[Dict[str, str]]]:
         """
         Returns the context for the queries.
         Parameters
@@ -187,7 +240,12 @@ class SemanticRetriever:
             List of lists of dictionaries containing the context.
         """
 
-        matches_batch = self.get_top_matches_batch(queries, top_k=top_k, disable_progess_bar=disable_progess_bar, prefix=prefix, threshold=threshold)
+        matches_batch = self.get_top_matches(
+            queries,
+            top_k=top_k,
+            disable_progess_bar=disable_progess_bar,
+            prefix=prefix,
+            threshold=threshold,
+        )
 
-        return self.get_contexts_batch(matches_batch)
-        
+        return self.get_contexts(matches_batch)
