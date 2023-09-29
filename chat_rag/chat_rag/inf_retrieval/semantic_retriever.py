@@ -1,0 +1,227 @@
+from typing import List, Tuple, Dict, Optional
+from logging import getLogger
+
+import numpy as np
+import torch
+
+from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
+
+logger = getLogger(__name__)
+
+class SemanticRetriever:
+    """
+    Class for retrieving the context for a given query using embeddings.
+    """
+
+    def __init__(self, data: Dict[str, List[str]] = None,
+                    embeddings: Optional[np.ndarray] = None,
+                    embedding_model: Optional[BaseModel] = None,
+                ):
+        """
+        Parameters
+        ----------
+        data: Dict[str, List[str]], optional
+            Dictionary containing the context to be used for retrieval, by default None
+        embeddings: List[np.ndarray], optional
+            List of embeddings to be used for retrieval, by default None
+        embedding_model: BaseModel, optional
+            Embedding model to be used for retrieval, by default None
+        """
+
+        # assert that the length of every column is the same
+        if data is not None:
+            assert len(set([len(data[col]) for col in data])) == 1, "All columns must have the same length"
+
+        self.data = data
+        self.len_data = len(data[list(data.keys())[0]]) if data is not None else None
+        self.keys_list = list(data.keys()) if data is not None else None
+
+        self.embeddings = torch.from_numpy(embeddings) if embeddings is not None else None
+
+        if embeddings is None:
+            logger.info(f"Embeddings not provided.")
+        else:
+            logger.info(f"Embeddings provided with shape {embeddings.shape}")
+
+        self.embedding_model = embedding_model
+
+
+    def build_embeddings(self, embedding_key: str = 'content', contents: List[str] = None, batch_size: int = 1, prefix: str = 'passage: '):
+        """
+        Builds the embeddings for the context.
+        Parameters
+        ----------
+        embedding_key : str, optional
+            Name of the column to build the embeddings for and to be used for retrieval, by default 'content'
+        contents : List[str], optional
+            List of contents to be encode, by default None
+        batch_size : int, optional
+            Batch size to be used for encoding the context, by default 1
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'passage: ' for e5 models.
+        """
+        logger.info("Building embeddings...")
+
+        if contents is None: # If contents is not provided, use the contents from the dataframe
+            contents = self.data[embedding_key]
+
+        contents = [prefix + content for content in contents] # add prefix to answers
+        self.embeddings = self.embedding_model.encode(contents, batch_size)
+
+        return self.embeddings
+
+
+    def get_top_matches(self, query: str, top_k: int = 5, disable_progess_bar: bool = True, prefix: str = 'query: ', threshold: float = None) -> List[Tuple[float, int]]:
+        """
+        Returns the top_k most relevant context for the query.
+
+        Parameters
+        ----------
+        query : str
+            Query to be used for retrieval.
+        top_k : int, optional
+            Number of context to be returned, by default 5. If -1, all context are returned.
+        disable_progess_bar : bool, optional
+            Whether to disable the progress bar, by default True.
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
+        threshold : float, optional
+            Minimum score to be returned, by default None.
+
+        Returns
+        -------
+        list
+            List of tuples containing the score and the index of the context.
+        """
+
+        assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
+
+        query = prefix + query # Add query prefix
+        query_embedding = self.embedding_model.encode([query], disable_progess_bar=disable_progess_bar)
+        scores = torch.mm(query_embedding, self.embeddings.transpose(0, 1))[0].cpu().tolist()  # Compute dot score between query and all document embeddings
+
+        scores_indexes = zip(scores, range(self.len_data))  # Combine the scores and an index
+
+        scores_indexes = sorted(scores_indexes, key=lambda x: x[0], reverse=True)  # Sort by decreasing score
+
+        if top_k == -1:  # Return all
+            return scores_indexes
+
+        # add the data to the scores_indexes according to the index
+        return scores_indexes[:top_k]
+
+    def get_top_matches_batch(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ', threshold: float = None) -> List[List[Tuple[float, int]]]:
+        """
+        Returns the top_k most relevant context for the query.
+
+        Parameters
+        ----------
+        queries : List[str]
+            Queries to be used for retrieval.
+        top_k : int, optional
+            Number of context to be returned, by default 5. If -1, all context are returned.
+        disable_progess_bar : bool, optional
+            Whether to disable the progress bar, by default True.
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
+        threshold : float, optional
+            Minimum score to be returned, by default None.
+
+        Returns
+        -------
+        list
+            List of tuples containing the score and the index of the context.
+        """
+
+        assert hasattr(self, 'embeddings'), 'Embeddings not built. Call build_embeddings() first.'
+
+        queries = [prefix + query for query in queries] # Add query prefix
+
+        queries_embeddings = self.embedding_model.encode(queries, disable_progess_bar=disable_progess_bar)
+        scores = torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().tolist()
+
+        scores_indexes = [
+            zip(scores_per_query, range(self.len_data))
+            for scores_per_query in scores]
+
+        scores_indexes = [
+            sorted(scores_indexes_per_query, key=lambda x: x[0], reverse=True)
+            for scores_indexes_per_query in scores_indexes]
+        
+        if threshold is not None:
+            scores_indexes = [
+                [score_index for score_index in score_indexes_per_query if score_index[0] >= threshold]
+                for score_indexes_per_query in scores_indexes]
+
+        if top_k == -1:
+            return scores_indexes
+
+        return [score_indexes_per_query[:top_k] for score_indexes_per_query in scores_indexes]
+
+    
+
+    def get_contexts(self, matches: List[Tuple[float, int]]) -> List[Dict[str, str]]:
+        """
+        Returns the context for the matches.
+        Parameters
+        ----------
+        matches : List[Tuple[float, int]]
+            List of tuples containing the score and the index of the context.
+        Returns
+        -------
+        List[Dict[str, str]]
+            List of dictionaries containing the context.
+        """
+        # Resulting list of dictionaries
+        context_list = []
+
+        # Iterate through the matches
+        for match in matches:
+            context_dict = {}
+            
+            # Extract data based on the keys and the matched index
+            for key in self.keys_list:  # Using `self.keys_list` here
+                context_dict[key] = self.data[key][match[1]]
+
+            context_list.append(context_dict)
+
+        return context_list
+
+    def get_contexts_batch(self, matches_batch: List[List[Tuple[float, int]]]) -> List[List[Dict[str, str]]]:
+        """
+        Returns the context for the matches in a batch.
+        Parameters
+        ----------
+        matches_batch : List[List[Tuple[float, int]]]
+            List of lists of tuples containing the score and the index of the context.
+        Returns
+        -------
+        List[List[Dict[str, str]]]
+            List of lists of dictionaries containing the context.
+        """
+        return [self.get_contexts(matches) for matches in matches_batch]
+
+
+    def retrieve(self, queries: List[str], top_k: int = 5, disable_progess_bar: bool = False, prefix: str = 'query: ', threshold: float = None) -> List[List[Dict[str, str]]]:
+        """
+        Returns the context for the queries.
+        Parameters
+        ----------
+        queries : List[str]
+            List of queries to be used for retrieval.
+        top_k : int, optional
+            Number of context to be returned, by default 5. If -1, all context are returned.
+        disable_progess_bar : bool, optional
+            Whether to disable the progress bar, by default True.
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
+        Returns
+        -------
+        List[List[Dict[str, str]]]
+            List of lists of dictionaries containing the context.
+        """
+
+        matches_batch = self.get_top_matches_batch(queries, top_k=top_k, disable_progess_bar=disable_progess_bar, prefix=prefix, threshold=threshold)
+
+        return self.get_contexts_batch(matches_batch)
+        

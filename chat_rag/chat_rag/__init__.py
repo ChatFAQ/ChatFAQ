@@ -4,20 +4,13 @@ from typing import List, Dict
 
 import pandas as pd
 
-from chat_rag.inf_retrieval.retriever import Retriever
+from chat_rag.inf_retrieval.semantic_retriever import SemanticRetriever
 from chat_rag.llms import BaseLLM
 
 logger = getLogger(__name__)
 
 
-# RetrieverAnswerer('../data/interim/chanel.csv', "google/flan-t5-base", "title", "text")
-
-
-class RetrieverAnswerer:
-    MAX_GPU_MEM = "18GiB"
-    MAX_CPU_MEM = "12GiB"
-    cached_tokenizers = {}
-    cached_models = {}
+class RAG:
 
     def __init__(
         self,
@@ -32,7 +25,7 @@ class RetrieverAnswerer:
         self.use_cpu = use_cpu
         # --- Set Up Retriever ---
 
-        self.retriever = Retriever(
+        self.retriever = SemanticRetriever(
             data=data,
             embeddings=embeddings,
             model_name=retriever_model,
