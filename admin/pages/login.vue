@@ -24,7 +24,7 @@
             </el-form-item>
             <el-form-item prop="remember" class="login-form-remember-me">
                 <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
-                <a href="#" class="login-form-forgot-password">Forgot password?</a>
+                <!-- <a href="#" class="login-form-forgot-password">Forgot password?</a> -->
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="submitForm(authFormRef)">
