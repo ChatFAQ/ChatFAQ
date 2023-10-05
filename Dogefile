@@ -72,7 +72,7 @@ services:
     instance_size: XXS
     port: 3000
     route_prefixes:
-      - "//admin"
+      - "/admin"
   - name: back
     image: back
     envs: [ sentry, django ]
