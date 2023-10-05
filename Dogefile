@@ -39,6 +39,11 @@ env:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+  - name: admin
+    variables:
+      SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
+      NUXT_PROXY_OPTIONS_TARGET: "{{ APP_URL }}"
+      NUXT_API_URL: "/back/"
   - name: sdk
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
@@ -48,6 +53,8 @@ env:
 images:
   - name: widget
     build_context: widget
+  - name: admin
+    build_context: admin
   - name: back
     build_context: back
   - name: sdk
@@ -59,6 +66,13 @@ services:
     envs: [ sentry, widget ]
     instance_size: XXS
     port: 3000
+  - name: admin
+    image: admin
+    envs: [ sentry, admin ]
+    instance_size: XXS
+    port: 3000
+    route_prefixes:
+      - "//admin"
   - name: back
     image: back
     envs: [ sentry, django ]

@@ -39,9 +39,7 @@ export default envManager((env) => {
             },
         },
         runtimeConfig: {
-            public: {
-                chatFAQBackendHost: process.env.NUXT_PUBLIC_CHATFAQ_BACKEND_HOST
-            },
+            public: {},
         }
     });
 
