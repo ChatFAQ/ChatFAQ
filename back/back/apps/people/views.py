@@ -86,3 +86,4 @@ class MeViewSet(viewsets.GenericViewSet):
 
 class LoginView(KnoxLoginView):
     authentication_classes = [BasicAuthentication]
+    permission_classes = (permissions.AllowAny,)
