@@ -22,8 +22,8 @@
                 <el-input v-model="authForm.password" :placeholder="$t('enteryourpassword')" type="password"
                           autocomplete="off" show-password/>
             </el-form-item>
-            <el-form-item prop="rememberMe" class="login-form-remember-me">
-                <el-checkbox v-model="authForm.rememberMe" :label="$t('rememberme')"/>
+            <el-form-item prop="remember" class="login-form-remember-me">
+                <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
                 <a href="#" class="login-form-forgot-password">Forgot password?</a>
             </el-form-item>
             <el-form-item>
@@ -48,7 +48,7 @@ const authFormRef = ref()
 const authForm = reactive({
     email: '',
     password: '',
-    rememberMe: false,
+    remember: false,
 })
 const authFormRules = reactive({
     email: [
@@ -58,7 +58,7 @@ const authFormRules = reactive({
     password: [
         {required: true, message: i18n.t('pleaseenteryourpassword'), trigger: 'blur'},
     ],
-    rememberMe: [],
+    remember: [],
 })
 
 const submitForm = async (formEl) => {
@@ -66,8 +66,9 @@ const submitForm = async (formEl) => {
     await formEl.validate(async (valid, fields) => {
         if (valid) {
             await authStore.login(authForm);
-            if (authStore.isAuthenticated)
+            if (authStore.isAuthenticated) {
                 router.push('/');
+            }
         } else {
             console.log('error submit!', fields)
         }
