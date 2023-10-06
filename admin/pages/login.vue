@@ -24,7 +24,7 @@
             </el-form-item>
             <el-form-item prop="remember" class="login-form-remember-me">
                 <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
-                <!-- <a href="#" class="login-form-forgot-password">Forgot password?</a> -->
+                <a href="#" class="login-form-forgot-password" @click="openPassNotification">Forgot password?</a>
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="submitForm(authFormRef)">
@@ -39,6 +39,7 @@
 import {reactive, ref} from 'vue'
 import {useAuthStore} from '~/store/auth';
 import {useI18n} from "vue-i18n";
+import { ElMessage } from "element-plus";
 
 const i18n = useI18n()
 const authStore = useAuthStore()
@@ -73,6 +74,9 @@ const submitForm = async (formEl) => {
             console.log('error submit!', fields)
         }
     })
+}
+function openPassNotification() {
+    ElMessage.info(i18n.t('contactadmin'));
 }
 </script>
 

@@ -10,5 +10,6 @@
     "rememberme": "Remember me",
     "pleaseenteryouemailaddress": "Please enter you email address",
     "pleaseenteravalidemailaddress": "Please enter a valid email address",
-    "pleaseenteryourpassword":  "Please enter your password"
+    "pleaseenteryourpassword":  "Please enter your password",
+    "contactadmin" : "Please contact a ChatFAQ's administrator for recovering your password"
 }
