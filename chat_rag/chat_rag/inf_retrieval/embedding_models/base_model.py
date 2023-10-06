@@ -121,3 +121,27 @@ class BaseModel:
         torch.cuda.empty_cache()
 
         return all_embeddings
+    
+    def build_embeddings(
+        self,
+        contents: List[str] = None,
+        batch_size: int = 1,
+        prefix: str = "passage: ",
+    ):
+        """
+        Builds the embeddings for the context.
+        Parameters
+        ----------
+        contents : List[str], optional
+            List of contents to be encode, by default None
+        batch_size : int, optional
+            Batch size to be used for encoding the context, by default 1
+        prefix : str, optional
+            Prefix or instruction to be added to the context, by default 'passage: ' for e5 models.
+        """
+        logger.info("Building embeddings...")
+
+        contents = [prefix + content for content in contents]  # add prefix to answers
+        embeddings = self.encode(contents, batch_size)
+
+        return embeddings

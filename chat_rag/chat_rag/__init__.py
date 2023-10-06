@@ -4,7 +4,6 @@ from typing import List, Dict
 
 import pandas as pd
 
-from chat_rag.inf_retrieval.semantic_retriever import SemanticRetriever
 from chat_rag.llms import BaseLLM
 
 logger = getLogger(__name__)
@@ -16,7 +15,7 @@ class RAG:
     """
     def __init__(
         self,
-        retriever: SemanticRetriever,
+        retriever,
         llm_model: BaseLLM,
     ):
         

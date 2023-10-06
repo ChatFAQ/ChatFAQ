@@ -7,7 +7,7 @@ from channels.layers import get_channel_layer
 from chat_rag import RAG
 from chat_rag.llms import GGMLModel, HFModel, OpenAIModel, VLLModel
 from chat_rag.inf_retrieval.embedding_models import E5Model
-from chat_rag.inf_retrieval.semantic_retriever import SemanticRetriever
+from chat_rag.inf_retrieval.retrievers import SemanticRetriever
 from chat_rag.data.splitters import get_splitter
 from chat_rag.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
@@ -101,6 +101,8 @@ class RAGCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
+        from back.apps.language_model.retriever_clients import PGVectorRetriever
+
         logger.info("Preloading models...")
         RAGConfig = apps.get_model("language_model", "RAGConfig")
         cache = {}
@@ -114,14 +116,6 @@ class RAGCacheOnWorkerTask(Task):
                 f"and retriever device: {rag_conf.retriever_config.device}"
             )
 
-            Embedding = apps.get_model("language_model", "Embedding")
-            embeddings = Embedding.objects.filter(rag_config=rag_conf).values_list(
-                "embedding", flat=True
-            )
-            embeddings = np.array(embeddings, dtype=np.float32)
-
-            logger.info(f"Embeddings shape: {embeddings.shape}")
-
             hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
             e5_model = E5Model(
@@ -130,10 +124,9 @@ class RAGCacheOnWorkerTask(Task):
                 huggingface_key=hugginface_key,
             )
 
-            retriever = SemanticRetriever(
-                data=rag_conf.knowledge_base.get_data(),
-                embeddings=embeddings,
+            retriever = PGVectorRetriever(
                 embedding_model=e5_model,
+                rag_config=rag_conf,
             )
 
             llm_model = get_model(
@@ -255,7 +248,7 @@ def llm_query_task(
             _send_message(
                 bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
             )
-            references = res.get("context")
+            references = res.get("context")[0] # just the first context because it is only one query
     else:
         res = rag.generate(
             input_text,
@@ -265,7 +258,7 @@ def llm_query_task(
             lang=rag_conf.knowledge_base.lang,
         )
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-        references = res.get("context")
+        references = res.get("context")[0] # just the first context because it is only one query
 
     logger.info(f"\nReferences: {references}")
     _send_message(
@@ -303,16 +296,14 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     logger.info(f"Batch size: {batch_size}")
     logger.info(f"Device: {device}")
 
-    retriever = SemanticRetriever(
-        embedding_model=E5Model(
+    embedding_model = E5Model(
             model_name=model_name,
             use_cpu=device == "cpu",
             huggingface_key=os.environ.get("HUGGINGFACE_KEY", None),
-        ),
     )
 
     contents = [item.content for item in ki_qs]
-    embeddings = retriever.build_embeddings(contents=contents, batch_size=batch_size)
+    embeddings = embedding_model.build_embeddings(contents=contents, batch_size=batch_size)
 
     # from tensor to list
     embeddings = [embedding.tolist() for embedding in embeddings]

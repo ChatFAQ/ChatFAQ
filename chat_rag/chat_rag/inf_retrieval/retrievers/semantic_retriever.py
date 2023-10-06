@@ -52,38 +52,6 @@ class SemanticRetriever:
 
         self.embedding_model = embedding_model
 
-    def build_embeddings(
-        self,
-        embedding_key: str = "content",
-        contents: List[str] = None,
-        batch_size: int = 1,
-        prefix: str = "passage: ",
-    ):
-        """
-        Builds the embeddings for the context.
-        Parameters
-        ----------
-        embedding_key : str, optional
-            Name of the column to build the embeddings for and to be used for retrieval, by default 'content'
-        contents : List[str], optional
-            List of contents to be encode, by default None
-        batch_size : int, optional
-            Batch size to be used for encoding the context, by default 1
-        prefix : str, optional
-            Prefix or instruction to be added to the context, by default 'passage: ' for e5 models.
-        """
-        logger.info("Building embeddings...")
-
-        if (
-            contents is None
-        ):  # If contents is not provided, use the contents from the dataframe
-            contents = self.data[embedding_key]
-
-        contents = [prefix + content for content in contents]  # add prefix to answers
-        self.embeddings = self.embedding_model.encode(contents, batch_size)
-
-        return self.embeddings
-
     def get_top_matches(
         self,
         queries: List[str],
