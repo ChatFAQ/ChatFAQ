@@ -30,7 +30,7 @@ def create(
     model_max_length: Annotated[int, typer.Argument(help="The maximum length of the model.")]=None,
 ):
     """
-    List all LLM Configs.
+    Creates a LLM Configs.
     """
     res = ctx.parent.obj["r"].post(
         f"language-model/llm-configs/",

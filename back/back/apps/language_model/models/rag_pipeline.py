@@ -201,13 +201,8 @@ class PromptConfig(ChangesMixin):
         The tag to indicate the start of the assistant output.
     assistant_end : str
         The tag to indicate the end of the assistant output.
-        The tag to indicate the end of the role (system role, user role, assistant role).
     n_contexts_to_use : int, optional
         The number of contexts to use, by default 3
-    lang : str, optional
-        The language of the prompt, by default 'en'
-    model : Model
-        The model this prompt structure belongs to.
     """
     name = models.CharField(max_length=255, unique=True)
     system_prefix = models.TextField(blank=True, default="")
