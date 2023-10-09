@@ -83,9 +83,13 @@ class KnowledgeBase(ChangesMixin):
 
     def trigger_generate_embeddings(self):
         RAGConfig = apps.get_model("language_model", "RAGConfig")
+        Embedding = apps.get_model("language_model", "Embedding")
+
         rag_configs = RAGConfig.objects.filter(knowledge_base=self)
         last_i = rag_configs.count() - 1
         for i, rag_config in enumerate(rag_configs.all()):
+            # remove all existing embeddings for this rag config
+            Embedding.objects.filter(rag_config=rag_config).delete()
             generate_embeddings_task.delay(
                 list(self.knowledgeitem_set.values_list("pk", flat=True)),
                 rag_config.pk,
@@ -154,7 +158,7 @@ class KnowledgeBase(ChangesMixin):
         elif self.original_url:
             logger.info("Updating items from URL")
             parse_url_task.delay(self.pk, self.original_url)
-        llm_query_task.delay(recache_models=True)
+        llm_query_task.delay(recache_models=True, log_caller="KnowledgeBase.update_items_from_file")
 
 
 class KnowledgeItem(ChangesMixin):
@@ -202,13 +206,17 @@ class KnowledgeItem(ChangesMixin):
 
     def trigger_generate_embeddings(self):
         RAGConfig = apps.get_model("language_model", "RAGConfig")
+        Embedding = apps.get_model("language_model", "Embedding")
         rag_configs = RAGConfig.objects.filter(knowledge_base=self.knowledge_base)
         last_i = rag_configs.count() - 1
+
         for i, rag_config in enumerate(rag_configs.all()):
+            # remove the embedding for this item for this rag config
+            Embedding.objects.filter(rag_config=rag_config, knowledge_item=self).delete()
             generate_embeddings_task.delay(
                 [self.pk],
                 rag_config.pk,
-                recache_models=(i == last_i)
+                recache_models=(i == last_i) # recache models if we are in the last iteration
             )
 
 

@@ -47,4 +47,4 @@ class GenericSpider(scrapy.Spider):
                 yield response.follow(link, callback=self.parse, meta={"playwright": True})
 
     def spider_closed(self, spider):
-        llm_query_task.delay(recache_models=True)
+        llm_query_task.delay(recache_models=True, log_caller="GenericSpider.spider_closed")
