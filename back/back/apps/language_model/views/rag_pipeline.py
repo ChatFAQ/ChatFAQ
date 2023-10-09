@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 
-from back.apps.language_model.models.rag_pipeline import LLMConfig, RAGConfig, GenerationConfig, PromptConfig
+from back.apps.language_model.models.rag_pipeline import LLMConfig, RAGConfig, GenerationConfig, PromptConfig, RetrieverConfig
 from back.apps.language_model.serializers.rag_pipeline import LLMConfigSerializer, RAGConfigSerializer, \
-    GenerationConfigSerializer, PromptConfigSerializer
+    GenerationConfigSerializer, PromptConfigSerializer, RetrieverConfigSerializer
 
 
 class LLMConfigAPIViewSet(viewsets.ModelViewSet):
@@ -13,6 +13,11 @@ class LLMConfigAPIViewSet(viewsets.ModelViewSet):
 class RAGConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RAGConfig.objects.all()
     serializer_class = RAGConfigSerializer
+
+
+class RetrieverConfigAPIViewSet(viewsets.ModelViewSet):
+    queryset = RetrieverConfig.objects.all()
+    serializer_class = RetrieverConfigSerializer
 
 
 class GenerationConfigAPIViewSet(viewsets.ModelViewSet):

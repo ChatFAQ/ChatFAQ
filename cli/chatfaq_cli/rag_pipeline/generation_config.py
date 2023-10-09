@@ -21,7 +21,7 @@ def create(
     Creates a Generation Configs.
     """
     res = ctx.parent.obj["r"].post(
-        f"language-model/prompt-configs/",
+        f"language-model/generation-configs/",
         data={
             "name": name,
             "top_k": top_k,

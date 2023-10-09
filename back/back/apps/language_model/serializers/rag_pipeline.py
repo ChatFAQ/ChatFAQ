@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from back.apps.language_model.models.rag_pipeline import RAGConfig, LLMConfig, GenerationConfig, PromptConfig
+from back.apps.language_model.models.rag_pipeline import RAGConfig, LLMConfig, GenerationConfig, PromptConfig, RetrieverConfig
 
 
 class RAGConfigSerializer(serializers.ModelSerializer):
@@ -14,6 +14,12 @@ class LLMConfigSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LLMConfig
+        fields = "__all__"
+
+
+class RetrieverConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RetrieverConfig
         fields = "__all__"
 
 
