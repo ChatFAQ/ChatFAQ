@@ -50,7 +50,7 @@ def get_model(
     Parameters
     ----------
     llm_name: str
-        The model id, it could be a hugginface repo id, a ggml repo id, or an openai model id.
+        The model id, it could be a huggingface repo id, a ggml repo id, or an openai model id.
     llm_type: str
         The type of LLM to use.
     ggml_model_filename: str
