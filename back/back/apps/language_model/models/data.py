@@ -52,10 +52,12 @@ class KnowledgeBase(ChangesMixin):
 
     # PDF parsing options
     strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
+    # URL parsing options
+    recursive = models.BooleanField(default=True)
+    # PDF & URL parsing options
     splitter = models.CharField(max_length=10, default="sentences", choices=SPLITTERS_CHOICES)
     chunk_size = models.IntegerField(default=128)
     chunk_overlap = models.IntegerField(default=16)
-    recursive = models.BooleanField(default=True)
 
     original_csv = models.FileField(blank=True, null=True)
     original_pdf = models.FileField(blank=True, null=True)
