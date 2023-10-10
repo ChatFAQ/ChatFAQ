@@ -55,17 +55,17 @@ def create(
 def update(
     ctx: typer.Context,
     id: Annotated[int, typer.Argument(help="The id of the LLM Config.")],
-    name: Annotated[str, typer.Argument(help="The name of the LLM Config.")] = None,
-    llm_type: Annotated[LLMTypeValues, typer.Argument(help="The type of the LLM to use.")] = None,
-    llm_name: Annotated[str, typer.Argument(help="The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc.")] = None,
-    ggml_llm_filename: Annotated[str, typer.Argument(help="The GGML filename of the model, if it is a GGML model.")] = None,
-    model_config: Annotated[str, typer.Argument(help="The huggingface model config of the model, needed for GGML models.")] = None,
-    load_in_8bit: Annotated[bool, typer.Argument(help="Whether to use the fast tokenizer or not.")] = None,
-    use_fast_tokenizer: Annotated[bool, typer.Argument(help="Whether to use the fast tokenizer or not.")] = None,
-    trust_remote_code_tokenizer: Annotated[bool, typer.Argument(help="Whether to trust the remote code of the tokenizer or not.")] = None,
-    trust_remote_code_model: Annotated[bool, typer.Argument(help="Whether to trust the remote code of the model or not.")] = None,
-    revision: Annotated[str, typer.Argument(help="The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models.")] = None,
-    model_max_length: Annotated[int, typer.Argument(help="The maximum length of the model.")] = None,
+    name: Annotated[str, typer.Option(help="The name of the LLM Config.")] = None,
+    llm_type: Annotated[LLMTypeValues, typer.Option(help="The type of the LLM to use.")] = None,
+    llm_name: Annotated[str, typer.Option(help="The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc.")] = None,
+    ggml_llm_filename: Annotated[str, typer.Option(help="The GGML filename of the model, if it is a GGML model.")] = None,
+    model_config: Annotated[str, typer.Option(help="The huggingface model config of the model, needed for GGML models.")] = None,
+    load_in_8bit: Annotated[bool, typer.Option(help="Whether to use the fast tokenizer or not.")] = None,
+    use_fast_tokenizer: Annotated[bool, typer.Option(help="Whether to use the fast tokenizer or not.")] = None,
+    trust_remote_code_tokenizer: Annotated[bool, typer.Option(help="Whether to trust the remote code of the tokenizer or not.")] = None,
+    trust_remote_code_model: Annotated[bool, typer.Option(help="Whether to trust the remote code of the model or not.")] = None,
+    revision: Annotated[str, typer.Option(help="The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models.")] = None,
+    model_max_length: Annotated[int, typer.Option(help="The maximum length of the model.")] = None,
 ):
     """
     Update a LLM Config.

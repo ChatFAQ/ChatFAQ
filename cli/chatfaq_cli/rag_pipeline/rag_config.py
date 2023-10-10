@@ -36,12 +36,13 @@ def create(
 @app.command(rich_help_panel="RAG Config commands")
 def update(
     ctx: typer.Context,
-    name: Annotated[str, typer.Argument(help="The name of the RAG Config you want to create.")] = None,
-    knowledge_base: Annotated[str, typer.Argument(help="The id of the Knowledge Base you want to use.")] = None,
-    llm_config: Annotated[str, typer.Argument(help="The id of the LLM Config you want to use.")] = None,
-    prompt_config: Annotated[str, typer.Argument(help="The id of the Prompt Config you want to use.")] = None,
-    generation_config: Annotated[str, typer.Argument(help="The id of the Generation Config you want to use.")] = None,
-    retriever_config: Annotated[str, typer.Argument(help="The id of the Retriever Config you want to use.")] = None,
+    id: Annotated[int, typer.Argument(help="The id of the RAG Config you want to update.")],
+    name: Annotated[str, typer.Option(help="The name of the RAG Config you want to create.")] = None,
+    knowledge_base: Annotated[str, typer.Option(help="The id of the Knowledge Base you want to use.")] = None,
+    llm_config: Annotated[str, typer.Option(help="The id of the LLM Config you want to use.")] = None,
+    prompt_config: Annotated[str, typer.Option(help="The id of the Prompt Config you want to use.")] = None,
+    generation_config: Annotated[str, typer.Option(help="The id of the Generation Config you want to use.")] = None,
+    retriever_config: Annotated[str, typer.Option(help="The id of the Retriever Config you want to use.")] = None,
 ):
     """
     Updates a RAG Config.

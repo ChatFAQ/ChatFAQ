@@ -39,13 +39,13 @@ def create(
 def update(
     ctx: typer.Context,
     id: Annotated[str, typer.Argument(help="The id of the Generation Config you want to update.")],
-    name: Annotated[str, typer.Argument(help="The name of the Generation Config.")] = None,
-    top_k: Annotated[int, typer.Argument(help="The number of tokens to consider for the top-k sampling, by default 50")] = None,
-    top_p: Annotated[float, typer.Argument(help="The cumulative probability for the top-p sampling, by default 1.0")] = None,
-    temperature: Annotated[float, typer.Argument(help="The temperature for the sampling, by default 1.0")] = None,
-    repetition_penalty: Annotated[float, typer.Argument(help="The repetition penalty for the sampling, by default 1.0")] = None,
-    seed: Annotated[int, typer.Argument(help="The seed for the sampling, by default 42")] = None,
-    max_new_tokens: Annotated[int, typer.Argument(help="The maximum number of new tokens to generate, by default 256")] = None,
+    name: Annotated[str, typer.Option(help="The name of the Generation Config.")] = None,
+    top_k: Annotated[int, typer.Option(help="The number of tokens to consider for the top-k sampling, by default 50")] = None,
+    top_p: Annotated[float, typer.Option(help="The cumulative probability for the top-p sampling, by default 1.0")] = None,
+    temperature: Annotated[float, typer.Option(help="The temperature for the sampling, by default 1.0")] = None,
+    repetition_penalty: Annotated[float, typer.Option(help="The repetition penalty for the sampling, by default 1.0")] = None,
+    seed: Annotated[int, typer.Option(help="The seed for the sampling, by default 42")] = None,
+    max_new_tokens: Annotated[int, typer.Option(help="The maximum number of new tokens to generate, by default 256")] = None,
 ):
     """
     Updates a Generation Config.

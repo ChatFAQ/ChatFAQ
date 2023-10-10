@@ -43,15 +43,15 @@ def create(
 def update(
     ctx: typer.Context,
     id: Annotated[int, typer.Argument(help="The id of the Prompt Config.")],
-    name: Annotated[str, typer.Argument(help="The name of the Prompt Config.")] = None,
-    system_prefix: Annotated[str, typer.Argument(help="The prefix to indicate instructions for the LLM.")] = None,
-    system_tag: Annotated[str, typer.Argument(help="The tag to indicate the start of the system prefix for the LLM.")] = None,
-    system_end: Annotated[str, typer.Argument(help="The tag to indicate the end of the system prefix for the LLM.")] = None,
-    user_tag: Annotated[str, typer.Argument(help="The tag to indicate the start of the user input.")] = None,
-    user_end: Annotated[str, typer.Argument(help="The tag to indicate the end of the user input.")] = None,
-    assistant_tag: Annotated[str, typer.Argument(help="The tag to indicate the start of the assistant output.")] = None,
-    assistant_end: Annotated[str, typer.Argument(help="The tag to indicate the end of the assistant output.")] = None,
-    n_contexts_to_use: Annotated[int, typer.Argument(help="The number of contexts to use, by default 3")] = None,
+    name: Annotated[str, typer.Option(help="The name of the Prompt Config.")] = None,
+    system_prefix: Annotated[str, typer.Option(help="The prefix to indicate instructions for the LLM.")] = None,
+    system_tag: Annotated[str, typer.Option(help="The tag to indicate the start of the system prefix for the LLM.")] = None,
+    system_end: Annotated[str, typer.Option(help="The tag to indicate the end of the system prefix for the LLM.")] = None,
+    user_tag: Annotated[str, typer.Option(help="The tag to indicate the start of the user input.")] = None,
+    user_end: Annotated[str, typer.Option(help="The tag to indicate the end of the user input.")] = None,
+    assistant_tag: Annotated[str, typer.Option(help="The tag to indicate the start of the assistant output.")] = None,
+    assistant_end: Annotated[str, typer.Option(help="The tag to indicate the end of the assistant output.")] = None,
+    n_contexts_to_use: Annotated[int, typer.Option(help="The number of contexts to use, by default 3")] = None,
 ):
     """
     Updates a Prompt Configs.
