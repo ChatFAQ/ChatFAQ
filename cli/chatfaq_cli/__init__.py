@@ -54,6 +54,15 @@ class Requester:
             return requests.post(self.API_HOST + url, headers=self.headers, json=data)
 
     @response
+    def patch(self, url, data=None, files=None):
+        if files:
+            return requests.patch(
+                self.API_HOST + url, headers=self.headers, files=files, data=data
+            )
+        else:
+            return requests.patch(self.API_HOST + url, headers=self.headers, json=data)
+
+    @response
     def delete(self, url, data=None):
         return requests.delete(self.API_HOST + url, headers=self.headers, json=data)
 

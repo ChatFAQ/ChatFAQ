@@ -17,7 +17,7 @@ def create(
     retriever_config: Annotated[str, typer.Argument(help="The id of the Retriever Config you want to use.")],
 ):
     """
-    Creates a RAG Configs.
+    Creates a RAG Config.
     """
     res = ctx.parent.obj["r"].post(
         f"language-model/rag-configs/",
@@ -29,6 +29,40 @@ def create(
             "prompt_config": prompt_config,
             "generation_config": generation_config,
         }
+    )
+    print(res)
+
+
+@app.command(rich_help_panel="RAG Config commands")
+def update(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="The name of the RAG Config you want to create.")] = None,
+    knowledge_base: Annotated[str, typer.Argument(help="The id of the Knowledge Base you want to use.")] = None,
+    llm_config: Annotated[str, typer.Argument(help="The id of the LLM Config you want to use.")] = None,
+    prompt_config: Annotated[str, typer.Argument(help="The id of the Prompt Config you want to use.")] = None,
+    generation_config: Annotated[str, typer.Argument(help="The id of the Generation Config you want to use.")] = None,
+    retriever_config: Annotated[str, typer.Argument(help="The id of the Retriever Config you want to use.")] = None,
+):
+    """
+    Updates a RAG Config.
+    """
+    data = {}
+    if name is not None:
+        data["name"] = name
+    if knowledge_base is not None:
+        data["knowledge_base"] = knowledge_base
+    if llm_config is not None:
+        data["llm_config"] = llm_config
+    if prompt_config is not None:
+        data["prompt_config"] = prompt_config
+    if generation_config is not None:
+        data["generation_config"] = generation_config
+    if retriever_config is not None:
+        data["retriever_config"] = retriever_config
+
+    res = ctx.parent.obj["r"].patch(
+        f"language-model/rag-configs/{id}/",
+        data=data
     )
     print(res)
 
