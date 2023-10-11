@@ -49,7 +49,14 @@ class KnowledgeBase(ChangesMixin):
     )
 
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
-
+    # CSV parsing options
+    csv_header = models.BooleanField(default=True)
+    title_index_col = models.IntegerField(default=0)
+    content_index_col = models.IntegerField(default=1)
+    url_index_col = models.IntegerField(default=2)
+    section_index_col = models.IntegerField(default=3)
+    role_index_col = models.IntegerField(default=4)
+    page_number_index_col = models.IntegerField(default=5)
     # PDF parsing options
     strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
     # URL parsing options
@@ -65,16 +72,17 @@ class KnowledgeBase(ChangesMixin):
 
     def update_items_from_csv(self):
         csv_content = self.original_csv.read().decode("utf-8").splitlines()
-        csv_rows = csv.DictReader(csv_content)
-
+        csv_rows = csv.reader(csv_content)
+        if self.csv_header:
+            next(csv_rows)
         new_items = [
             KnowledgeItem(
                 knowledge_base=self,
-                title=row["title"],
-                content=row["content"],
-                url=row["url"],
-                section=row.get("section"),
-                role=row.get("role"),
+                title=row[self.title_index_col] if len(row) > self.title_index_col else "",
+                content=row[self.content_index_col] if len(row) > self.content_index_col else "",
+                url=row[self.url_index_col] if len(row) > self.url_index_col else "",
+                section=row[self.section_index_col] if len(row) > self.section_index_col else "",
+                role=row[self.role_index_col] if len(row) > self.role_index_col else "",
             )
             for row in csv_rows
         ]

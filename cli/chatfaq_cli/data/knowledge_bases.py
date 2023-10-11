@@ -16,13 +16,29 @@ def create_from_csv(
         str, typer.Argument(help="The name you wish to give to the Knowledge Base.")
     ],
     source: Annotated[str, typer.Argument(help="The path to the CSV to upload.")],
+    csv_header: Annotated[bool, typer.Option(help="Whether the csv file includes a header.")] = True,
+    title_index_col: Annotated[int, typer.Option(help="The index of the column containing the title.")] = 0,
+    content_index_col: Annotated[int, typer.Option(help="The index of the column containing the content.")] = 1,
+    url_index_col: Annotated[int, typer.Option(help="The index of the column containing the url.")] = 2,
+    section_index_col: Annotated[int, typer.Option(help="The index of the column containing the section.")] = 3,
+    role_index_col: Annotated[int, typer.Option(help="The index of the column containing the role.")] = 4,
+    page_number_index_col: Annotated[int, typer.Option(help="The index of the column containing the page number.")] = 5,
 ):
     """
     Create a new Knowledge Base.
     """
     res = ctx.parent.obj["r"].post(
         "language-model/knowledge-bases/",
-        data={"name": name},
+        data={
+            "name": name,
+            "csv_header": csv_header,
+            "title_index_col": title_index_col,
+            "content_index_col": content_index_col,
+            "url_index_col": url_index_col,
+            "section_index_col": section_index_col,
+            "role_index_col": role_index_col,
+            "page_number_index_col": page_number_index_col,
+        },
         files={"original_csv": open(source, "rb")},
     )
     print(res)
@@ -58,12 +74,8 @@ def delete(
 @app.command(rich_help_panel="Knowledge Base commands")
 def download_csv(
     ctx: typer.Context,
-    id: Annotated[
-        str, typer.Argument(help="The id of the Knowledge Base you wish to download.")
-    ],
-    download_path: Annotated[
-        str, typer.Option(help="The path where you want to download the file.")
-    ] = None,
+    id: Annotated[str, typer.Argument(help="The id of the Knowledge Base you wish to download.")],
+    download_path: Annotated[str, typer.Option(help="The path where you want to download the file.")] = None,
 ):
     """
     Download the Knowledge Base as a CSV file.
