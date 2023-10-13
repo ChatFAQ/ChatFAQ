@@ -10,11 +10,11 @@ app = typer.Typer(help="RAG Config commands")
 def create(
     ctx: typer.Context,
     name: Annotated[str, typer.Argument(help="The name of the RAG Config you want to create.")],
-    knowledge_base: Annotated[str, typer.Argument(help="The id of the Knowledge Base you want to use.")],
-    llm_config: Annotated[str, typer.Argument(help="The id of the LLM Config you want to use.")],
-    prompt_config: Annotated[str, typer.Argument(help="The id of the Prompt Config you want to use.")],
-    generation_config: Annotated[str, typer.Argument(help="The id of the Generation Config you want to use.")],
-    retriever_config: Annotated[str, typer.Argument(help="The id of the Retriever Config you want to use.")],
+    knowledge_base: Annotated[str, typer.Argument(help="The id/name of the Knowledge Base you want to use.")],
+    llm_config: Annotated[str, typer.Argument(help="The id/name of the LLM Config you want to use.")],
+    prompt_config: Annotated[str, typer.Argument(help="The id/name of the Prompt Config you want to use.")],
+    generation_config: Annotated[str, typer.Argument(help="The id/name of the Generation Config you want to use.")],
+    retriever_config: Annotated[str, typer.Argument(help="The id/name of the Retriever Config you want to use.")],
 ):
     """
     Creates a RAG Config.
@@ -36,13 +36,13 @@ def create(
 @app.command(rich_help_panel="RAG Config commands")
 def update(
     ctx: typer.Context,
-    id: Annotated[int, typer.Argument(help="The id of the RAG Config you want to update.")],
+    id_name: Annotated[str, typer.Argument(help="The id/name of the RAG Config you want to update.")],
     name: Annotated[str, typer.Option(help="The name of the RAG Config you want to create.")] = None,
-    knowledge_base: Annotated[str, typer.Option(help="The id of the Knowledge Base you want to use.")] = None,
-    llm_config: Annotated[str, typer.Option(help="The id of the LLM Config you want to use.")] = None,
-    prompt_config: Annotated[str, typer.Option(help="The id of the Prompt Config you want to use.")] = None,
-    generation_config: Annotated[str, typer.Option(help="The id of the Generation Config you want to use.")] = None,
-    retriever_config: Annotated[str, typer.Option(help="The id of the Retriever Config you want to use.")] = None,
+    knowledge_base: Annotated[str, typer.Option(help="The id/name of the Knowledge Base you want to use.")] = None,
+    llm_config: Annotated[str, typer.Option(help="The id/name of the LLM Config you want to use.")] = None,
+    prompt_config: Annotated[str, typer.Option(help="The id/name of the Prompt Config you want to use.")] = None,
+    generation_config: Annotated[str, typer.Option(help="The id/name of the Generation Config you want to use.")] = None,
+    retriever_config: Annotated[str, typer.Option(help="The id/name of the Retriever Config you want to use.")] = None,
 ):
     """
     Updates a RAG Config.
@@ -62,7 +62,7 @@ def update(
         data["retriever_config"] = retriever_config
 
     res = ctx.parent.obj["r"].patch(
-        f"language-model/rag-configs/{id}/",
+        f"language-model/rag-configs/{id_name}/",
         data=data
     )
     print(res)
@@ -81,10 +81,10 @@ def _list(
 @app.command(rich_help_panel="RAG commands")
 def delete(
     ctx: typer.Context,
-    id: Annotated[str, typer.Argument(help="The id of the RAG you want to delete.")],
+    id_name: Annotated[str, typer.Argument(help="The id/name of the RAG you want to delete.")],
 ):
     """
     Delete an existing RAG.
     """
-    res = ctx.parent.obj["r"].delete(f"language-model/rag-configs/{id}")
+    res = ctx.parent.obj["r"].delete(f"language-model/rag-configs/{id_name}")
     print(res)

@@ -13,7 +13,7 @@ class KnowledgeBaseAPIViewSet(viewsets.ModelViewSet):
     serializer_class = KnowledgeBaseSerializer
 
     def get_queryset(self):
-        if self.kwargs.get("pk") and not self.kwargs["pk"].isnumeric():
+        if self.kwargs.get("pk"):
             kb = KnowledgeBase.objects.filter(name=self.kwargs["pk"]).first()
             if kb:
                 self.kwargs["pk"] = str(kb.pk)

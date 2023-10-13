@@ -5,14 +5,21 @@ from back.apps.language_model.serializers.rag_pipeline import LLMConfigSerialize
     GenerationConfigSerializer, PromptConfigSerializer, RetrieverConfigSerializer
 
 
-class LLMConfigAPIViewSet(viewsets.ModelViewSet):
-    queryset = LLMConfig.objects.all()
-    serializer_class = LLMConfigSerializer
-
-
 class RAGConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RAGConfig.objects.all()
     serializer_class = RAGConfigSerializer
+
+    def get_queryset(self):
+        if self.kwargs.get("pk"):
+            kb = RAGConfig.objects.filter(name=self.kwargs["pk"]).first()
+            if kb:
+                self.kwargs["pk"] = str(kb.pk)
+        return super().get_queryset()
+
+
+class LLMConfigAPIViewSet(viewsets.ModelViewSet):
+    queryset = LLMConfig.objects.all()
+    serializer_class = LLMConfigSerializer
 
 
 class RetrieverConfigAPIViewSet(viewsets.ModelViewSet):
