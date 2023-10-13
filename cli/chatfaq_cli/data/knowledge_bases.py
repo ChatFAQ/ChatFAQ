@@ -57,16 +57,16 @@ def _list(
 @app.command(rich_help_panel="Knowledge Base commands")
 def delete(
     ctx: typer.Context,
-    id: Annotated[
-        str, typer.Argument(help="The id of the Knowledge Base you wish to delete.")
+    id_name: Annotated[
+        str, typer.Argument(help="The id/name of the Knowledge Base you wish to delete.")
     ],
 ):
     """
     Delete an existing Knowledge Base.
     """
-    res = ctx.parent.obj["r"].delete(f"language-model/knowledge-bases/{id}/", json=False)
+    res = ctx.parent.obj["r"].delete(f"language-model/knowledge-bases/{id_name}/", json=False)
     if res.ok:
-        print(f"Knowledge Base {id} deleted.")
+        print(f"Knowledge Base {id_name} deleted.")
     else:
         print(res)
 
@@ -74,7 +74,7 @@ def delete(
 @app.command(rich_help_panel="Knowledge Base commands")
 def download_csv(
     ctx: typer.Context,
-    id: Annotated[str, typer.Argument(help="The id of the Knowledge Base you wish to download.")],
+    id_name: Annotated[str, typer.Argument(help="The id/name of the Knowledge Base you wish to download.")],
     download_path: Annotated[str, typer.Option(help="The path where you want to download the file.")] = None,
 ):
     """
@@ -82,7 +82,7 @@ def download_csv(
     """
     print("Downloading...")
     r = ctx.parent.obj["r"].get(
-        f"language-model/knowledge-bases/{id}/download_csv", json=False
+        f"language-model/knowledge-bases/{id_name}/download_csv", json=False
     )
     filename = r.headers["content-disposition"].split("attachment; filename=")[1]
     if not download_path:

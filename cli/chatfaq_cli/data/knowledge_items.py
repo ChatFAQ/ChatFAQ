@@ -9,7 +9,7 @@ app = typer.Typer(help="Knowledge items commands")
 def create(
     ctx: typer.Context,
     knowledge_base: Annotated[
-        str, typer.Argument(help="The id of the knowledge base you wish to create an item for.")
+        str, typer.Argument(help="The id/name of the knowledge base you wish to create an item for.")
     ],
     content: Annotated[str, typer.Argument(help="The content of the knowledge item.")],
     url: Annotated[str, typer.Argument(help="The url of the knowledge item.")],
@@ -40,14 +40,18 @@ def create(
 def _list(
     ctx: typer.Context,
     knowledge_base: Annotated[
-        str, typer.Argument(help="The id of the knowledge base you wish to list items from.")
+        str, typer.Argument(help="The id/name of the knowledge base you wish to list items from.")
     ],
 ):
     """
     List all knowledge items from a knowledge base.
     """
-    print(f"language-model/knowledge-items/?knowledge_base__id={knowledge_base}")
-    print(ctx.parent.obj["r"].get(f"language-model/knowledge-items/?knowledge_base__id={knowledge_base}"))
+    arg = f"knowledge_base__id={knowledge_base}"
+    if not knowledge_base.isnumeric():
+        arg = f"knowledge_base__name={knowledge_base}"
+
+    print(f"language-model/knowledge-items/?{arg}")
+    print(ctx.parent.obj["r"].get(f"language-model/knowledge-items/?{arg}"))
 
 
 @app.command(rich_help_panel="Knowledge items commands")
