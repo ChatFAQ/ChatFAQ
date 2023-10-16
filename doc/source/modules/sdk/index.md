@@ -64,7 +64,7 @@ This is just a dummy example that displays the basic usage of the library.
 
 We are going to build the next FSM:
 
-![fsm](../../../../doc/source/_static/images/fsm_diagram.png)
+![fsm](../../../../doc/source/_static/images/simple_fsm_diagram.png)
 
 Import basic modules to build your first FMS:
 
@@ -160,4 +160,48 @@ sdk = ChatFAQSDK(
 sdk.connect()
 ```
 
-The resulting FSM looks like this:
+### Model example
+
+All of that is great, but where is the large language model capabilities that ChatFAQ offers?
+
+What if we want to build a FSM that makes use of a Language Model?
+
+For that, you first need to [configure your model](../configuration/index.md).
+
+Once you have configured all the components of the model, you will just need to reference the name of your RAG Configuration inside a state of the FSM.
+
+For example, if you have a RAG Configuration named `my_rag_config`, you can use it inside a state like this:
+
+```python
+from chatfaq_sdk.fsm import FSMDefinition, State, Transition
+from chatfaq_sdk.layers import LMGeneratedText, Text
+
+
+def send_greeting(ctx: dict):
+    yield Text("How can we help you?", allow_feedback=False)
+
+
+def send_answer(ctx: dict):
+    last_payload = ctx["last_mml"]["stack"][0]["payload"]
+    yield LMGeneratedText(last_payload, "my_rag_config")
+
+greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
+
+answering_state = State(
+    name="Answering",
+    events=[send_answer],
+)
+
+_to_answer = Transition(
+    dest=answering_state,
+)
+
+fsm_definition = FSMDefinition(
+    states=[greeting_state, answering_state],
+    transitions=[_to_answer]
+)
+```
+
+For the sake of completeness, here is the diagram of this FSM:
+
+![fsm](../../../../doc/source/_static/images/model_fsm_diagram.png)
