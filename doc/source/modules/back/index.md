@@ -91,7 +91,7 @@ Alternatively you can simply run the server using docker.
 ## Usage
 ### Useful Endpoints
 
-Admin: [http://localhost:8000/back/admin/](http://localhost:8000/back/admin/)
+Django Admin: [http://localhost:8000/back/admin/](http://localhost:8000/back/admin/)
 
 Auth Token Generation: [http://localhost:8000/back/api/login/](http://localhost:8000/back/api/login/)
 

@@ -7,7 +7,7 @@ The full potential of ChatFAQ services, datasets, and models at the tip of your 
 Make sure the next list of packages are installed on your system:
 
 - Python 3.10
-- poetry
+- poetry/pip
 
 ## Installation
 
