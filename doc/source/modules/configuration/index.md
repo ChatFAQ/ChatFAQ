@@ -23,7 +23,7 @@ ChatFAQ provide in its fixtures a default configuration for each of these compon
 make apply_fixtures
 ```
 
-Currently all the relevant data/models can be accessed and modified from the Django admin panel (http://localhost/back/admin/) or from the CLI.
+Currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
 
 
 ### Knowledge Base
@@ -133,7 +133,7 @@ The RAG config is configured with the following properties:
 
 
 
-Remember thatcurrently all the relevant data/models can be accessed and modified from the Django admin panel (http://localhost/back/admin/) or from the CLI.
+Remember thatcurrently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
 
 ## Using your RAG Pipeline
 
