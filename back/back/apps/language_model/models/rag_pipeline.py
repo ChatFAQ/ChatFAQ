@@ -87,7 +87,7 @@ class RAGConfig(ChangesMixin):
 
 class RetrieverConfig(ChangesMixin):
     """
-    A model config with all the settings to configure the retriever.
+    A config with all the settings to configure the retriever.
     name: str
         Just a name for the retriever.
     model_name: str
