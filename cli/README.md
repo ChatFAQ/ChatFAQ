@@ -25,7 +25,7 @@ First of all you should configure the remote target server:
 
 `chatfaq config host <REMOTE_ADRESS>`
 
-Then you can log in into the remote server:
+Then you can log in into the remote back-end server:
 
 `chatfaq config auth <TOKEN>`
 
@@ -37,7 +37,17 @@ by using an admin's user and password.
 
 ## Commands
 
+For a full list of commands and options run:
+
 `chatfaq --help`
+
+## Notes
+
+For the autocompletion to work you should run:
+
+`chatfaq --install-completion`
+
+or run `chatfaq --show-completion` and add the output to your shell's configuration file.
 
 ### Publish package
 
