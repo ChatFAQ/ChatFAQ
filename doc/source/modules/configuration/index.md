@@ -42,7 +42,8 @@ Next we list the different properties that a of knowledge bases has.
 - original_pdf: The PDF file.
 - original_url: The URL.
 
-###### CSV parsing options
+<b> CSV parsing options</b>
+
 - csv_header: Whether the CSV file has a header or not.
 - title_index_col: The index of the column that contains the title of the knowledge item.
 - content_index_col: The index of the column that contains the content of the knowledge item.
@@ -51,14 +52,30 @@ Next we list the different properties that a of knowledge bases has.
 - role_index_col: The index of the column that contains the role of the knowledge item.
 - page_number_index_col: The index of the column that contains the page number of the knowledge item.
 
-###### PDF parsing options
+<b> PDF parsing options</b>
+
 - strategy: The strategy to use to parse the pdf file. Can be 'auto', 'fast', 'ocr' or 'high_res'.
-###### URL parsing options
+<b> URL parsing options</b>
+-
 - recursive: Whether to recursively parse the URLs or not.
-###### PDF & URL parsing options
+<b> PDF & URL parsing options</b>
+-
 - splitter: The splitter used to split the documents into chunks. It is used to generate the knowledge items.
 - chunk_size: The number of tokens per chunk. It is used by the splitter to split the documents into chunks. The bigger the chunk size, the more memory the system will need to parse the documents.
 - chunk_overlap: The number of tokens that overlap between two chunks. It is also used by the splitter
+
+An example of a CSV for the Knowledge Base is the following:
+
+| title | content | url | section | role |
+| --- | --- | --- | --- | --- |
+| Can ChatFAQ integrate with communication tools like Slack and Teams? | Yes, ChatFAQ can integrate with communication tools like Slack and Teams, enhancing your communication capabilities and enabling seamless interactions with your audience. | https://www.chatfaq.io/features/integrations | Features > Integrations | user |
+| Can the ChatFAQ Widget be tailored to fit specific brand identities? | Absolutely, the ChatFAQ Widget can be fully branded to reflect your brand's uniqueness, including size, color, fonts, and logo. This ensures it aligns perfectly with your brand identity. | https://www.chatfaq.io/features/widget | Features > Widget | user |
+| Does ChatFAQ offer a customized Natural Language Processing (NLP) engine? | Yes, ChatFAQ includes a specialized NLP/NLG engine that enhances the conversational capabilities of chatbots, making them more effective in understanding and responding to user queries. | https://github.com/ChatFAQ/ChatFAQ | GitHub > Documentation | user |
+| Does ChatFAQ offer specific enterprise solutions? | Indeed, ChatFAQ is suitable for businesses and can be tailored to meet enterprise needs. It offers features and customization options suitable for businesses of all sizes. | https://github.com/ChatFAQ/ChatFAQ | GitHub > About | user |
+| Does the ChatFAQ Widget support multiple languages? | Yes, the ChatFAQ Widget is multilingual, allowing businesses to communicate with a global customer base while maintaining service quality. | https://www.chatfaq.io/features/widget | Features > Widget | user |
+| How can I customize the user interface of the ChatFAQ Widget? | The ChatFAQ Widget offers complete flexibility over UI aspects, including size, color, fonts, and logo, to align with your brand's uniqueness and cater to your audience's needs. | https://www.chatfaq.io/features/widget | Features > Widget | user |
+| How can I expand my knowledge dataset with ChatFAQ? | You can expand your knowledge dataset with ChatFAQ by uploading your business content as CSV or PDF files. ChatFAQ will automatically generate utterances to enhance your knowledge dataset, improving the accuracy of the AI model. Even if you don't have existing Frequently Asked Questions, ChatFAQ can infer FAQs and prepare a training dataset covering your business context. | https://www.chatfaq.io/features/generative-ai | Features > Generative AI | user |
+| ... | ... | ... | ... | ... |
 
 ### Retriever Config
 
