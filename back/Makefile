@@ -27,6 +27,7 @@ create_fixtures:
 
 apply_fixtures:
 	$(POETRY_RUN) ./pmanage loaddata back/apps/people/fixtures/initial.json --app auth.group
+	$(POETRY_RUN) ./pmanage loaddata back/apps/language_model/fixtures/initial.json --app language_model
 
 celery_worker:
 	$(POETRY_RUN) celery -A back.config worker -l INFO -P solo

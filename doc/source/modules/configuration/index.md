@@ -20,7 +20,7 @@ We define 5 main components that are needed to configure a RAG pipeline:
 ChatFAQ provide in its fixtures a default configuration for each of these components except for the Knowledge Base and the RAG Config. You can apply the fixtures by simply running the following command from the `back` directory:
 
 ```bash
-./manage.py loaddata back/apps/language_model/fixtures/initial.json
+make apply_fixtures
 ```
 
 
