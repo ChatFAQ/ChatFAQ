@@ -57,6 +57,7 @@ Create a superuser
 
 When creating the superuser notice that we are passing the `--rpc_group 1` flag. This is critical to be able to create an RPC Server with this same user later on.
 
+Now you can access the Django admin panel at http://localhost:8000/back/admin/ and login with the superuser credentials, from there you can CRUD all the relevant models.
 
 ##### Run
 
