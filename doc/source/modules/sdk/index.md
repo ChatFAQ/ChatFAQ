@@ -2,60 +2,6 @@
 
 For those chatbots with complex Finite State Machine (FSM) behaviours, you will probably want to run them on a separate process, that is what for the SDK is made for. Its primary function is to execute the FSM's computations (transition's conditions and states) by running Remote Procedure Call (RPC) server that listen to the back-end requests.
 
-## Prerequisites
-
-Make sure the next list of packages are installed on your system:
-
-- Python 3.10
-- python3.10-dev
-- python3.10-distutils
-- poetry
-
-## Installation
-
-### PYPI
-
-    poetry add chatfaq-sdk
-
-### Local build
-
-#### Set Up:
-
-Install project dependencies:
-
-    poetry install
-
-#### Run
-
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
-
-`CHATFAQ_RETRIEVAL_HTTP`: The address for the HTTP of the back-end server.
-
-`CHATFAQ_BACKEND_WS`: The address for the WS of the back-end server.
-
-`CHATFAQ_TOKEN`: The token to authenticate with the back-end server. You can obtain this token by login into [http://localhost:8000/back/api/login/](http://localhost:8000/back/api/login/) with an admin user.
-
-
-Run the example:
-
-    make run_example
-
-This will run the example FSM that is located in [./examples/model_example/__init__.py](./examples/model_example/__init__.py) file. You can modify this file to test your own FSMs.
-
-
-### Docker
-
-Alternatively you can simply run the server using docker.
-
-#### Build
-
-    docker build -t chatfaq-sdk .
-
-#### Run
-
-    docker run chatfaq-sdk
-
-
 ## Usage
 
 ### Simple example

@@ -7,13 +7,13 @@ The system comprises three main components that you need to install:
 ![ChatFAQ Components](./_static/images/chatfaq_components.png)
 
 
-- The back-end ([install](./modules/back/index.md)) manages the comunication between all the components. It also houses the database for storing all the data related to the chatbots, datasets, models, etc...
+- The back-end (<a href="/en/latest/modules/install/index.html#back-installation">install</a>) manages the communication between all the components. It also houses the database for storing all the data related to the chatbots, datasets, models, etc...
 
 
-- The SDK ([install](./modules/sdk/index.md)) launches a Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
+- The SDK (<a href="/en/latest/modules/install/index.html#sdk-installation">install</a>) launches a Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
 
 
-- The widget ([install](./modules/widget/index.md)) is a JS browser client application from which the user interacts with the bot.
+- The widget (<a href="/en/latest/modules/install/index.html#widget-installation">install</a>) is a JS browser client application from which the user interacts with the bot.
 
 ## Model Configuration
 

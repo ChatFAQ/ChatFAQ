@@ -2,46 +2,6 @@
 
 We built for you a custom front-end solution just so you can talk with your chatbot from the browser using an app you own. Although you can also connect any other message platform as such WhatsApp, Telegram, Signal, Facebook messenger, etc... ChatFAQ supports them all and if it doesn't it can easily be extended to do so.
 
-## Prerequisites
-
-Make sure the next list of packages are installed on your system:
-
-- npm
-- node v19.6.0
-
-
-## Installation
-
-### NPM
-
-    npm install chatfaq-widget
-
-### UNPKG
-
-    <script src="unpkg.com/chatfaq-widget/dist/widget-loader.min.esm"></script>
-
-### Local build
-
-#### Set Up:
-
-Install project dependencies:
-
-    npm i
-
-## Run
-
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
-
-`CHATFAQ_BACKEND_API`: The address for the HTTP of the back-end server.
-
-`CHATFAQ_BACKEND_WS`:  The address for the WS of the back-end server.
-
-Run the example:
-
-    npm run dev
-
-This will run a node server which will serve an empty webpage with just the Widget integrated on it, if you navigate to http://localhost:3000
-
 ## Usage
 
 ### JS Library

@@ -133,4 +133,4 @@ The RAG config is configured with the following properties:
 
 Once you have created your RAG pipeline, you can use it to generate answers.
 
-How? well, you just need to reference the name of the Rag Config from a state of your SDK's FSM. <a href="/en/latest/modules/sdk/sdk/index.html#model-example">Here is an example of that</a>
+How? well, you just need to reference the name of the Rag Config from a state of your SDK's FSM. <a href="/en/latest/modules/sdk/index.html#model-example">Here is an example of that</a>
