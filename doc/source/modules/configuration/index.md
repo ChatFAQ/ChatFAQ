@@ -83,7 +83,7 @@ The prompt is the input that the LLM will use to generate the answer. It is comp
 - assistant_end: The tag to indicate the end of the assistant output.
 - n_contexts_to_use: The number of contexts to use.
 
-## Generation Config
+### Generation Config
 The generation config is used to define the characteristics of the second part from the RAF pipeline, the generation process.
 
 The generation process is configured with the following properties:
