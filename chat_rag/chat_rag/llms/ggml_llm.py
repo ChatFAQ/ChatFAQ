@@ -5,7 +5,7 @@ from typing import List
 from huggingface_hub import hf_hub_download
 from ctransformers import AutoModelForCausalLM, AutoConfig
 
-from chatfaq_retrieval.models import BaseModel
+from chat_rag.llms import BaseLLM
 
 
 logger = getLogger(__name__)
@@ -37,7 +37,7 @@ def download_ggml_file(llm_name: str, ggml_model_filename: str, local_path: str)
     )
 
 
-class GGMLModel(BaseModel):
+class GGMLModel(BaseLLM):
     def __init__(self, llm_name: str, ggml_model_filename: str, model_config: str, **kwargs):
         """
         Initializes the ggml model. Optimized for CPU inference

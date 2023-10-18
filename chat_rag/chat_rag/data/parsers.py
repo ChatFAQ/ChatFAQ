@@ -10,7 +10,7 @@ from unstructured.documents.elements import (
 
 from unstructured.partition.auto import partition_pdf, partition_html
 
-from chatfaq_retrieval.data.models import KnowledgeItem
+from chat_rag.data.models import KnowledgeItem
 
 
 def is_strict_instance(obj, class_type):

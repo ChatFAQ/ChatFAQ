@@ -1,0 +1,1 @@
+from chat_rag.inf_retrieval.retrievers.semantic_retriever import SemanticRetriever

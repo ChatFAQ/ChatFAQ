@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "chatfaq-retrieval"
-version = "0.1.25"
+name = "chat-rag"
+version = "0.1.27"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
-packages = [{ include = "chatfaq_retrieval" }]
+packages = [{ include = "chat_rag" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
