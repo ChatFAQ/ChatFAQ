@@ -3,7 +3,7 @@ import os
 
 import openai
 
-from chatfaq_retrieval.models import BaseModel
+from chat_rag.llms import BaseLLM
 
 
 CONTEXT_PREFIX = {
@@ -19,7 +19,7 @@ QUESTION_PREFIX = {
 }
 
 
-class OpenAIModel(BaseModel):
+class OpenAIModel(BaseLLM):
     def __init__(
         self,
         llm_name: str,

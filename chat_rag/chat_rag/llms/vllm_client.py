@@ -4,9 +4,9 @@ import os
 
 import requests
 
-from chatfaq_retrieval.models import BaseModel
+from chat_rag.llms import BaseLLM
 
-class VLLModel(BaseModel):
+class VLLModel(BaseLLM):
     """
     A client that sends requests to the VLLM server.
     """

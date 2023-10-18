@@ -24,13 +24,13 @@ The `RetrieverAnswerer` is the main class for the chatbot. It takes as input a q
 
 add repository to poetry config
 
-    poetry config repositories.chatfaq-retrieval https://test.pypi.org/legacy/
+    poetry config repositories.chat-rag https://test.pypi.org/legacy/
 
 get token from https://test.pypi.org/manage/account/token/
 
 store token using
 
-    poetry config pypi-token.chatfaq-retrieval pypi-YYYYYYYY
+    poetry config pypi-token.chat-rag pypi-YYYYYYYY
 
 ### PYPI production
 
@@ -38,7 +38,7 @@ get token from https://pypi.org/manage/account/token/
 
 store token using
 
-    poetry config pypi-token.chatfaq-retrieval pypi-XXXXXXXX
+    poetry config pypi-token.chat-rag pypi-XXXXXXXX
 
 Each time you need to publish
 

@@ -16,7 +16,7 @@ class DatasetConfig(AppConfig):
     def ready(self):
         if is_migrating() or os.getenv("BUILD_MODE") in ["yes", "true"] or is_celery_worker():
             return
-        from .signals import on_llm_config_change#, on_embedding_delete # noqa
+        from .signals import on_llm_config_change # noqa
         from back.apps.language_model.tasks import generate_embeddings_task, llm_query_task
 
         # Making sure that all the Knowledge Items have an embedding for each RAG config
@@ -38,7 +38,7 @@ class DatasetConfig(AppConfig):
             # but do not yet have an associated Embedding.
             kis_without_embeddings = KnowledgeItem.objects.filter(
                 knowledge_base=rag_config.knowledge_base
-                ).exclude(pk__in=ki_pks_with_embeddings)
+            ).exclude(pk__in=ki_pks_with_embeddings)
             
             logger.info(f"Generating embeddings for RAG config:{rag_config} #KI {kis_without_embeddings.count()}")
     

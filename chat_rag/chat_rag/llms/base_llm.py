@@ -15,7 +15,7 @@ QUESTION_PREFIX = {
 }
 
 
-class BaseModel:
+class BaseLLM:
     def __init__(self, llm_name: str, model_max_length: int = None, **kwargs) -> None:
         self.tokenizer = AutoTokenizer.from_pretrained(llm_name)
 
