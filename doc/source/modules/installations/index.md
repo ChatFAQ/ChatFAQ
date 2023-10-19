@@ -18,6 +18,7 @@ Make sure the next list of packages are installed on your system:
 - python3.10-dev
 - python3.10-distutils
 - PostgreSQL
+- pgvector
 - gdal-bin
 - poetry
 

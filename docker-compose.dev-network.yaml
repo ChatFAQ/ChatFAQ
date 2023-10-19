@@ -4,9 +4,9 @@
 version: "3.8"
 services:
 
-  # needs: /etc/hosts: 127.0.0.1  postgres
-  postgres:
-    ports:
-    - "5432:5432"
-    networks:
-    - default
+  # # needs: /etc/hosts: 127.0.0.1  postgres
+  # postgres:
+  #   ports:
+  #   - "5432:5432"
+  #   networks:
+  #   - default
