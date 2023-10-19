@@ -15,6 +15,7 @@ Make sure the next list of packages are installed on your system:
 - python3.10-dev
 - python3.10-distutils
 - PostgreSQL
+- Redis
 - gdal-bin
 - poetry
 
@@ -67,6 +68,8 @@ First of all, create a `.env` file with the needed variables set. You can see an
 
 `BASE_URL`: Base URL of the server. This is the URL that will be used to connect to the server. It should be in the following format: `http://HOST:PORT`
 
+`REDIS_URL`: Redis connection URL. This is the URL that will be used to connect to the redis server. It should be in the following format: `redis://HOST:PORT`. Redis is used for both: the Celery tasks queue and the Django Channels layer.
+
 `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` + `AWS_STORAGE_BUCKET_NAME` + `DO_REGION` + `STORAGES_MODE` + `STORAGE_MAKE_FILES_PUBLIC`: These variables are used to configure the storage backend. If you want to use AWS S3, you should set `STORAGES_MODE` to "s3" and set the other variables accordingly. If you want to use Digital Ocean Spaces, you should set `STORAGES_MODE` to "spaces" and set the other variables accordingly. If you want to use the local filesystem, you should set `STORAGES_MODE` to "local".
 
 `TG_TOKEN`, `WHATSAPP_TOKEN`, `SIGNAL_TOKEN`, `FB_TOKEN`: These variables are used to configure the messaging platforms. You should set the token of the platforms you want to use. If you don't want to use a platform (ie: you are using our [Widget](../widget/README.md) solution), you can leave its token empty.
@@ -74,6 +77,10 @@ First of all, create a `.env` file with the needed variables set. You can see an
 Run the server
 
     make run
+
+Run the celery
+
+    make celery_worker
 
 ### Docker
 
