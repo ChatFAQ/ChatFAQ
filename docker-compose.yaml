@@ -2,16 +2,16 @@
 version: "3.8"
 services:
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: chatfaq_postgres
-    hostname: chatfaq_postgres
-    volumes:
-      - chatfaq_db_data:/var/lib/postgresql/data/
-    environment:
-      - PGDATA=/var/lib/postgresql/data/pgdata/
-    networks:
-      - chatfaq_db_net
+  # postgres:
+  #   image: ankane/pgvector:v0.5.0 #postgres:15-alpine
+  #   container_name: chatfaq_postgres
+  #   hostname: chatfaq_postgres
+  #   volumes:
+  #     - chatfaq_db_data:/var/lib/postgresql/data/
+  #   environment:
+  #     - PGDATA=/var/lib/postgresql/data/pgdata/
+  #   networks:
+  #     - chatfaq_db_net
 
   back:
     build:
@@ -20,8 +20,8 @@ services:
     image: chatfaq_back
     container_name: chatfaq_back
     hostname: chatfaq_back
-    depends_on:
-      - postgres
+    # depends_on:
+    #   - postgres
     ports:
       - 8000:8000
     networks:
@@ -30,18 +30,18 @@ services:
       - chatfaq_back_net
       - chatfaq_state_machine_net
 
-  worker:
-    build:
-      context: worker
-      dockerfile: Dockerfile
-    image: chatfaq_worker
-    container_name: chatfaq_worker
-    hostname: chatfaq_worker
-    depends_on:
-      - back
-    networks:
-      - chatfaq_back_net
-      - chatfaq_db_net
+  # worker:
+  #   build:
+  #     context: worker
+  #     dockerfile: Dockerfile
+  #   image: chatfaq_worker
+  #   container_name: chatfaq_worker
+  #   hostname: chatfaq_worker
+  #   depends_on:
+  #     - back
+  #   networks:
+  #     - chatfaq_back_net
+  #     - chatfaq_db_net
 
   state-machine:
     build:

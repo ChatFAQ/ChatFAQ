@@ -152,7 +152,7 @@ class LLMConfig(ChangesMixin):
     """
 
     name = models.CharField(max_length=255, unique=True)
-    llm_type = models.CharField(max_length=10, choices=LLM_CHOICES, default="openai")
+    llm_type = models.CharField(max_length=10, choices=LLM_CHOICES, default="local_gpu")
     llm_name = models.CharField(max_length=100, default="gpt2")
     ggml_llm_filename = models.CharField(max_length=255, blank=True, null=True)
     model_config = models.CharField(max_length=255, blank=True, null=True)
@@ -210,7 +210,7 @@ class GenerationConfig(ChangesMixin):
     top_p : float, optional
         The cumulative probability for the top-p sampling, by default 1.0
     temperature : float, optional
-        The temperature for the sampling, by default 1.0
+        The temperature for the sampling, by default 0.2
     repetition_penalty : float, optional
         The repetition penalty for the sampling, by default 1.0
     seed : int, optional
@@ -223,7 +223,7 @@ class GenerationConfig(ChangesMixin):
     name = models.CharField(max_length=255, unique=True)
     top_k = models.IntegerField(default=50)
     top_p = models.FloatField(default=1.0)
-    temperature = models.FloatField(default=1.0)
+    temperature = models.FloatField(default=0.2)
     repetition_penalty = models.FloatField(default=1.0)
     seed = models.IntegerField(default=42)
     max_new_tokens = models.IntegerField(default=256)
