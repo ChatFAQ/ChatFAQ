@@ -330,6 +330,11 @@ An example of a RAG config is the following:
 
 To create the RAG pipeline you just need to link all the components together. You can do it from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)).
 
+Then, if you go to the Celery logs you will see that the RAG pipeline is being built. This process can take several minutes, depending on the size of the knowledge base. When it is finished you will see a message like this:
+```
+[2023-10-20 11:03:22,743: INFO/MainProcess] Loading RAG config: chatfaq_llama_rag with llm: meta-llama/Llama-2-7b-chat-hf with llm type: Local GPU Model with knowledge base: chatfaq retriever: intfloat/e5-small-v2 and retriever device: cpu
+```
+
 
 Once you have created your RAG pipeline, you can use it to generate answers.
 
