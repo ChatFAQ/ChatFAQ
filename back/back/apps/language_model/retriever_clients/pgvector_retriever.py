@@ -40,12 +40,9 @@ class PGVectorRetriever:
         threshold : float, optional
             Threshold for filtering the context, by default None.
         """
-        queries_embeddings = self.embedding_model.encode(queries)
+        queries_embeddings = self.embedding_model.build_embeddings(queries, prefix='query: ') # specific prefix for e5 models queries
 
-        # Assuming the embeddings are dense and same length for all queries,
-        # we'll retrieve items for each query and aggregate them.
-        # If you expect multiple queries at once, this might not be efficient
-        # and may need adjustments.
+
         results = []
         for query_embedding in queries_embeddings:
             items_for_query = (
@@ -70,6 +67,7 @@ class PGVectorRetriever:
                     'section': item.section,
                     'role': item.role,
                     'page_number': str(item.page_number) if item.page_number else None,
+                    'similarity': item.similarity,
                 }
                 for item in items_for_query
             ]
@@ -79,6 +77,4 @@ class PGVectorRetriever:
                 
             results.append(query_results)
         
-        print(results)
-
         return results
