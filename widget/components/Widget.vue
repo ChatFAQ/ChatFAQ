@@ -136,7 +136,7 @@ $widget-margin: 16px;
             &.maximized {
                 @media only screen and (min-width: $phone-breakpoint) {
                     width: calc(100dvw - $history-width - $widget-margin * 2);
-                    height: 85vh;
+                    height: 85dvh;
                 }
                 &.history-closed {
                     @media only screen and (min-width: $phone-breakpoint) {
