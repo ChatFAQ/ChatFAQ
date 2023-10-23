@@ -71,7 +71,7 @@ class BaseModel:
         self,
         queries: List[str],
         batch_size: int = -1,
-        disable_progess_bar: bool = False,
+        disable_progress_bar: bool = False,
     ) -> torch.Tensor:
         """
         Returns the embeddings of the queries.
@@ -81,7 +81,7 @@ class BaseModel:
             List of queries to be encoded.
         batch_size : int, optional
             Batch size, by default -1 (no batching).
-        disable_progess_bar : bool, optional
+        disable_progress_bar : bool, optional
             Whether to disable the progress bar, by default False.
         Returns
         -------
@@ -96,7 +96,7 @@ class BaseModel:
         # Compute token embeddings
         with torch.inference_mode():
             for i in tqdm(
-                range(0, len(queries), batch_size), disable=disable_progess_bar
+                range(0, len(queries), batch_size), disable=disable_progress_bar
             ):
                 # Tokenize sentences
                 encoded_input = self.tokenizer(
@@ -127,6 +127,7 @@ class BaseModel:
         contents: List[str] = None,
         batch_size: int = 1,
         prefix: str = "passage: ",
+        disable_progress_bar: bool = False,
     ):
         """
         Builds the embeddings for the context.
@@ -142,6 +143,6 @@ class BaseModel:
         logger.info("Building embeddings...")
 
         contents = [prefix + content for content in contents]  # add prefix to answers
-        embeddings = self.encode(contents, batch_size)
+        embeddings = self.encode(contents, batch_size, disable_progress_bar)
 
         return embeddings

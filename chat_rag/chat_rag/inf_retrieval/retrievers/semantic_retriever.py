@@ -58,7 +58,7 @@ class SemanticRetriever:
         top_k: int = 5,
         prefix: str = "query: ",
         threshold: float = None,
-        disable_progess_bar: bool = False,
+        disable_progress_bar: bool = False,
     ) -> List[Tuple[List[float], List[int]]]:
         """
         Returns the top_k most relevant context for the queries.
@@ -69,7 +69,7 @@ class SemanticRetriever:
             Queries to be used for retrieval.
         top_k : int, optional
             Number of context to be returned, by default 5. If -1, all context are returned.
-        disable_progess_bar : bool, optional
+        disable_progress_bar : bool, optional
             Whether to disable the progress bar, by default True.
         prefix : str, optional
             Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
@@ -89,7 +89,7 @@ class SemanticRetriever:
         queries = [prefix + query for query in queries]  # Add query prefix
 
         queries_embeddings = self.embedding_model.encode(
-            queries, disable_progess_bar=disable_progess_bar
+            queries, disable_progress_bar=disable_progress_bar
         )
         scores = (
             torch.mm(queries_embeddings, self.embeddings.transpose(0, 1)).cpu().numpy()
@@ -188,7 +188,7 @@ class SemanticRetriever:
         top_k: int = 5,
         prefix: str = "query: ",
         threshold: float = None,
-        disable_progess_bar: bool = False,
+        disable_progress_bar: bool = False,
     ) -> List[List[Dict[str, str]]]:
         """
         Returns the context for the queries.
@@ -198,7 +198,7 @@ class SemanticRetriever:
             List of queries to be used for retrieval.
         top_k : int, optional
             Number of context to be returned, by default 5. If -1, all context are returned.
-        disable_progess_bar : bool, optional
+        disable_progress_bar : bool, optional
             Whether to disable the progress bar, by default True.
         prefix : str, optional
             Prefix or instruction to be added to the context, by default 'query: ' for e5 models.
@@ -211,7 +211,7 @@ class SemanticRetriever:
         matches_batch = self.get_top_matches(
             queries,
             top_k=top_k,
-            disable_progess_bar=disable_progess_bar,
+            disable_progress_bar=disable_progress_bar,
             prefix=prefix,
             threshold=threshold,
         )
