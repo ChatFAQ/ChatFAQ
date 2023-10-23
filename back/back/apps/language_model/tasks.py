@@ -110,9 +110,9 @@ class RAGCacheOnWorkerTask(Task):
             logger.info(
                 f"Loading RAG config: {rag_conf.name} "
                 f"with llm: {rag_conf.llm_config.llm_name} "
-                f"with llm type: {rag_conf.llm_config.llm_type}"
-                f"with knowledge base: {rag_conf.knowledge_base.name}"
-                f"with retriever: {rag_conf.retriever_config.model_name}"
+                f"with llm type: {rag_conf.llm_config.llm_type} "
+                f"with knowledge base: {rag_conf.knowledge_base.name} "
+                f"with retriever: {rag_conf.retriever_config.model_name} "
                 f"and retriever device: {rag_conf.retriever_config.device}"
             )
 
