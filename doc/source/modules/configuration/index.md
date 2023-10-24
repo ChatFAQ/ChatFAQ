@@ -71,7 +71,7 @@ Next we list the different properties that a of knowledge bases has.
 
 - The **chunk_overlap** is used when splitting with the 'words' or 'tokens' splitters. 16 or 32 is enough for not losing information between chunks.
 
-
+#### CSV Structure
 
 An example of a CSV for the Knowledge Base is the following:
 
