@@ -1,4 +1,4 @@
-# Model Configuration
+# IA Configuration
 
 After setting up the components, you will probably want to configure a model that you want to use for your chatbot. Typically the model will be used from the SDK, from a state within its FSM.
 
@@ -71,7 +71,7 @@ Next we list the different properties that a of knowledge bases has.
 
 - The **chunk_overlap** is used when splitting with the 'words' or 'tokens' splitters. 16 or 32 is enough for not losing information between chunks.
 
-
+#### CSV Structure
 
 An example of a CSV for the Knowledge Base is the following:
 
