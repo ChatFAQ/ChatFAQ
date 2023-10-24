@@ -10,7 +10,7 @@ This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages all th
 ### Setting it up Locally
 
 
-### Prerequisites
+#### Prerequisites
 
 Make sure the next list of packages are installed on your system:
 
