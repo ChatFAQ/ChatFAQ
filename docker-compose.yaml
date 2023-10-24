@@ -2,17 +2,29 @@
 version: "3.8"
 services:
 
-  # postgres:
-  #   image: ankane/pgvector:v0.5.0 #postgres:15-alpine
-  #   container_name: chatfaq_postgres
-  #   hostname: chatfaq_postgres
-  #   volumes:
-  #     - chatfaq_db_data:/var/lib/postgresql/data/
-  #   environment:
-  #     - PGDATA=/var/lib/postgresql/data/pgdata/
-  #   networks:
-  #     - chatfaq_db_net
-
+  postgres:
+    image: ankane/pgvector:v0.5.0 #postgres:15-alpine
+    container_name: postgres
+    hostname: postgres
+    volumes:
+      - chatfaq_db_data:/var/lib/postgresql/data/
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata/
+      - POSTGRES_USER=chatfaq
+      - POSTGRES_PASSWORD=chatfaq
+      - POSTGRES_DB=chatfaq
+    networks:
+      - chatfaq_db_net
+  redis:
+    image: redis:6.2-alpine
+    hostname: redis
+    # ports:
+    #   - '6379:6379'
+    networks:
+      - chatfaq_db_net
+    # command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    # volumes:
+    #   - cache:/data
   back:
     build:
       context: back
@@ -20,8 +32,8 @@ services:
     image: chatfaq_back
     container_name: chatfaq_back
     hostname: chatfaq_back
-    # depends_on:
-    #   - postgres
+    depends_on:
+      - postgres
     ports:
       - 8000:8000
     networks:
@@ -29,19 +41,33 @@ services:
       - chatfaq_db_net
       - chatfaq_back_net
       - chatfaq_state_machine_net
+    entrypoint: "./docker-entrypoint.sh"
 
-  # worker:
-  #   build:
-  #     context: worker
-  #     dockerfile: Dockerfile
-  #   image: chatfaq_worker
-  #   container_name: chatfaq_worker
-  #   hostname: chatfaq_worker
-  #   depends_on:
-  #     - back
-  #   networks:
-  #     - chatfaq_back_net
-  #     - chatfaq_db_net
+  celery:
+    build:
+      context: back
+      dockerfile: Dockerfile
+    image: chatfaq_celery
+    container_name: chatfaq_celery
+    hostname: chatfaq_celery
+    depends_on:
+      - back
+    networks:
+      - chatfaq_back_net
+      - chatfaq_db_net
+    command:
+        - modelw-docker
+        - run
+        - python
+        - -m
+        - celery
+        - -A
+        - back.config
+        - worker
+        - -l
+        - INFO
+        - --pool
+        - threads
 
   state-machine:
     build:
