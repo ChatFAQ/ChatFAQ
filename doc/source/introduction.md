@@ -4,6 +4,10 @@
 
 The system comprises three main components that you need to install:
 
+There is a `docker-compose.yaml` that runs several docker containers with everything you need to run the system. You can run it with:
+
+    docker compose -f docker-compose.yaml -f docker-compose.vars.yaml up
+
 ![ChatFAQ Components](./_static/images/chatfaq_components.png)
 
 
