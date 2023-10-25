@@ -18,7 +18,7 @@ Make sure the next list of packages are installed on your system:
 
 ### UNPKG
 
-    <script src="unpkg.com/chatfaq-widget/dist/widget-loader.min.esm"></script>
+    <script src="unpkg.com/chatfaq-widget"></script>
 
 ### Local build
 
@@ -50,7 +50,7 @@ This will run a node server which will serve an empty webpage with just the Widg
 <div id="chatfaq-widget"></div>
 
 <script>
-    import { ChatfaqWidget } from "chatfaq-widget/dist/widget-loader.esm";
+    import { ChatfaqWidget } from "chatfaq-widget";
 
     const config = {
         element: "#chatfaq-widget",
@@ -91,7 +91,7 @@ If you declare data attributes and a config object and its keys collide, then th
 ```html
 
 <script>
-    import { ChatfaqWidgetCustomElement } from "chatfaq-widget/dist/widget-loader.esm";
+    import { ChatfaqWidgetCustomElement } from "chatfaq-widget";
     customElements.define("chatfaq-widget", ChatfaqWidgetCustomElement)
 </script>
 
@@ -135,7 +135,7 @@ We made the widget styles hightly customizable by exposing a set of variables th
 
 ```html
 
-<script type="text/javascript" src="chatfaq-widget/dist/widget-loader.esm"></script>
+<script type="text/javascript" src="chatfaq-widget"></script>
 <style>
     :root {
         --chatfaq-color-primary-200: red;

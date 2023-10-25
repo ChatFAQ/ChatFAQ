@@ -10,7 +10,7 @@ We built for you a custom front-end solution just so you can talk with your chat
 <div id="chatfaq-widget"></div>
 
 <script>
-    import { ChatfaqWidget } from "chatfaq-widget/dist/widget-loader.esm";
+    import { ChatfaqWidget } from "chatfaq-widget";
 
     const config = {
         element: "#chatfaq-widget",
@@ -51,7 +51,7 @@ If you declare data attributes and a config object and its keys collide, then th
 ```html
 
 <script>
-    import { ChatfaqWidgetCustomElement } from "chatfaq-widget/dist/widget-loader.esm";
+    import { ChatfaqWidgetCustomElement } from "chatfaq-widget";
     customElements.define("chatfaq-widget", ChatfaqWidgetCustomElement)
 </script>
 
@@ -95,7 +95,7 @@ We made the widget styles hightly customizable by exposing a set of variables th
 
 ```html
 
-<script type="text/javascript" src="chatfaq-widget/dist/widget-loader.esm"></script>
+<script type="text/javascript" src="chatfaq-widget"></script>
 <style>
     :root {
         --chatfaq-color-primary-200: red;
