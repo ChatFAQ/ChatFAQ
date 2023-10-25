@@ -270,6 +270,26 @@ def llm_query_task(
         final=True,
     )
 
+    MessageKnowledgeItem = apps.get_model("language_model", "MessageKnowledgeItem")
+    Message = apps.get_model("broker", "Message")
+    # get the last message from the conversation
+    last_message = Message.objects.filter(
+    conversation_id=conversation_id,
+    sender__contains={"type": "human"}
+    ).order_by("-created_date").first()
+
+    MessageKnowledgeItem.objects.bulk_create(
+        [
+            MessageKnowledgeItem(
+                message=last_message,
+                knowledge_item_id=ki['knowledge_item_id'],
+                similarity=ki['similarity'],
+            )
+            for ki in references
+        ]
+    )
+
+
 
 @app.task()
 def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
@@ -409,27 +429,7 @@ def parse_pdf_task(pdf_file_pk):
 queries_ood = """What are the best practices for starting a successful online business?
     How can I improve my time management skills and productivity?
     What are the most effective ways to deal with stress and anxiety?
-    How does climate change impact wildlife and ecosystems?
-    What are the key features to consider when buying a new smartphone?
-    How can I learn a new language effectively and efficiently?
-    What are the potential benefits and risks of using AI in healthcare?
-    How do electric cars contribute to reducing carbon emissions?
-    What are the current trends in sustainable fashion and ethical clothing brands?
-    How can I create a balanced and nutritious diet plan for myself?
-    What are some practical tips for improving public speaking skills?
-    How does meditation affect the brain and overall mental well-being?
-    How do online social networks impact human behavior and relationships?
-    What are some innovative ways that companies are using virtual reality technology?
-    f you could visit any period in history for a week, when would it be?
-    What fictional world would you love to be a part of?
-    Which wild animal would you most want as a pet, assuming it would be friendly and loyal?
-    If you could master any skill instantly, what would it be?
-    What's the most unusual food you've ever tried and liked?
-    Would you rather live without music or without colors?
-    If our solar system had a tourist agency, which planet or moon would be the top vacation spot?
-    How do you think smartphones will evolve in the next decade?
-    If you could switch lives with any historical figure for a day, who would it be?
-    Which book has had the most impact on your life?"""
+"""
 
 
 @app.task()
@@ -438,26 +438,28 @@ def generate_new_intents_task(knowledge_base_pk):
     Generate new intents from the users' queries.
     Parameters
     ----------
-    kb : int
+    knowledge_base_pk : int
         The primary key of the knowledge base.
     """
-    RAGConfig = apps.get_model("language_model", "RAGConfig")
+    from django.db.models import Max, F
+
+    logger.info("generate_new_intents_task called")
+
+    MessageKnowledgeItem = apps.get_model("language_model", "MessageKnowledgeItem")
     Message = apps.get_model("broker", "Message")
 
-    rag_config_names = RAGConfig.objects.filter(
-        knowledge_base__pk=knowledge_base_pk
-    ).values_list("name", flat=True)
+    messages_kb = MessageKnowledgeItem.objects.filter(
+        knowledge_item__knowledge_base=knowledge_base_pk
+    )
 
-    from django.db.models import Q
+    result = MessageKnowledgeItem.objects.values('message_id').annotate(max_similarity=Max('similarity'))
 
-    # Construct the Q objects for the query
-    query = Q()
-    for config_name in rag_config_names:
-        query |= Q(stack__contains=[{"rag_config_name": config_name}])
-
-    # Filter the Message objects using the constructed query
-    messages = Message.objects.filter(query)
-
-
+    # now I want the message from the Message model with the max similarity
     
-    
+
+
+    logger.info(f"Number of messages: {messages_kb.count()}")
+    logger.info(f"Number of messages with knowledge items: {result.count()}")
+
+
+

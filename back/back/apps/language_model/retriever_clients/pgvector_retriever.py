@@ -60,7 +60,7 @@ class PGVectorRetriever:
 
             query_results = [
                 {
-                    'knowledge_base_id': str(item.knowledge_base_id),
+                    'knowledge_item_id': item.id,
                     'title': item.title,
                     'content': item.content,
                     'url': item.url,
