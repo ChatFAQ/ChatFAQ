@@ -70,8 +70,6 @@ watch(() => store.downloading, (newVal) => {
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
-@import "assets/styles/mixins";
 
 $phone-breakpoint: 600px;
 $history-width: 220px;

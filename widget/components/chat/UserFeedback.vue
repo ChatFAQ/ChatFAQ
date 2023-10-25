@@ -163,9 +163,6 @@ async function userFeedback(value, _collapse) {
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
-@import "assets/styles/mixins";
-
 
 .voting {
     width: 100%;

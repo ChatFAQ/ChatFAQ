@@ -17,7 +17,6 @@ const store = useGlobalStore();
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 .footer-content {
     display: flex;

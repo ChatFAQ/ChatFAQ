@@ -24,7 +24,7 @@ const store = useGlobalStore();
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
+
 $phone-breakpoint: 600px;
 
 .widget-wrapper-header {

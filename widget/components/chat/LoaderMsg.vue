@@ -23,7 +23,6 @@ const store = useGlobalStore();
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
 
 $phone-breakpoint: 600px;
 

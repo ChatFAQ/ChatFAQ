@@ -40,7 +40,6 @@ async function copy() {
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
 
 .control {
     cursor: pointer;

@@ -64,7 +64,6 @@ const layersFinished = computed(() =>  props.layers[props.layers.length - 1].las
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
 $phone-breakpoint: 600px;
 
 .message-wrapper {

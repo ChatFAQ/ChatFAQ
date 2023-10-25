@@ -72,11 +72,9 @@ addEventListener("resize", (event) => {
 </script>
 
 <style lang="scss">
-@import 'assets/styles/global.scss';
 </style>
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 $widget-open-button-margin: 24px;
 $history-width: 260px;

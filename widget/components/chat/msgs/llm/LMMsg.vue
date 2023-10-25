@@ -21,7 +21,6 @@ const markedDown = computed(() => {
 
 </script>
 <style lang="scss">
-@import "assets/styles/variables";
 
 .marked-down-content {
     display: inline;
