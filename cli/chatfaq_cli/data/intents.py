@@ -14,5 +14,5 @@ def get_new_intents(
     """
     Get new possible intents from a Knowledge Base.
     """
-    res = ctx.parent.obj["r"].get(f"language-model/knowledge-bases/{kb_name}/get-new-intents/")
+    res = ctx.parent.obj["r"].post(f"language-model/knowledge-bases/{kb_name}/get-new-intents/")
     print(res)

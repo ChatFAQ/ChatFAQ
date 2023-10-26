@@ -4,9 +4,9 @@ import os
 
 import requests
 
-from chat_rag.llms import BaseLLM
+from chat_rag.llms import RAGLLM
 
-class VLLModel(BaseLLM):
+class VLLModel(RAGLLM):
     """
     A client that sends requests to the VLLM server.
     """

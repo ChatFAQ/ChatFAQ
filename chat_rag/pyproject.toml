@@ -23,6 +23,7 @@ einops = "^0.6.1"
 openai = "^0.27.8"
 accelerate = "^0.21.0"
 unstructured = {extras = ["pdf"], version = "^0.10.12"}
+guidance = "^0.0.64"
 
 [build-system]
 requires = ["poetry-core"]

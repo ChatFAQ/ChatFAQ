@@ -3,7 +3,7 @@ import os
 
 import openai
 
-from chat_rag.llms import BaseLLM
+from chat_rag.llms import RAGLLM
 
 
 CONTEXT_PREFIX = {
@@ -19,7 +19,7 @@ QUESTION_PREFIX = {
 }
 
 
-class OpenAIModel(BaseLLM):
+class OpenAIChatModel(RAGLLM):
     def __init__(
         self,
         llm_name: str,
