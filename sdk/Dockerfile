@@ -7,6 +7,7 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
         libpq-dev \
         curl
 
+RUN apt-get install -y curl
 # Copy only requirements to cache them in docker layer
 WORKDIR /var/apps/sdk
 COPY poetry.lock pyproject.toml README.md ./

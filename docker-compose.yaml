@@ -31,9 +31,10 @@ services:
       dockerfile: Dockerfile
     image: chatfaq_back
     container_name: chatfaq_back
-    hostname: chatfaq_back
+    hostname: back
     depends_on:
       - postgres
+      - redis
     ports:
       - 8000:8000
     networks:
@@ -41,7 +42,6 @@ services:
       - chatfaq_db_net
       - chatfaq_back_net
       - chatfaq_state_machine_net
-    entrypoint: "./docker-entrypoint.sh"
 
   celery:
     build:
@@ -49,7 +49,7 @@ services:
       dockerfile: Dockerfile
     image: chatfaq_celery
     container_name: chatfaq_celery
-    hostname: chatfaq_celery
+    hostname: celery
     depends_on:
       - back
     networks:
@@ -75,11 +75,12 @@ services:
       dockerfile: Dockerfile
     image: chatfaq_fsm
     container_name: chatfaq_fsm
-    hostname: chatfaq_fsm
+    hostname: fsm
     depends_on:
       - back
     networks:
       - chatfaq_state_machine_net
+      - chatfaq_back_net
 
   widget:
     build:
