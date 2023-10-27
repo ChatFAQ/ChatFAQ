@@ -1,4 +1,4 @@
-# IA Configuration
+# AI Configuration
 
 After setting up the components, you will probably want to configure a model that you want to use for your chatbot. Typically the model will be used from the SDK, from a state within its FSM.
 
