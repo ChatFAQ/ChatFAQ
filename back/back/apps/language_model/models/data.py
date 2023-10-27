@@ -286,7 +286,7 @@ class Intent(ChangesMixin):
     intent_name = models.CharField(max_length=255, unique=True)
     auto_generated = models.BooleanField(default=False)
     valid = models.BooleanField(default=False)
-    new_intent = models.BooleanField(default=False)
+    suggested_intent = models.BooleanField(default=False)
     message = models.ManyToManyField(Message, blank=True)
 
 
