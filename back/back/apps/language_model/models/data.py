@@ -288,6 +288,7 @@ class Intent(ChangesMixin):
     valid = models.BooleanField(default=False)
     suggested_intent = models.BooleanField(default=False)
     message = models.ManyToManyField(Message, blank=True)
+    knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
 
 
 class MessageKnowledgeItem(ChangesMixin):

@@ -22,7 +22,10 @@ def clusterize_text(queries: List[str], embedding_model: BaseModel, batch_size: 
 
     queries_embeddings = embedding_model.build_embeddings(queries, batch_size=batch_size, prefix=prefix, disable_progress_bar=True) # specific prefix for e5 models queries
 
-    clusterer = HDBSCAN(min_cluster_size=2, min_samples=1, metric='euclidean')
+    MIN_CLUSTERS = 3
+    max_cluster_size = len(queries) // MIN_CLUSTERS  # at least 3 clusters
+    max_cluster_size = max_cluster_size if len(queries) >= (2*MIN_CLUSTERS) else None # if there are less than 6 queries, don't limit the cluster size
+    clusterer = HDBSCAN(min_cluster_size=2, max_cluster_size=max_cluster_size, min_samples=1, metric='euclidean')
     clusterer.fit(queries_embeddings)
 
     return clusterer.labels_

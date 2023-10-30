@@ -12,5 +12,6 @@ router.register(r"rag-configs", back.apps.language_model.views.rag_pipeline.RAGC
 router.register(r"retriever-configs", back.apps.language_model.views.rag_pipeline.RetrieverConfigAPIViewSet, basename="retriever-config")
 router.register(r"generation-configs", back.apps.language_model.views.rag_pipeline.GenerationConfigAPIViewSet, basename="generation-config")
 router.register(r"prompt-configs", back.apps.language_model.views.rag_pipeline.PromptConfigAPIViewSet, basename="prompt-config")
+router.register(r"intents", back.apps.language_model.views.data.IntentAPIViewSet, basename="intent")
 
 urlpatterns = router.urls
