@@ -46,6 +46,7 @@ scrapy-playwright = "^0.0.28"
 undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
+twisted = "^23.10.0rc1"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
