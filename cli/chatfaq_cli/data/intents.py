@@ -7,7 +7,7 @@ from typing_extensions import Annotated
 app = typer.Typer(help="Knowledge bases commands")
 
 @app.command(rich_help_panel="Intent commands")
-def suggest_intents(
+def suggest(
     ctx: typer.Context,
     kb_name: Annotated[str, typer.Argument(help="The name of the Knowledge Base")],
 ):
@@ -19,7 +19,7 @@ def suggest_intents(
 
 
 @app.command(rich_help_panel="Intent commands")
-def generate_intents(
+def generate(
     ctx: typer.Context,
     kb_name: Annotated[str, typer.Argument(help="The name of the Knowledge Base")],
 ):

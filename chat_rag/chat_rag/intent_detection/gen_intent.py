@@ -34,11 +34,6 @@ def generate_intents(
         input_text += "The intent is to "
         input_texts.append(input_text)
 
-    print("Prompt examples:")
-    for input_text in input_texts[:5]:
-        print(input_text)
-        print("-" * 50)
-
     responses = []
     #batches of 20
     for i in range(0, len(input_texts), 20):

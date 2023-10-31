@@ -646,6 +646,8 @@ def generate_suggested_intents_task(knowledge_base_pk):
 
     # add the messages to each intent
     for intent_cluster, intent in zip(cluster_instances, new_intents):
+        # get the value of key 'message_id' from each message
+        intent_cluster = [item['message_id'] for item in intent_cluster]
         intent.message.add(*intent_cluster)
 
     logger.info("New intents generated successfully")
