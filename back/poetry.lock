@@ -859,19 +859,20 @@ files = [
 
 [[package]]
 name = "chat-rag"
-version = "0.1.27"
+version = "0.1.28"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chat_rag-0.1.27-py3-none-any.whl", hash = "sha256:abb2d468471eebc8956a565b13439233dc69b7d46e172646e4b949c93ceb3489"},
-    {file = "chat_rag-0.1.27.tar.gz", hash = "sha256:1650d5bf15f6006ec73cd36af4db359cd16940d4b2b9d84cc18b8f91346ebdf2"},
+    {file = "chat_rag-0.1.28-py3-none-any.whl", hash = "sha256:3d257eb7bf7ad12f646c3d2b444b076dd4194dc2719b104eb62061e5f6f3eae6"},
+    {file = "chat_rag-0.1.28.tar.gz", hash = "sha256:f8fb233e8fad9059145fb9d5a72a396e3e82d42bca10c0252642c3b8036266bb"},
 ]
 
 [package.dependencies]
 accelerate = ">=0.21.0,<0.22.0"
 ctransformers = ">=0.2.10,<0.3.0"
 einops = ">=0.6.1,<0.7.0"
+guidance = ">=0.0.64,<0.0.65"
 numpy = "1.23.5"
 openai = ">=0.27.8,<0.28.0"
 pandas = "1.4.4"
@@ -6645,4 +6646,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "1cfb79f2ee40bbbe96043db30473362ba2c58314e4ec1c26ee2207f01a9c970c"
+content-hash = "032c9fa3ca1f0a54e0c00592fab473f23baf954290533f0db710c9df8ee03cee"
