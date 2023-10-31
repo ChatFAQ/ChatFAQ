@@ -90,6 +90,32 @@ def _list(
     )
     print(res)
 
+@app.command(rich_help_panel="Intents commands", name="list-kis")
+def list_intents_knowledge_items(
+    ctx: typer.Context,
+    intent_id: Annotated[str, typer.Argument(help="The id of the Intent")],
+):
+    """
+    List Knowledge Items from an Intent.
+    """
+    res = ctx.parent.obj["r"].get(
+        f"language-model/intents/{intent_id}/list-knowledge-items/",
+    )
+    print(res)
+
+@app.command(rich_help_panel="Intents commands", name="list-intents-by-ki")
+def list_intents_by_knowledge_item(
+    ctx: typer.Context,
+    ki_id: Annotated[str, typer.Argument(help="The id of the Knowledge Item")],
+):
+    """
+    List a Knowledge Item's intents.
+    """
+    res = ctx.parent.obj["r"].get(
+        f"language-model/knowledge-items/{ki_id}/list-intents/",
+    )
+    print(res)
+
 
 @app.command(rich_help_panel="Intents commands")
 def delete(
