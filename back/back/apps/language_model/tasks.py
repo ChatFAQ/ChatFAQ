@@ -706,9 +706,11 @@ def generate_intents_task(knowledge_base_pk):
 
     # list of lists of queries associated to each cluster
     clusters = [[] for _ in range(k_clusters)]
-    for label, query, title in zip(labels, queries, final_autogen_titles):
+    cluster_instances = [[] for _ in range(k_clusters)]
+    for label, query, title_instance in zip(labels, queries, final_autogen_titles):
         if label != -1:  # -1 is the label for outliers
             clusters[label].append(query)
+            cluster_instances[label].append(title_instance)
 
     # generate the intents
     intents = generate_intents(clusters)
@@ -730,3 +732,13 @@ def generate_intents_task(knowledge_base_pk):
     Intent.objects.bulk_create(new_intents)
 
     logger.info("Suggested intents saved successfully")
+
+    # add the knowledge items to each intent
+    for intent_cluster, intent in zip(cluster_instances, new_intents):
+        # get the knowledge items from each title
+        intent_cluster = [item.knowledge_item for item in intent_cluster]
+        # remove duplicated knowledge items
+        intent_cluster = list(set(intent_cluster))
+        intent.knowledge_item.add(*intent_cluster)
+
+    logger.info("Knowledge items added to the intents successfully")
