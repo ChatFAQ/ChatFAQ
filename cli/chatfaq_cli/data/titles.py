@@ -40,8 +40,8 @@ def create(
 def update(
     ctx: typer.Context,
     id: Annotated[str, typer.Argument(help="The id of the Auto Generated Title you want to update.")],
-    knowledge_item: Annotated[int, typer.Option(help="The id of the Knowledge Item")],
     title: Annotated[str, typer.Option(help="The title of the Knowledge Item")],
+    knowledge_item: Annotated[int, typer.Option(help="The id of the Knowledge Item")] = None,
 ):
     """
     Updates a Auto Generated Title.
@@ -66,7 +66,7 @@ def _list(
     params = {}
     if knowledge_item is not None:
         params["knowledge_item"] = knowledge_item
-    res = ctx.parent.obj["r"].get(f"language-model/auto-generated-titles/", params=params)
+    res = ctx.parent.obj["r"].get(f"language-model/knowledge-items/{knowledge_item}/list-titles")
     print(res)
 
 
