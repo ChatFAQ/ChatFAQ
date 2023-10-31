@@ -23,6 +23,11 @@ einops = "^0.6.1"
 openai = "^0.27.8"
 accelerate = "^0.21.0"
 unstructured = {extras = ["pdf"], version = "^0.10.12"}
+pillow = "^10.1.0"
+certifi = "^2023.7.22"
+urllib3 = "^1.26.18"
+aiohttp = "^3.8.5"
+cryptography = "^41.0.4"
 
 [build-system]
 requires = ["poetry-core"]
