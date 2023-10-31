@@ -100,12 +100,3 @@ class IntentAPIViewSet(viewsets.ModelViewSet):
         
         generate_intents_task.delay(kb.id)
         return JsonResponse({"message": "Task started"})
-    
-    # @action(detail=False, url_name="list", methods=["GET"])
-    # def list(self, request, *args, **kwargs):
-    #     """
-    #     A view to list all intents:
-    #     """
-    #     intents = Intent.objects.all()
-    #     serializer = IntentSerializer(intents, many=True)
-    #     return JsonResponse(serializer.data, safe=False)
