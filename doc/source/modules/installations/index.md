@@ -185,6 +185,11 @@ Make sure the next list of packages are installed on your system:
 
     <script src="unpkg.com/chatfaq-widget/dist/widget-loader.min.esm"></script>
 
+...or...
+
+    import { ChatfaqWidget } from 'https://unpkg.com/chatfaq-widget@0.0.29/dist/chatfaq-widget.mjs';
+
+
 #### Local build
 
 ##### Set Up:
@@ -194,6 +199,31 @@ Install project dependencies:
     npm i
 
 ### Run
+
+#### Run the widget in your own page
+``` html
+   <body>
+      <div id="chatfaq-widget"></div>
+      <script type="module">
+         import { ChatfaqWidget } from 'https://unpkg.com/chatfaq-widget@0.0.29/dist/chatfaq-widget.mjs';
+         const config = {
+           element: "#chatfaq-widget",
+           chatfaqApi: "<CHATFAQ_BACKEND_API>",
+           chatfaqWs: "<CHATFAQ_BACKEND_WS>",
+           manageUserId: true,
+           fsmDef: "my_fsm_def_name",
+           title: "Hello there 👋",
+           subtitle: "How can we help you?",
+           historyOpened: true,
+           maximized: true
+         }
+         const chatfaqWidget = new ChatfaqWidget(config);
+         chatfaqWidget.mount()
+      </script>
+   </body>
+```
+
+#### To run the widget's source code example
 
 First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
 
