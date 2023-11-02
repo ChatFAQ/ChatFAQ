@@ -1,29 +1,50 @@
 // vite.config.js
-import path, { resolve } from "path";
-import { defineConfig, loadEnv } from "vite";
+import path, {resolve} from "path";
+import {defineConfig, loadEnv} from "vite";
 import vue from "@vitejs/plugin-vue";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
-
-export default ({ mode }) => {
+const stripScssMarker = '/* STYLES STRIP IMPORTS MARKER */'
+const projectRootDir = path.resolve(__dirname)
+export default ({mode}) => {
     const env = loadEnv(mode, process.cwd(), "");
 
     return defineConfig({
-
+        root: "./",
+        publicDir: "public",
         define: {
             "process.env": env,
         },
-        plugins: [vue(), cssInjectedByJsPlugin()],
+        plugins: [vue(), {
+            name: 'vite-plugin-strip-css',
+            transform(src, id) {
+                if (id.endsWith('.vue') && !id.includes('node_modules') && src.includes('@extend')) {
+                    console.warn(
+                        'You are using @extend in your component. This is likely not working in your styles. Please use mixins instead.',
+                        id.replace(`${projectRootDir}/`, '')
+                    )
+                }
+                if (id.includes('lang.scss')) {
+                    const split = src.split(stripScssMarker)
+                    const newSrc = split[split.length - 1]
+
+                    return {
+                        code: newSrc,
+                        map: null
+                    }
+                }
+            }
+        }, cssInjectedByJsPlugin()],
         resolve: {
             alias: {
-                "@": path.resolve(__dirname),
-                "~": path.resolve(__dirname),
+                "@": projectRootDir,
+                "~": projectRootDir,
             },
         },
         css: {
             preprocessorOptions: {
                 scss: {
-                    additionalData: `@import "~/assets/styles/global.scss";`,
+                    additionalData: `@import "${projectRootDir}/assets/styles/global.scss";${stripScssMarker}`
                 },
             },
         },

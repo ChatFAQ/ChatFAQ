@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.0.22",
+    "version": "0.0.27",
     "private": false,
     "main": "./dist/chatfaq-widget.umd.cjs",
     "module": "./dist/chatfaq-widget.mjs",
@@ -8,13 +8,8 @@
         ".": {
             "import": "./dist/chatfaq-widget.mjs",
             "require": "./dist/chatfaq-widget.umd.cjs"
-        },
-        "./OpenSans-VariableFont_wdth,wght.woff2": "./dist/fonts/OpenSans/OpenSans-VariableFont_wdth,wght.woff2"
+        }
     },
-    "files": [
-        "/dist",
-        "/public"
-    ],
     "scripts": {
         "build": "nuxt build",
         "dev": "nuxt dev",

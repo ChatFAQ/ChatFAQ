@@ -29,6 +29,7 @@ import { ref, defineProps } from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
+import {getUserId} from "~/utils";
 
 const store = useGlobalStore();
 const isPhoneLandscape = ref(false);
@@ -38,6 +39,7 @@ const props = defineProps([
     "chatfaqApi",
     "fsmDef",
     "userId",
+    "manageUserId",
     "title",
     "subtitle",
     "maximized",
@@ -50,6 +52,10 @@ store.fsmDef = props.fsmDef;
 store.userId = props.userId;
 store.title = props.title;
 store.subtitle = props.subtitle;
+
+if (!store.userId && props.manageUserId) {
+    store.userId = getUserId()
+}
 
 if (props.maximized !== undefined)
     store.maximized = props.maximized;
@@ -72,6 +78,7 @@ addEventListener("resize", (event) => {
 </script>
 
 <style lang="scss">
+@import "~/assets/styles/global.scss";
 </style>
 
 <style lang="scss" scoped>
