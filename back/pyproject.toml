@@ -33,7 +33,7 @@ pgvector = "^0.2.3"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chat_rag = {version = "0.1.27", source = "test"}
+chat_rag = {version = "0.1.28", source = "test"}
 gevent = "23.9.0"
 torch = [
     { version = "^2.0.1", source = "torch" },
@@ -47,6 +47,7 @@ undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 twisted = "^23.10.0rc1"
+guidance = "^0.0.64"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

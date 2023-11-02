@@ -40,8 +40,8 @@ class PGVectorRetriever:
         threshold : float, optional
             Threshold for filtering the context, by default None.
         """
-        queries_embeddings = self.embedding_model.build_embeddings(queries, prefix='query: ') # specific prefix for e5 models queries
 
+        queries_embeddings = self.embedding_model.build_embeddings(queries, prefix='query: ', disable_progress_bar=True ) # specific prefix for e5 models queries
 
         results = []
         for query_embedding in queries_embeddings:
@@ -60,20 +60,17 @@ class PGVectorRetriever:
 
             query_results = [
                 {
-                    'knowledge_base_id': str(item.knowledge_base_id),
+                    'knowledge_item_id': item.id,
                     'title': item.title,
                     'content': item.content,
                     'url': item.url,
                     'section': item.section,
                     'role': item.role,
                     'page_number': str(item.page_number) if item.page_number else None,
-                    'similarity': item.similarity,
+                    'similarity': -item.similarity,
                 }
                 for item in items_for_query
             ]
-            # print the urls
-            for query_result in query_results:
-                print(query_result['url'])
                 
             results.append(query_results)
         
