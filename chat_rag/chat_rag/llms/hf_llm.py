@@ -15,7 +15,7 @@ from transformers import (
     StoppingCriteriaList,
 )
 
-from chat_rag.llms import BaseLLM
+from chat_rag.llms import RAGLLM
 
 logger = getLogger(__name__)
 
@@ -59,7 +59,7 @@ class StopPatternCriteria(StoppingCriteria):
         return all_done
 
 
-class HFModel(BaseLLM):
+class HFModel(RAGLLM):
     MAX_GPU_MEM = "18GiB"  # Why this
     MAX_CPU_MEM = "12GiB"
 

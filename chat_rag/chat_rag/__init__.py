@@ -4,7 +4,7 @@ from typing import List, Dict
 
 import pandas as pd
 
-from chat_rag.llms import BaseLLM
+from chat_rag.llms import RAGLLM
 
 logger = getLogger(__name__)
 
@@ -16,7 +16,7 @@ class RAG:
     def __init__(
         self,
         retriever,
-        llm_model: BaseLLM,
+        llm_model: RAGLLM,
     ):
         
         self.retriever = retriever

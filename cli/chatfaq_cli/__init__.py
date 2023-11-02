@@ -12,7 +12,7 @@ app = typer.Typer()
 app.add_typer(config.app, name="config")
 app.add_typer(conversations.app, name="conversations")
 app.add_typer(data.app, name="data")
-app.add_typer(rag_pipeline.app, name="rag_pipeline")
+app.add_typer(rag_pipeline.app, name="rag")
 app.add_typer(senders.app, name="senders")
 app.add_typer(reviews.app, name="reviews")
 

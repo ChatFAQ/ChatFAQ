@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Optional
 from transformers import AutoTokenizer, AutoConfig
 
 
@@ -15,7 +15,7 @@ QUESTION_PREFIX = {
 }
 
 
-class BaseLLM:
+class RAGLLM:
     def __init__(self, llm_name: str, model_max_length: int = None, **kwargs) -> None:
         self.tokenizer = AutoTokenizer.from_pretrained(llm_name)
 
@@ -97,22 +97,22 @@ class BaseLLM:
         self,
         query,
         contexts,
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
+        prompt_structure_dict: Dict,
+        generation_config_dict: Dict = None,
         lang: str = "en",
         stop_words: List[str] = None,
         **kwargs,
-    ) -> str:
+    ) -> Optional[str | List[str]]:
         pass
 
     def stream(
         self,
         query,
         contexts,
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
+        prompt_structure_dict: Dict,
+        generation_config_dict: Dict = None,
         lang: str = "en",
         stop_words: List[str] = None,
         **kwargs,
-    ) -> str:
+    ) -> Optional[str | List[str]]:
         pass

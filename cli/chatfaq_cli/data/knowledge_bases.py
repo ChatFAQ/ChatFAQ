@@ -82,7 +82,7 @@ def download_csv(
     """
     print("Downloading...")
     r = ctx.parent.obj["r"].get(
-        f"language-model/knowledge-bases/{id_name}/download_csv", json=False
+        f"language-model/knowledge-bases/{id_name}/download-csv", json=False
     )
     filename = r.headers["content-disposition"].split("attachment; filename=")[1]
     if not download_path:
