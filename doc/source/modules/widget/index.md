@@ -77,7 +77,9 @@ Next we will explain all the widget's possible parameters:
 
 `chatfaqWs`: url of the chatfaq-ws.
 
-`userId`: In case you want to keep track of the user's conversations, you can pass a userId to the widget. This id will be store as a cookie and will be sent to the backend on each request. Later on the widget will be able to retrieve the conversations history of the user.
+`manageUserId`: In case you want to keep track of the user's conversations, you can set this parameter to true and the widget will generate a random id for you and store it as a cookie so it can be sent to the backend on each request. Later on the widget will be able to retrieve the conversations history of the user.
+
+`userId`: In case you rather use your own user id, you can set this parameter to the id you want, keep in mind that you will need to set the `manageUserId` parameter to false.
 
 `fsmDef`: name of the FSM definition to use.
 
