@@ -60,28 +60,25 @@ class KnowledgeBaseAPIViewSet(viewsets.ModelViewSet):
             return HttpResponse("Knowledge Base not found", status=404)
         existing = request.data["existing"] if "existing" in request.data else False
         suggested = request.data["suggested"] if "suggested" in request.data else False
-        if existing and suggested or not existing and not suggested:
-            intents = (
-                Intent.objects.filter(knowledge_item__knowledge_base=kb)
-                .distinct()
-                .order_by("updated_date")
-            )
-        elif existing:
-            intents = (
+        intents = []
+        if existing:
+            existing_intents = (
                 Intent.objects.filter(
                     knowledge_item__knowledge_base=kb, suggested_intent=False
                 )
                 .distinct()
                 .order_by("updated_date")
             )
-        else:
-            intents = (
+            intents.extend(existing_intents)
+        if suggested:
+            suggested_intents = (
                 Intent.objects.filter(
-                    knowledge_item__knowledge_base=kb, suggested_intent=True
+                    message__messageknowledgeitem__knowledge_item__knowledge_base=kb, suggested_intent=True
                 )
                 .distinct()
                 .order_by("updated_date")
             )
+            intents.extend(suggested_intents)
         serializer = IntentSerializer(intents, many=True)
         return JsonResponse(serializer.data, safe=False)
 

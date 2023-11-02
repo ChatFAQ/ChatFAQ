@@ -81,6 +81,10 @@ def _list(
     """
     List intents from a Knowledge Base.
     """
+    # if both are false, list all
+    if not existing and not suggested:
+        existing = True
+        suggested = True
     res = ctx.parent.obj["r"].post(
         f"language-model/knowledge-bases/{kb_name}/list-intents/",
         data={

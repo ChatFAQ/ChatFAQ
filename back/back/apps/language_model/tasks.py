@@ -635,7 +635,6 @@ def generate_suggested_intents_task(knowledge_base_pk):
             auto_generated=True,
             valid=False,
             suggested_intent=True,
-            knowledge_base_id=knowledge_base_pk,
         )
         for intent in intents
     ]
@@ -724,7 +723,6 @@ def generate_intents_task(knowledge_base_pk):
             auto_generated=True,
             valid=False,
             suggested_intent=False,
-            knowledge_base_id=knowledge_base_pk,
         )
         for intent in intents
     ]

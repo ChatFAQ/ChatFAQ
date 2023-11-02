@@ -289,6 +289,7 @@ class Intent(ChangesMixin):
     suggested_intent = models.BooleanField(default=False)
     message = models.ManyToManyField(Message, blank=True)
     knowledge_item = models.ManyToManyField(KnowledgeItem, blank=True)
+    # Maybe add a knowledge_base foreign key here for querying simplicity and performance
 
 
 class MessageKnowledgeItem(ChangesMixin):
