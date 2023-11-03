@@ -14,8 +14,12 @@ const store = useGlobalStore();
 const props = defineProps(["data", "isLast"]);
 
 const markedDown = computed(() => {
+    // regex for detecting and represent markdown links:
     const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
-    const res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
+    let res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
+    // regex for detecting and represent markdown lists:
+    const listRegex = /(?:^|\n)(?:\*|\-|\d+\.)\s/g;
+    res = res.replace(listRegex, '<br/>- ');
     return res
 });
 
