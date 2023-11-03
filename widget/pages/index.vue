@@ -1,7 +1,7 @@
 <template>
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :manageUserId="manageUserId" :title="title"
-                :subtitle="subtitle" :historyOpened="historyOpened"/>
+                :subtitle="subtitle" :historyOpened="historyOpened" :fullScreen="true"/>
     </client-only>
 </template>
 <script setup>
