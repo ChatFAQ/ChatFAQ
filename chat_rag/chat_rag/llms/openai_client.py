@@ -67,13 +67,13 @@ class OpenAIChatModel(RAGLLM):
         """
         contexts_prompt = CONTEXT_PREFIX[lang]
         for context in contexts[:n_contexts_to_use]:
-            contexts_prompt += f"{context}\n"
+            contexts_prompt += f"- {context}\n"
 
         return [
-            {"role": "system", "content": system_prefix},
+            {"role": "system", "content": f"{system_prefix}\n{contexts_prompt}{QUESTION_PREFIX[lang]}"},
             {
                 "role": "user",
-                "content": f"{contexts_prompt}{QUESTION_PREFIX[lang]}{query}",
+                "content": query,
             },
         ]
 
@@ -160,6 +160,8 @@ class OpenAIChatModel(RAGLLM):
             **prompt_structure_dict,
             lang=lang,
         )
+
+        print(f"Prompt: {messages}")
 
         response = openai.ChatCompletion.create(
             model=self.llm_name,
