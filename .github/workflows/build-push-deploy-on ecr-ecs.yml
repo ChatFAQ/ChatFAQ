@@ -43,7 +43,7 @@ jobs:
                 - './${{ matrix.target-folder }}/**'
       - name: Configure AWS credentials
         id: aws-credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           #TODO add account_id as variable
           role-to-assume: arn:aws:iam::756378459524:role/GithubDeployRole
