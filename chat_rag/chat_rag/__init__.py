@@ -32,7 +32,7 @@ class RAG:
     ):
         
         contexts = self.retriever.retrieve([text], top_k=prompt_structure_dict["n_contexts_to_use"])
-
+        contents = [context["content"] for context in contexts[0]]
         # log contexts except the 'content' column 
         for context in contexts[0]:
             for col in context:
@@ -41,7 +41,7 @@ class RAG:
 
         for new_text in self.model.stream(
             text,
-            contexts,
+            contents,
             prompt_structure_dict=prompt_structure_dict,
             generation_config_dict=generation_config_dict,
             lang=lang,
