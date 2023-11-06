@@ -20,6 +20,7 @@
     "dependencies": {
         "@averjs/nuxt-compression": "^1.2.2",
         "@babel/traverse": ">=7.23.2",
+        "@element-plus/icons-vue": "^2.1.0",
         "@model-w/axios": "1.x",
         "@model-w/preset-nuxt3": "2023.7.x",
         "@model-w/proxy": "2.x",
