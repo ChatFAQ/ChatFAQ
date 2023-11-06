@@ -1,17 +1,13 @@
 <template>
     <div class="page-wrapper">
-        <Menu/>
-        <div>
-            <slot/>
-        </div>
+        <slot/>
     </div>
 </template>
 
 <style scoped lang="scss">
 .page-wrapper {
-    background-color: green;
+    background-color: #f2f0f7;
     width: 100vw;
     height: 100vh;
-    display: flex;
 }
 </style>

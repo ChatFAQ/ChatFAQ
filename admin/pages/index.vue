@@ -4,10 +4,6 @@
 </template>
 
 <script setup>
-definePageMeta({
-  layout: 'leftmenu'
-})
-
 import {useAuthStore} from '~/store/auth';
 
 const authStore = useAuthStore();
