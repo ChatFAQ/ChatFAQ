@@ -68,8 +68,14 @@ jobs:
           ECR_REPOSITORY: "chatfaq-${{ matrix.target-folder }}"
         #"steps.filter.outputs.folder == 'true'
         run: |
+          # Choose Dockerfile based on the target folder
+          if [ "${{ matrix.target-folder }}" == "back" ]; then
+            DOCKERFILE=gpu.Dockerfile
+          else
+            DOCKERFILE=Dockerfile
+          fi
           # Build a docker container and apply two tags
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY -f Dockerfile .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY -f $DOCKERFILE .
           # Push both tags to ECR
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DOCKER_TAG_TO_DEPLOY
