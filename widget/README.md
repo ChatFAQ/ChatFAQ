@@ -125,7 +125,9 @@ Next we will explain all the widget's possible parameters:
 
 `subtitle`: subtitle which will appear on the footer of the chatbot
 
-`historyOpened`: if the widget starts with the left menu opened.
+`historyOpenedDesktop`: whether the widget starts with the left menu opened on desktop.
+
+`historyOpenedMobile`: whether the widget starts with the left menu opened on mobiles.
 
 `maximized`: if the widget starts maximized.
 
