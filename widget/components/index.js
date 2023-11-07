@@ -16,11 +16,11 @@ class ChatfaqWidget {
         props['chatfaqApi'] = chatfaqApi;
         props['chatfaqWs'] = chatfaqWs
         props['fsmDef'] = fsmDef
-        props['maximized'] = maximized
-        props['fullScreen'] = fullScreen
-        props['historyOpenedDesktop'] = historyOpenedDesktop
-        props['historyOpenedMobile'] = historyOpenedMobile
-        props['manageUserId'] = manageUserId
+        props['maximized'] = maximized === "true"
+        props['fullScreen'] = fullScreen === "true"
+        props['historyOpenedDesktop'] = historyOpenedDesktop === "true"
+        props['historyOpenedMobile'] = historyOpenedMobile === "true"
+        props['manageUserId'] = manageUserId === "true"
 
         if (userId)
             props['userId'] = userId;
