@@ -25,7 +25,7 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
-import { ref, defineProps } from "vue";
+import { ref, defineProps, onMounted } from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
