@@ -7,15 +7,15 @@
                     <div class="not-supported-text-subtitle">Please, turn your phone to portrait mode.</div>
                 </div>
             </div>
-            <div v-if="store.opened && !isPhoneLandscape" class="widget-wrapper" :class="{'history': store.historyOpened}">
+            <div v-if="store.opened && !isPhoneLandscape" class="widget-wrapper" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
-                <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized}"/>
-                <div class="widget-body" :class="{'maximized': store.maximized, 'history-closed': !store.historyOpened}">
+                <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
+                <div class="widget-body" :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened}">
                     <Header class="header" :class="{'history': store.historyOpened}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened}"/>
                 </div>
             </div>
-            <div v-if="!isPhoneLandscape" class="widget-open-button" :class="{'opened': store.opened}"
+            <div v-if="!isPhoneLandscape && !fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
                  @click="store.opened = !store.opened">
                 <i :class="store.opened ? 'close' : 'open'"/>
             </div>
@@ -43,6 +43,7 @@ const props = defineProps([
     "title",
     "subtitle",
     "maximized",
+    "fullScreen",
     "historyOpened"
 ]);
 
@@ -61,6 +62,14 @@ if (props.maximized !== undefined)
     store.maximized = props.maximized;
 if (props.historyOpened !== undefined)
     store.historyOpened = props.historyOpened;
+
+
+if (props.fullScreen !== undefined)
+    store.fullScreen = props.fullScreen;
+if (store.fullScreen) {
+    store.opened = true
+    store.maximized = false
+}
 
 function isPhone() {
   let check = false;
@@ -113,6 +122,10 @@ $widget-margin: 16px;
         background: $chatfaq-color-menu-background;
         width: $history-width;
         height: 580px;
+        border-radius: 10px 0px 0px 10px;
+        border-top: 1px solid $chatfaq-color-menu-border;
+        border-left: 1px solid $chatfaq-color-menu-border;
+        border-bottom: 1px solid $chatfaq-color-menu-border;
 
         @media only screen and (max-width: $phone-breakpoint) {
             width: $history-width-mobile;
@@ -121,11 +134,10 @@ $widget-margin: 16px;
         &.maximized {
             height: 85dvh;
         }
-
-        border-radius: 10px 0px 0px 10px;
-        border-top: 1px solid $chatfaq-color-menu-border;
-        border-left: 1px solid $chatfaq-color-menu-border;
-        border-bottom: 1px solid $chatfaq-color-menu-border;
+        &.full-screen {
+            height: 100dvh;
+            border-radius: unset;
+        }
     }
 
     .widget-wrapper {
@@ -133,9 +145,13 @@ $widget-margin: 16px;
         display: flex;
         align-items: stretch;
         flex-flow: row;
-        bottom: calc($chatfaq-size-bubbleButton + $widget-open-button-margin);
         right: 0px;
         margin: $widget-margin;
+        bottom: calc($chatfaq-size-bubbleButton + $widget-open-button-margin);
+        &.full-screen {
+            bottom: 0;
+            margin: 0px;
+        }
 
         .widget-body {
             &.maximized {
@@ -146,6 +162,17 @@ $widget-margin: 16px;
                 &.history-closed {
                     @media only screen and (min-width: $phone-breakpoint) {
                         width: calc(100dvw - $widget-margin * 2);
+                    }
+                }
+            }
+            &.full-screen {
+                @media only screen and (min-width: $phone-breakpoint) {
+                    width: calc(100dvw - $history-width);
+                    height: 100dvh;
+                }
+                &.history-closed {
+                    @media only screen and (min-width: $phone-breakpoint) {
+                        width: calc(100dvw);
                     }
                 }
             }
@@ -182,8 +209,13 @@ $widget-margin: 16px;
         @media only screen and (max-width: $phone-breakpoint) {
             border-radius: unset;
         }
+        &.full-screen {
+            border-radius: unset;
+        }
     }
-
+    .widget-wrapper > .widget-body.full-screen > .header {
+        border-radius: unset;
+    }
     .widget-wrapper > .widget-body > .chat {
         position: relative;
         height: 100%;
@@ -200,24 +232,19 @@ $widget-margin: 16px;
             border-radius: unset;
         }
     }
-
-    /*
-    .widget-wrapper > .widget-body > .footer {
-        border: 1px solid $chatfaq-color-neutral-purple;
-        border-radius: 0px 0px 10px 10px;
-
+    .widget-wrapper.full-screen > .widget-body > .chat {
+        border-radius: unset;
+        padding-left: 260px;
+        padding-right: 260px;
         &.history {
-            border-radius: 0px 0px 10px 0px;
-            border-left: 0px;
+            padding-left: 130px;
+            padding-right: 130px;
         }
-
         @media only screen and (max-width: $phone-breakpoint) {
-            border-radius: unset;
+            padding: unset;
         }
+
     }
-
-    */
-
     .widget-open-button {
         cursor: pointer;
         background: $chatfaq-color-bubbleButton-background;

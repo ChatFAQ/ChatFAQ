@@ -1,7 +1,7 @@
 <template>
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :manageUserId="manageUserId" :title="title"
-                :subtitle="subtitle" :historyOpened="historyOpened"/>
+                :subtitle="subtitle" :historyOpened="historyOpened" :fullScreen="fullScreen"/>
     </client-only>
 </template>
 <script setup>
@@ -14,6 +14,7 @@ const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
 const fsmDef = ref("model_fsm")
 const historyOpened = ref(false);
+const fullScreen = ref(false);
 
 onMounted(() => {
     historyOpened.value = (screen.width / screen.height) > 1;

@@ -1,6 +1,9 @@
 <template>
     <div class="page-wrapper">
-        <slot/>
+        <Menu />
+        <div class="content-wrapper">
+            <slot />
+        </div>
     </div>
 </template>
 
@@ -9,5 +12,11 @@
     background-color: #f2f0f7;
     width: 100vw;
     height: 100vh;
+    display: flex;
+}
+.content-wrapper {
+    margin-top: 25px;
+    margin-left: 40px;
+    width: 100%;
 }
 </style>

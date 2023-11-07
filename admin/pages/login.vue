@@ -35,6 +35,12 @@
     </div>
 </template>
 
+<script>
+definePageMeta({
+  layout: 'empty'
+})
+
+</script>
 <script setup>
 import {reactive, ref} from 'vue'
 import {useAuthStore} from '~/store/auth';
