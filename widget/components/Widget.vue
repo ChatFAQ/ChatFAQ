@@ -25,7 +25,7 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
-import { ref, defineProps } from "vue";
+import { ref, defineProps, onMounted } from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
@@ -44,7 +44,8 @@ const props = defineProps([
     "subtitle",
     "maximized",
     "fullScreen",
-    "historyOpened"
+    "historyOpenedDesktop",
+    "historyOpenedMobile"
 ]);
 
 store.chatfaqWS = props.chatfaqWs;
@@ -60,8 +61,10 @@ if (!store.userId && props.manageUserId) {
 
 if (props.maximized !== undefined)
     store.maximized = props.maximized;
-if (props.historyOpened !== undefined)
-    store.historyOpened = props.historyOpened;
+if (props.historyOpenedDesktop !== undefined)
+    store.historyOpenedDesktop = props.historyOpenedDesktop;
+if (props.historyOpenedMobile !== undefined)
+    store.historyOpenedMobile = props.historyOpenedMobile;
 
 
 if (props.fullScreen !== undefined)
@@ -83,6 +86,15 @@ addEventListener("resize", (event) => {
         isPhoneLandscape.value = screen.orientation.type.includes('landscape');
     }
 });
+
+onMounted(() => {
+    store.historyOpened = false
+    if (store.historyOpenedDesktop !== undefined && screen.width > screen.height)
+        store.historyOpened = store.historyOpenedDesktop
+    else if (store.historyOpenedMobile !== undefined && screen.width < screen.height)
+        store.historyOpened = store.historyOpenedMobile
+
+})
 
 </script>
 
