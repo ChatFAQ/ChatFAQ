@@ -16,11 +16,11 @@ class ChatfaqWidget {
         props['chatfaqApi'] = chatfaqApi;
         props['chatfaqWs'] = chatfaqWs
         props['fsmDef'] = fsmDef
-        props['maximized'] = maximized === "true"
-        props['fullScreen'] = fullScreen === "true"
-        props['historyOpenedDesktop'] = historyOpenedDesktop === "true"
-        props['historyOpenedMobile'] = historyOpenedMobile === "true"
-        props['manageUserId'] = manageUserId === "true"
+        props['maximized'] = maximized
+        props['fullScreen'] = fullScreen
+        props['historyOpenedDesktop'] = historyOpenedDesktop
+        props['historyOpenedMobile'] = historyOpenedMobile
+        props['manageUserId'] = manageUserId
 
         if (userId)
             props['userId'] = userId;
@@ -42,6 +42,17 @@ class ChatfaqWidget {
 // for the moment we just implemented: https://github.com/vuejs/vue-web-component-wrapper/issues/93#issuecomment-909136116
 class ChatfaqWidgetCustomElement extends HTMLElement {
     connectedCallback() {
+        if(this.dataset.maximized === "false")
+            delete this.dataset.maximized
+        if(this.dataset.fullScreen === "false")
+            delete this.dataset.fullScreen
+        if(this.dataset.historyOpenedDesktop === "false")
+            delete this.dataset.historyOpenedDesktop
+        if(this.dataset.historyOpenedMobile === "false")
+            delete this.dataset.historyOpenedMobile
+        if(this.dataset.manageUserId === "false")
+            delete this.dataset.manageUserId
+
         const app = _buildApp(this.dataset);
         app.mount(this)
     }
