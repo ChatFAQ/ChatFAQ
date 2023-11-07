@@ -1,6 +1,5 @@
 <template>
-    <div>Hello Home Page</div>
-    <el-button @click="logOut">Log Out</el-button>
+    <div></div>
 </template>
 
 <script setup>

@@ -24,7 +24,7 @@ const props = defineProps({
     }
 })
 
-const iconComponent = ref(resolveComponent(props.icon))
+const iconComponent = shallowRef(resolveComponent(props.icon))
 
 function goToPage() {
     if (props.page) {

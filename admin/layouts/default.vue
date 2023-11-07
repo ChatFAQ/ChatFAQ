@@ -1,7 +1,7 @@
 <template>
     <div class="page-wrapper">
         <Menu />
-        <div>
+        <div class="content-wrapper">
             <slot />
         </div>
     </div>
@@ -13,5 +13,10 @@
     width: 100vw;
     height: 100vh;
     display: flex;
+}
+.content-wrapper {
+    margin-top: 25px;
+    margin-left: 40px;
+    width: 100%;
 }
 </style>
