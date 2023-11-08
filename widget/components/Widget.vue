@@ -103,7 +103,6 @@ onMounted(() => {
 
 .chatfaq-widget {
     .widget-wrapper.full-screen > .widget-body > .chat {
-        border-radius: unset;
         > .conversation-content {
             padding-left: 260px;
             padding-right: 260px;
@@ -122,10 +121,6 @@ onMounted(() => {
                 margin-right: 130px;
             }
         }
-        @media only screen and (max-width: $phone-breakpoint) {
-            padding: unset;
-        }
-
     }
 }
 </style>
@@ -253,6 +248,13 @@ $widget-margin: 16px;
         &.full-screen {
             border-radius: unset;
         }
+    }
+    .widget-wrapper.full-screen > .widget-body > .chat {
+        border-radius: unset;
+        @media only screen and (max-width: $phone-breakpoint) {
+            padding: unset;
+        }
+
     }
     .widget-wrapper > .widget-body.full-screen > .header {
         border-radius: unset;
