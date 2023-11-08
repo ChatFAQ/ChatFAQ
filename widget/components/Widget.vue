@@ -111,7 +111,8 @@ $phone-breakpoint: 600px;
 $widget-margin: 16px;
 
 .chatfaq-widget {
-    position: sticky;
+    position: fixed;
+    z-index: 1000;
     height: 100dvh;
     width: 100dvw;
     bottom: 0;
