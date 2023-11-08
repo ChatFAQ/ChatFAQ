@@ -128,7 +128,7 @@ $phone-breakpoint: 600px;
         display: flex;
         align-items: baseline;
         flex-direction: column;
-        max-width: 100%;
+        max-width: 570px;
         height: 100%;
         margin: 16px 0 0;
 
