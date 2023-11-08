@@ -136,8 +136,6 @@ $widget-margin: 16px;
 .chatfaq-widget {
     position: fixed;
     z-index: 1000;
-    height: 100dvh;
-    width: 100dvw;
     bottom: 0;
     right: 0;
 
