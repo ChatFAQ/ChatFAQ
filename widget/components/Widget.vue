@@ -100,6 +100,34 @@ onMounted(() => {
 
 <style lang="scss">
 @import "~/assets/styles/global.scss";
+
+.chatfaq-widget {
+    .widget-wrapper.full-screen > .widget-body > .chat {
+        border-radius: unset;
+        > .conversation-content {
+            padding-left: 260px;
+            padding-right: 260px;
+        }
+        > .input-chat-wrapper {
+            margin-left: 260px;
+            margin-right: 260px;
+        }
+        &.history {
+            > .conversation-content {
+                padding-left: 130px;
+                padding-right: 130px;
+            }
+            > .input-chat-wrapper {
+                margin-left: 130px;
+                margin-right: 130px;
+            }
+        }
+        @media only screen and (max-width: $phone-breakpoint) {
+            padding: unset;
+        }
+
+    }
+}
 </style>
 
 <style lang="scss" scoped>
@@ -244,19 +272,6 @@ $widget-margin: 16px;
         @media only screen and (max-width: $phone-breakpoint) {
             border-radius: unset;
         }
-    }
-    .widget-wrapper.full-screen > .widget-body > .chat {
-        border-radius: unset;
-        padding-left: 260px;
-        padding-right: 260px;
-        &.history {
-            padding-left: 130px;
-            padding-right: 130px;
-        }
-        @media only screen and (max-width: $phone-breakpoint) {
-            padding: unset;
-        }
-
     }
     .widget-open-button {
         cursor: pointer;
