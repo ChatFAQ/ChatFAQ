@@ -153,10 +153,6 @@ $widget-margin: 16px;
 .chatfaq-widget {
     position: fixed;
     z-index: 1000;
-    @media only screen and (max-width: $phone-breakpoint) {
-        height: 100dvh;
-        width: 100dvw;
-    }
     bottom: 0;
     right: 0;
 
@@ -244,8 +240,8 @@ $widget-margin: 16px;
         }
 
         @media only screen and (max-width: $phone-breakpoint) {
-            width: 100%;
-            height: 100%;
+            height: 100dvh;
+            width: 100dvw;
             margin: 0px;
             bottom: 0px;
         }
