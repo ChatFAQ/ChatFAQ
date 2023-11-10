@@ -100,25 +100,42 @@ onMounted(() => {
 
 <style lang="scss">
 @import "~/assets/styles/global.scss";
+$phone-breakpoint: 600px;
 
 .chatfaq-widget {
     .widget-wrapper.full-screen > .widget-body > .chat {
         > .conversation-content {
             padding-left: 260px;
             padding-right: 260px;
+            @media only screen and (max-width: $phone-breakpoint) {
+                padding-left: unset;
+                padding-right: unset;
+            }
         }
         > .input-chat-wrapper {
             margin-left: 260px;
             margin-right: 260px;
+            @media only screen and (max-width: $phone-breakpoint) {
+                    margin-left: 24px;
+                    margin-right: 24px;
+            }
         }
         &.history {
             > .conversation-content {
                 padding-left: 130px;
                 padding-right: 130px;
+                @media only screen and (max-width: $phone-breakpoint) {
+                    padding-left: unset;
+                    padding-right: unset;
+                }
             }
             > .input-chat-wrapper {
                 margin-left: 130px;
                 margin-right: 130px;
+                @media only screen and (max-width: $phone-breakpoint) {
+                    margin-left: 24px;
+                    margin-right: 24px;
+                }
             }
         }
     }
@@ -136,6 +153,10 @@ $widget-margin: 16px;
 .chatfaq-widget {
     position: fixed;
     z-index: 1000;
+    @media only screen and (max-width: $phone-breakpoint) {
+        height: 100dvh;
+        width: 100dvw;
+    }
     bottom: 0;
     right: 0;
 
