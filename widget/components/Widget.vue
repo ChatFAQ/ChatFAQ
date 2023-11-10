@@ -11,8 +11,8 @@
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history" :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
                 <div class="widget-body" :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened}">
-                    <Header class="header" :class="{'history': store.historyOpened}"/>
-                    <Chat class="chat" :class="{'history': store.historyOpened}"/>
+                    <Header class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
                 </div>
             </div>
             <div v-if="!isPhoneLandscape && !fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
@@ -254,7 +254,12 @@ $widget-margin: 16px;
 
         &.history {
             border-radius: 0px 10px 0px 0px;
-            border-left: 0px;
+            &.full-screen {
+                border-radius: unset;
+            }
+            @media only screen and (max-width: $phone-breakpoint) {
+                border-radius: unset;
+            }
         }
 
         @media only screen and (max-width: $phone-breakpoint) {
@@ -284,6 +289,12 @@ $widget-margin: 16px;
 
         &.history {
             border-radius: 0px 0px 10px 0px;
+            &.full-screen {
+                border-radius: unset;
+            }
+            @media only screen and (max-width: $phone-breakpoint) {
+                border-radius: unset;
+            }
         }
 
         @media only screen and (max-width: $phone-breakpoint) {
