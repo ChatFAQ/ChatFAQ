@@ -15,7 +15,7 @@ const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
 const fsmDef = ref("model_fsm")
 const historyOpenedDesktop = ref(true);
-const historyOpenedMobile = ref(true);
+const historyOpenedMobile = ref(false);
 const fullScreen = ref(false);
 
 </script>
