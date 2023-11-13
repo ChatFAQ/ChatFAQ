@@ -1,5 +1,3 @@
-import random
-
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import LMGeneratedText, Text
 

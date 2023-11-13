@@ -16,7 +16,6 @@ const store = useGlobalStore();
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 .plus {
     content: $chatfaq-plus-icon;

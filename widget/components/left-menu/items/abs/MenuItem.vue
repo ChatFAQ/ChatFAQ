@@ -9,7 +9,6 @@
 
 
 <style lang="scss">
-@import "assets/styles/variables";
 
 .menu-item {
     display: flex;

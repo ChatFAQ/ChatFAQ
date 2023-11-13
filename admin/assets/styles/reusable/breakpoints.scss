@@ -1,0 +1,19 @@
+// Use these mixins to easily add breakpoints in the design.
+//
+// Take into account that the breakpoints are meant for a desktop-first design
+// (which means that you should write your default styles for desktop and then
+// add breakpoints for smaller screens).
+
+// From 0px to $breakpoint-desktop (smallest desktop size)
+@mixin tablet-layout() {
+    @media only screen and (max-width: calc(#{$breakpoint-desktop} - 1px)) {
+        @content
+    }
+}
+
+// From 0px to $breakpoint-tablet (smallest tablet size)
+@mixin mobile-layout() {
+    @media only screen and (max-width: calc(#{$breakpoint-tablet} - 1px)) {
+        @content
+    }
+}

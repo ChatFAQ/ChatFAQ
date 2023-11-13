@@ -46,7 +46,6 @@ async function deleteConversations() {
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 .trash-icon {
     content: $chatfaq-trash-icon;

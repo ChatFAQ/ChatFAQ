@@ -13,7 +13,6 @@ defineProps({
 </script>
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 .custom-loader {
     width: 50px;

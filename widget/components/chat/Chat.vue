@@ -172,8 +172,6 @@ function isFirstOfType(msg, flatStack) {
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
-@import "assets/styles/mixins";
 
 .chat-wrapper {
     font: $chatfaq-font-body-s;

@@ -12,18 +12,37 @@ import {computed} from "vue";
 const store = useGlobalStore();
 
 const props = defineProps(["data", "isLast"]);
+const hightlight_light = "#4630751a"
+const hightlight_dark = "#1A0438"
 
 const markedDown = computed(() => {
+    const hightlight = store.darkMode ? hightlight_dark : hightlight_light
+    // regex for detecting and represent markdown links:
     const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
-    const res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
+    let res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
+    // regex for detecting and represent markdown lists:
+    const listRegex = /(?:^|\n)(?:\*|\-|\d+\.)\s/g;
+    res = res.replace(listRegex, '<br/>- ');
+    // regex for detecting and represent the character: ` highlighting ex: bla bla `bla` bla:
+    const highlightRegex = /`([^`]+)`/g;
+    res = res.replace(highlightRegex, '<span style="background-color: '+ hightlight +'; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span>');
+    // regex for detecting and representing codeblocks with tab  character:
+    const codeBlockRegex = /(?:^|\n)(?:\t)([^\n]+)/g;
+    const codeBlockRegex2 = /(?:^|\n)(?:    )([^\n]+)/g;
+    res = res.replace(codeBlockRegex, '<span style="background-color: '+ hightlight +'; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
+    res = res.replace(codeBlockRegex2, '<span style="background-color: '+ hightlight +'; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
+    // regex for detecting and representing markdown bold text:
+    const boldRegex = /\*\*([^\*]+)\*\*/g;
+    res = res.replace(boldRegex, '<b>$1</b>');
+
     return res
 });
 
 </script>
 <style lang="scss">
-@import "assets/styles/variables";
 
 .marked-down-content {
+    white-space: pre-wrap;
     display: inline;
     * {
         display: inline;

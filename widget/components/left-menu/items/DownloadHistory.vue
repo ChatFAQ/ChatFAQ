@@ -50,7 +50,7 @@ import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
+
 .download-icon {
     content: $chatfaq-download-icon;
 }

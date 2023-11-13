@@ -2,60 +2,6 @@
 
 For those chatbots with complex Finite State Machine (FSM) behaviours, you will probably want to run them on a separate process, that is what for the SDK is made for. Its primary function is to execute the FSM's computations (transition's conditions and states) by running Remote Procedure Call (RPC) server that listen to the back-end requests.
 
-## Prerequisites
-
-Make sure the next list of packages are installed on your system:
-
-- Python 3.10
-- python3.10-dev
-- python3.10-distutils
-- poetry
-
-## Installation
-
-### PYPI
-
-    poetry add chatfaq-sdk
-
-### Local build
-
-#### Set Up:
-
-Install project dependencies:
-
-    poetry install
-
-#### Run
-
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
-
-`CHATFAQ_RETRIEVAL_HTTP`: The address for the HTTP of the back-end server.
-
-`CHATFAQ_BACKEND_WS`: The address for the WS of the back-end server.
-
-`CHATFAQ_TOKEN`: The token to authenticate with the back-end server. You can obtain this token by login into [http://localhost:8000/back/api/login/](http://localhost:8000/back/api/login/) with an admin user.
-
-
-Run the example:
-
-    make run_example
-
-This will run the example FSM that is located in [./examples/model_example/__init__.py](./examples/model_example/__init__.py) file. You can modify this file to test your own FSMs.
-
-
-### Docker
-
-Alternatively you can simply run the server using docker.
-
-#### Build
-
-    docker build -t chatfaq-sdk .
-
-#### Run
-
-    docker run chatfaq-sdk
-
-
 ## Usage
 
 ### Simple example
@@ -64,7 +10,7 @@ This is just a dummy example that displays the basic usage of the library.
 
 We are going to build the next FSM:
 
-![fsm](../../../../doc/source/_static/images/fsm_diagram.png)
+![fsm](../../../../doc/source/_static/images/simple_fsm_diagram.png)
 
 Import basic modules to build your first FMS:
 
@@ -160,4 +106,48 @@ sdk = ChatFAQSDK(
 sdk.connect()
 ```
 
-The resulting FSM looks like this:
+### Model example
+
+All of that is great, but where is the large language model capabilities that ChatFAQ offers?
+
+What if we want to build a FSM that makes use of a Language Model?
+
+For that, you first need to [configure your model](../configuration/index.md).
+
+Once you have configured all the components of the model, you will just need to reference the name of your RAG Configuration inside a state of the FSM.
+
+For example, if you have a RAG Configuration named `my_rag_config`, you can use it inside a state like this:
+
+```python
+from chatfaq_sdk.fsm import FSMDefinition, State, Transition
+from chatfaq_sdk.layers import LMGeneratedText, Text
+
+
+def send_greeting(ctx: dict):
+    yield Text("How can we help you?", allow_feedback=False)
+
+
+def send_answer(ctx: dict):
+    last_payload = ctx["last_mml"]["stack"][0]["payload"]
+    yield LMGeneratedText(last_payload, "my_rag_config")
+
+greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
+
+answering_state = State(
+    name="Answering",
+    events=[send_answer],
+)
+
+_to_answer = Transition(
+    dest=answering_state,
+)
+
+fsm_definition = FSMDefinition(
+    states=[greeting_state, answering_state],
+    transitions=[_to_answer]
+)
+```
+
+For the sake of completeness, here is the diagram of this FSM:
+
+![fsm](../../../../doc/source/_static/images/model_fsm_diagram.png)

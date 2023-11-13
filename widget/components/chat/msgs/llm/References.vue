@@ -48,7 +48,6 @@ const collapsed = ref(true);
 
 </script>
 <style scoped lang="scss">
-@import "assets/styles/variables";
 
 .references-title-wrapper {
     display: flex;
