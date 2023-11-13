@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chat_rag import RAG
-from chat_rag.llms import GGMLModel, HFModel, OpenAIChatModel, VLLModel
+from chat_rag.llms import GGMLModel, HFModel, OpenAIChatModel, VLLModel, ClaudeChatModel
 from chat_rag.inf_retrieval.embedding_models import E5Model
 from chat_rag.intent_detection import clusterize_text, generate_intents
 from chat_rag.data.splitters import get_splitter
@@ -30,6 +30,7 @@ LLM_CLASSES = {
     "local_gpu": HFModel,
     "vllm": VLLModel,
     "openai": OpenAIChatModel,
+    "claude": ClaudeChatModel,
 }
 
 

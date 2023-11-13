@@ -27,23 +27,22 @@ class DatasetConfig(AppConfig):
         # gather all those items that have no embeddings grouped by rag config:
         changes = False
         for rag_config in RAGConfig.objects.all():
-            
+
             # Get the primary keys of KnowledgeItems that already have an associated embedding for the current RAGConfig.
             ki_pks_with_embeddings = Embedding.objects.filter(
                 knowledge_item__knowledge_base=rag_config.knowledge_base,
                 rag_config=rag_config
-            ).values_list("knowledge_item__pk", flat=True) 
+            ).values_list("knowledge_item__pk", flat=True)
 
-            # Fetch KnowledgeItem instances associated with the current RAGConfig's knowledge base 
+            # Fetch KnowledgeItem instances associated with the current RAGConfig's knowledge base
             # but do not yet have an associated Embedding.
             kis_without_embeddings = KnowledgeItem.objects.filter(
                 knowledge_base=rag_config.knowledge_base
             ).exclude(pk__in=ki_pks_with_embeddings)
-            
-            logger.info(f"Generating embeddings for RAG config:{rag_config} #KI {kis_without_embeddings.count()}")
-    
+
             if kis_without_embeddings.exists():
                 changes = True
+                logger.info(f"Generating embeddings for RAG config:{rag_config} #KI {kis_without_embeddings.count()}")
                 generate_embeddings_task.delay(list(kis_without_embeddings.values_list("pk", flat=True)), rag_config.pk)
 
         if changes:
