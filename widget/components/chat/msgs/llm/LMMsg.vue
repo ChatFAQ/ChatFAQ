@@ -31,6 +31,9 @@ const markedDown = computed(() => {
     const codeBlockRegex2 = /(?:^|\n)(?:    )([^\n]+)/g;
     res = res.replace(codeBlockRegex, '<span style="background-color: '+ hightlight +'; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
     res = res.replace(codeBlockRegex2, '<span style="background-color: '+ hightlight +'; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
+    // regex for detecting and representing markdown bold text:
+    const boldRegex = /\*\*([^\*]+)\*\*/g;
+    res = res.replace(boldRegex, '<b>$1</b>');
 
     return res
 });

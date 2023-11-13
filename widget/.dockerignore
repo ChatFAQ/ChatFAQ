@@ -10,6 +10,7 @@
 !plugins/
 !public/
 !store/
+!utils/
 !.browserslistrc
 !app.vue
 !babel.config.js
