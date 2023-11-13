@@ -121,7 +121,7 @@ The LLM is the component that defines the model that will generate the answer fr
 The LLM is configured with the following properties:
 
 - **name**: Just a name for the LLM.
-- **llm_type**: The type of LLM to use. It can be 'OpenAI', 'Local GPU Model' (HuggingFace), 'Local CPU Model (ggml)' or a 'vLLM Client'. Default: 'Local GPU Model'.
+- **llm_type**: The type of LLM to use. It can be 'OpenAI', 'Claude', 'Local GPU Model' (HuggingFace), 'Local CPU Model (ggml)' or a 'vLLM Client'. Default: 'Local GPU Model'.
 - **llm_name**: The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc. Default: gpt2.
 - **ggml_llm_filename**: The GGML filename of the model, if it is a GGML model.
 - **model_config**: The huggingface model config of the model, needed for GGML models.
@@ -205,6 +205,18 @@ The OpenAI models are specified [here](https://platform.openai.com/docs/models/)
 ```
 OPENAI_API_KEY=XXXXXX
 ```
+
+#### Claude
+
+This uses the [Claude models by Anthropic](https://docs.anthropic.com/claude/reference/selecting-a-model), example:
+```json
+{
+    "name": "Claude",
+    "llm_type": "Claude",
+    "llm_name": "claude-2"
+}
+```
+
 
 #### vLLM Client
 
