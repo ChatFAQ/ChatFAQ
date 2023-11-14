@@ -14,7 +14,10 @@ logger = getLogger(__name__)
 @receiver(post_save, sender=LLMConfig)
 @receiver(post_delete, sender=LLMConfig)
 def on_llm_config_change(instance, *args, **kwargs):
-    llm_query_task.delay(recache_models=True, log_caller="on_llm_config_change")
+    # if the llm instance belongs to a RAGConfig, then we need to reload the models
+    rag_configs = RAGConfig.objects.filter(llm_config=instance)
+    if rag_configs.exists():
+        llm_query_task.delay(recache_models=True, log_caller="on_llm_config_change")
 
 @receiver(post_save, sender=RAGConfig)
 @receiver(post_delete, sender=RAGConfig)
