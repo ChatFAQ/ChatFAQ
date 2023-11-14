@@ -13,6 +13,18 @@
     "pleaseenteryourpassword":  "Please enter your password",
     "contactadmin" : "Please contact a ChatFAQ's administrator for recovering your password",
 
+    "dashboard": "Dashboard",
+    "labeling": "Labeling",
+    "data": "Data",
+    "aiconfig": "AI Config",
+    "widgetconfig": "Widget Config",
+    "sdkvisualizer": "SDK Visualizer",
+    "stats": "Stats",
+    "usermanagement": "User Management",
+    "taskhistory": "Task history",
+    "accountsettings": "Account settings",
+    "logout": "Log Out",
+
     "aiconfiguration": "AI Configuration",
     "retriever": "Retriever",
     "prompt":  "Prompt",
