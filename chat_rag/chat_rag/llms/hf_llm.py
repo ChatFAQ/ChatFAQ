@@ -110,7 +110,7 @@ class HFModel(RAGLLM):
         logger.info(f"Loading HF model from {llm_name}...")
         self.tokenizer = AutoTokenizer.from_pretrained(
             llm_name,
-            use_auth_token=auth_token,
+            token=auth_token,
             use_fast=use_fast_tokenizer,
             revision=revision,
             trust_remote_code=trust_remote_code_tokenizer,
@@ -121,7 +121,7 @@ class HFModel(RAGLLM):
             torch_dtype="auto",
             max_memory=memory_device,
             low_cpu_mem_usage=True,
-            use_auth_token=auth_token,
+            token=auth_token,
             revision=revision,
             load_in_8bit=load_in_8bit,
             trust_remote_code=trust_remote_code_model,

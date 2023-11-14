@@ -19,6 +19,7 @@ from scrapy.crawler import CrawlerRunner
 from crochet import setup
 import numpy as np
 import os
+import torch
 
 if is_celery_worker():
     setup()
@@ -106,7 +107,8 @@ class RAGCacheOnWorkerTask(Task):
 
         logger.info("Preloading models...")
         RAGConfig = apps.get_model("language_model", "RAGConfig")
-        cache = {}
+        cache = {} 
+
         for rag_conf in RAGConfig.objects.all():
             logger.info(
                 f"Loading RAG config: {rag_conf.name} "
@@ -190,6 +192,10 @@ def llm_query_task(
 ):
     logger.info(f"Log caller: {log_caller}")
     if recache_models:
+        # clear CACHED_RAGS
+        self.CACHED_RAGS = {}
+        torch.cuda.empty_cache()
+
         self.CACHED_RAGS = self.preload_models()
         return
     channel_layer = get_channel_layer()
