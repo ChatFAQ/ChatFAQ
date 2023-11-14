@@ -1,5 +1,5 @@
 <template>
-    <div class="page-title">{{ $t("ai_configuration") }}</div>
+    <div class="page-title">{{ $t("aiconfiguration") }}</div>
     <el-tabs v-model="selectedTab" >
         <el-tab-pane :label="$t('retriever')" name="retriever">
             <Retriever/>
