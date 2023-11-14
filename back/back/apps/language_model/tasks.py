@@ -348,7 +348,7 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     ]
 
     Embedding.objects.bulk_create(new_embeddings)
-    print(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
+    logger.info(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
         llm_query_task.delay(recache_models=True, log_caller="generate_embeddings_task")
 
