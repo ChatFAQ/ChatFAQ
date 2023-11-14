@@ -23,6 +23,7 @@
     "modelname": "Model Name",
     "batchsize": "Batch Size",
     "device": "Device",
+    "updateddate": "Last Modified",
     "lastmodified": "Last Modified",
     "numberofitems": "{number} {itemname} configuration",
     "additem": "Add {itemname}",
