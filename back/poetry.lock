@@ -879,13 +879,13 @@ files = [
 
 [[package]]
 name = "chat-rag"
-version = "0.1.31"
+version = "0.1.32"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chat_rag-0.1.31-py3-none-any.whl", hash = "sha256:180b5aa6bb78af15eddc6cc3a95864c76bf509f0eb6e75afc69fe9904e49072c"},
-    {file = "chat_rag-0.1.31.tar.gz", hash = "sha256:f99edb5fac581354907ac86ee12108ba96b5c21e197ce8420159fcf2580b55d1"},
+    {file = "chat_rag-0.1.32-py3-none-any.whl", hash = "sha256:ce9f6e928539a0d2eac3c162ca393f3837ca36e958c48bfcaedf2568614a5adf"},
+    {file = "chat_rag-0.1.32.tar.gz", hash = "sha256:bb9c9a9713427a0193d2f56ec32b41f36837a6a9357480c4c10c648cd500c952"},
 ]
 
 [package.dependencies]
@@ -6762,4 +6762,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "91407dbc1558299326a64a1e69edc777681a55b46f271a72ba61e391b4bc7aa1"
+content-hash = "4d450a2d2902b17aa392317dc233b5a4bdfe2a91d3ff84200b0cf6538a34c41f"
