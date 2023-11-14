@@ -1,16 +1,21 @@
 <template>
     <ReadView
-        :itemName="'retriever'"
+        :itemName="$t('retriever')"
         :apiUrl="'/api/language-model/retriever-configs/?format=json'"
-        :cardProps="{'model_name': 'Model Name', 'batch_size': 'Batch Size', 'device': 'Device'}"
-        :tableProps="{'model_name': 'Model Name', 'batch_size': 'Batch Size', 'device': 'Device', 'updated_date': 'Last Modified'}"
+        :cardProps="{
+            'model_name': $t('modelname'),
+            'batch_size': $t('batchsize'),
+            'device': $t('device'),
+        }"
+        :tableProps="{
+            'model_name': $t('modelname'),
+            'batch_size': $t('batchsize'),
+            'device': $t('device'),
+            'updated_date': $t('updateddate'),
+        }"
     />
 </template>
 
 <script setup>
-
-import ReadView from "~/components/generic/ReadView.vue";
+    import ReadView from "~/components/generic/ReadView.vue";
 </script>
-<style lang="scss" scoped>
-
-</style>

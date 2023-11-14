@@ -1,13 +1,13 @@
 <template>
-    <div class="page-title">A.I. Configuration</div>
+    <div class="page-title">{{ $t("ai_configuration") }}</div>
     <el-tabs v-model="selectedTab" >
-        <el-tab-pane label="Retriever" name="retriever">
+        <el-tab-pane :label="$t('retriever')" name="retriever">
             <Retriever/>
         </el-tab-pane>
-        <el-tab-pane label="Prompt" name="prompt">Prompt</el-tab-pane>
-        <el-tab-pane label="Generation" name="generation">Generation</el-tab-pane>
-        <el-tab-pane label="LLM" name="llm">LLM</el-tab-pane>
-        <el-tab-pane label="RAG" name="rag">RAG</el-tab-pane>
+        <el-tab-pane :label="$t('prompt')" name="prompt"></el-tab-pane>
+        <el-tab-pane :label="$t('generation')" name="generation"></el-tab-pane>
+        <el-tab-pane :label="$t('llm')" name="llm"></el-tab-pane>
+        <el-tab-pane :label="$t('rag')" name="rag"></el-tab-pane>
     </el-tabs>
 </template>
 

@@ -1,9 +1,9 @@
 <template>
     <div class="items-wrapper">
         <div class="section-header">
-            <div class="item-count">{{ items.length }} {{ itemName }} configuration</div>
+            <div class="item-count"> {{$t("numberofitems", {"number": items.length, "itemname": itemName})}}</div>
             <div class="section-header-right">
-                <el-button class="add-button" type="primary" round plain>+ add {{ itemName }}</el-button>
+                <el-button class="add-button" type="primary" round plain>+ {{ $t("additem", {"itemname": itemName}) }}</el-button>
                 <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
                      @click="viewType = 'card'">
                     <div class="card-icon"></div>
@@ -19,7 +19,7 @@
                     <div class="card-header-title">{{ item.name }}</div>
                 </template>
                 <div v-for="(name, prop) in cardProps" class="property">
-                    <span class="title">{{ prop }} name:</span>{{ item[prop] }}
+                    <span class="title">{{ name }}</span>{{ item[prop] }}
                 </div>
                 <div class="divider">
                 </div>
@@ -27,14 +27,14 @@
                     <el-icon class="command-delete">
                         <Delete/>
                     </el-icon>
-                    <span class="command-edit">Edit</span>
+                    <span class="command-edit">{{ $t("edit") }}</span>
                 </div>
             </el-card>
         </div>
         <el-table v-else class="table-view" :data="items" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
             <el-table-column align="center">
-                <span class="command-edit">Edit</span>
+                <span class="command-edit">{{ $t("edit") }}</span>
             </el-table-column>
             <el-table-column align="center">
                 <el-icon class="command-delete">
