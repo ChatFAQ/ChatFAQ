@@ -1,4 +1,6 @@
 from typing import List, Dict, Optional
+import os
+
 from transformers import AutoTokenizer, AutoConfig
 
 
@@ -16,15 +18,33 @@ QUESTION_PREFIX = {
 
 
 class RAGLLM:
-    def __init__(self, llm_name: str, model_max_length: int = None, **kwargs) -> None:
-        self.tokenizer = AutoTokenizer.from_pretrained(llm_name)
+    def __init__(
+        self,
+        llm_name: str,
+        model_max_length: int = None,
+        trust_remote_code_tokenizer: bool = False,
+        trust_remote_code_model: bool = False,
+        **kwargs,
+    ) -> None:
+        
+        auth_token = os.environ["HUGGINGFACE_KEY"]
+
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            llm_name, trust_remote_code=trust_remote_code_tokenizer, token=auth_token
+        )
 
         if model_max_length is not None:
             self.model_max_length = model_max_length
         else:
-            self.config = AutoConfig.from_pretrained(llm_name)
-            self.model_max_length = self.config.max_position_embeddings if self.config.max_position_embeddings is not None else self.tokenizer.model_max_length
-        
+            self.config = AutoConfig.from_pretrained(
+                llm_name, trust_remote_code=trust_remote_code_model, token=auth_token
+            )
+            self.model_max_length = (
+                self.config.max_position_embeddings
+                if self.config.max_position_embeddings is not None
+                else self.tokenizer.model_max_length
+            )
+
         print(f"Model max length: {self.model_max_length}")
 
     def format_prompt(
@@ -72,7 +92,6 @@ class RAGLLM:
         """
 
         for n_contexts in range(n_contexts_to_use, 0, -1):
-
             contexts_prompt = CONTEXT_PREFIX[lang]
             for context in contexts[:n_contexts]:
                 contexts_prompt += f"- {context}\n"
@@ -90,8 +109,10 @@ class RAGLLM:
             if num_tokens < self.model_max_length:
                 print(f"Prompt length: {num_tokens}")
                 return prompt
-            
-        raise Exception("Prompt is too long for the model, please try to reduce the size of the contents")
+
+        raise Exception(
+            "Prompt is too long for the model, please try to reduce the size of the contents"
+        )
 
     def generate(
         self,

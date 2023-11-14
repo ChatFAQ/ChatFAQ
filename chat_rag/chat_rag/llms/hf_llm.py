@@ -93,9 +93,14 @@ class HFModel(RAGLLM):
         revision: str
             The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
         """
-        super().__init__(llm_name, **kwargs)
+        super().__init__(
+            llm_name,
+            trust_remote_code_tokenizer=trust_remote_code_tokenizer,
+            trust_remote_code_model=trust_remote_code_model,
+            **kwargs,
+        )
         self.use_cpu = use_cpu
-        auth_token = os.environ['HUGGINGFACE_KEY']
+        auth_token = os.environ["HUGGINGFACE_KEY"]
 
         device_map = (
             "auto" if (not use_cpu and torch.cuda.is_available()) else None
@@ -187,7 +192,7 @@ class HFModel(RAGLLM):
             pad_token_id=self.tokenizer.pad_token_id,
         )
 
-        generation_config_dict.pop('name')
+        generation_config_dict.pop("name")
 
         with torch.inference_mode():
             outputs = self.model.generate(**generation_config_dict)
@@ -255,7 +260,7 @@ class HFModel(RAGLLM):
             pad_token_id=self.tokenizer.pad_token_id,
         )
 
-        generation_config_dict.pop('name')
+        generation_config_dict.pop("name")
 
         generation_config_dict["streamer"] = self.streamer
         thread = Thread(target=self.model.generate, kwargs=generation_config_dict)
