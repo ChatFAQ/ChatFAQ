@@ -1,5 +1,4 @@
 <template>
-    Some text you should be able to select at all times.
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :manageUserId="manageUserId" :title="title"
                 :subtitle="subtitle" :historyOpenedDesktop="historyOpenedDesktop"  :historyOpenedMobile="historyOpenedMobile" :fullScreen="fullScreen"/>
