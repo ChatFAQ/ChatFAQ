@@ -1,6 +1,21 @@
 <template>
     <ReadView
         :itemName="$t('retriever')"
+        :apiUrl="'/api/language-model/retriever-configs/'"
+        :cardProps="{
+            'model_name': $t('modelname'),
+            'batch_size': $t('batchsize'),
+            'device': $t('device'),
+        }"
+        :tableProps="{
+            'model_name': $t('modelname'),
+            'batch_size': $t('batchsize'),
+            'device': $t('device'),
+            'updated_date': $t('updateddate'),
+        }"
+    />
+    <EditView
+        :itemName="$t('retriever')"
         :apiUrl="'/api/language-model/retriever-configs/?format=json'"
         :cardProps="{
             'model_name': $t('modelname'),

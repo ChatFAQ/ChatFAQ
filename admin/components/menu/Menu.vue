@@ -4,15 +4,15 @@
             <div class="chatfaq-cq-icon"></div>
             <div class="chatfaq-icon"></div>
         </div>
-        <MenuItem icon="House" :name="$t('dashboard')" page="dashboard"/>
-        <MenuItem icon="Edit" :name="$t('labeling')" page="labeling"/>
-        <MenuItem icon="Reading" :name="$t('data')" page="data"/>
-        <MenuItem icon="SetUp" :name="$t('aiconfig')" page="ai_config"/>
-        <MenuItem icon="Brush" :name="$t('widgetconfig')" page="widget_config"/>
-        <MenuItem icon="DataBoard" :name="$t('sdkvisualizer')" page="sdk_visualizer"/>
-        <MenuItem icon="TrendCharts" :name="$t('stats')" page="stats"/>
-        <MenuItem icon="User" :name="$t('usermanagement')" page="user_management"/>
-        <MenuItem icon="Clock" :name="$t('taskhistory')" page="task_history"/>
+        <MenuItem icon="House" :name="$t('dashboard')" page="/dashboard"/>
+        <MenuItem icon="Edit" :name="$t('labeling')" page="/labeling"/>
+        <MenuItem icon="Reading" :name="$t('data')" page="/data"/>
+        <MenuItem icon="SetUp" :name="$t('aiconfig')" page="/ai_config/retriever/"/>
+        <MenuItem icon="Brush" :name="$t('widgetconfig')" page="/widget_config"/>
+        <MenuItem icon="DataBoard" :name="$t('sdkvisualizer')" page="/sdk_visualizer"/>
+        <MenuItem icon="TrendCharts" :name="$t('stats')" page="/stats"/>
+        <MenuItem icon="User" :name="$t('usermanagement')" page="/user_management"/>
+        <MenuItem icon="Clock" :name="$t('taskhistory')" page="/task_history"/>
         <div class="separator"></div>
         <MenuItem icon="Setting" :name="$t('accountsettings')" page="account_settings"/>
 

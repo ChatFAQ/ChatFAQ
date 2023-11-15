@@ -64,8 +64,6 @@
 
 <script setup>
 
-import {Pointer} from "@element-plus/icons-vue";
-
 const {$axios} = useNuxtApp();
 const viewType = ref("card")
 const items = ref([])
@@ -91,7 +89,7 @@ const props = defineProps({
 const res = await useAsyncData(
     async () => (await $axios.get(props.apiUrl)).data
 )
-items.value = res.data.value
+items.value = res.data.value || []
 
 </script>
 

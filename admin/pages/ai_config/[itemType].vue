@@ -1,6 +1,6 @@
 <template>
     <div class="page-title">{{ $t("aiconfiguration") }}</div>
-    <el-tabs v-model="selectedTab" >
+    <el-tabs @tab-change="changeUrl" v-model="selectedTab" >
         <el-tab-pane :label="$t('retriever')" name="retriever">
             <Retriever/>
         </el-tab-pane>
@@ -14,7 +14,12 @@
 <script setup>
 
 import Retriever from "~/components/ai_config/Retriever.vue";
-const selectedTab = ref("retriever")
+const route = useRoute()
+const selectedTab = ref(route.params.itemType)
+
+function changeUrl(tabName) {
+    history.pushState({}, null, `/ai_config/${tabName}/`)
+}
 
 </script>
 
