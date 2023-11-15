@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 import os
 
 from transformers import AutoTokenizer, AutoConfig
@@ -45,11 +45,12 @@ class RAGLLM:
                 else self.tokenizer.model_max_length
             )
 
+        self.has_chat_template = self.tokenizer.chat_template is not None
         print(f"Model max length: {self.model_max_length}")
 
     def format_prompt(
         self,
-        query: str,
+        messages: List[Tuple[str, str]],
         contexts: List[str],
         system_prefix: str,
         system_tag: str,
@@ -66,8 +67,8 @@ class RAGLLM:
         Formats the prompt to be used by the model.
         Parameters
         ----------
-        query : str
-            The query to answer.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
         system_prefix : str
