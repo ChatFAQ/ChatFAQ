@@ -1,19 +1,13 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 import os
 
 from transformers import AutoTokenizer, AutoConfig
 
 
 CONTEXT_PREFIX = {
-    "en": "Given the following contexts: ",
-    "fr": "Étant donné les contextes suivants: ",
-    "es": "Dados los siguientes contextos: ",
-}
-
-QUESTION_PREFIX = {
-    "en": "Answer the next question: ",
-    "fr": "Répondez à la question suivante: ",
-    "es": "Responde la siguiente pregunta: ",
+    "en": "Given the following information answer to the user questions:",
+    "fr": "Compte tenu des informations suivantes, répondez aux questions de l'utilisateur:",
+    "es": "Dada la siguiente información responda a las preguntas de los usuarios:",
 }
 
 
@@ -48,9 +42,32 @@ class RAGLLM:
         self.has_chat_template = self.tokenizer.chat_template is not None
         print(f"Model max length: {self.model_max_length}")
 
+
+    def format_system_prompt(
+            self,
+            contexts: List[str],
+            system_prefix: str,
+            n_contexts_to_use: int = 3,
+            lang: str = "en",
+            **kwargs,
+        ) -> str:
+        """
+        Formats the system prompt to be used by the model.
+        """
+        system_prompt = f"{system_prefix}\n{CONTEXT_PREFIX[lang]}\n"
+
+        for ndx, context in enumerate(contexts[:n_contexts_to_use]):
+            system_prompt += f"- {context}"
+                
+            if ndx < len(contexts[:n_contexts_to_use]) - 1: # no newline on last context
+                system_prompt += "\n"
+
+        return system_prompt
+
+
     def format_prompt(
         self,
-        messages: List[Tuple[str, str]],
+        messages: List[Dict[str, str]],
         contexts: List[str],
         system_prefix: str,
         system_tag: str,
@@ -68,7 +85,7 @@ class RAGLLM:
         Parameters
         ----------
         messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
+            The messages to use for the prompt. List of pairs (role, content).
         contexts : list
             The context to use.
         system_prefix : str
@@ -93,16 +110,30 @@ class RAGLLM:
         """
 
         for n_contexts in range(n_contexts_to_use, 0, -1):
-            contexts_prompt = CONTEXT_PREFIX[lang]
-            for context in contexts[:n_contexts]:
-                contexts_prompt += f"- {context}\n"
 
-            if (
-                system_tag == "" or system_tag is None
-            ):  # To avoid adding the role_end tag if there is no system prefix
-                prompt = f"{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
+            system_prompt = self.format_system_prompt(
+                contexts, system_prefix, n_contexts, lang
+            )
+
+            if self.has_chat_template:
+                messages.insert(0, {"role": "system", "content": system_prompt})
+                prompt = self.tokenizer.apply_chat_template(
+                    messages,
+                    add_special_tokens=False,
+                    add_generation_prompt=True,
+                    tokenize=False,
+                )
             else:
-                prompt = f"{system_tag}{system_prefix}{system_end}{user_tag}{contexts_prompt}{QUESTION_PREFIX[lang]}{query}{user_end}{assistant_tag}"
+                if (system_tag == "" or system_tag is None):  # To avoid adding the role_end tag if there is no system prefix
+                    prompt = f"{system_prompt}\n"
+                else:
+                    prompt = f"{system_tag}{system_prompt}{system_end}"
+                
+                for message in messages:
+                    if message['role'] == 'user':
+                        prompt += f"{user_tag}{message['content']}{user_end}{assistant_tag}"
+                    elif message['role'] == 'assistant':
+                        prompt += f"{message['content']}{assistant_end}"
 
             # get number of tokens
             num_tokens = len(self.tokenizer.tokenize(prompt))
@@ -117,8 +148,8 @@ class RAGLLM:
 
     def generate(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: Dict,
         generation_config_dict: Dict = None,
         lang: str = "en",
@@ -129,8 +160,8 @@ class RAGLLM:
 
     def stream(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: Dict,
         generation_config_dict: Dict = None,
         lang: str = "en",
