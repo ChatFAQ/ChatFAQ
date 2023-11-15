@@ -1,14 +1,20 @@
 <template>
-    <div class="page-title">A.I. Configuration</div>
-    <el-tabs>
-        <el-tab-pane label="User" name="first">User</el-tab-pane>
-        <el-tab-pane label="Config" name="second">Config</el-tab-pane>
-        <el-tab-pane label="Role" name="third">Role</el-tab-pane>
-        <el-tab-pane label="Task" name="fourth">Task</el-tab-pane>
+    <div class="page-title">{{ $t("aiconfiguration") }}</div>
+    <el-tabs v-model="selectedTab" >
+        <el-tab-pane :label="$t('retriever')" name="retriever">
+            <Retriever/>
+        </el-tab-pane>
+        <el-tab-pane :label="$t('prompt')" name="prompt"></el-tab-pane>
+        <el-tab-pane :label="$t('generation')" name="generation"></el-tab-pane>
+        <el-tab-pane :label="$t('llm')" name="llm"></el-tab-pane>
+        <el-tab-pane :label="$t('rag')" name="rag"></el-tab-pane>
     </el-tabs>
 </template>
 
 <script setup>
+
+import Retriever from "~/components/ai_config/Retriever.vue";
+const selectedTab = ref("retriever")
 
 </script>
 

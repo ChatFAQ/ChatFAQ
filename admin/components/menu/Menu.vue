@@ -4,21 +4,21 @@
             <div class="chatfaq-cq-icon"></div>
             <div class="chatfaq-icon"></div>
         </div>
-        <MenuItem icon="House" name="Dashboard" page="dashboard"/>
-        <MenuItem icon="Edit" name="Labeling" page="labeling"/>
-        <MenuItem icon="Reading" name="Data" page="data"/>
-        <MenuItem icon="SetUp" name="AI Config" page="ai_config"/>
-        <MenuItem icon="Brush" name="Widget Config" page="widget_config"/>
-        <MenuItem icon="DataBoard" name="SDK Visualizer" page="sdk_visualizer"/>
-        <MenuItem icon="TrendCharts" name="Stats" page="stats"/>
-        <MenuItem icon="User" name="User Management" page="user_management"/>
-        <MenuItem icon="Clock" name="Task history" page="task_history"/>
+        <MenuItem icon="House" :name="$t('dashboard')" page="dashboard"/>
+        <MenuItem icon="Edit" :name="$t('labeling')" page="labeling"/>
+        <MenuItem icon="Reading" :name="$t('data')" page="data"/>
+        <MenuItem icon="SetUp" :name="$t('aiconfig')" page="ai_config"/>
+        <MenuItem icon="Brush" :name="$t('widgetconfig')" page="widget_config"/>
+        <MenuItem icon="DataBoard" :name="$t('sdkvisualizer')" page="sdk_visualizer"/>
+        <MenuItem icon="TrendCharts" :name="$t('stats')" page="stats"/>
+        <MenuItem icon="User" :name="$t('usermanagement')" page="user_management"/>
+        <MenuItem icon="Clock" :name="$t('taskhistory')" page="task_history"/>
         <div class="separator"></div>
-        <MenuItem icon="Setting" name="Account settings" page="account_settings"/>
+        <MenuItem icon="Setting" :name="$t('accountsettings')" page="account_settings"/>
 
         <div class="menu-bottom">
             <div class="separator"></div>
-            <MenuItem @click="logOut" icon="SwitchButton" name="Log Out"/>
+            <MenuItem @click="logOut" icon="SwitchButton" :name="$t('logout')"/>
         </div>
     </div>
 </template>
