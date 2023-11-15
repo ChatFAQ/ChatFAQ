@@ -29,7 +29,7 @@
                     <el-icon class="command-delete">
                         <Delete/>
                     </el-icon>
-                    <span class="command-edit">{{ $t("edit") }}</span>
+                    <span class="command-edit" @click="navigateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
             <div class="box-card-add" :class="{'no-items': !items.length}">
@@ -43,7 +43,7 @@
         <el-table v-else class="table-view" :data="items" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
             <el-table-column align="center">
-                <span class="command-edit">{{ $t("edit") }}</span>
+                <span class="command-edit" @click="navigateToEdit(item.id)">{{ $t("edit") }}</span>
             </el-table-column>
             <el-table-column align="center">
                 <el-icon class="command-delete">
@@ -63,12 +63,18 @@
 </template>
 
 <script setup>
+import {useItemsStore} from "~/store/items.js";
 
+const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const viewType = ref("card")
 const items = ref([])
 const props = defineProps({
     itemName: {
+        type: String,
+        required: true,
+    },
+    itemType: {
         type: String,
         required: true,
     },
@@ -85,11 +91,22 @@ const props = defineProps({
         required: true,
     },
 });
-
-const res = await useAsyncData(
-    async () => (await $axios.get(props.apiUrl)).data
+const router = useRouter()
+const {data} = await useAsyncData(
+    props.itemType,
+    async () => {
+        return (await $axios.get(`/api/language-model/${props.itemType}/`)).data
+        // await itemsStore.retrieveItems($axios, props.itemType)
+        // return itemsStore.items[props.itemType]
+    }
 )
-items.value = res.data.value || []
+items.value = data.value || []
+
+function navigateToEdit(id) {
+    router.push({
+        path: `/ai_config/${props.itemType}/edit/${id}/`,
+    });
+}
 
 </script>
 
@@ -173,16 +190,19 @@ items.value = res.data.value || []
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
+
     &.no-items {
         width: 100%;
         padding: 24px;
         margin-top: 25px;
     }
+
     i {
         width: 100%;
         margin-bottom: 17px;
     }
 }
+
 .table-row-add {
     display: flex;
     flex-direction: column;
@@ -195,10 +215,12 @@ items.value = res.data.value || []
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
+
     span {
         display: flex;
         justify-content: center;
-        i  {
+
+        i {
             margin-right: 10px;
         }
     }
