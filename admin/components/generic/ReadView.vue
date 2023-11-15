@@ -1,9 +1,11 @@
 <template>
     <div class="items-wrapper">
-        <div class="section-header">
-            <div class="item-count"> {{$t("numberofitems", {"number": items.length, "itemname": itemName})}}</div>
+        <div v-if="items.length" class="section-header">
+            <div class="item-count"> {{ $t("numberofitems", {"number": items.length, "itemname": itemName}) }}</div>
             <div class="section-header-right">
-                <el-button class="add-button" type="primary" round plain>+ {{ $t("additem", {"itemname": itemName}) }}</el-button>
+                <el-button class="add-button" type="primary" round plain>+
+                    {{ $t("additem", {"itemname": itemName}).toUpperCase() }}
+                </el-button>
                 <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
                      @click="viewType = 'card'">
                     <div class="card-icon"></div>
@@ -30,7 +32,14 @@
                     <span class="command-edit">{{ $t("edit") }}</span>
                 </div>
             </el-card>
+            <div class="box-card-add" :class="{'no-items': !items.length}">
+                <el-icon>
+                    <Plus/>
+                </el-icon>
+                <span>{{ $t("additem", {"itemname": itemName}) }}</span>
+            </div>
         </div>
+
         <el-table v-else class="table-view" :data="items" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
             <el-table-column align="center">
@@ -42,10 +51,20 @@
                 </el-icon>
             </el-table-column>
         </el-table>
+        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items.length}">
+            <span>
+                <el-icon>
+                    <Plus/>
+                </el-icon>
+                {{ $t("additem", {"itemname": itemName}) }}
+            </span>
+        </div>
     </div>
 </template>
 
 <script setup>
+
+import {Pointer} from "@element-plus/icons-vue";
 
 const {$axios} = useNuxtApp();
 const viewType = ref("card")
@@ -145,6 +164,48 @@ items.value = res.data.value
     margin: 16px;
 }
 
+.box-card-add {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 232px;
+    margin: 16px;
+    color: $chatfaq-color-primary-500;
+    border: 1px dashed $chatfaq-color-primary-500;
+    border-radius: 10px;
+    cursor: pointer;
+    &.no-items {
+        width: 100%;
+        padding: 24px;
+        margin-top: 25px;
+    }
+    i {
+        width: 100%;
+        margin-bottom: 17px;
+    }
+}
+.table-row-add {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    padding: 10px;
+    margin: 16px;
+    color: $chatfaq-color-primary-500;
+    border: 1px dashed $chatfaq-color-primary-500;
+    border-radius: 10px;
+    cursor: pointer;
+    span {
+        display: flex;
+        justify-content: center;
+        i  {
+            margin-right: 10px;
+        }
+    }
+}
+
 .card-header-title {
     font-size: 18px;
     font-weight: 700;
@@ -188,6 +249,7 @@ items.value = res.data.value
 .commands {
     display: flex;
     justify-content: space-between;
+    color: $chatfaq-color-primary-500;
 
     .command-delete {
         margin-left: 16px;
