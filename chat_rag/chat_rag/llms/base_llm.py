@@ -39,7 +39,7 @@ class RAGLLM:
                 else self.tokenizer.model_max_length
             )
 
-        self.has_chat_template = self.tokenizer.chat_template is not None
+        self.has_chat_template = False # self.tokenizer.chat_template is not None
         print(f"Model max length: {self.model_max_length}")
 
 
@@ -119,7 +119,6 @@ class RAGLLM:
                 messages.insert(0, {"role": "system", "content": system_prompt})
                 prompt = self.tokenizer.apply_chat_template(
                     messages,
-                    add_special_tokens=False,
                     add_generation_prompt=True,
                     tokenize=False,
                 )
@@ -139,7 +138,6 @@ class RAGLLM:
             num_tokens = len(self.tokenizer.tokenize(prompt))
 
             if num_tokens < self.model_max_length:
-                print(f"Prompt length: {num_tokens}")
                 return prompt
 
         raise Exception(

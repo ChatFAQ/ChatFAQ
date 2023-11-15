@@ -202,6 +202,7 @@ def llm_query_task(
     lm_msg_id = str(uuid.uuid4())
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
+    Conversation = apps.get_model("broker", "Conversation")
     try:
         rag_conf = RAGConfig.objects.get(name=rag_config_name)
     except RAGConfig.DoesNotExist:
@@ -236,7 +237,7 @@ def llm_query_task(
     logger.info(f"Stop words: {stop_words}")
 
     # # Gatherings all the previous messages from the conversation
-    # prev_messages = Conversation.objects.get(pk=conversation_id).get_mml_chain()
+    prev_messages = Conversation.objects.get(pk=conversation_id).get_mml_chain(as_conv_format=True)
 
     rag = self.CACHED_RAGS[rag_config_name]
 
@@ -246,7 +247,7 @@ def llm_query_task(
     references = []
     if streaming:
         for res in rag.stream(
-            input_text,
+            prev_messages,
             prompt_structure_dict=p_conf,
             generation_config_dict=g_conf,
             stop_words=stop_words,
@@ -260,7 +261,7 @@ def llm_query_task(
             ]  # just the first context because it is only one query
     else:
         res = rag.generate(
-            input_text,
+            prev_messages,
             prompt_structure_dict=p_conf,
             generation_config_dict=g_conf,
             stop_words=stop_words,
