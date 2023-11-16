@@ -74,11 +74,7 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    itemType: {
-        type: String,
-        required: true,
-    },
-    apiUrl: {
+    apiName: {
         type: String,
         required: true,
     },
@@ -93,18 +89,17 @@ const props = defineProps({
 });
 const router = useRouter()
 const {data} = await useAsyncData(
-    props.itemType,
+    props.apiName,
     async () => {
-        return (await $axios.get(`/api/language-model/${props.itemType}/`)).data
-        // await itemsStore.retrieveItems($axios, props.itemType)
-        // return itemsStore.items[props.itemType]
+        await itemsStore.retrieveItems($axios, props.apiName)
+        return itemsStore.items[props.apiName]
     }
 )
 items.value = data.value || []
 
 function navigateToEdit(id) {
     router.push({
-        path: `/ai_config/${props.itemType}/edit/${id}/`,
+        path: `/ai_config/${props.apiName}/edit/${id}/`,
     });
 }
 
