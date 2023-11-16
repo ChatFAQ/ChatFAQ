@@ -166,7 +166,6 @@ with EnvManager(model_w_django) as env:
     # ---
     # OpenAPI Schema
     # ---
-
     REST_FRAMEWORK = {
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
         "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
@@ -182,6 +181,10 @@ with EnvManager(model_w_django) as env:
         "SWAGGER_UI_DIST": "SIDECAR",  # shorthand to use the sidecar instead
         "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
         "REDOC_DIST": "SIDECAR",
+        'POSTPROCESSING_HOOKS': [
+            'drf_spectacular.hooks.postprocess_schema_enums',
+            'back.utils.spectacular_postprocessing_hooks.postprocess_schema_foreign_keys'
+        ],
     }
 
     # ---
