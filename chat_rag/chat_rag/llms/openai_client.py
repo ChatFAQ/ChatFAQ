@@ -99,6 +99,7 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
+
         response = openai.ChatCompletion.create(
             model=self.llm_name,
             messages=messages,

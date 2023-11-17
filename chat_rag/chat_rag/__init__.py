@@ -2,8 +2,6 @@ import numpy as np
 from logging import getLogger
 from typing import List, Dict
 
-import pandas as pd
-
 from chat_rag.llms import RAGLLM
 
 logger = getLogger(__name__)
@@ -31,13 +29,11 @@ class RAG:
         lang: str = "en",
     ):
         
-        contexts = self.retriever.retrieve([messages[0]['content']], top_k=prompt_structure_dict["n_contexts_to_use"])
-        contents = [context["content"] for context in contexts[0]]
-        # log contexts except the 'content' column 
-        for context in contexts[0]:
-            for col in context:
-                if col != "content":
-                    logger.info(f"Contexts {col}: {context[col]}")
+        queries = [message['content'] for message in messages if message['role'] == 'user']
+        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"])
+        contents = list(set([context["content"] for contexts in contexts_list for context in contexts]))
+
+        returned_contexts = [contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]]]
 
         for new_text in self.model.stream(
             messages,
@@ -49,10 +45,7 @@ class RAG:
         ):
             yield {
                 "res": new_text,
-                "context": [
-                    match
-                    for match in contexts[: prompt_structure_dict["n_contexts_to_use"]]
-                ],
+                "context": returned_contexts,
             }
 
     def generate(
@@ -63,18 +56,15 @@ class RAG:
         stop_words: List[str] = None,
         lang: str = "en",
     ):
-        contexts = self.retriever.retrieve([messages[0]['content']], top_k=prompt_structure_dict["n_contexts_to_use"])
-
-        # log contexts except the 'content' column 
-        for context in contexts:
-            for col in context:
-                if col != "content":
-                    logger.info(f"Contexts {col}: {context[col]}")
+        
+        queries = [message['content'] for message in messages if message['role'] == 'user']
+        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"])
+        contents = list(set([context["content"] for contexts in contexts_list for context in contexts]))
         
 
         output_text = self.model.generate(
             messages,
-            contexts,
+            contents,
             prompt_structure_dict=prompt_structure_dict,
             generation_config_dict=generation_config_dict,
             lang=lang,
@@ -83,8 +73,5 @@ class RAG:
 
         return {
             "res": output_text,
-            "context": [
-                match[0]
-                for match in contexts[: prompt_structure_dict["n_contexts_to_use"]]
-            ],
+            "context": contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]],
         }

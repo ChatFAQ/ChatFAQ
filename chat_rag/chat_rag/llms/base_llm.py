@@ -39,7 +39,7 @@ class RAGLLM:
                 else self.tokenizer.model_max_length
             )
 
-        self.has_chat_template = False # self.tokenizer.chat_template is not None
+        self.has_chat_template = self.tokenizer.chat_template is not None
         print(f"Model max length: {self.model_max_length}")
 
 
@@ -56,7 +56,7 @@ class RAGLLM:
         """
         system_prompt = f"{system_prefix}\n{CONTEXT_PREFIX[lang]}\n"
 
-        for ndx, context in enumerate(contexts[:n_contexts_to_use]):
+        for ndx, context in enumerate(contexts):
             system_prompt += f"- {context}"
                 
             if ndx < len(contexts[:n_contexts_to_use]) - 1: # no newline on last context
