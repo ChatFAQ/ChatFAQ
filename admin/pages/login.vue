@@ -200,7 +200,7 @@ function openPassNotification() {
         width: 100%;
         height: 36px;
         padding: 8px 32px 8px 32px;
-        border-radius: 24px;
+        border-radius: 8px;
         gap: 10px;
         background-color: $chatfaq-color-button-dark;
         border: none;

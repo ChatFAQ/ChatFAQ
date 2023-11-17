@@ -155,6 +155,8 @@ function navigateToRead() {
         width: 100%;
         margin-top: 16px;
         padding: 28px;
+        border: 1px solid $chatfaq-color-primary-200;
+
     }
     .commands {
         display: flex;
