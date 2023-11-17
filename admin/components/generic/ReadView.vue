@@ -1,5 +1,5 @@
 <template>
-    <div class="items-wrapper">
+    <div class="read-view-wrapper">
         <div v-if="items.length" class="section-header">
             <div class="item-count"> {{ $t("numberofitems", {"number": items.length, "itemname": itemName}) }}</div>
             <div class="section-header-right">
@@ -150,11 +150,12 @@ function navigateToAdd() {
 </style>
 
 <style lang="scss" scoped>
-.items-wrapper {
+.read-view-wrapper {
     display: flex;
     flex-wrap: wrap;
     margin-left: 160px;
     margin-right: 160px;
+    max-width: 1300px;
 }
 
 .cards-view {
