@@ -36,3 +36,5 @@ Our project is open-source and utilizes different licenses for various component
 <b>/widget/</b>: Licensed under the MIT License. This part of the project is more permissive, allowing for greater flexibility in use and distribution.
 
 <b>/back/, /cli/, /admin/, /sdk/, /chat_rag/</b>: Each of these components is licensed under the GNU Affero General Public License v3 (AGPLv3). This license ensures that all modifications and derived works are also open-source, providing strong copyleft protections.
+
+This is a test for Slack notifications
