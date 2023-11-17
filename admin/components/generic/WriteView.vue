@@ -57,7 +57,7 @@ const excludeFields = ref(["id", "created_date", "updated_date"])
 
 const props = defineProps({
     edit: {
-        type: String,
+        type: Number,
         mandatory: false
     },
     add: {
@@ -84,6 +84,7 @@ const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
 
+// Initialize form
 for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
     if (excludeFields.value.indexOf(fieldName) === -1) {
         form.value[fieldName] = undefined
@@ -95,6 +96,19 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
     }
 }
 
+// Initialize form values
+if (props.edit) {
+    const { data } = await useAsyncData(
+        async () => await itemsStore.requestOrGetItem($axios, props.apiName, props.schemaName, props.edit)
+    )
+    console.log(data)
+    for (const [fieldName, fieldValue] of Object.entries(data.value)) {
+        if (excludeFields.value.indexOf(fieldName) === -1) {
+            form.value[fieldName] = fieldValue
+        }
+    }
+}
+
 const submitForm = async (formEl) => {
     if (!formEl) return
     await formEl.validate()
@@ -102,7 +116,10 @@ const submitForm = async (formEl) => {
         if (!valid)
             return
         try {
-            const res = await $axios.post(`/back/api/language-model/${props.apiName}/`, form.value)
+            if (props.edit)
+                await $axios.put(`/back/api/language-model/${props.apiName}/${props.edit}/`, form.value)
+            else
+                await $axios.post(`/back/api/language-model/${props.apiName}/`, form.value)
         } catch (e) {
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {

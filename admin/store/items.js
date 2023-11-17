@@ -35,6 +35,12 @@ export const useItemsStore = defineStore('items', {
                 )
             }
             return this.schema[schemaName]
+        },
+        async requestOrGetItem($axios, apiName, schemaName, id) {
+            if (!this.items[apiName]) {
+                await this.retrieveItems($axios, apiName)
+            }
+            return this.items[apiName].find(item => item.id === parseInt(id))
         }
     }
 });
