@@ -3,4 +3,8 @@
 }
 .el-input__inner {
     height: 40px !important;
+    color: $chatfaq-color-neutral-black !important;
+}
+.el-input__wrapper {
+    border-radius: 8px !important;
 }

@@ -22,7 +22,7 @@
             @keydown.enter.native="submitForm(formRef)"
         >
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="addAsterisk(fieldName)" :prop="fieldName">
+                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName" :prop="fieldName" :error="formServerErrors[fieldName]">
                     <el-input v-model="form[fieldName]"/>
                 </el-form-item>
             </div>
@@ -36,7 +36,7 @@
                 <el-button plain>
                     Cancel
                 </el-button>
-                <el-button type="primary" plain>
+                <el-button type="primary" plain @click="submitForm(formRef)">
                     Save changes
                 </el-button>
             </div>
@@ -80,11 +80,13 @@ const {data} = await useAsyncData(
 schema.value = data.value
 
 const form = ref({})
+const formServerErrors = ref({})
 const formRules = ref({})
 
-for (const [fieldName, fieldInfo] in Object.entries(schema.value.properties)) {
+for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
     if (excludeFields.value.indexOf(fieldName) === -1) {
-        form.value[fieldName] = ""
+        form.value[fieldName] = undefined
+        formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
         if (schema.value.required.indexOf(fieldName) !== -1) {
             formRules.value[fieldName].push({required: true, message: `Please enter ${fieldName}`, trigger: 'blur'})
@@ -92,15 +94,24 @@ for (const [fieldName, fieldInfo] in Object.entries(schema.value.properties)) {
     }
 }
 
-const addAsterisk = (fieldName) => {
-    if (schema.value.required.indexOf(fieldName) !== -1) {
-        return `${fieldName} *`
-    }
-    return fieldName
-}
 const submitForm = async (formEl) => {
     if (!formEl) return
     await formEl.validate()
+    await formEl.validate(async (valid) => {
+        if (!valid)
+            return
+        try {
+            const res = await $axios.post(`/back/api/language-model/${props.apiName}/`, form.value)
+        } catch (e) {
+            if (e.response && e.response.data) {
+                for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
+                    formServerErrors.value[fieldName] = errorMessages.join(", ")
+                }
+            } else {
+                throw e
+            }
+        }
+    })
 }
 function navigateToRead() {
     router.push({
@@ -121,6 +132,11 @@ function navigateToRead() {
     }
     div {
         width: 328px;
+    }
+}
+.el-form-item {
+    label::after {
+        color: $chatfaq-color-primary-500 !important;
     }
 }
 </style>
