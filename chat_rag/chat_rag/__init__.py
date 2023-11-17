@@ -29,12 +29,13 @@ class RAG:
         lang: str = "en",
     ):
         
-        queries = [message['content'] for message in messages if message['role'] == 'user']
-        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"])
-        contents = list(set([context["content"] for contexts in contexts_list for context in contexts]))
+        # Retrieve
+        queries = [message['content'] for message in messages if message['role'] == 'user'] # pick only user messages
+        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"]) # retrieve contexts
+        contents = list(set([context["content"] for contexts in contexts_list for context in contexts])) # get unique contexts
+        returned_contexts = [contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
 
-        returned_contexts = [contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]]]
-
+        # Generate
         for new_text in self.model.stream(
             messages,
             contents,
@@ -57,9 +58,11 @@ class RAG:
         lang: str = "en",
     ):
         
-        queries = [message['content'] for message in messages if message['role'] == 'user']
-        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"])
-        contents = list(set([context["content"] for contexts in contexts_list for context in contexts]))
+        # Retrieve
+        queries = [message['content'] for message in messages if message['role'] == 'user'] # pick only user messages
+        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"]) # retrieve contexts
+        contents = list(set([context["content"] for contexts in contexts_list for context in contexts])) # get unique contexts
+        returned_contexts = [contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]]]
         
 
         output_text = self.model.generate(
@@ -73,5 +76,5 @@ class RAG:
 
         return {
             "res": output_text,
-            "context": contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]],
+            "context": returned_contexts,
         }
