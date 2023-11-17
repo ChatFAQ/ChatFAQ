@@ -33,7 +33,7 @@ function logOut() {
     router.push('/login');
 }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 .chatfaq-demo {
     background-color: $chatfaq-color-primary-900;
     padding-top: 10px;

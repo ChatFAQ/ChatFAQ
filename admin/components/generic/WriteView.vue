@@ -1,8 +1,15 @@
 <template>
     <div class="write-view-wrapper">
         <div class="navigation-header">
-            <div>Back</div>
-            <div>History</div>
+            <div class="back-button" @click="navigateToRead">
+                <el-icon class="command-delete">
+                    <ArrowLeft/>
+                </el-icon>
+                <span>Back</span>
+            </div>
+            <el-button class="add-button" type="primary" round plain>
+                History
+            </el-button>
         </div>
         <el-form
             class="form-content"
@@ -22,10 +29,16 @@
         </el-form>
 
         <div class="commands">
-            <button>Delete</button>
+            <el-button type="danger" plain>
+                Delete
+            </el-button>
             <div class="flex-right">
-                <button>Cancel</button>
-                <button>Save changes</button>
+                <el-button plain>
+                    Cancel
+                </el-button>
+                <el-button type="primary" plain>
+                    Save changes
+                </el-button>
             </div>
         </div>
     </div>
@@ -35,6 +48,7 @@ import {useItemsStore} from "~/store/items.js";
 
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
+const router = useRouter()
 const schema = ref({})
 const formRef = ref()
 
@@ -52,6 +66,10 @@ const props = defineProps({
     schemaName: {
         type: String,
         mandatory: true
+    },
+    apiName: {
+        type: String,
+        required: true,
     },
 })
 
@@ -84,6 +102,11 @@ const submitForm = async (formEl) => {
     if (!formEl) return
     await formEl.validate()
 }
+function navigateToRead() {
+    router.push({
+        path: `/ai_config/${props.apiName}/`,
+    });
+}
 </script>
 <style lang="scss">
 .el-form-item {
@@ -108,11 +131,23 @@ const submitForm = async (formEl) => {
     flex-wrap: wrap;
     margin-left: 160px;
     margin-right: 160px;
+    max-width: 1300px;
     .navigation-header {
         display: flex;
         justify-content: space-between;
         width: 100%;
         margin-top: 24px;
+        .back-button {
+            display: flex;
+            cursor: pointer;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: $chatfaq-color-primary-500;
+            i {
+                margin-right: 8px;
+            }
+        }
     }
     .form-content {
         background-color: white;
@@ -120,6 +155,8 @@ const submitForm = async (formEl) => {
         width: 100%;
         margin-top: 16px;
         padding: 28px;
+        border: 1px solid $chatfaq-color-primary-200;
+
     }
     .commands {
         display: flex;

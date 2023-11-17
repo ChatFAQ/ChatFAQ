@@ -38,6 +38,7 @@ export default envManager((env) => {
                 },
             },
         },
+        // app: { baseURL: process.env.BASE_URL || "/" },
         runtimeConfig: {
             public: {},
         }
