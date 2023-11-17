@@ -177,6 +177,7 @@ function navigateToAdd() {
 
 .box-card {
     width: 232px;
+    height: 200px;
     margin: 16px;
 }
 
@@ -186,6 +187,7 @@ function navigateToAdd() {
     justify-content: center;
     text-align: center;
     width: 232px;
+    height: 200px;
     margin: 16px;
     color: $chatfaq-color-primary-500;
     border: 1px dashed $chatfaq-color-primary-500;

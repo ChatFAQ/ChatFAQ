@@ -7,7 +7,7 @@
                 </el-icon>
                 <span>Back</span>
             </div>
-            <el-button class="add-button" type="primary" round plain>
+            <el-button v-if="!add" class="add-button" type="primary" round plain>
                 History
             </el-button>
         </div>
@@ -29,11 +29,12 @@
         </el-form>
 
         <div class="commands">
-            <el-button type="danger" plain>
+            <el-button v-if="!add" type="danger" plain>
                 Delete
             </el-button>
+            <div v-else></div>
             <div class="flex-right">
-                <el-button plain>
+                <el-button plain @click="navigateToRead">
                     Cancel
                 </el-button>
                 <el-button type="primary" plain @click="submitForm(formRef)">
@@ -111,6 +112,9 @@ const submitForm = async (formEl) => {
                 throw e
             }
         }
+        router.push({
+            path: `/ai_config/${props.apiName}/`,
+        });
     })
 }
 function navigateToRead() {
