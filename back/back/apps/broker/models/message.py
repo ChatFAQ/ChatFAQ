@@ -68,6 +68,7 @@ class Conversation(ChangesMixin):
         Returns a list of messages in the format of the conversation LLMs.
         '''
         messages = []
+        human_messages_ids = []
 
         bot_content = ""
         for m in chain[1:]: # skip predefined message
@@ -77,13 +78,14 @@ class Conversation(ChangesMixin):
                     bot_content = ""
 
                 messages.append({'role': 'user', 'content': m.stack[0]['payload']})
+                human_messages_ids.append(m.id)
             elif m.sender['type'] == 'bot':
                 bot_content += m.stack[0]['payload']['model_response']
 
         if bot_content != "": # last message
             messages.append({'role': 'assistant', 'content': bot_content})
 
-        return messages
+        return messages, human_messages_ids
 
     @classmethod
     def conversations_from_sender(cls, sender_id):

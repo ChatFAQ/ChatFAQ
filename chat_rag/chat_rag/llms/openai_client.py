@@ -148,8 +148,6 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
-        print(f"Prompt: {messages}")
-
         response = openai.ChatCompletion.create(
             model=self.llm_name,
             messages=messages,

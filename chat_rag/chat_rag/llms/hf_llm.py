@@ -249,10 +249,6 @@ class HFModel(RAGLLM):
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
         )
-        
-        logger.info('-' * 100)
-        logger.info(f"Len prompt {len(prompt)}")
-        logger.info(f"Prompt: {prompt}")
 
         generation_config_dict = dict(
             input_ids=input_ids,

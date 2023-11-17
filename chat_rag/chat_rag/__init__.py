@@ -23,6 +23,7 @@ class RAG:
     def stream(
         self,
         messages: List[Dict[str, str]],
+        prev_contents: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict,
         stop_words: List[str] = None,
@@ -30,10 +31,10 @@ class RAG:
     ):
         
         # Retrieve
-        queries = [message['content'] for message in messages if message['role'] == 'user'] # pick only user messages
-        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"]) # retrieve contexts
-        contents = list(set([context["content"] for contexts in contexts_list for context in contexts])) # get unique contexts
-        returned_contexts = [contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
+        contexts = self.retriever.retrieve([messages[-1]['content']], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
+        contents = [context["content"] for context in contexts] # get unique contexts
+        returned_contexts = [contexts[:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
+        contents = list(set(contents + prev_contents))
 
         # Generate
         for new_text in self.model.stream(
@@ -52,6 +53,7 @@ class RAG:
     def generate(
         self,
         messages: List[Dict[str, str]],
+        prev_contents: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict,
         stop_words: List[str] = None,
@@ -59,10 +61,10 @@ class RAG:
     ):
         
         # Retrieve
-        queries = [message['content'] for message in messages if message['role'] == 'user'] # pick only user messages
-        contexts_list = self.retriever.retrieve(queries, top_k=prompt_structure_dict["n_contexts_to_use"]) # retrieve contexts
-        contents = list(set([context["content"] for contexts in contexts_list for context in contexts])) # get unique contexts
-        returned_contexts = [contexts_list[-1][:prompt_structure_dict["n_contexts_to_use"]]]
+        contexts = self.retriever.retrieve([messages[-1]['content']], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
+        contents = [context["content"] for context in contexts] # get unique contexts
+        returned_contexts = [contexts[:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
+        contents = list(set(contents + prev_contents))
         
 
         output_text = self.model.generate(

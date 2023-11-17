@@ -154,8 +154,6 @@ class GGMLModel(RAGLLM):
 
         prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
-        logger.info(f"Prompt: {prompt}")
-
         streamer = self.model(prompt, **generation_config_dict)  # returns a generator
         for word in streamer:
             yield word
