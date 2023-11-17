@@ -21,6 +21,7 @@
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
         >
+            <div v-if="form[editTitleField]" class="edit-title">{{ form[editTitleField] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
                 <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName" :prop="fieldName" :error="formServerErrors[fieldName]">
                     <el-input v-model="form[fieldName]"/>
@@ -71,6 +72,10 @@ const props = defineProps({
     apiName: {
         type: String,
         required: true,
+    },
+    editTitleField: {
+        type: String,
+        default: "name",
     },
 })
 
@@ -193,6 +198,14 @@ function navigateToRead() {
         margin-top: 16px;
         padding: 28px;
         border: 1px solid $chatfaq-color-primary-200;
+
+        .edit-title {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 22px;
+            color: $chatfaq-color-neutral-black;
+            margin-bottom: 24px;
+        }
 
     }
     .commands {
