@@ -24,14 +24,14 @@ class RAG:
 
     def stream(
         self,
-        text,
+        messages: List[Dict[str, str]],
         prompt_structure_dict: dict,
         generation_config_dict: dict,
         stop_words: List[str] = None,
         lang: str = "en",
     ):
         
-        contexts = self.retriever.retrieve([text], top_k=prompt_structure_dict["n_contexts_to_use"])
+        contexts = self.retriever.retrieve([messages[0]['content']], top_k=prompt_structure_dict["n_contexts_to_use"])
         contents = [context["content"] for context in contexts[0]]
         # log contexts except the 'content' column 
         for context in contexts[0]:
@@ -40,7 +40,7 @@ class RAG:
                     logger.info(f"Contexts {col}: {context[col]}")
 
         for new_text in self.model.stream(
-            text,
+            messages,
             contents,
             prompt_structure_dict=prompt_structure_dict,
             generation_config_dict=generation_config_dict,
@@ -57,13 +57,13 @@ class RAG:
 
     def generate(
         self,
-        text,
+        messages: List[Dict[str, str]],
         prompt_structure_dict: dict,
         generation_config_dict: dict,
         stop_words: List[str] = None,
         lang: str = "en",
     ):
-        contexts = self.retriever.retrieve([text], top_k=prompt_structure_dict["n_contexts_to_use"])
+        contexts = self.retriever.retrieve([messages[0]['content']], top_k=prompt_structure_dict["n_contexts_to_use"])
 
         # log contexts except the 'content' column 
         for context in contexts:
@@ -73,7 +73,7 @@ class RAG:
         
 
         output_text = self.model.generate(
-            text,
+            messages,
             contexts,
             prompt_structure_dict=prompt_structure_dict,
             generation_config_dict=generation_config_dict,

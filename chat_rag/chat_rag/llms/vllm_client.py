@@ -1,5 +1,5 @@
 import json
-from typing import Iterable, List
+from typing import Iterable, List, Dict
 import os
 
 import requests
@@ -19,8 +19,8 @@ class VLLModel(RAGLLM):
 
     def generate(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -31,8 +31,8 @@ class VLLModel(RAGLLM):
         Generate text from a prompt using the model.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -49,7 +49,7 @@ class VLLModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
         pload = {
             "prompt": prompt,
@@ -78,8 +78,8 @@ class VLLModel(RAGLLM):
     
     def stream(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -90,8 +90,8 @@ class VLLModel(RAGLLM):
         Generate text from a prompt using the model.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -108,7 +108,7 @@ class VLLModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
         pload = {
             "prompt": prompt,

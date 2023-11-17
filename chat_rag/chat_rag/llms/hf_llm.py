@@ -1,6 +1,6 @@
 from threading import Thread
 from logging import getLogger
-from typing import List
+from typing import List, Dict
 import regex
 from collections.abc import Sequence
 import os
@@ -137,8 +137,8 @@ class HFModel(RAGLLM):
 
     def generate(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -149,8 +149,8 @@ class HFModel(RAGLLM):
         Generate text from a prompt using the model.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. List of pairs (role, content).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -170,7 +170,7 @@ class HFModel(RAGLLM):
 
         generation_config_dict.pop("seed")
 
-        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
@@ -210,8 +210,8 @@ class HFModel(RAGLLM):
 
     def stream(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -222,8 +222,8 @@ class HFModel(RAGLLM):
         Generate text from a prompt using the model in streaming mode.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. List of pairs (role, content).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -244,13 +244,15 @@ class HFModel(RAGLLM):
 
         generation_config_dict.pop("seed")
 
-        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.to(
             self.device
         )
-
+        
+        logger.info('-' * 100)
         logger.info(f"Len prompt {len(prompt)}")
+        logger.info(f"Prompt: {prompt}")
 
         generation_config_dict = dict(
             input_ids=input_ids,

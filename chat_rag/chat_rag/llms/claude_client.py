@@ -3,19 +3,7 @@ import os
 
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 
-from chat_rag.llms import RAGLLM
-
-CONTEXT_PREFIX = {
-    "en": "Given the following contexts: ",
-    "fr": "Étant donné les contextes suivants: ",
-    "es": "Dados los siguientes contextos: ",
-}
-
-QUESTION_PREFIX = {
-    "en": "Answer the next question: ",
-    "fr": "Répondez à la question suivante: ",
-    "es": "Responde la siguiente pregunta: ",
-}
+from chat_rag.llms import RAGLLM, CONTEXT_PREFIX
 
 
 class ClaudeChatModel(RAGLLM):
@@ -27,7 +15,7 @@ class ClaudeChatModel(RAGLLM):
 
     def format_prompt(
         self,
-        query: str,
+        messages: List[Dict[str, str]],
         contexts: List[str],
         system_prefix: str,
         n_contexts_to_use: int = 3,
@@ -38,8 +26,8 @@ class ClaudeChatModel(RAGLLM):
         Formats the prompt to be used by the model.
         Parameters
         ----------
-        query : str
-            The query to answer.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
         system_prefix : str
@@ -61,17 +49,25 @@ class ClaudeChatModel(RAGLLM):
         list
             The formatted prompt.
         """
-        contexts_prompt = CONTEXT_PREFIX[lang]
-        for context in contexts[:n_contexts_to_use]:
-            contexts_prompt += f"- {context}\n"
+        prompt = self.format_system_prompt(
+            contexts=contexts,
+            system_prefix=system_prefix,
+            n_contexts_to_use=n_contexts_to_use,
+            lang=lang,
+        )
 
-        prompt = f"{system_prefix}\n{contexts_prompt} {QUESTION_PREFIX[lang]}{HUMAN_PROMPT}{query}{AI_PROMPT}"
+        for message in messages:
+            if message['role'] == 'user':
+                prompt += f"{HUMAN_PROMPT} {message['content']}{AI_PROMPT}"
+            elif message['role'] == 'assistant':
+                prompt += " " + message['content']
+
         return prompt
 
     def generate(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -81,8 +77,8 @@ class ClaudeChatModel(RAGLLM):
         Generate text from a prompt using the model.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -97,7 +93,7 @@ class ClaudeChatModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
         completion = self.anthropic.completions.create(
             model=self.llm_name,
@@ -112,8 +108,8 @@ class ClaudeChatModel(RAGLLM):
     
     def stream(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -123,8 +119,8 @@ class ClaudeChatModel(RAGLLM):
         Generate text from a prompt using the model.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -139,7 +135,7 @@ class ClaudeChatModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(query, contexts, **prompt_structure_dict, lang=lang)
+        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
 
         stream = self.anthropic.completions.create(
             model=self.llm_name,

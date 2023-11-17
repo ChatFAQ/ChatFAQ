@@ -45,19 +45,45 @@ class Conversation(ChangesMixin):
             conversation=self,
         ).first()
 
-    def get_mml_chain(self):
+    def get_mml_chain(self, as_conv_format=False):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         first_message = self.get_first_msg()
 
         if not first_message:
             return []
-        return [MessageSerializer(m).data for m in first_message.get_chain()]
+        chain = first_message.get_chain()
+
+        if as_conv_format:
+            return self.get_formatted_conversation(chain)
+        return [MessageSerializer(m).data for m in chain]
 
     def get_last_mml(self):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
         )
+    
+    def get_formatted_conversation(self, chain):
+        '''
+        Returns a list of messages in the format of the conversation LLMs.
+        '''
+        messages = []
+
+        bot_content = ""
+        for m in chain[1:]: # skip predefined message
+            if m.sender['type'] == 'human':
+                if bot_content != "": # when human message, add bot message before
+                    messages.append({'role': 'assistant', 'content': bot_content})
+                    bot_content = ""
+
+                messages.append({'role': 'user', 'content': m.stack[0]['payload']})
+            elif m.sender['type'] == 'bot':
+                bot_content += m.stack[0]['payload']['model_response']
+
+        if bot_content != "": # last message
+            messages.append({'role': 'assistant', 'content': bot_content})
+
+        return messages
 
     @classmethod
     def conversations_from_sender(cls, sender_id):
