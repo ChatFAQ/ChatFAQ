@@ -33,6 +33,6 @@ Or chat with us on [Discord](https://discord.gg/MTWF4SRc3M) for any requests or 
 ### Licensing Information
 Our project is open-source and utilizes different licenses for various components to best meet the needs of each part of the application. Below is a breakdown of the licenses used for each major component:
 
-/widget/: Licensed under the MIT License. This part of the project is more permissive, allowing for greater flexibility in use and distribution.
+<b>/widget/<\b>: Licensed under the MIT License. This part of the project is more permissive, allowing for greater flexibility in use and distribution.
 
-/back/, /cli/, /admin/, /sdk/, /chat_rag/: Each of these components is licensed under the GNU Affero General Public License v3 (AGPLv3). This license ensures that all modifications and derived works are also open-source, providing strong copyleft protections.
+<b>/back/, /cli/, /admin/, /sdk/, /chat_rag/<\b>: Each of these components is licensed under the GNU Affero General Public License v3 (AGPLv3). This license ensures that all modifications and derived works are also open-source, providing strong copyleft protections.
