@@ -2,7 +2,19 @@
     <div class="page-title">{{ $t("aiconfiguration") }}</div>
     <el-tabs @tab-change="changeUrl" v-model="itemType" >
         <el-tab-pane :label="$t('retriever')" name="retriever-configs">
-            <Retriever :edit="id" :add="add"/>
+            <ReadWriteView :edit="id" :add="add" apiName="retriever-configs" itemName="retriever" schemaName="RetrieverConfig"
+                :cardProps="{
+                    'model_name': $t('modelname'),
+                    'batch_size': $t('batchsize'),
+                    'device': $t('device'),
+                }"
+                :tableProps="{
+                    'model_name': $t('modelname'),
+                    'batch_size': $t('batchsize'),
+                    'device': $t('device'),
+                    'updated_date': $t('updateddate'),
+                }">
+            </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :label="$t('prompt')" name="prompt-configs"></el-tab-pane>
         <el-tab-pane :label="$t('generation')" name="generation-configs"></el-tab-pane>
@@ -12,7 +24,7 @@
 </template>
 
 <script setup>
-import Retriever from "~/components/ai_config/Retriever.vue";
+import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 const route = useRoute()
 
 const itemType = ref(route.params.itemType)
