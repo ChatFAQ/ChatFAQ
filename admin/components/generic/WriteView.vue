@@ -30,15 +30,15 @@
         </el-form>
 
         <div class="commands">
-            <el-button v-if="!add" type="danger" plain>
+            <el-button v-if="!add" type="danger">
                 Delete
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button plain @click="navigateToRead">
+                <el-button @click="navigateToRead">
                     Cancel
                 </el-button>
-                <el-button type="primary" plain @click="submitForm(formRef)">
+                <el-button type="primary" @click="submitForm(formRef)">
                     Save changes
                 </el-button>
             </div>
@@ -80,7 +80,7 @@ const props = defineProps({
 })
 
 const {data} = await useAsyncData(
-    "schema",
+    "schema_" + props.schemaName,
     async () => await itemsStore.requestOrGetSchema($axios, props.schemaName)
 )
 schema.value = data.value
@@ -104,13 +104,15 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 // Initialize form values
 if (props.edit) {
     const { data } = await useAsyncData(
+        props.apiName + "_" + props.edit,
         async () => await itemsStore.requestOrGetItem($axios, props.apiName, props.schemaName, props.edit)
     )
-    console.log(data)
-    for (const [fieldName, fieldValue] of Object.entries(data.value)) {
+    if (data.value) {
+      for (const [fieldName, fieldValue] of Object.entries(data.value)) {
         if (excludeFields.value.indexOf(fieldName) === -1) {
-            form.value[fieldName] = fieldValue
+          form.value[fieldName] = fieldValue
         }
+      }
     }
 }
 

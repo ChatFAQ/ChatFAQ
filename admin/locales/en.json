@@ -32,6 +32,7 @@
     "llm":  "LLM",
     "rag": "RAG",
 
+    "name": "Name",
     "modelname": "Model Name",
     "batchsize": "Batch Size",
     "device": "Device",
@@ -39,5 +40,15 @@
     "lastmodified": "Last Modified",
     "numberofitems": "{number} {itemname} configuration",
     "additem": "Add {itemname}",
-    "edit": "Edit"
+    "edit": "Edit",
+    "contextsnumber": "Contexts number",
+    "temperature": "Temperature",
+    "maxtokens":  "Max Tokens",
+    "llm_name": "LLM Name",
+    "llm_type": "LLM Type",
+    "knowledgebase": "Knowledge Base",
+    "llmconfig": "LLM Config",
+    "promptconfig":  "Prompt Config",
+    "generationconfig": "Generation Config",
+    "retrieverconfig":  "Retriever Config"
 }

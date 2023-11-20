@@ -20,7 +20,6 @@
 import ReadView from "~/components/generic/ReadView.vue";
 import {defineProps} from 'vue';
 import WriteView from "~/components/generic/WriteView.vue";
-
 const props = defineProps({
     apiName: {
         type: String,
