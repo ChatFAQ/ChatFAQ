@@ -6,19 +6,6 @@ import openai
 from chat_rag.llms import RAGLLM
 
 
-CONTEXT_PREFIX = {
-    "en": "Given the following contexts: ",
-    "fr": "Étant donné les contextes suivants: ",
-    "es": "Dados los siguientes contextos: ",
-}
-
-QUESTION_PREFIX = {
-    "en": "Answer the next question: ",
-    "fr": "Répondez à la question suivante: ",
-    "es": "Responde la siguiente pregunta: ",
-}
-
-
 class OpenAIChatModel(RAGLLM):
     def __init__(
         self,
@@ -30,7 +17,7 @@ class OpenAIChatModel(RAGLLM):
 
     def format_prompt(
         self,
-        query: str,
+        messages: List[Dict[str, str]],
         contexts: List[str],
         system_prefix: str,
         n_contexts_to_use: int = 3,
@@ -41,8 +28,8 @@ class OpenAIChatModel(RAGLLM):
         Formats the prompt to be used by the model.
         Parameters
         ----------
-        query : str
-            The query to answer.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
         system_prefix : str
@@ -65,22 +52,21 @@ class OpenAIChatModel(RAGLLM):
         lang : str, optional
             The language of the prompt, by default 'en'
         """
-        contexts_prompt = CONTEXT_PREFIX[lang]
-        for context in contexts[:n_contexts_to_use]:
-            contexts_prompt += f"- {context}\n"
+        system_prompt = self.format_system_prompt(
+            contexts=contexts,
+            system_prefix=system_prefix,
+            n_contexts_to_use=n_contexts_to_use,
+            lang=lang,
+        )
 
-        return [
-            {"role": "system", "content": f"{system_prefix}\n{contexts_prompt}{QUESTION_PREFIX[lang]}"},
-            {
-                "role": "user",
-                "content": query,
-            },
-        ]
+        final_messages = [{'role': 'system', 'content': system_prompt}] + messages
+
+        return final_messages
 
     def generate(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -90,8 +76,8 @@ class OpenAIChatModel(RAGLLM):
         Generate text from a prompt using the model.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -107,11 +93,12 @@ class OpenAIChatModel(RAGLLM):
         """
 
         messages = self.format_prompt(
-            query=query,
+            messages=messages,
             contexts=contexts,
             **prompt_structure_dict,
             lang=lang,
         )
+
 
         response = openai.ChatCompletion.create(
             model=self.llm_name,
@@ -127,8 +114,8 @@ class OpenAIChatModel(RAGLLM):
 
     def stream(
         self,
-        query,
-        contexts,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
         prompt_structure_dict: dict,
         generation_config_dict: dict = None,
         lang: str = "en",
@@ -138,8 +125,8 @@ class OpenAIChatModel(RAGLLM):
         Generate text from a prompt using the model in streaming mode.
         Parameters
         ----------
-        query : str
-            The query to generate text from.
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
             The contexts to use for generation.
         prompt_structure_dict : dict
@@ -155,13 +142,11 @@ class OpenAIChatModel(RAGLLM):
         """
 
         messages = self.format_prompt(
-            query=query,
+            messages=messages,
             contexts=contexts,
             **prompt_structure_dict,
             lang=lang,
         )
-
-        print(f"Prompt: {messages}")
 
         response = openai.ChatCompletion.create(
             model=self.llm_name,
