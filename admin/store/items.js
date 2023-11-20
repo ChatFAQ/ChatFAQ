@@ -30,6 +30,10 @@ export const useItemsStore = defineStore('items', {
         async retrieveItems($axios, apiName) {
             this.items[apiName] = (await $axios.get(`/back/api/language-model/${apiName}/`)).data
         },
+        async deleteItem($axios, apiName, id) {
+            await $axios.delete(`/back/api/language-model/${apiName}/${id}`)
+            await this.retrieveItems($axios, apiName)
+        },
         async requestOrGetSchema($axios, schemaName) {
             if (!this.schema) {
                 this.schema = resolveRefs(

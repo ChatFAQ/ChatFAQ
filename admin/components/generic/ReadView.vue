@@ -1,7 +1,7 @@
 <template>
     <div class="read-view-wrapper">
-        <div v-if="items.length" class="section-header">
-            <div class="item-count"> {{ $t("numberofitems", {"number": items.length, "itemname": itemName}) }}</div>
+        <div v-if="items[apiName].length" class="section-header">
+            <div class="item-count"> {{ $t("numberofitems", {"number": items[apiName].length, "itemname": itemName}) }}</div>
             <div class="section-header-right">
                 <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"itemname": itemName}).toUpperCase() }}
@@ -16,7 +16,7 @@
             </div>
         </div>
         <div class="cards-view" v-if="viewType === 'card'">
-            <el-card v-for="item in items" class="box-card">
+            <el-card v-for="item in items[apiName]" class="box-card">
                 <template #header>
                     <div class="card-header-title">{{ item.name }}</div>
                 </template>
@@ -27,12 +27,13 @@
                 </div>
                 <div class="commands">
                     <el-icon class="command-delete">
-                        <Delete/>
+                        <Delete v-if="deleting !== item.id" @click="deleting = item.id"/>
+                        <Check @click="deleteItem(item.id)" v-else/>
                     </el-icon>
                     <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
-            <div class="box-card-add" :class="{'no-items': !items.length}" @click="stateToAdd">
+            <div class="box-card-add" :class="{'no-items': !items[apiName].length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -40,7 +41,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items" style="width: 100%">
+        <el-table v-else class="table-view" :data="items[apiName]" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
             <el-table-column align="center">
                 <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
@@ -51,7 +52,7 @@
                 </el-icon>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items.length}" @click="stateToAdd">
+        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[apiName].length}" @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -64,11 +65,14 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import { storeToRefs } from 'pinia'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const viewType = ref("card")
-const items = ref([])
+const deleting = ref(undefined)
+
+
 const props = defineProps({
     itemName: {
         type: String,
@@ -87,15 +91,14 @@ const props = defineProps({
         required: true,
     },
 });
-const router = useRouter()
-const {data} = await useAsyncData(
+await useAsyncData(
     props.apiName,
     async () => {
         await itemsStore.retrieveItems($axios, props.apiName)
         return itemsStore.items[props.apiName]
     }
 )
-items.value = data.value || []
+const {items} = storeToRefs(itemsStore)
 
 function stateToEdit(id) {
     itemsStore.editing = id
@@ -103,7 +106,10 @@ function stateToEdit(id) {
 function stateToAdd() {
     itemsStore.adding = true
 }
-
+function deleteItem(id) {
+    itemsStore.deleteItem($axios, props.apiName, id)
+    deleting.value = undefined
+}
 </script>
 
 <style lang="scss">
