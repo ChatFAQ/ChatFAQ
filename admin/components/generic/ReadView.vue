@@ -3,7 +3,7 @@
         <div v-if="items.length" class="section-header">
             <div class="item-count"> {{ $t("numberofitems", {"number": items.length, "itemname": itemName}) }}</div>
             <div class="section-header-right">
-                <el-button class="add-button" type="primary" round plain @click="navigateToAdd">+
+                <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"itemname": itemName}).toUpperCase() }}
                 </el-button>
                 <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
@@ -29,10 +29,10 @@
                     <el-icon class="command-delete">
                         <Delete/>
                     </el-icon>
-                    <span class="command-edit" @click="navigateToEdit(item.id)">{{ $t("edit") }}</span>
+                    <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
-            <div class="box-card-add" :class="{'no-items': !items.length}" @click="navigateToAdd">
+            <div class="box-card-add" :class="{'no-items': !items.length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -43,7 +43,7 @@
         <el-table v-else class="table-view" :data="items" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
             <el-table-column align="center">
-                <span class="command-edit" @click="navigateToEdit(item.id)">{{ $t("edit") }}</span>
+                <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
             </el-table-column>
             <el-table-column align="center">
                 <el-icon class="command-delete">
@@ -51,7 +51,7 @@
                 </el-icon>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items.length}" @click="navigateToAdd">
+        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items.length}" @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -97,15 +97,11 @@ const {data} = await useAsyncData(
 )
 items.value = data.value || []
 
-function navigateToEdit(id) {
-    router.push({
-        path: `/ai_config/${props.apiName}/edit/${id}/`,
-    });
+function stateToEdit(id) {
+    itemsStore.editing = id
 }
-function navigateToAdd() {
-    router.push({
-        path: `/ai_config/${props.apiName}/add/`,
-    });
+function stateToAdd() {
+    itemsStore.adding = true
 }
 
 </script>

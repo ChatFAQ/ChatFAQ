@@ -1,6 +1,6 @@
 <template>
   <div class="page-title">{{ $t("aiconfiguration") }}</div>
-  <el-tabs @tab-change="changeUrl" v-model="itemType">
+  <el-tabs @tab-change="stateToRead" v-model="itemType">
     <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
       <ReadWriteView apiName="retriever-configs" itemName="retriever" schemaName="RetrieverConfig"
                      :cardProps="{
@@ -86,16 +86,15 @@
 
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
+import {useItemsStore} from "~/store/items.js";
 
-const route = useRoute();
-const router = useRouter();
+const itemsStore = useItemsStore()
 
-const itemType = ref(route.params.itemType)
+const itemType = ref("retriever-configs")
 
-function changeUrl(tabName) {
-  router.push({
-    path: `/ai_config/${tabName}/`,
-  });
+function stateToRead(tabName, event) {
+  itemsStore.adding = false
+  itemsStore.editing = undefined
 }
 
 </script>

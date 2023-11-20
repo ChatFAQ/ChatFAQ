@@ -23,6 +23,8 @@ export const useItemsStore = defineStore('items', {
     state: () => ({
         items: {},
         schema: undefined,
+        editing: undefined,
+        adding: false,
     }),
     actions: {
         async retrieveItems($axios, apiName) {

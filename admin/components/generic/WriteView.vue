@@ -1,13 +1,13 @@
 <template>
     <div class="write-view-wrapper">
         <div class="navigation-header">
-            <div class="back-button" @click="navigateToRead">
+            <div class="back-button" @click="stateToRead">
                 <el-icon class="command-delete">
                     <ArrowLeft/>
                 </el-icon>
                 <span>Back</span>
             </div>
-            <el-button v-if="!add" class="add-button" type="primary" round plain>
+            <el-button v-if="!itemsStore.adding" class="add-button" type="primary" round plain>
                 History
             </el-button>
         </div>
@@ -30,12 +30,12 @@
         </el-form>
 
         <div class="commands">
-            <el-button v-if="!add" type="danger">
+            <el-button v-if="!itemsStore.adding" type="danger">
                 Delete
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button @click="navigateToRead">
+                <el-button @click="stateToRead">
                     Cancel
                 </el-button>
                 <el-button type="primary" @click="submitForm(formRef)">
@@ -57,14 +57,6 @@ const formRef = ref()
 const excludeFields = ref(["id", "created_date", "updated_date"])
 
 const props = defineProps({
-    edit: {
-        type: Number,
-        mandatory: false
-    },
-    add: {
-        type: Boolean,
-        mandatory: false
-    },
     schemaName: {
         type: String,
         mandatory: true
@@ -102,10 +94,10 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 }
 
 // Initialize form values
-if (props.edit) {
+if (itemsStore.editing) {
     const { data } = await useAsyncData(
-        props.apiName + "_" + props.edit,
-        async () => await itemsStore.requestOrGetItem($axios, props.apiName, props.schemaName, props.edit)
+        props.apiName + "_" + itemsStore.editing,
+        async () => await itemsStore.requestOrGetItem($axios, props.apiName, props.schemaName, itemsStore.editing)
     )
     if (data.value) {
       for (const [fieldName, fieldValue] of Object.entries(data.value)) {
@@ -123,8 +115,8 @@ const submitForm = async (formEl) => {
         if (!valid)
             return
         try {
-            if (props.edit)
-                await $axios.put(`/back/api/language-model/${props.apiName}/${props.edit}/`, form.value)
+            if (itemsStore.editing)
+                await $axios.put(`/back/api/language-model/${props.apiName}/${itemsStore.editing}/`, form.value)
             else
                 await $axios.post(`/back/api/language-model/${props.apiName}/`, form.value)
         } catch (e) {
@@ -136,15 +128,12 @@ const submitForm = async (formEl) => {
                 throw e
             }
         }
-        router.push({
-            path: `/ai_config/${props.apiName}/`,
-        });
+        stateToRead()
     })
 }
-function navigateToRead() {
-    router.push({
-        path: `/ai_config/${props.apiName}/`,
-    });
+function stateToRead() {
+    itemsStore.adding = false
+    itemsStore.editing = undefined
 }
 </script>
 <style lang="scss">
