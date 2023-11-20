@@ -1,9 +1,9 @@
 <template>
-    <div class="items-wrapper">
+    <div class="read-view-wrapper">
         <div v-if="items.length" class="section-header">
             <div class="item-count"> {{ $t("numberofitems", {"number": items.length, "itemname": itemName}) }}</div>
             <div class="section-header-right">
-                <el-button class="add-button" type="primary" round plain>+
+                <el-button class="add-button" type="primary" round plain @click="navigateToAdd">+
                     {{ $t("additem", {"itemname": itemName}).toUpperCase() }}
                 </el-button>
                 <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
@@ -32,7 +32,7 @@
                     <span class="command-edit" @click="navigateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
-            <div class="box-card-add" :class="{'no-items': !items.length}">
+            <div class="box-card-add" :class="{'no-items': !items.length}" @click="navigateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -51,7 +51,7 @@
                 </el-icon>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items.length}">
+        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items.length}" @click="navigateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -102,6 +102,11 @@ function navigateToEdit(id) {
         path: `/ai_config/${props.apiName}/edit/${id}/`,
     });
 }
+function navigateToAdd() {
+    router.push({
+        path: `/ai_config/${props.apiName}/add/`,
+    });
+}
 
 </script>
 
@@ -145,11 +150,12 @@ function navigateToEdit(id) {
 </style>
 
 <style lang="scss" scoped>
-.items-wrapper {
+.read-view-wrapper {
     display: flex;
     flex-wrap: wrap;
     margin-left: 160px;
     margin-right: 160px;
+    max-width: 1300px;
 }
 
 .cards-view {
@@ -171,6 +177,7 @@ function navigateToEdit(id) {
 
 .box-card {
     width: 232px;
+    height: 200px;
     margin: 16px;
 }
 
@@ -180,6 +187,7 @@ function navigateToEdit(id) {
     justify-content: center;
     text-align: center;
     width: 232px;
+    height: 200px;
     margin: 16px;
     color: $chatfaq-color-primary-500;
     border: 1px dashed $chatfaq-color-primary-500;

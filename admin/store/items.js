@@ -25,8 +25,8 @@ export const useItemsStore = defineStore('items', {
         schema: undefined,
     }),
     actions: {
-        async retrieveItems($axios, itemType) {
-            this.items[itemType] = (await $axios.get(`/back/api/language-model/${itemType}/`)).data
+        async retrieveItems($axios, apiName) {
+            this.items[apiName] = (await $axios.get(`/back/api/language-model/${apiName}/`)).data
         },
         async requestOrGetSchema($axios, schemaName) {
             if (!this.schema) {
@@ -35,6 +35,12 @@ export const useItemsStore = defineStore('items', {
                 )
             }
             return this.schema[schemaName]
+        },
+        async requestOrGetItem($axios, apiName, schemaName, id) {
+            if (!this.items[apiName]) {
+                await this.retrieveItems($axios, apiName)
+            }
+            return this.items[apiName].find(item => item.id === parseInt(id))
         }
     }
 });
