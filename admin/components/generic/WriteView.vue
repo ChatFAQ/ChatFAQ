@@ -1,6 +1,5 @@
 <template>
     <div class="write-view-wrapper">
-        {{ schema }}
         <div class="navigation-header">
             <div class="back-button" @click="stateToRead">
                 <el-icon>
@@ -85,10 +84,9 @@ const props = defineProps({
         default: "name",
     },
 })
-
 const {data} = await useAsyncData(
     "schema_" + props.schemaName,
-    async () => await itemsStore.requestOrGetSchema($axios, props.schemaName)
+    async () => await itemsStore.getSchemaDef($axios, props.schemaName)
 )
 schema.value = data.value
 

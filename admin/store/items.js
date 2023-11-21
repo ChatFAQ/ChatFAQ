@@ -22,6 +22,7 @@ function resolveRefs(schema) {
 export const useItemsStore = defineStore('items', {
     state: () => ({
         items: {},
+        paths: {},
         schema: undefined,
         editing: undefined,
         adding: false,
@@ -34,12 +35,15 @@ export const useItemsStore = defineStore('items', {
             await $axios.delete(`/back/api/language-model/${apiName}/${id}`)
             await this.retrieveItems($axios, apiName)
         },
-        async requestOrGetSchema($axios, schemaName) {
+        async loadSchema($axios) {
             if (!this.schema) {
-                this.schema = resolveRefs(
-                    (await $axios.get('/back/api/schema/?format=json')).data.components.schemas
-                )
+                const openAPI = (await $axios.get('/back/api/schema/?format=json')).data
+                this.schema = resolveRefs(openAPI.components.schemas)
+                this.paths = openAPI.paths
             }
+        },
+        async getSchemaDef($axios, schemaName) {
+            await this.loadSchema()
             return this.schema[schemaName]
         },
         async requestOrGetItem($axios, apiName, schemaName, id) {
@@ -47,6 +51,17 @@ export const useItemsStore = defineStore('items', {
                 await this.retrieveItems($axios, apiName)
             }
             return this.items[apiName].find(item => item.id === parseInt(id))
+        }
+    },
+    getters: {
+        getPathFromSchemaName: (state) => (schemaName) => {
+            for (const [path, pathInfo] of Object.entries(state.paths)) {
+                if (pathInfo.get?.responses &&
+                    pathInfo.get?.responses['200']?.content &&
+                    pathInfo.get?.responses['200']?.content['application/json']?.schema?.items?.$ref === `#/components/schemas/${schemaName}`) {
+                    return path
+                }
+            }
         }
     }
 });

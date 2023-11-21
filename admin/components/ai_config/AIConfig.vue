@@ -87,10 +87,12 @@
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
+const {$axios} = useNuxtApp();
 
 const itemsStore = useItemsStore()
 
 const itemType = ref("retriever-configs")
+await itemsStore.loadSchema($axios)
 
 function stateToRead(tabName, event) {
   itemsStore.adding = false
