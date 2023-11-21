@@ -1,23 +1,5 @@
 import {defineStore} from 'pinia';
 
-function resolveRefs(schema) {
-
-    for (const value of Object.values(schema)) {
-        if(!value.properties)
-            continue
-        for (const [propName, propInfo] of Object.entries(value.properties)) {
-            if (propInfo.$ref) {
-                let obj = schema[propInfo.$ref.replace('#/components/schemas/', '')]
-                if (obj.enum)  {
-                    propInfo.choices = obj.enum
-                } else if (obj.type === 'object') {
-                    propInfo.remote = obj
-                }
-            }
-        }
-    }
-    return schema
-}
 
 export const useItemsStore = defineStore('items', {
     state: () => ({
@@ -45,8 +27,10 @@ export const useItemsStore = defineStore('items', {
                 this.paths = openAPI.paths
             }
         },
-        async getSchemaDef($axios, schemaName) {
+        async getSchemaDef($axios, schemaName, resolveRefs = true) {
             await this.loadSchema()
+            if (resolveRefs)
+                return await this.resolveRefs($axios, this.schema[schemaName])
             return this.schema[schemaName]
         },
         async requestOrGetItem($axios, schemaName, id) {
@@ -54,6 +38,21 @@ export const useItemsStore = defineStore('items', {
                 await this.retrieveItems($axios, schemaName)
             }
             return this.items[schemaName].find(item => item.id === parseInt(id))
+        },
+        async resolveRefs($axios, schemaT) {
+            for (const [propName, propInfo] of Object.entries(schemaT.properties)) {
+                if (propInfo.$ref) {
+                    const refName = propInfo.$ref.split("/").slice(-1)[0]
+                    let obj = await this.getSchemaDef($axios, refName, false)
+                    if (obj.enum)  {
+                        propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
+                    } else if (obj.type === 'object') {
+                        let items = await this.retrieveItems($axios, refName)
+                        propInfo.choices = items.map((item) => ({label: item.name, value: item.id}))
+                    }
+                }
+            }
+            return schemaT
         }
     },
     getters: {
