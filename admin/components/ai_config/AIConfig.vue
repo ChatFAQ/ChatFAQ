@@ -2,7 +2,7 @@
   <div class="page-title">{{ $t("aiconfiguration") }}</div>
   <el-tabs @tab-change="stateToRead" v-model="itemType">
     <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
-      <ReadWriteView apiName="retriever-configs" itemName="retriever" schemaName="RetrieverConfig"
+      <ReadWriteView readableName="retriever" schemaName="RetrieverConfig"
                      :cardProps="{
                     'name': $t('name'),
                     'model_name': $t('modelname'),
@@ -17,7 +17,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('prompt')" name="prompt-configs">
-      <ReadWriteView apiName="prompt-configs" itemName="prompt" schemaName="PromptConfig"
+      <ReadWriteView readableName="prompt" schemaName="PromptConfig"
                      :cardProps="{
                     'name': $t('name'),
                     'n_contexts_to_use': $t('contextsnumber'),
@@ -30,7 +30,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('generation')" name="generation-configs">
-      <ReadWriteView apiName="generation-configs" itemName="generation"
+      <ReadWriteView readableName="generation"
                      schemaName="GenerationConfig"
                      :cardProps="{
                     'name': $t('name'),
@@ -46,7 +46,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('llm')" name="llm-configs">
-      <ReadWriteView apiName="llm-configs" itemName="LLM" schemaName="LLMConfig"
+      <ReadWriteView readableName="LLM" schemaName="LLMConfig"
                      :cardProps="{
                     'name': $t('name'),
                     'llm_type': $t('llmtype'),
@@ -61,7 +61,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('rag')" name="rag-configs">
-      <ReadWriteView apiName="rag-configs" itemName="RAG" schemaName="RAGConfig"
+      <ReadWriteView readableName="RAG" schemaName="RAGConfig"
                      :cardProps="{
                     'name': $t('name'),
                     'knowledge_base': $t('knowledgebase'),

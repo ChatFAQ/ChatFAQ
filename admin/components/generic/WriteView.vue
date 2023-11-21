@@ -75,10 +75,6 @@ const props = defineProps({
         type: String,
         mandatory: true
     },
-    apiName: {
-        type: String,
-        required: true,
-    },
     editTitleField: {
         type: String,
         default: "name",
@@ -109,8 +105,8 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 // Initialize form values
 if (itemsStore.editing) {
     const {data} = await useAsyncData(
-        props.apiName + "_" + itemsStore.editing,
-        async () => await itemsStore.requestOrGetItem($axios, props.apiName, props.schemaName, itemsStore.editing)
+        props.schemaName + "_" + itemsStore.editing,
+        async () => await itemsStore.requestOrGetItem($axios, props.schemaName, itemsStore.editing)
     )
     if (data.value) {
         for (const [fieldName, fieldValue] of Object.entries(data.value)) {
@@ -128,10 +124,11 @@ const submitForm = async (formEl) => {
         if (!valid)
             return
         try {
+            const url = itemsStore.getPathFromSchemaName(props.schemaName)
             if (itemsStore.editing)
-                await $axios.put(`/back/api/language-model/${props.apiName}/${itemsStore.editing}/`, form.value)
+                await $axios.put(`${url}${itemsStore.editing}/`, form.value)
             else
-                await $axios.post(`/back/api/language-model/${props.apiName}/`, form.value)
+                await $axios.post(url, form.value)
         } catch (e) {
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
@@ -146,7 +143,7 @@ const submitForm = async (formEl) => {
 }
 
 function deleteItem(id) {
-    itemsStore.deleteItem($axios, props.apiName, itemsStore.editing)
+    itemsStore.deleteItem($axios, props.schemaName, itemsStore.editing)
     deleting.value = undefined
     stateToRead()
 }

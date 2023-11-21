@@ -1,10 +1,10 @@
 <template>
     <div class="read-view-wrapper">
-        <div v-if="items[apiName].length" class="section-header">
-            <div class="item-count"> {{ $t("numberofitems", {"number": items[apiName].length, "itemname": itemName}) }}</div>
+        <div v-if="items[schemaName].length" class="section-header">
+            <div class="item-count"> {{ $t("numberofitems", {"number": items[schemaName].length, "readablename": readableName}) }}</div>
             <div class="section-header-right">
                 <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
-                    {{ $t("additem", {"itemname": itemName}).toUpperCase() }}
+                    {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
                 <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
                      @click="viewType = 'card'">
@@ -16,7 +16,7 @@
             </div>
         </div>
         <div class="cards-view" v-if="viewType === 'card'">
-            <el-card v-for="item in items[apiName]" class="box-card">
+            <el-card v-for="item in items[schemaName]" class="box-card">
                 <template #header>
                     <div class="card-header-title">{{ item.name }}</div>
                 </template>
@@ -33,15 +33,15 @@
                     <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
-            <div class="box-card-add" :class="{'no-items': !items[apiName].length}" @click="stateToAdd">
+            <div class="box-card-add" :class="{'no-items': !items[schemaName].length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
-                <span>{{ $t("additem", {"itemname": itemName}) }}</span>
+                <span>{{ $t("additem", {"readablename": readableName}) }}</span>
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiName]" style="width: 100%">
+        <el-table v-else class="table-view" :data="items[schemaName]" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
             <el-table-column align="center">
                 <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
@@ -52,12 +52,12 @@
                 </el-icon>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[apiName].length}" @click="stateToAdd">
+        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[schemaName].length}" @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
                 </el-icon>
-                {{ $t("additem", {"itemname": itemName}) }}
+                {{ $t("additem", {"readablename": readableName}) }}
             </span>
         </div>
     </div>
@@ -74,11 +74,11 @@ const deleting = ref(undefined)
 
 
 const props = defineProps({
-    itemName: {
+    readableName: {
         type: String,
         required: true,
     },
-    apiName: {
+    schemaName: {
         type: String,
         required: true,
     },
@@ -92,10 +92,10 @@ const props = defineProps({
     },
 });
 await useAsyncData(
-    props.apiName,
+    props.schemaName,
     async () => {
-        await itemsStore.retrieveItems($axios, props.apiName)
-        return itemsStore.items[props.apiName]
+        await itemsStore.retrieveItems($axios, props.schemaName)
+        return itemsStore.items[props.schemaName]
     }
 )
 const {items} = storeToRefs(itemsStore)
@@ -107,7 +107,7 @@ function stateToAdd() {
     itemsStore.adding = true
 }
 function deleteItem(id) {
-    itemsStore.deleteItem($axios, props.apiName, id)
+    itemsStore.deleteItem($axios, props.schemaName, id)
     deleting.value = undefined
 }
 </script>

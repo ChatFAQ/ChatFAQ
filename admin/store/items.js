@@ -28,12 +28,14 @@ export const useItemsStore = defineStore('items', {
         adding: false,
     }),
     actions: {
-        async retrieveItems($axios, apiName) {
-            this.items[apiName] = (await $axios.get(`/back/api/language-model/${apiName}/`)).data
+        async retrieveItems($axios, schemaName) {
+            const url = this.getPathFromSchemaName(schemaName)
+            this.items[schemaName] = (await $axios.get(url)).data
         },
-        async deleteItem($axios, apiName, id) {
-            await $axios.delete(`/back/api/language-model/${apiName}/${id}`)
-            await this.retrieveItems($axios, apiName)
+        async deleteItem($axios, schemaName, id) {
+            const url = this.getPathFromSchemaName(schemaName)
+            await $axios.delete(`${url}${id}`)
+            await this.retrieveItems($axios, schemaName)
         },
         async loadSchema($axios) {
             if (!this.schema) {
@@ -46,11 +48,11 @@ export const useItemsStore = defineStore('items', {
             await this.loadSchema()
             return this.schema[schemaName]
         },
-        async requestOrGetItem($axios, apiName, schemaName, id) {
-            if (!this.items[apiName]) {
-                await this.retrieveItems($axios, apiName)
+        async requestOrGetItem($axios, schemaName, id) {
+            if (!this.items[schemaName]) {
+                await this.retrieveItems($axios, schemaName)
             }
-            return this.items[apiName].find(item => item.id === parseInt(id))
+            return this.items[schemaName].find(item => item.id === parseInt(id))
         }
     },
     getters: {

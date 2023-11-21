@@ -1,15 +1,14 @@
 <template>
   <ReadView
       v-if="editing === undefined && !adding"
-      :apiName="apiName"
-      :itemName="itemName"
+      :schemaName="schemaName"
+      :readableName="readableName"
       :cardProps="cardProps"
       :tableProps="tableProps"
   />
   <WriteView
       v-else
-      :apiName="apiName"
-      :itemName="itemName"
+      :readableName="readableName"
       :schemaName="schemaName"
       :editing="editing"
       :adding="adding"
@@ -28,11 +27,7 @@ const itemsStore = useItemsStore()
 const {editing, adding} = storeToRefs(itemsStore)
 
 const props = defineProps({
-  apiName: {
-    type: String,
-    mandatory: true
-  },
-  itemName: {
+  readableName: {
     type: String,
     mandatory: true
   },
