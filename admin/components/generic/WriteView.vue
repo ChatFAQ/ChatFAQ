@@ -26,12 +26,12 @@
                 <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
                               :prop="fieldName"
                               :error="formServerErrors[fieldName]">
-                    <el-select v-if="schema.properties[fieldName].choices" v-model="form[fieldName]">
+                    <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
                         <el-option
                             v-for="choice in schema.properties[fieldName].choices"
-                            :key="choice"
-                            :label="choice"
-                            :value="choice"
+                            :key="choice.value"
+                            :label="choice.label"
+                            :value="choice.value"
                         />
                     </el-select>
                     <el-input v-else v-model="form[fieldName]"/>
@@ -85,7 +85,7 @@ const {data} = await useAsyncData(
     async () => await itemsStore.getSchemaDef($axios, props.schemaName)
 )
 schema.value = data.value
-
+await resolveRefs(schema)
 const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
@@ -116,7 +116,21 @@ if (itemsStore.editing) {
         }
     }
 }
-
+async function resolveRefs(schema) {
+    for (const [propName, propInfo] of Object.entries(schema.value.properties)) {
+        if (propInfo.$ref) {
+            const refName = propInfo.$ref.split("/").slice(-1)[0]
+            let obj = await itemsStore.getSchemaDef($axios, refName)
+            if (obj.enum)  {
+                // convert array obj.enum (["a", "b"]) into [{label: "a", value: "a"}, {...]
+                propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
+            } else if (obj.type === 'object') {
+                let items = await itemsStore.retrieveItems($axios, refName)
+                propInfo.choices = items.map((item) => ({label: item.name, value: item.id}))
+            }
+        }
+    }
+}
 const submitForm = async (formEl) => {
     if (!formEl) return
     await formEl.validate()
@@ -152,6 +166,7 @@ function stateToRead() {
     itemsStore.adding = false
     itemsStore.editing = undefined
 }
+
 </script>
 <style lang="scss">
 .el-form-item {

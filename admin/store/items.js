@@ -31,6 +31,7 @@ export const useItemsStore = defineStore('items', {
         async retrieveItems($axios, schemaName) {
             const url = this.getPathFromSchemaName(schemaName)
             this.items[schemaName] = (await $axios.get(url)).data
+            return this.items[schemaName]
         },
         async deleteItem($axios, schemaName, id) {
             const url = this.getPathFromSchemaName(schemaName)
@@ -40,7 +41,7 @@ export const useItemsStore = defineStore('items', {
         async loadSchema($axios) {
             if (!this.schema) {
                 const openAPI = (await $axios.get('/back/api/schema/?format=json')).data
-                this.schema = resolveRefs(openAPI.components.schemas)
+                this.schema = openAPI.components.schemas
                 this.paths = openAPI.paths
             }
         },
