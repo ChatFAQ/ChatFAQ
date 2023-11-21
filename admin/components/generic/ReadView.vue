@@ -21,7 +21,7 @@
                     <div class="card-header-title">{{ item.name }}</div>
                 </template>
                 <div v-for="(name, prop) in cardProps" class="property">
-                    <span class="title">{{ name }}</span>{{ item[prop] }}
+                    <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
                 </div>
                 <div class="divider">
                 </div>
@@ -42,7 +42,7 @@
         </div>
 
         <el-table v-else class="table-view" :data="items[schemaName]" style="width: 100%">
-            <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name"/>
+            <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
             <el-table-column align="center">
                 <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
             </el-table-column>
@@ -71,6 +71,7 @@ const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const viewType = ref("card")
 const deleting = ref(undefined)
+const schema = ref({})
 
 
 const props = defineProps({
@@ -91,6 +92,13 @@ const props = defineProps({
         required: true,
     },
 });
+
+const {data} = await useAsyncData(
+    "schema_" + props.schemaName,
+    async () => await itemsStore.getSchemaDef($axios, props.schemaName)
+)
+schema.value = data.value
+
 await useAsyncData(
     props.schemaName,
     async () => {
@@ -98,6 +106,7 @@ await useAsyncData(
         return itemsStore.items[props.schemaName]
     }
 )
+
 const {items} = storeToRefs(itemsStore)
 
 function stateToEdit(id) {
@@ -109,6 +118,18 @@ function stateToAdd() {
 function deleteItem(id) {
     itemsStore.deleteItem($axios, props.schemaName, id)
     deleting.value = undefined
+}
+function solveRefProp(item, propName) {
+    const prop = schema.value.properties[propName]
+    if (prop.$ref && schema.value.properties[propName].choices) {
+        // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
+        const choice = schema.value.properties[propName].choices.find(choice => choice.value === item[propName])
+        if (choice) {
+            return choice.label
+        }
+    }
+    return item[propName]
+
 }
 </script>
 
