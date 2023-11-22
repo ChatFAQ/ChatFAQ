@@ -5,9 +5,9 @@ models = apps.get_models()
 
 def postprocess_schema_foreign_keys(result, generator, **kwargs):
     schemas = result.get('components', {}).get('schemas', {})
-    for model_name, info in schemas.items():
+    for schema_name, info in schemas.items():
         for model in models:
-            if model.__name__ == model_name:
+            if model.__name__ == schema_name:
                 for prop_name, prop_schema in info.get("properties", {}).items():
                     try:
                         model_class_field = getattr(model, prop_name)
