@@ -1,3 +1,4 @@
+
 from django.contrib.auth import authenticate, login, logout
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from knox.views import LoginView as KnoxLoginView
@@ -8,9 +9,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .models import User
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 
-from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer, AdminUserSerializer, AdminGroupSerializer
+from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer, AdminUserSerializer, GroupSerializer, \
+    PermissionSerializer, ContentTypeSerializer
 
 
 class MeViewSet(viewsets.GenericViewSet):
@@ -99,4 +102,16 @@ class UserAPIViewSet(viewsets.ModelViewSet):
 
 class GroupAPIViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
-    serializer_class = AdminGroupSerializer
+    serializer_class = GroupSerializer
+
+
+class PermissionAPIViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Permission.objects.all()
+    serializer_class = PermissionSerializer
+    pagination_class = None
+
+
+class ContentTypeAPIViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ContentType.objects.all()
+    serializer_class = ContentTypeSerializer
+    pagination_class = None
