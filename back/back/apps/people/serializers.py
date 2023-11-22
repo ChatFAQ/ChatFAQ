@@ -3,6 +3,12 @@ from rest_framework import serializers
 from .models import User
 
 
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+
 class AuthUserSerializer(serializers.ModelSerializer):
     """
     Serializer used when the user is authenticated on /api/me/
@@ -59,9 +65,3 @@ class AuthRequest(serializers.Serializer):
 
     def create(self, validated_data):
         raise NotImplementedError
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
