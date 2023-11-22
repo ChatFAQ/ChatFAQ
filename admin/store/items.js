@@ -10,15 +10,13 @@ export const useItemsStore = defineStore('items', {
         adding: false,
     }),
     actions: {
-        async retrieveItems($axios, schemaName) {
-            const url = this.getPathFromSchemaName(schemaName)
-            this.items[schemaName] = (await $axios.get(url)).data
-            return this.items[schemaName]
+        async retrieveItems($axios, apiUrl = undefined) {
+            this.items[apiUrl] = (await $axios.get(apiUrl)).data
+            return this.items[apiUrl]
         },
-        async deleteItem($axios, schemaName, id) {
-            const url = this.getPathFromSchemaName(schemaName)
-            await $axios.delete(`${url}${id}`)
-            await this.retrieveItems($axios, schemaName)
+        async deleteItem($axios, apiUrl, id) {
+            await $axios.delete(`${apiUrl}${id}`)
+            await this.retrieveItems($axios, apiUrl)
         },
         async loadSchema($axios) {
             if (!this.schema) {
@@ -27,23 +25,26 @@ export const useItemsStore = defineStore('items', {
                 this.paths = openAPI.paths
             }
         },
-        async getSchemaDef($axios, schemaName, resolveRefs = true) {
+        async getSchemaDef($axios, apiUrl, resolveRefs = true, _schemaName = undefined) {
             await this.loadSchema()
+            let schemaName = _schemaName
+            if (!schemaName)
+                schemaName = this.getSchemaNameFromPath(apiUrl)
             if (resolveRefs)
                 return await this.resolveRefs($axios, this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async requestOrGetItem($axios, schemaName, id) {
-            if (!this.items[schemaName]) {
-                await this.retrieveItems($axios, schemaName)
+        async requestOrGetItem($axios, apiUrl, id) {
+            if (!this.items[apiUrl]) {
+                await this.retrieveItems($axios, apiUrl)
             }
-            return this.items[schemaName].find(item => item.id === parseInt(id))
+            return this.items[apiUrl].find(item => item.id === parseInt(id))
         },
-        async resolveRefs($axios, schemaT) {
-            for (const [propName, propInfo] of Object.entries(schemaT.properties)) {
+        async resolveRefs($axios, schema) {
+            for (const [propName, propInfo] of Object.entries(schema.properties)) {
                 if (propInfo.$ref) {
                     const refName = propInfo.$ref.split("/").slice(-1)[0]
-                    let obj = await this.getSchemaDef($axios, refName, false)
+                    let obj = await this.getSchemaDef($axios, undefined, false, refName)
                     if (obj.enum)  {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
@@ -52,7 +53,7 @@ export const useItemsStore = defineStore('items', {
                     }
                 }
             }
-            return schemaT
+            return schema
         }
     },
     getters: {
@@ -64,6 +65,9 @@ export const useItemsStore = defineStore('items', {
                     return path
                 }
             }
+        },
+        getSchemaNameFromPath: (state) => (path) => {
+            return state.paths[path].get?.responses['200']?.content['application/json']?.schema?.items?.$ref.split("/").slice(-1)[0]
         }
     }
 });

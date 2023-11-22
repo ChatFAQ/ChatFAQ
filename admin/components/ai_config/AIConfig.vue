@@ -1,8 +1,8 @@
 <template>
-  <div class="page-title">{{ $t("aiconfiguration") }}</div>
+  <div class="dashboard-page-title">{{ $t("aiconfiguration") }}</div>
   <el-tabs @tab-change="stateToRead" v-model="itemType">
     <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
-      <ReadWriteView readableName="retriever" schemaName="RetrieverConfig"
+      <ReadWriteView readableName="retriever" apiUrl="/back/api/language-model/retriever-configs/"
                      :cardProps="{
                     'name': $t('name'),
                     'model_name': $t('modelname'),
@@ -17,7 +17,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('prompt')" name="prompt-configs">
-      <ReadWriteView readableName="prompt" schemaName="PromptConfig"
+      <ReadWriteView readableName="prompt"  apiUrl="/back/api/language-model/prompt-configs/"
                      :cardProps="{
                     'name': $t('name'),
                     'n_contexts_to_use': $t('contextsnumber'),
@@ -30,8 +30,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('generation')" name="generation-configs">
-      <ReadWriteView readableName="generation"
-                     schemaName="GenerationConfig"
+      <ReadWriteView readableName="generation" apiUrl="/back/api/language-model/generation-configs/"
                      :cardProps="{
                     'name': $t('name'),
                     'temperature': $t('temperature'),
@@ -46,7 +45,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('llm')" name="llm-configs">
-      <ReadWriteView readableName="LLM" schemaName="LLMConfig"
+      <ReadWriteView readableName="LLM" apiUrl="/back/api/language-model/llm-configs/"
                      :cardProps="{
                     'name': $t('name'),
                     'llm_type': $t('llmtype'),
@@ -61,7 +60,7 @@
       </ReadWriteView>
     </el-tab-pane>
     <el-tab-pane :lazy="true" :label="$t('rag')" name="rag-configs">
-      <ReadWriteView readableName="RAG" schemaName="RAGConfig"
+      <ReadWriteView readableName="RAG" apiUrl="/back/api/language-model/rag-configs/"
                      :cardProps="{
                     'name': $t('name'),
                     'knowledge_base': $t('knowledgebase'),
@@ -100,15 +99,3 @@ function stateToRead(tabName, event) {
 }
 
 </script>
-
-<style scoped lang="scss">
-.page-title {
-  //styleName: Title/XS/Bold;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 22px;
-  letter-spacing: 0em;
-  text-align: left;
-  margin-bottom: 16px;
-}
-</style>

@@ -1,7 +1,7 @@
 <template>
   <ReadView
       v-if="editing === undefined && !adding"
-      :schemaName="schemaName"
+      :apiUrl="apiUrl"
       :readableName="readableName"
       :cardProps="cardProps"
       :tableProps="tableProps"
@@ -9,7 +9,7 @@
   <WriteView
       v-else
       :readableName="readableName"
-      :schemaName="schemaName"
+      :apiUrl="apiUrl"
       :editing="editing"
       :adding="adding"
   />
@@ -31,7 +31,7 @@ const props = defineProps({
     type: String,
     mandatory: true
   },
-  schemaName: {
+  apiUrl: {
     type: String,
     mandatory: true
   },

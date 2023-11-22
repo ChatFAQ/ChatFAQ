@@ -7,7 +7,7 @@
         <MenuItem icon="House" :name="$t('dashboard')" page="/dashboard"/>
         <MenuItem icon="Edit" :name="$t('labeling')" page="/labeling"/>
         <MenuItem icon="Reading" :name="$t('data')" page="/data"/>
-        <MenuItem icon="SetUp" :name="$t('aiconfig')" page="/ai_config/retriever-configs/"/>
+        <MenuItem icon="SetUp" :name="$t('aiconfig')" page="/ai_config/"/>
         <MenuItem icon="Brush" :name="$t('widgetconfig')" page="/widget_config"/>
         <MenuItem icon="DataBoard" :name="$t('sdkvisualizer')" page="/sdk_visualizer"/>
         <MenuItem icon="TrendCharts" :name="$t('stats')" page="/stats"/>
