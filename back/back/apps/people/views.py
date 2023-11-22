@@ -8,7 +8,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .models import User
-from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer, AdminUserSerializer
+from django.contrib.auth.models import Group
+
+from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer, AdminUserSerializer, AdminGroupSerializer
 
 
 class MeViewSet(viewsets.GenericViewSet):
@@ -93,3 +95,8 @@ class LoginView(KnoxLoginView):
 class UserAPIViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
+
+
+class GroupAPIViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = AdminGroupSerializer

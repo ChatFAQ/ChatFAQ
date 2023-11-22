@@ -13,15 +13,12 @@
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('rolepermissions')" name="role-permissions">
-            <ReadWriteView readableName="role" apiUrl="/back/api/people/users/"
+            <ReadWriteView readableName="role" apiUrl="/back/api/people/groups/"
                            :cardProps="{
                     'name': $t('name'),
-                    'n_contexts_to_use': $t('contextsnumber'),
                 }"
                            :tableProps="{
                     'name': $t('name'),
-                    'n_contexts_to_use': $t('contextsnumber'),
-                    'updated_date': $t('updateddate'),
                 }">
             </ReadWriteView>
         </el-tab-pane>

@@ -1,11 +1,18 @@
 from rest_framework import serializers
 
 from .models import User
+from django.contrib.auth.models import Group
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
+        fields = "__all__"
+
+
+class AdminGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
         fields = "__all__"
 
 
