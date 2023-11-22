@@ -18,7 +18,7 @@
         <div class="cards-view" v-if="viewType === 'card'">
             <el-card v-for="item in items[apiUrl]" class="box-card">
                 <template #header>
-                    <div class="card-header-title">{{ item.name }}</div>
+                    <div class="card-header-title">{{ item[titleProp] }}</div>
                 </template>
                 <div v-for="(name, prop) in cardProps" class="property">
                     <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
@@ -90,6 +90,11 @@ const props = defineProps({
     tableProps: {
         type: Object,
         required: true,
+    },
+    titleProp: {
+        type: Object,
+        required: false,
+        default: "name",
     },
 });
 

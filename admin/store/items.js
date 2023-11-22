@@ -26,7 +26,7 @@ export const useItemsStore = defineStore('items', {
             }
         },
         async getSchemaDef($axios, apiUrl, resolveRefs = true, _schemaName = undefined) {
-            await this.loadSchema()
+            await this.loadSchema($axios)
             let schemaName = _schemaName
             if (!schemaName)
                 schemaName = this.getSchemaNameFromPath(apiUrl)
@@ -41,6 +41,11 @@ export const useItemsStore = defineStore('items', {
             return this.items[apiUrl].find(item => item.id === parseInt(id))
         },
         async resolveRefs($axios, schema) {
+            if (!schema.properties && schema.oneOf) {
+                const oneOf = await this.getSchemaDef($axios, undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])
+                schema.properties = oneOf.properties
+                schema.required = oneOf.required
+            }
             for (const [propName, propInfo] of Object.entries(schema.properties)) {
                 if (propInfo.$ref) {
                     const refName = propInfo.$ref.split("/").slice(-1)[0]

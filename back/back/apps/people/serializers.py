@@ -59,3 +59,9 @@ class AuthRequest(serializers.Serializer):
 
     def create(self, validated_data):
         raise NotImplementedError
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"

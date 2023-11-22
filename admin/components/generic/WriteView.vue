@@ -21,7 +21,7 @@
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
         >
-            <div v-if="form[editTitleField]" class="edit-title">{{ form[editTitleField] }}</div>
+            <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
                 <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
                               :prop="fieldName"
@@ -75,8 +75,9 @@ const props = defineProps({
         type: String,
         required: false,
     },
-    editTitleField: {
-        type: String,
+    titleProp: {
+        type: Object,
+        required: false,
         default: "name",
     },
 })
