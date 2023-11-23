@@ -23,19 +23,21 @@
         >
             <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
-                              :prop="fieldName"
-                              :error="formServerErrors[fieldName]">
-                    <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
-                        <el-option
-                            v-for="choice in schema.properties[fieldName].choices"
-                            :key="choice.value"
-                            :label="choice.label"
-                            :value="choice.value"
-                        />
-                    </el-select>
-                    <el-input v-else v-model="form[fieldName]"/>
-                </el-form-item>
+                <slot :name="fieldName">
+                    <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
+                                  :prop="fieldName"
+                                  :error="formServerErrors[fieldName]">
+                        <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
+                            <el-option
+                                v-for="choice in schema.properties[fieldName].choices"
+                                :key="choice.value"
+                                :label="choice.label"
+                                :value="choice.value"
+                            />
+                        </el-select>
+                        <el-input v-else v-model="form[fieldName]"/>
+                    </el-form-item>
+                </slot>
             </div>
         </el-form>
 
