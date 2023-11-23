@@ -1,7 +1,7 @@
 <template>
     <div class="read-view-wrapper">
-        <div v-if="items[schemaName].length" class="section-header">
-            <div class="item-count"> {{ $t("numberofitems", {"number": items[schemaName].length, "readablename": readableName}) }}</div>
+        <div v-if="items[apiUrl].length" class="section-header">
+            <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
             <div class="section-header-right">
                 <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
@@ -16,9 +16,9 @@
             </div>
         </div>
         <div class="cards-view" v-if="viewType === 'card'">
-            <el-card v-for="item in items[schemaName]" class="box-card">
+            <el-card v-for="item in items[apiUrl]" class="box-card">
                 <template #header>
-                    <div class="card-header-title">{{ item.name }}</div>
+                    <div class="card-header-title">{{ item[titleProp] }}</div>
                 </template>
                 <div v-for="(name, prop) in cardProps" class="property">
                     <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
@@ -33,7 +33,7 @@
                     <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
-            <div class="box-card-add" :class="{'no-items': !items[schemaName].length}" @click="stateToAdd">
+            <div class="box-card-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[schemaName]" style="width: 100%">
+        <el-table v-else class="table-view" :data="items[apiUrl]" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
             <el-table-column align="center">
                 <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
@@ -52,7 +52,7 @@
                 </el-icon>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[schemaName].length}" @click="stateToAdd">
+        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -79,9 +79,9 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    schemaName: {
+    apiUrl: {
         type: String,
-        required: true,
+        required: false,
     },
     cardProps: {
         type: Object,
@@ -91,20 +91,22 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    titleProp: {
+        type: Object,
+        required: false,
+        default: "name",
+    },
 });
 
 const {data} = await useAsyncData(
-    "schema_" + props.schemaName,
-    async () => await itemsStore.getSchemaDef($axios, props.schemaName)
+    "schema_" + props.apiUrl,
+    async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
 schema.value = data.value
 
 await useAsyncData(
-    props.schemaName,
-    async () => {
-        await itemsStore.retrieveItems($axios, props.schemaName)
-        return itemsStore.items[props.schemaName]
-    }
+    props.apiUrl,
+    async () => await itemsStore.retrieveItems($axios, props.apiUrl)
 )
 
 const {items} = storeToRefs(itemsStore)
@@ -116,7 +118,7 @@ function stateToAdd() {
     itemsStore.adding = true
 }
 function deleteItem(id) {
-    itemsStore.deleteItem($axios, props.schemaName, id)
+    itemsStore.deleteItem($axios, props.apiUrl, id)
     deleting.value = undefined
 }
 function solveRefProp(item, propName) {

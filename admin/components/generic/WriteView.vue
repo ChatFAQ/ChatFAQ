@@ -21,21 +21,23 @@
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
         >
-            <div v-if="form[editTitleField]" class="edit-title">{{ form[editTitleField] }}</div>
+            <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
-                              :prop="fieldName"
-                              :error="formServerErrors[fieldName]">
-                    <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
-                        <el-option
-                            v-for="choice in schema.properties[fieldName].choices"
-                            :key="choice.value"
-                            :label="choice.label"
-                            :value="choice.value"
-                        />
-                    </el-select>
-                    <el-input v-else v-model="form[fieldName]"/>
-                </el-form-item>
+                <slot :name="fieldName">
+                    <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
+                                  :prop="fieldName"
+                                  :error="formServerErrors[fieldName]">
+                        <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
+                            <el-option
+                                v-for="choice in schema.properties[fieldName].choices"
+                                :key="choice.value"
+                                :label="choice.label"
+                                :value="choice.value"
+                            />
+                        </el-select>
+                        <el-input v-else v-model="form[fieldName]"/>
+                    </el-form-item>
+                </slot>
             </div>
         </el-form>
 
@@ -71,18 +73,19 @@ const deleting = ref(false)
 const excludeFields = ref(["id", "created_date", "updated_date"])
 
 const props = defineProps({
-    schemaName: {
+    apiUrl: {
         type: String,
-        mandatory: true
+        required: false,
     },
-    editTitleField: {
-        type: String,
+    titleProp: {
+        type: Object,
+        required: false,
         default: "name",
     },
 })
 const {data} = await useAsyncData(
-    "schema_" + props.schemaName,
-    async () => await itemsStore.getSchemaDef($axios, props.schemaName)
+    "schema_" + props.apiUrl,
+    async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
 schema.value = data.value
 const form = ref({})
@@ -104,8 +107,8 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 // Initialize form values
 if (itemsStore.editing) {
     const {data} = await useAsyncData(
-        props.schemaName + "_" + itemsStore.editing,
-        async () => await itemsStore.requestOrGetItem($axios, props.schemaName, itemsStore.editing)
+        props.apiUrl + "_" + itemsStore.editing,
+        async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
     )
     if (data.value) {
         for (const [fieldName, fieldValue] of Object.entries(data.value)) {
@@ -123,11 +126,10 @@ const submitForm = async (formEl) => {
         if (!valid)
             return
         try {
-            const url = itemsStore.getPathFromSchemaName(props.schemaName)
             if (itemsStore.editing)
-                await $axios.put(`${url}${itemsStore.editing}/`, form.value)
+                await $axios.put(`${props.apiUrl}${itemsStore.editing}/`, form.value)
             else
-                await $axios.post(url, form.value)
+                await $axios.post(props.apiUrl, form.value)
         } catch (e) {
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
@@ -142,7 +144,7 @@ const submitForm = async (formEl) => {
 }
 
 function deleteItem(id) {
-    itemsStore.deleteItem($axios, props.schemaName, itemsStore.editing)
+    itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
     deleting.value = undefined
     stateToRead()
 }
