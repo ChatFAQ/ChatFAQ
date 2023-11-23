@@ -47,7 +47,7 @@ const props = defineProps({
         mandatory: true
     },
     titleProp: {
-        type: Object,
+        type: String,
         required: false,
         default: "name",
     },
