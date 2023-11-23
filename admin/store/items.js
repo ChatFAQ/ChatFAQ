@@ -38,7 +38,7 @@ export const useItemsStore = defineStore('items', {
             if (!this.items[apiUrl]) {
                 await this.retrieveItems($axios, apiUrl)
             }
-            return this.items[apiUrl].find(item => item.id.toString() === id)
+            return this.items[apiUrl].find(item => item.id.toString() === id.toString())
         },
         async resolveRefs($axios, schema) {
             if (!schema.properties && schema.oneOf) {
