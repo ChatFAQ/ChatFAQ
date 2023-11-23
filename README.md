@@ -1,4 +1,4 @@
-## [![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)](https://www.chatfaq.io/) - An Open Source LLM ecosystem for your business needs
+## [![Group 403 (1)](https://github.com/ChatFAQ/ChatFAQ/assets/127191313/445f5cf9-c557-4529-9d94-a61839d3bb83)](https://www.chatfaq.io/) - An Open Source RAG & LLM ecosystem for your business needs
 
 **ChatFAQ** is an open-source comprehensive platform for creating a wide variety of chatbots:
 - generic ones,
