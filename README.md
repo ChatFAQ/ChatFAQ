@@ -10,7 +10,7 @@
 - Uses **open source large language models**,
 - Provide flexibility and **costs-effectiveness**.
 
-It includes a **specialized NLP/NLG engine** and customized chat widgets,
+It includes a **specialized NLP/NLG engine based on a RAG architecture ** and customized chat widgets,
 ensuring a tailored experience for users and avoiding vendor lock-in.
 
 https://github.com/ChatFAQ/ChatFAQ/assets/127191313/7927f51f-d7ac-40e5-b4d0-62081742de4f
