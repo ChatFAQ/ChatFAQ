@@ -1,20 +1,27 @@
 <template>
-    <el-input
-        v-if="!editingPassword"
-        v-model="form[fieldName]"
-        type="password"
-        placeholder="Please input password"
-        disabled
-        show-password
-    />
-    <el-input
-        v-else
-        v-model="form[fieldName]"
-        type="password"
-        placeholder="Please input password"
-        show-password
-    />
-    <el-button @click="toggleEditingPassword"></el-button>
+    <div class="password-wrapper">
+        <el-input
+            v-if="!editingPassword"
+            v-model="form[fieldName]"
+            type="password"
+            placeholder="Please input password"
+            disabled
+            show-password
+        />
+        <el-input
+            v-else
+            v-model="form[fieldName]"
+            type="password"
+            placeholder="Please input password"
+            show-password
+        />
+        <el-button type="primary" @click=toggleEditingPassword>
+            <el-icon>
+                <EditPen v-if="!editingPassword"/>
+                <Close v-else/>
+            </el-icon>
+        </el-button>
+    </div>
 </template>
 
 <script setup>
@@ -36,3 +43,16 @@ function toggleEditingPassword(ev) {
     ev.preventDefault()
 }
 </script>
+
+<style lang="scss" scoped>
+.password-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    button {
+        margin-left: 8px;
+        height: 40px;
+        width: 40px;
+    }
+}
+</style>
