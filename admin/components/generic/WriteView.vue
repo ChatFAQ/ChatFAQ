@@ -28,6 +28,14 @@
                               :error="formServerErrors[fieldName]">
                     <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
                         <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]" :label="fieldName"/>
+                        <el-select v-else-if="schema.properties[fieldName].type === 'array'" v-model="form[fieldName]" multiple>
+                            <el-option
+                                v-for="choice in schema.properties[fieldName].choices"
+                                :key="choice.value"
+                                :label="choice.label"
+                                :value="choice.value"
+                            />
+                        </el-select>
                         <el-select v-else-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
                             <el-option
                                 v-for="choice in schema.properties[fieldName].choices"
