@@ -25,8 +25,12 @@
 </template>
 
 <script setup>
-const editingPassword = ref(false)
+let oldEncryptedPass
 
+const editingPassword = ref(false)
+defineExpose({
+    submit,
+})
 const props = defineProps({
     form: {
         type: Object,
@@ -40,7 +44,19 @@ const props = defineProps({
 
 function toggleEditingPassword(ev) {
     editingPassword.value = !editingPassword.value
+    if(editingPassword.value) {
+        oldEncryptedPass = props.form[props.fieldName]
+        props.form[props.fieldName] = ""
+    } else {
+        props.form[props.fieldName] = oldEncryptedPass
+    }
     ev.preventDefault()
+}
+
+function submit() {
+    if(!editingPassword.value) {
+        delete props.form[props.fieldName]
+    }
 }
 </script>
 

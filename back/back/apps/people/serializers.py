@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(required=False)
+
     class Meta:
         model = User
         fields = "__all__"

@@ -9,9 +9,9 @@
                 }"
                            :tableProps="{
                     'email': $t('email'),
-                }">
+                }" @submitForm="submitPassword">
                 <template v-slot:password="props">
-                    <Password :form="props.form" :fieldName="props.fieldName"/>
+                    <Password :form="props.form" :fieldName="props.fieldName" ref="password"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -32,6 +32,7 @@
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
 import Password from "~/components/user_management/fields/Password.vue";
+const password = ref(null)
 
 const {$axios} = useNuxtApp();
 
@@ -45,4 +46,7 @@ function stateToRead(tabName, event) {
     itemsStore.editing = undefined
 }
 
+function submitPassword() {
+    password.value.submit()
+}
 </script>

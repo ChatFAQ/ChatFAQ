@@ -14,6 +14,7 @@
         :editing="editing"
         :adding="adding"
         :titleProp="titleProp"
+        v-bind="$attrs"
     >
         <template v-for="(_, name) in $slots" v-slot:[name]="data">
             <slot :name="name" v-bind="data"></slot>

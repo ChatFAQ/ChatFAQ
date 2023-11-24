@@ -23,11 +23,12 @@
         >
             <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
+                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="schema.properties[fieldName].type === 'boolean' ? '' : fieldName"
                               :prop="fieldName"
                               :error="formServerErrors[fieldName]">
                     <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
-                        <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
+                        <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]" :label="fieldName"/>
+                        <el-select v-else-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
                             <el-option
                                 v-for="choice in schema.properties[fieldName].choices"
                                 :key="choice.value"
@@ -69,8 +70,8 @@ const router = useRouter()
 const schema = ref({})
 const formRef = ref()
 const deleting = ref(false)
-
 const excludeFields = ref(["id", "created_date", "updated_date"])
+const emit = defineEmits(['submitForm'])
 
 const props = defineProps({
     apiUrl: {
@@ -120,11 +121,13 @@ if (itemsStore.editing) {
 }
 
 const submitForm = async (formEl) => {
+
     if (!formEl) return
-    await formEl.validate()
     await formEl.validate(async (valid) => {
         if (!valid)
             return
+        // emit event "submitForm":
+        emit("submitForm", form.value)
         try {
             if (itemsStore.editing)
                 await $axios.put(`${props.apiUrl}${itemsStore.editing}/`, form.value)
