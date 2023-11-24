@@ -1,7 +1,9 @@
 from typing import List, Dict
 import os
 
-import openai
+from openai import OpenAI
+
+
 
 from chat_rag.llms import RAGLLM
 
@@ -12,7 +14,7 @@ class OpenAIChatModel(RAGLLM):
         llm_name: str,
         **kwargs,
     ):
-        openai.api_key = os.environ["OPENAI_API_KEY"]
+        self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         self.llm_name = llm_name
 
     def format_prompt(
@@ -100,17 +102,15 @@ class OpenAIChatModel(RAGLLM):
         )
 
 
-        response = openai.ChatCompletion.create(
-            model=self.llm_name,
-            messages=messages,
-            max_tokens=generation_config_dict["max_new_tokens"],
-            temperature=generation_config_dict["temperature"],
-            top_p=generation_config_dict["top_p"],
-            presence_penalty=generation_config_dict["repetition_penalty"],
-            n=1,
-            stream=False,
-        )
-        return response.choices[0]["message"]["content"]
+        response = self.client.chat.completions.create(model=self.llm_name,
+        messages=messages,
+        max_tokens=generation_config_dict["max_new_tokens"],
+        temperature=generation_config_dict["temperature"],
+        top_p=generation_config_dict["top_p"],
+        presence_penalty=generation_config_dict["repetition_penalty"],
+        n=1,
+        stream=False)
+        return response.choices[0].message.content
 
     def stream(
         self,
@@ -148,18 +148,17 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
-        response = openai.ChatCompletion.create(
-            model=self.llm_name,
-            messages=messages,
-            max_tokens=generation_config_dict["max_new_tokens"],
-            temperature=generation_config_dict["temperature"],
-            top_p=generation_config_dict["top_p"],
-            presence_penalty=generation_config_dict["repetition_penalty"],
-            n=1,
-            stream=True,
-        )
+        print(messages[0]['content'])
+
+        response = self.client.chat.completions.create(model=self.llm_name,
+        messages=messages,
+        max_tokens=generation_config_dict["max_new_tokens"],
+        temperature=generation_config_dict["temperature"],
+        top_p=generation_config_dict["top_p"],
+        presence_penalty=generation_config_dict["repetition_penalty"],
+        n=1,
+        stream=True)
         for chunk in response:
-            if chunk.choices[0]["finish_reason"] == "stop":
+            if chunk.choices[0].finish_reason == "stop":
                 return
-            elif "content" in chunk.choices[0]["delta"]:  # if contains new text
-                yield chunk.choices[0]["delta"]["content"]
+            yield chunk.choices[0].delta.content # return the delta text message

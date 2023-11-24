@@ -1,6 +1,7 @@
 from typing import List
 
-import openai
+from openai import OpenAI
+
 
 def generate_intents(
     intent_queries_list: List[List[str]], max_new_tokens=100
@@ -18,6 +19,7 @@ def generate_intents(
     List[str]
         List of generated intents.
     """
+    client = OpenAI()
 
     instruction = "Summarize the intent that represents all the following questions in a few words:",
 
@@ -37,11 +39,9 @@ def generate_intents(
     responses = []
     #batches of 20
     for i in range(0, len(input_texts), 20):
-        responses.extend(openai.Completion.create(
-            model='gpt-3.5-turbo-instruct',
-            prompt=input_texts[i:i+20],
-            temperature=0.5,
-            max_tokens=max_new_tokens,
-        )['choices'])
+        responses.extend(client.completions.create(model='gpt-3.5-turbo-instruct',
+        prompt=input_texts[i:i+20],
+        temperature=0.5,
+        max_tokens=max_new_tokens)['choices'])
 
     return ['To ' + response['text'].strip() for response in responses]
