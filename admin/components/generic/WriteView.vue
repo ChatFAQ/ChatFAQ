@@ -1,13 +1,13 @@
 <template>
     <div class="write-view-wrapper">
         <div class="navigation-header">
-            <div class="back-button" @click="navigateToRead">
-                <el-icon class="command-delete">
+            <div class="back-button" @click="itemsStore.stateToRead">
+                <el-icon>
                     <ArrowLeft/>
                 </el-icon>
                 <span>Back</span>
             </div>
-            <el-button v-if="!add" class="add-button" type="primary" round plain>
+            <el-button v-if="!itemsStore.adding" class="add-button" type="primary" round plain>
                 History
             </el-button>
         </div>
@@ -21,21 +21,44 @@
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
         >
-            <div v-if="form[editTitleField]" class="edit-title">{{ form[editTitleField] }}</div>
-            <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName" :prop="fieldName" :error="formServerErrors[fieldName]">
-                    <el-input v-model="form[fieldName]"/>
-                </el-form-item>
+            <div v-if="!Object.keys(sections).length" class="form-section">
+                <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
+                <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
+                    <FormField
+                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        class="field"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :form="form"
+                        :formServerErrors="formServerErrors"
+                    />
+                </div>
+            </div>
+            <div v-else v-for="(sectionName, fields) in sections" class="form-section">
+                <div class="edit-title">{{ sectionName }}</div>
+                <div v-for="fieldName in fields" class="field-wrapper">
+                    <FormField
+                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        class="field"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :form="form"
+                        :formServerErrors="formServerErrors"
+                    />
+                </div>
             </div>
         </el-form>
 
         <div class="commands">
-            <el-button v-if="!add" type="danger">
-                Delete
+            <el-button v-if="!itemsStore.adding" type="danger" @click="deleting = true" class="delete-button">
+                <span v-if="!deleting">Delete</span>
+                <el-icon v-else>
+                    <Check @click="deleteItem()"/>
+                </el-icon>
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button @click="navigateToRead">
+                <el-button @click="itemsStore.stateToRead">
                     Cancel
                 </el-button>
                 <el-button type="primary" @click="submitForm(formRef)">
@@ -47,51 +70,52 @@
 </template>
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import FormField from "~/components/generic/FormField.vue";
 
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
 const formRef = ref()
-
-const excludeFields = ref(["id", "created_date", "updated_date"])
+const deleting = ref(false)
+const emit = defineEmits(['submitForm'])
 
 const props = defineProps({
-    edit: {
-        type: Number,
-        mandatory: false
-    },
-    add: {
-        type: Boolean,
-        mandatory: false
-    },
-    schemaName: {
+    apiUrl: {
         type: String,
-        mandatory: true
+        required: false,
     },
-    apiName: {
+    titleProp: {
         type: String,
-        required: true,
-    },
-    editTitleField: {
-        type: String,
+        required: false,
         default: "name",
     },
+    excludeFields: {
+        type: Array,
+        required: false,
+        default: [],
+    },
+    sections: {
+        type: Object,
+        required: false,
+        default: {},
+    },
 })
-
 const {data} = await useAsyncData(
-    "schema_" + props.schemaName,
-    async () => await itemsStore.requestOrGetSchema($axios, props.schemaName)
+    "schema_" + props.apiUrl,
+    async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
 schema.value = data.value
-
 const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
+const allExcludeFields = computed(() => {
+    return [...props.excludeFields, "id", "created_date", "updated_date"]
+})
 
 // Initialize form
 for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
-    if (excludeFields.value.indexOf(fieldName) === -1) {
+    if (allExcludeFields.value.indexOf(fieldName) === -1) {
         form.value[fieldName] = undefined
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
@@ -102,31 +126,33 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 }
 
 // Initialize form values
-if (props.edit) {
-    const { data } = await useAsyncData(
-        props.apiName + "_" + props.edit,
-        async () => await itemsStore.requestOrGetItem($axios, props.apiName, props.schemaName, props.edit)
+if (itemsStore.editing) {
+    const {data} = await useAsyncData(
+        props.apiUrl + "_" + itemsStore.editing,
+        async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
     )
     if (data.value) {
-      for (const [fieldName, fieldValue] of Object.entries(data.value)) {
-        if (excludeFields.value.indexOf(fieldName) === -1) {
-          form.value[fieldName] = fieldValue
+        for (const [fieldName, fieldValue] of Object.entries(data.value)) {
+            if (allExcludeFields.value.indexOf(fieldName) === -1) {
+                form.value[fieldName] = fieldValue
+            }
         }
-      }
     }
 }
 
 const submitForm = async (formEl) => {
+
     if (!formEl) return
-    await formEl.validate()
     await formEl.validate(async (valid) => {
         if (!valid)
             return
+        // emit event "submitForm":
+        emit("submitForm", form.value)
         try {
-            if (props.edit)
-                await $axios.put(`/back/api/language-model/${props.apiName}/${props.edit}/`, form.value)
+            if (itemsStore.editing)
+                await $axios.put(`${props.apiUrl}${itemsStore.editing}/`, form.value)
             else
-                await $axios.post(`/back/api/language-model/${props.apiName}/`, form.value)
+                await $axios.post(props.apiUrl, form.value)
         } catch (e) {
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
@@ -136,16 +162,17 @@ const submitForm = async (formEl) => {
                 throw e
             }
         }
-        router.push({
-            path: `/ai_config/${props.apiName}/`,
-        });
+        itemsStore.stateToRead()
     })
 }
-function navigateToRead() {
-    router.push({
-        path: `/ai_config/${props.apiName}/`,
-    });
+
+function deleteItem(id) {
+    itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
+    deleting.value = undefined
+    itemsStore.stateToRead()
 }
+
+
 </script>
 <style lang="scss">
 .el-form-item {
@@ -158,10 +185,12 @@ function navigateToRead() {
         text-align: left;
 
     }
+
     div {
         width: 328px;
     }
 }
+
 .el-form-item {
     label::after {
         color: $chatfaq-color-primary-500 !important;
@@ -176,11 +205,13 @@ function navigateToRead() {
     margin-left: 160px;
     margin-right: 160px;
     max-width: 1300px;
+
     .navigation-header {
         display: flex;
         justify-content: space-between;
         width: 100%;
         margin-top: 24px;
+
         .back-button {
             display: flex;
             cursor: pointer;
@@ -188,11 +219,13 @@ function navigateToRead() {
             font-size: 12px;
             font-weight: 600;
             color: $chatfaq-color-primary-500;
+
             i {
                 margin-right: 8px;
             }
         }
     }
+
     .form-content {
         background-color: white;
         border-radius: 10px;
@@ -210,15 +243,22 @@ function navigateToRead() {
         }
 
     }
+
     .commands {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
         margin-top: 24px;
+
+        .delete-button {
+            width: 75px;
+        }
+
         .flex-right {
             display: flex;
             flex-direction: row;
+
             *:first-child {
                 margin-right: 8px;
             }

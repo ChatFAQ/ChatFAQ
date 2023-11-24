@@ -38,8 +38,8 @@
     "device": "Device",
     "updateddate": "Last Modified",
     "lastmodified": "Last Modified",
-    "numberofitems": "{number} {itemname} configuration",
-    "additem": "Add {itemname}",
+    "numberofitems": "{number} {readablename} configuration",
+    "additem": "Add {readablename}",
     "edit": "Edit",
     "contextsnumber": "Contexts number",
     "temperature": "Temperature",
@@ -50,5 +50,9 @@
     "llmconfig": "LLM Config",
     "promptconfig":  "Prompt Config",
     "generationconfig": "Generation Config",
-    "retrieverconfig":  "Retriever Config"
+    "retrieverconfig":  "Retriever Config",
+    "usermanagement": "User Management",
+    "user": "User",
+    "rolepermissions": "Role Permissions",
+    "email": "Email"
 }

@@ -8,6 +8,10 @@
 </template>
 <script setup>
 import { defineProps } from 'vue';
+import {useItemsStore} from "~/store/items.js";
+
+const itemsStore = useItemsStore()
+
 const router = useRouter();
 const props = defineProps({
     icon: {
@@ -28,6 +32,7 @@ const iconComponent = shallowRef(resolveComponent(props.icon))
 
 function goToPage() {
     if (props.page) {
+        itemsStore.stateToRead()
         router.push(props.page)
     }
 }
