@@ -1,7 +1,7 @@
 <template>
     <div class="write-view-wrapper">
         <div class="navigation-header">
-            <div class="back-button" @click="stateToRead">
+            <div class="back-button" @click="itemsStore.stateToRead">
                 <el-icon>
                     <ArrowLeft/>
                 </el-icon>
@@ -21,32 +21,31 @@
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
         >
-            <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
-            <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="allExcludeFields.indexOf(fieldName) === -1" class="field" :label="schema.properties[fieldName].type === 'boolean' ? '' : fieldName"
-                              :prop="fieldName"
-                              :error="formServerErrors[fieldName]">
-                    <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
-                        <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]" :label="fieldName"/>
-                        <el-select v-else-if="schema.properties[fieldName].type === 'array'" v-model="form[fieldName]" multiple>
-                            <el-option
-                                v-for="choice in schema.properties[fieldName].choices"
-                                :key="choice.value"
-                                :label="choice.label"
-                                :value="choice.value"
-                            />
-                        </el-select>
-                        <el-select v-else-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
-                            <el-option
-                                v-for="choice in schema.properties[fieldName].choices"
-                                :key="choice.value"
-                                :label="choice.label"
-                                :value="choice.value"
-                            />
-                        </el-select>
-                        <el-input v-else v-model="form[fieldName]"/>
-                    </slot>
-                </el-form-item>
+            <div v-if="!Object.keys(sections).length" class="form-section">
+                <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
+                <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
+                    <FormField
+                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        class="field"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :form="form"
+                        :formServerErrors="formServerErrors"
+                    />
+                </div>
+            </div>
+            <div v-else v-for="(sectionName, fields) in sections" class="form-section">
+                <div class="edit-title">{{ sectionName }}</div>
+                <div v-for="fieldName in fields" class="field-wrapper">
+                    <FormField
+                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        class="field"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :form="form"
+                        :formServerErrors="formServerErrors"
+                    />
+                </div>
             </div>
         </el-form>
 
@@ -59,7 +58,7 @@
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button @click="stateToRead">
+                <el-button @click="itemsStore.stateToRead">
                     Cancel
                 </el-button>
                 <el-button type="primary" @click="submitForm(formRef)">
@@ -71,6 +70,7 @@
 </template>
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import FormField from "~/components/generic/FormField.vue";
 
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
@@ -94,6 +94,11 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
+    },
+    sections: {
+        type: Object,
+        required: false,
+        default: {},
     },
 })
 const {data} = await useAsyncData(
@@ -157,20 +162,16 @@ const submitForm = async (formEl) => {
                 throw e
             }
         }
-        stateToRead()
+        itemsStore.stateToRead()
     })
 }
 
 function deleteItem(id) {
     itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
     deleting.value = undefined
-    stateToRead()
+    itemsStore.stateToRead()
 }
 
-function stateToRead() {
-    itemsStore.adding = false
-    itemsStore.editing = undefined
-}
 
 </script>
 <style lang="scss">
