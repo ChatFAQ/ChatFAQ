@@ -10,6 +10,9 @@
                            :tableProps="{
                     'email': $t('email'),
                 }">
+                <template v-slot:password="props">
+                    <Password :form="props.form" :fieldName="props.fieldName"/>
+                </template>
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('rolepermissions')" name="role-permissions">
@@ -27,9 +30,10 @@
 
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
-import { useItemsStore } from "~/store/items.js";
+import {useItemsStore} from "~/store/items.js";
+import Password from "~/components/user_management/fields/Password.vue";
 
-const { $axios } = useNuxtApp();
+const {$axios} = useNuxtApp();
 
 const itemsStore = useItemsStore()
 

@@ -14,20 +14,24 @@
         :editing="editing"
         :adding="adding"
         :titleProp="titleProp"
-    />
+    >
+        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+            <slot :name="name" v-bind="data"></slot>
+        </template>
+    </WriteView>
 </template>
 
 <script setup>
 import ReadView from "~/components/generic/ReadView.vue";
-import { defineProps } from 'vue';
+import {defineProps} from 'vue';
 import WriteView from "~/components/generic/WriteView.vue";
-import { storeToRefs } from 'pinia'
-import { useItemsStore } from "~/store/items.js";
+import {storeToRefs} from 'pinia'
+import {useItemsStore} from "~/store/items.js";
 
 const itemsStore = useItemsStore()
 
 
-const { editing, adding } = storeToRefs(itemsStore)
+const {editing, adding} = storeToRefs(itemsStore)
 
 const props = defineProps({
     readableName: {

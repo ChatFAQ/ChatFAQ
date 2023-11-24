@@ -23,10 +23,10 @@
         >
             <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <slot :name="fieldName">
-                    <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
-                                  :prop="fieldName"
-                                  :error="formServerErrors[fieldName]">
+                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
+                              :prop="fieldName"
+                              :error="formServerErrors[fieldName]">
+                    <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
                         <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
                             <el-option
                                 v-for="choice in schema.properties[fieldName].choices"
@@ -36,8 +36,8 @@
                             />
                         </el-select>
                         <el-input v-else v-model="form[fieldName]"/>
-                    </el-form-item>
-                </slot>
+                    </slot>
+                </el-form-item>
             </div>
         </el-form>
 
