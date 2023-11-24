@@ -54,5 +54,7 @@
     "usermanagement": "User Management",
     "user": "User",
     "rolepermissions": "Role Permissions",
-    "email": "Email"
+    "email": "Email",
+    "userinformation": "User information",
+    "userpermissions": "User permissions"
 }

@@ -11,7 +11,7 @@
 .page-wrapper {
     background-color: #f2f0f7;
     width: 100vw;
-    height: 100vh;
+    height: 100%;
     display: flex;
 }
 .content-wrapper {

@@ -31,10 +31,14 @@
                         :schema="schema"
                         :form="form"
                         :formServerErrors="formServerErrors"
-                    />
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </FormField>
                 </div>
             </div>
-            <div v-else v-for="(sectionName, fields) in sections" class="form-section">
+            <div v-else v-for="(fields, sectionName) in sections" class="form-section">
                 <div class="edit-title">{{ sectionName }}</div>
                 <div v-for="fieldName in fields" class="field-wrapper">
                     <FormField
@@ -44,7 +48,11 @@
                         :schema="schema"
                         :form="form"
                         :formServerErrors="formServerErrors"
-                    />
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </FormField>
                 </div>
             </div>
         </el-form>
@@ -69,10 +77,10 @@
     </div>
 </template>
 <script setup>
-import {useItemsStore} from "~/store/items.js";
+import { useItemsStore } from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 
-const {$axios} = useNuxtApp();
+const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
@@ -101,7 +109,7 @@ const props = defineProps({
         default: {},
     },
 })
-const {data} = await useAsyncData(
+const { data } = await useAsyncData(
     "schema_" + props.apiUrl,
     async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
@@ -120,14 +128,14 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
         if (schema.value.required.indexOf(fieldName) !== -1) {
-            formRules.value[fieldName].push({required: true, message: `Please enter ${fieldName}`, trigger: 'blur'})
+            formRules.value[fieldName].push({ required: true, message: `Please enter ${fieldName}`, trigger: 'blur' })
         }
     }
 }
 
 // Initialize form values
 if (itemsStore.editing) {
-    const {data} = await useAsyncData(
+    const { data } = await useAsyncData(
         props.apiUrl + "_" + itemsStore.editing,
         async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
     )
@@ -227,12 +235,17 @@ function deleteItem(id) {
     }
 
     .form-content {
-        background-color: white;
-        border-radius: 10px;
         width: 100%;
-        margin-top: 16px;
-        padding: 28px;
-        border: 1px solid $chatfaq-color-primary-200;
+
+        .form-section {
+            background-color: white;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 16px;
+            margin-bottom: 24px;
+            padding: 28px;
+            border: 1px solid $chatfaq-color-primary-200;
+        }
 
         .edit-title {
             font-size: 18px;
@@ -249,7 +262,6 @@ function deleteItem(id) {
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
-        margin-top: 24px;
 
         .delete-button {
             width: 75px;
