@@ -1,7 +1,7 @@
 <template>
     <div class="password-wrapper">
         <el-input
-            v-if="!editingPassword"
+            v-if="!editingPassword && oldEncryptedPass"
             v-model="form[fieldName]"
             type="password"
             placeholder="Please input password"
@@ -15,7 +15,7 @@
             placeholder="Please input password"
             show-password
         />
-        <el-button type="primary" @click=toggleEditingPassword>
+        <el-button v-if="oldEncryptedPass" type="primary" @click=toggleEditingPassword>
             <el-icon>
                 <EditPen v-if="!editingPassword"/>
                 <Close v-else/>
@@ -25,7 +25,6 @@
 </template>
 
 <script setup>
-let oldEncryptedPass
 
 const editingPassword = ref(false)
 defineExpose({
@@ -41,14 +40,13 @@ const props = defineProps({
         mandatory: true
     }
 })
-
+let oldEncryptedPass = ref(props.form[props.fieldName])
 function toggleEditingPassword(ev) {
     editingPassword.value = !editingPassword.value
     if(editingPassword.value) {
-        oldEncryptedPass = props.form[props.fieldName]
         props.form[props.fieldName] = ""
     } else {
-        props.form[props.fieldName] = oldEncryptedPass
+        props.form[props.fieldName] = oldEncryptedPass.value
     }
     ev.preventDefault()
 }
