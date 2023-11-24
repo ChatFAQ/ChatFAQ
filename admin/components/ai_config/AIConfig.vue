@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-page-title">{{ $t("aiconfiguration") }}</div>
-  <el-tabs @tab-change="stateToRead" v-model="itemType">
+  <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
     <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
       <ReadWriteView readableName="retriever" apiUrl="/back/api/language-model/retriever-configs/"
                      :cardProps="{
@@ -93,9 +93,5 @@ const itemsStore = useItemsStore()
 const itemType = ref("retriever-configs")
 await itemsStore.loadSchema($axios)
 
-function stateToRead(tabName, event) {
-  itemsStore.adding = false
-  itemsStore.editing = undefined
-}
 
 </script>

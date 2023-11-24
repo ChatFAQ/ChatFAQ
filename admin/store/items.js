@@ -60,6 +60,10 @@ export const useItemsStore = defineStore('items', {
                 }
             }
             return schema
+        },
+        stateToRead(){
+            this.editing = undefined
+            this.adding = undefined
         }
     },
     getters: {

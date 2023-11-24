@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
-    <el-tabs @tab-change="stateToRead" v-model="itemType">
+    <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :lazy="true" :label="$t('user')" name="user">
             <ReadWriteView readableName="User" apiUrl="/back/api/people/users/"
                            titleProp="first_name"
@@ -44,10 +44,6 @@ const itemsStore = useItemsStore()
 const itemType = ref("user")
 await itemsStore.loadSchema($axios)
 
-function stateToRead(tabName, event) {
-    itemsStore.adding = false
-    itemsStore.editing = undefined
-}
 
 function submitPassword() {
     password.value.submit()
