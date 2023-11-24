@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 
 from .models import User
@@ -7,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 
 class AdminUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(required=False)
+    date_joined = serializers.DateTimeField(default=datetime.now)
 
     class Meta:
         model = User

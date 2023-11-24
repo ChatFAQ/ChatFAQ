@@ -23,7 +23,7 @@
         >
             <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
             <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="schema.properties[fieldName].type === 'boolean' ? '' : fieldName"
+                <el-form-item v-if="allExcludeFields.indexOf(fieldName) === -1" class="field" :label="schema.properties[fieldName].type === 'boolean' ? '' : fieldName"
                               :prop="fieldName"
                               :error="formServerErrors[fieldName]">
                     <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
@@ -78,7 +78,6 @@ const router = useRouter()
 const schema = ref({})
 const formRef = ref()
 const deleting = ref(false)
-const excludeFields = ref(["id", "created_date", "updated_date"])
 const emit = defineEmits(['submitForm'])
 
 const props = defineProps({
@@ -91,6 +90,11 @@ const props = defineProps({
         required: false,
         default: "name",
     },
+    excludeFields: {
+        type: Array,
+        required: false,
+        default: [],
+    },
 })
 const {data} = await useAsyncData(
     "schema_" + props.apiUrl,
@@ -100,10 +104,13 @@ schema.value = data.value
 const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
+const allExcludeFields = computed(() => {
+    return [...props.excludeFields, "id", "created_date", "updated_date"]
+})
 
 // Initialize form
 for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
-    if (excludeFields.value.indexOf(fieldName) === -1) {
+    if (allExcludeFields.value.indexOf(fieldName) === -1) {
         form.value[fieldName] = undefined
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
@@ -121,7 +128,7 @@ if (itemsStore.editing) {
     )
     if (data.value) {
         for (const [fieldName, fieldValue] of Object.entries(data.value)) {
-            if (excludeFields.value.indexOf(fieldName) === -1) {
+            if (allExcludeFields.value.indexOf(fieldName) === -1) {
                 form.value[fieldName] = fieldValue
             }
         }

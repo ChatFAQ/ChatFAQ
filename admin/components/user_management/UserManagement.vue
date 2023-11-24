@@ -9,7 +9,10 @@
                 }"
                            :tableProps="{
                     'email': $t('email'),
-                }" @submitForm="submitPassword">
+                }"
+                           :excludeFields="['date_joined', 'last_login', 'rpc_group']"
+                           @submitForm="submitPassword"
+            >
                 <template v-slot:password="props">
                     <Password :form="props.form" :fieldName="props.fieldName" ref="password"/>
                 </template>

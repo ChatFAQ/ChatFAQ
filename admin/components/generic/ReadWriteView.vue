@@ -5,6 +5,7 @@
         :readableName="readableName"
         :cardProps="cardProps"
         :tableProps="tableProps"
+        :excludeFields="excludeFields"
         :titleProp="titleProp"
     />
     <WriteView
@@ -14,6 +15,7 @@
         :editing="editing"
         :adding="adding"
         :titleProp="titleProp"
+        :excludeFields="excludeFields"
         v-bind="$attrs"
     >
         <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -55,6 +57,11 @@ const props = defineProps({
         type: String,
         required: false,
         default: "name",
+    },
+    excludeFields: {
+        type: Array,
+        required: false,
+        default: [],
     },
 })
 </script>
