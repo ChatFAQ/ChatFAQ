@@ -10,7 +10,7 @@
 <style scoped lang="scss">
 .page-wrapper {
     background-color: #f2f0f7;
-    width: 100vw;
+    width: 100%;
     height: 100%;
     display: flex;
 }

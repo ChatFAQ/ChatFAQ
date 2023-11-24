@@ -262,6 +262,7 @@ function deleteItem(id) {
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
+        margin-bottom: 40px;
 
         .delete-button {
             width: 75px;
