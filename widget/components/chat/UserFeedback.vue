@@ -266,14 +266,14 @@ async function userFeedback(value, _collapse) {
 
         [contenteditable][placeholder]:empty:before {
             content: attr(placeholder);
-            color: rgba(2, 12, 28, 0.6);
+            color: $chatfaq-color-chatPlaceholder-text-light;
             background-color: transparent;
             font-style: italic;
             cursor: text;
         }
 
         .dark-mode[contenteditable][placeholder]:empty:before {
-            color: $chatfaq-color-primary-200;
+            color: $chatfaq-color-chatPlaceholder-text-dark;
         }
     }
 

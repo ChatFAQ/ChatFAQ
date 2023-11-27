@@ -23,10 +23,9 @@
         >
             <div v-if="!Object.keys(sections).length" class="form-section">
                 <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
-                <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
+                <div v-for="(_, fieldName) in filterInSection(true, schema.properties)">
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1"
-                        class="field"
                         :fieldName="fieldName"
                         :schema="schema"
                         :form="form"
@@ -38,12 +37,11 @@
                     </FormField>
                 </div>
             </div>
-            <div v-else v-for="(fields, sectionName) in sections" class="form-section">
+            <div v-else v-for="(fields, sectionName) in filterInSection(true, sections)" class="form-section">
                 <div class="edit-title">{{ sectionName }}</div>
-                <div v-for="fieldName in fields" class="field-wrapper">
+                <div v-for="fieldName in fields">
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1"
-                        class="field"
                         :fieldName="fieldName"
                         :schema="schema"
                         :form="form"
@@ -54,6 +52,20 @@
                         </template>
                     </FormField>
                 </div>
+            </div>
+            <div v-for="(_, fieldName) in filterInSection(false, schema.properties)">
+                <FormField
+                    v-if="allExcludeFields.indexOf(fieldName) === -1"
+                    :fieldName="fieldName"
+                    :schema="schema"
+                    :form="form"
+                    :formServerErrors="formServerErrors"
+                    :noLabel="true"
+                >
+                    <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                        <slot :name="name" v-bind="data"></slot>
+                    </template>
+                </FormField>
             </div>
         </el-form>
 
@@ -108,6 +120,11 @@ const props = defineProps({
         required: false,
         default: {},
     },
+    outsideSection: {
+        type: Array,
+        required: false,
+        default: [],
+    }
 })
 const { data } = await useAsyncData(
     "schema_" + props.apiUrl,
@@ -178,6 +195,15 @@ function deleteItem(id) {
     itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
     deleting.value = undefined
     itemsStore.stateToRead()
+}
+
+function filterInSection(inSection, _obj) {
+    return Object.keys(_obj)
+        .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
+        .reduce((obj, key) => {
+            obj[key] = _obj[key];
+            return obj;
+        }, {});
 }
 
 

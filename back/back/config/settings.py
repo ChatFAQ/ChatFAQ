@@ -107,6 +107,7 @@ with EnvManager(model_w_django) as env:
         "back.apps.broker",
         "back.apps.fsm",
         "back.apps.language_model",
+        "back.apps.widget",
     ]
     if not os.getenv("REDIS_URL"):
         INSTALLED_APPS += [

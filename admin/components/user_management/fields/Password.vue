@@ -1,27 +1,30 @@
 <template>
-    <div class="password-wrapper">
-        <el-input
-            v-if="!editingPassword && oldEncryptedPass"
-            v-model="form[fieldName]"
-            type="password"
-            placeholder="Please input password"
-            disabled
-            show-password
-        />
-        <el-input
-            v-else
-            v-model="form[fieldName]"
-            type="password"
-            placeholder="Please input password"
-            show-password
-        />
-        <el-button v-if="oldEncryptedPass" type="primary" @click=toggleEditingPassword>
-            <el-icon>
-                <EditPen v-if="!editingPassword"/>
-                <Close v-else/>
-            </el-icon>
-        </el-button>
-    </div>
+        <el-form-item :label="fieldName"
+                      :prop="fieldName"
+                        class="password-wrapper"
+        >
+            <el-input
+                v-if="!editingPassword && oldEncryptedPass"
+                v-model="form[fieldName]"
+                type="password"
+                placeholder="Please input password"
+                disabled
+                show-password
+            />
+            <el-input
+                v-else
+                v-model="form[fieldName]"
+                type="password"
+                placeholder="Please input password"
+                show-password
+            />
+            <el-button v-if="oldEncryptedPass" type="primary" @click=toggleEditingPassword>
+                <el-icon>
+                    <EditPen v-if="!editingPassword"/>
+                    <Close v-else/>
+                </el-icon>
+            </el-button>
+        </el-form-item>
 </template>
 
 <script setup>
@@ -57,12 +60,20 @@ function submit() {
     }
 }
 </script>
+<style lang="scss">
+.password-wrapper {
+    .el-input {
+        width: 328px;
+    }
+    .el-form-item__content {
+        display: flex;
+        width: unset !important;
+    }
+}
+</style>
 
 <style lang="scss" scoped>
 .password-wrapper {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
     button {
         margin-left: 8px;
         height: 40px;

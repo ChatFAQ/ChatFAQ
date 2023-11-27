@@ -17,6 +17,7 @@
         :titleProp="titleProp"
         :excludeFields="excludeFields"
         :sections="sections"
+        :outsideSection="outsideSection"
         v-bind="$attrs"
     >
         <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -68,6 +69,11 @@ const props = defineProps({
         type: Object,
         required: false,
         default: {},
+    },
+    outsideSection: {
+        type: Array,
+        required: false,
+        default: [],
     },
 })
 </script>

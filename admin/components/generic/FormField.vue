@@ -1,29 +1,29 @@
 <template>
-    <el-form-item :label="schema.properties[fieldName].type === 'boolean' ? '' : fieldName"
-                  :prop="fieldName"
-                  :error="formServerErrors[fieldName]">
-        <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
-            <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]"
-                         :label="fieldName"/>
-            <el-select v-else-if="schema.properties[fieldName].type === 'array'" v-model="form[fieldName]" multiple>
-                <el-option
-                    v-for="choice in schema.properties[fieldName].choices"
-                    :key="choice.value"
-                    :label="choice.label"
-                    :value="choice.value"
-                />
-            </el-select>
-            <el-select v-else-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
-                <el-option
-                    v-for="choice in schema.properties[fieldName].choices"
-                    :key="choice.value"
-                    :label="choice.label"
-                    :value="choice.value"
-                />
-            </el-select>
-            <el-input v-else v-model="form[fieldName]"/>
-        </slot>
-    </el-form-item>
+    <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
+        <el-form-item v-if="schema.properties[fieldName]" :label="schema.properties[fieldName].type === 'boolean' || noLabel ? '' : fieldName"
+                      :prop="fieldName"
+                      :error="formServerErrors[fieldName]">
+                <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]"
+                             :label="fieldName"/>
+                <el-select v-else-if="schema.properties[fieldName].type === 'array'" v-model="form[fieldName]" multiple>
+                    <el-option
+                        v-for="choice in schema.properties[fieldName].choices"
+                        :key="choice.value"
+                        :label="choice.label"
+                        :value="choice.value"
+                    />
+                </el-select>
+                <el-select v-else-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
+                    <el-option
+                        v-for="choice in schema.properties[fieldName].choices"
+                        :key="choice.value"
+                        :label="choice.label"
+                        :value="choice.value"
+                    />
+                </el-select>
+                <el-input v-else v-model="form[fieldName]"/>
+        </el-form-item>
+    </slot>
 </template>
 <script setup>
 const props = defineProps({
@@ -41,6 +41,10 @@ const props = defineProps({
     },
     formServerErrors: {
         type: Object,
+    },
+    noLabel: {
+        type: Boolean,
+        default: false,
     },
 })
 </script>
