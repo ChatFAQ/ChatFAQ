@@ -1,76 +1,76 @@
 THEME_DEFAULTS = {
     # Title
     "chatfaq-font-title-xl": {
-        "name": "chatfaq-font-title-xl",
+        "name": "title-xl",
         "type": "font",
         "section": "title",
         "value": "normal normal 700 56px/68px 'Montserrat'",
     },
     "chatfaq-font-title-l": {
-        "name": "chatfaq-font-title-l",
+        "name": "title-l",
         "type": "font",
         "section": "title",
         "value": "normal normal 700 48px/59px 'Montserrat'",
     },
     "chatfaq-font-title-sm": {
-        "name": "chatfaq-font-title-sm",
+        "name": "title-sm",
         "type": "font",
         "section": "title",
         "value": "normal normal 700 24px/29px 'Montserrat'",
     },
     "chatfaq-font-title-xs": {
-        "name": "chatfaq-font-title-xs",
+        "name": "title-xs",
         "type": "font",
         "section": "title",
         "value": "normal normal 700 18px/22px 'Montserrat'",
     },
     # Body
     "chatfaq-font-body-xl": {
-        "name": "chatfaq-font-body-xl",
+        "name": "body-xl",
         "type": "font",
         "section": "body",
         "value": "normal normal 400 24px/33px 'Open Sans'",
     },
     "chatfaq-font-body-m": {
-        "name": "chatfaq-font-body-m",
+        "name": "body-m",
         "type": "font",
         "section": "body",
         "value": "normal normal 400 24px/33px 'Open Sans'",
     },
     "chatfaq-font-body-m-bold": {
-        "name": "chatfaq-font-body-m-bold",
+        "name": "body-m-bold",
         "type": "font",
         "section": "body",
         "value": "normal normal 600 16px/22px 'Open Sans'",
     },
     "chatfaq-font-body-s": {
-        "name": "chatfaq-font-body-s",
+        "name": "body-s",
         "type": "font",
         "section": "body",
         "value": "normal normal 400 14px/19px 'Open Sans'",
     },
     "chatfaq-font-body-xs": {
-        "name": "chatfaq-font-body-xs",
+        "name": "body-xs",
         "type": "font",
         "section": "body",
         "value": "normal normal 400 14px/19px 'Open Sans'",
     },
     # Caption
     "chatfaq-font-caption-md": {
-        "name": "chatfaq-font-caption-md",
+        "name": "caption-md",
         "type": "font",
         "section": "caption",
         "value": "italic normal 600 14px/19px 'Open Sans'",
     },
     "chatfaq-font-caption-sm": {
-        "name": "chatfaq-font-caption-md",
+        "name": "caption-md",
         "type": "font",
         "section": "caption",
         "value": "normal normal 400 12px/16px 'Open Sans'",
     },
     # Button
     "chatfaq-font-button": {
-        "name": "chatfaq-font-button",
+        "name": "button",
         "type": "font",
         "section": "button",
         "value": "normal normal 600 14px/17px 'Montserrat'",
@@ -84,13 +84,13 @@ THEME_DEFAULTS = {
     },
     # Specific Colors
     "chatfaq-color-alertMessage-text": {
-        "name": "chatfaq-color-bubbleButton-background-hover",
-        "type": "color",
-        "section": "gradient",
+        "name": "bubbleButton-background-hover",
+        "type": "gradient",
+        "section": "colors",
         "value": "linear-gradient(135deg, #463075 0%, #220D44 100%)",
     },
     "chatfaq-color-alertMessage-text": {
-        "name": "chatfaq-color-bubbleButton-background-hover",
+        "name": "bubbleButton-background-hover",
         "type": "color",
         "section": "colors",
         "values": {
@@ -100,7 +100,7 @@ THEME_DEFAULTS = {
 
     },
     "chatfaq-color-chat-background": {
-        "name": "chatfaq-color-chat-background",
+        "name": "chat-background",
         "type": "color",
         "section": "colors",
         "values": {
@@ -110,7 +110,7 @@ THEME_DEFAULTS = {
 
     },
     "chatfaq-color-chatInput-background": {
-        "name": "chatfaq-color-chatInput-background",
+        "name": "chatInput-background",
         "type": "color",
         "section": "colors",
         "values": {
@@ -119,7 +119,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatInput-border": {
-        "name": "chatfaq-color-chatInput-border",
+        "name": "chatInput-border",
         "type": "color",
         "section": "colors",
         "values": {
@@ -128,7 +128,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatInput-text": {
-        "name": "chatfaq-color-chatInput-text",
+        "name": "chatInput-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -137,7 +137,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageBot-background": {
-        "name": "chatfaq-color-chatMessageBot-background",
+        "name": "chatMessageBot-background",
         "type": "color",
         "section": "colors",
         "values": {
@@ -146,7 +146,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageBot-text": {
-        "name": "chatfaq-color-chatMessageBot-text",
+        "name": "chatMessageBot-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -155,7 +155,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageHuman-background": {
-        "name": "chatfaq-color-chatMessageHuman-background",
+        "name": "chatMessageHuman-background",
         "type": "color",
         "section": "colors",
         "values": {
@@ -164,7 +164,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageHuman-text": {
-        "name": "chatfaq-color-chatMessageHuman-text",
+        "name": "chatMessageHuman-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -173,7 +173,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageReference-background": {
-        "name": "chatfaq-color-chatMessageReference-background",
+        "name": "chatMessageReference-background",
         "type": "color",
         "section": "colors",
         "values": {
@@ -182,7 +182,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageReference-text": {
-        "name": "chatfaq-color-chatMessageReference-text",
+        "name": "chatMessageReference-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -191,7 +191,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatMessageReferenceTitle-text": {
-        "name": "chatfaq-color-chatMessageReferenceTitle-text",
+        "name": "chatMessageReferenceTitle-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -200,7 +200,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-chatPlaceholder-text": {
-        "name": "chatfaq-color-chatPlaceholder-text",
+        "name": "chatPlaceholder-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -209,7 +209,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-clipboard-text": {
-        "name": "chatfaq-color-clipboard-text",
+        "name": "clipboard-text",
         "type": "color",
         "section": "colors",
         "values": {
@@ -218,7 +218,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-loader": {
-        "name": "chatfaq-color-loader",
+        "name": "loader",
         "type": "color",
         "section": "colors",
         "values": {
@@ -227,7 +227,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-scrollBar": {
-        "name": "chatfaq-color-scrollBar",
+        "name": "scrollBar",
         "type": "color",
         "section": "colors",
         "values": {
@@ -236,7 +236,7 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-separator": {
-        "name": "chatfaq-color-separator",
+        "name": "separator",
         "type": "color",
         "section": "colors",
         "values": {
@@ -245,67 +245,67 @@ THEME_DEFAULTS = {
         }
     },
     "chatfaq-color-bubbleButton-background-hover": {
-        "name": "chatfaq-color-bubbleButton-background-hover",
-        "type": "color",
-        "section": "gradient",
+        "name": "bubbleButton-background-hover",
+        "type": "gradient",
+        "section": "colors",
         "value": "linear-gradient(135deg, #463075 0%, #220D44 100%)",
     },
     "chatfaq-color-bubbleButton-background": {
-        "name": "chatfaq-color-bubbleButton-background",
-        "type": "color",
-        "section": "gradient",
+        "name": "bubbleButton-background",
+        "type": "gradient",
+        "section": "colors",
         "value": "linear-gradient(135deg, #CE0578 0%, #463075 100%)",
     },
     "chatfaq-color-menu-background": {
-        "name": "chatfaq-color-menu-background",
-        "type": "color",
-        "section": "gradient",
+        "name": "menu-background",
+        "type": "gradient",
+        "section": "colors",
         "value": "linear-gradient(135deg, #463075 0%, #220D44 100%)",
     },
     "chatfaq-color-menu-border": {
-        "name": "chatfaq-color-menu-border",
+        "name": "menu-border",
         "type": "color",
         "section": "colors",
         "value": "#4D4160",
     },
     "chatfaq-color-menu-scrollColor": {
-        "name": "chatfaq-color-menu-scrollColor",
+        "name": "menu-scrollColor",
         "type": "color",
         "section": "colors",
         "value": "#9FFFFF",
     },
     "chatfaq-color-menu-text": {
-        "name": "chatfaq-color-menu-text",
+        "name": "menu-text",
         "type": "color",
         "section": "colors",
         "value": "#FFFFFF",
     },
     "chatfaq-color-menuButton-background": {
-        "name": "chatfaq-color-menuButton-background",
+        "name": "menuButton-background",
         "type": "color",
         "section": "colors",
         "value": "#463075",
     },
     "chatfaq-color-menuItem-background-hover": {
-        "name": "chatfaq-color-menuItem-background-hover",
+        "name": "menuItem-background-hover",
         "type": "color",
         "section": "colors",
         "value": "#1A0438",
     },
     "chatfaq-color-menuItem-background": {
-        "name": "chatfaq-color-menuItem-background",
+        "name": "menuItem-background",
         "type": "color",
         "section": "colors",
         "value": "rgba(223, 218, 234, .1)",
     },
     "chatfaq-color-menuItem-border-edit": {
-        "name": "chatfaq-color-menuItem-border-edit",
+        "name": "menuItem-border-edit",
         "type": "color",
         "section": "colors",
         "value": "#9FFFFF",
     },
     "chatfaq-color-darkFilter": {
-        "name": "chatfaq-color-darkFilter",
+        "name": "darkFilter",
         "type": "color",
         "section": "colors",
         "value": "rgba(2, 12, 28, .7)",
