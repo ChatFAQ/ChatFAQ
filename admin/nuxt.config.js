@@ -13,11 +13,7 @@ export default envManager((env) => {
                 },
                 {name: "format-detection", content: "telephone=no"},
             ],
-        },
-        /**
-         * Any url you need from admin or needs by any component. It should be add on proxyFilters.
-         * */
-        proxyFilters: [],
+        }
     });
     const viteNuxtConfig = defineNuxtConfig({
         ssr: true,
