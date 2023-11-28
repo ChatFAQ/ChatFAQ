@@ -24,6 +24,11 @@ urlpatterns = [
         "back/api/logoutall/", knox_views.LogoutAllView.as_view(), name="knox_logoutall"
     ),
     path("back/api/", include("back.apps.urls")),
+    path(
+        "back/api/schema/",
+        SpectacularAPIView.as_view(),
+        name="schema",
+    ),
 ]
 
 if settings.DEBUG:
@@ -34,11 +39,6 @@ if settings.DEBUG:
     )
 
     urlpatterns = [
-        path(
-            "back/api/schema/",
-            SpectacularAPIView.as_view(),
-            name="schema",
-        ),
         path(
             "back/api/schema/swagger-ui/",
             SpectacularSwaggerView.as_view(url_name="schema"),
