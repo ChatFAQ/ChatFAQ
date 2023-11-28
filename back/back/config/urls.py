@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from knox import views as knox_views
 from rest_framework.routers import DefaultRouter, SimpleRouter
 
+from drf_spectacular.views import SpectacularAPIView
 from back.apps.people.views import LoginView
 
 admin.site.site_title = _("ChatFAQ's back-end server")
@@ -33,7 +34,6 @@ urlpatterns = [
 
 if settings.DEBUG:
     from drf_spectacular.views import (
-        SpectacularAPIView,
         SpectacularRedocView,
         SpectacularSwaggerView,
     )
