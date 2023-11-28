@@ -12,9 +12,13 @@ class OpenAIChatModel(RAGLLM):
     def __init__(
         self,
         llm_name: str,
+        base_url: str = None,
         **kwargs,
-    ):
-        self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    ):  
+        if base_url is None:
+            self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        else:
+            self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"], base_url=base_url)
         self.llm_name = llm_name
 
     def format_prompt(

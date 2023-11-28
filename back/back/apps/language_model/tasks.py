@@ -80,6 +80,13 @@ def get_model(
         An instance of the corresponding LLM Model.
     """
 
+    # if llm type is vllm, then use OpenAIChatModel because vllm implements the OpenAI API
+    if llm_type == "vllm":
+        return OpenAIChatModel(
+            llm_name=llm_name,
+            base_url=os.environ.get("VLLM_ENDPOINT_URL", None),
+        )
+
     return LLM_CLASSES[llm_type](
         llm_name=llm_name,
         ggml_model_filename=ggml_model_filename,
