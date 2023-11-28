@@ -37,7 +37,8 @@ env:
       REDIS_URL: '{{ redis.REDIS_URL }}'
   - name: widget
     variables:
-      # BASE_URL: "/demo"
+      BASE_URL: "/demo"
+      NUXT_PUBLIC_BASE_URL: "/demo"
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
@@ -69,7 +70,7 @@ services:
     instance_size: XXS
     port: 3000
     route_prefixes:
-      - "//demo"
+      - "/demo"
   - name: admin
     image: admin
     envs: [ sentry, admin ]
