@@ -7,6 +7,7 @@ from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework import status
 
 from .models import User
 from django.contrib.auth.models import Group, Permission
@@ -98,6 +99,25 @@ class LoginView(KnoxLoginView):
 class UserAPIViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
+
+    def update(self, request, *args, **kwargs):
+        password = request.data.get("password")
+        if password:
+            user = self.get_object()
+            user.set_password(password)
+            user.save()
+            request.data["password"] = user.password
+        return super().update(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        user.set_password(request.data.get("password"))
+        user.save()
+        serializer.data["password"] = user.password
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class GroupAPIViewSet(viewsets.ModelViewSet):

@@ -246,3 +246,4 @@ sw.*
 
 back/models/
 chat_rag/*.ipynb
+chat_rag/data/

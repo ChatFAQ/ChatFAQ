@@ -1,7 +1,7 @@
 <template>
     <div class="write-view-wrapper">
         <div class="navigation-header">
-            <div class="back-button" @click="stateToRead">
+            <div class="back-button" @click="itemsStore.stateToRead">
                 <el-icon>
                     <ArrowLeft/>
                 </el-icon>
@@ -21,23 +21,51 @@
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
         >
-            <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
-            <div v-for="fieldName in Object.keys(schema.properties)" class="field-wrapper">
-                <el-form-item v-if="excludeFields.indexOf(fieldName) === -1" class="field" :label="fieldName"
-                              :prop="fieldName"
-                              :error="formServerErrors[fieldName]">
-                    <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
-                        <el-select v-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
-                            <el-option
-                                v-for="choice in schema.properties[fieldName].choices"
-                                :key="choice.value"
-                                :label="choice.label"
-                                :value="choice.value"
-                            />
-                        </el-select>
-                        <el-input v-else v-model="form[fieldName]"/>
-                    </slot>
-                </el-form-item>
+            <div v-if="!Object.keys(sections).length" class="form-section">
+                <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
+                <div v-for="(_, fieldName) in filterInSection(true, schema.properties)">
+                    <FormField
+                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :form="form"
+                        :formServerErrors="formServerErrors"
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </FormField>
+                </div>
+            </div>
+            <div v-else v-for="(fields, sectionName) in filterInSection(true, sections)" class="form-section">
+                <div class="edit-title">{{ sectionName }}</div>
+                <div v-for="fieldName in fields">
+                    <FormField
+                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :form="form"
+                        :formServerErrors="formServerErrors"
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </FormField>
+                </div>
+            </div>
+            <div v-for="(_, fieldName) in filterInSection(false, schema.properties)">
+                <FormField
+                    v-if="allExcludeFields.indexOf(fieldName) === -1"
+                    :fieldName="fieldName"
+                    :schema="schema"
+                    :form="form"
+                    :formServerErrors="formServerErrors"
+                    :noLabel="true"
+                >
+                    <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                        <slot :name="name" v-bind="data"></slot>
+                    </template>
+                </FormField>
             </div>
         </el-form>
 
@@ -50,7 +78,7 @@
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button @click="stateToRead">
+                <el-button @click="itemsStore.stateToRead">
                     Cancel
                 </el-button>
                 <el-button type="primary" @click="submitForm(formRef)">
@@ -61,16 +89,16 @@
     </div>
 </template>
 <script setup>
-import {useItemsStore} from "~/store/items.js";
+import { useItemsStore } from "~/store/items.js";
+import FormField from "~/components/generic/FormField.vue";
 
-const {$axios} = useNuxtApp();
+const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
 const formRef = ref()
 const deleting = ref(false)
-
-const excludeFields = ref(["id", "created_date", "updated_date"])
+const emit = defineEmits(['submitForm'])
 
 const props = defineProps({
     apiUrl: {
@@ -82,8 +110,23 @@ const props = defineProps({
         required: false,
         default: "name",
     },
+    excludeFields: {
+        type: Array,
+        required: false,
+        default: [],
+    },
+    sections: {
+        type: Object,
+        required: false,
+        default: {},
+    },
+    outsideSection: {
+        type: Array,
+        required: false,
+        default: [],
+    }
 })
-const {data} = await useAsyncData(
+const { data } = await useAsyncData(
     "schema_" + props.apiUrl,
     async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
@@ -91,28 +134,31 @@ schema.value = data.value
 const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
+const allExcludeFields = computed(() => {
+    return [...props.excludeFields, "id", "created_date", "updated_date"]
+})
 
 // Initialize form
 for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
-    if (excludeFields.value.indexOf(fieldName) === -1) {
+    if (allExcludeFields.value.indexOf(fieldName) === -1) {
         form.value[fieldName] = undefined
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
         if (schema.value.required.indexOf(fieldName) !== -1) {
-            formRules.value[fieldName].push({required: true, message: `Please enter ${fieldName}`, trigger: 'blur'})
+            formRules.value[fieldName].push({ required: true, message: `Please enter ${fieldName}`, trigger: 'blur' })
         }
     }
 }
 
 // Initialize form values
 if (itemsStore.editing) {
-    const {data} = await useAsyncData(
+    const { data } = await useAsyncData(
         props.apiUrl + "_" + itemsStore.editing,
         async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
     )
     if (data.value) {
         for (const [fieldName, fieldValue] of Object.entries(data.value)) {
-            if (excludeFields.value.indexOf(fieldName) === -1) {
+            if (allExcludeFields.value.indexOf(fieldName) === -1) {
                 form.value[fieldName] = fieldValue
             }
         }
@@ -120,11 +166,13 @@ if (itemsStore.editing) {
 }
 
 const submitForm = async (formEl) => {
+
     if (!formEl) return
-    await formEl.validate()
     await formEl.validate(async (valid) => {
         if (!valid)
             return
+        // emit event "submitForm":
+        emit("submitForm", form.value)
         try {
             if (itemsStore.editing)
                 await $axios.put(`${props.apiUrl}${itemsStore.editing}/`, form.value)
@@ -139,20 +187,25 @@ const submitForm = async (formEl) => {
                 throw e
             }
         }
-        stateToRead()
+        itemsStore.stateToRead()
     })
 }
 
 function deleteItem(id) {
     itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
     deleting.value = undefined
-    stateToRead()
+    itemsStore.stateToRead()
 }
 
-function stateToRead() {
-    itemsStore.adding = false
-    itemsStore.editing = undefined
+function filterInSection(inSection, _obj) {
+    return Object.keys(_obj)
+        .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
+        .reduce((obj, key) => {
+            obj[key] = _obj[key];
+            return obj;
+        }, {});
 }
+
 
 </script>
 <style lang="scss">
@@ -208,12 +261,17 @@ function stateToRead() {
     }
 
     .form-content {
-        background-color: white;
-        border-radius: 10px;
         width: 100%;
-        margin-top: 16px;
-        padding: 28px;
-        border: 1px solid $chatfaq-color-primary-200;
+
+        .form-section {
+            background-color: white;
+            border-radius: 10px;
+            width: 100%;
+            margin-top: 16px;
+            margin-bottom: 24px;
+            padding: 28px;
+            border: 1px solid $chatfaq-color-primary-200;
+        }
 
         .edit-title {
             font-size: 18px;
@@ -230,7 +288,7 @@ function stateToRead() {
         flex-direction: row;
         justify-content: space-between;
         width: 100%;
-        margin-top: 24px;
+        margin-bottom: 40px;
 
         .delete-button {
             width: 75px;

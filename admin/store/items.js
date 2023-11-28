@@ -47,18 +47,23 @@ export const useItemsStore = defineStore('items', {
                 schema.required = oneOf.required
             }
             for (const [propName, propInfo] of Object.entries(schema.properties)) {
-                if (propInfo.$ref) {
-                    const refName = propInfo.$ref.split("/").slice(-1)[0]
+                let ref = propInfo.$ref || propInfo.items?.$ref
+                if (ref) {
+                    const refName = ref.split("/").slice(-1)[0]
                     let obj = await this.getSchemaDef($axios, undefined, false, refName)
                     if (obj.enum)  {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
-                        let items = await this.retrieveItems($axios, refName)
+                        let items = await this.retrieveItems($axios, this.getPathFromSchemaName(refName))
                         propInfo.choices = items.map((item) => ({label: item.name, value: item.id}))
                     }
                 }
             }
             return schema
+        },
+        stateToRead(){
+            this.editing = undefined
+            this.adding = undefined
         }
     },
     getters: {

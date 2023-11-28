@@ -248,9 +248,12 @@ class SmartSplitter:
         model_name : str
             The name of the model to use. The recommended model is 'gpt-4', do not guarantee that other models will work.
         """
+        from openai import OpenAI
+        
+        self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
         self.model_name = model_name
-
+        
         self.system_prompt = """You are designed to function as an informative assistant. 
 - When provided with user input, your primary task is to discern and segregate the text into distinct segments based on their inherent intents. 
 - It's essential that each of these segments retains enough context to be useful for future information retrieval tasks. 
@@ -270,9 +273,7 @@ class SmartSplitter:
         List[str]
             A list of chunks.
         """
-
-        import openai
-        openai.api_key = os.environ["OPENAI_API_KEY"]
+        
 
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -280,14 +281,12 @@ class SmartSplitter:
         ]
 
         # Splitting the text into chunks
-        response = openai.ChatCompletion.create(
-            model=self.model_name,
-            messages=messages,
-            temperature=0.2,
-            max_tokens=1024,
-            top_p=0.0,
-            presence_penalty=0.0,
-        )
+        response = self.client.chat.completions.create(model=self.model_name,
+        messages=messages,
+        temperature=0.2,
+        max_tokens=1024,
+        top_p=0.0,
+        presence_penalty=0.0)
 
         messages.append({"role": "assistant", "content": response.choices[0]["message"]["content"]})
         chunks = response.choices[0]["message"]["content"].split("###")
@@ -298,14 +297,12 @@ class SmartSplitter:
             user_content = f"Analyze this chunk:\n{chunk}" if ndx else f"Reflect upon the answer you produced based on the previous system instruction. Provide feedback on the performance, mentioning any areas of improvement or points of adherence. It's very important that each chunk can be understood on its own. Let's go chunk by chunk.\nAnalyze this chunk:\n{chunk}"
             messages.append({"role": "user", "content": user_content})
 
-            response = openai.ChatCompletion.create(
-                model=self.model_name,
-                messages=messages,
-                temperature=1,
-                max_tokens=1024,
-                top_p=0.0,
-                presence_penalty=0.0,
-            )
+            response = self.client.chat.completions.create(model=self.model_name,
+            messages=messages,
+            temperature=1,
+            max_tokens=1024,
+            top_p=0.0,
+            presence_penalty=0.0)
             messages.append({"role": "assistant", "content": response.choices[0]["message"]["content"]})
 
         # Refining chunks based on feedback
@@ -313,14 +310,12 @@ class SmartSplitter:
             {"role": "user", "content": "Refine your chunks given the feedback that you provided. Remember that a segmentation is not always needed and just write the chunks."}
         )
 
-        response = openai.ChatCompletion.create(
-                model=self.model_name,
-                messages=messages,
-                temperature=0.2,
-                max_tokens=1024,
-                top_p=0.0,
-                presence_penalty=0.0,
-        )
+        response = self.client.chat.completions.create(model=self.model_name,
+        messages=messages,
+        temperature=0.2,
+        max_tokens=1024,
+        top_p=0.0,
+        presence_penalty=0.0)
 
         final_chunks = response.choices[0]["message"]["content"].split("###")
 

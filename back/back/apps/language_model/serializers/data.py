@@ -15,7 +15,7 @@ class KnowledgeBaseSerializer(serializers.ModelSerializer):
     # extra step when validating CSVs: the file must contain the following columns: title, content, url
     def validate(self, data):
         title_index, content_index, url_index = data["title_index_col"], data["content_index_col"], data["url_index_col"]
-        if "original_csv" in data:
+        if data['original_csv'] is not None:
             f = data["original_csv"]
             decoded_file = f.read().decode("utf-8").splitlines()
             reader = csv.reader(decoded_file)

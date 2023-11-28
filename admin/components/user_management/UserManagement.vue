@@ -1,17 +1,33 @@
 <template>
     <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
-    <el-tabs @tab-change="stateToRead" v-model="itemType">
+    <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :lazy="true" :label="$t('user')" name="user">
             <ReadWriteView readableName="User" apiUrl="/back/api/people/users/"
                            titleProp="first_name"
                            :cardProps="{
-                    'email': $t('email'),
+                'email': $t('email'),
                 }"
                            :tableProps="{
-                    'email': $t('email'),
-                }">
+                'email': $t('email'),
+                }"
+                           :excludeFields="['date_joined', 'last_login', 'rpc_group']"
+                           @submitForm="submitPassword"                           :sections="{
+                [$t('userinformation')]: [
+                        'first_name',
+                        'last_name',
+                        'email',
+                        'password',
+                    ],
+                [$t('userpermissions')]: [
+                        'is_staff',
+                        'is_active',
+                        'groups',
+                        'user_permissions',
+                    ]
+                }"
+            >
                 <template v-slot:password="props">
-                    <Password :form="props.form" :fieldName="props.fieldName"/>
+                    <Password :form="props.form" :fieldName="props.fieldName" ref="password"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -30,19 +46,20 @@
 
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
-import {useItemsStore} from "~/store/items.js";
+import { useItemsStore } from "~/store/items.js";
 import Password from "~/components/user_management/fields/Password.vue";
 
-const {$axios} = useNuxtApp();
+const password = ref(null)
+
+const { $axios } = useNuxtApp();
 
 const itemsStore = useItemsStore()
 
 const itemType = ref("user")
 await itemsStore.loadSchema($axios)
 
-function stateToRead(tabName, event) {
-    itemsStore.adding = false
-    itemsStore.editing = undefined
-}
 
+function submitPassword() {
+    password.value.submit()
+}
 </script>
