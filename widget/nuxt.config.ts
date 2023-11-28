@@ -29,6 +29,7 @@ export default defineNuxtConfig({
         }
     },
     app: {
+        baseURL: process.env.BASE_URL ?? "/",
         head: {
             style: [
                 {children: 'body { margin: 0 }'}
