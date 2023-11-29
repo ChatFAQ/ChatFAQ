@@ -283,7 +283,7 @@ function solveRefProp(item, propName) {
 
 .divider {
     width: 100%;
-    height: 2px;
+    height: 1px;
     background-color: $chatfaq-color-primary-200;
     margin-top: 10px;
     margin-bottom: 13px;
@@ -345,8 +345,8 @@ function solveRefProp(item, propName) {
 }
 
 .selected-icon {
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
     text-align: center;
     position: relative;
     border-radius: 4px;
@@ -364,8 +364,8 @@ function solveRefProp(item, propName) {
         background-size: contain;
         background-repeat: no-repeat;
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 16px;
+        height: 16px;
         margin: auto;
         position: absolute;
         top: 0;

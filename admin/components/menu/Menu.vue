@@ -10,7 +10,7 @@
         <MenuItem icon="SetUp" :name="$t('aiconfig')" page="/ai_config/"/>
         <MenuItem icon="Brush" :name="$t('widgetconfig')" page="/widget_config"/>
         <MenuItem icon="DataBoard" :name="$t('sdkvisualizer')" page="/sdk_visualizer"/>
-        <MenuItem icon="TrendCharts" :name="$t('stats')" page="/stats"/>
+        <MenuItem icon="DataLine" :name="$t('stats')" page="/stats"/>
         <MenuItem icon="User" :name="$t('usermanagement')" page="/user_management"/>
         <MenuItem icon="Clock" :name="$t('taskhistory')" page="/task_history"/>
         <div class="separator"></div>

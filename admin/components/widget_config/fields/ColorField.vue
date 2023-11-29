@@ -1,6 +1,6 @@
 <template>
     <div class="color-field">
-        <el-color-picker v-model="colorValue" size="large"/>
+        <el-color-picker v-model="colorValue" size="large" show-alpha/>
         <el-input
             :formatter="hexFormatter"
             v-model="colorValue"
