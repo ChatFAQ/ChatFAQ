@@ -1,13 +1,17 @@
 <template>
     <div class="color-field">
         <el-color-picker v-model="colorValue" size="large"/>
-        <el-input v-model="colorValue"/>
+        <el-input
+            :formatter="hexFormatter"
+            v-model="colorValue"
+        />
     </div>
 </template>
 
 <script setup>
-const {$axios} = useNuxtApp();
-
+defineExpose({
+    getValue,
+})
 const props = defineProps({
     field: {
         type: Object,
@@ -30,6 +34,12 @@ const colorValue = computed({
     }
 })
 
+function hexFormatter(value) {
+    return `HEX# ${value.replace('#', '')}`
+}
+function getValue() {
+    return props.field.values ? props.field.values : props.field.value
+}
 </script>
 
 <style lang="scss">

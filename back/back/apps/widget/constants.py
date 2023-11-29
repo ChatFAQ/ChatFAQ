@@ -84,20 +84,13 @@ THEME_DEFAULTS = {
     },
     # Specific Colors
     "chatfaq-color-alertMessage-text": {
-        "name": "bubbleButton-background-hover",
-        "type": "gradient",
-        "section": "colors",
-        "value": "linear-gradient(135deg, #463075 0%, #220D44 100%)",
-    },
-    "chatfaq-color-alertMessage-text": {
-        "name": "bubbleButton-background-hover",
+        "name": "alertMessage-text",
         "type": "color",
         "section": "colors",
         "values": {
             "light": "#545a64",
             "dark": "#e7e8e9",
         }
-
     },
     "chatfaq-color-chat-background": {
         "name": "chat-background",
