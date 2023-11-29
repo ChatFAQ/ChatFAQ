@@ -21,13 +21,13 @@ const props = defineProps({
 
 const colorValue = computed({
     get() {
-        if (props.field.values)
-            return props.field.values.light
+        if (props.field.value.light)
+            return props.field.value.light
         return props.field.value
     },
     set(newValue) {
-        if (props.field.values) {
-            props.field.values.light = newValue
+        if (props.field.value.light) {
+            props.field.value.light = newValue
         } else {
             props.field.value = newValue
         }
@@ -38,7 +38,7 @@ function hexFormatter(value) {
     return `HEX# ${value.replace('#', '')}`
 }
 function getValue() {
-    return props.field.values ? props.field.values : props.field.value
+    return props.field.value
 }
 </script>
 

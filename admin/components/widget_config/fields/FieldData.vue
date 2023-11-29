@@ -1,6 +1,6 @@
 <template>
     <div class="field-data-wrapper">
-        <div v-for="(fields, sectionName) in defaultsBySection" class="form-section">
+        <div v-for="(fields, sectionName) in valuesBySection" class="form-section">
             <div class="edit-title">{{ sectionName }}</div>
             <div v-for="(field, key) in fields" class="field-wrapper">
                 <el-form-item :label="field.name" :prop="key">
@@ -38,15 +38,18 @@ const {data} = await useAsyncData(
 )
 const defaults = ref(data.value.data)
 
-const defaultsBySection = computed(() => {
-    const defaultsBySection = {}
+const valuesBySection = computed(() => {
+    const _valuesBySection = {}
     for (const [key, value] of Object.entries(defaults.value)) {
-        if (defaultsBySection[value.section] === undefined) {
-            defaultsBySection[value.section] = {}
+        if (_valuesBySection[value.section] === undefined) {
+            _valuesBySection[value.section] = {}
         }
-        defaultsBySection[value.section][key] = value
+        _valuesBySection[value.section][key] = value
+        if (props.form[props.fieldName] && props.form[props.fieldName][key] !== undefined) {
+            _valuesBySection[value.section][key].value = props.form[props.fieldName][key]
+        }
     }
-    return defaultsBySection
+    return _valuesBySection
 })
 
 function submit() {
