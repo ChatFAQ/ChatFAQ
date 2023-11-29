@@ -78,9 +78,9 @@ THEME_DEFAULTS = {
     # Sizes
     "chatfaq-size-bubbleButton": {
         "name": "chatfaq-size-bubbleButton",
-        "type": "size",
-        "section": "sizes",
-        "value": "normal normal 600 14px/17px 'Montserrat'",
+        "type": "font",
+        "section": "body",
+        "value": "60px",
     },
     # Specific Colors
     "chatfaq-color-alertMessage-text": {

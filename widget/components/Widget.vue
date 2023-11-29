@@ -66,6 +66,11 @@ if (props.widgetConfigId !== undefined) {
         acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = data[key];
         return acc;
     }, {});
+
+    const style = document.createElement('style');
+    style.innerHTML = data.css;
+    document.head.appendChild(style);
+    console.log(style)
 }
 
 store.chatfaqWS = props.chatfaqWs;

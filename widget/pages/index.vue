@@ -2,7 +2,7 @@
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :manageUserId="manageUserId" :title="title"
                 :subtitle="subtitle" :historyOpened="historyOpened"  :historyOpenedMobile="historyOpenedMobile"
-                :fullScreen="fullScreen" :widgetConfigId="widgetConfigId"/>
+                :fullScreen="fullScreen"/>
     </client-only>
 </template>
 <script setup>
