@@ -40,15 +40,20 @@
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('theme')" name="theme">
-            <ReadWriteView readableName="role" apiUrl="/back/api/widget/themes/"
-                           :cardProps="{
+            <ReadWriteView
+                readableName="theme"
+                apiUrl="/back/api/widget/themes/"
+                :cardProps="{
                     'name': $t('name'),
                 }"
-                           :tableProps="{
+                :tableProps="{
                     'name': $t('name'),
-                }" :outsideSection="['data']">
+                }"
+                :outsideSection="['data']"
+                @submitForm="submitFieldData"
+            >
                 <template v-slot:data="props">
-                    <FieldData :form="props.form" :fieldName="props.fieldName">123</FieldData>
+                    <FieldData :form="props.form" :fieldName="props.fieldName"  ref="fieldData">123</FieldData>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -61,7 +66,7 @@ import { useItemsStore } from "~/store/items.js";
 import Password from "~/components/user_management/fields/Password.vue";
 import FieldData from "~/components/widget_config/fields/FieldData.vue";
 
-const password = ref(null)
+const fieldData = ref(null)
 
 const { $axios } = useNuxtApp();
 
@@ -70,4 +75,7 @@ const itemsStore = useItemsStore()
 const itemType = ref("widgetsettings")
 await itemsStore.loadSchema($axios)
 
+function submitFieldData() {
+    fieldData.value.submit()
+}
 </script>

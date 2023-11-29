@@ -84,26 +84,19 @@ THEME_DEFAULTS = {
     },
     # Specific Colors
     "chatfaq-color-alertMessage-text": {
-        "name": "bubbleButton-background-hover",
-        "type": "gradient",
-        "section": "colors",
-        "value": "linear-gradient(135deg, #463075 0%, #220D44 100%)",
-    },
-    "chatfaq-color-alertMessage-text": {
-        "name": "bubbleButton-background-hover",
+        "name": "alertMessage-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#545a64",
             "dark": "#e7e8e9",
         }
-
     },
     "chatfaq-color-chat-background": {
         "name": "chat-background",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#dfdaea",
             "dark": "#4D4160",
         }
@@ -113,7 +106,7 @@ THEME_DEFAULTS = {
         "name": "chatInput-background",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#cac2da",
             "dark": "#3c2d52",
         }
@@ -122,7 +115,7 @@ THEME_DEFAULTS = {
         "name": "chatInput-border",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#9a8eb5",
             "dark": "#1A0438",
         }
@@ -131,7 +124,7 @@ THEME_DEFAULTS = {
         "name": "chatInput-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#020C1C",
             "dark": "#FFFFFF",
         }
@@ -140,7 +133,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageBot-background",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#cac2da",
             "dark": "#3c2d52",
         }
@@ -149,7 +142,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageBot-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#020C1C",
             "dark": "#FFFFFF",
         }
@@ -158,7 +151,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageHuman-background",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#463075",
             "dark": "#1A0438",
         }
@@ -167,7 +160,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageHuman-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#FFFFFF",
             "dark": "#FFFFFF",
         }
@@ -176,7 +169,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageReference-background",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "rgba(70, 48, 117, .1)",
             "dark": "#1A0438",
         }
@@ -185,7 +178,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageReference-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#463075",
             "dark": "#dfdaea",
         }
@@ -194,7 +187,7 @@ THEME_DEFAULTS = {
         "name": "chatMessageReferenceTitle-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#9a8eb5",
             "dark": "#aaafb5",
         }
@@ -203,7 +196,7 @@ THEME_DEFAULTS = {
         "name": "chatPlaceholder-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "rgba(2, 12, 28, .6)",
             "dark": "#dfdaea",
         }
@@ -212,7 +205,7 @@ THEME_DEFAULTS = {
         "name": "clipboard-text",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#9a8eb5",
             "dark": "#cac2da",
         }
@@ -221,7 +214,7 @@ THEME_DEFAULTS = {
         "name": "loader",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#463075",
             "dark": "#FFFFFF",
         }
@@ -230,7 +223,7 @@ THEME_DEFAULTS = {
         "name": "scrollBar",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "#FFFFFF",
             "dark": "#463075",
         }
@@ -239,7 +232,7 @@ THEME_DEFAULTS = {
         "name": "separator",
         "type": "color",
         "section": "colors",
-        "values": {
+        "value": {
             "light": "rgba(70, 48, 117, .2)",
             "dark": "#4D4160",
         }

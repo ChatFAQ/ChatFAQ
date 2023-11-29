@@ -2,24 +2,26 @@
     <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
     <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :lazy="true" :label="$t('user')" name="user">
-            <ReadWriteView readableName="User" apiUrl="/back/api/people/users/"
-                           titleProp="first_name"
-                           :cardProps="{
-                'email': $t('email'),
+            <ReadWriteView
+                readableName="User"
+                apiUrl="/back/api/people/users/"
+                titleProp="first_name"
+                :cardProps="{
+                    'email': $t('email'),
                 }"
-                           :tableProps="{
-                'email': $t('email'),
+                :tableProps="{
+                    'email': $t('email'),
                 }"
-                           :excludeFields="['date_joined', 'last_login', 'rpc_group']"
-                           @submitForm="submitPassword"                           :sections="{
-                [$t('userinformation')]: [
+                :excludeFields="['date_joined', 'last_login', 'rpc_group']"
+                @submitForm="submitPassword"
+                :sections="{
+                    [$t('userinformation')]: [
                         'first_name',
                         'last_name',
                         'email',
                         'password',
                     ],
-                [$t('userpermissions')]: [
-                        'is_staff',
+                    [$t('userpermissions')]: [
                         'is_active',
                         'groups',
                         'user_permissions',
