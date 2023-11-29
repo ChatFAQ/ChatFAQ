@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpenedDesktop, historyOpenedMobile }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -18,8 +18,8 @@ class ChatfaqWidget {
         props['fsmDef'] = fsmDef
         props['maximized'] = maximized
         props['fullScreen'] = fullScreen
-        props['historyOpenedDesktop'] = historyOpenedDesktop
-        props['historyOpenedMobile'] = historyOpenedMobile
+        props['historyOpened'] = historyOpened
+        props['widgetConfigId'] = widgetConfigId
         props['manageUserId'] = manageUserId
 
         if (userId)
@@ -46,10 +46,8 @@ class ChatfaqWidgetCustomElement extends HTMLElement {
             delete this.dataset.maximized
         if(this.dataset.fullScreen === "false")
             delete this.dataset.fullScreen
-        if(this.dataset.historyOpenedDesktop === "false")
-            delete this.dataset.historyOpenedDesktop
-        if(this.dataset.historyOpenedMobile === "false")
-            delete this.dataset.historyOpenedMobile
+        if(this.dataset.historyOpened === "false")
+            delete this.dataset.historyOpened
         if(this.dataset.manageUserId === "false")
             delete this.dataset.manageUserId
 

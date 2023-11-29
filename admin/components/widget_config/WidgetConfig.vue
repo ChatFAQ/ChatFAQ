@@ -7,35 +7,37 @@
                            :cardProps="{
                 'name': $t('name'),
                 'domain': $t('domain'),
-                'fsm_name': $t('fsmname'),
+                'fsm_def': $t('fsmdef'),
                 }"
                            :tableProps="{
                 'name': $t('name'),
                 'domain': $t('domain'),
-                'fsm_name': $t('fsmname'),
+                'fsm_def': $t('fsmdef'),
                 }"
                            :sections="{
-                [$t('script')]: [
-                        'script',
-                    ],
                 [$t('general')]: [
                         'name',
                         'domain',
-                        'fsm_name',
+                        'fsm_def',
                     ],
                 [$t('layout')]: [
-                        'size',
+                        'maximized',
+                        'fullScreen',
                         'history_opened',
                         'title',
                         'subtitle',
+                        'manage_user_id',
                     ],
                 [$t('theme')]: [
                         'theme'
+                    ],
+                [$t('script')]: [
+                        'script',
                     ]
                 }"
             >
                 <template v-slot:script="props">
-                    <div :form="props.form" :fieldName="props.fieldName">123</div>
+                    <ExampleScript/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -63,8 +65,8 @@
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import { useItemsStore } from "~/store/items.js";
-import Password from "~/components/user_management/fields/Password.vue";
 import FieldData from "~/components/widget_config/fields/FieldData.vue";
+import ExampleScript from "~/components/widget_config/fields/ExampleScript.vue";
 
 const fieldData = ref(null)
 

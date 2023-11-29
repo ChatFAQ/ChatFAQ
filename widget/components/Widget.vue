@@ -54,31 +54,40 @@ const props = defineProps([
     "subtitle",
     "maximized",
     "fullScreen",
-    "historyOpenedDesktop",
-    "historyOpenedMobile"
+    "historyOpened",
+    "widgetConfigId"
 ]);
+let data = props
+if (props.widgetConfigId !== undefined) {
+    const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`)
+    data = await response.json();
+    // sneak case data keys to lowerCamelCase:
+    data = Object.keys(data).reduce((acc, key) => {
+        acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = data[key];
+        return acc;
+    }, {});
+}
 
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
-store.fsmDef = props.fsmDef;
 store.userId = props.userId;
-store.title = props.title;
-store.subtitle = props.subtitle;
 
-if (!store.userId && props.manageUserId) {
+if (!store.userId && data.manageUserId) {
     store.userId = getUserId()
 }
 
-if (props.maximized !== undefined)
-    store.maximized = props.maximized;
-if (props.historyOpenedDesktop !== undefined)
-    store.historyOpenedDesktop = props.historyOpenedDesktop;
-if (props.historyOpenedMobile !== undefined)
-    store.historyOpenedMobile = props.historyOpenedMobile;
+store.fsmDef = data.fsmDef;
+store.title = data.title;
+store.subtitle = data.subtitle;
 
 
-if (props.fullScreen !== undefined)
-    store.fullScreen = props.fullScreen;
+if (data.fullScreen !== undefined)
+    store.fullScreen = data.fullScreen;
+if (data.maximized !== undefined)
+    store.maximized = data.maximized;
+if (data.historyOpened !== undefined)
+    store.historyOpened = data.historyOpened;
+
 if (store.fullScreen) {
     store.opened = true
     store.maximized = false
@@ -100,12 +109,8 @@ addEventListener("resize", (event) => {
 });
 
 onMounted(() => {
-    store.historyOpened = false
-    if (store.historyOpenedDesktop !== undefined && screen.width > screen.height)
-        store.historyOpened = store.historyOpenedDesktop
-    else if (store.historyOpenedMobile !== undefined && screen.width < screen.height)
-        store.historyOpened = store.historyOpenedMobile
-
+    if (screen.width < screen.height)
+        store.historyOpened = false
 })
 
 </script>
