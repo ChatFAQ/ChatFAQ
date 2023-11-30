@@ -48,6 +48,7 @@ function getValue() {
     }
     .el-color-picker__trigger {
         margin-right: 16px;
+        border-radius: 10px;
 
         .el-color-picker__color {
             border-radius: 6px;

@@ -18,8 +18,7 @@ export function rgba2hex(orig) {
     // multiply before convert to HEX
     a = ((a * 255) | 1 << 8).toString(16).slice(1)
     hex = hex + a;
-    // if hex finish with ff remove them
-    if (hex.endsWith('ff')) hex = hex.slice(0, -2);
+    if (hex.endsWith('ff') && hex.length === 8) hex = hex.slice(0, -2);
     return `#${hex}`.toUpperCase();
 }
 
