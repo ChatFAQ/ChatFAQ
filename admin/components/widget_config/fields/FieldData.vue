@@ -7,6 +7,8 @@
                     <ColorField v-if="field.type === 'color'" :field="field" :ref="el => subFields[key] = el"/>
                     <GradientField v-else-if="field.type === 'gradient'" :field="field"
                                    :ref="el => subFields[key] = el"/>
+                    <FontField v-else-if="field.type === 'font'" :field="field"
+                                   :ref="el => subFields[key] = el"/>
                     <el-input v-else v-model="field.value" :ref="el => subFields[key] = el"/>
                 </el-form-item>
 
@@ -18,6 +20,7 @@
 <script setup>
 import ColorField from "~/components/widget_config/fields/ColorField.vue";
 import GradientField from "~/components/widget_config/fields/GradientField.vue";
+import FontField from "~/components/widget_config/fields/FontField.vue";
 
 defineExpose({
     submit,
