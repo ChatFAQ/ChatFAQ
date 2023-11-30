@@ -18,7 +18,7 @@ class OpenAIChatModel(RAGLLM):
         if base_url is None:
             self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         else:
-            self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"], base_url=base_url)
+            self.client = OpenAI(base_url=base_url) # for VLLM compatible API
         self.llm_name = llm_name
 
     def format_prompt(
