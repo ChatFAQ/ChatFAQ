@@ -5,6 +5,7 @@
             <div v-for="(field, key) in fields" class="field-wrapper">
                 <el-form-item :label="field.name" :prop="key">
                     <ColorField v-if="field.type === 'color'" :field="field" :ref="el => subFields[key] = el"/>
+                    <GradientField v-else-if="field.type === 'gradient'" :field="field" :ref="el => subFields[key] = el"/>
                     <el-input v-else v-model="field.value" :ref="el => subFields[key] = el"/>
                 </el-form-item>
 
@@ -15,6 +16,7 @@
 
 <script setup>
 import ColorField from "~/components/widget_config/fields/ColorField.vue";
+import GradientField from "~/components/widget_config/fields/GradientField.vue";
 defineExpose({
     submit,
 })
