@@ -1,14 +1,13 @@
 <template>
     <div class="color-field">
         <el-color-picker v-model="colorValue" size="large" show-alpha/>
-        <el-input
-            :formatter="hexFormatter"
-            v-model="colorValue"
-        />
+        <span class="hex-preview">{{rgba2hex(colorValue).toUpperCase()}}</span>
     </div>
 </template>
 
 <script setup>
+import { rgba2hex } from '~/utils'
+
 defineExpose({
     getValue,
 })
@@ -34,9 +33,6 @@ const colorValue = computed({
     }
 })
 
-function hexFormatter(value) {
-    return `HEX# ${value.replace('#', '')}`
-}
 function getValue() {
     return props.field.value
 }
@@ -45,7 +41,11 @@ function getValue() {
 <style lang="scss">
 .color-field {
     display: flex;
+    align-items: center;
 
+    .el-color-picker {
+        width: unset !important;
+    }
     .el-color-picker__trigger {
         margin-right: 16px;
 
@@ -56,6 +56,9 @@ function getValue() {
 
             }
         }
+    }
+    .hex-preview {
+        color: $chatfaq-color-greyscale-800;
     }
 }
 

@@ -170,7 +170,7 @@ THEME_DEFAULTS = {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "rgba(70, 48, 117, .1)",
+            "light": "#4630751a",
             "dark": "#1A0438",
         }
     },
@@ -197,7 +197,7 @@ THEME_DEFAULTS = {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "rgba(2, 12, 28, .6)",
+            "light": "#020c1c99",
             "dark": "#dfdaea",
         }
     },
@@ -233,7 +233,7 @@ THEME_DEFAULTS = {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "rgba(70, 48, 117, .2)",
+            "light": "#46307533",
             "dark": "#4D4160",
         }
     },
@@ -289,7 +289,7 @@ THEME_DEFAULTS = {
         "name": "menuItem-background",
         "type": "color",
         "section": "colors",
-        "value": "rgba(223, 218, 234, .1)",
+        "value": "#dfdaea1a",
     },
     "chatfaq-color-menuItem-border-edit": {
         "name": "menuItem-border-edit",
@@ -301,6 +301,6 @@ THEME_DEFAULTS = {
         "name": "darkFilter",
         "type": "color",
         "section": "colors",
-        "value": "rgba(2, 12, 28, .7)",
+        "value": "#020c1cb3",
     },
 }
