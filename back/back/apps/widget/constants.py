@@ -1,29 +1,5 @@
 THEME_DEFAULTS = {
     # Title
-    "chatfaq-font-title-xl": {
-        "name": "title-xl",
-        "type": "font",
-        "section": "title",
-        "value": "normal normal 700 56px/68px 'Montserrat'",
-    },
-    "chatfaq-font-title-l": {
-        "name": "title-l",
-        "type": "font",
-        "section": "title",
-        "value": "normal normal 700 48px/59px 'Montserrat'",
-    },
-    "chatfaq-font-title-sm": {
-        "name": "title-sm",
-        "type": "font",
-        "section": "title",
-        "value": "normal normal 700 24px/29px 'Montserrat'",
-    },
-    "chatfaq-font-title-xs": {
-        "name": "title-xs",
-        "type": "font",
-        "section": "title",
-        "value": "normal normal 700 18px/22px 'Montserrat'",
-    },
     # Body
     "chatfaq-font-body-xl": {
         "name": "body-xl",
