@@ -1,8 +1,14 @@
 <template>
     <div class="gradinet-color-field">
         <div class="gradients-picker">
-            <el-color-picker v-model="firstGradient" size="large" show-alpha label="a Name"/>
-            <el-color-picker v-model="secondGradient" size="large" show-alpha label="b Name"/>
+            <div class="gradient">
+                <el-color-picker v-model="firstGradient" size="large" show-alpha  @change="firstGradient = rgba2hex(firstGradient)"/>
+                <el-input v-model="firstGradient" size="large" class="hex-input" placeholder="Hex color" @change="firstGradient = rgba2hex(firstGradient)"/>
+            </div>
+            <div class="gradient">
+                <el-color-picker v-model="secondGradient" size="large" show-alpha  @change="secondGradient = rgba2hex(secondGradient)"/>
+                <el-input v-model="secondGradient" size="large" class="hex-input" placeholder="Hex color" @change="secondGradient = rgba2hex(secondGradient)"/>
+            </div>
         </div>
         <div class="gradient-visualizer-wrapper">
             <div class="gradient-visualizer">
@@ -55,7 +61,10 @@ function getValue() {
     .gradients-picker {
         display: flex;
         align-items: center;
-
+        flex-direction: column;
+        .gradient {
+            margin-bottom: 8px;
+        }
         .el-color-picker {
             width: unset !important;
         }
@@ -81,7 +90,6 @@ function getValue() {
 
     .gradient-visualizer-wrapper {
         display: flex;
-        margin-top: 8px;
         align-items: center;
 
         .gradient-visualizer {
@@ -115,6 +123,10 @@ function getValue() {
         }
     }
 
+    .hex-input {
+        width: 110px;
+
+    }
 }
 
 </style>

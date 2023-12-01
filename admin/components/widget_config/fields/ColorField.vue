@@ -1,7 +1,8 @@
 <template>
     <div class="color-field">
-        <el-color-picker v-model="colorValue" size="large" show-alpha/>
-        <span class="hex-preview">{{rgba2hex(colorValue).toUpperCase()}}</span>
+        <el-color-picker v-model="colorValue" size="large" show-alpha @change="colorValue = rgba2hex(colorValue)"/>
+        <!-- <span class="hex-preview">{{rgba2hex(colorValue).toUpperCase()}}</span> -->
+        <el-input v-model="colorValue" size="large" class="hex-input" placeholder="Hex color" @change="colorValue = rgba2hex(colorValue)"/>
     </div>
 </template>
 
@@ -60,6 +61,10 @@ function getValue() {
     }
     .hex-preview {
         color: $chatfaq-color-greyscale-800;
+    }
+    .hex-input {
+        width: 110px;
+
     }
 }
 
