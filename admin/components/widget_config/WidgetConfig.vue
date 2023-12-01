@@ -1,8 +1,8 @@
 <template>
-    <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
+    <div class="dashboard-page-title">{{ $t('widgetconfig') }}</div>
     <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
-        <el-tab-pane :lazy="true" :label="$t('widgetsettings')" name="widgetsettings">
-            <ReadWriteView readableName="Widget settings" apiUrl="/back/api/widget/widgets/"
+        <el-tab-pane :lazy="true" :label="$t('widget')" name="widgetsettings">
+            <ReadWriteView :readableName=$t('widget') apiUrl="/back/api/widget/widgets/"
                            titleProp="name"
                            :cardProps="{
                 'name': $t('name'),
@@ -43,7 +43,7 @@
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('theme')" name="theme">
             <ReadWriteView
-                readableName="theme"
+                :readableName="$t('theme')"
                 apiUrl="/back/api/widget/themes/"
                 :cardProps="{
                     'name': $t('name'),

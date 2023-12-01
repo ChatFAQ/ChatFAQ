@@ -18,6 +18,7 @@
     "data": "Data",
     "aiconfig": "AI Config",
     "widgetconfig": "Widget Config",
+    "widget": "Widget",
     "sdkvisualizer": "SDK Visualizer",
     "stats": "Stats",
     "usermanagement": "User Management",
@@ -54,7 +55,14 @@
     "usermanagement": "User Management",
     "user": "User",
     "rolepermissions": "Role Permissions",
+    "role": "Role",
     "email": "Email",
     "userinformation": "User information",
-    "userpermissions": "User permissions"
+    "userpermissions": "User permissions",
+    "domain": "Domain",
+    "fsm_def": "FSM Definition",
+    "general": "General",
+    "layout": "Layout",
+    "theme": "Theme",
+    "script": "Script",
 }
