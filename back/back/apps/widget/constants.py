@@ -29,18 +29,18 @@ THEME_DEFAULTS = {
     # Caption
     "chatfaq-font-caption-md": {
         "type": "font",
-        "section": "caption",
+        "section": "captions",
         "value": "italic normal 600 14px/19px 'Open Sans'",
     },
     "chatfaq-font-caption-sm": {
         "type": "font",
-        "section": "caption",
+        "section": "captions",
         "value": "normal normal 400 12px/16px 'Open Sans'",
     },
     # Button
     "chatfaq-font-button": {
         "type": "font",
-        "section": "button",
+        "section": "buttons",
         "value": "normal normal 600 14px/17px 'Montserrat'",
     },
     # Sizes
