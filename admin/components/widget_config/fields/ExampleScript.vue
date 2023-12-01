@@ -35,15 +35,15 @@ const example = ref(`
 
 <style lang="scss" scoped>
  .example-script {
-        background-color: #f5f5f5;
+        background-color: #424242;
         padding-left: 20px;
         padding-bottom: 20px;
         border-radius: 5px;
         font-family: monospace;
         font-size: 14px;
         line-height: 1.5;
-        color: #333;
-     // INCLUDE LINE BREAKS:
+        color: white;
+         // INCLUDE LINE BREAKS:
         white-space: pre-wrap;
  }
 </style>
