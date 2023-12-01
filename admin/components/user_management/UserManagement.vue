@@ -3,7 +3,7 @@
     <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :lazy="true" :label="$t('user')" name="user">
             <ReadWriteView
-                readableName=$t('user')
+                :readableName="$t('user')"
                 apiUrl="/back/api/people/users/"
                 titleProp="first_name"
                 :cardProps="{
@@ -34,7 +34,7 @@
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('rolepermissions')" name="role-permissions">
-            <ReadWriteView :readableName=$t('role') apiUrl="/back/api/people/groups/"
+            <ReadWriteView :readableName="$t('role')" apiUrl="/back/api/people/groups/"
                            :cardProps="{
                     'name': $t('name'),
                 }"

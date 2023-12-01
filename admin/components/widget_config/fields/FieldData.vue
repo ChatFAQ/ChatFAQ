@@ -9,9 +9,9 @@
                     :inactive-text="lightDark[sectionName] ? 'dark' : 'light'"
                 />
             </div>
-            <div class="edit-title">{{ sectionName }}</div>
+            <div class="edit-title">{{ $t(sectionName) }}</div>
             <div v-for="(field, key) in fields" class="field-wrapper">
-                <el-form-item :label="field.name" :prop="key">
+                <el-form-item :label="$t(key)" :prop="key">
                     <ColorField v-if="field.type === 'color'" :field="field" :ref="el => subFields[key] = el" :dark="lightDark[sectionName]"/>
                     <GradientField v-else-if="field.type === 'gradient'" :field="field"
                                    :ref="el => subFields[key] = el"/>

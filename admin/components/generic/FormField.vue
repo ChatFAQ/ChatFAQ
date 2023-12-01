@@ -1,10 +1,10 @@
 <template>
     <slot :name="fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
-        <el-form-item v-if="schema.properties[fieldName]" :label="schema.properties[fieldName].type === 'boolean' || noLabel ? '' : fieldName"
+        <el-form-item v-if="schema.properties[fieldName]" :label="schema.properties[fieldName].type === 'boolean' || noLabel ? '' : $t(fieldName)"
                       :prop="fieldName"
                       :error="formServerErrors[fieldName]">
                 <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]"
-                             :label="fieldName"/>
+                             :label="$t(fieldName)"/>
                 <el-select v-else-if="schema.properties[fieldName].type === 'array'" v-model="form[fieldName]" multiple>
                     <el-option
                         v-for="choice in schema.properties[fieldName].choices"

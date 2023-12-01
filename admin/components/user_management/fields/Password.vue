@@ -1,5 +1,5 @@
 <template>
-        <el-form-item :label="fieldName"
+        <el-form-item :label="$t(fieldName)"
                       :prop="fieldName"
                         class="password-wrapper"
         >

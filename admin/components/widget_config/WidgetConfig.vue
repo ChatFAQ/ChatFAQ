@@ -2,7 +2,7 @@
     <div class="dashboard-page-title">{{ $t('widgetconfig') }}</div>
     <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :lazy="true" :label="$t('widget')" name="widgetsettings">
-            <ReadWriteView :readableName=$t('widget') apiUrl="/back/api/widget/widgets/"
+            <ReadWriteView :readableName="$t('widget')" apiUrl="/back/api/widget/widgets/"
                            titleProp="name"
                            :cardProps="{
                 'name': $t('name'),
