@@ -1,14 +1,22 @@
 <template>
     <div class="field-data-wrapper">
         <div v-for="(fields, sectionName) in valuesBySection" class="form-section">
+            <div class="light-dark-switch">
+                <el-switch
+                    v-model="lightDark[sectionName]"
+                    v-if="fields[Object.keys(fields)[0]].type === 'color'"
+                    size="large"
+                    :inactive-text="lightDark[sectionName] ? 'dark' : 'light'"
+                />
+            </div>
             <div class="edit-title">{{ sectionName }}</div>
             <div v-for="(field, key) in fields" class="field-wrapper">
                 <el-form-item :label="field.name" :prop="key">
-                    <ColorField v-if="field.type === 'color'" :field="field" :ref="el => subFields[key] = el"/>
+                    <ColorField v-if="field.type === 'color'" :field="field" :ref="el => subFields[key] = el" :dark="lightDark[sectionName]"/>
                     <GradientField v-else-if="field.type === 'gradient'" :field="field"
                                    :ref="el => subFields[key] = el"/>
                     <FontField v-else-if="field.type === 'font'" :field="field"
-                                   :ref="el => subFields[key] = el"/>
+                               :ref="el => subFields[key] = el"/>
                     <el-input v-else v-model="field.value" :ref="el => subFields[key] = el"/>
                 </el-form-item>
 
@@ -58,6 +66,10 @@ const valuesBySection = computed(() => {
     }
     return _valuesBySection
 })
+const lightDark = ref({})
+for (let sectionName in valuesBySection.value) {
+    lightDark.value[sectionName] = false
+}
 
 function submit() {
     const res = {}
@@ -102,6 +114,9 @@ function submit() {
         line-height: 22px;
         color: $chatfaq-color-neutral-black;
         margin-bottom: 24px;
+    }
+    .light-dark-switch {
+        float: right;
     }
 }
 

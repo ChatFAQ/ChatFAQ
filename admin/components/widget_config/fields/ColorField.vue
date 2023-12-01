@@ -17,17 +17,27 @@ const props = defineProps({
         type: Object,
         mandatory: true
     },
+    dark: {
+        type: Boolean,
+        mandatory: false
+    }
 })
 
 const colorValue = computed({
     get() {
         if (props.field.value.light)
-            return props.field.value.light
+            if (props.dark)
+                return props.field.value.dark
+            else
+                return props.field.value.light
         return props.field.value
     },
     set(newValue) {
         if (props.field.value.light) {
-            props.field.value.light = newValue
+            if (props.dark)
+                props.field.value.dark = newValue
+            else
+                props.field.value.light = newValue
         } else {
             props.field.value = newValue
         }

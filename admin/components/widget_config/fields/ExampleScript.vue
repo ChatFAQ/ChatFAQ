@@ -43,7 +43,6 @@ const example = ref(`
         font-size: 14px;
         line-height: 1.5;
         color: white;
-         // INCLUDE LINE BREAKS:
         white-space: pre-wrap;
  }
 </style>
