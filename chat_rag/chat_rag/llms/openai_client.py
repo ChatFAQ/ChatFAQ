@@ -165,4 +165,5 @@ class OpenAIChatModel(RAGLLM):
         for chunk in response:
             if chunk.choices[0].finish_reason == "stop":
                 return
-            yield chunk.choices[0].delta.content # return the delta text message
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content # return the delta text message
