@@ -6,7 +6,6 @@
         </div>
     </div>
 </template>
-
 <style scoped lang="scss">
 .page-wrapper {
     background-color: #f2f0f7;
