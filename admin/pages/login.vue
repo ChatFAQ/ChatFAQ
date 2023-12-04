@@ -22,10 +22,12 @@
                 <el-input v-model="authForm.password" :placeholder="$t('enteryourpassword')" type="password"
                           autocomplete="off" show-password  :validate-event="false"/>
             </el-form-item>
-            <el-form-item prop="remember" class="login-form-remember-me">
-                <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
-                <a href="#" class="login-form-forgot-password" @click="openPassNotification">Forgot password?</a>
-            </el-form-item>
+            <client-only>
+                <el-form-item prop="remember" class="login-form-remember-me">
+                    <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
+                    <a href="#" class="login-form-forgot-password" @click="openPassNotification">Forgot password?</a>
+                </el-form-item>
+            </client-only>
             <el-form-item>
                 <el-button type="primary" @click="submitForm(authFormRef)">
                     {{ $t('login') }}
@@ -53,7 +55,7 @@ const router = useRouter()
 const authFormRef = ref()
 let email = ""
 let password = ""
-let rememberMe = false
+let remember = false
 
 if (process.client) {
     let rememberMeCookie = document.cookie.split(';').filter((item) => item.trim().startsWith('rememberme='))
@@ -62,13 +64,13 @@ if (process.client) {
         email = rememberMeCookie.split("-").slice(5, rememberMeCookie.split("-").length).join("-")
         email = decodeURIComponent(email)
         password = "**********"
-        rememberMe = true
+        remember = true
     }
 }
 const authForm = reactive({
     email: email,
     password: password,
-    remember: rememberMe,
+    remember: remember,
 })
 const authFormRules = reactive({
     email: [
