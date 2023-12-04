@@ -16,11 +16,11 @@
             @keydown.enter.native="submitForm(authFormRef)"
         >
             <el-form-item :label="$t('email')" prop="email">
-                <el-input v-model="authForm.email" :placeholder="$t('enteryouremail')"/>
+                <el-input v-model="authForm.email" :placeholder="$t('enteryouremail')" :validate-event="false"/>
             </el-form-item>
             <el-form-item class="login-form-password" :label="$t('password')" prop="password">
                 <el-input v-model="authForm.password" :placeholder="$t('enteryourpassword')" type="password"
-                          autocomplete="off" show-password/>
+                          autocomplete="off" show-password  :validate-event="false"/>
             </el-form-item>
             <el-form-item prop="remember" class="login-form-remember-me">
                 <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
