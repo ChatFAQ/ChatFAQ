@@ -1,9 +1,9 @@
-
+from urllib.parse import quote_plus
+from uuid import uuid4
 from django.contrib.auth import authenticate, login, logout
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from knox.views import LoginView as KnoxLoginView
 from rest_framework import permissions, viewsets
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -15,6 +15,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer, AdminUserSerializer, GroupSerializer, \
     PermissionSerializer, ContentTypeSerializer
+from ...utils.auth import BasicRememberMeAuthentication
 
 
 class MeViewSet(viewsets.GenericViewSet):
@@ -92,8 +93,21 @@ class MeViewSet(viewsets.GenericViewSet):
 
 
 class LoginView(KnoxLoginView):
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [BasicRememberMeAuthentication]
     permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        response = super().post(request, format=None)
+        remember_me = request.data.get("rememberme")
+        if remember_me:
+            # create a random token in the variable named 'token' that contains also the user email:
+            token = str(uuid4()) + "-" + request.user.email
+            request.user.remember_me = token
+            request.user.save()
+            response.set_cookie("rememberme", quote_plus(request.user.remember_me), max_age=60 * 60 * 24 * 30)
+        else:
+            response.delete_cookie("rememberme")
+        return response
 
 
 class UserAPIViewSet(viewsets.ModelViewSet):

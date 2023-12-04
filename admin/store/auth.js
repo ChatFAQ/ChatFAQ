@@ -11,16 +11,13 @@ export const useAuthStore = defineStore('auth', {
                 headers: {
                     'Authorization': `Basic ${btoa(email + ":" + password)}`
                 },
+                body: {
+                    rememberme: remember
+                },
             });
             if (data.value) {
                 let token
-                if (remember) {
-                    token = useCookie('token', {
-                        maxAge: 365 * 24 * 60 * 60,  // 1 year
-                    });
-                } else {
-                    token = useCookie('token');
-                }
+                token = useCookie('token');
                 token.value = data?.value?.token;
                 this.isAuthenticated = true;
             }

@@ -51,11 +51,24 @@ const i18n = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
 const authFormRef = ref()
+let email = ""
+let password = ""
+let rememberMe = false
 
+if (process.client) {
+    let rememberMeCookie = document.cookie.split(';').filter((item) => item.trim().startsWith('rememberme='))
+    if (rememberMeCookie.length > 0) {
+        rememberMeCookie = rememberMeCookie[0].split('=')[1]
+        email = rememberMeCookie.split("-").slice(5, rememberMeCookie.split("-").length).join("-")
+        email = decodeURIComponent(email)
+        password = "**********"
+        rememberMe = true
+    }
+}
 const authForm = reactive({
-    email: '',
-    password: '',
-    remember: false,
+    email: email,
+    password: password,
+    remember: rememberMe,
 })
 const authFormRules = reactive({
     email: [
