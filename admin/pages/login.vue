@@ -16,16 +16,18 @@
             @keydown.enter.native="submitForm(authFormRef)"
         >
             <el-form-item :label="$t('email')" prop="email">
-                <el-input v-model="authForm.email" :placeholder="$t('enteryouremail')"/>
+                <el-input v-model="authForm.email" :placeholder="$t('enteryouremail')" :validate-event="false"/>
             </el-form-item>
             <el-form-item class="login-form-password" :label="$t('password')" prop="password">
                 <el-input v-model="authForm.password" :placeholder="$t('enteryourpassword')" type="password"
-                          autocomplete="off" show-password/>
+                          autocomplete="off" show-password  :validate-event="false"/>
             </el-form-item>
-            <el-form-item prop="remember" class="login-form-remember-me">
-                <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
-                <a href="#" class="login-form-forgot-password" @click="openPassNotification">Forgot password?</a>
-            </el-form-item>
+            <client-only>
+                <el-form-item prop="remember" class="login-form-remember-me">
+                    <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
+                    <a href="#" class="login-form-forgot-password" @click="openPassNotification">Forgot password?</a>
+                </el-form-item>
+            </client-only>
             <el-form-item>
                 <el-button type="primary" @click="submitForm(authFormRef)">
                     {{ $t('login') }}
@@ -51,11 +53,24 @@ const i18n = useI18n()
 const authStore = useAuthStore()
 const router = useRouter()
 const authFormRef = ref()
+let email = ""
+let password = ""
+let remember = false
 
+if (process.client) {
+    let rememberMeCookie = document.cookie.split(';').filter((item) => item.trim().startsWith('rememberme='))
+    if (rememberMeCookie.length > 0) {
+        rememberMeCookie = rememberMeCookie[0].split('=')[1]
+        email = rememberMeCookie.split("-").slice(5, rememberMeCookie.split("-").length).join("-")
+        email = decodeURIComponent(email)
+        password = "**********"
+        remember = true
+    }
+}
 const authForm = reactive({
-    email: '',
-    password: '',
-    remember: false,
+    email: email,
+    password: password,
+    remember: remember,
 })
 const authFormRules = reactive({
     email: [
@@ -86,6 +101,13 @@ function openPassNotification() {
 }
 </script>
 
+<style lang="scss">
+.login-wrapper {
+    .el-form-item__label::after {
+        display: none;
+    }
+}
+</style>
 <style lang="scss" scoped>
 @import "assets/styles/variables";
 

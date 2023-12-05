@@ -5,6 +5,7 @@ export default envManager((env) => {
     const config = defineModelWConfig(env, {
         siteName: "ChatFAQ Admin",
         head: {
+            title: "ChatFAQ Admin",
             meta: [
                 {charset: "utf-8"},
                 {

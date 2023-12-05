@@ -99,7 +99,12 @@ class User(UuidPkModel, AbstractBaseUser, PermissionsMixin):
         _("date joined"),
         auto_now_add=True,
     )
-
+    remember_me = models.TextField(
+        _("remember me"),
+        null=True,
+        blank=True,
+        editable=False,
+    )
     # This field is made only for the createsuperuser command,
     # to be able to add it to the RPC group once created an admin.
     rpc_group = models.BooleanField(_("Belongs to the RPC group? [y/N]"), default=False)
