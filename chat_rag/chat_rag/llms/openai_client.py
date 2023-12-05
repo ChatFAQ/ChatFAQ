@@ -152,8 +152,6 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
-        print(messages[0]['content'])
-
         response = self.client.chat.completions.create(model=self.llm_name,
         messages=messages,
         max_tokens=generation_config_dict["max_new_tokens"],
