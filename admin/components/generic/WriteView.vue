@@ -20,6 +20,8 @@
             label-position="top"
             require-asterisk-position="right"
             @keydown.enter.native="submitForm(formRef)"
+            :scroll-to-error="true"
+            :scroll-into-view-options="{ behavior: 'smooth', block: 'center' }"
         >
             <div v-if="!Object.keys(sections).length" class="form-section">
                 <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
@@ -30,6 +32,7 @@
                         :schema="schema"
                         :form="form"
                         :formServerErrors="formServerErrors"
+                        :ref="el => fieldsRef[fieldName] = el"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
                             <slot :name="name" v-bind="data"></slot>
@@ -46,6 +49,7 @@
                         :schema="schema"
                         :form="form"
                         :formServerErrors="formServerErrors"
+                        :ref="el => fieldsRef[fieldName] = el"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
                             <slot :name="name" v-bind="data"></slot>
@@ -61,6 +65,7 @@
                     :form="form"
                     :formServerErrors="formServerErrors"
                     :noLabel="true"
+                    :ref="el => fieldsRef[fieldName] = el"
                 >
                     <template v-for="(_, name) in $slots" v-slot:[name]="data">
                         <slot :name="name" v-bind="data"></slot>
@@ -89,6 +94,7 @@
     </div>
 </template>
 <script setup>
+import { ref } from "vue";
 import { useItemsStore } from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 
@@ -97,6 +103,7 @@ const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
 const formRef = ref()
+const fieldsRef = ref({})
 const deleting = ref(false)
 const emit = defineEmits(['submitForm'])
 
@@ -183,6 +190,9 @@ const submitForm = async (formEl) => {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
                     formServerErrors.value[fieldName] = errorMessages.join(", ")
                 }
+                const ref = fieldsRef.value[Object.keys(e.response.data)[0]]
+                ref.$el.parentElement.scrollIntoView({ behavior: "smooth", block: "center" })
+                return
             } else {
                 throw e
             }
