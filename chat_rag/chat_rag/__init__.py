@@ -27,7 +27,7 @@ class RAG:
         
         self.retriever = retriever
         self.model = llm_model
-        self.reference_checker = ReferenceChecker(lang) if reference_checker else None
+        self.reference_checker = ReferenceChecker(lang, device=retriever.embedding_model.device) if reference_checker else None
         self.lang = lang
 
 

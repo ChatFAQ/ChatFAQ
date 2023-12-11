@@ -13,14 +13,14 @@ models_dict = {
     
 
 class ReferenceChecker:
-    def __init__(self, lang: str = "en"):
+    def __init__(self, lang: str = "en", device: str = 'cuda'):
         """
         Class to check if we need to retrieve new contexts. We use a zero-shot classifier to check if the message is a some kind of question or instruction, if not we don't need to retrieve new contexts.
         """
         lang = lang if lang in models_dict else 'multi' # default to multilingual model if language not supported
 
-        self.candidate_labels = ['greeting', 'farewell', 'personal check-in', 'small talk', 'question', 'instruction']
-        self.reference_checker = pipeline('zero-shot-classification', model=models_dict[lang], device='cuda')
+        self.candidate_labels = ['greeting', 'farewell', 'personal check-in', 'small talk', "acknowledgments", 'question', 'instruction']
+        self.reference_checker = pipeline('zero-shot-classification', model=models_dict[lang], device=device)
         logger.info(f"Loaded reference checker for language {lang}")
 
 
