@@ -956,13 +956,13 @@ files = [
 
 [[package]]
 name = "chat-rag"
-version = "0.1.38"
+version = "0.1.39"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chat_rag-0.1.38-py3-none-any.whl", hash = "sha256:52009d3071957370eaf6ee7082930ff09d5a0fbe3d762a7b380bdebaf3d67e8e"},
-    {file = "chat_rag-0.1.38.tar.gz", hash = "sha256:bb9b05fc16268e61556392dbae2374bc39b77a489d5cc03a36b6010c10bfcd68"},
+    {file = "chat_rag-0.1.39-py3-none-any.whl", hash = "sha256:9409271ba33743e53045d149d9775159b606798802e0d193c2732966178508b2"},
+    {file = "chat_rag-0.1.39.tar.gz", hash = "sha256:ef2fa999608a0b1762f75e9230ebf19c853ce2003de6f78cf32cd1d3ac220e10"},
 ]
 
 [package.dependencies]
@@ -974,12 +974,13 @@ certifi = ">=2023.7.22,<2024.0.0"
 cryptography = ">=41.0.4,<42.0.0"
 ctransformers = ">=0.2.10,<0.3.0"
 einops = ">=0.6.1,<0.7.0"
-guidance = ">=0.0.64,<0.0.65"
+guidance = "0.0.64"
 numpy = "1.23.5"
 openai = ">=1.3.4,<2.0.0"
 pandas = "1.4.4"
 pillow = ">=10.1.0,<11.0.0"
 pyarrow = ">=12.0.0,<13.0.0"
+pytesseract = ">=0.3.10,<0.4.0"
 python-dotenv = ">=0.21.0,<0.22.0"
 sentence-transformers = ">=2.2.2,<3.0.0"
 torch = ">=2.1.0,<3.0.0"
@@ -7730,4 +7731,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "c371aeb422250bee4a8a295c9067f722957fbf6ab809e436f63b2f5b8091a28b"
+content-hash = "19f2070216e47477e983cec17ec08cda977c8744896a1a762c9ff7b6647980c7"
