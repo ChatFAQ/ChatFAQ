@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import List, Dict
 
 from chat_rag.llms import RAGLLM
-from chat_rag.inf_retrieval.reference_checker import ReferenceChecker
+from chat_rag.inf_retrieval.reference_checker import ReferenceChecker, clean_relevant_references
 
 logger = getLogger(__name__)
 
@@ -43,6 +43,7 @@ class RAG:
         if self.reference_checker is not None and self.reference_checker.check_references(message):
             logger.info("Retrieving new contexts")
             contexts = self.retriever.retrieve([message], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
+            contexts = clean_relevant_references(contexts) # clean contexts
             contents = [context["content"] for context in contexts] # get unique contexts
             returned_contexts = [contexts[:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
             contents = list(set(contents + prev_contents))
