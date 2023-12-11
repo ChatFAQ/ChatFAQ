@@ -93,7 +93,7 @@ workers:
     image: back
     envs: [ sentry, django ]
     instance_size: M
-    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads
+    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads --concurrency=2
 
 jobs:
   - name: migrate
