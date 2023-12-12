@@ -956,13 +956,13 @@ files = [
 
 [[package]]
 name = "chat-rag"
-version = "0.1.39"
+version = "0.1.40"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chat_rag-0.1.39-py3-none-any.whl", hash = "sha256:9409271ba33743e53045d149d9775159b606798802e0d193c2732966178508b2"},
-    {file = "chat_rag-0.1.39.tar.gz", hash = "sha256:ef2fa999608a0b1762f75e9230ebf19c853ce2003de6f78cf32cd1d3ac220e10"},
+    {file = "chat_rag-0.1.40-py3-none-any.whl", hash = "sha256:65ed5fac04b37c089f30b739dd615d69273426be1c4a9e4a87d88f753cd74b4a"},
+    {file = "chat_rag-0.1.40.tar.gz", hash = "sha256:17a93b18ee4ef61cc0211cd298340ef58f06ea73a5f21e0651c83a3beabb801d"},
 ]
 
 [package.dependencies]
@@ -7731,4 +7731,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "19f2070216e47477e983cec17ec08cda977c8744896a1a762c9ff7b6647980c7"
+content-hash = "d2b42e38a0b4f1424de7f78640d48ecdf0f39bc03f8537c52ad6f8cdc51c34d3"
