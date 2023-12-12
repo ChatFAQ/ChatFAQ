@@ -33,8 +33,8 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :lazy="true" :label="$t('grouppermissions')" name="group-permissions">
-            <ReadWriteView :readableName="$t('group')" apiUrl="/back/api/people/groups/"
+        <el-tab-pane :lazy="true" :label="$t('rolepermissions')" name="role-permissions">
+            <ReadWriteView :readableName="$t('role')" apiUrl="/back/api/people/groups/"
                            :cardProps="{
                     'name': $t('name'),
                 }"

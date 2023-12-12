@@ -9,8 +9,6 @@ from back.common.models import ChangesMixin
 from back.apps.broker.models.message import Message
 from pgvector.django import VectorField
 
-from back.utils.celery import recache_models
-
 logger = getLogger(__name__)
 
 
@@ -171,7 +169,7 @@ class KnowledgeBase(ChangesMixin):
         elif self.original_url:
             logger.info("Updating items from URL")
             parse_url_task.delay(self.pk, self.original_url)
-        recache_models("KnowledgeBase.update_items_from_file")
+        llm_query_task.delay(recache_models=True, log_caller="KnowledgeBase.update_items_from_file")
 
 
 class KnowledgeItem(ChangesMixin):

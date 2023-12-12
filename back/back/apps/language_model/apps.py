@@ -6,8 +6,6 @@ from back.utils import is_migrating, is_celery_worker
 
 from logging import getLogger
 
-from back.utils.celery import recache_models
-
 logger = getLogger(__name__)
 
 
@@ -48,4 +46,4 @@ class DatasetConfig(AppConfig):
                 generate_embeddings_task.delay(list(kis_without_embeddings.values_list("pk", flat=True)), rag_config.pk)
 
         if changes:
-            recache_models("DatasetConfig.ready")
+            llm_query_task.delay(recache_models=True, log_caller="DatasetConfig.ready")

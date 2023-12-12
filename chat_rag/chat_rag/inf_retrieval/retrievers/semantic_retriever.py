@@ -157,7 +157,7 @@ class SemanticRetriever:
         # Iterate through the matches
         for match in zip(*matches):
             context_dict = {}
-            context_dict['similarity'] = match[0]
+
             # Extract data based on the keys and the matched index
             for key in self.keys_list:  # Using `self.keys_list` here
                 context_dict[key] = self.data[key][match[1]]

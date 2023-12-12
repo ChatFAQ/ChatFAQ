@@ -25,7 +25,7 @@
             <client-only>
                 <el-form-item prop="remember" class="login-form-remember-me">
                     <el-checkbox v-model="authForm.remember" :label="$t('rememberme')"/>
-                    <span class="login-form-forgot-password" @click="openPassNotification">Forgot password?</span>
+                    <a href="#" class="login-form-forgot-password" @click="openPassNotification">Forgot password?</a>
                 </el-form-item>
             </client-only>
             <el-form-item>
@@ -100,6 +100,7 @@ function openPassNotification() {
     ElMessage.info(i18n.t('contactadmin'));
 }
 </script>
+
 <style lang="scss">
 .login-wrapper {
     .el-form-item__label::after {
@@ -214,8 +215,6 @@ function openPassNotification() {
 
         .login-form-forgot-password {
             color: $chatfaq-color-forgot-pass-text-dark;
-            text-decoration: underline;
-            cursor: pointer;
         }
     }
 

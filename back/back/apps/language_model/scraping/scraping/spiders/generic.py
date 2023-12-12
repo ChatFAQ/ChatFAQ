@@ -7,8 +7,6 @@ from back.apps.language_model.tasks import llm_query_task
 from chat_rag.data.parsers import parse_html
 from chat_rag.data.splitters import get_splitter
 
-from back.utils.celery import recache_models
-
 
 class GenericSpider(scrapy.Spider):
     name = "generic"
@@ -49,4 +47,4 @@ class GenericSpider(scrapy.Spider):
                 yield response.follow(link, callback=self.parse, meta={"playwright": True})
 
     def spider_closed(self, spider):
-        recache_models("GenericSpider.spider_closed")
+        llm_query_task.delay(recache_models=True, log_caller="GenericSpider.spider_closed")
