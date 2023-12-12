@@ -5,6 +5,11 @@ def ensure_worker_queues():
     c = celery_app.control
     i = c.inspect()
     active_queues_info = i.active_queues()
+
+    if active_queues_info is None:
+        # Handle the case where no queue information is returned
+        return []
+
     active_queues = set()
     for key in active_queues_info:
         for queue in active_queues_info[key]:
@@ -17,8 +22,8 @@ def ensure_worker_queues():
         if q_name not in active_queues:
             c.add_consumer(q_name, reply=True, destination=[worker])
         worker_queues.append(q_name)
-
     return worker_queues
+
 
 
 def recache_models(log_caller=None):
