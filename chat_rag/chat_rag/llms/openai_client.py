@@ -14,7 +14,7 @@ class OpenAIChatModel(RAGLLM):
         llm_name: str,
         base_url: str = None,
         **kwargs,
-    ):  
+    ):
         if base_url is None:
             self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         else:
@@ -105,7 +105,6 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
-
         response = self.client.chat.completions.create(model=self.llm_name,
         messages=messages,
         max_tokens=generation_config_dict["max_new_tokens"],
@@ -151,8 +150,6 @@ class OpenAIChatModel(RAGLLM):
             **prompt_structure_dict,
             lang=lang,
         )
-
-        print(messages[0]['content'])
 
         response = self.client.chat.completions.create(model=self.llm_name,
         messages=messages,

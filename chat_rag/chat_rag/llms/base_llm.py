@@ -20,7 +20,7 @@ class RAGLLM:
         trust_remote_code_model: bool = False,
         **kwargs,
     ) -> None:
-        
+
         auth_token = os.environ["HUGGINGFACE_KEY"]
 
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -54,15 +54,18 @@ class RAGLLM:
         """
         Formats the system prompt to be used by the model.
         """
-        system_prompt = f"{system_prefix}\n{CONTEXT_PREFIX[lang]}\n"
+        if len(contexts) > 0:
+            system_prompt = f"{system_prefix}\n{CONTEXT_PREFIX[lang]}\n"
 
-        for ndx, context in enumerate(contexts):
-            system_prompt += f"- {context}"
-                
-            if ndx < len(contexts[:n_contexts_to_use]) - 1: # no newline on last context
-                system_prompt += "\n"
+            for ndx, context in enumerate(contexts):
+                system_prompt += f"- {context}"
 
-        return system_prompt
+                if ndx < len(contexts[:n_contexts_to_use]) - 1: # no newline on last context
+                    system_prompt += "\n"
+
+            return system_prompt
+        else:
+            return system_prefix
 
 
     def format_prompt(
@@ -127,7 +130,7 @@ class RAGLLM:
                     prompt = f"{system_prompt}\n"
                 else:
                     prompt = f"{system_tag}{system_prompt}{system_end}"
-                
+
                 for message in messages:
                     if message['role'] == 'user':
                         prompt += f"{user_tag}{message['content']}{user_end}{assistant_tag}"
