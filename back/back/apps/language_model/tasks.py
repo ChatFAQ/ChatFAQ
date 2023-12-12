@@ -21,6 +21,8 @@ import numpy as np
 import os
 import torch
 
+from back.utils.celery import recache_models as recache_models_utils
+
 if is_celery_worker():
     setup()
 
@@ -114,7 +116,7 @@ class RAGCacheOnWorkerTask(Task):
 
         logger.info("Preloading models...")
         RAGConfig = apps.get_model("language_model", "RAGConfig")
-        cache = {} 
+        cache = {}
 
         for rag_conf in RAGConfig.objects.all():
             logger.info(
@@ -371,8 +373,7 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     Embedding.objects.bulk_create(new_embeddings)
     logger.info(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
-        llm_query_task.delay(recache_models=True, log_caller="generate_embeddings_task")
-
+        recache_models_utils("generate_embeddings_task")
 
 @app.task()
 def parse_url_task(knowledge_base_id, url):
