@@ -1,12 +1,6 @@
-from typing import List
 from logging import getLogger
 
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
 import torch
-import torch.nn.functional as F
-from torch import Tensor
 from transformers import AutoTokenizer, AutoModel
 
 from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel

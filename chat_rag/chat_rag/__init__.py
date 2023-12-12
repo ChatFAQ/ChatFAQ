@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import List, Dict
 
 from chat_rag.llms import RAGLLM
-from chat_rag.inf_retrieval.reference_checker import ReferenceChecker, clean_relevant_references
 from chat_rag.inf_retrieval.cross_encoder import ReRanker
 
 logger = getLogger(__name__)
@@ -16,7 +15,6 @@ class RAG:
         self,
         retriever,
         llm_model: RAGLLM,
-        reference_checker: bool = True,
         lang: str = "en",
     ):
         """
@@ -28,8 +26,7 @@ class RAG:
         
         self.retriever = retriever
         self.model = llm_model
-        # self.reference_checker = ReferenceChecker(lang, device=retriever.embedding_model.device) if reference_checker else None
-        self.cross_encoder = ReRanker()
+        self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
         self.lang = lang
 
 
