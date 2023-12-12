@@ -101,13 +101,6 @@ function openPassNotification() {
 }
 </script>
 
-<style lang="scss">
-.login-wrapper {
-    .el-form-item__label::after {
-        display: none;
-    }
-}
-</style>
 <style lang="scss" scoped>
 @import "assets/styles/variables";
 
