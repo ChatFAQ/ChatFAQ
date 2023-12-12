@@ -84,17 +84,6 @@ services:
     route_prefixes:
       - "/back"
 
-workers:
-  - name: fsm_llm
-    image: sdk
-    envs: [ sentry, sdk ]
-    instance_size: XS
-  - name: celery_worker
-    image: back
-    envs: [ sentry, django ]
-    instance_size: M
-    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads
-
 jobs:
   - name: migrate
     when: PRE_DEPLOY
