@@ -26,7 +26,7 @@ class RAGLLM:
         trust_remote_code_model: bool = False,
         **kwargs,
     ) -> None:
-        
+
         auth_token = os.environ["HUGGINGFACE_KEY"]
 
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -65,7 +65,7 @@ class RAGLLM:
 
             for ndx, context in enumerate(contexts):
                 system_prompt += f"- {context}"
-                    
+
                 if ndx < len(contexts[:n_contexts_to_use]) - 1: # no newline on last context
                     system_prompt += "\n"
 
@@ -136,7 +136,7 @@ class RAGLLM:
                     prompt = f"{system_prompt}\n"
                 else:
                     prompt = f"{system_tag}{system_prompt}{system_end}"
-                
+
                 for message in messages:
                     if message['role'] == 'user':
                         prompt += f"{user_tag}{message['content']}{user_end}{assistant_tag}"

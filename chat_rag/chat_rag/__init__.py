@@ -23,7 +23,7 @@ class RAG:
             llm_model: A RAGLLM object that has a `generate` method.
             reference_checker: A boolean indicating whether to use a reference checker, to check if the user messages need to retrieve new contexts.
         """
-        
+
         self.retriever = retriever
         self.model = llm_model
         self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
@@ -44,13 +44,13 @@ class RAG:
         contexts = self.cross_encoder(message, contexts) # filter contexts
         if len(contexts) == 0:
             return [], []
-        
+
         contents = [context["content"] for context in contexts] # get unique contexts
         returned_contexts = [contexts[:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
         contents = list(set(contents + prev_contents))
 
         return contents, returned_contexts
-    
+
     def stream(
         self,
         messages: List[Dict[str, str]],
@@ -85,9 +85,9 @@ class RAG:
         generation_config_dict: dict,
         stop_words: List[str] = None,
     ):
-        
+
         # Retrieve
-        contents, returned_contexts = self.retrieve(messages[-1]['content'], prev_contents, prompt_structure_dict)       
+        contents, returned_contexts = self.retrieve(messages[-1]['content'], prev_contents, prompt_structure_dict)
 
         output_text = self.model.generate(
             messages,

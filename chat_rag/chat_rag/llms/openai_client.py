@@ -14,7 +14,7 @@ class OpenAIChatModel(RAGLLM):
         llm_name: str,
         base_url: str = None,
         **kwargs,
-    ):  
+    ):
         if base_url is None:
             self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         else:

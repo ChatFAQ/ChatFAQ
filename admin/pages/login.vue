@@ -100,7 +100,6 @@ function openPassNotification() {
     ElMessage.info(i18n.t('contactadmin'));
 }
 </script>
-
 <style lang="scss">
 .login-wrapper {
     .el-form-item__label::after {
