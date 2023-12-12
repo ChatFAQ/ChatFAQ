@@ -956,13 +956,13 @@ files = [
 
 [[package]]
 name = "chat-rag"
-version = "0.1.41"
+version = "0.1.38"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chat_rag-0.1.41-py3-none-any.whl", hash = "sha256:3739379dfcf5ca6849b6676eee466e92127e2dbe6553b37a9269f23161a15a78"},
-    {file = "chat_rag-0.1.41.tar.gz", hash = "sha256:6ecbc437d516f8aa303772b12b0eed58b213b8d6c6d21095e9aa748b037e9640"},
+    {file = "chat_rag-0.1.38-py3-none-any.whl", hash = "sha256:52009d3071957370eaf6ee7082930ff09d5a0fbe3d762a7b380bdebaf3d67e8e"},
+    {file = "chat_rag-0.1.38.tar.gz", hash = "sha256:bb9b05fc16268e61556392dbae2374bc39b77a489d5cc03a36b6010c10bfcd68"},
 ]
 
 [package.dependencies]
@@ -974,7 +974,7 @@ certifi = ">=2023.7.22,<2024.0.0"
 cryptography = ">=41.0.4,<42.0.0"
 ctransformers = ">=0.2.10,<0.3.0"
 einops = ">=0.6.1,<0.7.0"
-guidance = "0.0.64"
+guidance = ">=0.0.64,<0.0.65"
 numpy = "1.23.5"
 openai = ">=1.3.4,<2.0.0"
 pandas = "1.4.4"
@@ -7730,4 +7730,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "8e448038a9d45b114a8ba2f7b8e4107d07a34e484b7175a3e2ca21a23e7a0203"
+content-hash = "c371aeb422250bee4a8a295c9067f722957fbf6ab809e436f63b2f5b8091a28b"
