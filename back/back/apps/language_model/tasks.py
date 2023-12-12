@@ -158,6 +158,7 @@ class RAGCacheOnWorkerTask(Task):
             cache[str(rag_conf.name)] = RAG(
                 retriever=retriever,
                 llm_model=llm_model,
+                lang=rag_conf.knowledge_base.lang,
             )
             logger.info("...model loaded.")
 
@@ -267,27 +268,22 @@ def llm_query_task(
             prompt_structure_dict=p_conf,
             generation_config_dict=g_conf,
             stop_words=stop_words,
-            lang=rag_conf.knowledge_base.lang,
         ):
             _send_message(
                 bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
             )
-            references = res.get("context")[
-                0
-            ]  # just the first context because it is only one query
+            references = res.get("context")
     else:
         res = rag.generate(
             prev_messages,
             prompt_structure_dict=p_conf,
             generation_config_dict=g_conf,
             stop_words=stop_words,
-            lang=rag_conf.knowledge_base.lang,
         )
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-        references = res.get("context")[
-            0
-        ]  # just the first context because it is only one query
+        references = res.get("context")
 
+    references = references[0] if len(references) > 0 else []
     logger.info(f"\nReferences: {references}")
     _send_message(
         bot_channel_name,
