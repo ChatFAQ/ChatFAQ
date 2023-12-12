@@ -21,6 +21,8 @@ import numpy as np
 import os
 import torch
 
+from back.utils.celery import recache_models as recache_models_utils
+
 if is_celery_worker():
     setup()
 
@@ -114,7 +116,7 @@ class RAGCacheOnWorkerTask(Task):
 
         logger.info("Preloading models...")
         RAGConfig = apps.get_model("language_model", "RAGConfig")
-        cache = {} 
+        cache = {}
 
         for rag_conf in RAGConfig.objects.all():
             logger.info(
@@ -156,6 +158,7 @@ class RAGCacheOnWorkerTask(Task):
             cache[str(rag_conf.name)] = RAG(
                 retriever=retriever,
                 llm_model=llm_model,
+                lang=rag_conf.knowledge_base.lang,
             )
             logger.info("...model loaded.")
 
@@ -265,27 +268,22 @@ def llm_query_task(
             prompt_structure_dict=p_conf,
             generation_config_dict=g_conf,
             stop_words=stop_words,
-            lang=rag_conf.knowledge_base.lang,
         ):
             _send_message(
                 bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
             )
-            references = res.get("context")[
-                0
-            ]  # just the first context because it is only one query
+            references = res.get("context")
     else:
         res = rag.generate(
             prev_messages,
             prompt_structure_dict=p_conf,
             generation_config_dict=g_conf,
             stop_words=stop_words,
-            lang=rag_conf.knowledge_base.lang,
         )
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-        references = res.get("context")[
-            0
-        ]  # just the first context because it is only one query
+        references = res.get("context")
 
+    references = references[0] if len(references) > 0 else []
     logger.info(f"\nReferences: {references}")
     _send_message(
         bot_channel_name,
@@ -371,8 +369,7 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     Embedding.objects.bulk_create(new_embeddings)
     logger.info(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
-        llm_query_task.delay(recache_models=True, log_caller="generate_embeddings_task")
-
+        recache_models_utils("generate_embeddings_task")
 
 @app.task()
 def parse_url_task(knowledge_base_id, url):
