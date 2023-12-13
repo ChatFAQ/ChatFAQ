@@ -14,3 +14,10 @@
 .el-input__validateIcon {
     display: none !important;
 }
+
+.el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf {
+    border-bottom: 1px var(--chatfaq-color-primary-200) solid !important;
+}
+.el-table--fit {
+    outline: 1px var(--chatfaq-color-primary-200) solid !important;
+}

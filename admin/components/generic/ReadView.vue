@@ -41,7 +41,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]" style="width: 100%">
+        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
             <el-table-column align="center">
                 <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
@@ -169,7 +169,7 @@ function solveRefProp(item, propName) {
     }
 
     tbody > tr:nth-child(even) {
-        background: #DFDAEA66;
+        // background: #DFDAEA66;
     }
 }
 </style>
