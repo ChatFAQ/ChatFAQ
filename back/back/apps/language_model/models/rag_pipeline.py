@@ -196,7 +196,7 @@ class PromptConfig(ChangesMixin):
     user_end = models.CharField(max_length=255, blank=True, default="")
     assistant_tag = models.CharField(max_length=255, blank=True, default="<|answer|>")
     assistant_end = models.CharField(max_length=255, blank=True, default="")
-    n_contexts_to_use = models.IntegerField(default=3)
+    n_contexts_to_use = models.IntegerField(default=5)
     history = HistoricalRecords()
 
     def __str__(self):
@@ -227,7 +227,7 @@ class GenerationConfig(ChangesMixin):
     temperature = models.FloatField(default=0.2)
     repetition_penalty = models.FloatField(default=1.0)
     seed = models.IntegerField(default=42)
-    max_new_tokens = models.IntegerField(default=256)
+    max_new_tokens = models.IntegerField(default=512)
 
     def __str__(self):
         return self.name

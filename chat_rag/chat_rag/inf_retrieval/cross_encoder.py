@@ -19,6 +19,8 @@ class ReRanker:
         self.model = CrossEncoder(models_dict[lang], max_length=512, device=device)
         self.confidence_threshold = 0.5
         self.activation_fct = torch.sigmoid
+        self.max_query_length = 64 # These cross-encoder are not trained on long queries, so we restrict them down to simple queries of max 64 characters 
+        # You can see some of these stats here (https://huggingface.co/datasets/ms_marco)
 
     def __call__(self, query: str, contexts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
@@ -34,9 +36,12 @@ class ReRanker:
         List[Dict[str, Any]]
             List of reranked contexts.
         """
+        if len(query) > self.max_query_length: # for queries longer than 64 characters, we do not rerank
+            return contexts
+        
         pairs = [(query, context['content']) for context in contexts]
         scores = self.model.predict(pairs, activation_fct=self.activation_fct)
-        print(f"CrossEncoder: {len(scores)} scores")
+        print(f"CrossEncoder: {scores} scores")
 
         # filter out low confidence scores and sort by score
         scores = [(score, context) for score, context in zip(scores, contexts) if score > self.confidence_threshold]
