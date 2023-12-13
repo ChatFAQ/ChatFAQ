@@ -29,7 +29,7 @@
                     <el-icon v-if="deleting !== item.id"  class="command-delete">
                         <Delete @click="deleting = item.id"/>
                     </el-icon>
-                    <div style="display: flex;">
+                    <div class="command-delete-confirm">
                         <el-icon v-if="deleting === item.id" class="command-delete">
                             <Close @click="deleting = undefined"/>
                         </el-icon>
@@ -60,7 +60,7 @@
                     <el-icon v-if="deleting !== row.id"  class="command-delete">
                         <Delete @click="deleting = row.id"/>
                     </el-icon>
-                    <div style="display: flex;">
+                    <div class="command-delete-confirm on-table">
                         <el-icon v-if="deleting === row.id" class="command-delete">
                             <Close @click="deleting = undefined"/>
                         </el-icon>
@@ -311,6 +311,11 @@ function solveRefProp(item, propName) {
     cursor: pointer;
 }
 
+.command-delete-confirm.on-table {
+    .command-delete {
+        margin-right: 10px;
+    }
+}
 .commands {
     display: flex;
     justify-content: space-between;
@@ -319,6 +324,10 @@ function solveRefProp(item, propName) {
     .command-delete {
         margin-left: 16px;
         margin-bottom: 13px;
+    }
+    .command-delete-confirm {
+        display: flex;
+        justify-content: center;
     }
 
     .command-edit {
