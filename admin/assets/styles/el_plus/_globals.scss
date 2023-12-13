@@ -1,0 +1,23 @@
+.el-button.is-plain {
+    border-radius: 8px;
+}
+.el-input__inner {
+    min-height: 40px !important;
+    color: $chatfaq-color-neutral-black !important;
+}
+.el-input__wrapper {
+    border-radius: 8px !important;
+}
+.el-button {
+    border-radius: 8px !important;
+}
+.el-input__validateIcon {
+    display: none !important;
+}
+
+.el-table td.el-table__cell, .el-table th.el-table__cell.is-leaf {
+    border-bottom: 1px var(--chatfaq-color-primary-200) solid !important;
+}
+.el-table--fit {
+    outline: 1px var(--chatfaq-color-primary-200) solid !important;
+}

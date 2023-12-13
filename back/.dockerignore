@@ -6,3 +6,5 @@
 !__init__.py
 !back/
 !README.md
+!Makefile
+!pmanage

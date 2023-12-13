@@ -61,7 +61,6 @@ function change() {
 </script>
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 .checkbox {
     min-width: 16px;

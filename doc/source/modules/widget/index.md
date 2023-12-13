@@ -2,46 +2,6 @@
 
 We built for you a custom front-end solution just so you can talk with your chatbot from the browser using an app you own. Although you can also connect any other message platform as such WhatsApp, Telegram, Signal, Facebook messenger, etc... ChatFAQ supports them all and if it doesn't it can easily be extended to do so.
 
-## Prerequisites
-
-Make sure the next list of packages are installed on your system:
-
-- npm
-- node v19.6.0
-
-
-## Installation
-
-### NPM
-
-    npm install chatfaq-widget
-
-### UNPKG
-
-    <script src="unpkg.com/chatfaq-widget/dist/widget-loader.min.esm"></script>
-
-### Local build
-
-#### Set Up:
-
-Install project dependencies:
-
-    npm i
-
-## Run
-
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
-
-`CHATFAQ_BACKEND_API`: The address for the HTTP of the back-end server.
-
-`CHATFAQ_BACKEND_WS`:  The address for the WS of the back-end server.
-
-Run the example:
-
-    npm run dev
-
-This will run a node server which will serve an empty webpage with just the Widget integrated on it, if you navigate to http://localhost:3000
-
 ## Usage
 
 ### JS Library
@@ -50,7 +10,7 @@ This will run a node server which will serve an empty webpage with just the Widg
 <div id="chatfaq-widget"></div>
 
 <script>
-    import { ChatfaqWidget } from "chatfaq-widget/dist/widget-loader.esm";
+    import { ChatfaqWidget } from "chatfaq-widget";
 
     const config = {
         element: "#chatfaq-widget",
@@ -91,7 +51,7 @@ If you declare data attributes and a config object and its keys collide, then th
 ```html
 
 <script>
-    import { ChatfaqWidgetCustomElement } from "chatfaq-widget/dist/widget-loader.esm";
+    import { ChatfaqWidgetCustomElement } from "chatfaq-widget";
     customElements.define("chatfaq-widget", ChatfaqWidgetCustomElement)
 </script>
 
@@ -117,7 +77,9 @@ Next we will explain all the widget's possible parameters:
 
 `chatfaqWs`: url of the chatfaq-ws.
 
-`userId`: In case you want to keep track of the user's conversations, you can pass a userId to the widget. This id will be store as a cookie and will be sent to the backend on each request. Later on the widget will be able to retrieve the conversations history of the user.
+`manageUserId`: In case you want to keep track of the user's conversations, you can set this parameter to true and the widget will generate a random id for you and store it as a cookie so it can be sent to the backend on each request. Later on the widget will be able to retrieve the conversations history of the user.
+
+`userId`: In case you rather use your own user id, you can set this parameter to the id you want, keep in mind that you will need to set the `manageUserId` parameter to false.
 
 `fsmDef`: name of the FSM definition to use.
 
@@ -125,7 +87,9 @@ Next we will explain all the widget's possible parameters:
 
 `subtitle`: subtitle which will appear on the footer of the chatbot
 
-`historyOpened`: if the widget starts with the left menu opened.
+`historyOpenedDesktop`: whether the widget starts with the left menu opened on desktop.
+
+`historyOpenedMobile`: whether the widget starts with the left menu opened on mobiles.
 
 `maximized`: if the widget starts maximized.
 
@@ -135,7 +99,7 @@ We made the widget styles hightly customizable by exposing a set of variables th
 
 ```html
 
-<script type="text/javascript" src="chatfaq-widget/dist/widget-loader.esm"></script>
+<script type="text/javascript" src="chatfaq-widget"></script>
 <style>
     :root {
         --chatfaq-color-primary-200: red;

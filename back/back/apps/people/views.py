@@ -1,13 +1,21 @@
+from urllib.parse import quote_plus
+from uuid import uuid4
 from django.contrib.auth import authenticate, login, logout
 from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema
 from knox.views import LoginView as KnoxLoginView
 from rest_framework import permissions, viewsets
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework import status
 
-from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer
+from .models import User
+from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
+
+from .serializers import AnonUserSerializer, AuthRequest, AuthUserSerializer, AdminUserSerializer, GroupSerializer, \
+    PermissionSerializer, ContentTypeSerializer
+from ...utils.auth import BasicRememberMeAuthentication
 
 
 class MeViewSet(viewsets.GenericViewSet):
@@ -85,4 +93,59 @@ class MeViewSet(viewsets.GenericViewSet):
 
 
 class LoginView(KnoxLoginView):
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [BasicRememberMeAuthentication]
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        response = super().post(request, format=None)
+        remember_me = request.data.get("rememberme")
+        if remember_me:
+            # create a random token in the variable named 'token' that contains also the user email:
+            token = str(uuid4()) + "-" + request.user.email
+            request.user.remember_me = token
+            request.user.save()
+            response.set_cookie("rememberme", quote_plus(request.user.remember_me), max_age=60 * 60 * 24 * 30)
+        else:
+            response.delete_cookie("rememberme")
+        return response
+
+
+class UserAPIViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
+
+    def update(self, request, *args, **kwargs):
+        password = request.data.get("password")
+        if password:
+            user = self.get_object()
+            user.set_password(password)
+            user.save()
+            request.data["password"] = user.password
+        return super().update(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        user.set_password(request.data.get("password"))
+        user.save()
+        serializer.data["password"] = user.password
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class GroupAPIViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+
+
+class PermissionAPIViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Permission.objects.all()
+    serializer_class = PermissionSerializer
+    pagination_class = None
+
+
+class ContentTypeAPIViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ContentType.objects.all()
+    serializer_class = ContentTypeSerializer
+    pagination_class = None

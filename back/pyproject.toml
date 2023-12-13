@@ -33,19 +33,19 @@ pgvector = "^0.2.3"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chatfaq-retrieval = {version = "0.1.25", source = "test"}
-gevent = "^22.10.2"
+chat-rag = {version = "0.1.42", source = "test"}
+gevent = "23.9.0"
 torch = [
     { version = "^2.0.1", source = "torch" },
 ]
 boto3 = "^1.26.161"
 djfernet = "^0.8.1"
-openai = "^0.27.8"
 scrapy = "^2.10.0"
 scrapy-playwright = "^0.0.28"
 undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
+twisted = "^23.10.0rc1"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

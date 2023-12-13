@@ -84,7 +84,6 @@ function timestampToSentence(isoString) {
 
 
 <style lang="scss" scoped>
-@import "assets/styles/variables";
 
 .item-wrapper {
     display: flex;

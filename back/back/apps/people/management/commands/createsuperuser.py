@@ -12,9 +12,12 @@ class Command(CreatesuperuserCommand):
         """
         raw_value = input(message)
         if field.name == "rpc_group":
-            raw_value = False
             if raw_value == "y":
+                field.is_active = True
                 raw_value = True
+            else:
+                field.is_active = False
+                raw_value = False
 
         if default and raw_value == "":
             raw_value = default

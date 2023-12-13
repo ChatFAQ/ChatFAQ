@@ -12,7 +12,7 @@ services:
     env_file:
       - "back/.env"
 
-  worker:
+  celery:
     env_file:
       - "back/.env"
 

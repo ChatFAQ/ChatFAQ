@@ -4,8 +4,10 @@ from urllib.parse import urlparse
 from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
 from back.apps.language_model.models.data import KnowledgeBase
 from back.apps.language_model.tasks import llm_query_task
-from chatfaq_retrieval.data.parsers import parse_html
-from chatfaq_retrieval.data.splitters import get_splitter
+from chat_rag.data.parsers import parse_html
+from chat_rag.data.splitters import get_splitter
+
+from back.utils.celery import recache_models
 
 
 class GenericSpider(scrapy.Spider):
@@ -47,4 +49,4 @@ class GenericSpider(scrapy.Spider):
                 yield response.follow(link, callback=self.parse, meta={"playwright": True})
 
     def spider_closed(self, spider):
-        llm_query_task.delay(recache_models=True, log_caller="GenericSpider.spider_closed")
+        recache_models("GenericSpider.spider_closed")

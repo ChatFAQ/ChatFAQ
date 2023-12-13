@@ -18,7 +18,7 @@ ENV PATH="/root/miniconda/envs/vllm_venv/bin:${PATH}"
 ENV HOST=0.0.0.0
 ENV PORT=5000
 ENV SWAP_SPACE=2
-ENV MODEL=facebook/opt-125m
+ENV MODEL=HuggingFaceH4/zephyr-7b-beta
 ENV NUM_GPUS=1
 ENV GPU_MEMORY_UTILIZATION=0.85
 

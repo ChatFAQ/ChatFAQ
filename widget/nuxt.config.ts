@@ -9,9 +9,6 @@ import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
 
 export default defineNuxtConfig({
     ssr: true,
-    css: [
-        '~/assets/styles/global.scss'
-    ],
     build: {
         transpile: []
     },
@@ -32,6 +29,7 @@ export default defineNuxtConfig({
         }
     },
     app: {
+        baseURL: "/demo",
         head: {
             style: [
                 {children: 'body { margin: 0 }'}
@@ -45,6 +43,13 @@ export default defineNuxtConfig({
                     resolve(dirname(fileURLToPath(import.meta.url)), './locales/*.json')
                 ]
             })
-        ]
+        ],
+        css: {
+            preprocessorOptions: {
+                scss: {
+                    additionalData: `@import "~/assets/styles/global.scss";`,
+                },
+            },
+        }
     }
 })

@@ -1,7 +1,9 @@
 .. toctree::
 
-   About <index.rst>
-   Introduction <introduction.md>
-   Back docs <modules/back/index.rst>
-   SDK docs <modules/sdk/index.rst>
-   Widget docs <modules/widget/index.rst>
+    About <index.rst>
+    Introduction <introduction.md>
+    Installations <modules/installations/index.md>
+    SDK <modules/sdk/index.md>
+    Widget <modules/widget/index.md>
+    AI Configuration <modules/configuration/index.md>
+    Interfaces <modules/interfaces/index.rst>

@@ -245,4 +245,5 @@ sw.*
 .out
 
 back/models/
-chatfaq-retrieval/*.ipynb
+chat_rag/*.ipynb
+chat_rag/data/

@@ -1,0 +1,56 @@
+// =============================================================================
+// Site colours, lovely colours
+// =============================================================================
+
+// general settings colours
+
+$color-white: white; //UC browser does not like this type of white : "#ffff", it has to be the "white" string
+$color-white-2: rgba(255, 255, 255, 0.9);
+$color-black: #202123;
+
+$color-error: #ea2246;
+
+$color-grey-1: #f5f5f5;
+$color-grey-2: #cccccc;
+$color-grey-3: #777777;
+$color-grey-4: #f2f2f2;
+$color-grey-5: #c4c4c4;
+
+$color-default-blue: #007d8f;
+$color-dark-blue: #005062;
+$color-light-blue: #f0f7f8;
+
+$color-default-pink: #e4007a;
+$color-dark-pink: #92004e;
+$color-light-pink: #fce5f2;
+
+$color-available: #9cbd39;
+$color-disturbed: #ea9249;
+$color-unavailable: #ea2246;
+
+// tokens new DA
+$color-primary-vert: #007461;
+$color-secondary-vert: #00A88D;
+
+$color-basic-black: #081621;
+$color-basic-white: white; //UC browser does not like this type of white : "#ffff", it has to be the "white" string
+
+$color-grey-grey-1: #777777;
+$color-grey-grey-2: #CCCCCC;
+$color-grey-grey-3: #F5F5F5;
+$color-grey-grey-4: #FFFFFF33;
+
+$color-primary20-button-enabled: $color-primary-vert;
+$color-primary10-button-hovered: #004237;
+$color-primary30-button-focused: $color-secondary-vert;
+$color-grey2-button-disabled: #CCCCCC;
+$color-grey-outlined-button-disabled: #ffffff40;
+
+$color-feedback-error: #AE0014;
+$color-feedback-recomendation: #AE0014;
+$color-feedback-recomendation-2: #e62f44;
+$color-feedback-perturbe: #EA9249;
+$color-feedback-disponible: $color-primary-vert;
+
+$color-gradient-green1: $color-primary-vert 19.57%, $color-secondary-vert 103.11%;
+$color-opacity-white-25: white, 25%;

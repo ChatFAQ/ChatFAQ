@@ -48,10 +48,6 @@
      /* Fonts */
 
     // Title
-    --chatfaq-font-title-xl: normal normal 700 56px/68px 'Montserrat';
-    --chatfaq-font-title-l: normal normal 700 48px/59px 'Montserrat';
-    --chatfaq-font-title-sm: normal normal 700 24px/29px 'Montserrat';
-    --chatfaq-font-title-xs: normal normal 700 18px/22px 'Montserrat';
 
     // Body
     --chatfaq-font-body-xl: normal normal 400 24px/33px 'Open Sans';
@@ -260,10 +256,6 @@ $chatfaq-font-body-xs: var(--chatfaq-font-body-xs);
 $chatfaq-font-button: var(--chatfaq-font-button);
 $chatfaq-font-caption-md: var(--chatfaq-font-caption-md);
 $chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
-$chatfaq-font-title-l: var(--chatfaq-font-title-l);
-$chatfaq-font-title-sm: var(--chatfaq-font-title-sm);
-$chatfaq-font-title-xl: var(--chatfaq-font-title-xl);
-$chatfaq-font-title-xs: var(--chatfaq-font-title-xs);
 $chatfaq-logo-icon: var(--chatfaq-logo-icon);
 $chatfaq-logo-long-icon: var(--chatfaq-logo-long-icon);
 $chatfaq-mail-icon: var(--chatfaq-mail-icon);

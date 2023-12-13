@@ -12,7 +12,7 @@ app = typer.Typer()
 app.add_typer(config.app, name="config")
 app.add_typer(conversations.app, name="conversations")
 app.add_typer(data.app, name="data")
-app.add_typer(rag_pipeline.app, name="rag_pipeline")
+app.add_typer(rag_pipeline.app, name="rag")
 app.add_typer(senders.app, name="senders")
 app.add_typer(reviews.app, name="reviews")
 
@@ -52,6 +52,15 @@ class Requester:
             )
         else:
             return requests.post(self.API_HOST + url, headers=self.headers, json=data)
+
+    @response
+    def patch(self, url, data=None, files=None):
+        if files:
+            return requests.patch(
+                self.API_HOST + url, headers=self.headers, files=files, data=data
+            )
+        else:
+            return requests.patch(self.API_HOST + url, headers=self.headers, json=data)
 
     @response
     def delete(self, url, data=None):

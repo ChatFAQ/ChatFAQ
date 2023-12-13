@@ -1,0 +1,52 @@
+{
+    "name": "nuxt-app",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "nuxt build",
+        "dev": "nuxt dev",
+        "start": "nuxt start",
+        "generate": "nuxt generate",
+        "preview": "nuxt preview",
+        "postinstall": "nuxt prepare"
+    },
+    "devDependencies": {
+        "@element-plus/nuxt": "^1.0.6",
+        "@intlify/unplugin-vue-i18n": "^0.9.2",
+        "element-plus": "^2.3.14",
+        "nuxt": "3.6.x",
+        "vue-i18n": "^9.4.1"
+    },
+    "dependencies": {
+        "@averjs/nuxt-compression": "^1.2.2",
+        "@babel/traverse": ">=7.23.2",
+        "@element-plus/icons-vue": "^2.1.0",
+        "@model-w/axios": "1.x",
+        "@model-w/preset-nuxt3": "2023.7.x",
+        "@model-w/proxy": "2.x",
+        "@model-w/sentry": "1.x",
+        "@nuxtjs/proxy": "^2.1.0",
+        "@nuxtjs/sentry": "^7.5.0",
+        "@pinia/nuxt": "^0.4.11",
+        "@vuelidate/core": "2.0.x",
+        "@vuelidate/validators": "2.0.x",
+        "@vueuse/core": "^10.2.0",
+        "defu": "^6.1.2",
+        "http-proxy-middleware": "^2.0.6",
+        "jsdom": "21.1.x",
+        "mapbox-gl": "^2.15.0",
+        "mitt": "^3.0.1",
+        "nuxt": "3.6.x",
+        "pinia": "2.0.x",
+        "plyr": "^3.7.8",
+        "postcss": ">=8.4.31",
+        "sass": "1.63.x",
+        "sass-loader": "^13.2.0",
+        "swiper": "^9.4.0",
+        "undici": "^5.27.0",
+        "vite-svg-loader": "4.0.x",
+        "vue": "3.3.x",
+        "vue3-carousel": "^0.3.1",
+        "wasync": "^0.1.1"
+    }
+}
