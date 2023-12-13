@@ -51,12 +51,24 @@
         <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
             <el-table-column align="center">
-                <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
+                <template #default="{ row }">
+                    <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
+                </template>
             </el-table-column>
             <el-table-column align="center">
-                <el-icon class="command-delete">
-                    <Delete/>
-                </el-icon>
+                <template #default="{ row }">
+                    <el-icon v-if="deleting !== row.id"  class="command-delete">
+                        <Delete @click="deleting = row.id"/>
+                    </el-icon>
+                    <div style="display: flex;">
+                        <el-icon v-if="deleting === row.id" class="command-delete">
+                            <Close @click="deleting = undefined"/>
+                        </el-icon>
+                        <el-icon v-if="deleting === row.id" class="command-delete">
+                            <Check @click="deleteItem(deleting)"/>
+                        </el-icon>
+                    </div>
+                </template>
             </el-table-column>
         </el-table>
         <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
