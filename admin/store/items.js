@@ -8,6 +8,7 @@ export const useItemsStore = defineStore('items', {
         schema: undefined,
         editing: undefined,
         adding: false,
+        tableMode: false,
     }),
     actions: {
         async retrieveItems($axios, apiUrl = undefined) {

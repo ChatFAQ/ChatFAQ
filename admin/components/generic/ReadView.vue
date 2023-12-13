@@ -6,16 +6,16 @@
                 <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
-                <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
-                     @click="viewType = 'card'">
+                <div class="selected-icon card-view" :class="{'selected': !itemsStore.tableMode }"
+                     @click="itemsStore.tableMode = false">
                     <div class="card-icon"></div>
                 </div>
-                <div class="selected-icon" :class="{'selected': viewType !== 'card'}" @click="viewType = 'table'">
+                <div class="selected-icon" :class="{'selected': itemsStore.tableMode }" @click="itemsStore.tableMode = true">
                     <div class="table-icon"></div>
                 </div>
             </div>
         </div>
-        <div class="cards-view" v-if="viewType === 'card'">
+        <div class="cards-view" v-if="!itemsStore.tableMode">
             <el-card v-for="item in items[apiUrl]" class="box-card">
                 <template #header>
                     <div class="card-header-title">{{ item[titleProp] }}</div>
@@ -26,10 +26,17 @@
                 <div class="divider">
                 </div>
                 <div class="commands">
-                    <el-icon class="command-delete">
-                        <Delete v-if="deleting !== item.id" @click="deleting = item.id"/>
-                        <Check @click="deleteItem(item.id)" v-else/>
+                    <el-icon v-if="deleting !== item.id"  class="command-delete">
+                        <Delete @click="deleting = item.id"/>
                     </el-icon>
+                    <div class="command-delete-confirm">
+                        <el-icon v-if="deleting === item.id" class="command-delete">
+                            <Close @click="deleting = undefined"/>
+                        </el-icon>
+                        <el-icon v-if="deleting === item.id" class="command-delete">
+                            <Check @click="deleteItem(deleting)"/>
+                        </el-icon>
+                    </div>
                     <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
@@ -41,18 +48,30 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]" style="width: 100%">
+        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
             <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
             <el-table-column align="center">
-                <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
+                <template #default="{ row }">
+                    <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
+                </template>
             </el-table-column>
             <el-table-column align="center">
-                <el-icon class="command-delete">
-                    <Delete/>
-                </el-icon>
+                <template #default="{ row }">
+                    <el-icon v-if="deleting !== row.id"  class="command-delete">
+                        <Delete @click="deleting = row.id"/>
+                    </el-icon>
+                    <div class="command-delete-confirm on-table">
+                        <el-icon v-if="deleting === row.id" class="command-delete">
+                            <Close @click="deleting = undefined"/>
+                        </el-icon>
+                        <el-icon v-if="deleting === row.id" class="command-delete">
+                            <Check @click="deleteItem(deleting)"/>
+                        </el-icon>
+                    </div>
+                </template>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
+        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -69,7 +88,6 @@ import { storeToRefs } from 'pinia'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
-const viewType = ref("card")
 const deleting = ref(undefined)
 const schema = ref({})
 
@@ -169,7 +187,7 @@ function solveRefProp(item, propName) {
     }
 
     tbody > tr:nth-child(even) {
-        background: #DFDAEA66;
+        // background: #DFDAEA66;
     }
 }
 </style>
@@ -178,8 +196,8 @@ function solveRefProp(item, propName) {
 .read-view-wrapper {
     display: flex;
     flex-wrap: wrap;
-    margin-left: 160px;
-    margin-right: 160px;
+    margin-left: 120px;
+    margin-right: 120px;
     max-width: 1300px;
 }
 
@@ -293,6 +311,11 @@ function solveRefProp(item, propName) {
     cursor: pointer;
 }
 
+.command-delete-confirm.on-table {
+    .command-delete {
+        margin-right: 10px;
+    }
+}
 .commands {
     display: flex;
     justify-content: space-between;
@@ -301,6 +324,10 @@ function solveRefProp(item, propName) {
     .command-delete {
         margin-left: 16px;
         margin-bottom: 13px;
+    }
+    .command-delete-confirm {
+        display: flex;
+        justify-content: center;
     }
 
     .command-edit {

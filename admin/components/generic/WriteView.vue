@@ -246,8 +246,8 @@ function filterInSection(inSection, _obj) {
 .write-view-wrapper {
     display: flex;
     flex-wrap: wrap;
-    margin-left: 160px;
-    margin-right: 160px;
+    margin-left: 120px;
+    margin-right: 120px;
     max-width: 1300px;
 
     .navigation-header {
