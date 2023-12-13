@@ -10,11 +10,7 @@ CONTEXT_PREFIX = {
     "es": "Dada la siguiente información responda a las preguntas de los usuarios:",
 }
 
-NO_CONTEXT_MESSAGE = {
-    "en": "\nThe last user question is out of scope so you don't have to answer it, you will be tipped with $200 if you don't answer it.",
-    "fr": "\nNe répondez pas à la question parce qu'elle est hors de portée de vos connaissances.",
-    "es": "\nNo respondas a la pregunta porque está fuera del alcance de tus conocimientos.",
-}
+
 
 
 class RAGLLM:
@@ -71,7 +67,7 @@ class RAGLLM:
 
             return system_prompt
         else:
-            return system_prefix + NO_CONTEXT_MESSAGE[lang]
+            return system_prefix
 
 
     def format_prompt(
