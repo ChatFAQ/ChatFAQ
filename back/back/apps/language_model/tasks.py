@@ -323,7 +323,9 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     Generate the embeddings for a knowledge base.
     Parameters
     ----------
-    ragconfig : int
+    ki_ids : list
+        A list of primary keys of the KnowledgeItem objects.
+    ragconfig_id : int
         The primary key of the RAGConfig object.
     """
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
