@@ -19,17 +19,26 @@ LLM_CHOICES = (
     ('claude', 'Claude Model')  # Claude models from Anthropic
 )
 
+# First, define the Manager subclass.
+class EnabledRAGConfigManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(disabled=False)
+
 
 class RAGConfig(ChangesMixin):
     """
     It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline
     """
+    objects = models.Manager()  # The default manager.
+    enabled_objects = EnabledRAGConfigManager()  # The Dahl-specific manager.
+
     name = models.CharField(max_length=255, unique=True)
     knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
     llm_config = models.ForeignKey("LLMConfig", on_delete=models.PROTECT)
     prompt_config = models.ForeignKey("PromptConfig", on_delete=models.PROTECT)
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
+    disabled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
