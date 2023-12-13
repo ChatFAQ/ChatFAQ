@@ -6,16 +6,16 @@
                 <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
-                <div class="selected-icon card-view" :class="{'selected': viewType === 'card'}"
-                     @click="viewType = 'card'">
+                <div class="selected-icon card-view" :class="{'selected': !itemsStore.tableMode }"
+                     @click="itemsStore.tableMode = false">
                     <div class="card-icon"></div>
                 </div>
-                <div class="selected-icon" :class="{'selected': viewType !== 'card'}" @click="viewType = 'table'">
+                <div class="selected-icon" :class="{'selected': itemsStore.tableMode }" @click="itemsStore.tableMode = true">
                     <div class="table-icon"></div>
                 </div>
             </div>
         </div>
-        <div class="cards-view" v-if="viewType === 'card'">
+        <div class="cards-view" v-if="!itemsStore.tableMode">
             <el-card v-for="item in items[apiUrl]" class="box-card">
                 <template #header>
                     <div class="card-header-title">{{ item[titleProp] }}</div>
@@ -52,7 +52,7 @@
                 </el-icon>
             </el-table-column>
         </el-table>
-        <div v-if="viewType !== 'card'" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
+        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -69,7 +69,6 @@ import { storeToRefs } from 'pinia'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
-const viewType = ref("card")
 const deleting = ref(undefined)
 const schema = ref({})
 
