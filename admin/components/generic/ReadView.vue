@@ -26,10 +26,17 @@
                 <div class="divider">
                 </div>
                 <div class="commands">
-                    <el-icon class="command-delete">
-                        <Delete v-if="deleting !== item.id" @click="deleting = item.id"/>
-                        <Check @click="deleteItem(item.id)" v-else/>
+                    <el-icon v-if="deleting !== item.id"  class="command-delete">
+                        <Delete @click="deleting = item.id"/>
                     </el-icon>
+                    <div style="display: flex;">
+                        <el-icon v-if="deleting === item.id" class="command-delete">
+                            <Close @click="deleting = undefined"/>
+                        </el-icon>
+                        <el-icon v-if="deleting === item.id" class="command-delete">
+                            <Check @click="deleteItem(deleting)"/>
+                        </el-icon>
+                    </div>
                     <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                 </div>
             </el-card>
