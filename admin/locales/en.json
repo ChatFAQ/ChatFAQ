@@ -75,6 +75,7 @@
     "first_name": "First Name",
     "last_name": "Last Name",
     "is_active": "Is active",
+    "is_staff": "Is staff",
     "groups": "Groups",
     "user_permissions": "User Permissions",
     "permissions": "Permissions",

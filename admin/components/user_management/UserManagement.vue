@@ -23,6 +23,7 @@
                     ],
                     [$t('userpermissions')]: [
                         'is_active',
+                        'is_staff',
                         'groups',
                         'user_permissions',
                     ]
