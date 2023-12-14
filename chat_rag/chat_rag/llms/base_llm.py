@@ -73,7 +73,7 @@ class RAGLLM:
 
             return system_prompt
         else:
-            return system_prefix
+            return system_prefix + f"\n{CONTEXT_PREFIX[lang]}\n{NO_CONTEXT_SUFFIX[lang]}"
 
 
     def format_prompt(
