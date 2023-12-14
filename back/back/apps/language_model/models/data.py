@@ -2,9 +2,9 @@ import csv
 from io import StringIO
 from logging import getLogger
 
-from django.db import models
+from django.db import models, transaction
 from django.apps import apps
-from back.apps.language_model.tasks import parse_pdf_task, parse_url_task, llm_query_task, generate_embeddings_task
+from back.apps.language_model.tasks import parse_pdf_task, parse_url_task, generate_embeddings_task
 from back.common.models import ChangesMixin
 from back.apps.broker.models.message import Message
 from pgvector.django import VectorField
@@ -99,14 +99,13 @@ class KnowledgeBase(ChangesMixin):
         Embedding = apps.get_model("language_model", "Embedding")
 
         rag_configs = RAGConfig.objects.filter(knowledge_base=self)
-        last_i = rag_configs.count() - 1
-        for i, rag_config in enumerate(rag_configs.all()):
+        for rag_config in rag_configs.all():
             # remove all existing embeddings for this rag config
             Embedding.objects.filter(rag_config=rag_config).delete()
             generate_embeddings_task.delay(
                 list(self.knowledgeitem_set.values_list("pk", flat=True)),
                 rag_config.pk,
-                recache_models=(i == last_i)
+                recache_models=False, # it will be recached at the end of the update_items_from_file function
             )
 
     def to_csv(self):
@@ -206,32 +205,55 @@ class KnowledgeItem(ChangesMixin):
     def __str__(self):
         return f"{self.content} ds ({self.knowledge_base.pk})"
 
+    
     # When saving we want to check if the content has changed and in that case regenerate
     # all the embeddings for the rag_config this item belongs to.
     def save(self, *args, **kwargs):
-        changes = False
-        if self.pk is not None:
+        generate_embeddings = False
+
+        if self.pk is None:
+            generate_embeddings = True
+        else:
             old_item = KnowledgeItem.objects.get(pk=self.pk)
             if self.content != old_item.content:
-                changes = True
+                generate_embeddings = True
+
         super().save(*args, **kwargs)
-        if changes:
-            self.trigger_generate_embeddings()
+
+        if generate_embeddings:
+            def on_commit_callback():
+                self.trigger_generate_embeddings()
+
+            # Schedule the trigger_generate_embeddings function to be called
+            # after the current transaction is committed
+            transaction.on_commit(on_commit_callback)
 
     def trigger_generate_embeddings(self):
         RAGConfig = apps.get_model("language_model", "RAGConfig")
         Embedding = apps.get_model("language_model", "Embedding")
         rag_configs = RAGConfig.objects.filter(knowledge_base=self.knowledge_base)
-        last_i = rag_configs.count() - 1
 
-        for i, rag_config in enumerate(rag_configs.all()):
+        for rag_config in rag_configs.all():
             # remove the embedding for this item for this rag config
             Embedding.objects.filter(rag_config=rag_config, knowledge_item=self).delete()
             generate_embeddings_task.delay(
                 [self.pk],
                 rag_config.pk,
-                recache_models=(i == last_i) # recache models if we are in the last iteration
             )
+
+        if rag_configs.exists():
+            recache_models("KnowledgeItem.trigger_generate_embeddings")
+
+
+def delete_knowledge_items(knowledge_item_ids):
+    # Custom batch delete function for KnowledgeItem that recaches the models once the batch delete is done
+    with transaction.atomic():
+        # Perform the batch delete
+        KnowledgeItem.objects.filter(id__in=knowledge_item_ids).delete()
+
+        # Log and perform post-delete actions
+        logger.info(f"Deleted {len(knowledge_item_ids)} knowledge items")
+        recache_models("on_ki_delete")
 
 
 class Embedding(ChangesMixin):
