@@ -5,9 +5,15 @@ from transformers import AutoTokenizer, AutoConfig
 
 
 CONTEXT_PREFIX = {
-    "en": "Given the following information answer to the user questions:",
-    "fr": "Compte tenu des informations suivantes, répondez aux questions de l'utilisateur:",
-    "es": "Dada la siguiente información responda a las preguntas de los usuarios:",
+    "en": "Information:",
+    "fr": "Informations:",
+    "es": "Información:",
+}
+
+NO_CONTEXT_SUFFIX = {
+    "en": "No information provided.",
+    "fr": "Aucune information n'a été fournie.",
+    "es": "No se proporciona información.",
 }
 
 
@@ -67,7 +73,7 @@ class RAGLLM:
 
             return system_prompt
         else:
-            return system_prefix
+            return system_prefix + f"\n{CONTEXT_PREFIX[lang]}\n{NO_CONTEXT_SUFFIX[lang]}"
 
 
     def format_prompt(
