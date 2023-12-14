@@ -245,6 +245,17 @@ class KnowledgeItem(ChangesMixin):
             recache_models("KnowledgeItem.trigger_generate_embeddings")
 
 
+def delete_knowledge_items(knowledge_item_ids):
+    # Custom batch delete function for KnowledgeItem that recaches the models once the batch delete is done
+    with transaction.atomic():
+        # Perform the batch delete
+        KnowledgeItem.objects.filter(id__in=knowledge_item_ids).delete()
+
+        # Log and perform post-delete actions
+        logger.info(f"Deleted {len(knowledge_item_ids)} knowledge items")
+        recache_models("on_ki_delete")
+
+
 class Embedding(ChangesMixin):
     """
     Embedding representation for a KnowledgeItem.
