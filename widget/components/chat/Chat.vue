@@ -52,6 +52,7 @@ const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 
 let ws = undefined
+let heartbeatTimeout = undefined
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
@@ -82,6 +83,20 @@ function animateFeedbackSent() {
     setTimeout(() => {
         feedbackSentDisabled.value = true
     }, 1500)
+}
+
+function createHeartbeat(ws) {
+    ws.send(JSON.stringify({
+        "heartbeat": true
+    }));
+    heartbeatTimeout = setTimeout(() => {
+        createHeartbeat(ws)
+    }, 5000)
+
+}
+
+function deleteHeartbeat() {
+    clearTimeout(heartbeatTimeout)
 }
 
 
@@ -116,6 +131,7 @@ function createConnection() {
     };
     ws.onopen = function (e) {
         store.disconnected = false;
+        createHeartbeat(ws)
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
@@ -125,6 +141,7 @@ function createConnection() {
         setTimeout(function () {
             createConnection();
         }, 1000);
+        deleteHeartbeat()
     };
 }
 
