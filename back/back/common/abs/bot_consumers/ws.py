@@ -46,7 +46,8 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content, **kwargs):
         if content.get("heartbeat", False):
-            await self.channel_layer._shards[0]._redis.ping()
+            for _shard in self.channel_layer._shards:
+                await _shard._redis.ping()
             return
         serializer = self.serializer_class(data=content)
         mml = await database_sync_to_async(serializer.to_mml)(self)
