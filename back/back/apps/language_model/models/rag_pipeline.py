@@ -1,11 +1,13 @@
-from django.contrib.postgres.fields import ArrayField
-from django.db import models
+from django.db import models, transaction
 from django.apps import apps
 from simple_history.models import HistoricalRecords
 from back.apps.language_model.tasks import generate_embeddings_task
 
 from back.apps.language_model.models.data import KnowledgeItem, KnowledgeBase
 from back.common.models import ChangesMixin
+
+from back.utils.celery import recache_models
+
 
 from logging import getLogger
 
@@ -46,7 +48,8 @@ class RAGConfig(ChangesMixin):
     # When saving we want to check if the knowledge_base or the retriever_config has changed and in that case regenerate
     # all the embeddings for it.
     def save(self, *args, **kwargs):
-        generate_and_load = False # flag to indicate if we need to generate the embeddings and load a new RAG
+        generate_and_load = False
+        load_new_llm = False
 
         if self.pk is None: # New rag config
             generate_and_load = True
@@ -59,11 +62,25 @@ class RAGConfig(ChangesMixin):
             if self.retriever_config.model_name != old.retriever_config.model_name:
                 generate_and_load = True
                 logger.info(f"RAG config {self.name} changed retriever model...")
+            if self.llm_config != old.llm_config:
+                load_new_llm = True
+                logger.info(f"RAG config {self.name} changed llm config...")
 
         super().save(*args, **kwargs)
 
         if generate_and_load:
-            self.trigger_generate_embeddings()
+            def on_commit_callback():
+                self.trigger_generate_embeddings()
+
+            # Schedule the trigger_generate_embeddings function to be called
+            # after the current transaction is committed
+            transaction.on_commit(on_commit_callback)
+        elif load_new_llm:
+            def on_commit_callback():
+                recache_models("RAGConfig.save")
+
+            # Schedule the recache_models function to be called
+            transaction.on_commit(on_commit_callback)
 
     def trigger_generate_embeddings(self):
         logger.info('Triggering generate embeddings task')
@@ -106,19 +123,27 @@ class RetrieverConfig(ChangesMixin):
     def save(self, *args, **kwargs):
         logger.info('Checking if we need to generate embeddings because of a retriever config change')
         generated_embeddings = False
+
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
             if self.model_name != old_retriever.model_name:
                 generated_embeddings = True
+
         super().save(*args, **kwargs)
+
         if generated_embeddings:
-            self.trigger_generate_embeddings()
+            def on_commit_callback():
+                self.trigger_generate_embeddings()
+
+            # Schedule the trigger_generate_embeddings function to be called
+            # after the current transaction is committed
+            transaction.on_commit(on_commit_callback)
 
     def trigger_generate_embeddings(self):
         rag_configs = RAGConfig.objects.filter(retriever_config=self)
         Embeddings = apps.get_model("language_model", "Embedding")
-
         last_i = rag_configs.count() - 1
+
         for i, rag_config in enumerate(rag_configs.all()):
             # check the rag configs that use this retriever
             if rag_config.retriever_config == self:
@@ -130,7 +155,7 @@ class RetrieverConfig(ChangesMixin):
                         KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base).values_list("pk", flat=True)
                     ),
                     rag_config.pk,
-                    recache_models=(i == last_i) # recache models if we are in the last iteration
+                    recache_models=(i==last_i) # recache models if we are in the last iteration
                 )
 
 
