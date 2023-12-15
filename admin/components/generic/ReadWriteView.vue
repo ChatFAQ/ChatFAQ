@@ -6,7 +6,7 @@
         :cardProps="cardProps"
         :tableProps="tableProps"
         :excludeFields="excludeFields"
-        :titleProp="titleProp"
+        :titleProps="titleProps"
     />
     <WriteView
         v-else
@@ -14,7 +14,7 @@
         :apiUrl="apiUrl"
         :editing="editing"
         :adding="adding"
-        :titleProp="titleProp"
+        :titleProps="titleProps"
         :excludeFields="excludeFields"
         :sections="sections"
         :outsideSection="outsideSection"
@@ -55,10 +55,10 @@ const props = defineProps({
         type: Object,
         mandatory: true
     },
-    titleProp: {
-        type: String,
+    titleProps: {
+        type: Array,
         required: false,
-        default: "name",
+        default: ["name"],
     },
     excludeFields: {
         type: Array,
