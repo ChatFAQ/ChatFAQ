@@ -1,8 +1,6 @@
 import json
 from logging import getLogger
 from typing import TYPE_CHECKING
-from django.conf import settings
-from redis import asyncio as aioredis
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
@@ -48,9 +46,8 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content, **kwargs):
         if content.get("heartbeat", False):
-            pool = aioredis.ConnectionPool.from_url(settings.CELERY_BROKER_URL)
-            conn = aioredis.Redis(connection_pool=pool)
-            await conn.ping()
+            for _shard in self.channel_layer._shards:
+                await _shard._redis.ping()
             return
         serializer = self.serializer_class(data=content)
         mml = await database_sync_to_async(serializer.to_mml)(self)
