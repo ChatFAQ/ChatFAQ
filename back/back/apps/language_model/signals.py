@@ -4,7 +4,6 @@ from django.dispatch import receiver
 from logging import getLogger
 
 from back.apps.language_model.models.rag_pipeline import LLMConfig, RAGConfig
-from back.apps.language_model.models.data import KnowledgeItem
 from back.utils.celery import recache_models
 
 logger = getLogger(__name__)

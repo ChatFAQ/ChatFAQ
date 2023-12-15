@@ -91,9 +91,8 @@ class RAGConfig(ChangesMixin):
         generate_embeddings_task.delay(
             list(KnowledgeItem.objects.filter(knowledge_base=self.knowledge_base).values_list("pk", flat=True)),
             self.pk,
-            recache_models=False
+            recache_models=True
         )
-        recache_models("RAGConfig.trigger_generate_embeddings")
 
 
 class RetrieverConfig(ChangesMixin):
@@ -143,8 +142,9 @@ class RetrieverConfig(ChangesMixin):
     def trigger_generate_embeddings(self):
         rag_configs = RAGConfig.objects.filter(retriever_config=self)
         Embeddings = apps.get_model("language_model", "Embedding")
+        last_i = rag_configs.count() - 1
 
-        for rag_config in rag_configs.all():
+        for i, rag_config in enumerate(rag_configs.all()):
             # check the rag configs that use this retriever
             if rag_config.retriever_config == self:
                 logger.info(f"Triggering generate embeddings task for RAG config {rag_config} because of a retriever config change")
@@ -155,11 +155,8 @@ class RetrieverConfig(ChangesMixin):
                         KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base).values_list("pk", flat=True)
                     ),
                     rag_config.pk,
-                    recache_models=False # recache models if we are in the last iteration
+                    recache_models=(i==last_i) # recache models if we are in the last iteration
                 )
-        
-        if rag_configs.exists():
-            recache_models("trigger_generate_embeddings")
 
 
 class LLMConfig(ChangesMixin):
