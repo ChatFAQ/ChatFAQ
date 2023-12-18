@@ -5,13 +5,16 @@
                 apiUrl="/back/api/language-model/tasks/"
                 :readOnly="true"
                 :tableProps="{
+                    'status': '',
                     'task_name': $t('task_name'),
-                    'status': $t('status'),
                     'date_created': $t('date_created'),
                     'duration': $t('duration'),
                 }">
                 <template v-slot:duration="{row}">
                     <div>{{calculateDuration(row)}}</div>
+                </template>
+                <template v-slot:status="{row}">
+                    <div width="10" class="status" :class="{[row.status.toLowerCase()]: true}">-</div>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -52,3 +55,22 @@ function calculateDuration({date_created, date_done}) {
     }
 }
 </script>
+<style lang="scss" scoped>
+.status {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin: 0 auto;
+    background-color: #F2C94C;  // waiting
+
+    &.success {
+        background-color: #27AE60;
+    }
+    &.failure {
+        background-color: #EB5757;
+    }
+    &.started {
+        background-color: #2D9CDB;
+    }
+}
+</style>
