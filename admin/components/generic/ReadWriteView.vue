@@ -7,7 +7,12 @@
         :tableProps="tableProps"
         :excludeFields="excludeFields"
         :titleProps="titleProps"
-    />
+        :readOnly="readOnly"
+    >
+        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+            <slot :name="name" v-bind="data"></slot>
+        </template>
+    </ReadView>
     <WriteView
         v-else
         :readableName="readableName"
@@ -74,6 +79,11 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
+    },
+    readOnly: {
+        type: Boolean,
+        required: false,
+        default: false,
     },
 })
 </script>
