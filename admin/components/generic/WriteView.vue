@@ -27,7 +27,7 @@
                 <div class="edit-title">{{ createTitle(form) }}</div>
                 <div v-for="(_, fieldName) in filterInSection(true, schema.properties)">
                     <FormField
-                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                         :fieldName="fieldName"
                         :schema="schema"
                         :form="form"
@@ -38,13 +38,22 @@
                             <slot :name="name" v-bind="data"></slot>
                         </template>
                     </FormField>
+                    <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :value="form[fieldName]"
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </ReadOnlyField>
                 </div>
             </div>
             <div v-else v-for="(fields, sectionName) in filterInSection(true, sections)" class="form-section">
                 <div class="edit-title">{{ sectionName }}</div>
                 <div v-for="fieldName in fields">
                     <FormField
-                        v-if="allExcludeFields.indexOf(fieldName) === -1"
+                        v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                         :fieldName="fieldName"
                         :schema="schema"
                         :form="form"
@@ -55,11 +64,20 @@
                             <slot :name="name" v-bind="data"></slot>
                         </template>
                     </FormField>
+                    <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :value="form[fieldName]"
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </ReadOnlyField>
                 </div>
             </div>
             <div v-for="(_, fieldName) in filterInSection(false, schema.properties)">
                 <FormField
-                    v-if="allExcludeFields.indexOf(fieldName) === -1"
+                    v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                     :fieldName="fieldName"
                     :schema="schema"
                     :form="form"
@@ -71,6 +89,15 @@
                         <slot :name="name" v-bind="data"></slot>
                     </template>
                 </FormField>
+                <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
+                    :fieldName="fieldName"
+                    :schema="schema"
+                    :value="form[fieldName]"
+                    >
+                    <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                        <slot :name="name" v-bind="data"></slot>
+                    </template>
+                </ReadOnlyField>
             </div>
         </el-form>
 
@@ -97,6 +124,7 @@
 import { ref } from "vue";
 import { useItemsStore } from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
+import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 
 const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
@@ -131,7 +159,12 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
-    }
+    },
+    readOnly: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
 })
 const { data } = await useAsyncData(
     "schema_" + props.apiUrl,
@@ -212,12 +245,15 @@ function deleteItem(id) {
 }
 
 function filterInSection(inSection, _obj) {
-    return Object.keys(_obj)
+    console.log("res")
+    const res = Object.keys(_obj)
         .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
         .reduce((obj, key) => {
             obj[key] = _obj[key];
             return obj;
         }, {});
+    console.log(res)
+    return res
 }
 
 

@@ -24,6 +24,7 @@
         :sections="sections"
         :outsideSection="outsideSection"
         v-bind="$attrs"
+        :readOnly="readOnly"
     >
         <template v-for="(_, name) in $slots" v-slot:[name]="data">
             <slot :name="name" v-bind="data"></slot>
