@@ -3,7 +3,7 @@
 
 ## Back Installation
 
-This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages all the widgets and SDks connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
+This is ChatFAQ's core component, the orchestrator that manages all the widgets, SDKs connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
 
 ![ChatFAQ Components](../../_static/images/chatfaq_components_b.png)
 
