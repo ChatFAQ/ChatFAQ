@@ -9,9 +9,9 @@
                 'fsm_def': $t('fsmdef'),
                 }"
                            :tableProps="{
-                'name': $t('name'),
-                'domain': $t('domain'),
-                'fsm_def': $t('fsmdef'),
+                'name': {'name': $t('name')},
+                'domain': {'name': $t('domain')},
+                'fsm_def': {'name': $t('fsmdef')},
                 }"
                            :sections="{
                 [$t('general')]: [

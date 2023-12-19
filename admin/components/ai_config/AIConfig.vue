@@ -9,10 +9,10 @@
                     'device': $t('device'),
                 }"
                      :tableProps="{
-                    'name': $t('name'),
-                    'model_name': $t('modelname'),
-                    'device': $t('device'),
-                    'updated_date': $t('updateddate'),
+                    'name': {'name': $t('name')},
+                    'model_name': {'name': $t('modelname')},
+                    'device': {'name': $t('device')},
+                    'updated_date': {'name': $t('updateddate')},
                 }">
       </ReadWriteView>
     </el-tab-pane>

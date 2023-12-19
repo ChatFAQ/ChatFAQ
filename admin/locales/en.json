@@ -39,7 +39,7 @@
     "device": "Device",
     "updateddate": "Last Modified",
     "lastmodified": "Last Modified",
-    "numberofitems": "{number} {readablename} configuration",
+    "numberofitems": "{number} {readablename}",
     "additem": "Add {readablename}",
     "edit": "Edit",
     "contextsnumber": "Contexts number",
