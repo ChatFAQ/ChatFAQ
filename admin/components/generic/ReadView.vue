@@ -3,22 +3,22 @@
         <div v-if="items[apiUrl].length" class="section-header">
             <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
             <div class="section-header-right">
-                <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
+                <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
-                <div class="selected-icon card-view" :class="{'selected': !itemsStore.tableMode }"
+                <div v-if="cardProps && tableProps" class="selected-icon card-view" :class="{'selected': !itemsStore.tableMode }"
                      @click="itemsStore.tableMode = false">
                     <div class="card-icon"></div>
                 </div>
-                <div class="selected-icon" :class="{'selected': itemsStore.tableMode }" @click="itemsStore.tableMode = true">
+                <div  v-if="cardProps && tableProps" class="selected-icon" :class="{'selected': itemsStore.tableMode }" @click="itemsStore.tableMode = true">
                     <div class="table-icon"></div>
                 </div>
             </div>
         </div>
-        <div class="cards-view" v-if="!itemsStore.tableMode">
+        <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
             <el-card v-for="item in items[apiUrl]" class="box-card">
                 <template #header>
-                    <div class="card-header-title">{{ item[titleProp] }}</div>
+                    <div class="card-header-title">{{ createTitle(item) }}</div>
                 </template>
                 <div v-for="(name, prop) in cardProps" class="property">
                     <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
@@ -49,13 +49,22 @@
         </div>
 
         <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
-            <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
-            <el-table-column align="center">
+                <el-table-column
+                    v-for="(name, prop) in tableProps"
+                    :prop="prop"
+                    :label="name"
+                    :formatter="(row, column) => solveRefProp(row, column.property)"
+                >
+                    <template v-if="$slots[prop]" #default="scope">
+                        <slot :name="prop" v-bind="scope"></slot>
+                    </template>
+                </el-table-column>
+            <el-table-column v-if="!readOnly" align="center">
                 <template #default="{ row }">
                     <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
-            <el-table-column align="center">
+            <el-table-column v-if="!readOnly" align="center">
                 <template #default="{ row }">
                     <el-icon v-if="deleting !== row.id"  class="command-delete">
                         <Delete @click="deleting = row.id"/>
@@ -109,10 +118,15 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    titleProp: {
-        type: String,
+    titleProps: {
+        type: Array,
         required: false,
-        default: "name",
+        default: ["name"],
+    },
+    readOnly: {
+        type: Boolean,
+        required: false,
+        default: false,
     },
 });
 
@@ -129,6 +143,10 @@ await useAsyncData(
 
 const {items} = storeToRefs(itemsStore)
 
+function createTitle(item) {
+    return props.titleProps.map(prop => item[prop]).join(" ")
+}
+
 function stateToEdit(id) {
     itemsStore.editing = id
 }
@@ -141,6 +159,8 @@ function deleteItem(id) {
 }
 function solveRefProp(item, propName) {
     const prop = schema.value.properties[propName]
+    if(!prop)
+        return item[propName]
     if (prop.$ref && schema.value.properties[propName].choices) {
         // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
         const choice = schema.value.properties[propName].choices.find(choice => choice.value === item[propName])

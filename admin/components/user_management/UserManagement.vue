@@ -5,7 +5,7 @@
             <ReadWriteView
                 :readableName="$t('user')"
                 apiUrl="/back/api/people/users/"
-                titleProp="first_name"
+                :titleProps="['first_name', 'last_name']"
                 :cardProps="{
                     'email': $t('email'),
                 }"

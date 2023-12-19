@@ -1,7 +1,6 @@
 import json
 from logging import getLogger
 from typing import TYPE_CHECKING
-
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
@@ -46,6 +45,10 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             )
 
     async def receive_json(self, content, **kwargs):
+        if content.get("heartbeat", False):
+            for _shard in self.channel_layer._shards:
+                await _shard._redis.ping()
+            return
         serializer = self.serializer_class(data=content)
         mml = await database_sync_to_async(serializer.to_mml)(self)
         if not mml:

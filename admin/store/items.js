@@ -12,7 +12,12 @@ export const useItemsStore = defineStore('items', {
     }),
     actions: {
         async retrieveItems($axios, apiUrl = undefined) {
-            this.items[apiUrl] = (await $axios.get(apiUrl)).data
+            // Would be nice to amke ordering dynamic as a parameter, perhaps one day
+            let ordering = "-updated_date"
+            if (apiUrl.indexOf("/people/") !== -1)
+                ordering = "first_name"
+
+            this.items[apiUrl] = (await $axios.get(apiUrl + `?ordering=${ordering}`)).data
             return this.items[apiUrl]
         },
         async deleteItem($axios, apiUrl, id) {

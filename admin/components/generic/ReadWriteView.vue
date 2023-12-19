@@ -6,15 +6,20 @@
         :cardProps="cardProps"
         :tableProps="tableProps"
         :excludeFields="excludeFields"
-        :titleProp="titleProp"
-    />
+        :titleProps="titleProps"
+        :readOnly="readOnly"
+    >
+        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+            <slot :name="name" v-bind="data"></slot>
+        </template>
+    </ReadView>
     <WriteView
         v-else
         :readableName="readableName"
         :apiUrl="apiUrl"
         :editing="editing"
         :adding="adding"
-        :titleProp="titleProp"
+        :titleProps="titleProps"
         :excludeFields="excludeFields"
         :sections="sections"
         :outsideSection="outsideSection"
@@ -55,10 +60,10 @@ const props = defineProps({
         type: Object,
         mandatory: true
     },
-    titleProp: {
-        type: String,
+    titleProps: {
+        type: Array,
         required: false,
-        default: "name",
+        default: ["name"],
     },
     excludeFields: {
         type: Array,
@@ -74,6 +79,11 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
+    },
+    readOnly: {
+        type: Boolean,
+        required: false,
+        default: false,
     },
 })
 </script>

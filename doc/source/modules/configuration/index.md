@@ -240,7 +240,7 @@ The prompt is the input that the LLM will use to generate the answer. This confi
 - **user_end**: The tag to indicate the end of the user input.
 - **assistant_tag**: The tag to indicate the start of the assistant output.
 - **assistant_end**: The tag to indicate the end of the assistant output.
-- **n_contexts_to_use**: The number of contexts from the Retriever to use in the generation process. Default: 3
+- **n_contexts_to_use**: The maximum number of knowledge items that will be appear in the sources. Default: 3
 
 We recommend using the [ChatML guidelines](https://github.com/openai/openai-python/blob/main/chatml.md), an of course using LLMs trained using this format, like Llama-2. The example here is the prompt format used by [Llama-2](https://huggingface.co/blog/llama2#how-to-prompt-llama-2):
 
@@ -251,7 +251,38 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
 If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
 ```
 
-Then for the tags it is recommended to use the following:
+#### System Prefix Recommendations
+
+The system prefix indicates the LLM how to behave. We recommend that your system prefix contains at least these two parts:
+
+##### Description of the assistant
+Here you can describe the assistant, its personality, its role, etc. For example:
+```
+- You are a helpul AI assistant chatbot for ChatFAQ.
+- ChatFAQ is a platform enabling a conversational experience for your customers using Large Language Models (LLMs).
+- You answer questions only about ChatFAQ.
+- Your answers should avoid being vague or off-topic, and your logic and reasoning should be rigorous, intelligent, and defensible.
+- You are excited to be able to help the user, but will refuse to do anything that could be considered dangerous.
+```
+
+##### Refusals to out of scope questions
+Here you can specify what to do when the user asks a question that is out of scope. For example:
+```
+- Your task is to provide an answer based on the information extracts only. Never provide an answer if you don't have the necessary information in the relevant extracts.
+- If the question is not about ChatFAQ, politely inform them that you are tuned to only answer questions about ChatFAQ.
+- If you don't have enough information to answer the question, say "I don't have enough information to give you a confident answer" and link to helpful documentation instead. Never try to make up an answer if you aren't provided the information.
+```
+
+You can modify this previous text to adapt it to your use case, but it is important to keep the same structure.
+
+#### Tags Recommendations
+Tags should only be set when using a HuggingFace model that **doesn't contain a chat template**. In case the model contains a chat template, the tags should be empty and will be ignored, only the system prefix will be used. For more information about chat templates check the following links:
+
+[Blog introducing chat templates](https://huggingface.co/blog/chat-templates)
+[HuggingFace documentation about chat templates](https://huggingface.co/docs/transformers/chat_templating)
+
+In case a chat template is not available for your model, let's say you are using a Llama-2 model, you
+must check the model's documentation to see what tags are needed. For example, for Llama-2 we need to use the following tags:
 ```json
 {
     "name": "Llama2_PromptConfig",
@@ -265,20 +296,7 @@ Then for the tags it is recommended to use the following:
 }
 ```
 
-When constructing the prompt we just concatenate the tags in the following order:
-1. system_tag
-2. system_prefix
-3. system_end
-4. user_tag
-5. user message
-6. user_end
-7. assistant_tag
-8. assistant output
-9. assistant_end
-
-For **n_contexts_to_use** a standard practice is to use 3.
-
-> ⚠️ If you use an OpenAI model you only need to specify the **system prefix**, the other fields are not used.
+> ⚠️ If you use an OpenAI, Claude or vLLM model you only need to specify the **system prefix**, the other fields are not used.
 
 
 ### Generation Config
@@ -322,6 +340,7 @@ The RAG config is configured with the following properties:
 - prompt_config: The prompt config to use.
 - generation_config: The generation config to use.
 - retriever_config: The retriever config to use.
+- disabled: Whether to disable this RAG config or not to reduce the memory usage if it is not used. Default: False.
 
 Remember that currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
 
@@ -334,7 +353,8 @@ An example of a RAG config is the following:
     "llm_config": "Llama2_GPU",
     "prompt_config": "Llama2_PromptConfig",
     "generation_config": "Llama2_GenerationConfig",
-    "retriever_config": "e5-retriever"
+    "retriever_config": "e5-retriever",
+    "disabled": false
 }
 ```
 
