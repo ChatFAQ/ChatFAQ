@@ -10,7 +10,6 @@
                     'task_name': {'name': $t('task_name')},
                     'date_created': {'name': $t('date_created')},
                     'duration': {'name': $t('duration')},
-                    'view': {'name': $t('duration')},
                 }">
                 <template #legend>
                     <div class="legend"><span>Status:</span>
