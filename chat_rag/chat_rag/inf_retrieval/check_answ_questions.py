@@ -19,6 +19,7 @@ def get_answerable_questions(contents_path, questions_path, language, device, ba
         model_name = 'nreimers/mmarco-mMiniLMv2-L6-H384-v1'
 
     model = CrossEncoder(model_name, max_length=512, device=device)
+    model.model = torch.compile(model.model, mode='default')
 
     df = pd.read_csv(contents_path)
     df_q = pd.read_csv(questions_path)
