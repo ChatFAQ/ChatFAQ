@@ -50,10 +50,11 @@
 
         <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
                 <el-table-column
-                    v-for="(name, prop) in tableProps"
+                    v-for="(propInfo, prop) in tableProps"
                     :prop="prop"
-                    :label="name"
+                    :label="propInfo.name"
                     :formatter="(row, column) => solveRefProp(row, column.property)"
+                    :width="propInfo.width ? propInfo.width : undefined"
                 >
                     <template v-if="$slots[prop]" #default="scope">
                         <slot :name="prop" v-bind="scope"></slot>

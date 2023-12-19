@@ -41,7 +41,7 @@
                     'name': $t('name'),
                 }"
                            :tableProps="{
-                    'name': $t('name'),
+                    'name': { 'name': $t('name') },
                 }">
             </ReadWriteView>
         </el-tab-pane>
