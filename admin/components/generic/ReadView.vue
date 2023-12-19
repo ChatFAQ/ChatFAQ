@@ -1,7 +1,9 @@
 <template>
     <div class="read-view-wrapper">
         <div v-if="items[apiUrl].length" class="section-header">
-            <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
+            <slot name="legend" :total="items[apiUrl].length">
+                <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
+            </slot>
             <div class="section-header-right">
                 <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
