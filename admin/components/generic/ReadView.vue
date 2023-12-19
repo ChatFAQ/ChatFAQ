@@ -1,7 +1,9 @@
 <template>
     <div class="read-view-wrapper">
         <div v-if="items[apiUrl].length" class="section-header">
-            <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
+            <slot name="legend" :total="items[apiUrl].length">
+                <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
+            </slot>
             <div class="section-header-right">
                 <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
@@ -50,10 +52,11 @@
 
         <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
                 <el-table-column
-                    v-for="(name, prop) in tableProps"
+                    v-for="(propInfo, prop) in tableProps"
                     :prop="prop"
-                    :label="name"
+                    :label="propInfo.name"
                     :formatter="(row, column) => solveRefProp(row, column.property)"
+                    :width="propInfo.width ? propInfo.width : undefined"
                 >
                     <template v-if="$slots[prop]" #default="scope">
                         <slot :name="prop" v-bind="scope"></slot>
