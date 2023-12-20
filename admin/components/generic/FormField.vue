@@ -1,5 +1,5 @@
 <template>
-    <slot :name="'write-' + fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName">
+    <slot :name="'write-' + fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName" v-bind:formServerErrors="formServerErrors">
         <el-form-item v-if="schema.properties[fieldName]" :label="schema.properties[fieldName].type === 'boolean' || noLabel ? '' : $t(fieldName)"
                       :prop="fieldName"
                       :error="formServerErrors[fieldName]">
