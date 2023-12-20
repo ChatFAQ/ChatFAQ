@@ -62,7 +62,7 @@ class Conversation(ChangesMixin):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
         )
-    
+
     def get_formatted_conversation(self, chain):
         '''
         Returns a list of messages in the format of the conversation LLMs.
@@ -90,8 +90,7 @@ class Conversation(ChangesMixin):
     @classmethod
     def conversations_from_sender(cls, sender_id):
         conversations = (
-            cls.objects.values("pk", "platform_conversation_id", "name", "created_date")
-            .filter(
+            cls.objects.filter(
                 Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
             )
             .distinct()

@@ -94,7 +94,7 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
+        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
