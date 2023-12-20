@@ -123,11 +123,15 @@ class RetrieverConfig(ChangesMixin):
     def save(self, *args, **kwargs):
         logger.info('Checking if we need to generate embeddings because of a retriever config change')
         generated_embeddings = False
+        device_changed = False
 
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
             if self.model_name != old_retriever.model_name:
                 generated_embeddings = True
+
+            if self.device != old_retriever.device:
+                device_changed = True
 
         super().save(*args, **kwargs)
 
@@ -138,6 +142,14 @@ class RetrieverConfig(ChangesMixin):
             # Schedule the trigger_generate_embeddings function to be called
             # after the current transaction is committed
             transaction.on_commit(on_commit_callback)
+        elif device_changed:
+            def on_commit_callback():
+                recache_models("RetrieverConfig.save")
+
+            # Schedule the recache_models function to be called
+            transaction.on_commit(on_commit_callback)
+
+            
 
     def trigger_generate_embeddings(self):
         rag_configs = RAGConfig.objects.filter(retriever_config=self)
