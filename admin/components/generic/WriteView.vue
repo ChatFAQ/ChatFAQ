@@ -166,10 +166,13 @@ const props = defineProps({
         default: false,
     },
 })
+itemsStore.loading = true
+
 const {data} = await useAsyncData(
     "schema_" + props.apiUrl,
     async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
+itemsStore.loading = false
 schema.value = data.value
 const form = ref({})
 const formServerErrors = ref({})
@@ -196,6 +199,7 @@ initializeFormValues()
 watch(() => itemsStore.editing, initializeFormValues)
 async function initializeFormValues() {
     if (itemsStore.editing) {
+        itemsStore.loading = true
         const {data} = await useAsyncData(
             props.apiUrl + "_" + itemsStore.editing,
             async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
@@ -207,6 +211,7 @@ async function initializeFormValues() {
                 }
             }
         }
+        itemsStore.loading = false
     }
 }
 
