@@ -8,8 +8,8 @@
                 :tableProps="{
                     'status': {'name': '', 'width': 50},
                     'task_name': {'name': $t('task_name')},
-                    'date_created': {'name': $t('date_created')},
-                    'duration': {'name': $t('duration')},
+                    'date_created': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates},
+                    'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration},
                     'view': {'name': $t('view')},
                 }"
                 :sections="{
@@ -117,6 +117,40 @@ function formatTaskName(name) {
 
 function stateToDetail(id) {
     itemsStore.editing = id
+}
+
+function sortDates(a, b) {
+    const dateA = new Date(a.date_created)
+    const dateB = new Date(b.date_created)
+    return dateA - dateB
+}
+function sortDuration(a, b) {
+    a = calculateDuration(a)
+    b = calculateDuration(b)
+    // check if any is null:
+    if (!a) {
+        return 1
+    } else if (!b) {
+        return -1
+    }
+    // a and b are strings with the next format: 1.2 s, 1.2 min, 1.2 h, etc...
+    const aNumber = parseFloat(a.split(" ")[0])
+    const bNumber = parseFloat(b.split(" ")[0])
+    const aUnit = a.split(" ")[1]
+    const bUnit = b.split(" ")[1]
+    if (aUnit === bUnit) {
+        return aNumber - bNumber
+    } else if (aUnit === "ms") {
+        return -1
+    } else if (aUnit === "s" && bUnit === "min") {
+        return -1
+    } else if (aUnit === "s" && bUnit === "h") {
+        return -1
+    } else if (aUnit === "min" && bUnit === "h") {
+        return -1
+    } else {
+        return 1
+    }
 }
 </script>
 <style lang="scss" scoped>

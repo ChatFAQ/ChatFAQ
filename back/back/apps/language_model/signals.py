@@ -39,6 +39,5 @@ def on_rag_config_change(instance, *args, **kwargs):
 @task_unknown.connect
 @task_rejected.connect
 def on_celery_task_signal(sender=None, headers=None, body=None, **kwargs):
-    logger.debug(f"on_celery_task_signal - {sender} - {headers} - {body}")
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("tasks", {'type': 'send.data'})
