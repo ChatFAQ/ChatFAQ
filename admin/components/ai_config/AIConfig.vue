@@ -106,6 +106,5 @@ await itemsStore.loadSchema($axios)
 
 <style lang="scss" scoped>
 .system-prefix-input {
-    width: 330px;
 }
 </style>
