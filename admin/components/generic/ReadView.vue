@@ -57,6 +57,8 @@
                     :label="propInfo.name"
                     :formatter="(row, column) => solveRefProp(row, column.property)"
                     :width="propInfo.width ? propInfo.width : undefined"
+                    :sortable="propInfo.sortable"
+                    :sortMethod="propInfo.sortMethod"
                 >
                     <template v-if="$slots[prop]" #default="scope">
                         <slot :name="prop" v-bind="scope"></slot>
