@@ -38,7 +38,6 @@
         <el-tab-pane :lazy="true" :label="$t('grouppermissions')" name="group-permissions">
             <ReadWriteView :readableName="$t('group')" apiUrl="/back/api/people/groups/"
                            :cardProps="{
-                    'name': $t('name'),
                 }"
                            :tableProps="{
                     'name': { 'name': $t('name') },
