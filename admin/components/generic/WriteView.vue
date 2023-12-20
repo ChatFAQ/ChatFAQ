@@ -39,9 +39,9 @@
                         </template>
                     </FormField>
                     <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
-                        :fieldName="fieldName"
-                        :schema="schema"
-                        :value="form[fieldName]"
+                                   :fieldName="fieldName"
+                                   :schema="schema"
+                                   :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
                             <slot :name="name" v-bind="data"></slot>
@@ -65,9 +65,9 @@
                         </template>
                     </FormField>
                     <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
-                        :fieldName="fieldName"
-                        :schema="schema"
-                        :value="form[fieldName]"
+                                   :fieldName="fieldName"
+                                   :schema="schema"
+                                   :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
                             <slot :name="name" v-bind="data"></slot>
@@ -90,10 +90,10 @@
                     </template>
                 </FormField>
                 <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
-                    :fieldName="fieldName"
-                    :schema="schema"
-                    :value="form[fieldName]"
-                    >
+                               :fieldName="fieldName"
+                               :schema="schema"
+                               :value="form[fieldName]"
+                >
                     <template v-for="(_, name) in $slots" v-slot:[name]="data">
                         <slot :name="name" v-bind="data"></slot>
                     </template>
@@ -121,12 +121,12 @@
     </div>
 </template>
 <script setup>
-import { ref } from "vue";
-import { useItemsStore } from "~/store/items.js";
+import {ref} from "vue";
+import {useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 
-const { $axios } = useNuxtApp();
+const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
@@ -166,10 +166,13 @@ const props = defineProps({
         default: false,
     },
 })
-const { data } = await useAsyncData(
+itemsStore.loading = true
+
+const {data} = await useAsyncData(
     "schema_" + props.apiUrl,
     async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
 )
+itemsStore.loading = false
 schema.value = data.value
 const form = ref({})
 const formServerErrors = ref({})
@@ -185,23 +188,30 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
         if (schema.value.required.indexOf(fieldName) !== -1) {
-            formRules.value[fieldName].push({ required: true, message: `Please enter ${fieldName}`, trigger: 'blur' })
+            formRules.value[fieldName].push({required: true, message: `Please enter ${fieldName}`, trigger: 'blur'})
         }
     }
 }
 
+
 // Initialize form values
-if (itemsStore.editing) {
-    const { data } = await useAsyncData(
-        props.apiUrl + "_" + itemsStore.editing,
-        async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
-    )
-    if (data.value) {
-        for (const [fieldName, fieldValue] of Object.entries(data.value)) {
-            if (allExcludeFields.value.indexOf(fieldName) === -1) {
-                form.value[fieldName] = fieldValue
+initializeFormValues()
+watch(() => itemsStore.editing, initializeFormValues)
+async function initializeFormValues() {
+    if (itemsStore.editing) {
+        itemsStore.loading = true
+        const {data} = await useAsyncData(
+            props.apiUrl + "_" + itemsStore.editing,
+            async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, itemsStore.editing)
+        )
+        if (data.value) {
+            for (const [fieldName, fieldValue] of Object.entries(data.value)) {
+                if (allExcludeFields.value.indexOf(fieldName) === -1) {
+                    form.value[fieldName] = fieldValue
+                }
             }
         }
+        itemsStore.loading = false
     }
 }
 
@@ -228,7 +238,7 @@ const submitForm = async (formEl) => {
                     formServerErrors.value[fieldName] = errorMessages.join(", ")
                 }
                 const ref = fieldsRef.value[Object.keys(e.response.data)[0]]
-                ref.$el.parentElement.scrollIntoView({ behavior: "smooth", block: "center" })
+                ref.$el.parentElement.scrollIntoView({behavior: "smooth", block: "center"})
                 return
             } else {
                 throw e
@@ -245,14 +255,12 @@ function deleteItem(id) {
 }
 
 function filterInSection(inSection, _obj) {
-    console.log("res")
     const res = Object.keys(_obj)
         .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
         .reduce((obj, key) => {
             obj[key] = _obj[key];
             return obj;
         }, {});
-    console.log(res)
     return res
 }
 

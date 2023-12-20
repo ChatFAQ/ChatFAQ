@@ -20,7 +20,6 @@
                         'task_args',
                         'task_kwargs',
                         'worker',
-                        'worker',
 						'content_type',
 						'content_encoding',
 						'result',

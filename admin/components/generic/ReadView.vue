@@ -2,17 +2,25 @@
     <div class="read-view-wrapper">
         <div v-if="items[apiUrl].length" class="section-header">
             <slot name="legend" :total="items[apiUrl].length">
-                <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
+                <div class="item-count"> {{
+                        $t("numberofitems", {
+                            "number": items[apiUrl].length,
+                            "readablename": readableName
+                        })
+                    }}
+                </div>
             </slot>
             <div class="section-header-right">
                 <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
-                <div v-if="cardProps && tableProps" class="selected-icon card-view" :class="{'selected': !itemsStore.tableMode }"
+                <div v-if="cardProps && tableProps" class="selected-icon card-view"
+                     :class="{'selected': !itemsStore.tableMode }"
                      @click="itemsStore.tableMode = false">
                     <div class="card-icon"></div>
                 </div>
-                <div  v-if="cardProps && tableProps" class="selected-icon" :class="{'selected': itemsStore.tableMode }" @click="itemsStore.tableMode = true">
+                <div v-if="cardProps && tableProps" class="selected-icon" :class="{'selected': itemsStore.tableMode }"
+                     @click="itemsStore.tableMode = true">
                     <div class="table-icon"></div>
                 </div>
             </div>
@@ -28,7 +36,7 @@
                 <div class="divider">
                 </div>
                 <div class="commands">
-                    <el-icon v-if="deleting !== item.id"  class="command-delete">
+                    <el-icon v-if="deleting !== item.id" class="command-delete">
                         <Delete @click="deleting = item.id"/>
                     </el-icon>
                     <div class="command-delete-confirm">
@@ -50,20 +58,21 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
-                <el-table-column
-                    v-for="(propInfo, prop) in tableProps"
-                    :prop="prop"
-                    :label="propInfo.name"
-                    :formatter="(row, column) => solveRefProp(row, column.property)"
-                    :width="propInfo.width ? propInfo.width : undefined"
-                    :sortable="propInfo.sortable"
-                    :sortMethod="propInfo.sortMethod"
-                >
-                    <template v-if="$slots[prop]" #default="scope">
-                        <slot :name="prop" v-bind="scope"></slot>
-                    </template>
-                </el-table-column>
+        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false"
+                  style="width: 100%">
+            <el-table-column
+                v-for="(propInfo, prop) in tableProps"
+                :prop="prop"
+                :label="propInfo.name"
+                :formatter="(row, column) => solveRefProp(row, column.property)"
+                :width="propInfo.width ? propInfo.width : undefined"
+                :sortable="propInfo.sortable"
+                :sortMethod="propInfo.sortMethod"
+            >
+                <template v-if="$slots[prop]" #default="scope">
+                    <slot :name="prop" v-bind="scope"></slot>
+                </template>
+            </el-table-column>
             <el-table-column v-if="!readOnly" align="center">
                 <template #default="{ row }">
                     <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
@@ -71,7 +80,7 @@
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center">
                 <template #default="{ row }">
-                    <el-icon v-if="deleting !== row.id"  class="command-delete">
+                    <el-icon v-if="deleting !== row.id" class="command-delete">
                         <Delete @click="deleting = row.id"/>
                     </el-icon>
                     <div class="command-delete-confirm on-table">
@@ -85,7 +94,8 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
+        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
+             @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -98,13 +108,12 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
-import { storeToRefs } from 'pinia'
+import {storeToRefs} from 'pinia'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const schema = ref({})
-
 
 const props = defineProps({
     readableName: {
@@ -135,6 +144,7 @@ const props = defineProps({
     },
 });
 
+itemsStore.loading = true
 const {data} = await useAsyncData(
     "schema_" + props.apiUrl,
     async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
@@ -147,6 +157,7 @@ await useAsyncData(
 )
 
 const {items} = storeToRefs(itemsStore)
+itemsStore.loading = false
 
 function createTitle(item) {
     return props.titleProps.map(prop => item[prop]).join(" ")
@@ -155,16 +166,19 @@ function createTitle(item) {
 function stateToEdit(id) {
     itemsStore.editing = id
 }
+
 function stateToAdd() {
     itemsStore.adding = true
 }
+
 function deleteItem(id) {
     itemsStore.deleteItem($axios, props.apiUrl, id)
     deleting.value = undefined
 }
+
 function solveRefProp(item, propName) {
     const prop = schema.value.properties[propName]
-    if(!prop)
+    if (!prop)
         return item[propName]
     if (prop.$ref && schema.value.properties[propName].choices) {
         // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
@@ -341,6 +355,7 @@ function solveRefProp(item, propName) {
         margin-right: 10px;
     }
 }
+
 .commands {
     display: flex;
     justify-content: space-between;

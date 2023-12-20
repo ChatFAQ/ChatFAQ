@@ -1,35 +1,37 @@
 <template>
-    <ReadView
-        v-if="editing === undefined && !adding"
-        :apiUrl="apiUrl"
-        :readableName="readableName"
-        :cardProps="cardProps"
-        :tableProps="tableProps"
-        :excludeFields="excludeFields"
-        :titleProps="titleProps"
-        :readOnly="readOnly"
-    >
-        <template v-for="(_, name) in $slots" v-slot:[name]="data">
-            <slot :name="name" v-bind="data"></slot>
-        </template>
-    </ReadView>
-    <WriteView
-        v-else
-        :readableName="readableName"
-        :apiUrl="apiUrl"
-        :editing="editing"
-        :adding="adding"
-        :titleProps="titleProps"
-        :excludeFields="excludeFields"
-        :sections="sections"
-        :outsideSection="outsideSection"
-        v-bind="$attrs"
-        :readOnly="readOnly"
-    >
-        <template v-for="(_, name) in $slots" v-slot:[name]="data">
-            <slot :name="name" v-bind="data"></slot>
-        </template>
-    </WriteView>
+    <div class="rw-wrapper" v-loading="itemsStore.loading">
+        <ReadView
+            v-if="editing === undefined && !adding"
+            :apiUrl="apiUrl"
+            :readableName="readableName"
+            :cardProps="cardProps"
+            :tableProps="tableProps"
+            :excludeFields="excludeFields"
+            :titleProps="titleProps"
+            :readOnly="readOnly"
+        >
+            <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                <slot :name="name" v-bind="data"></slot>
+            </template>
+        </ReadView>
+        <WriteView
+            v-else
+            :readableName="readableName"
+            :apiUrl="apiUrl"
+            :editing="editing"
+            :adding="adding"
+            :titleProps="titleProps"
+            :excludeFields="excludeFields"
+            :sections="sections"
+            :outsideSection="outsideSection"
+            v-bind="$attrs"
+            :readOnly="readOnly"
+        >
+            <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                <slot :name="name" v-bind="data"></slot>
+            </template>
+        </WriteView>
+    </div>
 </template>
 
 <script setup>
@@ -88,3 +90,15 @@ const props = defineProps({
     },
 })
 </script>
+<style lang="scss">
+.el-loading-mask {
+    background-color: unset;
+}
+</style>
+
+<style scoped lang="scss">
+.rw-wrapper {
+    min-height: calc(100vh - 300px);
+}
+
+</style>

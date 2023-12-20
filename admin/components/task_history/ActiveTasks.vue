@@ -8,7 +8,7 @@
             </el-icon>
         </div>
         <div class="active-tasks-body" v-if="opened">
-            <div v-for="item in items" :key="item.id" class="active-task">
+            <div v-for="item in items" :key="item.id" class="active-task" @click="goToTaskToDetail(item.id)">
                 <div class="active-task-name">
                     <span class="name">{{ formatTaskName(item.task_name) }}</span>
                     <span v-if="item.status !== 'WAITING'" class="action" @click="removeItem(item.id)">Close</span>
@@ -33,11 +33,14 @@ import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
 let ws = undefined
 const itemsStore = useItemsStore()
 const items = ref([])
-const lastItemDate = ref()
+const lastItemDate = ref(new Date())
 const apiUrl = ref("/back/api/language-model/tasks/")
 const opened = ref(false)
+const router = useRouter();
+
 if (process.client)
     createConnection()
+
 
 function createConnection() {
     if (ws)
@@ -74,13 +77,12 @@ function setItems(newItems) {
     // If lastItemDate.value is null the only add items that are WAITING or STARTED
     // If lastItemDate.value is not null add all new items that are newer than lastItemDate.value
     // Update lastItemDate.value
-    if (lastItemDate.value) {
-        const newItemsFiltered = newItems.filter(item => new Date(item.date_created) > lastItemDate.value)
-        items.value = items.value.concat(newItemsFiltered)
-    } else {
-        const newItemsFiltered = newItems.filter(item => item.status === "WAITING" || item.status === "STARTED")
-        items.value = items.value.concat(newItemsFiltered)
-    }
+    const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
+    // add pendingNewItems if they dont exists yet
+    filteredItems.forEach(filteredItem => {
+        if (!items.value.find(item => item.id === filteredItem.id))
+            items.value.push(filteredItem)
+    })
     // Update the exisitng items with the new items by id
     items.value = items.value.map(item => {
         const newItem = newItems.find(newItem => newItem.id === item.id)
@@ -92,9 +94,16 @@ function setItems(newItems) {
     lastItemDate.value = new Date()
 
 }
-function removeItem(id)  {
+
+function removeItem(id) {
     items.value = items.value.filter(item => item.id !== id)
 }
+
+function goToTaskToDetail(id) {
+    itemsStore.editing = id
+    router.push('/task_history');
+}
+
 function formatTaskName(taskName) {
     if (!taskName)
         return ""
@@ -112,15 +121,6 @@ function getColor(status) {
         return "#F2C94C"
     else
         return "#F2C94C"
-}
-
-function formatDate(date) {
-    if (date) {
-        const dateObj = new Date(date)
-        return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()} ${dateObj.getHours()}:${dateObj.getMinutes()}:${dateObj.getSeconds()}`
-    } else {
-        return null
-    }
 }
 
 function formatState(state) {
@@ -142,6 +142,7 @@ function formatState(state) {
 <style lang="scss" scoped>
 .active-tasks {
     width: 330px;
+    box-shadow: 0px 0px 12px 0px #0000001F;
 
     .active-tasks-header {
         display: flex;
@@ -176,8 +177,11 @@ function formatState(state) {
         .action {
             font-size: 12px;
             font-weight: 400;
-            color: grey;
+            color: #8E959F;
             cursor: pointer;
+            &:hover {
+                text-decoration: underline;
+            }
 
         }
 
