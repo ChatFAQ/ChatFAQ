@@ -143,6 +143,7 @@ function formatState(state) {
 <style lang="scss" scoped>
 .active-tasks {
     width: 330px;
+    box-shadow: 0px 0px 12px 0px #0000001F;
 
     .active-tasks-header {
         display: flex;
@@ -177,7 +178,7 @@ function formatState(state) {
         .action {
             font-size: 12px;
             font-weight: 400;
-            color: grey;
+            color: #8E959F;
             cursor: pointer;
             &:hover {
                 text-decoration: underline;
