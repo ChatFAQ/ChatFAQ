@@ -10,7 +10,28 @@
                     'task_name': {'name': $t('task_name')},
                     'date_created': {'name': $t('date_created')},
                     'duration': {'name': $t('duration')},
-                }">
+                }"
+                :sections="{
+                    [$t('generalinfo')]: [
+                        'status',
+                        'task_name',
+                        'periodic_task_name',
+                        'task_args',
+                        'task_kwargs',
+                        'worker',
+                        'worker',
+						'content_type',
+						'content_encoding',
+						'result',
+						'date_created',
+						'date_done',
+                        'meta',
+                    ],
+                    [$t('logs')]: [
+                        'traceback',
+                    ]
+                }"
+            >
                 <template #legend>
                     <div class="legend"><span>Status:</span>
                         <span><span class="status success"></span>{{ $t("success") }}</span>
@@ -31,7 +52,14 @@
                 <template v-slot:status="{row}">
                     <div width="10" class="status" :class="{[row.status.toLowerCase()]: true}">-</div>
                 </template>
+                <template v-slot:view="{row}">
+                    <span class="command-edit" @click="stateToDetail(row.id)">{{ $t("view") }}</span>
+                </template>
+                <template v-slot:write-traceback="value">
+                    <div class="traceback">{{ value["value"] }}</div>
+                </template>
             </ReadWriteView>
+            <!-- <DetailTask v-else :id="itemsStore.detail"></DetailTask> -->
         </el-tab-pane>
     </el-tabs>
 </template>
@@ -85,6 +113,10 @@ function formatTaskName(name) {
     }
     return name.split(".")[name.split(".").length - 1]
 }
+
+function stateToDetail(id) {
+    itemsStore.editing = id
+}
 </script>
 <style lang="scss" scoped>
 .status {
@@ -124,5 +156,13 @@ function formatTaskName(name) {
         }
     }
 
+}
+
+.command-edit {
+    cursor: pointer;
+    text-decoration: underline;
+}
+.traceback {
+    white-space: pre-wrap;
 }
 </style>
