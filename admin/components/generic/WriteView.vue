@@ -250,14 +250,12 @@ function deleteItem(id) {
 }
 
 function filterInSection(inSection, _obj) {
-    console.log("res")
     const res = Object.keys(_obj)
         .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
         .reduce((obj, key) => {
             obj[key] = _obj[key];
             return obj;
         }, {});
-    console.log(res)
     return res
 }
 

@@ -33,7 +33,7 @@ import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
 let ws = undefined
 const itemsStore = useItemsStore()
 const items = ref([])
-const lastItemDate = ref()
+const lastItemDate = ref(new Date())
 const apiUrl = ref("/back/api/language-model/tasks/")
 const opened = ref(false)
 const router = useRouter();
@@ -77,13 +77,12 @@ function setItems(newItems) {
     // If lastItemDate.value is null the only add items that are WAITING or STARTED
     // If lastItemDate.value is not null add all new items that are newer than lastItemDate.value
     // Update lastItemDate.value
-    if (lastItemDate.value) {
-        const newItemsFiltered = newItems.filter(item => new Date(item.date_created) > lastItemDate.value)
-        items.value = items.value.concat(newItemsFiltered)
-    } else {
-        const newItemsFiltered = newItems.filter(item => item.status === "WAITING" || item.status === "STARTED")
-        items.value = items.value.concat(newItemsFiltered)
-    }
+    const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
+    // add pendingNewItems if they dont exists yet
+    filteredItems.forEach(filteredItem => {
+        if (!items.value.find(item => item.id === filteredItem.id))
+            items.value.push(filteredItem)
+    })
     // Update the exisitng items with the new items by id
     items.value = items.value.map(item => {
         const newItem = newItems.find(newItem => newItem.id === item.id)
