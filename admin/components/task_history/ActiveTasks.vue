@@ -8,7 +8,7 @@
             </el-icon>
         </div>
         <div class="active-tasks-body" v-if="opened">
-            <div v-for="item in items" :key="item.id" class="active-task">
+            <div v-for="item in items" :key="item.id" class="active-task" @click="goToTaskToDetail(item.id)">
                 <div class="active-task-name">
                     <span class="name">{{ formatTaskName(item.task_name) }}</span>
                     <span v-if="item.status !== 'WAITING'" class="action" @click="removeItem(item.id)">Close</span>
@@ -36,8 +36,11 @@ const items = ref([])
 const lastItemDate = ref()
 const apiUrl = ref("/back/api/language-model/tasks/")
 const opened = ref(false)
+const router = useRouter();
+
 if (process.client)
     createConnection()
+
 
 function createConnection() {
     if (ws)
@@ -92,9 +95,16 @@ function setItems(newItems) {
     lastItemDate.value = new Date()
 
 }
-function removeItem(id)  {
+
+function removeItem(id) {
     items.value = items.value.filter(item => item.id !== id)
 }
+
+function goToTaskToDetail(id) {
+    itemsStore.editing = id
+    router.push('/task_history');
+}
+
 function formatTaskName(taskName) {
     if (!taskName)
         return ""
@@ -112,15 +122,6 @@ function getColor(status) {
         return "#F2C94C"
     else
         return "#F2C94C"
-}
-
-function formatDate(date) {
-    if (date) {
-        const dateObj = new Date(date)
-        return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()} ${dateObj.getHours()}:${dateObj.getMinutes()}:${dateObj.getSeconds()}`
-    } else {
-        return null
-    }
 }
 
 function formatState(state) {
@@ -178,6 +179,9 @@ function formatState(state) {
             font-weight: 400;
             color: grey;
             cursor: pointer;
+            &:hover {
+                text-decoration: underline;
+            }
 
         }
 
