@@ -39,9 +39,10 @@ def generate_intents(
     responses = []
     #batches of 20
     for i in range(0, len(input_texts), 20):
-        responses.extend(client.completions.create(model='gpt-3.5-turbo-instruct',
+        result = client.completions.create(model='gpt-3.5-turbo-instruct',
         prompt=input_texts[i:i+20],
         temperature=0.5,
-        max_tokens=max_new_tokens)['choices'])
+        max_tokens=max_new_tokens).choices
+        responses.extend(result)
 
-    return ['To ' + response['text'].strip() for response in responses]
+    return ['To ' + response.text for response in responses]
