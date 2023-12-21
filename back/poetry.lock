@@ -4086,12 +4086,12 @@ ptyprocess = ">=0.5"
 
 [[package]]
 name = "pgvector"
-version = "0.2.3"
+version = "0.2.4"
 description = "pgvector support for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pgvector-0.2.3-py2.py3-none-any.whl", hash = "sha256:9d53dc01138ecc7c9aca64e4680cfa9edf4c38f9cb8ed7098317871fdd211824"},
+    {file = "pgvector-0.2.4-py2.py3-none-any.whl", hash = "sha256:548e1f88d3c7433020c1c177feddad2f36915c262852d621f9018fcafff6870b"},
 ]
 
 [package.dependencies]
@@ -7730,4 +7730,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "2894d72f8883a72600174b39e075ba27cbe709ee8ecd19f480e042aaae2c6cc7"
+content-hash = "6ea5adb629812e29f00d9eb0491377ed6fe36a24a0b9209d9a7ecd202d26470f"
