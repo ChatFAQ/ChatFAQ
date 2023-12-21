@@ -26,7 +26,7 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
-            <el-card v-for="item in items[apiUrl]" class="box-card">
+            <el-card v-for="item in items[apiUrl]" class="box-card" @click="stateToEdit(item.id)">
                 <template #header>
                     <div class="card-header-title">{{ createTitle(item) }}</div>
                 </template>
@@ -47,7 +47,7 @@
                             <Check @click="deleteItem(deleting)"/>
                         </el-icon>
                     </div>
-                    <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
+                    <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
                 </div>
             </el-card>
             <div class="box-card-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
@@ -94,7 +94,7 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
+        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
@@ -229,6 +229,8 @@ function solveRefProp(item, propName) {
         // background: #DFDAEA66;
     }
 }
+.el-card:hover {
+}
 </style>
 
 <style lang="scss" scoped>
@@ -260,6 +262,10 @@ function solveRefProp(item, propName) {
 .box-card {
     width: 232px;
     margin: 16px;
+    cursor: pointer;
+    &:hover {
+        box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
+    }
 }
 
 .box-card-add {
@@ -274,6 +280,9 @@ function solveRefProp(item, propName) {
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
+    &:hover {
+        background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
+    }
 
     &.no-items {
         width: 100%;
@@ -299,7 +308,6 @@ function solveRefProp(item, propName) {
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
-
     span {
         display: flex;
         justify-content: center;

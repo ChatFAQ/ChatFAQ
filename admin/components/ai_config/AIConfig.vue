@@ -4,7 +4,6 @@
         <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
             <ReadWriteView :readableName="$t('retriever')" apiUrl="/back/api/language-model/retriever-configs/"
                            :cardProps="{
-                    'name': $t('name'),
                     'model_name': $t('modelname'),
                     'device': $t('device'),
                 }"
@@ -19,7 +18,6 @@
         <el-tab-pane :lazy="true" :label="$t('prompt')" name="prompt-configs">
             <ReadWriteView :readableName="$t('prompt')" apiUrl="/back/api/language-model/prompt-configs/"
                            :cardProps="{
-                    'name': $t('name'),
                     'n_contexts_to_use': $t('contextsnumber'),
                 }"
                            :tableProps="{
@@ -44,7 +42,6 @@
         <el-tab-pane :lazy="true" :label="$t('generation')" name="generation-configs">
             <ReadWriteView :readableName="$t('generation')" apiUrl="/back/api/language-model/generation-configs/"
                            :cardProps="{
-                    'name': $t('name'),
                     'temperature': $t('temperature'),
                     'max_new_tokens': $t('maxtokens'),
                 }"
@@ -59,7 +56,6 @@
         <el-tab-pane :lazy="true" :label="$t('llm')" name="llm-configs">
             <ReadWriteView :readableName="$t('llm')" apiUrl="/back/api/language-model/llm-configs/"
                            :cardProps="{
-                    'name': $t('name'),
                     'llm_type': $t('llmtype'),
                     'llm_name': $t('llmname'),
                 }"
@@ -74,7 +70,6 @@
         <el-tab-pane :lazy="true" :label="$t('rag')" name="rag-configs">
             <ReadWriteView :readableName="$t('rag')" apiUrl="/back/api/language-model/rag-configs/"
                            :cardProps="{
-                    'name': $t('name'),
                     'knowledge_base': $t('knowledgebase'),
                     'llm_config': $t('llmconfig'),
                     'prompt_config': $t('promptconfig'),
@@ -111,6 +106,5 @@ await itemsStore.loadSchema($axios)
 
 <style lang="scss" scoped>
 .system-prefix-input {
-    width: 330px;
 }
 </style>

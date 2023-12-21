@@ -4,7 +4,6 @@
         <el-tab-pane :lazy="true" :label="$t('widget')" name="widgetsettings">
             <ReadWriteView :readableName="$t('widget')" apiUrl="/back/api/widget/widgets/"
                            :cardProps="{
-                'name': $t('name'),
                 'domain': $t('domain'),
                 'fsm_def': $t('fsmdef'),
                 }"
@@ -45,7 +44,6 @@
                 :readableName="$t('theme')"
                 apiUrl="/back/api/widget/themes/"
                 :cardProps="{
-                    'name': $t('name'),
                 }"
                 :tableProps="{
                     'name': $t('name'),
