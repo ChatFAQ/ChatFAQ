@@ -1,34 +1,40 @@
 <template>
     <div class="dashboard-page-title">{{ $t('labeling') }}</div>
     <ReadWriteView
+        v-if="itemsStore.editing === undefined"
         :readableName="$t('conversation')"
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
-                    'name': $t('name'),
+                    'name': {'name': $t('name')},
+                    'created_date': {'name': $t('created_date')},
+                    'view': {'name': $t('view')},
                 }"
         read-only
     >
-        <template v-slot:data="props">
-            <FieldData :form="props.form" :fieldName="props.fieldName" ref="fieldData">123</FieldData>
+        <template v-slot:view="{row}">
+            <div class="go-to-view" @click="goToLabelingConversation(row.id)">{{ $t("View") }}</div>
         </template>
     </ReadWriteView>
+    <LabelingTool v-else :id="itemsStore.editing"></LabelingTool>
 </template>
 
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
-import FieldData from "~/components/widget_config/fields/FieldData.vue";
-
-const fieldData = ref(null)
-
-const {$axios} = useNuxtApp();
 
 const itemsStore = useItemsStore()
 
-const itemType = ref("widgetsettings")
-await itemsStore.loadSchema($axios)
+const router = useRouter()
+function goToLabelingConversation(id) {
+    itemsStore.editing = id
 
-function submitFieldData() {
-    fieldData.value.submit()
 }
 </script>
+
+<style lang="scss" scoped>
+.go-to-view {
+    cursor: pointer;
+    text-decoration: underline;
+}
+</style>
+

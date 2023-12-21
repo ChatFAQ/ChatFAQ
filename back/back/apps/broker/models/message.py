@@ -45,7 +45,7 @@ class Conversation(ChangesMixin):
             conversation=self,
         ).first()
 
-    def get_mml_chain(self, as_conv_format=False):
+    def get_mml_chain(self, as_conv_format=False, group_by_stack=False):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
 
         first_message = self.get_first_msg()
@@ -56,6 +56,8 @@ class Conversation(ChangesMixin):
 
         if as_conv_format:
             return self.get_formatted_conversation(chain)
+        elif group_by_stack:
+            return self.group_by_stack(chain)
         return [MessageSerializer(m).data for m in chain]
 
     def get_last_mml(self):
@@ -86,6 +88,32 @@ class Conversation(ChangesMixin):
             messages.append({'role': 'assistant', 'content': bot_content})
 
         return messages, human_messages_ids
+
+    def group_by_stack(self, chain):
+        '''
+        returns the chain but with the bot messages stack[0].payload of the same stack_id concatenated.
+        '''
+        from back.apps.broker.serializers import MessageSerializer
+
+        grouped_chain = []
+        for m in chain:
+            m = MessageSerializer(m).data
+            if m['sender']['type'] == 'human':
+                grouped_chain.append(m)
+            elif m['sender']['type'] == 'bot' and m['stack'][0]['type'] == StackPayloadType.text.value:
+                grouped_chain.append(m)
+            elif m['sender']['type'] == 'bot' and m['stack'][0]['type'] == StackPayloadType.lm_generated_text.value:
+                if len(grouped_chain) > 0 and grouped_chain[-1]['sender']['type'] == 'bot' and grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.lm_generated_text.value and grouped_chain[-1]['stack_id'] == m['stack_id']:
+                    grouped_chain[-1]['stack'][0]['payload']['model_response'] += m['stack'][0]['payload']['model_response']
+                else:
+                    grouped_chain.append(m)
+
+                if m['last']:
+                    grouped_chain[-1]['last'] = True
+                    grouped_chain[-1]['stack'][0]['payload']['references'] = m['stack'][0]['payload']['references']
+        return grouped_chain
+
+
 
     @classmethod
     def conversations_from_sender(cls, sender_id):
