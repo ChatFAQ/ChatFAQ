@@ -109,7 +109,8 @@ class Conversation(ChangesMixin):
                     grouped_chain.append(m)
 
                 if m['last']:
-                    grouped_chain[-1]['last'] = True
+                    grouped_chain[-1]['last'] = m['last']
+                    grouped_chain[-1]['id'] = m['id']
                     grouped_chain[-1]['stack'][0]['payload']['references'] = m['stack'][0]['payload']['references']
         return grouped_chain
 
