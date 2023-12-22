@@ -19,7 +19,7 @@ class GenericSpider(scrapy.Spider):
         self.knowledge_base_id = knowledge_base_id
         self.start_urls = start_urls.split(',')
         for url in self.start_urls:
-            self.allowed_domains.append(urlparse(url).netloc)
+            self.allowed_domains.append(urlparse(url).netloc.split(":")[0])
             self.allowed_domains = list(set(self.allowed_domains))
 
         kb = KnowledgeBase.objects.get(id=knowledge_base_id)
