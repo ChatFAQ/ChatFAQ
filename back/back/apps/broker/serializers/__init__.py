@@ -27,6 +27,7 @@ class AdminReviewSerializer(serializers.ModelSerializer):
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = apps.get_model("broker", "Message")
+        fields = "__all__"
 
 
 class ConversationMessagesSerializer(serializers.ModelSerializer):
@@ -37,7 +38,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_mml_chain(self, obj):
-        return obj.get_mml_chain()
+        return obj.get_mml_chain(group_by_stack=True)
 
 
 class ConversationSerializer(serializers.ModelSerializer):
