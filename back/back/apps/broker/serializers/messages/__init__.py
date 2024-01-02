@@ -101,6 +101,7 @@ class TextPayload(serializers.Serializer):
 
 
 class Reference(serializers.Serializer):
+    knowledge_item_id = serializers.CharField(required=True)
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 

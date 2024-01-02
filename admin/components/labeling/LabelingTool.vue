@@ -1,21 +1,41 @@
 <template>
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
-            <div @click="setQAPairToLabel(msgs[msgs.length - 1].id)"
+            <div @click="setQAPairToLabel(msgs)"
                  v-for="msgs in getQAMessageGroups(conversation.mml_chain)" class="qa-group">
                 <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
-                        <div class="message-content"  :class="{[msg.sender.type]: true}">
+                    <div class="message-content" :class="{[msg.sender.type]: true}">
                         {{
                             typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
                         }}
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="labeling-tool-right-side">
-            <el-tabs>
+            <el-tabs model-value="knowledge-items">
                 <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                    {{ msgLabeled }}
+                    <div v-loading="itemsStore.loading" class="labeling-kis-wrapper">
+                        <div v-for="ki in labelingKnowledgeItems.kis" class="labeling-ki-wrapper">
+                            <div class="ki-vote">
+                                <div
+                                    class="vote-icon thumb-up"
+                                    @click="voteKI(labelingKnowledgeItems.message_id, ki.id, 'positive')"
+                                    :class="{selected: getVoteKI(ki.id) && getVoteKI(ki.id).value === 'positive'}"
+                                ></div>
+                                <div
+                                    class="vote-icon thumb-down"
+                                    @click="voteKI(labelingKnowledgeItems.message_id, ki.id, 'negative')"
+                                    :class="{selected: getVoteKI(ki.id) && getVoteKI(ki.id).value === 'negative'}"
+                                ></div>
+                            </div>
+                            <div class="labeling-ki">
+                                <div class="ki-title">{{ ki.title }}</div>
+                                <div class="ki-content">{{ ki.content }}</div>
+                            </div>
+                        </div>
+
+                    </div>
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
                     {{ msgLabeled }}
@@ -38,6 +58,11 @@ const router = useRouter()
 const {$axios} = useNuxtApp()
 
 const msgLabeled = ref(undefined)
+
+const labelingKnowledgeItems = ref([])
+const review = ref({
+    value: []
+})
 
 const props = defineProps({
     id: {
@@ -69,8 +94,53 @@ function getQAMessageGroups(MMLChain) {
     return groups
 }
 
-function setQAPairToLabel(id) {
-    msgLabeled.value = id
+async function setQAPairToLabel(QAPair) {
+    itemsStore.loading = true
+    const botMsg = QAPair[QAPair.length - 1]
+    labelingKnowledgeItems.value = {message_id: botMsg.id, kis: []}
+    for (const reference of botMsg.stack[botMsg.stack.length - 1].payload.references) {
+        const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
+            id: reference.knowledge_item_id
+        })
+        if (ki)
+            labelingKnowledgeItems.value.kis.push(ki)
+    }
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: botMsg.id}) || {}
+    msgLabeled.value = QAPair
+    itemsStore.loading = false
+}
+async function voteKI(messageId, kiId, vote) {
+    if (review.value.id === undefined) {
+        review.value = {
+            message: messageId,
+            review: "",
+            data: [{
+                value: vote,
+                knowledge_item_id: kiId,
+            }]
+        }
+        await $axios.post("/back/api/broker/admin-review/", review.value)
+    } else {
+        // first get the data[i] if exists any knowledge_item_id == kiId
+        const data = getVoteKI(kiId)
+        if (data) {
+            data.value = vote
+        } else {
+            review.value.data.push({
+                value: vote,
+                knowledge_item_id: kiId,
+            })
+        }
+        await $axios.put("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
+    }
+}
+function getVoteKI(kiId) {
+    if (review.value.id === undefined) {
+        return undefined
+    } else {
+        // first get the data[i] if exists any knowledge_item_id == kiId
+        return review.value.data.find((d) => d.knowledge_item_id.toString() === kiId.toString())
+    }
 }
 
 </script>
@@ -79,11 +149,25 @@ function setQAPairToLabel(id) {
 .el-tabs {
     margin-left: 24px;
     margin-right: 24px;
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+
+    .el-tabs__content {
+        height: 100%;
+
+        .el-tab-pane {
+            height: 100%;
+        }
+    }
 }
 
 .el-tabs__nav {
     float: unset;
     justify-content: space-between;
+}
+.el-tabs__header {
+    margin-bottom: 24px;
 }
 </style>
 <style lang="scss" scoped>
@@ -95,7 +179,7 @@ function setQAPairToLabel(id) {
     .labeling-tool-left-side, .labeling-tool-right-side {
         border-radius: 10px;
         background: white;
-        border: 1px solid #DFDAEA;
+        border: 1px solid $chatfaq-color-primary-200;
         max-height: 70vh;
         overflow-y: auto;
         padding-top: 16px;
@@ -116,7 +200,7 @@ function setQAPairToLabel(id) {
         padding: 16px 12px;
 
         &:hover {
-            background: #DFDAEA;
+            background: $chatfaq-color-primary-200;
             cursor: pointer;
         }
 
@@ -142,6 +226,64 @@ function setQAPairToLabel(id) {
                     float: right;
                     color: white;
                 }
+            }
+        }
+    }
+
+    .labeling-kis-wrapper {
+        height: 100%;
+
+        .labeling-ki-wrapper {
+            display: flex;
+
+            .ki-vote {
+                display: flex;
+
+                .vote-icon {
+                    width: 16px;
+                    height: 16px;
+                    margin-right: 16px;
+                    margin-top: 5px;
+                    cursor: pointer;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    padding: 12px;
+                    border-radius: 2px;
+
+                    &.thumb-up {
+                        background-image: url('~/assets/icons/thumb-up.svg');
+                    }
+                    &.thumb-down {
+                        background-image: url('~/assets/icons/thumb-down.svg');
+                    }
+                    &.selected {
+                        background-color: #4630751A;
+                    }
+
+                }
+            }
+
+            .ki-title {
+                color: #463075;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 20px;
+                margin-bottom: 8px;
+            }
+
+            .ki-content {
+                text-overflow: ellipsis;
+                overflow: hidden;
+                height: 4.0em;
+            }
+
+            .labeling-ki {
+                padding: 8px 16px 8px 16px;
+                border: 1px solid $chatfaq-color-primary-200;
+                background: #DFDAEA66;
+                border-radius: 4px;
+                margin-bottom: 16px;
+                margin-right: 24px;
             }
         }
     }

@@ -31,6 +31,11 @@ class StackPayloadType(Enum):
     quick_replies = "quick_replies"
 
 
+class AdminReviewValue(Enum):
+    positive = "positive"
+    negative = "negative"
+
+
 class Conversation(ChangesMixin):
     """
     Table that holds the conversation information, all messages that belong to the same conversation will have the same conversation_id
@@ -268,12 +273,8 @@ class UserFeedback(ChangesMixin):
 
 
 class AdminReview(ChangesMixin):
-    VALUE_CHOICES = (
-        ("positive", "Positive"),
-        ("negative", "Negative"),
-    )
     message = models.OneToOneField(
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
-    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
-    review = models.TextField()
+    data = models.JSONField(default=list)
+    review = models.TextField(null=True, blank=True)

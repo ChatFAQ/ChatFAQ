@@ -1,7 +1,7 @@
 from django.apps import apps
 from rest_framework import serializers
 
-from back.apps.broker.models.message import Message
+from back.apps.broker.models.message import Message, AdminReviewValue
 
 
 class IdSerializer(serializers.Serializer):
@@ -44,4 +44,21 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = apps.get_model("broker", "Conversation")
+        fields = "__all__"
+
+
+class AdminReviewValue(serializers.Serializer):
+    value = serializers.ChoiceField(
+        required=True, choices=[n.value for n in AdminReviewValue], allow_null=True
+    )
+    knowledge_item_id = serializers.CharField(required=True, max_length=255)
+
+
+class AdminReviewSerializer(serializers.ModelSerializer):
+    data = serializers.ListField(child=AdminReviewValue())
+
+    class Meta:
+        from back.apps.broker.models.message import AdminReview  # TODO: CI
+
+        model = AdminReview
         fields = "__all__"

@@ -9,6 +9,7 @@
             :excludeFields="excludeFields"
             :titleProps="titleProps"
             :readOnly="readOnly"
+            :defaultSort="defaultSort"
         >
             <template v-for="(_, name) in $slots" v-slot:[name]="data">
                 <slot :name="name" v-bind="data"></slot>
@@ -74,6 +75,11 @@ const props = defineProps({
         default: [],
     },
     sections: {
+        type: Object,
+        required: false,
+        default: {},
+    },
+    defaultSort: {
         type: Object,
         required: false,
         default: {},

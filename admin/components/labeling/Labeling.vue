@@ -5,10 +5,11 @@
         :readableName="$t('conversation')"
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
-                    'name': {'name': $t('name')},
-                    'created_date': {'name': $t('created_date'), 'sortable': true},
-                    'view': {'name': $t('view')},
-                }"
+            'name': {'name': $t('name')},
+            'created_date': {'name': $t('created_date'), 'sortable': true},
+            'view': {'name': $t('view')},
+        }"
+        :defaultSort="{'prop': 'created_date', 'order': 'descending'}"
         read-only
     >
         <template v-slot:view="{row}">

@@ -86,6 +86,7 @@ class LMGeneratedText(Layer):
                                 {
                                     "url": c.get("url"),
                                     "title": c.get("title"),
+                                    "knowledge_item_id": c.get("knowledge_item_id"),
                                 }
                                 for c in result["context"]
                             ],

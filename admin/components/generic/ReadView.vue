@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false"
+        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" :defaultSort="defaultSort"
                   style="width: 100%">
             <el-table-column
                 v-for="(propInfo, prop) in tableProps"
@@ -131,6 +131,11 @@ const props = defineProps({
     tableProps: {
         type: Object,
         required: true,
+    },
+    defaultSort: {
+        type: Object,
+        required: false,
+        default: {},
     },
     titleProps: {
         type: Array,

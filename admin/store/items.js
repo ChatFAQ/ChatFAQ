@@ -41,11 +41,17 @@ export const useItemsStore = defineStore('items', {
                 return await this.resolveRefs($axios, this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async requestOrGetItem($axios, apiUrl, id) {
+        async requestOrGetItem($axios, apiUrl, filter) {
             if (!this.items[apiUrl]) {
                 await this.retrieveItems($axios, apiUrl)
             }
-            return this.items[apiUrl].find(item => item.id.toString() === id.toString())
+            return this.items[apiUrl].find(item => {
+                for (const [key, val] of Object.entries(filter)) {
+                    if (item[key].toString() !== val.toString())
+                        return false
+                }
+                return true
+            })
         },
         async resolveRefs($axios, schema) {
             if (!schema.properties && schema.oneOf) {

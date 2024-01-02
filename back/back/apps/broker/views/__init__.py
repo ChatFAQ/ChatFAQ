@@ -93,7 +93,7 @@ class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     queryset = UserFeedback.objects.all()
 
 
-class AdminReviewAPIView(generics.ListCreateAPIView):
+class AdminReviewAPIViewSet(viewsets.ModelViewSet):
     serializer_class = AdminReviewSerializer
     queryset = AdminReview.objects.all()
 
