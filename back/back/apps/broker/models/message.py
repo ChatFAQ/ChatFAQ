@@ -34,6 +34,7 @@ class StackPayloadType(Enum):
 class AdminReviewValue(Enum):
     positive = "positive"
     negative = "negative"
+    alternative = "alternative"
 
 
 class Conversation(ChangesMixin):

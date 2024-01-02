@@ -15,7 +15,7 @@
         <div class="labeling-tool-right-side">
             <el-tabs model-value="knowledge-items">
                 <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                    <div v-loading="itemsStore.loading" class="labeling-kis-wrapper">
+                    <div v-if="labelingKnowledgeItems.message_id !== undefined" v-loading="itemsStore.loading" class="labeling-kis-wrapper">
                         <div v-for="ki in labelingKnowledgeItems.kis" class="labeling-ki-wrapper">
                             <div class="ki-vote">
                                 <div
@@ -34,7 +34,23 @@
                                 <div class="ki-content">{{ ki.content }}</div>
                             </div>
                         </div>
-
+                        <div>Alternative knowledge item</div>
+                        <div @click="addAlternativeKI(labelingKnowledgeItems.message_id)">+ Add knowledge item</div>
+                        <div v-for="ki in alternativeKIs(labelingKnowledgeItems.message_id)" class="labeling-ki-wrapper">
+                            <el-select v-model="ki.knowledge_item_id">
+                                <el-option
+                                    v-for="choice in [{'title': 'aaaa', 'id': 1}, {'title': 'bbb', 'id': 2}, {'title': 'ccc', 'id': 3}]"
+                                    :key="choice.id"
+                                    :label="choice.title"
+                                    :value="choice.id"
+                                />
+                            </el-select>
+                        </div>
+                        <div class="labeling-ki-commands">
+                            <el-button>Clear</el-button>
+                            <el-button>Cancel</el-button>
+                            <el-button @click="sendReviews(labelingKnowledgeItems.message_id)">Save</el-button>
+                        </div>
                     </div>
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
@@ -59,7 +75,7 @@ const {$axios} = useNuxtApp()
 
 const msgLabeled = ref(undefined)
 
-const labelingKnowledgeItems = ref([])
+const labelingKnowledgeItems = ref({})
 const review = ref({
     value: []
 })
@@ -110,27 +126,28 @@ async function setQAPairToLabel(QAPair) {
     itemsStore.loading = false
 }
 async function voteKI(messageId, kiId, vote) {
-    if (review.value.id === undefined) {
+    if (review?.value?.data === undefined) {
         review.value = {
-            message: messageId,
-            review: "",
-            data: [{
-                value: vote,
-                knowledge_item_id: kiId,
-            }]
+            data: []
         }
+    }
+    const data = getVoteKI(kiId)
+    if (data) {
+        data.value = vote
+    } else {
+        review.value.data.push({
+            value: vote,
+            knowledge_item_id: kiId,
+        })
+    }
+    await sendReviews(messageId)
+}
+async function sendReviews(messageId) {
+    review.value.message = messageId
+    review.value.data = review.value.data.filter((d) => d.knowledge_item_id !== null)
+    if (review.value.id === undefined) {
         await $axios.post("/back/api/broker/admin-review/", review.value)
     } else {
-        // first get the data[i] if exists any knowledge_item_id == kiId
-        const data = getVoteKI(kiId)
-        if (data) {
-            data.value = vote
-        } else {
-            review.value.data.push({
-                value: vote,
-                knowledge_item_id: kiId,
-            })
-        }
         await $axios.put("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
     }
 }
@@ -139,10 +156,23 @@ function getVoteKI(kiId) {
         return undefined
     } else {
         // first get the data[i] if exists any knowledge_item_id == kiId
-        return review.value.data.find((d) => d.knowledge_item_id.toString() === kiId.toString())
+        return review.value.data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
     }
 }
-
+function addAlternativeKI(messageId) {
+    if (review?.value?.data === undefined) {
+        review.value = {
+            data: []
+        }
+    }
+    return review.value.data.push({
+        value: "alternative",
+        knowledge_item_id: null,
+    })
+}
+function alternativeKIs() {
+    return review?.value?.data?.filter((d) => d.value === "alternative") || []
+}
 </script>
 
 <style lang="scss">
@@ -150,11 +180,12 @@ function getVoteKI(kiId) {
     margin-left: 24px;
     margin-right: 24px;
     display: flex;
-    flex-flow: column;
+    flex-direction: column;
     height: 100%;
 
     .el-tabs__content {
         height: 100%;
+        overflow-y: auto;
 
         .el-tab-pane {
             height: 100%;
