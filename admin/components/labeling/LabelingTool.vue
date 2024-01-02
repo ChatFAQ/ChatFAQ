@@ -4,9 +4,11 @@
             <div @click="setQAPairToLabel(msgs[msgs.length - 1].id)"
                  v-for="msgs in getQAMessageGroups(conversation.mml_chain)" class="qa-group">
                 <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
-                    {{
-                        typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
-                    }}
+                        <div class="message-content"  :class="{[msg.sender.type]: true}">
+                        {{
+                            typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
+                        }}
+                        </div>
                 </div>
             </div>
         </div>
@@ -111,7 +113,7 @@ function setQAPairToLabel(id) {
 
     .qa-group {
         position: relative;
-        padding: 9px 28px;
+        padding: 16px 12px;
 
         &:hover {
             background: #DFDAEA;
@@ -119,23 +121,26 @@ function setQAPairToLabel(id) {
         }
 
         .message {
-            border-radius: 6px;
-            max-width: 400px;
-            padding: 8px 12px 8px 12px;
-            margin-bottom: 8px;
             width: 100%;
 
             display: block;
             overflow: auto;
 
-            &.bot {
-                background: #46307524;
-            }
+            .message-content {
+                max-width: 428px;
+                border-radius: 6px;
+                padding: 8px 12px 8px 12px;
+                margin-bottom: 8px;
 
-            &.human {
-                background: $chatfaq-color-primary-500;
-                float: right;
-                color: white;
+                &.bot {
+                    background: #46307524;
+                }
+
+                &.human {
+                    background: $chatfaq-color-primary-500;
+                    float: right;
+                    color: white;
+                }
             }
         }
     }
