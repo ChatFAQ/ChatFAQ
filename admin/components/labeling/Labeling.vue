@@ -6,7 +6,7 @@
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
                     'name': {'name': $t('name')},
-                    'created_date': {'name': $t('created_date')},
+                    'created_date': {'name': $t('created_date'), 'sortable': true},
                     'view': {'name': $t('view')},
                 }"
         read-only

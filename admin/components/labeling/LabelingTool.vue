@@ -131,6 +131,7 @@ function setQAPairToLabel(id) {
                 border-radius: 6px;
                 padding: 8px 12px 8px 12px;
                 margin-bottom: 8px;
+                overflow-wrap: break-word;
 
                 &.bot {
                     background: #46307524;
