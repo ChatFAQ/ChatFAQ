@@ -1,15 +1,7 @@
 <template>
     <div class="write-view-wrapper">
         <div class="navigation-header">
-            <div class="back-button" @click="itemsStore.stateToRead">
-                <el-icon>
-                    <ArrowLeft/>
-                </el-icon>
-                <span>Back</span>
-            </div>
-            <el-button v-if="!itemsStore.adding" class="add-button" type="primary" round plain>
-                History
-            </el-button>
+            <BackButton/>
         </div>
         <el-form
             class="form-content"
@@ -125,6 +117,7 @@ import {ref} from "vue";
 import {useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
+import BackButton from "~/components/generic/BackButton.vue";
 
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
@@ -303,19 +296,6 @@ function filterInSection(inSection, _obj) {
         justify-content: space-between;
         width: 100%;
         margin-top: 24px;
-
-        .back-button {
-            display: flex;
-            cursor: pointer;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 600;
-            color: $chatfaq-color-primary-500;
-
-            i {
-                margin-right: 8px;
-            }
-        }
     }
 
     .form-content {

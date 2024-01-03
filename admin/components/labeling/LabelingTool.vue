@@ -1,4 +1,5 @@
 <template>
+    <BackButton class="back-button-wrapper"/>
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
             <div @click="setQAPairToLabel(msgs)"
@@ -16,7 +17,10 @@
             <el-tabs model-value="knowledge-items" class="knowledge-items">
                 <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
                     <KnowledgeItemReview :referencedKnowledgeItems="referencedKnowledgeItems"
-                                         :referencedKnowledgeBaseId="referencedKnowledgeBaseId" :review="review"/>
+                                         :referencedKnowledgeBaseId="referencedKnowledgeBaseId"
+                                         :review="review"
+                                         ref="kiReviewer"
+                    />
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
                     {{ msgLabeled }}
@@ -26,10 +30,10 @@
                 </el-tab-pane>
             </el-tabs>
             <div class="labeling-ki-commands">
-                <div class="clear-command">Clear</div>
+                <div class="clear-command" @click="kiReviewer.clear()">Clear</div>
                 <div>
-                    <el-button class="cancel-command command">Cancel</el-button>
-                    <el-button class="save-command command" @click="sendReviews()">Save</el-button>
+                    <el-button class="cancel-command command" @click="itemsStore.editing = undefined">Cancel</el-button>
+                    <el-button class="save-command command" @click="kiReviewer.save()">Save</el-button>
                 </div>
             </div>
         </div>
@@ -39,6 +43,7 @@
 <script setup>
 import {useItemsStore} from "~/store/items.js";
 import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
+import BackButton from "~/components/generic/BackButton.vue";
 
 const itemsStore = useItemsStore()
 
@@ -58,7 +63,7 @@ const props = defineProps({
 const referencedKnowledgeBaseId = ref(undefined)
 const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
-
+const kiReviewer = ref(null)
 
 // get conversation async data
 const {data} = await useAsyncData(
@@ -225,6 +230,10 @@ async function setQAPairToLabel(QAPair) {
         background-color: #463075;
         color: white;
     }
+}
+.back-button-wrapper {
+    margin-top: 26px;
+    margin-bottom: 26px;
 }
 </style>
 

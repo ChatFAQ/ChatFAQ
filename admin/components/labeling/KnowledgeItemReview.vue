@@ -1,5 +1,6 @@
 <template>
-    <div v-if="referencedKnowledgeItems.message_id !== undefined" v-loading="itemsStore.loading" class="labeling-kis-wrapper">
+    <div v-if="referencedKnowledgeItems.message_id !== undefined" v-loading="itemsStore.loading"
+         class="labeling-kis-wrapper">
         <div v-for="ki in referencedKnowledgeItems.kis" class="labeling-ki-wrapper">
             <div class="ki-vote">
                 <div
@@ -84,6 +85,7 @@ const alternatives2Titles = computed(() => {
     }
     return res
 })
+
 async function voteKI(kiId, vote) {
     if (reviewWriter.value?.data === undefined) {
         reviewWriter.value = {
@@ -99,9 +101,10 @@ async function voteKI(kiId, vote) {
             knowledge_item_id: kiId,
         })
     }
-    await sendReviews()
+    await save()
 }
-async function sendReviews() {
+
+async function save() {
     reviewWriter.value.message = props.referencedKnowledgeItems.message_id
     reviewWriter.value.data = reviewWriter.value.data.filter((d) => d.knowledge_item_id !== null)
     if (reviewWriter.value.id === undefined) {
@@ -110,6 +113,7 @@ async function sendReviews() {
         await $axios.put("/back/api/broker/admin-review/" + reviewWriter.value.id + "/", reviewWriter.value)
     }
 }
+
 function getVoteKI(kiId) {
     if (reviewWriter.value.id === undefined) {
         return undefined
@@ -117,6 +121,7 @@ function getVoteKI(kiId) {
         return reviewWriter.value.data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
     }
 }
+
 function addAlternativeKI() {
     if (reviewWriter.value?.data === undefined) {
         reviewWriter.value = {
@@ -128,9 +133,21 @@ function addAlternativeKI() {
         knowledge_item_id: null,
     })
 }
+
 function alternativeKIs() {
     return reviewWriter.value?.data?.filter((d) => d.value === "alternative") || []
 }
+
+function clear() {
+    reviewWriter.value = {
+        data: []
+    }
+}
+
+defineExpose({
+    clear,
+    save
+})
 </script>
 
 <style lang="scss">
@@ -163,9 +180,11 @@ function alternativeKIs() {
                 &.thumb-up {
                     background-image: url('~/assets/icons/thumb-up.svg');
                 }
+
                 &.thumb-down {
                     background-image: url('~/assets/icons/thumb-down.svg');
                 }
+
                 &.selected {
                     background-color: #4630751A;
                 }
@@ -196,6 +215,7 @@ function alternativeKIs() {
         line-height: 20px;
         margin-bottom: 8px;
     }
+
     .alternative-wrapper {
         margin-bottom: 16px;
         margin-right: 24px;
@@ -203,6 +223,7 @@ function alternativeKIs() {
         .add-command-title {
             margin-bottom: 8px;
         }
+
         .add-command {
             margin-top: 16px;
             margin-bottom: 16px;
