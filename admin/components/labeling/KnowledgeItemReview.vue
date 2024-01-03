@@ -18,9 +18,8 @@
                 <div class="ki-content">{{ ki.content }}</div>
             </div>
         </div>
-        <div>Alternative knowledge item</div>
-        <div @click="addAlternativeKI()">+ Add knowledge item</div>
-        <div v-for="alt2Title in alternatives2Titles" class="labeling-ki-wrapper">
+        <div class="ki-title add-command-title">Alternative knowledge item</div>
+        <div v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
             <el-select v-model="alt2Title[0]" @change="(val) => alt2Title[1].knowledge_item_id = val">
                 <el-option
                     v-for="choice in ki_choices"
@@ -30,6 +29,7 @@
                 />
             </el-select>
         </div>
+        <div class="ki-title add-command" @click="addAlternativeKI()">+ Add knowledge item</div>
         <div class="labeling-ki-commands">
             <el-button>Clear</el-button>
             <el-button>Cancel</el-button>
@@ -138,6 +138,12 @@ function alternativeKIs() {
 }
 </script>
 
+<style lang="scss">
+.el-select {
+    width: 100%;
+    margin-right: 24px;
+}
+</style>
 <style lang="scss" scoped>
 .labeling-kis-wrapper {
     height: 100%;
@@ -172,14 +178,6 @@ function alternativeKIs() {
             }
         }
 
-        .ki-title {
-            color: #463075;
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
-            margin-bottom: 8px;
-        }
-
         .ki-content {
             text-overflow: ellipsis;
             overflow: hidden;
@@ -193,6 +191,27 @@ function alternativeKIs() {
             border-radius: 4px;
             margin-bottom: 16px;
             margin-right: 24px;
+        }
+    }
+
+    .ki-title {
+        color: #463075;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        margin-bottom: 8px;
+    }
+    .alternative-wrapper {
+        margin-bottom: 16px;
+        margin-right: 24px;
+
+        .add-command-title {
+            margin-bottom: 8px;
+        }
+        .add-command {
+            margin-top: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
         }
     }
 }
