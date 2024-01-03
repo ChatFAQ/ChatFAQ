@@ -9,7 +9,7 @@
                 @click="collapsed = !collapsed"
                 :class="{ 'dark-mode': store.darkMode }"
             >
-                <span v-if="collapsed">{{ references.length }} <span v-if="references.length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span></span>
+                <span v-if="collapsed">{{ (references?.knowledge_items || []).length }} <span v-if="(references?.knowledge_items || []).length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span></span>
                 <span v-else>Show Less</span>
                 <svg v-if="collapsed" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
@@ -24,7 +24,7 @@
         <div class="references" v-if="!collapsed">
             <div
                 class="reference purple-background"
-                v-for="(ref, index) in references"
+                v-for="(ref, index) in references?.knowledge_items || []"
                 :class="{
                     'dark-mode': store.darkMode
                 }">

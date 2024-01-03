@@ -173,7 +173,7 @@ def _send_message(
     channel_layer,
     chanel_name,
     msg={},
-    references=[],
+    references={},
     final=False,
 ):
     async_to_sync(channel_layer.send)(
@@ -181,7 +181,7 @@ def _send_message(
         {
             "type": "send_llm_response",
             "message": {
-                "context": references,
+                "references": references,
                 "final": final,
                 "res": msg.get("res", ""),
                 "bot_channel_name": bot_channel_name,
@@ -262,7 +262,7 @@ def llm_query_task(
     logger.info(f"Using RAG config: {rag_config_name}")
 
     streaming = True
-    references = []
+    reference_kis = []
     if streaming:
         for res in rag.stream(
             prev_messages,
@@ -274,7 +274,7 @@ def llm_query_task(
             _send_message(
                 bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
             )
-            references = res.get("context")
+            reference_kis = res.get("context")
     else:
         res = rag.generate(
             prev_messages,
@@ -283,16 +283,17 @@ def llm_query_task(
             stop_words=stop_words,
         )
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-        references = res.get("context")
+        reference_kis = res.get("context")
 
-    references = references[0] if len(references) > 0 else []
-    logger.info(f"\nReferences: {references}")
+    reference_kis = reference_kis[0] if len(reference_kis) > 0 else []
+    logger.info(f"\nReferences: {reference_kis}")
+    print({"knowledge_base_id": rag_conf.knowledge_base.pk, "knowledge_items": reference_kis})
     _send_message(
         bot_channel_name,
         lm_msg_id,
         channel_layer,
         chanel_name,
-        references=references,
+        references={"knowledge_base_id": rag_conf.knowledge_base.pk, "knowledge_items": reference_kis},
         final=True,
     )
 
@@ -314,7 +315,7 @@ def llm_query_task(
                 knowledge_item_id=ki["knowledge_item_id"],
                 similarity=ki["similarity"],
             )
-            for ki in references
+            for ki in reference_kis
         ]
     )
 

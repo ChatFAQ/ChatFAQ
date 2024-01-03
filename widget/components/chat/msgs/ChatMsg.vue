@@ -27,7 +27,7 @@
                         <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
                         <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer" :is-last="isLastOfType && layersFinished"/>
                     </div>
-                    <References v-if="props.references.length && isLastOfType && layersFinished" :references="props.references"></References>
+                    <References v-if="props.references?.knowledge_items?.length && isLastOfType && layersFinished" :references="props.references"></References>
                 </div>
                 <UserFeedback
                     v-if="

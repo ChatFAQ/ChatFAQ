@@ -100,18 +100,23 @@ class TextPayload(serializers.Serializer):
     payload = serializers.CharField()
 
 
-class Reference(serializers.Serializer):
+class ReferenceKi(serializers.Serializer):
     knowledge_item_id = serializers.CharField(required=True)
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
+class Reference(serializers.Serializer):
+    knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
+    knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class LMGeneratedTextPayload(serializers.Serializer):
     class _LMGeneratedTextPayload(serializers.Serializer):
         model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
         rag_config_name = serializers.CharField()
-        references = Reference(many=True, required=False, allow_null=True)
         lm_msg_id = serializers.CharField()
+        references = Reference(required=False, allow_null=True)
 
     payload = _LMGeneratedTextPayload()
 

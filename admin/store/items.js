@@ -47,7 +47,9 @@ export const useItemsStore = defineStore('items', {
             }
             return this.items[apiUrl].find(item => {
                 for (const [key, val] of Object.entries(filter)) {
-                    if (item[key].toString() !== val.toString())
+                    if (item[key] === null && val === null)
+                        continue
+                    if (item[key] !== null && item[key].toString() !== val.toString())
                         return false
                 }
                 return true
