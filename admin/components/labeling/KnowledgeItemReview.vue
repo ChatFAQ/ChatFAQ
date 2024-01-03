@@ -30,11 +30,6 @@
             </el-select>
         </div>
         <div class="ki-title add-command" @click="addAlternativeKI()">+ Add knowledge item</div>
-        <div class="labeling-ki-commands">
-            <el-button>Clear</el-button>
-            <el-button>Cancel</el-button>
-            <el-button @click="sendReviews()">Save</el-button>
-        </div>
     </div>
 </template>
 

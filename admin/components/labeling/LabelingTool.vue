@@ -13,9 +13,10 @@
             </div>
         </div>
         <div class="labeling-tool-right-side">
-            <el-tabs model-value="knowledge-items">
+            <el-tabs model-value="knowledge-items" class="knowledge-items">
                 <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                    <KnowledgeItemReview :referencedKnowledgeItems="referencedKnowledgeItems" :referencedKnowledgeBaseId="referencedKnowledgeBaseId" :review="review"/>
+                    <KnowledgeItemReview :referencedKnowledgeItems="referencedKnowledgeItems"
+                                         :referencedKnowledgeBaseId="referencedKnowledgeBaseId" :review="review"/>
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
                     {{ msgLabeled }}
@@ -24,6 +25,13 @@
                     {{ msgLabeled }}
                 </el-tab-pane>
             </el-tabs>
+            <div class="labeling-ki-commands">
+                <div class="clear-command">Clear</div>
+                <div>
+                    <el-button class="cancel-command command">Cancel</el-button>
+                    <el-button class="save-command command" @click="sendReviews()">Save</el-button>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -115,6 +123,7 @@ async function setQAPairToLabel(QAPair) {
     float: unset;
     justify-content: space-between;
 }
+
 .el-tabs__header {
     margin-bottom: 24px;
 }
@@ -142,6 +151,8 @@ async function setQAPairToLabel(QAPair) {
     .labeling-tool-right-side {
         flex: 1.25;
         margin-left: 12px;
+        display: flex;
+        flex-direction: column;
     }
 
     .qa-group {
@@ -177,6 +188,42 @@ async function setQAPairToLabel(QAPair) {
                 }
             }
         }
+    }
+
+    .knowledge-items {
+        height: calc(100% - 70px);
+    }
+
+    .labeling-ki-commands {
+        height: 70px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        text-align: center;
+        align-items: center;
+        padding: 24px;
+        border-top: 1px solid $chatfaq-color-primary-200;
+    }
+    .clear-command {
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        color: $chatfaq-color-primary-500;
+
+    }
+    .command {
+        padding: 20px 20px 20px 20px;
+        width: 80px;
+        border-radius: 8px !important;
+        text-transform: uppercase !important;
+    }
+    .cancel-command {
+        border-color: $chatfaq-color-primary-500;
+        color: $chatfaq-color-primary-500;
+    }
+    .save-command {
+        background-color: #463075;
+        color: white;
     }
 }
 </style>
