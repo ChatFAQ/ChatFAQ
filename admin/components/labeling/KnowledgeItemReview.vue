@@ -4,12 +4,12 @@
             <div class="ki-vote">
                 <div
                     class="vote-icon thumb-up"
-                    @click="voteKI(referencedKnowledgeItems.message_id, ki.id, 'positive')"
+                    @click="voteKI(ki.id, 'positive')"
                     :class="{selected: getVoteKI(ki.id) && getVoteKI(ki.id).value === 'positive'}"
                 ></div>
                 <div
                     class="vote-icon thumb-down"
-                    @click="voteKI(referencedKnowledgeItems.message_id, ki.id, 'negative')"
+                    @click="voteKI(ki.id, 'negative')"
                     :class="{selected: getVoteKI(ki.id) && getVoteKI(ki.id).value === 'negative'}"
                 ></div>
             </div>
@@ -19,11 +19,11 @@
             </div>
         </div>
         <div>Alternative knowledge item</div>
-        <div @click="addAlternativeKI(referencedKnowledgeItems.message_id)">+ Add knowledge item</div>
-        <div v-for="ki in alternativeKIs(referencedKnowledgeItems.message_id)" class="labeling-ki-wrapper">
-            <el-select v-model="ki.knowledge_item_id">
+        <div @click="addAlternativeKI()">+ Add knowledge item</div>
+        <div v-for="alt2Title in alternatives2Titles" class="labeling-ki-wrapper">
+            <el-select v-model="alt2Title[0]" @change="(val) => alt2Title[1].knowledge_item_id = val">
                 <el-option
-                    v-for="choice in [{'title': 'aaaa', 'id': 1}, {'title': 'bbb', 'id': 2}, {'title': 'ccc', 'id': 3}]"
+                    v-for="choice in ki_choices"
                     :key="choice.id"
                     :label="choice.title"
                     :value="choice.id"
@@ -33,7 +33,7 @@
         <div class="labeling-ki-commands">
             <el-button>Clear</el-button>
             <el-button>Cancel</el-button>
-            <el-button @click="sendReviews(referencedKnowledgeItems.message_id)">Save</el-button>
+            <el-button @click="sendReviews()">Save</el-button>
         </div>
     </div>
 </template>
@@ -47,6 +47,10 @@ const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp()
 
 const props = defineProps({
+    referencedKnowledgeBaseId: {
+        type: String,
+        mandatory: true
+    },
     referencedKnowledgeItems: {
         type: Object,
         default: {},
@@ -56,12 +60,36 @@ const props = defineProps({
         default: {data: []},
     },
 })
+const ki_choices = ref([])
 const reviewWriter = ref({...props.review})
 watch(() => props.review, (newVal) => {
     reviewWriter.value = {...newVal}
 })
 
-async function voteKI(messageId, kiId, vote) {
+watch(() => props.referencedKnowledgeBaseId, async (kbId) => {
+    ki_choices.value = await itemsStore.requestOrGetItems($axios, "/back/api/language-model/knowledge-items/", {
+        knowledge_base: kbId
+    })
+})
+
+
+const alternatives2Titles = computed(() => {
+    const res = []
+    for (const alt of alternativeKIs()) {
+        if (!alt.knowledge_item_id) {
+            res.push([undefined, alt])
+            continue
+        }
+        for (const ki of ki_choices.value) {
+            if (ki.id.toString() === alt.knowledge_item_id.toString()) {
+                res.push([ki.title, alt])
+                break
+            }
+        }
+    }
+    return res
+})
+async function voteKI(kiId, vote) {
     if (reviewWriter.value?.data === undefined) {
         reviewWriter.value = {
             data: []
@@ -76,10 +104,10 @@ async function voteKI(messageId, kiId, vote) {
             knowledge_item_id: kiId,
         })
     }
-    await sendReviews(messageId)
+    await sendReviews()
 }
-async function sendReviews(messageId) {
-    reviewWriter.value.message = messageId
+async function sendReviews() {
+    reviewWriter.value.message = props.referencedKnowledgeItems.message_id
     reviewWriter.value.data = reviewWriter.value.data.filter((d) => d.knowledge_item_id !== null)
     if (reviewWriter.value.id === undefined) {
         await $axios.post("/back/api/broker/admin-review/", reviewWriter.value)
@@ -94,7 +122,7 @@ function getVoteKI(kiId) {
         return reviewWriter.value.data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
     }
 }
-function addAlternativeKI(messageId) {
+function addAlternativeKI() {
     if (reviewWriter.value?.data === undefined) {
         reviewWriter.value = {
             data: []

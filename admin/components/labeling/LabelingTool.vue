@@ -15,7 +15,7 @@
         <div class="labeling-tool-right-side">
             <el-tabs model-value="knowledge-items">
                 <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                    <KnowledgeItemReview :referencedKnowledgeItems="referencedKnowledgeItems" :review="review"/>
+                    <KnowledgeItemReview :referencedKnowledgeItems="referencedKnowledgeItems" :referencedKnowledgeBaseId="referencedKnowledgeBaseId" :review="review"/>
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
                     {{ msgLabeled }}
@@ -47,6 +47,7 @@ const props = defineProps({
     },
 })
 
+const referencedKnowledgeBaseId = ref(undefined)
 const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
 
@@ -78,6 +79,7 @@ async function setQAPairToLabel(QAPair) {
     itemsStore.loading = true
     const botMsg = QAPair[QAPair.length - 1]
     referencedKnowledgeItems.value = {message_id: botMsg.id, kis: []}
+    referencedKnowledgeBaseId.value = botMsg.stack[botMsg.stack.length - 1].payload.references.knowledge_base_id
     for (const reference of botMsg.stack[botMsg.stack.length - 1].payload.references.knowledge_items) {
         const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
             id: reference.knowledge_item_id

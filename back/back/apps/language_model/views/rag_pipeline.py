@@ -31,12 +31,10 @@ class RetrieverConfigAPIViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.OrderingFilter]
 
 
-
 class GenerationConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = GenerationConfig.objects.all()
     serializer_class = GenerationConfigSerializer
     filter_backends = [filters.OrderingFilter]
-
 
 
 class PromptConfigAPIViewSet(viewsets.ModelViewSet):

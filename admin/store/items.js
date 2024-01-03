@@ -55,6 +55,20 @@ export const useItemsStore = defineStore('items', {
                 return true
             })
         },
+        async requestOrGetItems($axios, apiUrl, filter) {
+            if (!this.items[apiUrl]) {
+                await this.retrieveItems($axios, apiUrl)
+            }
+            return this.items[apiUrl].filter(item => {
+                for (const [key, val] of Object.entries(filter)) {
+                    if (item[key] === null && val === null)
+                        continue
+                    if (item[key] !== null && val !== null && item[key].toString() !== val.toString())
+                        return false
+                }
+                return true
+            })
+        },
         async resolveRefs($axios, schema) {
             if (!schema.properties && schema.oneOf) {
                 const oneOf = await this.getSchemaDef($axios, undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])
