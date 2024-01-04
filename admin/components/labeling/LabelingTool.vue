@@ -2,8 +2,9 @@
     <BackButton class="back-button-wrapper"/>
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
-            <div @click="setQAPairToLabel(msgs)"
-                 v-for="msgs in getQAMessageGroups(conversation.mml_chain)" class="qa-group">
+            <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
+                 @click="setQAPairToLabel(msgs)"
+                 class="qa-group">
                 <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
                     <div class="message-content" :class="{[msg.sender.type]: true}">
                         {{
@@ -23,10 +24,9 @@
                     />
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
-                    {{ msgLabeled }}
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
-                    {{ msgLabeled }}
+                    <UserFeedback v-if="msgLabeled" :messageId="msgLabeled[msgLabeled.length - 1].id"/>
                 </el-tab-pane>
             </el-tabs>
             <div class="labeling-ki-commands">
@@ -44,6 +44,7 @@
 import {useItemsStore} from "~/store/items.js";
 import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
+import UserFeedback from "~/components/labeling/UserFeedback.vue";
 
 const itemsStore = useItemsStore()
 

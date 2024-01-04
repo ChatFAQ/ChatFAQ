@@ -91,6 +91,7 @@ class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
 class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     serializer_class = UserFeedbackSerializer
     queryset = UserFeedback.objects.all()
+    filterset_fields = ["message"]
 
 
 class AdminReviewAPIViewSet(viewsets.ModelViewSet):
