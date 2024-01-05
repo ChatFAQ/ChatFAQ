@@ -3,9 +3,9 @@
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
-                 @click="setQAPairToLabel(msgs)"
+                 @click="msgLabeled = msgs[msgs.length - 1]"
                  class="qa-group"
-                 :class="{'selected': msgLabeled[msgLabeled.length - 1].id === msgs[msgs.length - 1].id}"
+                 :class="{'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id}"
             >
                 <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
                     <div class="message-content" :class="{[msg.sender.type]: true}">
@@ -19,16 +19,16 @@
         <div class="labeling-tool-right-side">
             <el-tabs model-value="knowledge-items" class="knowledge-items">
                 <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                    <KnowledgeItemReview :referencedKnowledgeItems="referencedKnowledgeItems"
-                                         :referencedKnowledgeBaseId="referencedKnowledgeBaseId"
-                                         :review="review"
+                    <KnowledgeItemReview v-if="msgLabeled !== undefined"
+                                         :message="msgLabeled"
                                          ref="kiReviewer"
                     />
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
+                    <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
                 <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
-                    <UserFeedback v-if="msgLabeled" :messageId="msgLabeled[msgLabeled.length - 1].id"/>
+                    <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
             </el-tabs>
             <div class="labeling-ki-commands">
@@ -47,6 +47,7 @@ import {useItemsStore} from "~/store/items.js";
 import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
+import GenerationReview from "~/components/labeling/GenerationReview.vue";
 
 const itemsStore = useItemsStore()
 
@@ -104,7 +105,6 @@ async function setQAPairToLabel(QAPair) {
             referencedKnowledgeItems.value.kis.push(ki)
     }
     review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: botMsg.id}) || {}
-    msgLabeled.value = QAPair
     itemsStore.loading = false
 }
 </script>

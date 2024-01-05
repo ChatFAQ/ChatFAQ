@@ -281,9 +281,14 @@ class AdminReview(ChangesMixin):
         (3, 3),
         (4, 4),
     )
+    REVIEW_TYPES = (
+        ("alternative_answer", "Alternative Answer"),
+        ("review", "Review"),
+    )
     message = models.OneToOneField(
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
     ki_review_data = models.JSONField(default=list)
     gen_review_msg = models.TextField(null=True, blank=True)
     gen_review_val = models.IntegerField(null=True, choices=VALUE_CHOICES)
+    gen_review_type = models.CharField(null=True, blank=True, max_length=255, choices=REVIEW_TYPES)

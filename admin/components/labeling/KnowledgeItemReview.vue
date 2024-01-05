@@ -1,7 +1,7 @@
 <template>
-    <div v-if="referencedKnowledgeItems.message_id !== undefined" v-loading="itemsStore.loading"
+    <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"
          class="labeling-kis-wrapper">
-        <div v-for="ki in referencedKnowledgeItems.kis" class="labeling-ki-wrapper">
+        <div v-for="ki in reviewedKIs.kis" class="labeling-ki-wrapper">
             <div class="ki-vote">
                 <div
                     class="vote-icon thumb-up"
@@ -42,32 +42,37 @@ const itemsStore = useItemsStore()
 
 const {$axios} = useNuxtApp()
 
+const ki_choices = ref([])
+const reviewedKIs = ref({})
+const review = ref([])
+
 const props = defineProps({
-    referencedKnowledgeBaseId: {
-        type: String,
+    message: {
+        type: Object,
         mandatory: true
     },
-    referencedKnowledgeItems: {
-        type: Object,
-        default: {},
-    },
-    review: {
-        type: Object,
-        default: {ki_review_data: []},
-    },
 })
-const ki_choices = ref([])
-const reviewWriter = ref({...props.review})
-watch(() => props.review, (newVal) => {
-    reviewWriter.value = {...newVal}
+watch(() => props.message, async (_) => {
+    await initKIReview()
 })
 
-watch(() => props.referencedKnowledgeBaseId, async (kbId) => {
+async function initKIReview() {
+    itemsStore.loading = true
+    reviewedKIs.value = {message_id: props.message.id, kis: []}
+    const references = props.message.stack[props.message.stack.length - 1].payload.references
+    for (const ki_ref of references.knowledge_items) {
+        const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
+            id: ki_ref.knowledge_item_id
+        })
+        if (ki)
+            reviewedKIs.value.kis.push(ki)
+    }
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}) || {}
     ki_choices.value = await itemsStore.requestOrGetItems($axios, "/back/api/language-model/knowledge-items/", {
-        knowledge_base: kbId
+        knowledge_base: references.knowledge_base_id
     })
-})
-
+    itemsStore.loading = false
+}
 
 const alternatives2Titles = computed(() => {
     const res = []
@@ -87,8 +92,8 @@ const alternatives2Titles = computed(() => {
 })
 
 async function voteKI(kiId, vote) {
-    if (reviewWriter.value?.ki_review_data === undefined) {
-        reviewWriter.value = {
+    if (review.value?.ki_review_data === undefined) {
+        review.value = {
             ki_review_data: []
         }
     }
@@ -96,7 +101,7 @@ async function voteKI(kiId, vote) {
     if (data) {
         data.value = vote
     } else {
-        reviewWriter.value.ki_review_data.push({
+        review.value.ki_review_data.push({
             value: vote,
             knowledge_item_id: kiId,
         })
@@ -105,41 +110,41 @@ async function voteKI(kiId, vote) {
 }
 
 async function save() {
-    reviewWriter.value.message = props.referencedKnowledgeItems.message_id
-    reviewWriter.value.ki_review_data = reviewWriter.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
-    if (reviewWriter.value.id === undefined) {
-        await $axios.post("/back/api/broker/admin-review/", reviewWriter.value)
+    review.value.message = reviewedKIs.value.message_id
+    review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
+    if (review.value.id === undefined) {
+        await $axios.post("/back/api/broker/admin-review/", review.value)
     } else {
-        await $axios.put("/back/api/broker/admin-review/" + reviewWriter.value.id + "/", reviewWriter.value)
+        await $axios.put("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
     }
 }
 
 function getVoteKI(kiId) {
-    if (reviewWriter.value.id === undefined) {
+    if (review.value.id === undefined) {
         return undefined
     } else {
-        return reviewWriter.value.ki_review_data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
+        return review.value.ki_review_data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
     }
 }
 
 function addAlternativeKI() {
-    if (reviewWriter.value?.ki_review_data === undefined) {
-        reviewWriter.value = {
+    if (review.value?.ki_review_data === undefined) {
+        review.value = {
             ki_review_data: []
         }
     }
-    return reviewWriter.value.ki_review_data.push({
+    return review.value.ki_review_data.push({
         value: "alternative",
         knowledge_item_id: null,
     })
 }
 
 function alternativeKIs() {
-    return reviewWriter.value?.ki_review_data?.filter((d) => d.value === "alternative") || []
+    return review.value?.ki_review_data?.filter((d) => d.value === "alternative") || []
 }
 
 function clear() {
-    reviewWriter.value = {
+    review.value = {
         ki_review_data: []
     }
 }
