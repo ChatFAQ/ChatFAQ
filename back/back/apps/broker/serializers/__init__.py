@@ -55,7 +55,7 @@ class AdminReviewValue(serializers.Serializer):
 
 
 class AdminReviewSerializer(serializers.ModelSerializer):
-    data = serializers.ListField(child=AdminReviewValue())
+    ki_review_data = serializers.ListField(child=AdminReviewValue())
 
     class Meta:
         from back.apps.broker.models.message import AdminReview  # TODO: CI

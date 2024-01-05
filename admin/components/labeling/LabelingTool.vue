@@ -4,7 +4,9 @@
         <div class="labeling-tool-left-side">
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
                  @click="setQAPairToLabel(msgs)"
-                 class="qa-group">
+                 class="qa-group"
+                 :class="{'selected': msgLabeled[msgLabeled.length - 1].id === msgs[msgs.length - 1].id}"
+            >
                 <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
                     <div class="message-content" :class="{[msg.sender.type]: true}">
                         {{
@@ -164,10 +166,12 @@ async function setQAPairToLabel(QAPair) {
     .qa-group {
         position: relative;
         padding: 16px 12px;
-
         &:hover {
-            background: $chatfaq-color-primary-200;
+            background: rgba(223, 218, 234, 0.49);
             cursor: pointer;
+        }
+        &.selected {
+            background: $chatfaq-color-primary-200;
         }
 
         .message {

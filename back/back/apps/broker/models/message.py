@@ -274,8 +274,16 @@ class UserFeedback(ChangesMixin):
 
 
 class AdminReview(ChangesMixin):
+    VALUE_CHOICES = (
+        (0, 0),
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+    )
     message = models.OneToOneField(
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
-    data = models.JSONField(default=list)
-    review = models.TextField(null=True, blank=True)
+    ki_review_data = models.JSONField(default=list)
+    gen_review_msg = models.TextField(null=True, blank=True)
+    gen_review_val = models.IntegerField(null=True, choices=VALUE_CHOICES)

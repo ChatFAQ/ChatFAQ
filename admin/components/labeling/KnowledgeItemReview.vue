@@ -53,7 +53,7 @@ const props = defineProps({
     },
     review: {
         type: Object,
-        default: {data: []},
+        default: {ki_review_data: []},
     },
 })
 const ki_choices = ref([])
@@ -87,16 +87,16 @@ const alternatives2Titles = computed(() => {
 })
 
 async function voteKI(kiId, vote) {
-    if (reviewWriter.value?.data === undefined) {
+    if (reviewWriter.value?.ki_review_data === undefined) {
         reviewWriter.value = {
-            data: []
+            ki_review_data: []
         }
     }
     const data = getVoteKI(kiId)
     if (data) {
         data.value = vote
     } else {
-        reviewWriter.value.data.push({
+        reviewWriter.value.ki_review_data.push({
             value: vote,
             knowledge_item_id: kiId,
         })
@@ -106,7 +106,7 @@ async function voteKI(kiId, vote) {
 
 async function save() {
     reviewWriter.value.message = props.referencedKnowledgeItems.message_id
-    reviewWriter.value.data = reviewWriter.value.data.filter((d) => d.knowledge_item_id !== null)
+    reviewWriter.value.ki_review_data = reviewWriter.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
     if (reviewWriter.value.id === undefined) {
         await $axios.post("/back/api/broker/admin-review/", reviewWriter.value)
     } else {
@@ -118,29 +118,29 @@ function getVoteKI(kiId) {
     if (reviewWriter.value.id === undefined) {
         return undefined
     } else {
-        return reviewWriter.value.data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
+        return reviewWriter.value.ki_review_data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
     }
 }
 
 function addAlternativeKI() {
-    if (reviewWriter.value?.data === undefined) {
+    if (reviewWriter.value?.ki_review_data === undefined) {
         reviewWriter.value = {
-            data: []
+            ki_review_data: []
         }
     }
-    return reviewWriter.value.data.push({
+    return reviewWriter.value.ki_review_data.push({
         value: "alternative",
         knowledge_item_id: null,
     })
 }
 
 function alternativeKIs() {
-    return reviewWriter.value?.data?.filter((d) => d.value === "alternative") || []
+    return reviewWriter.value?.ki_review_data?.filter((d) => d.value === "alternative") || []
 }
 
 function clear() {
     reviewWriter.value = {
-        data: []
+        ki_review_data: []
     }
 }
 
