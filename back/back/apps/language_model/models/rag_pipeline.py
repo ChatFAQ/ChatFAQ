@@ -18,7 +18,8 @@ LLM_CHOICES = (
     ('local_gpu', 'Local GPU Model'),  # Use locally VLLM or HuggingFace for GPU inference.
     ('vllm', 'VLLM Client'),  # Access VLLM engine remotely
     ('openai', 'OpenAI Model'),  # ChatGPT models from OpenAI
-    ('claude', 'Claude Model')  # Claude models from Anthropic
+    ('claude', 'Claude Model'),  # Claude models from Anthropic
+    ('mistral', 'Mistral Model'),  # Mistral models from Mistral
 )
 
 # First, define the Manager subclass.

@@ -1,22 +1,19 @@
 from typing import List, Dict
 import os
 
-from openai import OpenAI
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 
 from chat_rag.llms import RAGLLM
 
-
-class OpenAIChatModel(RAGLLM):
+class MistralChatModel(RAGLLM):
     def __init__(
         self,
         llm_name: str,
         base_url: str = None,
         **kwargs,
     ):
-        if base_url is None:
-            self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-        else:
-            self.client = OpenAI(base_url=base_url) # for VLLM compatible API
+        self.client = MistralClient(api_key=os.environ["MISTRAL_API_KEY"])
         self.llm_name = llm_name
 
     def format_prompt(
@@ -62,11 +59,13 @@ class OpenAIChatModel(RAGLLM):
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
-
-        final_messages = [{'role': 'system', 'content': system_prompt}] + messages
+        final_messages = [ChatMessage(role='system', content=system_prompt)]  \
+            + [ChatMessage(role=message['role'], content=message['content']) for message in messages]
+        
+        print(final_messages)
 
         return final_messages
-
+    
     def generate(
         self,
         messages: List[Dict[str, str]],
@@ -79,7 +78,7 @@ class OpenAIChatModel(RAGLLM):
         """
         Generate text from a prompt using the model.
         Parameters
-        ----------
+        ---------text-
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
         contexts : List[str]
@@ -103,16 +102,17 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
-        response = self.client.chat.completions.create(model=self.llm_name,
-        messages=messages,
-        max_tokens=generation_config_dict["max_new_tokens"],
-        temperature=generation_config_dict["temperature"],
-        top_p=generation_config_dict["top_p"],
-        presence_penalty=generation_config_dict["repetition_penalty"],
-        seed=generation_config_dict["seed"],
-        n=1,
-        stream=False)
-        return response.choices[0].message.content
+        chat_response = self.client.chat(
+            model=self.llm_name,
+            messages=messages,
+            temperature=generation_config_dict["temperature"],
+            top_p=generation_config_dict["top_p"],
+            max_tokens=generation_config_dict["max_new_tokens"],
+            random_seed=generation_config_dict["seed"],
+        )
+
+        return chat_response.choices[0].message.content
+
 
     def stream(
         self,
@@ -150,19 +150,15 @@ class OpenAIChatModel(RAGLLM):
             lang=lang,
         )
 
-        print(messages)
-
-        response = self.client.chat.completions.create(model=self.llm_name,
-        messages=messages,
-        max_tokens=generation_config_dict["max_new_tokens"],
-        temperature=generation_config_dict["temperature"],
-        top_p=generation_config_dict["top_p"],
-        presence_penalty=generation_config_dict["repetition_penalty"],
-        seed=generation_config_dict["seed"],
-        n=1,
-        stream=True)
-        for chunk in response:
-            if chunk.choices[0].finish_reason == "stop":
-                return
+        for chunk in self.client.chat_stream(
+            model=self.llm_name,
+            messages=messages,
+            temperature=generation_config_dict["temperature"],
+            top_p=generation_config_dict["top_p"],
+            max_tokens=generation_config_dict["max_new_tokens"],
+            random_seed=generation_config_dict["seed"],
+        ):
             if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content # return the delta text message
+                yield chunk.choices[0].delta.content
+
+        return

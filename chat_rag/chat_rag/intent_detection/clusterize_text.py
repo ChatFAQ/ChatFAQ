@@ -1,6 +1,6 @@
 from typing import List
 
-from sklearn.cluster import HDBSCAN
+from sklearn.cluster import HDBSCAN # TODO: maybe replace with cuML implementation for speedup when using GPU
 
 from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
 
