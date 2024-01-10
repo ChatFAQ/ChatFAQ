@@ -44,7 +44,7 @@ const {$axios} = useNuxtApp()
 
 const ki_choices = ref([])
 const reviewedKIs = ref({})
-const review = ref([])
+const review = ref({})
 
 const props = defineProps({
     message: {
