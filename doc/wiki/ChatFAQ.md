@@ -16,6 +16,7 @@ The [Command Line Interface](https://github.com/ChatFAQ/ChatFAQ#command-line-int
 Overall, ChatFAQ provides services, APIs, and tools for developing conversational AI assistants and chatbots using modern frameworks like Django and Vue.js. It focuses on connectivity, state management, user interfaces, and conversational modeling components.
 
 [Backend Functionality](#backend-functionality)
+
 &nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](#message-handling)
 
 
