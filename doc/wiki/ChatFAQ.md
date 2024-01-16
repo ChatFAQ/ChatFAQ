@@ -16,33 +16,33 @@ The [Command Line Interface](https://github.com/ChatFAQ/ChatFAQ#command-line-int
 Overall, ChatFAQ provides services, APIs, and tools for developing conversational AI assistants and chatbots using modern frameworks like Django and Vue.js. It focuses on connectivity, state management, user interfaces, and conversational modeling components.
 
 
-[Backend Functionality](#backend-functionality)
+1. [Backend Functionality](#backend-functionality)
 
-&nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](#message-handling)
+- &nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](#message-handling)
 
-[Conversational Modeling](#conversational-modeling)
+2. [Conversational Modeling](#conversational-modeling)
 
-[Administrative Interface](#administrative-interface)
+3. [Administrative Interface](#administrative-interface)
 
-[Command Line Interface](#command-line-interface)
+4. [Command Line Interface](#command-line-interface)
 
-[Chatbot SDK](#chatbot-sdk)
+5. [Chatbot SDK](#chatbot-sdk)
 
-[Embeddable Chat Widget](#embeddable-chat-widget)
+6. [Embeddable Chat Widget](#embeddable-chat-widget)
 
-[Documentation](#documentation)
+7. [Documentation](#documentation)
 
-[Backend Functionality](#backend-functionality-1)
+8. [Backend Functionality](#backend-functionality-1)
 
-[Conversational Modeling](#conversational-modeling-1)
+9. [Conversational Modeling](#conversational-modeling-1)
 
-[Administrative Interface](#administrative-interface-1)
+10. [Administrative Interface](#administrative-interface-1)
 
-[Command Line Interface](#command-line-interface-1)
+11. [Command Line Interface](#command-line-interface-1)
 
-[Embeddable Chat Widget](#embeddable-chat-widget-1)
+12. [Embeddable Chat Widget](#embeddable-chat-widget-1)
 
-[Core Documentation](#core-documentation)
+13. [Core Documentation](#core-documentation)
 
 
 
