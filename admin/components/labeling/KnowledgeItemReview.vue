@@ -113,9 +113,10 @@ async function save() {
     review.value.message = reviewedKIs.value.message_id
     review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
     if (review.value.id === undefined) {
-        await $axios.post("/back/api/broker/admin-review/", review.value)
+        const res = await $axios.post("/back/api/broker/admin-review/", review.value)
+        review.value.id = res.data.id
     } else {
-        await $axios.put("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
+        await $axios.patch("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
     }
 }
 
