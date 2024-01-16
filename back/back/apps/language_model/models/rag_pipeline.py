@@ -66,6 +66,9 @@ class RAGConfig(ChangesMixin):
             if self.llm_config != old.llm_config:
                 load_new_llm = True
                 logger.info(f"RAG config {self.name} changed llm config...")
+            if self.disabled != old.disabled:
+                load_new_llm = True
+                logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
 
         super().save(*args, **kwargs)
 
@@ -150,7 +153,7 @@ class RetrieverConfig(ChangesMixin):
             # Schedule the recache_models function to be called
             transaction.on_commit(on_commit_callback)
 
-            
+
 
     def trigger_generate_embeddings(self):
         rag_configs = RAGConfig.objects.filter(retriever_config=self)
