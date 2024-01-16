@@ -5,7 +5,7 @@ Auto-generated from [![](https://github.com/favicon.ico) ChatFAQ/ChatFAQ](https:
 
 The ChatFAQ repository implements an end-to-end platform for building conversational AI assistants and chatbots. At its core, it provides services and frameworks for managing conversations and connectivity. The main components are:
 
-The backend implements core services like [Message Handling](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#message-handling), [State Management](https://github.com/ChatFAQ/ChatFAQ#state-management), and [User Management](https://github.com/ChatFAQ/ChatFAQ#user-management) using Django, Celery, Channels, and PostgreSQL. It handles receiving and routing messages between services and persists conversation state and data. The [REST APIs](https://github.com/ChatFAQ/ChatFAQ#rest-apis) expose CRUD operations on models. Components like [Abstract Components](https://github.com/ChatFAQ/ChatFAQ#abstract-components) provide reusable building blocks.
+The backend implements core services like [Message Handling](#message-handling), [State Management](https://github.com/ChatFAQ/ChatFAQ#state-management), and [User Management](https://github.com/ChatFAQ/ChatFAQ#user-management) using Django, Celery, Channels, and PostgreSQL. It handles receiving and routing messages between services and persists conversation state and data. The [REST APIs](https://github.com/ChatFAQ/ChatFAQ#rest-apis) expose CRUD operations on models. Components like [Abstract Components](https://github.com/ChatFAQ/ChatFAQ#abstract-components) provide reusable building blocks.
 
 The conversational modeling components focus on generating responses by [Retrieval](https://github.com/ChatFAQ/ChatFAQ#retrieval) of relevant contexts from a knowledge base and using those to guide [Response Generation](https://github.com/ChatFAQ/ChatFAQ#response-generation). [Knowledge Extraction](https://github.com/ChatFAQ/ChatFAQ#knowledge-extraction) structures documents, while [Intent Detection](https://github.com/ChatFAQ/ChatFAQ#intent-detection) clusters queries into summarized intents. [Embedding Models](https://github.com/ChatFAQ/ChatFAQ#embedding-models) generate vector representations of text for retrieval.
 
@@ -16,33 +16,33 @@ The [Command Line Interface](https://github.com/ChatFAQ/ChatFAQ#command-line-int
 Overall, ChatFAQ provides services, APIs, and tools for developing conversational AI assistants and chatbots using modern frameworks like Django and Vue.js. It focuses on connectivity, state management, user interfaces, and conversational modeling components.
 
 
-[Backend Functionality](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#backend-functionality)
+[Backend Functionality](#backend-functionality)
 
-&nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#message-handling)
+&nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](#message-handling)
 
-[Conversational Modeling](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#conversational-modeling)
+[Conversational Modeling](#conversational-modeling)
 
-[Administrative Interface](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#administrative-interface)
+[Administrative Interface](#administrative-interface)
 
-[Command Line Interface](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#command-line-interface)
+[Command Line Interface](#command-line-interface)
 
-[Chatbot SDK](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#chatbot-sdk)
+[Chatbot SDK](#chatbot-sdk)
 
-[Embeddable Chat Widget](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#embeddable-chat-widget)
+[Embeddable Chat Widget](#embeddable-chat-widget)
 
-[Documentation](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#documentation)
+[Documentation](#documentation)
 
-[Backend Functionality](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#backend-functionality-1)
+[Backend Functionality](#backend-functionality-1)
 
-[Conversational Modeling](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#conversational-modeling-1)
+[Conversational Modeling](#conversational-modeling-1)
 
-[Administrative Interface](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#administrative-interface-1)
+[Administrative Interface](#administrative-interface-1)
 
-[Command Line Interface](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#command-line-interface-1)
+[Command Line Interface](#command-line-interface-1)
 
-[Embeddable Chat Widget](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#embeddable-chat-widget-1)
+[Embeddable Chat Widget](#embeddable-chat-widget-1)
 
-[Core Documentation](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#core-documentation)
+[Core Documentation](#core-documentation)
 
 
 
