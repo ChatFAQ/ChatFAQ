@@ -18,7 +18,7 @@ Overall, ChatFAQ provides services, APIs, and tools for developing conversationa
 
 1. [Backend Functionality](#backend-functionality)
 
-- &nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](#message-handling)
+&nbsp;&nbsp;&nbsp;&nbsp;- [Message Handling](#message-handling)
 
 2. [Conversational Modeling](#conversational-modeling)
 
