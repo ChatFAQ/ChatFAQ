@@ -1,3 +1,6 @@
+ChatFAQ
+=======
+
 Auto-generated from [![](https://github.com/favicon.ico) ChatFAQ/ChatFAQ](https://github.com/ChatFAQ/ChatFAQ) by Mutable.ai Auto Wiki
 
 The ChatFAQ repository implements an end-to-end platform for building conversational AI assistants and chatbots. At its core, it provides services and frameworks for managing conversations and connectivity. The main components are:
