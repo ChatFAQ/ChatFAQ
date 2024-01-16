@@ -18,6 +18,8 @@ Overall, ChatFAQ provides services, APIs, and tools for developing conversationa
 
 [Backend Functionality](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#backend-functionality)
 
+&nbsp;&nbsp;&nbsp;&nbsp;[Message Handling](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#message-handling)
+
 [Conversational Modeling](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#conversational-modeling)
 
 [Administrative Interface](https://github.com/ChatFAQ/ChatFAQ/doc/wiki/ChatFAQ.md#administrative-interface)
