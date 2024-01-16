@@ -51,3 +51,32 @@ Handlers in […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a
 The serializers in […/messages](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/serializers/messages) convert payloads between external formats and the internal MML format, allowing different sources to be integrated consistently. Subclasses select the correct serializer.
 
 References: [back/back/apps/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker)
+
+<details>
+<summary>Introducción</summary>
+
+Aquí va el contenido de la Introducción. Puede ser texto, enlaces, imágenes, etc.
+
+</details>
+
+<details>
+<summary>Capítulo Uno</summary>
+
+Aquí va el contenido del Capítulo Uno.
+
+</details>
+
+<details>
+<summary>Capítulo Dos</summary>
+
+Aquí va el contenido del Capítulo Dos.
+
+</details>
+
+<details>
+<summary>Conclusión</summary>
+
+Aquí va el contenido de la Conclusión.
+
+</details>
+
