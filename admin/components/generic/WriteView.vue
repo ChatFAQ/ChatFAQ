@@ -189,7 +189,7 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 
 // Initialize form values
 initializeFormValues()
-watch(() => itemsStore.editing, initializeFormValues)
+watch(() => itemsStore.editing, initializeFormValues, {immediate: true})
 async function initializeFormValues() {
     if (itemsStore.editing) {
         itemsStore.loading = true

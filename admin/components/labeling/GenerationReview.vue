@@ -3,11 +3,11 @@
         <div class="title-instruction">Rating</div>
         <div class="content-instruction">Read the guidelines in order to rate accordingly</div>
         <div class="rating-wrapper">
-            <div class="rating">1</div>
-            <div class="rating">2</div>
-            <div class="rating">3</div>
-            <div class="rating">4</div>
-            <div class="rating">5</div>
+            <div class="rating" @click="setRate(1)">1</div>
+            <div class="rating" @click="setRate(2)">2</div>
+            <div class="rating" @click="setRate(3)">3</div>
+            <div class="rating" @click="setRate(4)">4</div>
+            <div class="rating" @click="setRate(5)">5</div>
         </div>
         <div class="title-feedback">Feedback</div>
         <el-select class="select-feedback-type" v-model="reviewType">
@@ -28,8 +28,12 @@
 </template>
 
 <script setup>
-const {$axios} = useNuxtApp()
+import {useItemsStore} from "~/store/items.js";
 
+const itemsStore = useItemsStore()
+
+const {$axios} = useNuxtApp()
+const rate = ref()
 const props = defineProps({
     messageId: {
         type: Number,
@@ -41,10 +45,18 @@ const reviewType = ref(undefined)
 
 watch(() => props.messageId, async (_) => {
     await initGenReview()
-})
+}, {immediate: true})
 
 async function initGenReview() {
-    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}) || {}
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.messageId}) || {}
+}
+
+function setRate(_rate) {
+    rate.value = _rate
+}
+
+function save() {
+
 }
 
 </script>
@@ -83,6 +95,7 @@ async function initGenReview() {
             font-size: 14px;
             font-weight: 600;
             color: $chatfaq-color-primary-500;
+            cursor: pointer;
 
         }
     }

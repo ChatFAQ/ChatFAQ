@@ -54,7 +54,7 @@ const props = defineProps({
 })
 watch(() => props.message, async (_) => {
     await initKIReview()
-})
+}, {immediate: true})
 
 async function initKIReview() {
     itemsStore.loading = true

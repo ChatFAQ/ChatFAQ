@@ -19,7 +19,7 @@ const userFeedback = ref({})
 
 watch(() => props.messageId, async (_) => {
     await initUserFeedback()
-})
+}, {immediate: true})
 
 async function initUserFeedback() {
     const {data} = await useAsyncData(
