@@ -15,7 +15,12 @@ The [Command Line Interface](https://github.com/ChatFAQ/ChatFAQ#command-line-int
 
 Overall, ChatFAQ provides services, APIs, and tools for developing conversational AI assistants and chatbots using modern frameworks like Django and Vue.js. It focuses on connectivity, state management, user interfaces, and conversational modeling components.
 
-Backend Functionality
+1. [Backend Functionality](#backend-funtionality)
+2. [Chapter One](#chapter-one)
+3. [Chapter Two](#chapter-two)
+4. [Conclusion](#conclusion)
+
+## Backend Functionality
 ---------------------
 
 The core backend functionality centers around routing messages between services using the […/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker) application. This application handles receiving messages from various sources via subclasses of […/http.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers/http.py) and […/ws.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers/ws.py), which provide a common interface for HTTP and WebSocket consumers. Messages are modeled using classes like from […/message.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models/message.py), which represents conversations and the messages within them.
