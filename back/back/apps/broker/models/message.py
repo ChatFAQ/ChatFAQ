@@ -288,7 +288,7 @@ class AdminReview(ChangesMixin):
     message = models.OneToOneField(
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
-    ki_review_data = models.JSONField(default=list)
+    ki_review_data = models.JSONField(null=True, blank=True, default=list)
     gen_review_msg = models.TextField(null=True, blank=True)
     gen_review_val = models.IntegerField(null=True, choices=VALUE_CHOICES)
     gen_review_type = models.CharField(null=True, blank=True, max_length=255, choices=REVIEW_TYPES)

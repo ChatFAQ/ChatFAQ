@@ -21,7 +21,7 @@
         </div>
         <div class="ki-title add-command-title">Alternative knowledge item</div>
         <div v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
-            <el-select v-model="alt2Title[0]" @change="(val) => alt2Title[1].knowledge_item_id = val">
+            <el-select v-model="alt2Title[0]" @change="(val) => alternativeChanged(alt2Title[1], val)">
                 <el-option
                     v-for="choice in ki_choices"
                     :key="choice.id"
@@ -99,7 +99,10 @@ async function voteKI(kiId, vote) {
     }
     const data = getVoteKI(kiId)
     if (data) {
-        data.value = vote
+        if(data.value === vote)
+            data.value = null
+        else
+            data.value = vote
     } else {
         review.value.ki_review_data.push({
             value: vote,
@@ -112,12 +115,10 @@ async function voteKI(kiId, vote) {
 async function save() {
     review.value.message = reviewedKIs.value.message_id
     review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
-    if (review.value.id === undefined) {
-        const res = await $axios.post("/back/api/broker/admin-review/", review.value)
-        review.value.id = res.data.id
-    } else {
-        await $axios.patch("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
-    }
+    delete review.value.gen_review_msg
+    delete review.value.gen_review_val
+    delete review.value.gen_review_type
+    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", review.value)
 }
 
 function getVoteKI(kiId) {
@@ -139,7 +140,10 @@ function addAlternativeKI() {
         knowledge_item_id: null,
     })
 }
-
+async function alternativeChanged(alt, val) {
+    alt.knowledge_item_id = val
+    await save()
+}
 function alternativeKIs() {
     return review.value?.ki_review_data?.filter((d) => d.value === "alternative") || []
 }
@@ -229,12 +233,11 @@ defineExpose({
         .add-command-title {
             margin-bottom: 8px;
         }
-
-        .add-command {
-            margin-top: 16px;
-            margin-bottom: 16px;
-            cursor: pointer;
-        }
+    }
+    .add-command {
+        margin-top: 16px;
+        margin-bottom: 16px;
+        cursor: pointer;
     }
 }
 </style>

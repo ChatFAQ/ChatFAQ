@@ -41,8 +41,8 @@ export const useItemsStore = defineStore('items', {
                 return await this.resolveRefs($axios, this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async requestOrGetItem($axios, apiUrl, filter) {
-            if (!this.items[apiUrl]) {
+        async requestOrGetItem($axios, apiUrl, filter, force = false) {
+            if (force || !this.items[apiUrl]) {
                 await this.retrieveItems($axios, apiUrl)
             }
             return this.items[apiUrl].find(item => {
@@ -55,8 +55,8 @@ export const useItemsStore = defineStore('items', {
                 return true
             })
         },
-        async requestOrGetItems($axios, apiUrl, filter) {
-            if (!this.items[apiUrl]) {
+        async requestOrGetItems($axios, apiUrl, filter, force = false) {
+            if (force || !this.items[apiUrl]) {
                 await this.retrieveItems($axios, apiUrl)
             }
             return this.items[apiUrl].filter(item => {
@@ -68,6 +68,14 @@ export const useItemsStore = defineStore('items', {
                 }
                 return true
             })
+        },
+        async upsertItem($axios, apiUrl, item) {
+            if (item.id) {
+                await $axios.patch(`${apiUrl}${item.id}/`, item)
+            } else {
+                await $axios.post(apiUrl, item)
+            }
+            await this.retrieveItems($axios, apiUrl)
         },
         async resolveRefs($axios, schema) {
             if (!schema.properties && schema.oneOf) {
