@@ -46,7 +46,7 @@ Overall, ChatFAQ provides services, APIs, and tools for developing conversationa
 
 
 
-## Backend Functionality
+## 1. Backend Functionality
 ---------------------
 
 The core backend functionality centers around routing messages between services using the […/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker) application. This application handles receiving messages from various sources via subclasses of […/http.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers/http.py) and […/ws.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers/ws.py), which provide a common interface for HTTP and WebSocket consumers. Messages are modeled using classes like from […/message.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models/message.py), which represents conversations and the messages within them.
@@ -63,7 +63,7 @@ The […/common](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bb
 
 References: [back/back](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back)
 
-### Message Handling
+### 1.1 Message Handling
 
 The main functionality for handling incoming messages is implemented in the […/consumers](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/consumers) directory. This directory contains classes that handle receiving messages from various sources and routing them to the appropriate bot logic.
 
@@ -75,7 +75,7 @@ The serializers in […/messages](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5
 
 References: [back/back/apps/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker)
 
-### Data Storage
+### 1.2 Data Storage
 
 References: [back/back/apps/broker/models](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models), [back/back/apps/broker/migrations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/migrations)
 
@@ -92,7 +92,7 @@ Some important migration files:
 
 Files in migration files follow a chronological pattern of smaller incremental changes composed into larger reworks of relationships and schemas over time.
 
-### User Management
+### 1.3 User Management
 
 References: [back/back/apps/people](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people)
 
@@ -108,7 +108,7 @@ The admin site integration in […/admin.py](https://github.com/ChatFAQ/ChatFAQ/
 
 Migrations like those in […/migrations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people/migrations) evolve the database schema, for example to add new user fields over time. URL routing in […/urls.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people/urls.py) exposes the REST APIs.
 
-### Configuration
+### 1.4 Configuration
 
 References: [back/back/config](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/config)
 
@@ -124,7 +124,7 @@ The […/settings.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802
 
 The […/urls.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/config/urls.py) contains URL routing configuration. It configures the admin site and defines main URL patterns including login/logout views and API URLs.
 
-### Utilities
+### 1.5 Utilities
 
 References: [back/back/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/utils)
 
@@ -138,13 +138,13 @@ Channels messaging is customized via classes in […/custom_channel_layer.py](ht
 
 Logging is customized by the class in […/logging_formatters.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/utils/logging_formatters.py). This class overrides the method to add additional fields like timestamps to structured JSON logs.
 
-### REST APIs
+### 1.6 REST APIs
 
 References: [back/back/apps/broker/views](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/views)
 
 The […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/views/__init__.py) file exposes common operations on models through REST API endpoints defined by generic class-based views. Generic class-based views handle routing requests to methods and serialization automatically based on the actions. This provides a clean interface without much additional code.
 
-### Abstract Components
+### 1.7 Abstract Components
 
 References: [back/back/common/abs](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs)
 
@@ -154,7 +154,7 @@ The subdirectory […/bot_consumers](https://github.com/ChatFAQ/ChatFAQ/blob/c3f
 
 These classes separate concerns for handling requests and responses from focusing on bot logic.
 
-Conversational Modeling
+## 2. Conversational Modeling
 -----------------------
 
 References: [chat_rag/chat_rag](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag)
@@ -171,7 +171,7 @@ The […/intent_detection](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a321
 
 The […/llms](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/llms) subdirectory contains classes that provide a common interface to initialize, load, and interact with different large language models for response generation, such as classes defined in files.
 
-### Retrieval
+### 2.1 Retrieval
 
 References: [chat_rag/chat_rag](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag), [chat_rag/chat_rag/inf_retrieval](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/inf_retrieval)
 
@@ -192,7 +192,7 @@ Other files generate embeddings, questions, and check if questions can be answer
 
 The components work together to retrieve knowledge that can guide coherent response generation.
 
-### Response Generation
+### 2.2 Response Generation
 
 References: [chat_rag/chat_rag/llms](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/llms)
 
@@ -206,7 +206,7 @@ The […/hf_llm.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da
 
 The […/mistral_client.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/llms/mistral_client.py) inherits from another class and formats prompts before calling the Mistral API client to handle generation.
 
-### Knowledge Extraction
+### 2.3 Knowledge Extraction
 
 References: [chat_rag/chat_rag/data](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/data)
 
@@ -216,13 +216,13 @@ Documents are parsed into objects representing sections, titles, and other eleme
 
 Text content is split into meaningful chunks using various splitter classes. Parser functions handle the full parsing workflow. Main parser functions wrap these steps.
 
-### Intent Detection
+### 2.4 Intent Detection
 
 References: [chat_rag/chat_rag/intent_detection](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/intent_detection)
 
 The […/intent_detection](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/intent_detection) directory contains code for detecting intents from user queries by clustering similar queries and generating summarized intents. The file […/clusterize_text.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/intent_detection/clusterize_text.py) contains functionality for clustering queries. The file […/gen_intent.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/intent_detection/gen_intent.py) contains functionality for generating summarized intents.
 
-### Embedding Models
+### 2.5 Embedding Models
 
 References: [chat_rag/chat_rag/inf_retrieval/embedding_models](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/inf_retrieval/embedding_models)
 
@@ -230,7 +230,7 @@ The […/embedding_models](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a321
 
 /__init__.py imports classes to make them available to the package. The classes implement generating embeddings from text using pretrained models, allowing embeddings to be used for downstream tasks like search and retrieval.
 
-Administrative Interface
+## 3. Administrative Interface
 ------------------------
 
 References: [admin](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin)
@@ -251,7 +251,7 @@ The WidgetConfig.vue component loads schemas from an API via the store to genera
 
 The AIConfig.vue component provides a centralized interface to configure different AI model types. It uses tabs to separate configurations. Forms allow updating settings by calling methods that submit to APIs.
 
-### Components
+### 3.1 Components
 
 References: [admin/components](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/components)
 
@@ -272,7 +272,7 @@ Some key subdirectories and their purposes are:
 
 Many components abstract common logic. Pinia stores also centralize state management. For example, stores manage data.
 
-### Pages
+### 3.2 Pages
 
 References: [admin/pages](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/pages)
 
@@ -288,7 +288,7 @@ The […/user_management.vue](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a
 
 The […/widget_config.vue](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/pages/widget_config.vue) component renders a form to configure widget options. It manages the configuration state and calls methods to persist the data.
 
-### State Management
+### 3.3 State Management
 
 References: [admin/store](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/store)
 
@@ -307,7 +307,7 @@ The auth store tracks authentication status with a boolean and defines methods t
 
 By encapsulating critical state management logic in these centralized, accessible stores, it coordinates data fetching, caching responses, and loading states. The stores also provide a single source of reactive state for components via Pinia.
 
-### Layouts
+### 3.4 Layouts
 
 References: [admin/layouts](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/layouts)
 
@@ -315,7 +315,7 @@ The Vue layout components defined in the […/layouts](https://github.com/ChatFA
 
 Styles are defined with scoped CSS to position these sections. The layout utilizes common navigation and tasks components, while […/empty.vue](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/layouts/empty.vue) provides a blank canvas. This separation of concerns makes the code more maintainable and reusable.
 
-### Assets
+### 3.5 Assets
 
 References: [admin/assets](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/assets)
 
@@ -327,7 +327,7 @@ The […/reusable](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6
 
 The […/_fonts.scss](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/assets/styles/_fonts.scss) file defines font faces, specifying styles, ranges and sources for each font. The […/_variables.scss](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/assets/styles/_variables.scss) file defines variables for colors, fonts, sizes and breakpoints. By defining variables, mixins and helpers, the directory structure promotes consistent visual styling that is easy to manage across components.
 
-### Utilities
+### 3.6 Utilities
 
 References: [admin/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/utils)
 
@@ -335,7 +335,7 @@ This section covers helper functions and libraries that provide common utilities
 
 The […/index.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/utils/index.js) file contains functionality to convert color values between formats.
 
-### Middleware
+### 3.7 Middleware
 
 References: [admin/middleware](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/middleware)
 
@@ -345,7 +345,7 @@ The main middleware checks authentication state using a store. If authenticated,
 
 The key parts are importing a function from the store to check auth state, defining a middleware function, checking the auth state, and conditionally redirecting using functions. This provides a centralized way to enforce auth rules during routing. By leveraging the store for auth state and checking it in the middleware, common authentication workflows can be implemented like redirecting logged in users from the login page and non-logged in users from protected pages.
 
-### Plugins
+### 3.8 Plugins
 
 References: [admin/plugins](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/plugins)
 
@@ -357,7 +357,7 @@ The /elementIcons.js plugin loops through each imported icon component from Elem
 
 The /i18n.js plugin imports a function to initialize an i18n instance. It imports English translations from /locales/en.json and passes them to the initialization function along with the configuration. This function encapsulates i18n instance creation. The exported plugin function registers the i18n instance on the app instance, making translation available globally in Vue.
 
-Command Line Interface
+## 4. Command Line Interface
 ----------------------
 
 References: [cli/chatfaq_cli](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli)
@@ -372,7 +372,7 @@ The […/rag_pipeline](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a3213280
 
 Configuration is handled via functions in […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/helpers/__init__.py), which read and write to a JSON file. The CLI provides a unified interface while delegating to the ChatFAQ API and external services.
 
-### CLI Functionality
+### 4.1 CLI Functionality
 
 References: [cli/chatfaq_cli](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli), [cli/chatfaq_cli/helpers](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/helpers)
 
@@ -384,7 +384,7 @@ Common utilities like CLI argument parsing and output formatting are provided by
 
 Some key CLI modules include […/data](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/data) which defines commands for knowledge management tasks by calling functions implemented in the module. The […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/conversations/__init__.py) file provides functions for interacting with conversations.
 
-### Knowledge Management
+### 4.2 Knowledge Management
 
 References: [cli/chatfaq_cli/data](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/data)
 
@@ -400,7 +400,7 @@ The […/intents.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802d
 
 The […/utils.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/data/utils.py) module contains a class which provides a clean interface to make HTTP requests to the REST API for various data entities. It utilizes libraries like requests.
 
-### Conversations
+### 4.3 Conversations
 
 References: [cli/chatfaq_cli/conversations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/conversations)
 
@@ -410,7 +410,7 @@ The main functionality is provided in Python files in the […/conversations](ht
 
 The individual command files implement the command line interfaces for functions like viewing conversations. The view conversations command would call the function for viewing conversations, format the response, and display it to the user. This structure provides a clean, organized CLI interface for conversations while reusing the existing REST API implementation. The CLI functionality acts as a thin wrapper over the REST API, avoiding rewriting existing conversation handling logic.
 
-### Reviews
+### 4.4. Reviews
 
 References: [cli/chatfaq_cli/reviews](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/reviews)
 
@@ -420,7 +420,7 @@ The file […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a321
 
 It uses a class to communicate with the broker API, but the implementation of this class is not defined in the file. The class is imported and used by the file but its implementation is not defined here.
 
-### RAG Configuration
+### 4.5 RAG Configuration
 
 References: [cli/chatfaq_cli/rag_pipeline](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/rag_pipeline)
 
@@ -430,7 +430,7 @@ The […/rag_config.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a321328
 
 The […/retriever_config.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/rag_pipeline/retriever_config.py) module defines CLI commands for configuring retrievers. Functions make requests using a client retrieved from the context, abstracting the backend implementation.
 
-### Human Senders
+### 4.6 Human Senders
 
 References: [cli/chatfaq_cli/senders](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/senders)
 
@@ -448,7 +448,7 @@ The business logic is contained entirely in the /__init__.py file, which perform
 
 No other classes, functions, or files are implemented within this directory - it relies on the CLI application class and the passed object's methods. This provides a simple but complete interface via CLI commands to retrieve and display human senders by integrating with whatever backend data storage is used.
 
-### Configuration
+### 4.7 Configuration
 
 References: [cli/chatfaq_cli/config](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/config)
 
@@ -458,7 +458,7 @@ The file uses Typer to define commands that take string inputs from the user. A 
 
 Typer is used for its capabilities in command line parsing and output formatting with Rich. Strings passed to the commands are saved using a single function, keeping the business logic straightforward. This provides an easy way for users to configure authentication and connection settings without having to manually edit configuration files.
 
-Chatbot SDK
+### 5. Chatbot SDK
 -----------
 
 References: [sdk](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk)
@@ -477,7 +477,7 @@ Layers provide an interface to integrate natural language components into the ba
 
 Configuration is contained in /chatfaq_sdk/settings.py. Examples in /examples demonstrate using the SDK.
 
-### SDK Core Functionality
+### 5.1 SDK Core Functionality
 
 References: [sdk/chatfaq_sdk](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk/chatfaq_sdk), [sdk/chatfaq_sdk/fsm](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk/chatfaq_sdk/fsm)
 
@@ -491,7 +491,7 @@ Methods establish the WebSocket connections and send LLM requests to the backend
 
 The […/conditions](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk/chatfaq_sdk/conditions) directory contains condition subclasses.
 
-### SDK Examples
+### 5.2 SDK Examples
 
 References: [sdk/examples/model_example](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk/examples/model_example), [sdk/examples/simple_example](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk/examples/simple_example)
 
@@ -503,7 +503,7 @@ The model-based chatbot similarly defines states that yield responses using func
 
 Both examples demonstrate the basic building blocks of states, events, transitions, and conditions to define a conversation flow using the SDK. They show initializing an SDK instance and connecting it by importing definitions. The examples provide a starting point for understanding how to build a chatbot using the SDK.
 
-### SDK Configuration
+### 5.3 SDK Configuration
 
 References: [sdk/chatfaq_sdk/settings.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/sdk/chatfaq_sdk/settings.py)
 
@@ -517,7 +517,7 @@ Another function controls the base log levels for different parts of the system.
 
 By centralizing the configuration in a file and a main function, it provides developers an easy way to prepare the SDK for use without specifying all configuration details. The file also acts as a single source of truth for defaults.
 
-Embeddable Chat Widget
+## 6. Embeddable Chat Widget
 ----------------------
 
 References: [widget](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget)
@@ -536,7 +536,7 @@ Entry points in […/entry.*](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a
 
 In summary, the ChatFAQ widget provides a customizable and embeddable chat interface using modern Vue tools and design patterns for state management, styling, and extensibility.
 
-### Widget Functionality
+### 6.1 Widget Functionality
 
 References: [widget/components/Widget.vue](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/Widget.vue), [widget/store](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/store)
 
@@ -546,7 +546,7 @@ The global store at […/index.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd
 
 The store connects the widget component to the global application state in a uniform way via Pinia. The getter properties process and transform the raw data as needed by different parts of the UI. This encapsulates the business logic and data handling in a clean, centralized manner.
 
-### Chat Interface
+### 6.2 Chat Interface
 
 References: [widget/components/chat](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/chat)
 
@@ -570,7 +570,7 @@ A component displays a loading indicator when messages are loading. It reads sta
 
 A component handles collecting and submitting user feedback via API calls. It uses refs to track input state and emits events on submit.
 
-### State Management
+### 6.3 State Management
 
 References: [widget/store](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/store)
 
@@ -585,7 +585,7 @@ Key parts of the store include:
 *   Providing a single source of truth for all application data and state in a reactive way.
     
 
-### Sidebar Menu
+### 6.4 Sidebar Menu
 
 References: [widget/components/left-menu](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/left-menu)
 
@@ -595,7 +595,7 @@ The /items subdirectory contains several important reusable menu item components
 
 The […/MenuItem.vue](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/left-menu/items/abs/MenuItem.vue) base component provides consistent styling for menu items via a class, while child components implement specific behavior and data. Watchers in components like […/HistoryItem.vue](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/left-menu/items/HistoryItem.vue) update the UI based on changes to the global store state.
 
-### Styles
+### 6.5 Styles
 
 References: [widget/assets/styles](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/assets/styles)
 
@@ -611,13 +611,13 @@ The […/_fonts.scss](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802
 
 These files work together to implement a maintainable and reusable approach to visual styling through CSS custom properties, mixins, and abstraction of attributes - promoting consistency across the ChatFAQ widget interface.
 
-### Utilities
+### 6.6 Utilities
 
 References: [widget/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/utils)
 
 This section details helper functions contained in the widget utils directory. The […/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/utils) directory contains utility functions that make common tasks easier. It provides a simple way to work with related tasks across code without worrying about low-level implementation details.
 
-### Plugins
+### 6.7 Plugins
 
 References: [widget/plugins](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/plugins)
 
@@ -625,7 +625,7 @@ The […/plugins](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6b
 
 The plugins make these functions available globally, so their instances can be used by components. This decouples the setup from the registration.
 
-### Internationalization
+### 6.8 Internationalization
 
 References: [widget/plugins/i18n.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/plugins/i18n.js)
 
@@ -635,7 +635,7 @@ The plugin function exports the instance as a constant and installs it on the Vu
 
 By defining the plugin in this file, internationalization is configured automatically for all pages and components in the Nuxt app. The abstracted instance handles locating translation text based on the user's language preferences. This allows the widget interface to support multiple languages seamlessly without additional code in each component.
 
-### Entry Points
+### 6.9 Entry Points
 
 References: [widget/components/entry.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/entry.js), [widget/components/entry.esm.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/entry.esm.js)
 
@@ -645,7 +645,7 @@ The files […/entry.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132
 
 […/entry.esm.js](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/entry.esm.js) first imports components from […/components](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components). It then defines a function that takes a parameter. The function loops through the components, registering each component using. This makes each component globally available. It exports the function as the default export to allow installation. It also re-exports each individual component for direct registration if needed.
 
-### Generic Components
+### 6.10 Generic Components
 
 References: [widget/components/generic](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/components/generic)
 
@@ -659,7 +659,7 @@ The /animations subdirectory contains any additional CSS transitions or animatio
 
 The /icons subdirectory defines SVG icon components, but without code summaries of the icon components we do not have implementation details.
 
-Documentation
+## 7. Documentation
 -------------
 
 References: [doc/source/modules](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/doc/source/modules)
@@ -676,7 +676,7 @@ The /interfaces subdirectory documents the different interfaces that can be used
 
 The /sdk subdirectory documents building and running chatbot Finite State Machines (FSMs) on a separate process via Remote Procedure Calls (RPCs) as described in /sdk/index.md.
 
-### Backend Functionality
+### 7.1 Backend Functionality
 
 References: [back/back](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back)
 
@@ -688,7 +688,7 @@ The […/fsm](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb
 
 Common abstractions are defined in […/common](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common). Utilities in […/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/utils) handle common tasks.
 
-### Conversational Modeling
+### 7.2 Conversational Modeling
 
 References: [chat_rag/chat_rag](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag)
 
@@ -702,7 +702,7 @@ The […/llms](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcd
 
 The […/intent_detection](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/chat_rag/chat_rag/intent_detection) subdirectory handles intent detection.
 
-### Administrative Interface
+### 7.3 Administrative Interface
 
 References: [admin](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin)
 
@@ -718,7 +718,7 @@ State management is centralized using Pinia stores defined in […/store](https:
 
 Styles are defined in […/styles](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/admin/assets/styles) using variables, mixins and a standardized structure. Components import these styles to promote consistency. Utilities and middleware complete common tasks.
 
-### Command Line Interface
+### 7.4 Command Line Interface
 
 References: [cli/chatfaq_cli](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli)
 
@@ -732,7 +732,7 @@ The […/intents.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802d
 
 Configuration is handled in the […/config](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/config) directory. The […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/cli/chatfaq_cli/helpers/__init__.py) file provides an interface to read and write values to the configuration file through functions.
 
-### Embeddable Chat Widget
+### 7.5 Embeddable Chat Widget
 
 References: [widget](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget)
 
@@ -750,7 +750,7 @@ The left sidebar menu is defined in […/LeftMenu.vue](https://github.com/ChatFA
 
 Global styles are centralized in […/styles](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/widget/assets/styles). Variables define colors, fonts, and breakpoints, allowing values to be updated in one place. Gradient colors are generated from start/end variables. Specific element colors reference general colors for consistency.
 
-### Core Documentation
+### 7.6 Core Documentation
 
 References: [doc/source/modules](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/doc/source/modules)
 
