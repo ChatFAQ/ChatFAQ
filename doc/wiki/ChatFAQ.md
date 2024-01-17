@@ -147,6 +147,7 @@ Finite state machines (FSMs) are implemented in […/fsm](https://github.com/Cha
 The […/common](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common) directory provides reusable abstractions and components. For example, […/bot_consumers](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers) contains base classes like that define a common interface for bot consumers to inherit, focusing their code on application logic. Models, serializers, and viewsets in other files provide a consistent data representation.
 
 ### 1.1 Message Handling
+> *References: [back/back/apps/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker)*
 
 The main functionality for handling incoming messages is implemented in the […/consumers](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/consumers) directory. This directory contains classes that handle receiving messages from various sources and routing them to the appropriate bot logic.
 
@@ -156,7 +157,6 @@ Handlers in […/__init__.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a
 
 The serializers in […/messages](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/serializers/messages) convert payloads between external formats and the internal MML format, allowing different sources to be integrated consistently. Subclasses select the correct serializer.
 
-> *References: [back/back/apps/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker)*
 
 ### 1.2 Data Storage
 >*References: [back/back/apps/broker/models](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models), [back/back/apps/broker/migrations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/migrations)*
@@ -176,6 +176,7 @@ Files in migration files follow a chronological pattern of smaller incremental c
 
 
 ### 1.3 User Management
+>*References: [back/back/apps/people](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people)*
 
 
 The […/people](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people) directory implements core user account, authentication, and permission functionality. It contains models, views, serializers, and other code for managing users and their associated permissions.
@@ -190,9 +191,9 @@ The admin site integration in […/admin.py](https://github.com/ChatFAQ/ChatFAQ/
 
 Migrations like those in […/migrations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people/migrations) evolve the database schema, for example to add new user fields over time. URL routing in […/urls.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people/urls.py) exposes the REST APIs.
 
->*References: [back/back/apps/people](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/people)*
 
 ### 1.4 Configuration
+> *References: [back/back/config](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/config)*
 
 The […/config](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/config) directory centralizes configuration for major frameworks and services used in the ChatFAQ backend Django project. Files in this directory configure important tools like Celery, Channels, ASGI, and Django itself.
 
@@ -206,9 +207,9 @@ The […/settings.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802
 
 The […/urls.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/config/urls.py) contains URL routing configuration. It configures the admin site and defines main URL patterns including login/logout views and API URLs.
 
-> *References: [back/back/config](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/config)*
 
 ### 1.5 Utilities
+> *References: [back/back/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/utils)*
 
 This section covers common utilities used throughout the backend code for authentication, Celery, Channels, and logging functionality.
 
@@ -220,7 +221,6 @@ Channels messaging is customized via classes in […/custom_channel_layer.py](ht
 
 Logging is customized by the class in […/logging_formatters.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/utils/logging_formatters.py). This class overrides the method to add additional fields like timestamps to structured JSON logs.
 
-> *References: [back/back/utils](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/utils)*
 
 ### 1.6 REST APIs
 
