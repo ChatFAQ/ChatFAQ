@@ -38,7 +38,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_mml_chain(self, obj):
-        return obj.get_mml_chain(group_by_stack=True)
+        return obj.get_mml_chain(group_by_stack=True, include_reviewed=True)
 
 
 class ConversationSerializer(serializers.ModelSerializer):

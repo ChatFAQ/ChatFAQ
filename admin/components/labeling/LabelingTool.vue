@@ -21,7 +21,12 @@
                  class="qa-group"
                  :class="{'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id}"
             >
-                <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
+                <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
+                    <span v-if="msgs.length > index + 1 && msgs[index + 1].reviewed" class="reviewed-check">
+                        <el-icon>
+                            <CircleCheck/>
+                        </el-icon>
+                    </span>
                     <div class="message-content" :class="{[msg.sender.type]: true}">
                         {{
                             typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
@@ -64,6 +69,7 @@ import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
 import GenerationReview from "~/components/labeling/GenerationReview.vue";
+import {CircleCheck} from "@element-plus/icons-vue";
 
 const itemsStore = useItemsStore()
 
@@ -273,6 +279,12 @@ async function setQAPairToLabel(QAPair) {
         i {
             margin-right: 8px;
         }
+    }
+}
+.reviewed-check {
+    color: $chatfaq-color-primary-500;
+    i {
+        margin-top: 10px;
     }
 }
 </style>
