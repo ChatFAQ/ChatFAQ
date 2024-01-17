@@ -19,6 +19,10 @@
     </div>
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
+            <div class="selected-conversation-info">
+                <div>{{conversation.name}}</div>
+                <div>{{formatDate(conversation.created_date)}}</div>
+            </div>
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
                  @click="msgLabeled = msgs[msgs.length - 1]"
                  class="qa-group"
@@ -68,8 +72,18 @@
         </div>
     </div>
     <div class="page-buttons">
-        <el-button>PREVIOUS</el-button>
-        <el-button>NEXT</el-button>
+        <el-button>
+            <el-icon>
+                <ArrowLeft/>
+            </el-icon>
+            <span>{{ $t("previous") }}</span>
+        </el-button>
+        <el-button>
+            <span>{{ $t("next") }}</span>
+            <el-icon>
+                <ArrowRight/>
+            </el-icon>
+        </el-button>
     </div>
 </template>
 
@@ -79,7 +93,8 @@ import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
 import GenerationReview from "~/components/labeling/GenerationReview.vue";
-import {CircleCheck, Refresh} from "@element-plus/icons-vue";
+import {ArrowLeft, ArrowRight, CircleCheck, Refresh} from "@element-plus/icons-vue";
+import {formatDate} from "~/utils";
 
 const itemsStore = useItemsStore()
 
@@ -95,7 +110,6 @@ const props = defineProps({
         mandatory: true
     },
 })
-
 const referencedKnowledgeBaseId = ref(undefined)
 const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
@@ -109,8 +123,8 @@ async function initConversation() {
         async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
     )
     conversation.value = data.value.data
-    console.log(conversation.value)
 }
+
 await initConversation()
 watch(() => itemsStore.savingItem, async () => {
     await initConversation()
@@ -190,7 +204,6 @@ async function setQAPairToLabel(QAPair) {
         border: 1px solid $chatfaq-color-primary-200;
         max-height: 70vh;
         overflow-y: auto;
-        padding-top: 16px;
     }
 
     .labeling-tool-left-side {
@@ -208,10 +221,12 @@ async function setQAPairToLabel(QAPair) {
     .qa-group {
         position: relative;
         padding: 16px 12px;
+
         &:hover {
             background: rgba(223, 218, 234, 0.49);
             cursor: pointer;
         }
+
         &.selected {
             background: $chatfaq-color-primary-200;
         }
@@ -242,10 +257,12 @@ async function setQAPairToLabel(QAPair) {
             }
         }
     }
+
     .qa-group.reviewed:not(.selected) {
         .message-content.bot {
             background: #edebf2;
         }
+
         .message-content.human {
             background: #7e6e9c;
         }
@@ -266,6 +283,7 @@ async function setQAPairToLabel(QAPair) {
         padding: 24px;
         border-top: 1px solid $chatfaq-color-primary-200;
     }
+
     .clear-command {
         font-size: 12px;
         font-weight: 500;
@@ -273,28 +291,34 @@ async function setQAPairToLabel(QAPair) {
         color: $chatfaq-color-primary-500;
 
     }
+
     .command {
         padding: 20px 20px 20px 20px;
         width: 80px;
         border-radius: 8px !important;
         text-transform: uppercase !important;
     }
+
     .cancel-command {
         border-color: $chatfaq-color-primary-500;
         color: $chatfaq-color-primary-500;
     }
+
     .save-command {
         background-color: #463075;
         color: white;
     }
 }
+
 .back-button-wrapper {
     display: flex;
     justify-content: space-between;
+
     .back-button {
         margin-top: 26px;
         margin-bottom: 26px;
     }
+
     .saving-indicator {
         display: flex;
         cursor: pointer;
@@ -306,19 +330,68 @@ async function setQAPairToLabel(QAPair) {
         i {
             margin-right: 8px;
         }
-        >:first-child {
+
+        > :first-child {
             margin-right: 32px;
         }
     }
+
     .number-of-items {
 
     }
 }
+
 .reviewed-check {
     color: $chatfaq-color-primary-500;
+
     i {
         margin-top: 10px;
     }
+}
+
+.page-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+
+    button {
+        @include button-round;
+
+        &:first-child {
+            margin-right: 16px;
+
+            i {
+                margin-right: -2px;
+            }
+        }
+
+        &:last-child {
+            i {
+                margin-left: 4px;
+            }
+        }
+    }
+}
+
+.selected-conversation-info {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: 0;
+
+    background-color: white;
+    width: 100%;
+    z-index: 1;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding-bottom: 16px;
+    padding-top: 16px;
+    color: #545A64;
+
 }
 </style>
 
