@@ -19,10 +19,13 @@
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
                  @click="msgLabeled = msgs[msgs.length - 1]"
                  class="qa-group"
-                 :class="{'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id}"
+                 :class="{
+                     'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id,
+                     'reviewed': msgs[msgs.length - 1].reviewed
+                 }"
             >
                 <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
-                    <span v-if="msgs.length > index + 1 && msgs[index + 1].reviewed" class="reviewed-check">
+                    <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
                         <el-icon>
                             <CircleCheck/>
                         </el-icon>
@@ -220,6 +223,14 @@ async function setQAPairToLabel(QAPair) {
                     color: white;
                 }
             }
+        }
+    }
+    .qa-group.reviewed:not(.selected) {
+        .message-content.bot {
+            background: #edebf2;
+        }
+        .message-content.human {
+            background: #7e6e9c;
         }
     }
 
