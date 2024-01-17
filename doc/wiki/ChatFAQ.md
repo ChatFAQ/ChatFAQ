@@ -145,7 +145,7 @@ Finite state machines (FSMs) are implemented in […/fsm](https://github.com/Cha
 
 The […/common](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common) directory provides reusable abstractions and components. For example, […/bot_consumers](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers) contains base classes like that define a common interface for bot consumers to inherit, focusing their code on application logic. Models, serializers, and viewsets in other files provide a consistent data representation.
 
-*References: [back/back](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back)*
+**References: [back/back](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back)**
 
 ### 1.1 Message Handling
 
