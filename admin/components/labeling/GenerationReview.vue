@@ -73,6 +73,7 @@ async function save() {
     await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
 }
 async function submitReviewMsg(val) {
+    itemsStore.savingItem = true
     review.value.gen_review_msg = val
     // Because this is an input field and might trigger too many saves, we save only when the user stops typing:
     if (reviewMsgSaveTimeout) {

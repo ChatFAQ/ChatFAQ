@@ -10,6 +10,7 @@ export const useItemsStore = defineStore('items', {
         adding: false,
         tableMode: false,
         loading: false,
+        savingItem: false,
     }),
     actions: {
         async retrieveItems($axios, apiUrl = undefined) {
@@ -70,12 +71,14 @@ export const useItemsStore = defineStore('items', {
             })
         },
         async upsertItem($axios, apiUrl, item) {
+            this.savingItem = true
             if (item.id) {
                 await $axios.patch(`${apiUrl}${item.id}/`, item)
             } else {
                 await $axios.post(apiUrl, item)
             }
             await this.retrieveItems($axios, apiUrl)
+            this.savingItem = false
         },
         async resolveRefs($axios, schema) {
             if (!schema.properties && schema.oneOf) {

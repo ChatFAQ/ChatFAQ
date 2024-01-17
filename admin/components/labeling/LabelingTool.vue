@@ -1,5 +1,19 @@
 <template>
-    <BackButton class="back-button-wrapper"/>
+    <div class="back-button-wrapper">
+        <BackButton class="back-button"/>
+        <div class="saving-indicator" v-if="itemsStore.savingItem">
+            <el-icon>
+                <Upload/>
+            </el-icon>
+            Saving...
+        </div>
+        <div class="saving-indicator" v-else>
+            <el-icon>
+                <Check/>
+            </el-icon>
+            Saved
+        </div>
+    </div>
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
@@ -31,6 +45,7 @@
                     <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
             </el-tabs>
+            <!--
             <div class="labeling-ki-commands">
                 <div class="clear-command" @click="kiReviewer.clear()">Clear</div>
                 <div>
@@ -38,6 +53,7 @@
                     <el-button class="save-command command" @click="kiReviewer.save()">Save</el-button>
                 </div>
             </div>
+            -->
         </div>
     </div>
 </template>
@@ -201,7 +217,8 @@ async function setQAPairToLabel(QAPair) {
     }
 
     .knowledge-items {
-        height: calc(100% - 70px);
+        // height: calc(100% - 70px);
+        height: 100%;
     }
 
     .labeling-ki-commands {
@@ -237,8 +254,25 @@ async function setQAPairToLabel(QAPair) {
     }
 }
 .back-button-wrapper {
-    margin-top: 26px;
-    margin-bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+    .back-button {
+        margin-top: 26px;
+        margin-bottom: 26px;
+    }
+    .saving-indicator {
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: $chatfaq-color-primary-500;
+        margin-right: 80px;
+
+        i {
+            margin-right: 8px;
+        }
+    }
 }
 </style>
 
