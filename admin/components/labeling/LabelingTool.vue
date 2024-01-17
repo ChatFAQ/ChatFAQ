@@ -1,17 +1,20 @@
 <template>
     <div class="back-button-wrapper">
         <BackButton class="back-button"/>
-        <div class="saving-indicator" v-if="itemsStore.savingItem">
-            <el-icon>
-                <Upload/>
-            </el-icon>
-            Saving...
-        </div>
-        <div class="saving-indicator" v-else>
-            <el-icon>
-                <Check/>
-            </el-icon>
-            Saved
+        <div class="saving-indicator">
+            <div v-if="itemsStore.savingItem">
+                <el-icon>
+                    <Refresh/>
+                </el-icon>
+                {{ $t("saving...") }}
+            </div>
+            <div v-else>
+                <el-icon>
+                    <Check/>
+                </el-icon>
+                {{ $t("saved") }}
+            </div>
+            <div class="number-of-items">0/3 {{ $t("items") }}</div>
         </div>
     </div>
     <div class="labeling-tool-wrapper">
@@ -20,7 +23,7 @@
                  @click="msgLabeled = msgs[msgs.length - 1]"
                  class="qa-group"
                  :class="{
-                     'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id,
+                     'selected': (msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id),
                      'reviewed': msgs[msgs.length - 1].reviewed
                  }"
             >
@@ -64,6 +67,10 @@
             -->
         </div>
     </div>
+    <div class="page-buttons">
+        <el-button>PREVIOUS</el-button>
+        <el-button>NEXT</el-button>
+    </div>
 </template>
 
 <script setup>
@@ -72,7 +79,7 @@ import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
 import GenerationReview from "~/components/labeling/GenerationReview.vue";
-import {CircleCheck} from "@element-plus/icons-vue";
+import {CircleCheck, Refresh} from "@element-plus/icons-vue";
 
 const itemsStore = useItemsStore()
 
@@ -293,13 +300,18 @@ async function setQAPairToLabel(QAPair) {
         cursor: pointer;
         align-items: center;
         font-size: 12px;
-        font-weight: 600;
-        color: $chatfaq-color-primary-500;
+        color: $chatfaq-color-greyscale-800;
         margin-right: 80px;
 
         i {
             margin-right: 8px;
         }
+        >:first-child {
+            margin-right: 32px;
+        }
+    }
+    .number-of-items {
+
     }
 }
 .reviewed-check {

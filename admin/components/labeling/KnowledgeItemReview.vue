@@ -1,6 +1,8 @@
 <template>
     <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"
          class="labeling-kis-wrapper">
+        <div class="ki-title">{{$t("knowledgeitems")}}</div>
+        <div class="no-knowledge-items" v-if="!reviewedKIs.kis.length">{{$t("noknowledgeitems")}}</div>
         <div v-for="ki in reviewedKIs.kis" class="labeling-ki-wrapper">
             <div class="ki-vote">
                 <div
@@ -19,7 +21,7 @@
                 <div class="ki-content">{{ ki.content }}</div>
             </div>
         </div>
-        <div v-if="!itemsStore.loading" class="ki-title add-command-title">Alternative knowledge item</div>
+        <div v-if="!itemsStore.loading" class="ki-title add-command-title">{{$t("alternativeknowledgeitem")}}</div>
         <div v-if="!itemsStore.loading" v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
             <el-select v-model="alt2Title[0]" @change="(val) => alternativeChanged(alt2Title[1], val)">
                 <el-option
@@ -30,7 +32,7 @@
                 />
             </el-select>
         </div>
-        <div v-if="!itemsStore.loading" class="ki-title add-command" @click="addAlternativeKI()">+ Add knowledge item</div>
+        <div v-if="!itemsStore.loading" class="ki-title add-command" @click="addAlternativeKI()">{{$t("+addknowledgeitem")}}</div>
     </div>
 </template>
 
@@ -223,24 +225,30 @@ defineExpose({
 
     .ki-title {
         color: #463075;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
         line-height: 20px;
         margin-bottom: 8px;
     }
-
+    .no-knowledge-items {
+        margin-bottom: 8px;
+        font-style: italic;
+        font-size: 14px;
+    }
     .alternative-wrapper {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         margin-right: 24px;
 
-        .add-command-title {
-            margin-bottom: 8px;
-        }
+    }
+    .add-command-title {
+        margin-top: 24px;
+        margin-bottom: 8px;
     }
     .add-command {
         margin-top: 16px;
         margin-bottom: 16px;
         cursor: pointer;
+        font-size: 12px;
     }
 }
 </style>

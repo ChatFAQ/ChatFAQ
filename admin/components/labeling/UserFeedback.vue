@@ -7,8 +7,11 @@
 </template>
 
 <script setup>
+import {useI18n} from "vue-i18n";
+
 const {$axios} = useNuxtApp()
 
+const { t } = useI18n();
 const props = defineProps({
     messageId: {
         type: Number,
@@ -16,7 +19,6 @@ const props = defineProps({
     },
 })
 const userFeedback = ref({})
-
 watch(() => props.messageId, async (_) => {
     await initUserFeedback()
 }, {immediate: true})
@@ -30,7 +32,7 @@ async function initUserFeedback() {
     if (userFeedback.value.length > 0) {
         userFeedback.value = userFeedback.value[0]
     } else {
-        userFeedback.value = {feedback: "No feedback yet"}
+        userFeedback.value = {feedback: t("nofeedbackyet")}
     }
 }
 
@@ -43,6 +45,7 @@ async function initUserFeedback() {
     margin-bottom: 10px;
     .user-feedback {
         font-style: italic;
+        font-size: 14px;
     }
     .vote-icon {
         width: 16px;

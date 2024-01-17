@@ -7,7 +7,7 @@
         :tableProps="{
             'name': {'name': $t('name')},
             'created_date': {'name': $t('created_date'), 'sortable': true},
-            'view': {'name': $t('view')},
+            'view': {'name': ''},
         }"
         :defaultSort="{'prop': 'created_date', 'order': 'descending'}"
         read-only
