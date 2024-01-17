@@ -13,6 +13,7 @@ These settings files would then be imported by other CSS/pre-processor files so 
 For example:
 
 `_settings.scss may define a $primary-color variable`
+
 `components/_button.scss imports _settings.scss and uses $primary-color`
 
 This allows consistent styling by centralizing commonly used values in one place.
