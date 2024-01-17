@@ -1,5 +1,5 @@
 <template>
-    <div class="generation-review-wrapper">
+    <div class="generation-review-wrapper"  v-loading="itemsStore.loading">
         <div class="title-instruction">Rating</div>
         <div class="content-instruction">Read the guidelines in order to rate accordingly</div>
         <div class="rating-wrapper">

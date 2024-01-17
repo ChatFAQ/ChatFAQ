@@ -19,8 +19,8 @@
                 <div class="ki-content">{{ ki.content }}</div>
             </div>
         </div>
-        <div class="ki-title add-command-title">Alternative knowledge item</div>
-        <div v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
+        <div v-if="!itemsStore.loading" class="ki-title add-command-title">Alternative knowledge item</div>
+        <div v-if="!itemsStore.loading" v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
             <el-select v-model="alt2Title[0]" @change="(val) => alternativeChanged(alt2Title[1], val)">
                 <el-option
                     v-for="choice in ki_choices"
@@ -30,7 +30,7 @@
                 />
             </el-select>
         </div>
-        <div class="ki-title add-command" @click="addAlternativeKI()">+ Add knowledge item</div>
+        <div v-if="!itemsStore.loading" class="ki-title add-command" @click="addAlternativeKI()">+ Add knowledge item</div>
     </div>
 </template>
 
@@ -121,6 +121,7 @@ async function save() {
     delete _review.gen_review_val
     delete _review.gen_review_type
     await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}) || {}
 }
 
 function getVoteKI(kiId) {
