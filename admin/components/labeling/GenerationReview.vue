@@ -71,6 +71,7 @@ async function save() {
     // deep copy review.value
     const _review = JSON.parse(JSON.stringify(review.value))
     delete _review.ki_review_data
+    _review.message = props.messageId
     await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
 }
 async function submitReviewMsg(val) {

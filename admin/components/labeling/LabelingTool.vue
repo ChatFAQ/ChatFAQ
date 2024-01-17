@@ -93,18 +93,28 @@ const referencedKnowledgeBaseId = ref(undefined)
 const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
 const kiReviewer = ref(null)
+const conversation = ref({})
 
 // get conversation async data
-const {data} = await useAsyncData(
-    "conversation" + props.id,
-    async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
-)
+async function initConversation() {
+    const {data} = await useAsyncData(
+        "conversation" + props.id,
+        async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
+    )
+    conversation.value = data.value.data
+    console.log(conversation.value)
+}
+await initConversation()
+watch(() => itemsStore.savingItem, async () => {
+    await initConversation()
+}, {immediate: true})
 
-const conversation = ref(data.value.data)
 
 function getQAMessageGroups(MMLChain) {
     let groups = []
     let group = []
+    if (!MMLChain)
+        return groups
     for (let i = 0; i < MMLChain.length; i++) {
         if (MMLChain[i].sender.type === 'bot') {
             group.push(MMLChain[i])
