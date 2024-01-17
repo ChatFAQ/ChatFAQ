@@ -132,6 +132,7 @@ Overall, ChatFAQ provides services, APIs, and tools for developing conversationa
 
 ## 1. Backend Functionality
 ---------------------
+> *References: [back/back](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back)*
 
 The core backend functionality centers around routing messages between services using the […/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker) application. This application handles receiving messages from various sources via subclasses of […/http.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers/http.py) and […/ws.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers/ws.py), which provide a common interface for HTTP and WebSocket consumers. Messages are modeled using classes like from […/message.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models/message.py), which represents conversations and the messages within them.
 
@@ -144,8 +145,6 @@ Key components for routing messages include:
 Finite state machines (FSMs) are implemented in […/fsm](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/fsm) to model conversational flows. Models in […/models.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/fsm/models.py) store FSM definitions and cached conversation states.
 
 The […/common](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common) directory provides reusable abstractions and components. For example, […/bot_consumers](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/common/abs/bot_consumers) contains base classes like that define a common interface for bot consumers to inherit, focusing their code on application logic. Models, serializers, and viewsets in other files provide a consistent data representation.
-
-> *References: [back/back](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back)*
 
 ### 1.1 Message Handling
 
@@ -160,6 +159,7 @@ The serializers in […/messages](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5
 > *References: [back/back/apps/broker](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker)*
 
 ### 1.2 Data Storage
+>*References: [back/back/apps/broker/models](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models), [back/back/apps/broker/migrations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/migrations)*
 
 The core functionality of persisting models and evolving the database schema over time is handled through Django database migrations stored in files like […/0001_initial.py](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/migrations/0001_initial.py). Migrations provide a consistent and reversible way to modify the database schema during development and when adding new features over time.
 
@@ -173,7 +173,6 @@ Some important migration files:
     
 Files in migration files follow a chronological pattern of smaller incremental changes composed into larger reworks of relationships and schemas over time.
 
->*References: [back/back/apps/broker/models](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/models), [back/back/apps/broker/migrations](https://github.com/ChatFAQ/ChatFAQ/blob/c3fcd5af7a32132802da6bbcdb6321c345a9cc8e/back/back/apps/broker/migrations)*
 
 
 ### 1.3 User Management
