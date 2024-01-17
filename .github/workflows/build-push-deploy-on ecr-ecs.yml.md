@@ -1,4 +1,4 @@
-The [.github/workflows/build-push-deploy-on-ecr-ecs.yml](.github/workflows/build-push-deploy-on-ecr-ecs.yml) file is a GitHub Actions workflow that is used to automate the build, test, packaging and deployment of the application code to AWS ECS/ECR.
+The [.github/workflows/build-push-deploy-on-ecr-ecs.yml](https://github.com/ChatFAQ/ChatFAQ/.github/workflows/build-push-deploy-on-ecr-ecs.yml) file is a GitHub Actions workflow that is used to automate the build, test, packaging and deployment of the application code to AWS ECS/ECR.
 
 Some key things it does:
 
