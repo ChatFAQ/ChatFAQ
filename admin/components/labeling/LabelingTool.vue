@@ -197,13 +197,14 @@ async function setQAPairToLabel(QAPair) {
             overflow: auto;
 
             .message-content {
-                max-width: 428px;
+                max-width: 90%;
                 border-radius: 6px;
                 padding: 8px 12px 8px 12px;
                 margin-bottom: 8px;
                 overflow-wrap: break-word;
 
                 &.bot {
+                    float: left;
                     background: #46307524;
                 }
 

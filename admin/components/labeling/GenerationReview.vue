@@ -19,6 +19,7 @@
             />
         </el-select>
         <el-input
+            class="review-message"
             v-model="review.gen_review_msg"
             type="textarea"
             :placeholder="$t('giveanalternativeanswer')"
@@ -131,6 +132,12 @@ async function submitReviewMsg(val) {
     }
     .select-feedback-type {
         margin-bottom: 8px;
+    }
+    .review-message {
+        textarea {
+            color: $chatfaq-color-neutral-black;
+            border-radius: 8px;
+        }
     }
 }
 </style>
