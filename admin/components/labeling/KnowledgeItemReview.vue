@@ -115,10 +115,12 @@ async function voteKI(kiId, vote) {
 async function save() {
     review.value.message = reviewedKIs.value.message_id
     review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
-    delete review.value.gen_review_msg
-    delete review.value.gen_review_val
-    delete review.value.gen_review_type
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", review.value)
+    // deep copy review.value
+    const _review = JSON.parse(JSON.stringify(review.value))
+    delete _review.gen_review_msg
+    delete _review.gen_review_val
+    delete _review.gen_review_type
+    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
 }
 
 function getVoteKI(kiId) {

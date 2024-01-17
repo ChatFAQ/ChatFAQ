@@ -38,7 +38,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_mml_chain(self, obj):
-        return obj.get_mml_chain(group_by_stack=True)
+        return obj.get_mml_chain(group_by_stack=True, include_reviewed=True)
 
 
 class ConversationSerializer(serializers.ModelSerializer):
@@ -55,7 +55,7 @@ class AdminReviewValue(serializers.Serializer):
 
 
 class AdminReviewSerializer(serializers.ModelSerializer):
-    ki_review_data = serializers.ListField(child=AdminReviewValue())
+    ki_review_data = serializers.ListField(child=AdminReviewValue(), required=False, allow_null=True)
 
     class Meta:
         from back.apps.broker.models.message import AdminReview  # TODO: CI

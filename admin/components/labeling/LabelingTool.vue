@@ -1,13 +1,35 @@
 <template>
-    <BackButton class="back-button-wrapper"/>
+    <div class="back-button-wrapper">
+        <BackButton class="back-button"/>
+        <div class="saving-indicator" v-if="itemsStore.savingItem">
+            <el-icon>
+                <Upload/>
+            </el-icon>
+            Saving...
+        </div>
+        <div class="saving-indicator" v-else>
+            <el-icon>
+                <Check/>
+            </el-icon>
+            Saved
+        </div>
+    </div>
     <div class="labeling-tool-wrapper">
         <div class="labeling-tool-left-side">
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
                  @click="msgLabeled = msgs[msgs.length - 1]"
                  class="qa-group"
-                 :class="{'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id}"
+                 :class="{
+                     'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id,
+                     'reviewed': msgs[msgs.length - 1].reviewed
+                 }"
             >
-                <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
+                <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
+                    <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
+                        <el-icon>
+                            <CircleCheck/>
+                        </el-icon>
+                    </span>
                     <div class="message-content" :class="{[msg.sender.type]: true}">
                         {{
                             typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
@@ -31,6 +53,7 @@
                     <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
             </el-tabs>
+            <!--
             <div class="labeling-ki-commands">
                 <div class="clear-command" @click="kiReviewer.clear()">Clear</div>
                 <div>
@@ -38,6 +61,7 @@
                     <el-button class="save-command command" @click="kiReviewer.save()">Save</el-button>
                 </div>
             </div>
+            -->
         </div>
     </div>
 </template>
@@ -48,6 +72,7 @@ import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
 import GenerationReview from "~/components/labeling/GenerationReview.vue";
+import {CircleCheck} from "@element-plus/icons-vue";
 
 const itemsStore = useItemsStore()
 
@@ -68,18 +93,28 @@ const referencedKnowledgeBaseId = ref(undefined)
 const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
 const kiReviewer = ref(null)
+const conversation = ref({})
 
 // get conversation async data
-const {data} = await useAsyncData(
-    "conversation" + props.id,
-    async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
-)
+async function initConversation() {
+    const {data} = await useAsyncData(
+        "conversation" + props.id,
+        async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
+    )
+    conversation.value = data.value.data
+    console.log(conversation.value)
+}
+await initConversation()
+watch(() => itemsStore.savingItem, async () => {
+    await initConversation()
+}, {immediate: true})
 
-const conversation = ref(data.value.data)
 
 function getQAMessageGroups(MMLChain) {
     let groups = []
     let group = []
+    if (!MMLChain)
+        return groups
     for (let i = 0; i < MMLChain.length; i++) {
         if (MMLChain[i].sender.type === 'bot') {
             group.push(MMLChain[i])
@@ -181,13 +216,14 @@ async function setQAPairToLabel(QAPair) {
             overflow: auto;
 
             .message-content {
-                max-width: 428px;
+                max-width: 90%;
                 border-radius: 6px;
                 padding: 8px 12px 8px 12px;
                 margin-bottom: 8px;
                 overflow-wrap: break-word;
 
                 &.bot {
+                    float: left;
                     background: #46307524;
                 }
 
@@ -199,9 +235,18 @@ async function setQAPairToLabel(QAPair) {
             }
         }
     }
+    .qa-group.reviewed:not(.selected) {
+        .message-content.bot {
+            background: #edebf2;
+        }
+        .message-content.human {
+            background: #7e6e9c;
+        }
+    }
 
     .knowledge-items {
-        height: calc(100% - 70px);
+        // height: calc(100% - 70px);
+        height: 100%;
     }
 
     .labeling-ki-commands {
@@ -237,8 +282,31 @@ async function setQAPairToLabel(QAPair) {
     }
 }
 .back-button-wrapper {
-    margin-top: 26px;
-    margin-bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+    .back-button {
+        margin-top: 26px;
+        margin-bottom: 26px;
+    }
+    .saving-indicator {
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: $chatfaq-color-primary-500;
+        margin-right: 80px;
+
+        i {
+            margin-right: 8px;
+        }
+    }
+}
+.reviewed-check {
+    color: $chatfaq-color-primary-500;
+    i {
+        margin-top: 10px;
+    }
 }
 </style>
 

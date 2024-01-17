@@ -19,10 +19,12 @@
             />
         </el-select>
         <el-input
+            class="review-message"
             v-model="review.gen_review_msg"
             type="textarea"
             :placeholder="$t('giveanalternativeanswer')"
             :autosize="{ minRows: 3 }"
+            @input="submitReviewMsg"
         />
     </div>
 </template>
@@ -43,6 +45,8 @@ const props = defineProps({
 const review = ref({})
 const reviewType = ref(undefined)
 
+let reviewMsgSaveTimeout = undefined
+
 watch(() => props.messageId, async (_) => {
     await initGenReview()
 }, {immediate: true})
@@ -50,6 +54,7 @@ watch(() => props.messageId, async (_) => {
 async function initGenReview() {
     itemsStore.loading = true
     review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.messageId}) || {}
+    reviewType.value = review.value.gen_review_type
     itemsStore.loading = false
 }
 
@@ -63,8 +68,23 @@ async function setReviewType(val) {
 }
 
 async function save() {
-    delete review.value.ki_review_data
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", review.value)
+    // deep copy review.value
+    const _review = JSON.parse(JSON.stringify(review.value))
+    delete _review.ki_review_data
+    _review.message = props.messageId
+    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
+}
+async function submitReviewMsg(val) {
+    itemsStore.savingItem = true
+    review.value.gen_review_msg = val
+    // Because this is an input field and might trigger too many saves, we save only when the user stops typing:
+    if (reviewMsgSaveTimeout) {
+        clearTimeout(reviewMsgSaveTimeout);
+        reviewMsgSaveTimeout = undefined
+    }
+    reviewMsgSaveTimeout = setTimeout(async () => {
+        await save()
+    }, 1000)
 }
 
 </script>
@@ -113,6 +133,12 @@ async function save() {
     }
     .select-feedback-type {
         margin-bottom: 8px;
+    }
+    .review-message {
+        textarea {
+            color: $chatfaq-color-neutral-black;
+            border-radius: 8px;
+        }
     }
 }
 </style>
