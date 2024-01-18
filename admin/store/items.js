@@ -1,5 +1,8 @@
 import {defineStore} from 'pinia';
 
+function apiCacheName(apiUrl, params) {
+    return apiUrl + new URLSearchParams(params).toString()
+}
 
 export const useItemsStore = defineStore('items', {
     state: () => ({
@@ -13,14 +16,18 @@ export const useItemsStore = defineStore('items', {
         savingItem: false,
     }),
     actions: {
-        async retrieveItems($axios, apiUrl = undefined) {
+        async retrieveItems($axios, apiUrl = undefined, params = {}) {
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
+            const cacheName = apiCacheName(apiUrl, params)
             let ordering = "-updated_date"
             if (apiUrl.indexOf("/people/") !== -1)
                 ordering = "first_name"
-
-            this.items[apiUrl] = (await $axios.get(apiUrl + `?ordering=${ordering}`)).data
-            return this.items[apiUrl]
+            let url = apiUrl + `?ordering=${ordering}`
+            if (Object.keys(params).length) {
+                url += "&" + new URLSearchParams(params).toString()
+            }
+            this.items[cacheName] = (await $axios.get(url)).data
+            return this.items[cacheName]
         },
         async deleteItem($axios, apiUrl, id) {
             await $axios.delete(`${apiUrl}${id}`)
@@ -42,11 +49,13 @@ export const useItemsStore = defineStore('items', {
                 return await this.resolveRefs($axios, this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async requestOrGetItem($axios, apiUrl, filter, force = false) {
-            if (force || !this.items[apiUrl]) {
-                await this.retrieveItems($axios, apiUrl)
+        async requestOrGetItem($axios, apiUrl, filter, params= {}, force = false) {
+            const cacheName = apiCacheName(apiUrl, params)
+
+            if (force || !this.items[cacheName]) {
+                await this.retrieveItems($axios, apiUrl, params)
             }
-            return this.items[apiUrl].find(item => {
+            return this.items[cacheName].find(item => {
                 for (const [key, val] of Object.entries(filter)) {
                     if (item[key] === null && val === null)
                         continue
@@ -56,11 +65,13 @@ export const useItemsStore = defineStore('items', {
                 return true
             })
         },
-        async requestOrGetItems($axios, apiUrl, filter, force = false) {
-            if (force || !this.items[apiUrl]) {
-                await this.retrieveItems($axios, apiUrl)
+        async requestOrGetItems($axios, apiUrl, filter, params= {}, force = false) {
+            const cacheName = apiCacheName(apiUrl, params)
+
+            if (force || !this.items[cacheName]) {
+                await this.retrieveItems($axios, apiUrl, params)
             }
-            return this.items[apiUrl].filter(item => {
+            return this.items[cacheName].filter(item => {
                 for (const [key, val] of Object.entries(filter)) {
                     if (item[key] === null && val === null)
                         continue
@@ -70,18 +81,20 @@ export const useItemsStore = defineStore('items', {
                 return true
             })
         },
-        async getNextItem($axios, apiUrl, itemId, direction = 1, force = false) {
-            if (force || !this.items[apiUrl]) {
+        async getNextItem($axios, apiUrl, itemId, direction = 1, params = {}, force= false) {
+            const cacheName = apiCacheName(apiUrl, params)
+
+            if (force || !this.items[cacheName]) {
                 await this.retrieveItems($axios, apiUrl)
             }
             // It takes the next item after currentItem
-            let index = this.items[apiUrl].findIndex(item => item.id === itemId)
+            let index = this.items[cacheName].findIndex(item => item.id === itemId)
             if (index === -1)
                 return undefined
             index += direction
-            if (index < 0 || index >= this.items[apiUrl].length)
+            if (index < 0 || index >= this.items[cacheName].length)
                 return undefined
-            return this.items[apiUrl][index]
+            return this.items[cacheName][index]
         },
         async upsertItem($axios, apiUrl, item) {
             this.savingItem = true

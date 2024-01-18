@@ -62,17 +62,21 @@ async function initKIReview() {
     itemsStore.loading = true
     reviewedKIs.value = {message_id: props.message.id, kis: []}
     const references = props.message.stack[props.message.stack.length - 1].payload.references
+    if (!references) {
+        itemsStore.loading = false
+        return
+    }
     for (const ki_ref of references.knowledge_items) {
         const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
             id: ki_ref.knowledge_item_id
-        })
+        }, {knowledge_base__id: references.knowledge_base_id})
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
     review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}) || {}
     ki_choices.value = await itemsStore.requestOrGetItems($axios, "/back/api/language-model/knowledge-items/", {
         knowledge_base: references.knowledge_base_id
-    })
+    }, {knowledge_base__id: references.knowledge_base_id})
     itemsStore.loading = false
 }
 
