@@ -64,7 +64,7 @@
                 v-for="(propInfo, prop) in tableProps"
                 :prop="prop"
                 :label="propInfo.name"
-                :formatter="(row, column) => solveRefProp(row, column.property)"
+                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefProp(row, column.property)"
                 :width="propInfo.width ? propInfo.width : undefined"
                 :sortable="propInfo.sortable"
                 :sortMethod="propInfo.sortMethod"
