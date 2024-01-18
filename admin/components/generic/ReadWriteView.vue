@@ -1,5 +1,5 @@
 <template>
-    <div class="rw-wrapper" v-loading="itemsStore.loading">
+    <div class="rw-wrapper" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)">
         <ReadView
             v-if="editing === undefined && !adding"
             :apiUrl="apiUrl"

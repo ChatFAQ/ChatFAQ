@@ -70,6 +70,19 @@ export const useItemsStore = defineStore('items', {
                 return true
             })
         },
+        async getNextItem($axios, apiUrl, itemId, direction = 1, force = false) {
+            if (force || !this.items[apiUrl]) {
+                await this.retrieveItems($axios, apiUrl)
+            }
+            // It takes the next item after currentItem
+            let index = this.items[apiUrl].findIndex(item => item.id === itemId)
+            if (index === -1)
+                return undefined
+            index += direction
+            if (index < 0 || index >= this.items[apiUrl].length)
+                return undefined
+            return this.items[apiUrl][index]
+        },
         async upsertItem($axios, apiUrl, item) {
             this.savingItem = true
             if (item.id) {

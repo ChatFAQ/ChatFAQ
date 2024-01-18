@@ -1,5 +1,5 @@
 <template>
-    <div class="back-button-wrapper">
+    <div class="back-button-wrapper" >
         <BackButton class="back-button"/>
         <div class="saving-indicator">
             <div v-if="itemsStore.savingItem">
@@ -17,7 +17,7 @@
             <div class="number-of-items">0/3 {{ $t("items") }}</div>
         </div>
     </div>
-    <div class="labeling-tool-wrapper">
+    <div class="labeling-tool-wrapper" v-loading="loadingConversation" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="labeling-tool-left-side">
             <div class="selected-conversation-info">
                 <div>{{conversation.name}}</div>
@@ -72,13 +72,13 @@
         </div>
     </div>
     <div class="page-buttons">
-        <el-button>
+        <el-button @click="pageConversation(-1)" :disabled="!thereIsPrev">
             <el-icon>
                 <ArrowLeft/>
             </el-icon>
             <span>{{ $t("previous") }}</span>
         </el-button>
-        <el-button>
+        <el-button @click="pageConversation(1)" :disabled="!thereIsNext">
             <span>{{ $t("next") }}</span>
             <el-icon>
                 <ArrowRight/>
@@ -110,26 +110,33 @@ const props = defineProps({
         mandatory: true
     },
 })
-const referencedKnowledgeBaseId = ref(undefined)
-const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
 const kiReviewer = ref(null)
 const conversation = ref({})
+const loadingConversation = ref(false)
+const thereIsNext = ref(true)
+const thereIsPrev = ref(true)
 
 // get conversation async data
 async function initConversation() {
+    loadingConversation.value = true
     const {data} = await useAsyncData(
         "conversation" + props.id,
         async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
     )
     conversation.value = data.value.data
+    thereIsNext.value = (await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, 1)) !== undefined
+    thereIsPrev.value = (await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, -1)) !== undefined
+    loadingConversation.value = false
 }
 
 await initConversation()
 watch(() => itemsStore.savingItem, async () => {
     await initConversation()
 }, {immediate: true})
-
+watch(() => props.id, async () => {
+    await initConversation()
+}, {immediate: true})
 
 function getQAMessageGroups(MMLChain) {
     let groups = []
@@ -148,20 +155,13 @@ function getQAMessageGroups(MMLChain) {
     return groups
 }
 
-async function setQAPairToLabel(QAPair) {
-    itemsStore.loading = true
-    const botMsg = QAPair[QAPair.length - 1]
-    referencedKnowledgeItems.value = {message_id: botMsg.id, kis: []}
-    referencedKnowledgeBaseId.value = botMsg.stack[botMsg.stack.length - 1].payload.references.knowledge_base_id
-    for (const reference of botMsg.stack[botMsg.stack.length - 1].payload.references.knowledge_items) {
-        const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
-            id: reference.knowledge_item_id
-        })
-        if (ki)
-            referencedKnowledgeItems.value.kis.push(ki)
+async function pageConversation(direction) {
+    loadingConversation.value = true
+    const nextItem = await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, direction)
+    if (nextItem !== undefined) {
+        itemsStore.editing = nextItem.id
     }
-    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: botMsg.id}) || {}
-    itemsStore.loading = false
+    loadingConversation.value = false
 }
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="generation-review-wrapper"  v-loading="itemsStore.loading">
+    <div class="generation-review-wrapper"  v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="title-instruction">Rating</div>
         <div class="content-instruction">Read the guidelines in order to rate accordingly</div>
         <div class="rating-wrapper">
