@@ -455,8 +455,6 @@ def parse_pdf_task(pdf_file_pk):
     KnowledgeItem.objects.bulk_create(new_items)
     kb.trigger_generate_embeddings()
 
-    # Out fo domain questions
-
 
 @app.task()
 def generate_titles(knowledge_base_pk, n_titles=10):

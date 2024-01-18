@@ -39,7 +39,7 @@ class E5Model(BaseModel):
             model_name, token=huggingface_key
         )
 
-        if model_name == "intfloat/e5-small-v2":
+        if "e5-small-v2" in model_name:
             self.tokenizer.model_max_length = 512  # Max length not defined on the tokenizer_config.json for the small model
 
         self.model = AutoModel.from_pretrained(

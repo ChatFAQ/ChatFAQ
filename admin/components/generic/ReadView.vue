@@ -18,7 +18,7 @@
         <div class="cards-view" v-if="!itemsStore.tableMode">
             <el-card v-for="item in items[apiUrl]" class="box-card">
                 <template #header>
-                    <div class="card-header-title">{{ item[titleProp] }}</div>
+                    <div class="card-header-title">{{ createTitle(item) }}</div>
                 </template>
                 <div v-for="(name, prop) in cardProps" class="property">
                     <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
@@ -109,10 +109,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    titleProp: {
-        type: String,
+    titleProps: {
+        type: Array,
         required: false,
-        default: "name",
+        default: ["name"],
     },
 });
 
@@ -128,6 +128,10 @@ await useAsyncData(
 )
 
 const {items} = storeToRefs(itemsStore)
+
+function createTitle(item) {
+    return props.titleProps.map(prop => item[prop]).join(" ")
+}
 
 function stateToEdit(id) {
     itemsStore.editing = id

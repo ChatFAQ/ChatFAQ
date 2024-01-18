@@ -24,7 +24,7 @@
             :scroll-into-view-options="{ behavior: 'smooth', block: 'center' }"
         >
             <div v-if="!Object.keys(sections).length" class="form-section">
-                <div v-if="form[titleProp]" class="edit-title">{{ form[titleProp] }}</div>
+                <div class="edit-title">{{ createTitle(form) }}</div>
                 <div v-for="(_, fieldName) in filterInSection(true, schema.properties)">
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1"
@@ -112,10 +112,10 @@ const props = defineProps({
         type: String,
         required: false,
     },
-    titleProp: {
-        type: String,
+    titleProps: {
+        type: Array,
         required: false,
-        default: "name",
+        default: ["name"],
     },
     excludeFields: {
         type: Array,
@@ -170,6 +170,10 @@ if (itemsStore.editing) {
             }
         }
     }
+}
+
+function createTitle(form) {
+    return props.titleProps.map(prop => form[prop]).join(" ")
 }
 
 const submitForm = async (formEl) => {
