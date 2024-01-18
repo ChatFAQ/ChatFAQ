@@ -20,6 +20,7 @@ So in summary:
 - Location for any additional plugins/modules
 - element-icons.js imports UI icons
 - i18n.js sets up localization support
+
 This allows:
 
 - Modular, reusable configuration of additional capabilities
