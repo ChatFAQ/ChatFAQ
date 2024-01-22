@@ -1,14 +1,15 @@
-The ChatFAQ/back/back/apps/language_model/management/commands folder contains Django management commands for the language model app.
+The ChatFAQ/back/back/apps/language_model/managements/commands folder contains management commands for the language model Django app.
 
-In a few words, it:
+The scrape.py file in particular is likely a management command that scrapes or acquires data related to training language models.
 
-- Allows executing management tasks from the command line
-- Common tasks include data migrations, model training
-- Files define classes that are CLI commands
-- For example, a "train" command to retrain models
+In a few words, it allows:
 
-So in summary, these management commands provide a way to perform backend tasks outside of HTTP requests, like maintaining/retraining machine learning models.
+- Scraping text data from websites to build training datasets
+- Downloading pre-trained model weights
+- Pre-processing data before training
 
-While not directly interfaced with, it enables important functionality for the language/chatbot aspects of ChatFAQ that the frontend relies on. For example, retraining models on new data without service downtime.
+This is important because it helps populate the training data needed to build and improve the chatbot's language models.
 
-In essence, it helps keep the core machine learning components functional through automation, which is key to the overall chatbot experience for users.
+While not directly accessed by frontend code, building high quality language models is core to the chatbot functionality. Thus, files like scrape.py that enable data acquisition are relevant to the overall ChatFAQ project goals, even if behind the scenes.
+
+The commands folder follows Django conventions and separates these administrative tasks from the main app logic.
