@@ -1,5 +1,5 @@
 <template>
-    <div class="read-view-wrapper">
+    <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="items[apiUrl].length" class="section-header">
             <slot name="legend" :total="items[apiUrl].length">
                 <div class="item-count"> {{
