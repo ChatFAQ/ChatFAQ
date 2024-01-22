@@ -177,8 +177,10 @@ function stateToAdd() {
 }
 
 function deleteItem(id) {
+    itemsStore.loading = true
     itemsStore.deleteItem($axios, props.apiUrl, id)
     deleting.value = undefined
+    itemsStore.loading = false
 }
 
 function solveRefProp(item, propName) {
