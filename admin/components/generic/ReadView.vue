@@ -1,22 +1,32 @@
 <template>
-    <div class="read-view-wrapper">
+    <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="items[apiUrl].length" class="section-header">
-            <div class="item-count"> {{ $t("numberofitems", {"number": items[apiUrl].length, "readablename": readableName}) }}</div>
+            <slot name="legend" :total="items[apiUrl].length">
+                <div class="item-count"> {{
+                        $t("numberofitems", {
+                            "number": items[apiUrl].length,
+                            "readablename": readableName
+                        })
+                    }}
+                </div>
+            </slot>
             <div class="section-header-right">
-                <el-button class="add-button" type="primary" round plain @click="stateToAdd">+
+                <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
-                <div class="selected-icon card-view" :class="{'selected': !itemsStore.tableMode }"
+                <div v-if="cardProps && tableProps" class="selected-icon card-view"
+                     :class="{'selected': !itemsStore.tableMode }"
                      @click="itemsStore.tableMode = false">
                     <div class="card-icon"></div>
                 </div>
-                <div class="selected-icon" :class="{'selected': itemsStore.tableMode }" @click="itemsStore.tableMode = true">
+                <div v-if="cardProps && tableProps" class="selected-icon" :class="{'selected': itemsStore.tableMode }"
+                     @click="itemsStore.tableMode = true">
                     <div class="table-icon"></div>
                 </div>
             </div>
         </div>
-        <div class="cards-view" v-if="!itemsStore.tableMode">
-            <el-card v-for="item in items[apiUrl]" class="box-card">
+        <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
+            <el-card v-for="item in items[apiUrl]" class="box-card" @click="stateToEdit(item.id)">
                 <template #header>
                     <div class="card-header-title">{{ createTitle(item) }}</div>
                 </template>
@@ -26,7 +36,7 @@
                 <div class="divider">
                 </div>
                 <div class="commands">
-                    <el-icon v-if="deleting !== item.id"  class="command-delete">
+                    <el-icon v-if="deleting !== item.id" class="command-delete">
                         <Delete @click="deleting = item.id"/>
                     </el-icon>
                     <div class="command-delete-confirm">
@@ -37,7 +47,7 @@
                             <Check @click="deleteItem(deleting)"/>
                         </el-icon>
                     </div>
-                    <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
+                    <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
                 </div>
             </el-card>
             <div class="box-card-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
@@ -48,16 +58,29 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" style="width: 100%">
-            <el-table-column v-for="(name, prop) in tableProps" :prop="prop" :label="name" :formatter="(row, column) => solveRefProp(row, column.property)"/>
-            <el-table-column align="center">
+        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" :defaultSort="defaultSort"
+                  style="width: 100%">
+            <el-table-column
+                v-for="(propInfo, prop) in tableProps"
+                :prop="prop"
+                :label="propInfo.name"
+                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefProp(row, column.property)"
+                :width="propInfo.width ? propInfo.width : undefined"
+                :sortable="propInfo.sortable"
+                :sortMethod="propInfo.sortMethod"
+            >
+                <template v-if="$slots[prop]" #default="scope">
+                    <slot :name="prop" v-bind="scope"></slot>
+                </template>
+            </el-table-column>
+            <el-table-column v-if="!readOnly" align="center">
                 <template #default="{ row }">
                     <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
-            <el-table-column align="center">
+            <el-table-column v-if="!readOnly" align="center">
                 <template #default="{ row }">
-                    <el-icon v-if="deleting !== row.id"  class="command-delete">
+                    <el-icon v-if="deleting !== row.id" class="command-delete">
                         <Delete @click="deleting = row.id"/>
                     </el-icon>
                     <div class="command-delete-confirm on-table">
@@ -71,7 +94,8 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode" class="table-row-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
+        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
+             @click="stateToAdd">
             <span>
                 <el-icon>
                     <Plus/>
@@ -84,13 +108,12 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
-import { storeToRefs } from 'pinia'
+import {storeToRefs} from 'pinia'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const schema = ref({})
-
 
 const props = defineProps({
     readableName: {
@@ -109,13 +132,24 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    defaultSort: {
+        type: Object,
+        required: false,
+        default: {},
+    },
     titleProps: {
         type: Array,
         required: false,
         default: ["name"],
     },
+    readOnly: {
+        type: Boolean,
+        required: false,
+        default: false,
+    },
 });
 
+itemsStore.loading = true
 const {data} = await useAsyncData(
     "schema_" + props.apiUrl,
     async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
@@ -128,6 +162,7 @@ await useAsyncData(
 )
 
 const {items} = storeToRefs(itemsStore)
+itemsStore.loading = false
 
 function createTitle(item) {
     return props.titleProps.map(prop => item[prop]).join(" ")
@@ -136,15 +171,22 @@ function createTitle(item) {
 function stateToEdit(id) {
     itemsStore.editing = id
 }
+
 function stateToAdd() {
     itemsStore.adding = true
 }
+
 function deleteItem(id) {
+    itemsStore.loading = true
     itemsStore.deleteItem($axios, props.apiUrl, id)
     deleting.value = undefined
+    itemsStore.loading = false
 }
+
 function solveRefProp(item, propName) {
     const prop = schema.value.properties[propName]
+    if (!prop)
+        return item[propName]
     if (prop.$ref && schema.value.properties[propName].choices) {
         // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
         const choice = schema.value.properties[propName].choices.find(choice => choice.value === item[propName])
@@ -194,6 +236,8 @@ function solveRefProp(item, propName) {
         // background: #DFDAEA66;
     }
 }
+.el-card:hover {
+}
 </style>
 
 <style lang="scss" scoped>
@@ -225,6 +269,10 @@ function solveRefProp(item, propName) {
 .box-card {
     width: 232px;
     margin: 16px;
+    cursor: pointer;
+    &:hover {
+        box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
+    }
 }
 
 .box-card-add {
@@ -239,6 +287,9 @@ function solveRefProp(item, propName) {
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
+    &:hover {
+        background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
+    }
 
     &.no-items {
         width: 100%;
@@ -264,7 +315,6 @@ function solveRefProp(item, propName) {
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
-
     span {
         display: flex;
         justify-content: center;
@@ -320,6 +370,7 @@ function solveRefProp(item, propName) {
         margin-right: 10px;
     }
 }
+
 .commands {
     display: flex;
     justify-content: space-between;

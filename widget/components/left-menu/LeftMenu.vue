@@ -13,8 +13,8 @@
             <div v-for="conversation in store.conversations" class="left-menu-item">
                 <HistoryItem
                     ref="historyItems"
-                    :key="conversation.pk"
-                    :conversation-id="conversation.pk"
+                    :key="conversation.id"
+                    :conversation-id="conversation.id"
                     :platform-conversation-id="conversation.platform_conversation_id"
                     :name="conversation.name"/>
             </div>

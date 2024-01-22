@@ -2,13 +2,15 @@ import { defineStore } from 'pinia'
 function _indexLayerRefs(groupedStack) {
     for (let i = 0; i < groupedStack.length; i++) {
         // first remove the duplicates from the references (same title and url)
-        groupedStack[i].references = groupedStack[i].references.filter((v, i, a) => a.findIndex(t => (t.url === v.url && t.title === v.title)) === i)
+        if (!groupedStack[i].references || !groupedStack[i].references.knowledge_items)
+            continue
+        groupedStack[i].references.knowledge_items = groupedStack[i].references.knowledge_items.filter((v, i, a) => a.findIndex(t => (t.url === v.url && t.title === v.title)) === i)
         // add the reference index to the layer index inside layerToReferences
-        let refs = groupedStack[i].references;
+        let refs = groupedStack[i].references.knowledge_items;
         for (let j = 0; j < groupedStack[i].layers.length; j++) {
             const layer = groupedStack[i].layers[j]
             if (layer.payload.references) {
-                layer.referenceIndexes = layer.payload.references.map(ref => refs.findIndex(r => r.url === ref.url && r.title === ref.title)).filter(i => i !== -1)
+                layer.referenceIndexes = layer.payload.references.knowledge_items.map(ref => refs.findIndex(r => r.url === ref.url && r.title === ref.title)).filter(i => i !== -1)
                 // layer.referenceIndexes is a list of integer, no integer should repeat:
                 layer.referenceIndexes = layer.referenceIndexes.filter((v, i, a) => a.findIndex(t => (t === v)) === i)
             }
@@ -45,7 +47,7 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     actions: {
         async gatherConversations() {
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/?sender=${this.userId}`);
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`);
             this.conversations = await response.json();
         },
         async renameConversationName(id, name) {
@@ -54,11 +56,10 @@ export const useGlobalStore = defineStore('globalStore', {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: name })
             });
-            console.log(this.conversations)
-            this.conversations.find((conversation) => conversation.pk === id).name = name;
+            this.conversations.find((conversation) => conversation.id === id).name = name;
         },
         async openConversation(_selectedPlConversationId) {
-            const conversationId = this.conversations.find(conv => conv.platform_conversation_id === _selectedPlConversationId).pk
+            const conversationId = this.conversations.find(conv => conv.platform_conversation_id.toString() === _selectedPlConversationId.toString()).id
             let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -74,7 +75,7 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     getters: {
         conversationsIds() {
-            return this.conversations.reduce((acc, current) => acc.concat([current.pk]), [])
+            return this.conversations.reduce((acc, current) => acc.concat([current.id]), [])
         },
         getStacks() {
             return (msgId) => {
@@ -114,11 +115,11 @@ export const useGlobalStore = defineStore('globalStore', {
             let last_stack_id = undefined
             for (let i = 0; i < this.flatStacks.length; i++) {
                 if (this.flatStacks[i].stack_id !== last_stack_id) {
-                    res.push({ "layers": [ this.flatStacks[i] ], "references": this.flatStacks[i].payload.references || [], layerToReferences: {} })
+                    res.push({ "layers": [ this.flatStacks[i] ], "references": this.flatStacks[i].payload.references || {}, layerToReferences: {} })
                     last_stack_id = this.flatStacks[i].stack_id
                 } else {
                     res[res.length - 1].layers.push(this.flatStacks[i])
-                    res[res.length - 1].references = res[res.length - 1].references.concat(this.flatStacks[i].payload.references || [])
+                    res[res.length - 1].references.knowledge_items = res[res.length - 1].references.knowledge_items.concat(this.flatStacks[i].payload.references.knowledge_items || [])
                 }
             }
             _indexLayerRefs(res)

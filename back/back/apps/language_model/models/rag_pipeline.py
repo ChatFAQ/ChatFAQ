@@ -18,7 +18,8 @@ LLM_CHOICES = (
     ('local_gpu', 'Local GPU Model'),  # Use locally VLLM or HuggingFace for GPU inference.
     ('vllm', 'VLLM Client'),  # Access VLLM engine remotely
     ('openai', 'OpenAI Model'),  # ChatGPT models from OpenAI
-    ('claude', 'Claude Model')  # Claude models from Anthropic
+    ('claude', 'Claude Model'),  # Claude models from Anthropic
+    ('mistral', 'Mistral Model'),  # Mistral models from Mistral
 )
 
 # First, define the Manager subclass.
@@ -65,6 +66,9 @@ class RAGConfig(ChangesMixin):
             if self.llm_config != old.llm_config:
                 load_new_llm = True
                 logger.info(f"RAG config {self.name} changed llm config...")
+            if self.disabled != old.disabled:
+                load_new_llm = True
+                logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
 
         super().save(*args, **kwargs)
 
@@ -123,11 +127,15 @@ class RetrieverConfig(ChangesMixin):
     def save(self, *args, **kwargs):
         logger.info('Checking if we need to generate embeddings because of a retriever config change')
         generated_embeddings = False
+        device_changed = False
 
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
             if self.model_name != old_retriever.model_name:
                 generated_embeddings = True
+
+            if self.device != old_retriever.device:
+                device_changed = True
 
         super().save(*args, **kwargs)
 
@@ -138,6 +146,14 @@ class RetrieverConfig(ChangesMixin):
             # Schedule the trigger_generate_embeddings function to be called
             # after the current transaction is committed
             transaction.on_commit(on_commit_callback)
+        elif device_changed:
+            def on_commit_callback():
+                recache_models("RetrieverConfig.save")
+
+            # Schedule the recache_models function to be called
+            transaction.on_commit(on_commit_callback)
+
+
 
     def trigger_generate_embeddings(self):
         rag_configs = RAGConfig.objects.filter(retriever_config=self)

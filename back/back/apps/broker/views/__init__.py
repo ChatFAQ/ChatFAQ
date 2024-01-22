@@ -4,16 +4,16 @@ from zipfile import ZipFile
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
-from rest_framework import generics, mixins, status, viewsets
-from rest_framework.decorators import action
+from rest_framework import generics, mixins, viewsets
+from rest_framework.decorators import action, permission_classes
 from rest_framework.generics import CreateAPIView, UpdateAPIView
-from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from ..models.message import AdminReview, AgentType, Conversation, Message, UserFeedback
 from ..serializers import (
     AdminReviewSerializer,
-    ConversationSerializer,
-    UserFeedbackSerializer,
+    ConversationMessagesSerializer,
+    UserFeedbackSerializer, ConversationSerializer,
 )
 from ..serializers.messages import MessageSerializer
 
@@ -26,12 +26,27 @@ class ConversationAPIViewSet(
     viewsets.GenericViewSet,
 ):
     queryset = Conversation.objects.all()
-    serializer_class = ConversationSerializer
+    serializer_class = ConversationMessagesSerializer
 
+    @action(methods=("get",), detail=False)
+    def from_sender(self, request, *args, **kwargs):
+        if not request.query_params.get("sender"):
+            return JsonResponse(
+                {"error": "sender is required"},
+                status=400,
+            )
+        results = [ConversationSerializer(c).data for c in Conversation.conversations_from_sender(request.query_params.get("sender"))]
+        return JsonResponse(
+            results,
+            safe=False,
+        )
+
+    @permission_classes([IsAuthenticated])
     def list(self, request, *args, **kwargs):
         # get any query params from request
+        results = [ConversationSerializer(c).data for c in Conversation.objects.all()]
         return JsonResponse(
-            Conversation.conversations_from_sender(request.query_params.get("sender")),
+            results,
             safe=False,
         )
 
@@ -76,9 +91,10 @@ class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
 class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     serializer_class = UserFeedbackSerializer
     queryset = UserFeedback.objects.all()
+    filterset_fields = ["message"]
 
 
-class AdminReviewAPIView(generics.ListCreateAPIView):
+class AdminReviewAPIViewSet(viewsets.ModelViewSet):
     serializer_class = AdminReviewSerializer
     queryset = AdminReview.objects.all()
 

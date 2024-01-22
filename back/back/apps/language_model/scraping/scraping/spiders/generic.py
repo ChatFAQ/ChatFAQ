@@ -19,7 +19,7 @@ class GenericSpider(scrapy.Spider):
         self.knowledge_base_id = knowledge_base_id
         self.start_urls = start_urls.split(',')
         for url in self.start_urls:
-            self.allowed_domains.append(urlparse(url).netloc)
+            self.allowed_domains.append(urlparse(url).netloc.split(":")[0])
             self.allowed_domains = list(set(self.allowed_domains))
 
         kb = KnowledgeBase.objects.get(id=knowledge_base_id)
@@ -40,7 +40,7 @@ class GenericSpider(scrapy.Spider):
             item_loader.add_value("content", k_item.content)
             item_loader.add_value("title", k_item.title)
             # item_loader.add_value("section", k_item.section) Current parser does not extract the section
-            item_loader.add_value("url", response.url)
+            item_loader.add_value("url", response.url.replace("http://localhost:8008/", "https://www.notion.so/withnotion/"))
             item_loader.add_value("page_number", k_item.page_number)
             yield item_loader.load_item()
 

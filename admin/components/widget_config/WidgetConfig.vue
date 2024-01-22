@@ -4,14 +4,13 @@
         <el-tab-pane :lazy="true" :label="$t('widget')" name="widgetsettings">
             <ReadWriteView :readableName="$t('widget')" apiUrl="/back/api/widget/widgets/"
                            :cardProps="{
-                'name': $t('name'),
                 'domain': $t('domain'),
                 'fsm_def': $t('fsmdef'),
                 }"
                            :tableProps="{
-                'name': $t('name'),
-                'domain': $t('domain'),
-                'fsm_def': $t('fsmdef'),
+                'name': {'name': $t('name')},
+                'domain': {'name': $t('domain')},
+                'fsm_def': {'name': $t('fsmdef')},
                 }"
                            :sections="{
                 [$t('general')]: [
@@ -45,7 +44,6 @@
                 :readableName="$t('theme')"
                 apiUrl="/back/api/widget/themes/"
                 :cardProps="{
-                    'name': $t('name'),
                 }"
                 :tableProps="{
                     'name': $t('name'),
@@ -53,7 +51,7 @@
                 :outsideSection="['data']"
                 @submitForm="submitFieldData"
             >
-                <template v-slot:data="props">
+                <template v-slot:write-data="props">
                     <FieldData :form="props.form" :fieldName="props.fieldName"  ref="fieldData">123</FieldData>
                 </template>
             </ReadWriteView>

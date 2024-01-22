@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chat_rag import RAG
-from chat_rag.llms import GGMLModel, HFModel, OpenAIChatModel, VLLModel, ClaudeChatModel
+from chat_rag.llms import GGMLModel, HFModel, OpenAIChatModel, VLLModel, ClaudeChatModel, MistralChatModel
 from chat_rag.inf_retrieval.embedding_models import E5Model
 from chat_rag.intent_detection import clusterize_text, generate_intents
 from chat_rag.data.splitters import get_splitter
@@ -35,6 +35,7 @@ LLM_CLASSES = {
     "vllm": VLLModel,
     "openai": OpenAIChatModel,
     "claude": ClaudeChatModel,
+    "mistral": MistralChatModel,
 }
 
 
@@ -173,7 +174,7 @@ def _send_message(
     channel_layer,
     chanel_name,
     msg={},
-    references=[],
+    references={},
     final=False,
 ):
     async_to_sync(channel_layer.send)(
@@ -181,7 +182,7 @@ def _send_message(
         {
             "type": "send_llm_response",
             "message": {
-                "context": references,
+                "references": references,
                 "final": final,
                 "res": msg.get("res", ""),
                 "bot_channel_name": bot_channel_name,
@@ -262,7 +263,7 @@ def llm_query_task(
     logger.info(f"Using RAG config: {rag_config_name}")
 
     streaming = True
-    references = []
+    reference_kis = []
     if streaming:
         for res in rag.stream(
             prev_messages,
@@ -274,7 +275,7 @@ def llm_query_task(
             _send_message(
                 bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
             )
-            references = res.get("context")
+            reference_kis = res.get("context")
     else:
         res = rag.generate(
             prev_messages,
@@ -283,16 +284,17 @@ def llm_query_task(
             stop_words=stop_words,
         )
         _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-        references = res.get("context")
+        reference_kis = res.get("context")
 
-    references = references[0] if len(references) > 0 else []
-    logger.info(f"\nReferences: {references}")
+    reference_kis = reference_kis[0] if len(reference_kis) > 0 else []
+    logger.info(f"\nReferences: {reference_kis}")
+    print({"knowledge_base_id": rag_conf.knowledge_base.pk, "knowledge_items": reference_kis})
     _send_message(
         bot_channel_name,
         lm_msg_id,
         channel_layer,
         chanel_name,
-        references=references,
+        references={"knowledge_base_id": rag_conf.knowledge_base.pk, "knowledge_items": reference_kis},
         final=True,
     )
 
@@ -314,7 +316,7 @@ def llm_query_task(
                 knowledge_item_id=ki["knowledge_item_id"],
                 similarity=ki["similarity"],
             )
-            for ki in references
+            for ki in reference_kis
         ]
     )
 
@@ -514,34 +516,6 @@ def get_similarity_scores(titles, retriever):
     return mean_similarity, std_similarity
 
 
-def get_queries_ood():
-    queries_ood = """What are the best practices for starting a successful online business?
-How can I improve my time management skills and productivity?
-What are the most effective ways to deal with stress and anxiety?
-How does climate change impact wildlife and ecosystems?
-What are the key features to consider when buying a new smartphone?
-How can I learn a new language effectively and efficiently?
-What are the potential benefits and risks of using AI in healthcare?
-How do electric cars contribute to reducing carbon emissions?
-What are the current trends in sustainable fashion and ethical clothing brands?
-How can I create a balanced and nutritious diet plan for myself?
-What are some practical tips for improving public speaking skills?
-How does meditation affect the brain and overall mental well-being?
-How do online social networks impact human behavior and relationships?
-What are some innovative ways that companies are using virtual reality technology?
-If you could visit any period in history for a week, when would it be?
-What fictional world would you love to be a part of?
-Which wild animal would you most want as a pet, assuming it would be friendly and loyal?
-If you could master any skill instantly, what would it be?
-What's the most unusual food you've ever tried and liked?
-Would you rather live without music or without colors?
-If our solar system had a tourist agency, which planet or moon would be the top vacation spot?
-How do you think smartphones will evolve in the next decade?
-If you could switch lives with any historical figure for a day, who would it be?
-Which book has had the most impact on your life?"""
-    return queries_ood.split('\n')
-
-
 @app.task()
 def generate_suggested_intents_task(knowledge_base_pk):
     """
@@ -553,6 +527,7 @@ def generate_suggested_intents_task(knowledge_base_pk):
     """
     from django.db.models import Max
     from back.apps.language_model.retriever_clients import PGVectorRetriever
+    from back.apps.language_model.prompt_templates import get_queries_out_of_domain
 
     logger.info("generate_new_intents_task called")
 
@@ -571,6 +546,7 @@ def generate_suggested_intents_task(knowledge_base_pk):
 
     # Get the RAG config that corresponds to the knowledge base
     rag_conf = RAGConfig.enabled_objects.filter(knowledge_base=knowledge_base_pk).first()
+    lang = rag_conf.knowledge_base.lang
 
     e5_model = E5Model(
         model_name=rag_conf.retriever_config.model_name,
@@ -590,7 +566,7 @@ def generate_suggested_intents_task(knowledge_base_pk):
     )
 
     mean_sim_out_domain, std_sim_out_domain = get_similarity_scores(
-        get_queries_ood(),
+        get_queries_out_of_domain(lang),
         retriever
     )
 

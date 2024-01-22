@@ -3,8 +3,6 @@ import os
 
 from openai import OpenAI
 
-
-
 from chat_rag.llms import RAGLLM
 
 
@@ -111,6 +109,7 @@ class OpenAIChatModel(RAGLLM):
         temperature=generation_config_dict["temperature"],
         top_p=generation_config_dict["top_p"],
         presence_penalty=generation_config_dict["repetition_penalty"],
+        seed=generation_config_dict["seed"],
         n=1,
         stream=False)
         return response.choices[0].message.content
@@ -159,6 +158,7 @@ class OpenAIChatModel(RAGLLM):
         temperature=generation_config_dict["temperature"],
         top_p=generation_config_dict["top_p"],
         presence_penalty=generation_config_dict["repetition_penalty"],
+        seed=generation_config_dict["seed"],
         n=1,
         stream=True)
         for chunk in response:

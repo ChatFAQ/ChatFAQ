@@ -12,11 +12,12 @@ router.register(
 router.register(
     r"user-feedback", views.UserFeedbackAPIViewSet, basename="user-feedback"
 )
+router.register(
+    r"admin-review", views.AdminReviewAPIViewSet, basename="user-feedback"
+)
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
     path("", include(router.urls)),
-    path("admin-reviews/<int:pk>/", views.AdminReviewAPIView.as_view()),
-    path("admin-reviews/", views.AdminReviewAPIView.as_view()),
     path("senders/", views.SenderAPIView.as_view()),
 ]

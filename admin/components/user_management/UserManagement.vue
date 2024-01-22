@@ -30,7 +30,7 @@
                     ]
                 }"
             >
-                <template v-slot:password="props">
+                <template v-slot:write-password="props">
                     <Password :form="props.form" :fieldName="props.fieldName" ref="password"/>
                 </template>
             </ReadWriteView>
@@ -38,10 +38,9 @@
         <el-tab-pane :lazy="true" :label="$t('grouppermissions')" name="group-permissions">
             <ReadWriteView :readableName="$t('group')" apiUrl="/back/api/people/groups/"
                            :cardProps="{
-                    'name': $t('name'),
                 }"
                            :tableProps="{
-                    'name': $t('name'),
+                    'name': { 'name': $t('name') },
                 }">
             </ReadWriteView>
         </el-tab-pane>

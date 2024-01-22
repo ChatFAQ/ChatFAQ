@@ -39,7 +39,7 @@
     "device": "Device",
     "updateddate": "Last Modified",
     "lastmodified": "Last Modified",
-    "numberofitems": "{number} {readablename} configuration",
+    "numberofitems": "{number} {readablename}",
     "additem": "Add {readablename}",
     "edit": "Edit",
     "contextsnumber": "Contexts number",
@@ -121,5 +121,6 @@
     "chatfaq-color-menuItem-background-hover": "Menu item background hover",
     "chatfaq-color-menuItem-background": "Menu item background",
     "chatfaq-color-menuItem-border-edit": "Menu item border edit",
-    "chatfaq-color-darkFilter": "Dark filter"
+    "chatfaq-color-darkFilter": "Dark filter",
+    "numberofactivetasks": "{number} Active tasks"
 }

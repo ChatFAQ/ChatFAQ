@@ -12,6 +12,9 @@ export default defineNuxtConfig({
     build: {
         transpile: []
     },
+    devServer: {
+        port: parseInt(process.env.WIDGET_PORT ?? "3000"),
+    },
     runtimeConfig: {
         // The private keys which are only available server-side
         // privateKey: process.env.PRIVATE_KEY,

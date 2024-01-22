@@ -205,7 +205,6 @@ class KnowledgeItem(ChangesMixin):
     def __str__(self):
         return f"{self.content} ds ({self.knowledge_base.pk})"
 
-    
     # When saving we want to check if the content has changed and in that case regenerate
     # all the embeddings for the rag_config this item belongs to.
     def save(self, *args, **kwargs):

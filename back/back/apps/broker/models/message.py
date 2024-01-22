@@ -31,6 +31,12 @@ class StackPayloadType(Enum):
     quick_replies = "quick_replies"
 
 
+class AdminReviewValue(Enum):
+    positive = "positive"
+    negative = "negative"
+    alternative = "alternative"
+
+
 class Conversation(ChangesMixin):
     """
     Table that holds the conversation information, all messages that belong to the same conversation will have the same conversation_id
@@ -45,8 +51,10 @@ class Conversation(ChangesMixin):
             conversation=self,
         ).first()
 
-    def get_mml_chain(self, as_conv_format=False):
+    def get_mml_chain(self, as_conv_format=False, group_by_stack=False, include_reviewed=False):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+        def _add_reviewed(m):
+            return {**m, "reviewed": AdminReview.objects.filter(message=m['id']).exists()}
 
         first_message = self.get_first_msg()
 
@@ -56,13 +64,19 @@ class Conversation(ChangesMixin):
 
         if as_conv_format:
             return self.get_formatted_conversation(chain)
+        elif group_by_stack:
+            res = self.group_by_stack(chain)
+            if include_reviewed:
+                return [_add_reviewed(m) for m in res]
+            return res
+
         return [MessageSerializer(m).data for m in chain]
 
     def get_last_mml(self):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
         )
-    
+
     def get_formatted_conversation(self, chain):
         '''
         Returns a list of messages in the format of the conversation LLMs.
@@ -87,11 +101,37 @@ class Conversation(ChangesMixin):
 
         return messages, human_messages_ids
 
+    def group_by_stack(self, chain):
+        '''
+        returns the chain but with the bot messages stack[0].payload of the same stack_id concatenated.
+        '''
+        from back.apps.broker.serializers import MessageSerializer
+
+        grouped_chain = []
+        for m in chain:
+            m = MessageSerializer(m).data
+            if m['sender']['type'] == 'human':
+                grouped_chain.append(m)
+            elif m['sender']['type'] == 'bot' and m['stack'][0]['type'] == StackPayloadType.text.value:
+                grouped_chain.append(m)
+            elif m['sender']['type'] == 'bot' and m['stack'][0]['type'] == StackPayloadType.lm_generated_text.value:
+                if len(grouped_chain) > 0 and grouped_chain[-1]['sender']['type'] == 'bot' and grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.lm_generated_text.value and grouped_chain[-1]['stack_id'] == m['stack_id']:
+                    grouped_chain[-1]['stack'][0]['payload']['model_response'] += m['stack'][0]['payload']['model_response']
+                else:
+                    grouped_chain.append(m)
+
+                if m['last']:
+                    grouped_chain[-1]['last'] = m['last']
+                    grouped_chain[-1]['id'] = m['id']
+                    grouped_chain[-1]['stack'][0]['payload']['references'] = m['stack'][0]['payload']['references']
+        return grouped_chain
+
+
+
     @classmethod
     def conversations_from_sender(cls, sender_id):
         conversations = (
-            cls.objects.values("pk", "platform_conversation_id", "name", "created_date")
-            .filter(
+            cls.objects.filter(
                 Q(message__sender__id=sender_id) | Q(message__receiver__id=sender_id)
             )
             .distinct()
@@ -241,11 +281,20 @@ class UserFeedback(ChangesMixin):
 
 class AdminReview(ChangesMixin):
     VALUE_CHOICES = (
-        ("positive", "Positive"),
-        ("negative", "Negative"),
+        (0, 0),
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+    )
+    REVIEW_TYPES = (
+        ("alternative_answer", "Alternative Answer"),
+        ("review", "Review"),
     )
     message = models.OneToOneField(
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
-    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
-    review = models.TextField()
+    ki_review_data = models.JSONField(null=True, blank=True, default=list)
+    gen_review_msg = models.TextField(null=True, blank=True)
+    gen_review_val = models.IntegerField(null=True, choices=VALUE_CHOICES)
+    gen_review_type = models.CharField(null=True, blank=True, max_length=255, choices=REVIEW_TYPES)

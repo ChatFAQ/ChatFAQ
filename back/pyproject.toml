@@ -25,7 +25,7 @@ python-json-logger = "^2.0.4"
 psycopg2 = "*"
 whitenoise = "*"
 python-dotenv = "^0.21.0"
-httpx = "^0.23.3"
+httpx = "0.25.2"
 channels-postgres = "^0.0.5"
 myst-parser = "^0.18.1"
 django-rest-knox = "^4.2.0"
@@ -33,7 +33,7 @@ pgvector = "^0.2.3"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chat-rag = {version = "0.1.43", source = "test"}
+chat-rag = {version = "0.1.46", source = "test"}
 gevent = "23.9.0"
 torch = [
     { version = "^2.0.1", source = "torch" },
