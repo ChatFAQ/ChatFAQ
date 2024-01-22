@@ -2,6 +2,17 @@
 
 This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages client-to-messaging platform connections, session storage, datasets and models registration, FSM registration, FSM executions (intended only for simple FSMs), etc...
 
+The ChatFAQ/back folder contains the backend API server code for the ChatFAQ application. It is relevant to the whole project because it:
+
+- Handles all data processing and business logic separately from the frontend code
+- Exposes API endpoints that the frontend applications (admin, widget, etc) integrate with to fetch/send data
+- Allows the frontend and backend to be developed and scaled independently while sharing a common API interface
+- Centralizes data access, authentication, asynchronous/background tasks in a single place
+
+It powers the core chatbot functionality and data management that the entire ChatFAQ system is built upon, while keeping these concerns separated from the presentation layer code. The frontend applications consume the backend APIs to retrieve and manipulate data, but have no dependencies on the specific implementation.
+
+This separation of frontend and backend is a best practice that enables independent development, testing and operations of the different tiers—a fundamental aspect of how the overall ChatFAQ project is structured and functions as a modern web application.
+
 ## Prerequisites
 
 Make sure the next list of packages are installed on your system:
