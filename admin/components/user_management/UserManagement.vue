@@ -30,7 +30,7 @@
                     ]
                 }"
             >
-                <template v-slot:password="props">
+                <template v-slot:write-password="props">
                     <Password :form="props.form" :fieldName="props.fieldName" ref="password"/>
                 </template>
             </ReadWriteView>

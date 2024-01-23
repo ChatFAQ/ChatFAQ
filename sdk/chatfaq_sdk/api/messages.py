@@ -13,3 +13,7 @@ class MessageType(Enum):
 class RPCNodeType(Enum):
     action = "action"
     condition = "condition"
+
+
+class DataSourceType(Enum):
+    data_source_parsers = "data_source_parsers"

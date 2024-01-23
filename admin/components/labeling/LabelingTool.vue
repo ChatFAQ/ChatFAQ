@@ -1,13 +1,42 @@
 <template>
-    <BackButton class="back-button-wrapper"/>
-    <div class="labeling-tool-wrapper">
+    <div class="back-button-wrapper" >
+        <BackButton class="back-button"/>
+        <div class="saving-indicator">
+            <div v-if="itemsStore.savingItem">
+                <el-icon>
+                    <Refresh/>
+                </el-icon>
+                {{ $t("saving...") }}
+            </div>
+            <div v-else>
+                <el-icon>
+                    <Check/>
+                </el-icon>
+                {{ $t("saved") }}
+            </div>
+            <div class="number-of-items">0/3 {{ $t("items") }}</div>
+        </div>
+    </div>
+    <div class="labeling-tool-wrapper" v-loading="loadingConversation" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="labeling-tool-left-side">
+            <div class="selected-conversation-info">
+                <div>{{conversation.name}}</div>
+                <div>{{formatDate(conversation.created_date)}}</div>
+            </div>
             <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
                  @click="msgLabeled = msgs[msgs.length - 1]"
                  class="qa-group"
-                 :class="{'selected': msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id}"
+                 :class="{
+                     'selected': (msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id),
+                     'reviewed': msgs[msgs.length - 1].reviewed
+                 }"
             >
-                <div v-for="msg in msgs" class="message" :class="{[msg.sender.type]: true}">
+                <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
+                    <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
+                        <el-icon>
+                            <CircleCheck/>
+                        </el-icon>
+                    </span>
                     <div class="message-content" :class="{[msg.sender.type]: true}">
                         {{
                             typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
@@ -31,6 +60,7 @@
                     <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
             </el-tabs>
+            <!--
             <div class="labeling-ki-commands">
                 <div class="clear-command" @click="kiReviewer.clear()">Clear</div>
                 <div>
@@ -38,7 +68,22 @@
                     <el-button class="save-command command" @click="kiReviewer.save()">Save</el-button>
                 </div>
             </div>
+            -->
         </div>
+    </div>
+    <div class="page-buttons">
+        <el-button @click="pageConversation(-1)" :disabled="!thereIsPrev">
+            <el-icon>
+                <ArrowLeft/>
+            </el-icon>
+            <span>{{ $t("previous") }}</span>
+        </el-button>
+        <el-button @click="pageConversation(1)" :disabled="!thereIsNext">
+            <span>{{ $t("next") }}</span>
+            <el-icon>
+                <ArrowRight/>
+            </el-icon>
+        </el-button>
     </div>
 </template>
 
@@ -48,6 +93,8 @@ import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
 import GenerationReview from "~/components/labeling/GenerationReview.vue";
+import {ArrowLeft, ArrowRight, CircleCheck, Refresh} from "@element-plus/icons-vue";
+import {formatDate} from "~/utils";
 
 const itemsStore = useItemsStore()
 
@@ -63,23 +110,39 @@ const props = defineProps({
         mandatory: true
     },
 })
-
-const referencedKnowledgeBaseId = ref(undefined)
-const referencedKnowledgeItems = ref({})
 const review = ref({data: []})
 const kiReviewer = ref(null)
+const conversation = ref({})
+const loadingConversation = ref(false)
+const thereIsNext = ref(true)
+const thereIsPrev = ref(true)
 
 // get conversation async data
-const {data} = await useAsyncData(
-    "conversation" + props.id,
-    async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
-)
+async function initConversation() {
+    loadingConversation.value = true
+    const {data} = await useAsyncData(
+        "conversation" + props.id,
+        async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
+    )
+    conversation.value = data.value.data
+    thereIsNext.value = (await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, 1)) !== undefined
+    thereIsPrev.value = (await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, -1)) !== undefined
+    loadingConversation.value = false
+}
 
-const conversation = ref(data.value.data)
+await initConversation()
+watch(() => itemsStore.savingItem, async () => {
+    await initConversation()
+}, {immediate: true})
+watch(() => props.id, async () => {
+    await initConversation()
+}, {immediate: true})
 
 function getQAMessageGroups(MMLChain) {
     let groups = []
     let group = []
+    if (!MMLChain)
+        return groups
     for (let i = 0; i < MMLChain.length; i++) {
         if (MMLChain[i].sender.type === 'bot') {
             group.push(MMLChain[i])
@@ -92,20 +155,13 @@ function getQAMessageGroups(MMLChain) {
     return groups
 }
 
-async function setQAPairToLabel(QAPair) {
-    itemsStore.loading = true
-    const botMsg = QAPair[QAPair.length - 1]
-    referencedKnowledgeItems.value = {message_id: botMsg.id, kis: []}
-    referencedKnowledgeBaseId.value = botMsg.stack[botMsg.stack.length - 1].payload.references.knowledge_base_id
-    for (const reference of botMsg.stack[botMsg.stack.length - 1].payload.references.knowledge_items) {
-        const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
-            id: reference.knowledge_item_id
-        })
-        if (ki)
-            referencedKnowledgeItems.value.kis.push(ki)
+async function pageConversation(direction) {
+    loadingConversation.value = true
+    const nextItem = await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, direction)
+    if (nextItem !== undefined) {
+        itemsStore.editing = nextItem.id
     }
-    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: botMsg.id}) || {}
-    itemsStore.loading = false
+    loadingConversation.value = false
 }
 </script>
 
@@ -148,7 +204,6 @@ async function setQAPairToLabel(QAPair) {
         border: 1px solid $chatfaq-color-primary-200;
         max-height: 70vh;
         overflow-y: auto;
-        padding-top: 16px;
     }
 
     .labeling-tool-left-side {
@@ -166,10 +221,12 @@ async function setQAPairToLabel(QAPair) {
     .qa-group {
         position: relative;
         padding: 16px 12px;
+
         &:hover {
             background: rgba(223, 218, 234, 0.49);
             cursor: pointer;
         }
+
         &.selected {
             background: $chatfaq-color-primary-200;
         }
@@ -181,13 +238,14 @@ async function setQAPairToLabel(QAPair) {
             overflow: auto;
 
             .message-content {
-                max-width: 428px;
+                max-width: 90%;
                 border-radius: 6px;
                 padding: 8px 12px 8px 12px;
                 margin-bottom: 8px;
                 overflow-wrap: break-word;
 
                 &.bot {
+                    float: left;
                     background: #46307524;
                 }
 
@@ -200,8 +258,19 @@ async function setQAPairToLabel(QAPair) {
         }
     }
 
+    .qa-group.reviewed:not(.selected) {
+        .message-content.bot {
+            background: #edebf2;
+        }
+
+        .message-content.human {
+            background: #7e6e9c;
+        }
+    }
+
     .knowledge-items {
-        height: calc(100% - 70px);
+        // height: calc(100% - 70px);
+        height: 100%;
     }
 
     .labeling-ki-commands {
@@ -214,6 +283,7 @@ async function setQAPairToLabel(QAPair) {
         padding: 24px;
         border-top: 1px solid $chatfaq-color-primary-200;
     }
+
     .clear-command {
         font-size: 12px;
         font-weight: 500;
@@ -221,24 +291,107 @@ async function setQAPairToLabel(QAPair) {
         color: $chatfaq-color-primary-500;
 
     }
+
     .command {
         padding: 20px 20px 20px 20px;
         width: 80px;
         border-radius: 8px !important;
         text-transform: uppercase !important;
     }
+
     .cancel-command {
         border-color: $chatfaq-color-primary-500;
         color: $chatfaq-color-primary-500;
     }
+
     .save-command {
         background-color: #463075;
         color: white;
     }
 }
+
 .back-button-wrapper {
-    margin-top: 26px;
-    margin-bottom: 26px;
+    display: flex;
+    justify-content: space-between;
+
+    .back-button {
+        margin-top: 26px;
+        margin-bottom: 26px;
+    }
+
+    .saving-indicator {
+        display: flex;
+        cursor: pointer;
+        align-items: center;
+        font-size: 12px;
+        color: $chatfaq-color-greyscale-800;
+        margin-right: 80px;
+
+        i {
+            margin-right: 8px;
+        }
+
+        > :first-child {
+            margin-right: 32px;
+        }
+    }
+
+    .number-of-items {
+
+    }
+}
+
+.reviewed-check {
+    color: $chatfaq-color-primary-500;
+
+    i {
+        margin-top: 10px;
+    }
+}
+
+.page-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+
+    button {
+        @include button-round;
+
+        &:first-child {
+            margin-right: 16px;
+
+            i {
+                margin-right: -2px;
+            }
+        }
+
+        &:last-child {
+            i {
+                margin-left: 4px;
+            }
+        }
+    }
+}
+
+.selected-conversation-info {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: 0;
+
+    background-color: white;
+    width: 100%;
+    z-index: 1;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding-bottom: 16px;
+    padding-top: 16px;
+    color: #545A64;
+
 }
 </style>
 

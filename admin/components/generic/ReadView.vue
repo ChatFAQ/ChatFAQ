@@ -1,5 +1,5 @@
 <template>
-    <div class="read-view-wrapper">
+    <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="items[apiUrl].length" class="section-header">
             <slot name="legend" :total="items[apiUrl].length">
                 <div class="item-count"> {{
@@ -64,7 +64,7 @@
                 v-for="(propInfo, prop) in tableProps"
                 :prop="prop"
                 :label="propInfo.name"
-                :formatter="(row, column) => solveRefProp(row, column.property)"
+                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefProp(row, column.property)"
                 :width="propInfo.width ? propInfo.width : undefined"
                 :sortable="propInfo.sortable"
                 :sortMethod="propInfo.sortMethod"
@@ -177,8 +177,10 @@ function stateToAdd() {
 }
 
 function deleteItem(id) {
+    itemsStore.loading = true
     itemsStore.deleteItem($axios, props.apiUrl, id)
     deleting.value = undefined
+    itemsStore.loading = false
 }
 
 function solveRefProp(item, propName) {

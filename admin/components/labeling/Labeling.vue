@@ -7,7 +7,8 @@
         :tableProps="{
             'name': {'name': $t('name')},
             'created_date': {'name': $t('created_date'), 'sortable': true},
-            'view': {'name': $t('view')},
+            'user_id': {'name': $t('userid')},
+            'view': {'name': ''},
         }"
         :defaultSort="{'prop': 'created_date', 'order': 'descending'}"
         read-only
@@ -28,8 +29,8 @@ const itemsStore = useItemsStore()
 const router = useRouter()
 function goToLabelingConversation(id) {
     itemsStore.editing = id
-
 }
+
 </script>
 
 <style lang="scss" scoped>

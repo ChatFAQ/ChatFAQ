@@ -58,19 +58,21 @@ const props = defineProps([
     "widgetConfigId"
 ]);
 let data = props
-if (props.widgetConfigId !== undefined) {
-    const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`)
-    data = await response.json();
-    // sneak case data keys to lowerCamelCase:
-    data = Object.keys(data).reduce((acc, key) => {
-        acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = data[key];
-        return acc;
-    }, {});
 
-    const style = document.createElement('style');
-    style.innerHTML = data.css;
-    document.head.appendChild(style);
-    console.log(style)
+async function init() {
+    if (props.widgetConfigId !== undefined) {
+        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`)
+        data = await response.json();
+        // sneak case data keys to lowerCamelCase:
+        data = Object.keys(data).reduce((acc, key) => {
+            acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = data[key];
+            return acc;
+        }, {});
+
+        const style = document.createElement('style');
+        style.innerHTML = data.css;
+        document.head.appendChild(style);
+    }
 }
 
 store.chatfaqWS = props.chatfaqWs;
@@ -113,7 +115,8 @@ addEventListener("resize", (event) => {
     }
 });
 
-onMounted(() => {
+onMounted(async () => {
+    await init()
     if (screen.width < screen.height)
         store.historyOpened = false
 })

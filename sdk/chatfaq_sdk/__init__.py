@@ -11,8 +11,9 @@ from typing import Callable, Optional, Union
 
 import websockets
 from chatfaq_sdk import settings
-from chatfaq_sdk.api.messages import MessageType, RPCNodeType
+from chatfaq_sdk.api.messages import MessageType, RPCNodeType# , DataSourceType
 from chatfaq_sdk.conditions import Condition
+# from chatfaq_sdk.data_source_parsers import DataSourceParser
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
 
@@ -35,6 +36,7 @@ class ChatFAQSDK:
         token: str,
         fsm_name: Optional[Union[int, str]],
         fsm_definition: Optional[FSMDefinition] = None,
+        # data_source_parsers: Optional[dict[DataSourceParser]] = None,
     ):
         """
         Parameters
@@ -59,6 +61,7 @@ class ChatFAQSDK:
         self.token = token
         self.fsm_name = fsm_name
         self.fsm_def = fsm_definition
+        # self.data_source_parsers = data_source_parsers
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
         # already registered that rpc under that name and avoid duplicates
@@ -88,14 +91,24 @@ class ChatFAQSDK:
             MessageType.llm_request_result.value: self.llm_request_result_callback,
             MessageType.error.value: self.error_callback,
         }
+        # processor_actions = {
+        #     key: value
+        #     for key, value in self.data_source_parsers.items()
+        # }
+        # processor_actions[MessageType.error.value] = self.error_callback
 
-        await asyncio.gather(
-            self.consumer(
-                "rpc", on_connect=self.on_connect_rpc, is_rpc=True
-            ),
+        coros_or_futures = [
+            self.consumer("rpc", on_connect=self.on_connect_rpc, is_rpc=True),
             self.consumer("llm", on_connect=None),
             self.producer(rpc_actions, is_rpc=True),
             self.producer(llm_actions),
+        ]
+        # if self.data_source_parsers:
+        #     self.consumer("processing", on_connect=self.on_connect_processing),
+        #     coros_or_futures.append(self.producer(processor_actions))
+
+        await asyncio.gather(
+            *coros_or_futures,
         )
 
     async def consumer(self, consumer_route, on_connect=None, is_rpc=False):
@@ -191,6 +204,20 @@ class ChatFAQSDK:
                     }
                 )
             )
+
+    # async def on_connect_processing(self):
+    #     if self.data_source_parsers is not None:
+    #         logger.info(f"Registering Data Source Parsers {self.data_source_parsers.keys()}")
+    #         await self.ws_rpc.send(
+    #             json.dumps(
+    #                 {
+    #                     "type": DataSourceType.data_source_parsers.value,
+    #                     "data": {
+    #                         "data_source_parsers": self.data_source_parsers.keys(),
+    #                     },
+    #                 }
+    #             )
+    #         )
 
     async def _disconnect(self):
         logger.info(f"Shutting Down...")

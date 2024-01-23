@@ -1,6 +1,8 @@
 <template>
-    <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"
+    <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)"
          class="labeling-kis-wrapper">
+        <div class="ki-title">{{$t("knowledgeitems")}}</div>
+        <div class="no-knowledge-items" v-if="!reviewedKIs.kis.length">{{$t("noknowledgeitems")}}</div>
         <div v-for="ki in reviewedKIs.kis" class="labeling-ki-wrapper">
             <div class="ki-vote">
                 <div
@@ -19,9 +21,9 @@
                 <div class="ki-content">{{ ki.content }}</div>
             </div>
         </div>
-        <div class="ki-title add-command-title">Alternative knowledge item</div>
-        <div v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
-            <el-select v-model="alt2Title[0]" @change="(val) => alt2Title[1].knowledge_item_id = val">
+        <div v-if="!itemsStore.loading" class="ki-title add-command-title">{{$t("alternativeknowledgeitem")}}</div>
+        <div v-if="!itemsStore.loading" v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
+            <el-select v-model="alt2Title[0]" @change="(val) => alternativeChanged(alt2Title[1], val)">
                 <el-option
                     v-for="choice in ki_choices"
                     :key="choice.id"
@@ -30,7 +32,7 @@
                 />
             </el-select>
         </div>
-        <div class="ki-title add-command" @click="addAlternativeKI()">+ Add knowledge item</div>
+        <div v-if="!itemsStore.loading" class="ki-title add-command" @click="addAlternativeKI()">{{$t("+addknowledgeitem")}}</div>
     </div>
 </template>
 
@@ -54,23 +56,27 @@ const props = defineProps({
 })
 watch(() => props.message, async (_) => {
     await initKIReview()
-})
+}, {immediate: true})
 
 async function initKIReview() {
     itemsStore.loading = true
     reviewedKIs.value = {message_id: props.message.id, kis: []}
     const references = props.message.stack[props.message.stack.length - 1].payload.references
+    if (!references) {
+        itemsStore.loading = false
+        return
+    }
     for (const ki_ref of references.knowledge_items) {
         const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
             id: ki_ref.knowledge_item_id
-        })
+        }, {knowledge_base__id: references.knowledge_base_id})
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
     review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}) || {}
     ki_choices.value = await itemsStore.requestOrGetItems($axios, "/back/api/language-model/knowledge-items/", {
         knowledge_base: references.knowledge_base_id
-    })
+    }, {knowledge_base__id: references.knowledge_base_id})
     itemsStore.loading = false
 }
 
@@ -99,7 +105,10 @@ async function voteKI(kiId, vote) {
     }
     const data = getVoteKI(kiId)
     if (data) {
-        data.value = vote
+        if(data.value === vote)
+            data.value = null
+        else
+            data.value = vote
     } else {
         review.value.ki_review_data.push({
             value: vote,
@@ -112,11 +121,13 @@ async function voteKI(kiId, vote) {
 async function save() {
     review.value.message = reviewedKIs.value.message_id
     review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
-    if (review.value.id === undefined) {
-        await $axios.post("/back/api/broker/admin-review/", review.value)
-    } else {
-        await $axios.put("/back/api/broker/admin-review/" + review.value.id + "/", review.value)
-    }
+    // deep copy review.value
+    const _review = JSON.parse(JSON.stringify(review.value))
+    delete _review.gen_review_msg
+    delete _review.gen_review_val
+    delete _review.gen_review_type
+    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}) || {}
 }
 
 function getVoteKI(kiId) {
@@ -138,7 +149,10 @@ function addAlternativeKI() {
         knowledge_item_id: null,
     })
 }
-
+async function alternativeChanged(alt, val) {
+    alt.knowledge_item_id = val
+    await save()
+}
 function alternativeKIs() {
     return review.value?.ki_review_data?.filter((d) => d.value === "alternative") || []
 }
@@ -215,25 +229,30 @@ defineExpose({
 
     .ki-title {
         color: #463075;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 600;
         line-height: 20px;
         margin-bottom: 8px;
     }
-
+    .no-knowledge-items {
+        margin-bottom: 8px;
+        font-style: italic;
+        font-size: 14px;
+    }
     .alternative-wrapper {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
         margin-right: 24px;
 
-        .add-command-title {
-            margin-bottom: 8px;
-        }
-
-        .add-command {
-            margin-top: 16px;
-            margin-bottom: 16px;
-            cursor: pointer;
-        }
+    }
+    .add-command-title {
+        margin-top: 24px;
+        margin-bottom: 8px;
+    }
+    .add-command {
+        margin-top: 16px;
+        margin-bottom: 16px;
+        cursor: pointer;
+        font-size: 12px;
     }
 }
 </style>

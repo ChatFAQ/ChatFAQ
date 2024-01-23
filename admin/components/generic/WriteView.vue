@@ -1,5 +1,5 @@
 <template>
-    <div class="write-view-wrapper">
+    <div class="write-view-wrapper"  v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="navigation-header">
             <BackButton/>
         </div>
@@ -189,7 +189,7 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 
 // Initialize form values
 initializeFormValues()
-watch(() => itemsStore.editing, initializeFormValues)
+watch(() => itemsStore.editing, initializeFormValues, {immediate: true})
 async function initializeFormValues() {
     if (itemsStore.editing) {
         itemsStore.loading = true
@@ -218,6 +218,7 @@ const submitForm = async (formEl) => {
     await formEl.validate(async (valid) => {
         if (!valid)
             return
+        itemsStore.loading = true
         // emit event "submitForm":
         emit("submitForm", form.value)
         try {
@@ -234,17 +235,21 @@ const submitForm = async (formEl) => {
                 ref.$el.parentElement.scrollIntoView({behavior: "smooth", block: "center"})
                 return
             } else {
+                itemsStore.loading = false
                 throw e
             }
         }
         itemsStore.stateToRead()
+        itemsStore.loading = false
     })
 }
 
 function deleteItem(id) {
+    itemsStore.loading = true
     itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
     deleting.value = undefined
     itemsStore.stateToRead()
+    itemsStore.loading = false
 }
 
 function filterInSection(inSection, _obj) {

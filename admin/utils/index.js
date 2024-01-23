@@ -22,3 +22,19 @@ export function rgba2hex(orig) {
     return `#${hex}`.toUpperCase();
 }
 
+export function formatDate(date) {
+    // It receives a date in the format 2024-01-17T15:06:55.931659 and returns 17/01/2024 15:06
+    const dateObject = new Date(date);
+    let day = dateObject.getDate();
+    let month = dateObject.getMonth() + 1;
+    let year = dateObject.getFullYear();
+    let hour = dateObject.getHours();
+    let minutes = dateObject.getMinutes();
+    // add ceroes in case of 1 digit to day, month, hour and minutes:
+    if (day < 10) day = `0${day}`;
+    if (month < 10) month = `0${month}`;
+    if (hour < 10) hour = `0${hour}`;
+    if (minutes < 10) minutes = `0${minutes}`;
+
+    return `${day}/${month}/${year} ${hour}:${minutes}`;
+}

@@ -51,7 +51,7 @@
                 :outsideSection="['data']"
                 @submitForm="submitFieldData"
             >
-                <template v-slot:data="props">
+                <template v-slot:write-data="props">
                     <FieldData :form="props.form" :fieldName="props.fieldName"  ref="fieldData">123</FieldData>
                 </template>
             </ReadWriteView>

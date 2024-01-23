@@ -51,8 +51,10 @@ class Conversation(ChangesMixin):
             conversation=self,
         ).first()
 
-    def get_mml_chain(self, as_conv_format=False, group_by_stack=False):
+    def get_mml_chain(self, as_conv_format=False, group_by_stack=False, include_reviewed=False):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
+        def _add_reviewed(m):
+            return {**m, "reviewed": AdminReview.objects.filter(message=m['id']).exists()}
 
         first_message = self.get_first_msg()
 
@@ -63,7 +65,11 @@ class Conversation(ChangesMixin):
         if as_conv_format:
             return self.get_formatted_conversation(chain)
         elif group_by_stack:
-            return self.group_by_stack(chain)
+            res = self.group_by_stack(chain)
+            if include_reviewed:
+                return [_add_reviewed(m) for m in res]
+            return res
+
         return [MessageSerializer(m).data for m in chain]
 
     def get_last_mml(self):
@@ -288,7 +294,7 @@ class AdminReview(ChangesMixin):
     message = models.OneToOneField(
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
-    ki_review_data = models.JSONField(default=list)
+    ki_review_data = models.JSONField(null=True, blank=True, default=list)
     gen_review_msg = models.TextField(null=True, blank=True)
     gen_review_val = models.IntegerField(null=True, choices=VALUE_CHOICES)
     gen_review_type = models.CharField(null=True, blank=True, max_length=255, choices=REVIEW_TYPES)
