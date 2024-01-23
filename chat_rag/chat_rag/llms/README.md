@@ -1,17 +1,16 @@
-The ChatFAQ/chat_rag/chat_rag/data/inf_retrieval/llms folder contains code related to large language model (LLM) retrieval in the ChatFAQ project.
+The ChatFAQ/chat_rag/chat_rag/data/inf_retrieval/llms folder contains Python files related to loading and using large language models (LLMs) for information retrieval in the chatbot.
 
 Specifically:
 
-- The _client.py file likely defines a client class to interface with LLMs for retrieval/generation.
+- The *_client.py files contain client classes/code for connecting to and querying different LLM services over an API (like HuggingFace, Anthropic etc). They abstract away differences between services.
 
-- The _llm.py file probably contains an LLM model class to encapsulate inference logic.
+- The *_llm.py files likely contain Python code defining how to load, preprocess inputs/outputs for different LLMs (like GPT, BART models) locally without an external service.
 
-So in short, these files:
+In summary:
 
-1. Allow querying LLMs for contextual, relevant responses
+- Enables chatbot to retrieve information from LLMs
+- *_client.py provide common interface to remote LLM APIs
+- *_llm.py facilitate local LLM usage
+- Critical for chatbot natural language understanding
 
-2. Modularize LLM access separately from other code
-
-This is important because LLMs power the core chatbot conversational abilities. While separate from frontend code, these models enable natural dialogue that is key to ChatFAQ's purpose.
-
-Thefolder encapsulates reusable LLM retrieval logiccritical to the chatbot functionality. This makes it highly relevant, even if not directly accessed, as it enables a core project capability.
+So while not directly accessed, this code enables a core chatbot capability and intelligent information retrieval. It is thus very relevant to the central purpose of the overall ChatFAQ project.
