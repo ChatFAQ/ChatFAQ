@@ -3,7 +3,7 @@ import time
 from rest_framework import serializers
 from back.apps.broker.models.message import AgentType
 from back.apps.broker.serializers.messages import MessageSerializer
-from back.apps.broker.consumers.message_types import RPCMessageType, RPCNodeType
+from back.apps.broker.consumers.message_types import RPCMessageType, ParseMessageType, RPCNodeType
 
 
 class CtxSerializer(serializers.Serializer):
@@ -66,6 +66,10 @@ class LLMRequestSerializer(serializers.Serializer):
     user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
 
+class RegisterParsersSerializer(serializers.Serializer):
+    parsers = serializers.ListSerializer(child=serializers.CharField())
+
+
 class RPCFSMDefSerializer(serializers.Serializer):
     """
     Used for when a RPC Server push a FSM definition
@@ -93,4 +97,20 @@ class RPCResponseSerializer(serializers.Serializer):
     """
 
     type = serializers.ChoiceField(choices=[n.value for n in RPCMessageType])
+    data = serializers.JSONField(default=dict)
+
+
+class ParseResponseSerializer(serializers.Serializer):
+    """
+    Represents any message coming from the RPC server
+    Attributes
+    ----------
+    type: str
+        So far there is only 2 types: 'fsm_def' for registering/declaring FSM Definition & 'rpc_result' results of the
+        Remote Procedure Calls
+    data: dict
+        The RPC response payload
+    """
+
+    type = serializers.ChoiceField(choices=[n.value for n in ParseMessageType])
     data = serializers.JSONField(default=dict)

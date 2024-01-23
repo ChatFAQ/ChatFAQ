@@ -8,7 +8,7 @@ class MessageType(Enum):
     llm_request = "llm_request"
     llm_request_result = "llm_request_result"
     error = "error"
-    registry_parsers = "registry_parsers"
+    register_parsers = "register_parsers"
 
 
 class RPCNodeType(Enum):

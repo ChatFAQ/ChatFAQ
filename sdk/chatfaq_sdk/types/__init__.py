@@ -19,4 +19,4 @@ class KnowledgeItem:
 class WSType(Enum):
     rpc = "rpc"
     llm = "llm"
-    parsing = "parsing"
+    parse = "parse"

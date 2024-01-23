@@ -10,6 +10,11 @@ class RPCMessageType(Enum):
     error = "error"
 
 
+class ParseMessageType(Enum):
+    register_parsers = "register_parsers"
+    error = "error"
+
+
 class RPCNodeType(Enum):
     action = "action"
     condition = "condition"

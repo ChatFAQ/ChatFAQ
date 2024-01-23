@@ -41,3 +41,33 @@ class ConsumerRoundRobinQueue(ChangesMixin):
         This method is used to clear the Round Robin queue (used when booting up the server).
         """
         cls.objects.all().delete()
+
+
+class RemoteSDKParsers(ChangesMixin):
+    """
+    This table is used to keep track of the parsers registered by the remote SDKs and the channel's group name to which
+    the parsing request should be sent.
+    """
+    layer_group_name = models.CharField(max_length=255)
+    parser_name = models.CharField(max_length=255)
+
+    @classmethod
+    def add(cls, layer_group_name, parser_name):
+        """
+        This method is used to add a new parser to the table.
+        """
+        cls.objects.create(layer_group_name=layer_group_name, parser_name=parser_name)
+
+    @classmethod
+    def remove(cls, layer_group_name):
+        """
+        This method is used to remove a parser from the table.
+        """
+        cls.objects.filter(layer_group_name=layer_group_name).delete()
+
+    @classmethod
+    def clear(cls):
+        """
+        This method is used to clear the table (used when booting up the server).
+        """
+        cls.objects.all().delete()

@@ -97,15 +97,15 @@ class ChatFAQSDK:
             self.producer(llm_actions, WSType.llm.value),
         ]
         if self.data_source_parsers:
-            setattr(self, f"ws_{WSType.parsing.value}", None)
+            setattr(self, f"ws_{WSType.parse.value}", None)
             parser_actions = {
                 key: value
                 for key, value in self.data_source_parsers.items()
             }
             parser_actions[MessageType.error.value] = self.error_callback
             coros_or_futures += [
-                self.consumer(WSType.parsing.value, on_connect=self.on_connect_parsing),
-                self.producer(parser_actions, WSType.parsing.value)
+                self.consumer(WSType.parse.value, on_connect=self.on_connect_parsing),
+                self.producer(parser_actions, WSType.parse.value)
             ]
 
         await asyncio.gather(
@@ -187,13 +187,14 @@ class ChatFAQSDK:
 
     async def on_connect_parsing(self):
         if self.data_source_parsers is not None:
-            logger.info(f"Registering Data Source Parsers {self.data_source_parsers.keys()}")
-            await getattr(self, f'ws_{WSType.parsing.value}').send(
+            parsers = list(self.data_source_parsers.keys())
+            logger.info(f"Registering Data Source Parsers {parsers}")
+            await getattr(self, f'ws_{WSType.parse.value}').send(
                 json.dumps(
                     {
-                        "type": MessageType.registry_parsers.value,
+                        "type": MessageType.register_parsers.value,
                         "data": {
-                            "data_source_parsers": self.data_source_parsers.keys(),
+                            "parsers": parsers,
                         },
                     }
                 )
