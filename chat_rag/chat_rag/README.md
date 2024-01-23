@@ -1,4 +1,4 @@
-The ChatFAQ/chat_rag folder contains the ChatFAQ Response And Guidance (RAG) code.
+The ChatFAQ/chat_rag folder contains the ChatFAQ Retriever Augmented Generation (RAG) code.
 
 In brief:
 
