@@ -1,14 +1,17 @@
-The ChatFAQ/chat_rag folder contains the ChatFAQ Retriever Augmented Generation (RAG) code.
+The ChatFAQ/chat_rag folder contains code related to the ChatFAQ system's chatbot models that implement Retrieval Augmented Generation (RAG).
 
-In brief:
+In short:
 
-- ChatFAQ uses RAG models for its chatbot responses
-- RAG stands for Response And Guidance
-- The code in this folder implements the RAG models
-- It contains the model code, training logic, inference functions
+- RAG is a technique that uses retrieved context to help condition text generation.
 
-So in summary, this folder holds the core AI/NLP logic that powers the chatbot responses. While not directly accessed by frontend code, it is crucial because it defines the conversational abilities at the heart of ChatFAQ.
+- The chat_rag folder likely contains the key model code and training logic.
 
-The RAG models are what enable natural language interactions with end users. So while separate, this codebase sits at the center of what makes ChatFAQ a functional conversational AI system.
+- This code powers the core chatbot conversational abilities.
 
-In just a few words, the purpose is to house the intelligence behind ChatFAQ's language understanding and dialogue capabilities.
+It defines how responses are generated based on context.
+
+While not directly accessed by the frontend code, the chat_rag intelligence is crucial to the central conversational functionality that the entire ChatFAQ system aims to provide.
+
+The chatbots are the main service offered, so this model code is highly relevant even though decoupled from other layers for flexibility.
+
+In summary, the chat_rag folder contains the artificial intelligence at the heart of the ChatFAQ project - enabling its core use case of conversational assistance in just a few words.
