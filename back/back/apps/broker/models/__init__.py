@@ -52,6 +52,17 @@ class RemoteSDKParsers(ChangesMixin):
     parser_name = models.CharField(max_length=255)
 
     @classmethod
+    def get_next_consumer_group_name(cls, parser_name):
+        """
+        This method is used to get the channel's group name to which the parsing request should be sent.
+        """
+        parser_consumer = cls.objects.filter(parser_name=parser_name).order_by("updated_date").first()
+        if parser_consumer:
+            parser_consumer.updated_date = timezone.now()
+            parser_consumer.save()
+            return parser_consumer.layer_group_name
+
+    @classmethod
     def add(cls, layer_group_name, parser_name):
         """
         This method is used to add a new parser to the table.

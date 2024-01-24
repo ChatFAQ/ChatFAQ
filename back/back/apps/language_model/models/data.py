@@ -78,23 +78,28 @@ class KnowledgeBase(ChangesMixin):
     original_pdf = models.FileField(blank=True, null=True)
     original_url = models.URLField(blank=True, null=True)
 
-    parser = models.ForeignKey(RemoteSDKParsers, on_delete=models.SET_NULL, null=True, blank=True)
+    parser = models.CharField(max_length=255, null=True, blank=True)
 
     def update_items_with_remote_parser(self):
         KnowledgeItem.objects.filter(
             knowledge_base=self).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.send)(
-            self.parser.layer_group_name,
-            {
-                "type": "send_data_source_to_parse",
-                "parser": self.parser.parser_name,
-                "payload": {
-                    "kb_id": self.pk,
-                    "data_source": self.original_csv or self.original_pdf or self.original_url
+        layer_name = RemoteSDKParsers.get_next_consumer_group_name(self.parser)
+        if layer_name:
+            async_to_sync(channel_layer.send)(
+                layer_name,
+                {
+                    "type": "send_data_source_to_parse",
+                    "parser": self.parser,
+                    "payload": {
+                        "kb_id": self.pk,
+                        "data_source": self.original_csv or self.original_pdf or self.original_url
+                    }
                 }
-            }
-        )
+            )
+        else:
+            logger.error(f"No parser available for {self.parser}")
+            raise Exception(f"No parser available for {self.parser}")
 
     def update_items_from_csv(self):
         csv_content = self.original_csv.read().decode("utf-8")
