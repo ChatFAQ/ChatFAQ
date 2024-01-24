@@ -1,20 +1,16 @@
-This is a brief explanation of the relevant files and folders in the ChatFAQ/cli/chatfaq_cli/helpers folder:
+The ChatFAQ/cli/chatfaq_cli/helpers folder contains Python helper/utility modules for the ChatFAQ command-line interface (CLI).
 
-- api.py: Contains helper functions for making API requests to the backend, such as authentication, getting models, submitting answers, etc. These abstract away the detail of making HTTP requests.
+Specifically, the init.py file inside the folder is important because it:
 
-- fsm.py: Contains functions related to Finite State Machines, such as registering a new FSM definition, getting an FSM, getting states and transitions, etc.
+- Allows the helpers folder to be treated as a package/module that can be imported
+- Often contains exports to make items in the package importable
+- Makes the helpers reusable across the CLI codebase
 
-- models.py: Helper functions for common NLP model operations, like loading a model, getting embeddings, generating text from embeddings, etc.
+So in summary:
 
-- util.py: Miscellaneous utility functions like logging, parsing YAML files, timing code blocks, etc.
+- The helpers folder contains reusable utility functions for the CLI
+- init.py enables the helpers folder to be imported as a module
+- This allows modular, organized code for CLI tasks
+- Even though not directly used, it helps organize the CLI code
 
-So in summary, these helper files:
-
-- Centralize common API, FSM and model operations in reusable functions
-- Abstract away HTTP request details
-- Provide a simple interface for CLI commands to interface with backend
-- Help reduce duplication of common tasks across CLI code
-
-While not directly used by frontend code, they enable crucial capabilities of the CLI like defining/modifying FSMs, interacting with models, etc. This allows administrators to manage the ChatFAQ system through the CLI interface.
-
-So in short, they make the CLI a useful tool for administration by implementing reusable backend/model APIs.
+While short, this shows the helpers are relevant because they help structure and organize the CLI functionality in a clear, reusable way. The init.py file plays an important role in making the helpers usable as a module.
