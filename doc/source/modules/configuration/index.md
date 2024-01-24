@@ -242,7 +242,6 @@ The prompt is the input that the LLM will use to generate the answer. This confi
 - **assistant_end**: The tag to indicate the end of the assistant output.
 - **n_contexts_to_use**: The maximum number of knowledge items that will be appear in the sources. Default: 3
 
-We recommend using the [ChatML guidelines](https://github.com/openai/openai-python/blob/main/chatml.md), an of course using LLMs trained using this format, like Llama-2. The example here is the prompt format used by [Llama-2](https://huggingface.co/blog/llama2#how-to-prompt-llama-2):
 
 In the system prefix you can use the following text behavior:
 ```
