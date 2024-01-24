@@ -4,8 +4,10 @@ from chatfaq_sdk.types import KnowledgeItem
 
 
 class DataSourceParser:
-    def parse(self, payload) -> Iterator[KnowledgeItem]:
+    def parse(self, data_source) -> Iterator[KnowledgeItem]:
         raise NotImplementedError()
 
-    def __call__(self, payload) -> Iterator[KnowledgeItem]:
-        return self.parse(payload)
+    def __call__(self, kb_id, data_source) -> Iterator[KnowledgeItem]:
+        for ki in self.parse(data_source):
+            ki.knowledge_base = kb_id
+            yield ki

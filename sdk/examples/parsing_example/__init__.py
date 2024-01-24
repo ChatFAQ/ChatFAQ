@@ -8,7 +8,7 @@ from examples.model_example.fsm_definition import fsm_definition
 
 class CustomDataSourceParser(DataSourceParser):
     # it reads the raw binary 'file' as a csv file
-    def parse(self, file) -> Iterator[KnowledgeItem]:
+    def parse(self, data_source):
         yield KnowledgeItem(
             title="title1",
             content="content1",

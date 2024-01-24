@@ -71,3 +71,6 @@ class RemoteSDKParsers(ChangesMixin):
         This method is used to clear the table (used when booting up the server).
         """
         cls.objects.all().delete()
+
+    def __str__(self):
+        return self.parser_name

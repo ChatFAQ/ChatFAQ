@@ -99,7 +99,7 @@ class ChatFAQSDK:
         if self.data_source_parsers:
             setattr(self, f"ws_{WSType.parse.value}", None)
             parser_actions = {
-                key: value
+                key: self.parsing_wrapper(value)
                 for key, value in self.data_source_parsers.items()
             }
             parser_actions[MessageType.error.value] = self.error_callback
@@ -333,3 +333,17 @@ class ChatFAQSDK:
         # check if is generator
         async for r in results:
             yield r + [RPCNodeType.action.value if isinstance(layer, Layer) else RPCNodeType.condition.value]
+
+    def parsing_wrapper(self, parser_func):
+        async def _parsing_wrapper(payload):
+            logger.info(f"[PARSE] Parsing ::: {payload}")
+            for ki in parser_func(payload["kb_id"], payload["data_source"]):
+                await getattr(self, f'ws_{WSType.parse.value}').send(
+                    json.dumps(
+                        {
+                            "type": MessageType.parser_result_ki.value,
+                            "data": ki.dict(),
+                        }
+                    )
+                )
+        return _parsing_wrapper

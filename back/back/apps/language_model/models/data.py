@@ -4,10 +4,15 @@ from logging import getLogger
 
 from django.db import models, transaction
 from django.apps import apps
+
+from back.apps.broker.models import RemoteSDKParsers
 from back.apps.language_model.tasks import parse_pdf_task, parse_url_task, generate_embeddings_task
 from back.common.models import ChangesMixin
 from back.apps.broker.models.message import Message
 from pgvector.django import VectorField
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 from back.utils.celery import recache_models
 
@@ -73,6 +78,24 @@ class KnowledgeBase(ChangesMixin):
     original_pdf = models.FileField(blank=True, null=True)
     original_url = models.URLField(blank=True, null=True)
 
+    parser = models.ForeignKey(RemoteSDKParsers, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def update_items_with_remote_parser(self):
+        KnowledgeItem.objects.filter(
+            knowledge_base=self).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.send)(
+            self.parser.layer_group_name,
+            {
+                "type": "send_data_source_to_parse",
+                "parser": self.parser.parser_name,
+                "payload": {
+                    "kb_id": self.pk,
+                    "data_source": self.original_csv or self.original_pdf or self.original_url
+                }
+            }
+        )
+
     def update_items_from_csv(self):
         csv_content = self.original_csv.read().decode("utf-8")
         csv_rows = csv.reader(StringIO(csv_content))
@@ -90,7 +113,7 @@ class KnowledgeBase(ChangesMixin):
             for row in csv_rows
         ]
 
-        KnowledgeItem.objects.filter(knowledge_base=self).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
+        KnowledgeItem.objects.filter(knowledge_base=self).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
         KnowledgeItem.objects.bulk_create(new_items)
         self.trigger_generate_embeddings()
 
@@ -106,7 +129,7 @@ class KnowledgeBase(ChangesMixin):
             generate_embeddings_task.delay(
                 list(self.knowledgeitem_set.values_list("pk", flat=True)),
                 rag_config.pk,
-                recache_models=(i==last_i),
+                recache_models=(i == last_i),
             )
 
     def to_csv(self):
@@ -115,18 +138,18 @@ class KnowledgeBase(ChangesMixin):
 
         fieldnames = ["title", "content", "url", "section", "role", "page_number"]
 
-        writer = csv.DictWriter(f, fieldnames=fieldnames,)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, )
         writer.writeheader()
 
         for item in items:
             row = {
-                    "title": item.title if item.title else None,
-                    "content": item.content,
-                    "url": item.url if item.url else None,
-                    "section": item.section if item.section else None,
-                    "role": item.role if item.role else None,
-                    "page_number": item.page_number if item.page_number else None,
-                }
+                "title": item.title if item.title else None,
+                "content": item.content,
+                "url": item.url if item.url else None,
+                "section": item.section if item.section else None,
+                "role": item.role if item.role else None,
+                "page_number": item.page_number if item.page_number else None,
+            }
             writer.writerow(row)
 
         return f.getvalue()
@@ -159,9 +182,12 @@ class KnowledgeBase(ChangesMixin):
             return True
 
         orig = KnowledgeBase.objects.get(pk=self.pk)
-        return orig.original_csv != self.original_csv or orig.original_pdf != self.original_pdf
+        return orig.original_csv != self.original_csv or orig.original_pdf != self.original_pdf or self.parser != orig.parser
 
     def update_items_from_file(self):
+        if self.parser:
+            logger.info("Updating items from remote SDK parser")
+            self.update_items_with_remote_parser()
         if self.original_csv:
             logger.info("Updating items from CSV")
             self.update_items_from_csv()
@@ -239,7 +265,7 @@ class KnowledgeItem(ChangesMixin):
             generate_embeddings_task.delay(
                 [self.pk],
                 rag_config.pk,
-                recache_models=(i==last_i),
+                recache_models=(i == last_i),
             )
 
 
@@ -332,4 +358,3 @@ class MessageKnowledgeItem(ChangesMixin):
     knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE)
     similarity = models.FloatField(null=True, blank=True)
     valid = models.BooleanField(default=False)
-
