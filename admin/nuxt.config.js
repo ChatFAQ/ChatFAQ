@@ -1,5 +1,5 @@
-import {envManager, defineModelWConfig} from "@model-w/preset-nuxt3";
-import {defu} from "defu";
+import { envManager, defineModelWConfig } from "@model-w/preset-nuxt3";
+import { defu } from "defu";
 
 export default envManager((env) => {
     const config = defineModelWConfig(env, {
@@ -7,14 +7,14 @@ export default envManager((env) => {
         head: {
             title: "ChatFAQ Admin",
             meta: [
-                {charset: "utf-8"},
+                { charset: "utf-8" },
                 {
                     name: "viewport",
                     content: "width=device-width, initial-scale=1",
                 },
-                {name: "format-detection", content: "telephone=no"},
+                { name: "format-detection", content: "telephone=no" },
             ],
-        }
+        },
     });
     const viteNuxtConfig = defineNuxtConfig({
         ssr: true,
@@ -37,8 +37,10 @@ export default envManager((env) => {
         },
         // app: { baseURL: process.env.BASE_URL || "/" },
         runtimeConfig: {
-            public: {},
-        }
+            public: {
+                chatfaqWS: (process.env.NUXT_PUBLIC_CHATFAQ_WS || process.env.CHATFAQ_WS) ?? "",
+            },
+        },
     });
 
     const out = defu(config, viteNuxtConfig);
