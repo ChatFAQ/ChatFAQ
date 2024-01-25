@@ -13,6 +13,7 @@ def make_chatfaq_sdk(
     fsm_name: str,
     fsm_definition: FSMDefinition,
     chatfaq_ws: str = os.getenv("CHATFAQ_BACKEND_WS"),
+    chatfaq_http: str = os.getenv("CHATFAQ_BACKEND_HTTP"),
     token: str = os.getenv("CHATFAQ_TOKEN"),
     data_source_parsers: dict[str, DataSourceParser] = {},
 ):
@@ -33,6 +34,7 @@ def make_chatfaq_sdk(
     """
     sdk = ChatFAQSDK(
         chatfaq_ws=chatfaq_ws,
+        chatfaq_http=chatfaq_http,
         token=token,
         fsm_name=fsm_name,
         fsm_definition=fsm_definition,

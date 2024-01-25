@@ -1,4 +1,5 @@
 import uuid
+import httpx
 
 import asyncio
 import copy
@@ -34,6 +35,7 @@ class ChatFAQSDK:
     def __init__(
         self,
         chatfaq_ws: str,
+        chatfaq_http: str,
         token: str,
         fsm_name: Optional[Union[int, str]],
         fsm_definition: Optional[FSMDefinition] = None,
@@ -59,6 +61,7 @@ class ChatFAQSDK:
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
         self.chatfaq_ws = chatfaq_ws
+        self.chatfaq_http = chatfaq_http
         self.token = token
         self.fsm_name = fsm_name
         self.fsm_def = fsm_definition
@@ -338,14 +341,14 @@ class ChatFAQSDK:
         async def _parsing_wrapper(payload):
             logger.info(f"[PARSE] Parsing ::: {payload}")
             for ki in parser_func(payload["kb_id"], payload["data_source"]):
-                await getattr(self, f'ws_{WSType.parse.value}').send(
-                    json.dumps(
-                        {
-                            "type": MessageType.parser_result_ki.value,
-                            "data": ki.dict(),
-                        }
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/"),
+                        json=ki.dict(),
+                        headers={"Authorization": f"Token {self.token}"},
                     )
-                )
+                    response.raise_for_status()
+
             if payload["task_id"]:
                 await getattr(self, f'ws_{WSType.parse.value}').send(
                     json.dumps(
