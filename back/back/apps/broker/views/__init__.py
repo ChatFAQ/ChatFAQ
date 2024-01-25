@@ -5,9 +5,9 @@ from zipfile import ZipFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from rest_framework import generics, mixins, viewsets
-from rest_framework.decorators import action, permission_classes
+from rest_framework.decorators import action, permission_classes, authentication_classes
 from rest_framework.generics import CreateAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from ..models.message import AdminReview, AgentType, Conversation, Message, UserFeedback
 from ..serializers import (
@@ -28,7 +28,13 @@ class ConversationAPIViewSet(
     queryset = Conversation.objects.all()
     serializer_class = ConversationMessagesSerializer
 
-    @action(methods=("get",), detail=False)
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            return [AllowAny(), ]
+        return super(ConversationAPIViewSet, self).get_permissions()
+
+
+    @action(methods=("get",), detail=False, authentication_classes=[], permission_classes=[AllowAny])
     def from_sender(self, request, *args, **kwargs):
         if not request.query_params.get("sender"):
             return JsonResponse(
