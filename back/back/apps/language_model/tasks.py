@@ -12,6 +12,7 @@ from chat_rag.intent_detection import clusterize_text, generate_intents
 from chat_rag.data.splitters import get_splitter
 from chat_rag.data.parsers import parse_pdf
 from scrapy.utils.project import get_project_settings
+from django.db import transaction
 from django.apps import apps
 from back.config.celery import app
 from back.utils import is_celery_worker
@@ -20,6 +21,7 @@ from scrapy.crawler import CrawlerRunner
 from crochet import setup
 import numpy as np
 import os
+import json
 import torch
 
 from back.utils.celery import recache_models as recache_models_utils
@@ -417,6 +419,8 @@ def parse_pdf_task(pdf_file_pk):
     logger.info(f"PDF file pk: {pdf_file_pk}")
 
     KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
+    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+    KnowledgeItemImage = apps.get_model("language_model", "KnowledgeItemImage")
     kb = KnowledgeBase.objects.get(pk=pdf_file_pk)
     pdf_file = kb.original_pdf.read()
     strategy = kb.strategy
@@ -433,28 +437,41 @@ def parse_pdf_task(pdf_file_pk):
     logger.info(f"Chunk size: {chunk_size}")
     logger.info(f"Chunk overlap: {chunk_overlap}")
 
-    k_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
+    parsed_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
 
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+    with transaction.atomic():
 
-    new_items = [
-        KnowledgeItem(
-            knowledge_base=kb,
-            title=k_item.title,
-            content=k_item.content,
-            url=k_item.url,
-            section=k_item.section,
-            page_number=k_item.page_number,
-        )
-        for k_item in k_items
-    ]
+        for item in parsed_items:
+            # Create and save the KnowledgeItem instance
+            knowledge_item = KnowledgeItem(
+                knowledge_base=kb,
+                title=item.title,
+                content=item.content, # alnaf [[Image 0]] a;mda [[Image 2]]
+                url=item.url,
+                section=item.section,
+                page_number=item.page_number,
+                metadata=item.metadata
+            )
+            knowledge_item.save()
 
-    logger.info(f"Number of new items: {len(new_items)}")
+            # For each image in the item, create and save a KnowledgeItemImage instance
+            if item.images:
+                for index, image in item.images.items():
+                    image_instance = KnowledgeItemImage(
+                        image_base64=image.image_base64,
+                        knowledge_item=knowledge_item,
+                        image_caption=image.image_caption,
+                    )
+                    image_instance.save()
+                    
+                    # If the image does not have a caption, use a default caption
+                    image_caption = image.image_caption if image.image_caption else f'Image {index}'
 
-    KnowledgeItem.objects.filter(
-        knowledge_base=pdf_file_pk
-    ).delete()  # TODO: give the option to reset the knowledge_base or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finisges
-    KnowledgeItem.objects.bulk_create(new_items)
+                    # Replace the placeholder image with the actual image markdown
+                    knowledge_item.content = knowledge_item.content.replace(f'[[Image {index}]]', f'![{image_caption}]({image_instance.image_file.name})')
+                    knowledge_item.save()
+
+
     kb.trigger_generate_embeddings()
 
 
