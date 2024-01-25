@@ -4,14 +4,13 @@ from pgvector.django import MaxInnerProduct
 from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
 
+from .utils import extract_images_urls
+
+
 class PGVectorRetriever:
     """Class for retrieving the context for a given query using PGVector"""
 
-    def __init__(
-        self,
-        embedding_model: BaseModel,
-        rag_config: RAGConfig
-    ):
+    def __init__(self, embedding_model: BaseModel, rag_config: RAGConfig):
         """
         Parameters
         ----------
@@ -23,12 +22,7 @@ class PGVectorRetriever:
         self.embedding_model = embedding_model
         self.rag_config = rag_config
 
-    def retrieve(
-        self,
-        queries: List[str],
-        top_k: int = 5,
-        threshold: float = None
-    ):
+    def retrieve(self, queries: List[str], top_k: int = 5, threshold: float = None):
         """
         Returns the context for the queries.
         Parameters
@@ -41,37 +35,45 @@ class PGVectorRetriever:
             Threshold for filtering the context, by default None.
         """
 
-        queries_embeddings = self.embedding_model.build_embeddings(queries, prefix='query: ', disable_progress_bar=True ) # specific prefix for e5 models queries
+        queries_embeddings = self.embedding_model.build_embeddings(
+            queries, prefix="query: ", disable_progress_bar=True
+        )  # specific prefix for e5 models queries
 
         results = []
         for query_embedding in queries_embeddings:
-            items_for_query = (
-                KnowledgeItem.objects.filter(embedding__rag_config=self.rag_config)
-                .annotate(similarity=MaxInnerProduct('embedding__embedding', query_embedding))
+            items_for_query = KnowledgeItem.objects.filter(
+                embedding__rag_config=self.rag_config
+            ).annotate(
+                similarity=MaxInnerProduct("embedding__embedding", query_embedding)
             )
 
             if threshold is not None:
-                items_for_query = items_for_query.filter(similarity__lt=-threshold) # for some reason, the similarity is negative
+                items_for_query = items_for_query.filter(
+                    similarity__lt=-threshold
+                )  # for some reason, the similarity is negative
 
-            items_for_query = items_for_query.order_by('similarity')
+            items_for_query = items_for_query.order_by("similarity")
 
             if top_k != -1:
                 items_for_query = items_for_query[:top_k]
 
             query_results = [
                 {
-                    'knowledge_item_id': item.id,
-                    'title': item.title,
-                    'content': item.content,
-                    'url': item.url,
-                    'section': item.section,
-                    'role': item.role,
-                    'page_number': str(item.page_number) if item.page_number else None,
-                    'similarity': -item.similarity,
+                    "knowledge_item_id": item.id,
+                    "title": item.title,
+                    "content": item.content,
+                    "url": item.url,
+                    "section": item.section,
+                    "role": item.role,
+                    "page_number": str(item.page_number) if item.page_number else None,
+                    "similarity": -item.similarity,
+                    "image_urls": extract_images_urls(item.content)
+                    if item.content
+                    else {},
                 }
                 for item in items_for_query
             ]
-                
+
             results.append(query_results)
-        
+
         return results
