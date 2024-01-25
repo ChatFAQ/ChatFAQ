@@ -21,7 +21,7 @@ from .models.rag_pipeline import (
     GenerationConfig,
     RetrieverConfig,
 )
-from .serializers.data import KnowledgeBaseForm
+from .forms import KnowledgeBaseForm
 
 
 class PromptConfigAdmin(SimpleHistoryAdmin):
