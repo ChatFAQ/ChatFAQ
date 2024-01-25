@@ -13,17 +13,17 @@ class CustomDataSourceParser(DataSourceParser):
             title="title1",
             content="content1",
             url="http://www.exaple.com/1"
-        )
+        ), []
         yield KnowledgeItem(
             title="title2",
             content="content2",
             url="http://www.exaple.com/2"
-        )
+        ), []
         yield KnowledgeItem(
             title="title3",
             content="content3",
             url="http://www.exaple.com/3"
-        )
+        ), []
 
 
 def main():

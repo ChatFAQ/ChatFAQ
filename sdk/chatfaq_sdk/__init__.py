@@ -340,7 +340,7 @@ class ChatFAQSDK:
     def parsing_wrapper(self, parser_func):
         async def _parsing_wrapper(payload):
             logger.info(f"[PARSE] Parsing ::: {payload}")
-            for ki in parser_func(payload["kb_id"], payload["data_source"]):
+            for ki, ki_images in parser_func(payload["kb_id"], payload["data_source"]):
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/"),
@@ -348,6 +348,16 @@ class ChatFAQSDK:
                         headers={"Authorization": f"Token {self.token}"},
                     )
                     response.raise_for_status()
+                    ki = response.json()
+                    if ki_images:
+                        for ki_image in ki_images:
+                            ki_image.knowledge_item = ki["id"]
+                            response = await client.post(
+                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items-images/"),
+                                data=ki_image.dict(),
+                                headers={"Authorization": f"Token {self.token}"},
+                            )
+                            response.raise_for_status()
 
             if payload["task_id"]:
                 await getattr(self, f'ws_{WSType.parse.value}').send(
