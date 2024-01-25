@@ -22,7 +22,7 @@ class PromptConfigForm(ModelForm):
 
 def get_parser_choices():
     choices = RemoteSDKParsers.objects.all().values_list("parser_name", flat=True).distinct()
-    return [(choice, choice) for choice in choices]
+    return [(None, "")] + [(choice, choice) for choice in choices]
 
 
 class KnowledgeBaseForm(ModelForm):

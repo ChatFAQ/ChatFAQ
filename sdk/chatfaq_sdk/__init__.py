@@ -346,4 +346,13 @@ class ChatFAQSDK:
                         }
                     )
                 )
+            if payload["task_id"]:
+                await getattr(self, f'ws_{WSType.parse.value}').send(
+                    json.dumps(
+                        {
+                            "type": MessageType.parser_finished.value,
+                            "data": {"task_id": payload["task_id"]},
+                        }
+                    )
+                )
         return _parsing_wrapper

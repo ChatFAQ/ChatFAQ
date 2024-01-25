@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from celery.signals import before_task_publish, after_task_publish, task_prerun, task_postrun, task_retry, task_success, task_failure, task_internal_error, task_received, task_revoked, task_unknown, task_rejected
+from django_celery_results.models import TaskResult
 
 from logging import getLogger
 
@@ -38,6 +39,7 @@ def on_rag_config_change(instance, *args, **kwargs):
 @task_revoked.connect
 @task_unknown.connect
 @task_rejected.connect
+@receiver(post_save, sender=TaskResult)
 def on_celery_task_signal(sender=None, headers=None, body=None, **kwargs):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)("tasks", {'type': 'send.data'})

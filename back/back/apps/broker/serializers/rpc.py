@@ -70,6 +70,10 @@ class RegisterParsersSerializer(serializers.Serializer):
     parsers = serializers.ListSerializer(child=serializers.CharField())
 
 
+class ParsersFinishSerializer(serializers.Serializer):
+    task_id = serializers.CharField()
+
+
 class RPCFSMDefSerializer(serializers.Serializer):
     """
     Used for when a RPC Server push a FSM definition

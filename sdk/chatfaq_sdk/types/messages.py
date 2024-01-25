@@ -10,6 +10,7 @@ class MessageType(Enum):
     error = "error"
     register_parsers = "register_parsers"
     parser_result_ki = "parser_result_ki"
+    parser_finished = "parser_finished"
 
 
 class RPCNodeType(Enum):

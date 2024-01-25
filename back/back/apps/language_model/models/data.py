@@ -1,6 +1,7 @@
 import csv
 from io import StringIO
 from logging import getLogger
+from uuid import uuid4
 
 from django.db import models, transaction
 from django.apps import apps
@@ -13,6 +14,7 @@ from pgvector.django import VectorField
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django_celery_results.models import TaskResult
 
 from back.utils.celery import recache_models
 
@@ -86,6 +88,11 @@ class KnowledgeBase(ChangesMixin):
         channel_layer = get_channel_layer()
         layer_name = RemoteSDKParsers.get_next_consumer_group_name(self.parser)
         if layer_name:
+            task = TaskResult(
+                task_id=str(uuid4()),
+                task_name=f"{self.parser}_parser",
+            )
+            task.save()
             async_to_sync(channel_layer.send)(
                 layer_name,
                 {
@@ -93,6 +100,7 @@ class KnowledgeBase(ChangesMixin):
                     "parser": self.parser,
                     "payload": {
                         "kb_id": self.pk,
+                        "task_id": task.task_id,
                         "data_source": self.original_csv or self.original_pdf or self.original_url
                     }
                 }

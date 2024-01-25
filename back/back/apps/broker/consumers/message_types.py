@@ -13,6 +13,7 @@ class RPCMessageType(Enum):
 class ParseMessageType(Enum):
     register_parsers = "register_parsers"
     parser_result_ki = "parser_result_ki"
+    parser_finished = "parser_finished"
     error = "error"
 
 
