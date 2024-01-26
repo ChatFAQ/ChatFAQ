@@ -26,7 +26,7 @@ class RAG:
 
         self.retriever = retriever
         self.model = llm_model
-        self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
+        # self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
         self.lang = lang
 
 
@@ -41,7 +41,7 @@ class RAG:
         """
         logger.info("Retrieving new contexts")
         contexts = self.retriever.retrieve([message], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
-        contexts = self.cross_encoder(message, contexts) # filter contexts
+        # contexts = self.cross_encoder(message, contexts) # filter contexts
         if len(contexts) == 0:
             return [], []
 

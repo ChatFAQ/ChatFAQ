@@ -4167,13 +4167,13 @@ files = [
 
 [[package]]
 name = "ragatouille"
-version = "0.0.5a2"
+version = "0.0.5b1"
 description = "Library to facilitate the use of state-of-the-art retrieval models in common RAG contexts."
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "ragatouille-0.0.5a2-py3-none-any.whl", hash = "sha256:5038395fc1fccef975532be5e036d928087cc2aa1598073c672b8af010cde9f1"},
-    {file = "ragatouille-0.0.5a2.tar.gz", hash = "sha256:53384e66f2f4b10bf592fa9e8ce7984cfc78f6b24387eab0ade3ed1a9e0fff6a"},
+    {file = "ragatouille-0.0.5b1-py3-none-any.whl", hash = "sha256:b6a0ebc0672655e52700d4efd3c4ed5403c6eafda4813643076025f0251c05ab"},
+    {file = "ragatouille-0.0.5b1.tar.gz", hash = "sha256:07244a057fbfdea7cc4bd184d0f59753c806fdd74cb87fc000618baae278d017"},
 ]
 
 [package.dependencies]
@@ -6538,4 +6538,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "11076ade78dd3ef0cd46b127f60aee72a056fdf8873b7004f29f70c26f3f3d60"
+content-hash = "fa3b77e645f002ac23ed291a436d6b333068d40a0c017d023d3023f0e2d47b58"

@@ -30,5 +30,7 @@ def recache_models(log_caller=None):
     from back.apps.language_model.tasks import llm_query_task
 
     worker_queues = ensure_worker_queues()
+    if len(worker_queues) == 0:
+        print("No workers found")
     for worker_queue in worker_queues:
         llm_query_task.apply_async(queue=worker_queue, kwargs={"recache_models": True, "log_caller": log_caller})

@@ -116,7 +116,7 @@ class RAGCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
-        from back.apps.language_model.retriever_clients import PGVectorRetriever
+        from back.apps.language_model.retriever_clients import ColBERTRetriever
 
         logger.info("Preloading models...")
         RAGConfig = apps.get_model("language_model", "RAGConfig")
@@ -133,18 +133,7 @@ class RAGCacheOnWorkerTask(Task):
                 f"and retriever device: {rag_conf.retriever_config.device}"
             )
 
-            hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
-
-            e5_model = E5Model(
-                model_name=rag_conf.retriever_config.model_name,
-                use_cpu=rag_conf.retriever_config.device == "cpu",
-                huggingface_key=hugginface_key,
-            )
-
-            retriever = PGVectorRetriever(
-                embedding_model=e5_model,
-                rag_config=rag_conf,
-            )
+            retriever = ColBERTRetriever.from_index(rag_conf)
 
             llm_model = get_model(
                 llm_name=rag_conf.llm_config.llm_name,
@@ -378,6 +367,32 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     logger.info(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
         recache_models_utils("generate_embeddings_task")
+
+
+@app.task()
+def build_index(rag_config_id, recache_models=False, caller: str = None):
+    """
+    Build the index for a knowledge base.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+    from back.apps.language_model.retriever_clients import ColBERTRetriever
+
+    logger.info(f"Log caller: {caller}")
+
+    RAGConfig = apps.get_model("language_model", "RAGConfig")
+    rag_config = RAGConfig.enabled_objects.get(pk=rag_config_id)
+    colbert_name = rag_config.retriever_config.model_name
+
+    logger.info(f"Building index for knowledge base: {rag_config.knowledge_base.name}")
+
+    index_path = ColBERTRetriever.index(rag_config, colbert_name=colbert_name)
+    logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name} at {index_path}")
+    if recache_models:
+        recache_models_utils("build_index")
+
 
 @app.task()
 def parse_url_task(knowledge_base_id, url):

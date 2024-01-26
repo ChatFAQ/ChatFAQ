@@ -14,6 +14,7 @@ from back.apps.language_model.tasks import (
     parse_pdf_task,
     parse_url_task,
     generate_embeddings_task,
+    build_index,
 )
 from back.common.models import ChangesMixin
 from back.apps.broker.models.message import Message
@@ -159,12 +160,13 @@ class KnowledgeBase(ChangesMixin):
         last_i = rag_configs.count() - 1
         for i, rag_config in enumerate(rag_configs.all()):
             # remove all existing embeddings for this rag config
-            Embedding.objects.filter(rag_config=rag_config).delete()
-            generate_embeddings_task.delay(
-                list(self.knowledgeitem_set.values_list("pk", flat=True)),
-                rag_config.pk,
-                recache_models=(i == last_i),
-            )
+            # Embedding.objects.filter(rag_config=rag_config).delete()
+            # generate_embeddings_task.delay(
+            #     list(self.knowledgeitem_set.values_list("pk", flat=True)),
+            #     rag_config.pk,
+            #     recache_models=(i == last_i),
+            # )
+            build_index.delay(rag_config.pk, recache_models=(i == last_i), caller='trigger_generate_embeddings - KnowledgeBase')
 
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
@@ -306,14 +308,15 @@ class KnowledgeItem(ChangesMixin):
 
         for i, rag_config in enumerate(rag_configs.all()):
             # remove the embedding for this item for this rag config
-            Embedding.objects.filter(
-                rag_config=rag_config, knowledge_item=self
-            ).delete()
-            generate_embeddings_task.delay(
-                [self.pk],
-                rag_config.pk,
-                recache_models=(i == last_i),
-            )
+            # Embedding.objects.filter(
+            #     rag_config=rag_config, knowledge_item=self
+            # ).delete()
+            # generate_embeddings_task.delay(
+            #     [self.pk],
+            #     rag_config.pk,
+            #     recache_models=(i == last_i),
+            # )
+            build_index.delay(rag_config.pk, recache_models=(i == last_i), caller='trigger_generate_embeddings - KnowledgeItem')
 
 
 def delete_knowledge_items(knowledge_item_ids):
