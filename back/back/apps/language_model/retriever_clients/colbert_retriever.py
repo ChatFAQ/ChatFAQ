@@ -41,11 +41,10 @@ class ColBERTRetriever:
         index_path = os.path.join(
             "indexes", "colbert", "indexes", f"{rag_config.name}_index"
         )
-
         instance.retriever = Retriever.from_index(index_path=index_path)
 
         # Test query for loading the searcher for the first time
-        instance.retriever.search('test query')
+        instance.retriever.search("test query")
 
         return instance
 
@@ -62,12 +61,14 @@ class ColBERTRetriever:
 
         queries_results = self.retriever.search(queries, k=top_k)
 
+        # If only one query was passed, the result is not a list
+        queries_results = [queries_results] if len(queries) == 1 else queries_results
+
         results = []
         for query_results in queries_results:
             for result in query_results:
-                result["score"] = (
-                    result["score"] / 32.0
-                )  # Normalize scores to be between 0 and 1
+                result["score"] = result["score"] / 32.0 # Normalize scores to be between 0 and 1
+                
 
             # Filter out results not relevant to the query
             query_results = clean_relevant_references(query_results)

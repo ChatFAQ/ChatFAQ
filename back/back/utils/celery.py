@@ -6,9 +6,7 @@ def ensure_worker_queues():
     i = c.inspect()
     active_queues_info = i.active_queues()
 
-    if active_queues_info is None:
-        # Handle the case where no queue information is returned
-        return []
+    active_queues_info = [] if active_queues_info is None else active_queues_info
 
     active_queues = set()
     for key in active_queues_info:
