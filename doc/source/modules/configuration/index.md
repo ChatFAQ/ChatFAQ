@@ -55,7 +55,7 @@ Next we list the different properties that a of knowledge bases has.
 
 <b> PDF and URL parsing options</b>
 
-- **strategy**: The strategy to use to parse the PDF files. Can be `auto`, `fast`, `ocr` or `high_res`. Default: `fast`.
+- **strategy**: The strategy for parsing PDF files using [unstructured.io](https://github.com/Unstructured-IO/unstructured-api), which is a powerful and versatile library for extracting information from unstructured data sources, can be set to `auto`, `fast`, `ocr_only`, or `high_res`, with the default being `fast`. For more detailed information and documentation on these strategies and their applications, you can visit the following [link](https://github.com/Unstructured-IO/unstructured-api?tab=readme-ov-file#strategies).
   - `auto` : It will determine when a page can be extracted using `fast` or `ocr_only mode`, otherwise it will fall back to `hi_res`
   - `ocr_only` : This strategy runs the document through Tesseract for OCR (Optical Character Recognition).
   - `high_res`: It is the better choice for PDFs that may have text within embedded images, or for achieving greater precision of element          types in the response JSON. Please be aware that, as of writing, `hi_res` requests may take 20 times longer to process compared to         the `fast` option.
