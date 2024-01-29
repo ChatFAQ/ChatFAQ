@@ -350,11 +350,22 @@ class ChatFAQSDK:
                     response.raise_for_status()
                     ki = response.json()
                     if ki_images:
-                        for ki_image in ki_images:
+                        for index, ki_image in enumerate(ki_images):
                             ki_image.knowledge_item = ki["id"]
                             response = await client.post(
-                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items-images/"),
+                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-item-images/"),
                                 data=ki_image.dict(),
+                                files=ki_image.files(),
+                                headers={"Authorization": f"Token {self.token}"},
+                            )
+                            response.raise_for_status()
+                            ki_image = response.json()
+                            ki["content"] = ki["content"].replace(
+                                f"[[Image {index}]]", f"![{ki_image.get('image_caption') or ki_image['image_file_name']}]({ki_image['image_file_name']})"
+                            )
+                            response = await client.patch(
+                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/{ki['id']}/"),
+                                json=ki,
                                 headers={"Authorization": f"Token {self.token}"},
                             )
                             response.raise_for_status()

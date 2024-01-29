@@ -20,32 +20,23 @@ class KnowledgeItem:
 
 
 @dataclass
-class Image:
-    """
-    An image contained in a KnowledgeItem.
-    """
-    file_name: str
-    content: bytes
-
-    dict = asdict
-
-
-@dataclass
 class KnowledgeItemImage:
     """
     An image contained in a KnowledgeItem.
     """
 
-    image_file: Image
-    knowledge_item: str
+    image_file: bytes
+    knowledge_item: str = None
     image_caption: Optional[str] = None
 
     def dict(self):
         return {
-            "image_file": (self.image_file.file_name, self.image_file.content),
             "knowledge_item": self.knowledge_item,
             "image_caption": self.image_caption,
         }
+
+    def files(self):
+        return {"image_file": self.image_file}
 
 
 class WSType(Enum):
