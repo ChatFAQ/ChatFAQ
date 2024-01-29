@@ -315,6 +315,18 @@ class KnowledgeItem(ChangesMixin):
                 recache_models=(i == last_i),
             )
 
+    def to_retrieve_context(self):
+        return {
+            "knowledge_item_id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "url": self.url,
+            "section": self.section,
+            "role": self.role,
+            "page_number": str(self.page_number) if self.page_number else None,
+            "image_urls": {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
+        }
+
 
 def delete_knowledge_items(knowledge_item_ids):
     # Custom batch delete function for KnowledgeItem that recaches the models once the batch delete is done
@@ -374,7 +386,7 @@ class KnowledgeItemImage(models.Model):
     A model representing an image contained in a KnowledgeItem.
     """
 
-    image_file = models.FileField(upload_to=upload_to_uuid, blank=True)
+    image_file = models.ImageField(upload_to=upload_to_uuid)
     image_caption = models.TextField(blank=True, null=True)
     knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE)
 

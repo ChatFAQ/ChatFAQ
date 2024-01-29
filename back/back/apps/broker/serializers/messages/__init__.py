@@ -104,6 +104,7 @@ class ReferenceKi(serializers.Serializer):
     knowledge_item_id = serializers.CharField(required=True)
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    image_urls = serializers.DictField(required=False, allow_null=True, allow_empty=True)
 
 
 class Reference(serializers.Serializer):

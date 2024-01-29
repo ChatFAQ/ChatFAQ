@@ -1,7 +1,11 @@
 <template>
     <div>
         <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
-        <span class="reference-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
+        <span class="reference-image-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }" v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
+    </div>
+    <div class="reference-image-wrapper" v-if="getMarkedDownImages().length">
+        <div class="reference-image" v-for="(img, index) in getMarkedDownImages()" :style="{ 'background-image': 'url(' + imageUrls[img.file_name] + ')' }">
+        </div>
     </div>
 </template>
 
@@ -15,11 +19,38 @@ const props = defineProps(["data", "isLast"]);
 const hightlight_light = "#4630751a"
 const hightlight_dark = "#1A0438"
 
+function getMarkedDownImages() {
+    const images = props.data.payload.model_response.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
+    if (images) {
+        return images.map((image) => {
+            const imageRegex = /!\[([^\]]+)\][ \n]*\(([^\)]+)\)/;
+            const imageMatch = image.match(imageRegex);
+            return {
+                alt: imageMatch[1],
+                file_name: imageMatch[2],
+            };
+        });
+    }
+    return [];
+}
+function replaceMarkedDownImagesByReferences() {
+    const images = props.data.payload.model_response.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
+    let res = props.data.payload.model_response;
+    if (images) {
+        images.forEach((image, index) => {
+            res = res.replace(image, `<span class="reference-index" :class="{ 'dark-mode': store.darkMode }">${index + 1}</span>`);
+        });
+    }
+    return res;
+}
+
 const markedDown = computed(() => {
+    let res = props.data.payload.model_response;
+    res = replaceMarkedDownImagesByReferences(res)
     const hightlight = store.darkMode ? hightlight_dark : hightlight_light
     // regex for detecting and represent markdown links:
     const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
-    let res = props.data.payload.model_response.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
+    res = res.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
     // regex for detecting and represent markdown lists:
     const listRegex = /(?:^|\n)(?:\*|\-|\d+\.)\s/g;
     res = res.replace(listRegex, '<br/>- ');
@@ -37,6 +68,17 @@ const markedDown = computed(() => {
 
     return res
 });
+
+const imageUrls = computed(() => {
+    const res = {}
+    if (!props.data.payload.references.knowledge_items)
+        return res
+
+    props.data.payload.references.knowledge_items.forEach(item => {
+        Object.assign(res, item.image_urls)
+    })
+    return res
+})
 
 </script>
 <style lang="scss">
@@ -72,8 +114,30 @@ const markedDown = computed(() => {
     color: $chatfaq-color-chatMessageReference-text-light;
     background: $chatfaq-color-chatMessageReference-background-light;
     &.dark-mode {
-        background: $chatfaq-color-chatMessageReference-text-dark;
-        color: $chatfaq-color-chatMessageReference-background-dark;
+        color: $chatfaq-color-chatMessageReference-text-light;
+        background: $chatfaq-color-chatMessageReference-background-light;
+    }
+}
+.reference-image-index {
+    margin-right: 2px;
+    font-size: 8px;
+    padding: 0px 3px 0px 3px;
+    border-radius: 2px;
+    color: $chatfaq-color-primary-200;
+    background: $chatfaq-color-primary-500;
+    &.dark-mode {
+        color: $chatfaq-color-primary-200;
+        background: $chatfaq-color-primary-500;
+    }
+}
+.reference-image-wrapper {
+    display: flex;
+    flex-direction: row;
+
+    .reference-image {
+        width: 123px;
+        height: 80px;
+        border-radius: 6px;
     }
 }
 </style>

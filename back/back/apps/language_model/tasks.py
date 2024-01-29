@@ -296,7 +296,10 @@ def llm_query_task(
         lm_msg_id,
         channel_layer,
         chanel_name,
-        references={"knowledge_base_id": rag_conf.knowledge_base.pk, "knowledge_items": reference_kis},
+        references={
+            "knowledge_base_id": rag_conf.knowledge_base.pk,
+            "knowledge_items": reference_kis
+        },
         final=True,
     )
 
@@ -463,7 +466,7 @@ def parse_pdf_task(pdf_file_pk):
                         image_caption=image.image_caption,
                     )
                     image_instance.save()
-                    
+
                     # If the image does not have a caption, use a default caption
                     image_caption = image.image_caption if image.image_caption else f'Image {index}'
 

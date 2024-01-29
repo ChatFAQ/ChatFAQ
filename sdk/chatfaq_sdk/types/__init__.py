@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 from dataclasses import dataclass, asdict
 from enum import Enum
 
@@ -25,7 +25,7 @@ class KnowledgeItemImage:
     An image contained in a KnowledgeItem.
     """
 
-    image_file: bytes
+    image_file: Tuple[str, bytes]
     knowledge_item: str = None
     image_caption: Optional[str] = None
 
