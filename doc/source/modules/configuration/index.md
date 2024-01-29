@@ -55,11 +55,11 @@ Next we list the different properties that a of knowledge bases has.
 
 <b> PDF and URL parsing options</b>
 
-- **strategy**: The strategy to use to parse the PDF files. Can be 'auto', 'fast', 'ocr' or 'high_res'. Default: 'fast'.
-  - 'auto' : It will determine when a page can be extracted using 'fast' or 'ocr_only mode', otherwise it will fall back to 'hi_res'
-  - 'ocr_only' : This strategy runs the document through Tesseract for OCR (Optical Character Recognition).
-  - 'high_res': It is the better choice for PDFs that may have text within embedded images, or for achieving greater precision of element          types in the response JSON. Please be aware that, as of writing, 'hi_res' requests may take 20 times longer to process compared to         the 'fast' option.
-  - 'fast': is the default strategy and works well for documents that do not have text embedded in images.
+- **strategy**: The strategy to use to parse the PDF files. Can be `auto', `fast`, `ocr` or `high_res`. Default: `fast`.
+  - `auto` : It will determine when a page can be extracted using `fast` or `ocr_only mode`, otherwise it will fall back to `hi_res`
+  - `ocr_only` : This strategy runs the document through Tesseract for OCR (Optical Character Recognition).
+  - `high_res`: It is the better choice for PDFs that may have text within embedded images, or for achieving greater precision of element          types in the response JSON. Please be aware that, as of writing, `hi_res` requests may take 20 times longer to process compared to         the `fast` option.
+  - `fast`: is the default strategy and works well for documents that do not have text embedded in images.
 - **recursive**: Whether to recursively parse the URLs or not. Default: True.
 - **splitter**: The splitter used to split the documents into chunks. It is used to generate the knowledge items. Can be 'sentences', 'words', 'tokens' and 'smart'. Default: 'sentences'.
 - **chunk_size**: The number of tokens per chunk. It is used by the splitter to split the documents into chunks. Default: 128.
