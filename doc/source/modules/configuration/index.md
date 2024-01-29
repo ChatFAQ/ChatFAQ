@@ -43,7 +43,7 @@ Next we list the different properties that a of knowledge bases has.
 - **original_pdf**: The PDF file.
 - **original_url**: The URL.
 
-<b> CSV parsing options</b>
+#### CSV parsing options
 
 - **csv_header**: Whether the CSV file has a header or not.
 - **title_index_col**: The index of the column that contains the title of the knowledge item.
@@ -53,7 +53,7 @@ Next we list the different properties that a of knowledge bases has.
 - **role_index_col**: The index of the column that contains the role of the knowledge item.
 - **page_number_index_col**: The index of the column that contains the page number of the knowledge item.
 
-<b> PDF and URL parsing options</b>
+#### PDF and URL parsing options
 
 - **strategy**: The strategy for parsing PDF files using [unstructured.io](https://github.com/Unstructured-IO/unstructured-api), which is a powerful and versatile library for extracting information from unstructured data sources, can be set to `auto`, `fast`, `ocr_only`, or `high_res`, with the default being `fast` (for more detailed information and documentation on these strategies and their applications, you can visit the following [link](https://github.com/Unstructured-IO/unstructured-api?tab=readme-ov-file#strategies) ).
   - `auto` : It will determine when a page can be extracted using `fast` or `ocr_only mode`, otherwise it will fall back to `hi_res`
