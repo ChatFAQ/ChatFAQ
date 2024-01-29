@@ -312,8 +312,7 @@ def llm_query_task(
     )
 
 
-@app.task()
-def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
+def generate_embeddings(ki_ids, rag_config_id, recache_models=False):
     """
     Generate the embeddings for a knowledge base.
     Parameters
@@ -325,8 +324,9 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     """
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     RAGConfig = apps.get_model("language_model", "RAGConfig")
+    Embedding = apps.get_model("language_model", "Embedding")
     ki_qs = KnowledgeItem.objects.filter(pk__in=ki_ids)
-    rag_config = RAGConfig.enabled_objects.get(pk=rag_config_id)
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
     model_name = rag_config.retriever_config.model_name
     batch_size = rag_config.retriever_config.batch_size
@@ -353,7 +353,6 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     # from tensor to list
     embeddings = [embedding.tolist() for embedding in embeddings]
 
-    Embedding = apps.get_model("language_model", "Embedding")
     new_embeddings = [
         Embedding(
             knowledge_item=item,
@@ -369,8 +368,7 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
         recache_models_utils("generate_embeddings_task")
 
 
-@app.task()
-def build_index(rag_config_id, recache_models=False, caller: str = None):
+def creates_index(rag_config_id, k_item_ids, recache_models=False, caller: str = None):
     """
     Build the index for a knowledge base.
     Parameters
@@ -383,15 +381,79 @@ def build_index(rag_config_id, recache_models=False, caller: str = None):
     logger.info(f"Log caller: {caller}")
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
-    rag_config = RAGConfig.enabled_objects.get(pk=rag_config_id)
-    colbert_name = rag_config.retriever_config.model_name
+    Embedding = apps.get_model("language_model", "Embedding")
+    
+    index_path = ColBERTRetriever.index(rag_config_id=rag_config_id, k_item_ids=k_item_ids)
+    # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    embeddings = [
+        Embedding(
+            knowledge_item_id=k_item_id,
+            rag_config=rag_config,
+        )
+        for k_item_id in k_item_ids
+    ]
+    Embedding.objects.bulk_create(embeddings)
 
-    logger.info(f"Building index for knowledge base: {rag_config.knowledge_base.name}")
-
-    index_path = ColBERTRetriever.index(rag_config, colbert_name=colbert_name)
-    logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name} at {index_path}")
     if recache_models:
         recache_models_utils("build_index")
+
+
+def add_to_index(rag_config_id, k_item_ids, recache_models=False, caller: str = None):
+    """
+    Add knowledge items to the index of a knowledge base.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+    from back.apps.language_model.retriever_clients import ColBERTRetriever
+
+    logger.info(f"Log caller: {caller}")
+
+    RAGConfig = apps.get_model("language_model", "RAGConfig")
+    Embedding = apps.get_model("language_model", "Embedding")
+
+    # remove in case there are indexes with the same knowledge items, useful for modifying the knowledge items
+    ColBERTRetriever.delete_from_index(rag_config_id=rag_config_id, knowledge_items=k_item_ids)
+    
+    ColBERTRetriever.add_to_index(rag_config_id=rag_config_id, knowledge_items=k_item_ids)
+    # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    embeddings = [
+        Embedding(
+            knowledge_item_id=k_item_id,
+            rag_config=rag_config,
+        )
+        for k_item_id in k_item_ids
+    ]
+    Embedding.objects.bulk_create(embeddings)
+
+    if recache_models:
+        recache_models_utils("add_to_index")
+
+
+@app.task()
+def index_k_items_task(rag_config_id, k_item_ids, recache_models=False, caller: str = None, embeddings_ids_to_remove=[]):
+    RAGConfig = apps.get_model("language_model", "RAGConfig")
+    Embeddings = apps.get_model("language_model", "Embedding")
+
+    # remove the embeddings with the given ids
+    Embeddings.objects.filter(pk__in=embeddings_ids_to_remove).delete()
+
+    # get retriever type
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    retriever_type = rag_config.retriever_config.retriever_type
+    # if the retriever type is e5 call the generate_embeddings_task
+    if retriever_type == "e5":
+        generate_embeddings(k_item_ids, rag_config_id, recache_models=recache_models, caller=caller)
+    # if the retriever type is colbert, if that rag_config has embeddings, call add_to_index, otherwise call creates_index
+    elif retriever_type == "colbert":
+        if rag_config.embeddings.count() > 0: # An index already exists so we add to it
+            add_to_index(rag_config_id, k_item_ids, recache_models=recache_models, caller=caller)
+        else: # No index exists
+            creates_index(rag_config_id, k_item_ids, recache_models=recache_models, caller=caller)
+
 
 
 @app.task()
@@ -413,7 +475,7 @@ def parse_url_task(knowledge_base_id, url):
     runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
     KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
     kb = KnowledgeBase.objects.get(pk=knowledge_base_id)
-    kb.trigger_generate_embeddings()
+    kb.trigger_index_k_items()
 
 
 @app.task()
@@ -487,7 +549,7 @@ def parse_pdf_task(pdf_file_pk):
                     knowledge_item.save()
 
 
-    kb.trigger_generate_embeddings()
+    kb.trigger_index_k_items()
 
 
 @app.task()
@@ -577,7 +639,7 @@ def generate_suggested_intents_task(knowledge_base_pk):
     )[:100]
 
     # Get the RAG config that corresponds to the knowledge base
-    rag_conf = RAGConfig.enabled_objects.filter(knowledge_base=knowledge_base_pk).first()
+    rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
     lang = rag_conf.knowledge_base.lang
 
     e5_model = E5Model(
@@ -695,7 +757,7 @@ def generate_intents_task(knowledge_base_pk):
     from back.apps.language_model.models import AutoGeneratedTitle
     Intent = apps.get_model("language_model", "Intent")
     RAGConfig = apps.get_model("language_model", "RAGConfig")
-    rag_conf = RAGConfig.enabled_objects.filter(knowledge_base=knowledge_base_pk).first()
+    rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
 
     hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 

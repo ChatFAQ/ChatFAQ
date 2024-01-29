@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.apps import apps
 from simple_history.models import HistoricalRecords
-from back.apps.language_model.tasks import generate_embeddings_task, build_index
+from back.apps.language_model.tasks import index_k_items_task
 
 from back.apps.language_model.models.data import KnowledgeItem, KnowledgeBase
 from back.common.models import ChangesMixin
@@ -74,9 +74,9 @@ class RAGConfig(ChangesMixin):
 
         if generate_and_load:
             def on_commit_callback():
-                self.trigger_generate_embeddings()
+                self.trigger_index_k_items()
 
-            # Schedule the trigger_generate_embeddings function to be called
+            # Schedule the trigger_index_k_items function to be called
             # after the current transaction is committed
             transaction.on_commit(on_commit_callback)
         elif load_new_llm:
@@ -86,18 +86,16 @@ class RAGConfig(ChangesMixin):
             # Schedule the recache_models function to be called
             transaction.on_commit(on_commit_callback)
 
-    def trigger_generate_embeddings(self):
+    def trigger_index_k_items(self):
+        Embedding = apps.get_model("language_model", "Embedding")
         logger.info('Triggering generate embeddings task')
-        # remove all the embeddings for this rag config
-        # Embedding = apps.get_model("language_model", "Embedding")
-        # Embedding.objects.filter(rag_config=self).delete()
+        # Remove all the embeddings for this rag config
+        # get all the embeddings ids for this rag config for later deletion        
+        embedding_ids = list(Embedding.objects.filter(rag_config=self).values_list("pk", flat=True))
+                
 
-        # generate_embeddings_task.delay(
-        #     list(KnowledgeItem.objects.filter(knowledge_base=self.knowledge_base).values_list("pk", flat=True)),
-        #     self.pk,
-        #     recache_models=True
-        # )
-        build_index.delay(self.pk, caller='RAGConfig.trigger_generate_embeddings', recache_models=True)
+        k_item_ids = list(KnowledgeItem.objects.filter(knowledge_base=self.knowledge_base).values_list("pk", flat=True))
+        index_k_items_task.delay(rag_config_id=self.pk, k_item_ids=k_item_ids, caller='RAGConfig.trigger_index_k_items', recache_models=True, embeddings_ids_to_remove=embedding_ids)
 
 
 class RetrieverConfig(ChangesMixin):
@@ -107,16 +105,26 @@ class RetrieverConfig(ChangesMixin):
         Just a name for the retriever.
     model_name: str
         The name of the retriever model to use. It must be a HuggingFace repo id.
+    retriever_type: str
+        The type of retriever to use.
     batch_size: int
         The batch size to use for the retriever.
+    device: str
+        The device to use for the retriever.
     """
     DEVICE_CHOICES = (
         ('cpu', 'CPU'),
         ('cuda', 'GPU'),
     )
 
+    RETRIEVER_TYPE_CHOICES = (
+        ('colbert', 'ColBERT Search'),
+        ('e5', 'Standard Semantic Search'),
+    )
+
     name = models.CharField(max_length=255, unique=True)
     model_name = models.CharField(max_length=255, default="intfloat/e5-small-v2") # For dev and demo purposes.
+    retriever_type = models.CharField(max_length=10, choices=RETRIEVER_TYPE_CHOICES, default="colbert")
     batch_size = models.IntegerField(default=1) # batch size 1 for better default cpu generation
     device = models.CharField(max_length=10, choices=DEVICE_CHOICES, default="cpu")
 
@@ -132,7 +140,7 @@ class RetrieverConfig(ChangesMixin):
 
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
-            if self.model_name != old_retriever.model_name:
+            if self.model_name != old_retriever.model_name or self.retriever_type != old_retriever.retriever_type:
                 generated_embeddings = True
 
             if self.device != old_retriever.device:
@@ -142,9 +150,9 @@ class RetrieverConfig(ChangesMixin):
 
         if generated_embeddings:
             def on_commit_callback():
-                self.trigger_generate_embeddings()
+                self.trigger_index_k_items()
 
-            # Schedule the trigger_generate_embeddings function to be called
+            # Schedule the trigger_index_k_items function to be called
             # after the current transaction is committed
             transaction.on_commit(on_commit_callback)
         elif device_changed:
@@ -156,25 +164,21 @@ class RetrieverConfig(ChangesMixin):
 
 
 
-    def trigger_generate_embeddings(self):
+    def trigger_index_k_items(self):
         rag_configs = RAGConfig.objects.filter(retriever_config=self)
-        Embeddings = apps.get_model("language_model", "Embedding")
+        Embedding = apps.get_model("language_model", "Embedding")
         last_i = rag_configs.count() - 1
 
         for i, rag_config in enumerate(rag_configs.all()):
             # check the rag configs that use this retriever
             if rag_config.retriever_config == self:
                 logger.info(f"Triggering generate embeddings task for RAG config {rag_config} because of a retriever config change")
-                # remove all the embeddings for this rag config
-                # Embeddings.objects.filter(rag_config=rag_config).delete()
-                # generate_embeddings_task.delay(
-                #     list(
-                #         KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base).values_list("pk", flat=True)
-                #     ),
-                #     rag_config.pk,
-                #     recache_models=(i==last_i) # recache models if we are in the last iteration
-                # )
-                build_index.delay(rag_config.pk, recache_models=(i==last_i), caller='RetrieverConfig.trigger_generate_embeddings')
+                # Remove all the embeddings for this rag config
+                # get all the embeddings ids for this rag config for later deletion
+                embedding_ids = list(Embedding.objects.filter(rag_config=rag_config).values_list("pk", flat=True))
+                
+                k_item_ids = list(KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base).values_list("pk", flat=True))
+                index_k_items_task.delay(rag_config_id=rag_config.pk, k_item_ids=k_item_ids, caller='RetrieverConfig.trigger_index_k_items', recache_models=(i == last_i), embeddings_ids_to_remove=embedding_ids)
 
 
 class LLMConfig(ChangesMixin):

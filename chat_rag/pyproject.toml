@@ -33,7 +33,7 @@ torchvision = "0.16.0"
 anthropic = "^0.6.0"
 autoawq = "^0.1.7"
 mistralai = "^0.0.9"
-ragatouille = "0.0.5b1"
+ragatouille = "0.0.6b0"
 
 [build-system]
 requires = ["poetry-core"]

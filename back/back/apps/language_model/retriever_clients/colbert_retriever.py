@@ -1,5 +1,6 @@
 from typing import List
 import os
+from logging import getLogger
 
 from ragatouille import (
     RAGPretrainedModel as Retriever,
@@ -12,14 +13,21 @@ from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 from .utils import extract_images_urls
 
 
+logger = getLogger(__name__)
+
 class ColBERTRetriever:
     @classmethod
-    def index(cls, rag_config: RAGConfig, colbert_name: str = "colbert-ir/colbertv2.0"):
+    def index(cls, rag_config_id: int, k_item_ids: List[int]):
         """Creates the index for the given RAGConfig"""
-        items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
 
-        contents = [item.content for item in items]
-        contents_pk = [str(item.pk) for item in items]
+        rag_config = RAGConfig.objects.get(pk=rag_config_id)
+        k_items = KnowledgeItem.objects.filter(pk__in=k_item_ids)
+        colbert_name = rag_config.retriever_config.model_name
+
+        logger.info(f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}")
+
+        contents = [item.content for item in k_items]
+        contents_pk = [str(item.pk) for item in k_items]
 
         retriever = Retriever.from_pretrained(colbert_name, index_root="indexes/")
 
@@ -29,6 +37,8 @@ class ColBERTRetriever:
             document_ids=contents_pk,
             split_documents=False,
         )
+
+        logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name} at {index_path}")
 
         return index_path
 
@@ -47,6 +57,44 @@ class ColBERTRetriever:
         instance.retriever.search("test query")
 
         return instance
+    
+    @classmethod
+    def add_to_index(cls, rag_config: RAGConfig, k_item_ids: List[int]):
+        """Add knowledge items to the index of the given RAGConfig"""
+        index_path = os.path.join(
+            "indexes", "colbert", "indexes", f"{rag_config.name}_index"
+        )
+        k_items = KnowledgeItem.objects.filter(pk__in=k_item_ids)
+        retriever = Retriever.from_index(index_path=index_path)
+
+        contents = [item.content for item in k_items]
+        contents_pk = [str(item.pk) for item in k_items]
+
+        retriever.add_to_index(
+            new_document_ids=contents_pk,
+            new_collection=contents,
+            split_documents=False,
+            index_name=f"{rag_config.name}_index",
+        )
+
+    @classmethod
+    def delete_from_index(cls, rag_config: RAGConfig, k_item_ids: List[int]):
+        """Delete knowledge items from the index of the given RAGConfig"""
+        index_path = os.path.join(
+            "indexes", "colbert", "indexes", f"{rag_config.name}_index"
+        )
+
+        k_items = KnowledgeItem.objects.filter(pk__in=k_item_ids)
+        
+        retriever = Retriever.from_index(index_path=index_path)
+
+        contents_pk = [str(item.pk) for item in k_items]
+
+        retriever.delete_from_index(
+            document_ids=contents_pk,
+            index_name=f"{rag_config.name}_index",
+        )
+
 
     def retrieve(self, queries: List[str], top_k: int = 5):
         """
