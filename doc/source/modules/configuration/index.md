@@ -52,6 +52,7 @@ Next we list the different properties that a of knowledge bases has.
 - **section_index_col**: The index of the column that contains the section of the knowledge item.
 - **role_index_col**: The index of the column that contains the role of the knowledge item.
 - **page_number_index_col**: The index of the column that contains the page number of the knowledge item.
+- **source_index_col**: The index of the column that coontains the original document of the knowledge item.
 
 #### PDF and URL parsing options
 
@@ -65,7 +66,7 @@ Next we list the different properties that a of knowledge bases has.
 - **chunk_size**: The number of tokens per chunk. It is used by the splitter to split the documents into chunks. Default: 128.
 - **chunk_overlap**: The number of tokens that overlap between two chunks. Default: 16.
 
-#### Recommendations
+#### Parsing Recommendations
 
 - The **strategy** to use depends on the time that you want to wait for the parsing process to finish and the quality of the parsing process. The strategies are ordered from fastest to slowest and from worst quality to best quality. The 'fast' strategy is the default one and it is the one that we recommend for most use cases, it only lasts a few seconds and it has a good quality. The 'high_res' strategy is the one with the best quality but it can last several minutes. For more information about the different strategies check [here](https://unstructured-io.github.io/unstructured/bricks/partition.html#partition-pdf).
 
@@ -89,6 +90,18 @@ An example of a CSV for the Knowledge Base is the following:
 | How can I customize the user interface of the ChatFAQ Widget? | The ChatFAQ Widget offers complete flexibility over UI aspects, including size, color, fonts, and logo, to align with your brand's uniqueness and cater to your audience's needs. | https://www.chatfaq.io/features/widget | Features > Widget | user |
 | How can I expand my knowledge dataset with ChatFAQ? | You can expand your knowledge dataset with ChatFAQ by uploading your business content as CSV or PDF files. ChatFAQ will automatically generate utterances to enhance your knowledge dataset, improving the accuracy of the AI model. Even if you don't have existing Frequently Asked Questions, ChatFAQ can infer FAQs and prepare a training dataset covering your business context. | https://www.chatfaq.io/features/generative-ai | Features > Generative AI | user |
 | ... | ... | ... | ... | ... |
+
+#### Knowledge items Recomendations
+
+**Title Column**
+- Semantically Descriptive: Ensure that the title of each knowledge item is semantically descriptive. It should clearly and accurately reflect the content within.
+- Uniqueness: Each title should be unique within the knowledge base. This uniqueness aids in distinguishing between different knowledge items and helps in efficient retrieval.
+
+**Content Column**
+- Markdown Format: Content can be formatted in Markdown. This allows for structured and visually appealing presentation of information.
+- Prompt Reinforcement: When integrating content, reinforce the prompt by indicating to the model that it is capable of interpreting Markdown. This can enhance the model's ability to process and understand the content effectively.
+- Balanced Length: The content of each knowledge item should neither be too short nor excessively long. Aim for a balanced length to provide sufficient detail without overwhelming.
+- Consistency in Size: Strive for a consistent size among different knowledge items. This balance helps in the optimal functioning of the retriever mechanism, as it ensures a uniformity in the information density and retrieval times.
 
 ### Retriever Config
 
