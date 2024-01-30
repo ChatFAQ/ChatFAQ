@@ -87,6 +87,8 @@
     --chatfaq-double-arrow-right-icon: url('~/assets/icons/double-arrow-right.svg');
     --chatfaq-double-arrow-left-icon: url('~/assets/icons/double-arrow-left.svg');
     --chatfaq-arrow-down-icon: url('~/assets/icons/arrow-down.svg');
+    --chatfaq-arrow-circle-down-icon: url('~/assets/icons/arrow-circle-down.svg');
+    --chatfaq-arrow-circle-up-icon: url('~/assets/icons/arrow-circle-up.svg');
     --chatfaq-trash-icon: url('~/assets/icons/trash.svg');
     --chatfaq-check-icon: url('~/assets/icons/check.svg');
     --chatfaq-close-icon: url('~/assets/icons/close.svg');
@@ -163,6 +165,8 @@
 */
 
 $chatfaq-arrow-down-icon: var(--chatfaq-arrow-down-icon);
+$chatfaq-arrow-circle-down-icon: var(--chatfaq-arrow-circle-down-icon);
+$chatfaq-arrow-circle-up-icon: var(--chatfaq-arrow-circle-up-icon);
 $chatfaq-bubble-button-close-icon: var(--chatfaq-bubble-button-close-icon);
 $chatfaq-bubble-button-open-icon: var(--chatfaq-bubble-button-open-icon);
 $chatfaq-burger-menu-icon: var(--chatfaq-burger-menu-icon);
