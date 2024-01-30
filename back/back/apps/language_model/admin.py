@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.db.models import Q
+from django.contrib import messages
 
 from .forms import PromptConfigForm
+from .tasks import index_task
 from simple_history.admin import SimpleHistoryAdmin
 
 from .models.data import (
@@ -76,10 +78,17 @@ class IntentAdmin(admin.ModelAdmin):
     list_filter = ["suggested_intent", KnowledgeBaseFilter]
 
 
+def run_index_task(modeladmin, request, queryset):
+    for rag_config in queryset:
+        index_task.delay(rag_config.id, recache_models=True, caller='RagConfig Admin')  # Trigger the Celery task
+        modeladmin.message_user(request, f"Index task started for {rag_config.name}", messages.SUCCESS)
+
+run_index_task.short_description = "Index selected RAG configs"
+
 class RagConfigAdmin(admin.ModelAdmin):
-    # filter by disabled rag configs
     list_display = ["name", "disabled"]
     list_filter = ["disabled"]
+    actions = [run_index_task]
 
 
 admin.site.register(RAGConfig, RagConfigAdmin)

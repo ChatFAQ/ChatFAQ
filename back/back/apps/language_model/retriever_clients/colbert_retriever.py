@@ -17,11 +17,9 @@ logger = getLogger(__name__)
 
 class ColBERTRetriever:
     @classmethod
-    def index(cls, rag_config_id: int, k_item_ids: List[int]):
+    def index(cls, rag_config: RAGConfig, k_items: List[KnowledgeItem]):
         """Creates the index for the given RAGConfig"""
 
-        rag_config = RAGConfig.objects.get(pk=rag_config_id)
-        k_items = KnowledgeItem.objects.filter(pk__in=k_item_ids)
         colbert_name = rag_config.retriever_config.model_name
 
         logger.info(f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}")
@@ -58,43 +56,28 @@ class ColBERTRetriever:
 
         return instance
     
-    @classmethod
-    def add_to_index(cls, rag_config: RAGConfig, k_item_ids: List[int]):
+    def add_to_index(self, rag_config: RAGConfig, k_items: List[KnowledgeItem]):
         """Add knowledge items to the index of the given RAGConfig"""
-        index_path = os.path.join(
-            "indexes", "colbert", "indexes", f"{rag_config.name}_index"
-        )
-        k_items = KnowledgeItem.objects.filter(pk__in=k_item_ids)
-        retriever = Retriever.from_index(index_path=index_path)
 
         contents = [item.content for item in k_items]
         contents_pk = [str(item.pk) for item in k_items]
 
-        retriever.add_to_index(
+        self.retriever.add_to_index(
             new_document_ids=contents_pk,
             new_collection=contents,
             split_documents=False,
             index_name=f"{rag_config.name}_index",
         )
 
-    @classmethod
-    def delete_from_index(cls, rag_config: RAGConfig, k_item_ids: List[int]):
+    def delete_from_index(self, rag_config: RAGConfig, k_item_ids: List[int]):
         """Delete knowledge items from the index of the given RAGConfig"""
-        index_path = os.path.join(
-            "indexes", "colbert", "indexes", f"{rag_config.name}_index"
-        )
-
-        k_items = KnowledgeItem.objects.filter(pk__in=k_item_ids)
         
-        retriever = Retriever.from_index(index_path=index_path)
+        contents_pk = [str(id) for id in k_item_ids]
 
-        contents_pk = [str(item.pk) for item in k_items]
-
-        retriever.delete_from_index(
+        self.retriever.delete_from_index(
             document_ids=contents_pk,
-            index_name=f"{rag_config.name}_index",
+         #   index_name=f"{rag_config.name}_index",
         )
-
 
     def retrieve(self, queries: List[str], top_k: int = 5):
         """
