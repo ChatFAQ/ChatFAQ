@@ -13,7 +13,7 @@ router.register(
     r"user-feedback", views.UserFeedbackAPIViewSet, basename="user-feedback"
 )
 router.register(
-    r"admin-review", views.AdminReviewAPIViewSet, basename="user-feedback"
+    r"admin-review", views.AdminReviewAPIViewSet, basename="admin-review"
 )
 
 # The API URLs are now determined automatically by the router.
