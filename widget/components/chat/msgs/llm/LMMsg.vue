@@ -95,7 +95,7 @@ function _getMarkedDownImages() {
                 file_name: imageMatch[2],
             };
         });
-        return [...res, ...res, ...res, ...res, ...res, ...res, ...res, ...res]
+        return res
     }
     return [];
 }
