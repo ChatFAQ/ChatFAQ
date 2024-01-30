@@ -1,5 +1,6 @@
 from django.urls import re_path
 
+from back.apps.broker.consumers.parse_consumer import ParseConsumer
 from back.apps.broker.consumers.rpc_consumer import RPCConsumer
 from back.apps.language_model.consumers import LLMConsumer
 from back.apps.language_model.consumers.tasks_progress import TasksProgressConsumer
@@ -20,6 +21,10 @@ websocket_urlpatterns = [
     re_path(
         r"back/ws/broker/llm/$",
         LLMConsumer.as_asgi(),
+    ),
+    re_path(
+        r"back/ws/broker/parse/$",
+        ParseConsumer.as_asgi(),
     ),
     re_path(
         r"back/ws/broker/tasks/$",

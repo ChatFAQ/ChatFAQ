@@ -169,7 +169,10 @@ with EnvManager(model_w_django) as env:
     # ---
     REST_FRAMEWORK = {
         "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-        "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+        "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication", "rest_framework.authentication.SessionAuthentication" ),
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticated',
+        ],
         "DEFAULT_FILTER_BACKENDS": [
             "django_filters.rest_framework.DjangoFilterBackend"
         ],
@@ -256,3 +259,13 @@ with EnvManager(model_w_django) as env:
     #         'exchange': 'broadcast_tasks'
     #     },
     # }
+
+    # --------------------------- S3 ---------------------------
+    AWS_S3_OBJECT_PARAMETERS = {
+        "CacheControl": "max-age=86400",
+    }
+    DEFAULT_FILE_STORAGE = "back.config.storage_backends.PublicMediaStorage"
+    PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateMediaStorage"
+    # Link expiration time in seconds
+    AWS_QUERYSTRING_EXPIRE = "3600"
+    AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")

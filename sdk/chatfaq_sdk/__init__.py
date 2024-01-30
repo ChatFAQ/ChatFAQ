@@ -1,4 +1,5 @@
 import uuid
+import httpx
 
 import asyncio
 import copy
@@ -11,9 +12,10 @@ from typing import Callable, Optional, Union
 
 import websockets
 from chatfaq_sdk import settings
-from chatfaq_sdk.api.messages import MessageType, RPCNodeType# , DataSourceType
+from chatfaq_sdk.types import WSType
+from chatfaq_sdk.types.messages import MessageType, RPCNodeType
 from chatfaq_sdk.conditions import Condition
-# from chatfaq_sdk.data_source_parsers import DataSourceParser
+from chatfaq_sdk.data_source_parsers import DataSourceParser
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
 
@@ -33,10 +35,11 @@ class ChatFAQSDK:
     def __init__(
         self,
         chatfaq_ws: str,
+        chatfaq_http: str,
         token: str,
         fsm_name: Optional[Union[int, str]],
         fsm_definition: Optional[FSMDefinition] = None,
-        # data_source_parsers: Optional[dict[DataSourceParser]] = None,
+        data_source_parsers: Optional[dict[str, DataSourceParser]] = None,
     ):
         """
         Parameters
@@ -58,18 +61,15 @@ class ChatFAQSDK:
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
         self.chatfaq_ws = chatfaq_ws
+        self.chatfaq_http = chatfaq_http
         self.token = token
         self.fsm_name = fsm_name
         self.fsm_def = fsm_definition
-        # self.data_source_parsers = data_source_parsers
+        self.data_source_parsers = data_source_parsers
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
         # already registered that rpc under that name and avoid duplicates
         self._rpcs = {}
-        self.ws_rpc = None
-        self.ws_llm = None
-        self.queue_rpc = queue.Queue()
-        self.queue_llm = queue.Queue()
 
         self.rpc_llm_request_futures = {}
         self.rpc_llm_request_msg_buffer = {}
@@ -83,6 +83,8 @@ class ChatFAQSDK:
             asyncio.run(self._disconnect())
 
     async def connexions(self):
+        setattr(self, f"ws_{WSType.rpc.value}", None)
+        setattr(self, f"ws_{WSType.llm.value}", None)
         rpc_actions = {
             MessageType.rpc_request.value: self.rpc_request_callback,
             MessageType.error.value: self.error_callback,
@@ -91,82 +93,76 @@ class ChatFAQSDK:
             MessageType.llm_request_result.value: self.llm_request_result_callback,
             MessageType.error.value: self.error_callback,
         }
-        # processor_actions = {
-        #     key: value
-        #     for key, value in self.data_source_parsers.items()
-        # }
-        # processor_actions[MessageType.error.value] = self.error_callback
-
         coros_or_futures = [
-            self.consumer("rpc", on_connect=self.on_connect_rpc, is_rpc=True),
-            self.consumer("llm", on_connect=None),
-            self.producer(rpc_actions, is_rpc=True),
-            self.producer(llm_actions),
+            self.consumer(WSType.rpc.value, on_connect=self.on_connect_rpc),
+            self.consumer(WSType.llm.value, on_connect=None),
+            self.producer(rpc_actions, WSType.rpc.value),
+            self.producer(llm_actions, WSType.llm.value),
         ]
-        # if self.data_source_parsers:
-        #     self.consumer("processing", on_connect=self.on_connect_processing),
-        #     coros_or_futures.append(self.producer(processor_actions))
+        if self.data_source_parsers:
+            setattr(self, f"ws_{WSType.parse.value}", None)
+            parser_actions = {
+                key: self.parsing_wrapper(value)
+                for key, value in self.data_source_parsers.items()
+            }
+            parser_actions[MessageType.error.value] = self.error_callback
+            coros_or_futures += [
+                self.consumer(WSType.parse.value, on_connect=self.on_connect_parsing),
+                self.producer(parser_actions, WSType.parse.value)
+            ]
 
         await asyncio.gather(
             *coros_or_futures,
         )
 
-    async def consumer(self, consumer_route, on_connect=None, is_rpc=False):
+    async def consumer(self, consumer_route, on_connect=None):
+        setattr(self, f"queue_{consumer_route}", queue.Queue())
         uri = urllib.parse.urljoin(self.chatfaq_ws, f"back/ws/broker/{consumer_route}/")
-        if is_rpc and self.fsm_name is not None and self.fsm_def is None:
+        if consumer_route == WSType.rpc.value and self.fsm_name is not None and self.fsm_def is None:
             uri = f"{uri}{self.fsm_name}/"
 
         parsed_token = urllib.parse.quote(self.token)
         uri = f"{uri}?token={parsed_token}"
-        connection_error = True
-        while connection_error:
+        while True:
             try:
-                logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connecting to {uri}")
+                logger.info(f"[{consumer_route.upper()}] Connecting to {uri}")
                 async with websockets.connect(uri) as ws:
-                    logger.info(f"{'[RPC]' if is_rpc else '[LLM]'} Connected")
-                    if is_rpc:
-                        self.ws_rpc = ws
-                    else:
-                        self.ws_llm = ws
+                    logger.info(f"{consumer_route.upper()} Connected")
+                    setattr(self, f"ws_{consumer_route}", ws)
                     if on_connect is not None:
                         await on_connect()
                     logger.info(
-                        f"{'[RPC]' if is_rpc else '[LLM]'} ---------------------- Listening..."
+                        f"[{consumer_route.upper()}] ---------------------- Listening..."
                     )
                     await self._consume_loop(
-                        is_rpc
+                        consumer_route
                     )  # <----- "infinite" Connection Loop
             except (websockets.WebSocketException, ConnectionRefusedError):
                 logger.info(
-                    f"{'[RPC]' if is_rpc else '[LLM]'} Connection error, retrying..."
+                    f"{consumer_route.upper()} Connection error, retrying..."
                 )
                 await asyncio.sleep(1)
 
-    async def _consume_loop(self, is_rpc=False):
+    async def _consume_loop(self, consumer_route):
         while True:
             data = (
-                json.loads(await self.ws_rpc.recv())
-                if is_rpc
-                else json.loads(await self.ws_llm.recv())
+                json.loads(await getattr(self, f"ws_{consumer_route}").recv())
             )
-            if is_rpc:
-                self.queue_rpc.put(data)
-            else:
-                self.queue_llm.put(data)
+            getattr(self, f"queue_{consumer_route}").put(data)
 
-    async def producer(self, actions, is_rpc=False):
+    async def producer(self, actions, consumer_route):
+        ws_attrs = [
+            attr
+            for attr in dir(self)
+            if attr.startswith("ws_")
+        ]
         while True:
-            if (
-                not self.ws_rpc
-                or not self.ws_llm
-                or not self.ws_rpc.open
-                or not self.ws_llm.open
-            ):
+            if any(getattr(self, ws_attr) is None or not getattr(self, ws_attr).open for ws_attr in ws_attrs):
                 await asyncio.sleep(0.01)
                 continue
             try:
                 data = (
-                    self.queue_rpc.get(False) if is_rpc else self.queue_llm.get(False)
+                    getattr(self, f"queue_{consumer_route}").get(False)
                 )
             except queue.Empty:
                 await asyncio.sleep(0.01)
@@ -177,23 +173,10 @@ class ChatFAQSDK:
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
 
-    async def receive_loop(self, actions, is_rpc):
-        while True:
-            data = (
-                json.loads(await self.ws_rpc.recv())
-                if is_rpc
-                else json.loads(await self.ws_llm.recv())
-            )
-
-            if actions.get(data.get("type")) is not None:
-                await actions[data.get("type")](data["payload"])
-            else:
-                logger.error(f"Unknown action type: {data.get('type')}")
-
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
             logger.info(f"Setting FSM by Definition {self.fsm_name}")
-            await self.ws_rpc.send(
+            await getattr(self, f'ws_{WSType.rpc.value}').send(
                 json.dumps(
                     {
                         "type": MessageType.fsm_def.value,
@@ -205,31 +188,38 @@ class ChatFAQSDK:
                 )
             )
 
-    # async def on_connect_processing(self):
-    #     if self.data_source_parsers is not None:
-    #         logger.info(f"Registering Data Source Parsers {self.data_source_parsers.keys()}")
-    #         await self.ws_rpc.send(
-    #             json.dumps(
-    #                 {
-    #                     "type": DataSourceType.data_source_parsers.value,
-    #                     "data": {
-    #                         "data_source_parsers": self.data_source_parsers.keys(),
-    #                     },
-    #                 }
-    #             )
-    #         )
+    async def on_connect_parsing(self):
+        if self.data_source_parsers is not None:
+            parsers = list(self.data_source_parsers.keys())
+            logger.info(f"Registering Data Source Parsers {parsers}")
+            await getattr(self, f'ws_{WSType.parse.value}').send(
+                json.dumps(
+                    {
+                        "type": MessageType.register_parsers.value,
+                        "data": {
+                            "parsers": parsers,
+                        },
+                    }
+                )
+            )
 
     async def _disconnect(self):
         logger.info(f"Shutting Down...")
-        await self.ws_rpc.close()
-        await self.ws_llm.close()
+        wss = [
+            getattr(self, attr)
+            for attr in dir(self)
+            if attr.startswith("ws_")
+        ]
+        for ws in wss:
+            if ws is not None and ws.open:
+                await ws.close()
 
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         for handler_index, handler in enumerate(self.rpcs[payload["name"]]):
             stack_id = str(uuid.uuid4())
             async for res, last_from_handler, node_type in self._run_handler(handler, payload["ctx"]):
-                await self.ws_rpc.send(
+                await getattr(self, f'ws_{WSType.rpc.value}').send(
                     json.dumps(
                         {
                             "type": MessageType.rpc_result.value,
@@ -279,7 +269,7 @@ class ChatFAQSDK:
         self.rpc_llm_request_futures[
             bot_channel_name
         ] = asyncio.get_event_loop().create_future()
-        await self.ws_llm.send(
+        await getattr(self, f'ws_{WSType.llm.value}').send(
             json.dumps(
                 {
                     "type": MessageType.llm_request.value,
@@ -346,3 +336,47 @@ class ChatFAQSDK:
         # check if is generator
         async for r in results:
             yield r + [RPCNodeType.action.value if isinstance(layer, Layer) else RPCNodeType.condition.value]
+
+    def parsing_wrapper(self, parser_func):
+        async def _parsing_wrapper(payload):
+            logger.info(f"[PARSE] Parsing ::: {payload}")
+            for ki, ki_images in parser_func(payload["kb_id"], payload["data_source"]):
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/"),
+                        json=ki.dict(),
+                        headers={"Authorization": f"Token {self.token}"},
+                    )
+                    response.raise_for_status()
+                    ki = response.json()
+                    if ki_images:
+                        for index, ki_image in enumerate(ki_images):
+                            ki_image.knowledge_item = ki["id"]
+                            response = await client.post(
+                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-item-images/"),
+                                data=ki_image.dict(),
+                                files=ki_image.files(),
+                                headers={"Authorization": f"Token {self.token}"},
+                            )
+                            response.raise_for_status()
+                            ki_image = response.json()
+                            ki["content"] = ki["content"].replace(
+                                f"[[Image {index}]]", f"![{ki_image.get('image_caption') or ki_image['image_file_name']}]({ki_image['image_file_name']})"
+                            )
+                            response = await client.patch(
+                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/{ki['id']}/"),
+                                json=ki,
+                                headers={"Authorization": f"Token {self.token}"},
+                            )
+                            response.raise_for_status()
+
+            if payload["task_id"]:
+                await getattr(self, f'ws_{WSType.parse.value}').send(
+                    json.dumps(
+                        {
+                            "type": MessageType.parser_finished.value,
+                            "data": {"task_id": payload["task_id"]},
+                        }
+                    )
+                )
+        return _parsing_wrapper
