@@ -43,7 +43,7 @@ Next we list the different properties that a of knowledge bases has.
 - **original_pdf**: The PDF file.
 - **original_url**: The URL.
 
-<b> CSV parsing options</b>
+#### CSV parsing options
 
 - **csv_header**: Whether the CSV file has a header or not.
 - **title_index_col**: The index of the column that contains the title of the knowledge item.
@@ -52,16 +52,21 @@ Next we list the different properties that a of knowledge bases has.
 - **section_index_col**: The index of the column that contains the section of the knowledge item.
 - **role_index_col**: The index of the column that contains the role of the knowledge item.
 - **page_number_index_col**: The index of the column that contains the page number of the knowledge item.
+- **source_index_col**: The index of the column that coontains the original document of the knowledge item.
 
-<b> PDF and URL parsing options</b>
+#### PDF and URL parsing options
 
-- **strategy**: The strategy to use to parse the PDF files. Can be 'auto', 'fast', 'ocr' or 'high_res'. Default: 'fast'.
+- **strategy**: The strategy for parsing PDF files using [unstructured.io](https://github.com/Unstructured-IO/unstructured-api), which is a powerful and versatile library for extracting information from unstructured data sources, can be set to `auto`, `fast`, `ocr_only`, or `high_res`, with the default being `fast` (for more detailed information and documentation on these strategies and their applications, you can visit the following [link](https://github.com/Unstructured-IO/unstructured-api?tab=readme-ov-file#strategies) ).
+  - `auto` : It will determine when a page can be extracted using `fast` or `ocr_only mode`, otherwise it will fall back to `hi_res`
+  - `ocr_only` : This strategy runs the document through Tesseract for OCR (Optical Character Recognition).
+  - `high_res`: It is the better choice for PDFs that may have text within embedded images, or for achieving greater precision of element          types in the response JSON. Please be aware that, as of writing, `hi_res` requests may take 20 times longer to process compared to         the `fast` option.
+  - `fast`: is the default strategy and works well for documents that do not have text embedded in images.
 - **recursive**: Whether to recursively parse the URLs or not. Default: True.
 - **splitter**: The splitter used to split the documents into chunks. It is used to generate the knowledge items. Can be 'sentences', 'words', 'tokens' and 'smart'. Default: 'sentences'.
 - **chunk_size**: The number of tokens per chunk. It is used by the splitter to split the documents into chunks. Default: 128.
 - **chunk_overlap**: The number of tokens that overlap between two chunks. Default: 16.
 
-#### Recommendations
+#### Parsing Recommendations
 
 - The **strategy** to use depends on the time that you want to wait for the parsing process to finish and the quality of the parsing process. The strategies are ordered from fastest to slowest and from worst quality to best quality. The 'fast' strategy is the default one and it is the one that we recommend for most use cases, it only lasts a few seconds and it has a good quality. The 'high_res' strategy is the one with the best quality but it can last several minutes. For more information about the different strategies check [here](https://unstructured-io.github.io/unstructured/bricks/partition.html#partition-pdf).
 
@@ -85,6 +90,18 @@ An example of a CSV for the Knowledge Base is the following:
 | How can I customize the user interface of the ChatFAQ Widget? | The ChatFAQ Widget offers complete flexibility over UI aspects, including size, color, fonts, and logo, to align with your brand's uniqueness and cater to your audience's needs. | https://www.chatfaq.io/features/widget | Features > Widget | user |
 | How can I expand my knowledge dataset with ChatFAQ? | You can expand your knowledge dataset with ChatFAQ by uploading your business content as CSV or PDF files. ChatFAQ will automatically generate utterances to enhance your knowledge dataset, improving the accuracy of the AI model. Even if you don't have existing Frequently Asked Questions, ChatFAQ can infer FAQs and prepare a training dataset covering your business context. | https://www.chatfaq.io/features/generative-ai | Features > Generative AI | user |
 | ... | ... | ... | ... | ... |
+
+#### Knowledge items Recomendations
+
+**Title Column**
+- Semantically Descriptive: Ensure that the title of each knowledge item is semantically descriptive. It should clearly and accurately reflect the content within.
+- Uniqueness: Each title should be unique within the knowledge base. This uniqueness aids in distinguishing between different knowledge items and helps in efficient retrieval.
+
+**Content Column**
+- Markdown Format: Content can be formatted in Markdown. This allows for structured and visually appealing presentation of information.
+- Prompt Reinforcement: When integrating content, reinforce the prompt by indicating to the model that it is capable of interpreting Markdown. This can enhance the model's ability to process and understand the content effectively.
+- Balanced Length: The content of each knowledge item should neither be too short nor excessively long. Aim for a balanced length to provide sufficient detail without overwhelming.
+- Consistency in Size: Strive for a consistent size among different knowledge items. This balance helps in the optimal functioning of the retriever mechanism, as it ensures a uniformity in the information density and retrieval times.
 
 ### Retriever Config
 

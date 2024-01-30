@@ -43,6 +43,7 @@ export const useGlobalStore = defineStore('globalStore', {
             deleting: false,
             downloading: false,
             disconnected: true,
+            isPhone: false,
         }
     },
     actions: {

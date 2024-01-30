@@ -52,6 +52,7 @@ env:
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+      CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
       CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
 images:

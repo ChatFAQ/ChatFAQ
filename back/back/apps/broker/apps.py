@@ -18,7 +18,7 @@ class BrokerConfig(AppConfig):
 
         from back.apps.broker.consumers import bots  # noqa  ## This is needed to self register the bots in the BrokerMetaClass
         from back.common.abs.bot_consumers import BrokerMetaClass
-        from back.apps.broker.models import ConsumerRoundRobinQueue
+        from back.apps.broker.models import ConsumerRoundRobinQueue, RemoteSDKParsers
 
         for pc in BrokerMetaClass.registry:
             pc.register()
@@ -28,3 +28,7 @@ class BrokerConfig(AppConfig):
                 ConsumerRoundRobinQueue.clear()
             except Exception as e:
                 logger.warning(f"Could not clear the round robin queue: {e}")
+            try:
+                RemoteSDKParsers.clear()
+            except Exception as e:
+                logger.warning(f"Could not clear the remote SDK parsers: {e}")
