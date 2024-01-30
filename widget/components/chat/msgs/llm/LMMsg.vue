@@ -158,8 +158,8 @@ const imageUrls = computed(() => {
     background: $chatfaq-color-chatMessageReference-background-light;
 
     &.dark-mode {
-        color: $chatfaq-color-chatMessageReference-text-light;
-        background: $chatfaq-color-chatMessageReference-background-light;
+        background: $chatfaq-color-chatMessageReference-background-dark;
+        color: $chatfaq-color-chatMessageReference-text-dark;
     }
 }
 
