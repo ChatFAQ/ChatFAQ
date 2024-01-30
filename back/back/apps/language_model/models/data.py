@@ -23,6 +23,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django_celery_results.models import TaskResult
 
+from back.config.storage_backends import PrivateMediaStorage
 from back.utils.celery import recache_models
 
 
@@ -86,8 +87,8 @@ class KnowledgeBase(ChangesMixin):
     chunk_size = models.IntegerField(default=128)
     chunk_overlap = models.IntegerField(default=16)
 
-    original_csv = models.FileField(blank=True, null=True)
-    original_pdf = models.FileField(blank=True, null=True)
+    original_csv = models.FileField(blank=True, null=True, storage=PrivateMediaStorage())
+    original_pdf = models.FileField(blank=True, null=True, storage=PrivateMediaStorage())
     original_url = models.URLField(blank=True, null=True)
 
     parser = models.CharField(max_length=255, null=True, blank=True)
@@ -386,7 +387,7 @@ class KnowledgeItemImage(models.Model):
     A model representing an image contained in a KnowledgeItem.
     """
 
-    image_file = models.ImageField(upload_to=upload_to_uuid)
+    image_file = models.ImageField(upload_to=upload_to_uuid, storage=PrivateMediaStorage())
     image_caption = models.TextField(blank=True, null=True)
     knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE)
 

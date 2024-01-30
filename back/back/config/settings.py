@@ -259,3 +259,13 @@ with EnvManager(model_w_django) as env:
     #         'exchange': 'broadcast_tasks'
     #     },
     # }
+
+    # --------------------------- S3 ---------------------------
+    AWS_S3_OBJECT_PARAMETERS = {
+        "CacheControl": "max-age=86400",
+    }
+    DEFAULT_FILE_STORAGE = "back.config.storage_backends.PublicMediaStorage"
+    PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateMediaStorage"
+    # Link expiration time in seconds
+    AWS_QUERYSTRING_EXPIRE = "3600"
+    AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
