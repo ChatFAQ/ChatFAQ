@@ -36,9 +36,15 @@ const props = defineProps(["data", "isLast"]);
 const hightlight_light = "#4630751a"
 const hightlight_dark = "#1A0438"
 
-const minImgRefs = ref(2);
 const displayAllImgRef = ref(false);
 
+const minImgRefs = computed(() => {
+    if (store.isPhone)
+        return 2
+    if (store.maximized)
+        return 4
+    return 2
+})
 
 function replaceMarkedDownImagesByReferences() {
     const images = props.data.payload.model_response.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
@@ -194,7 +200,7 @@ const imageUrls = computed(() => {
 
     .reference-image {
         position: relative;
-        margin-right: 12px;
+        margin-right: 6px;
         margin-bottom: 8px;
         background-size: 123px;
         width: 123px;
