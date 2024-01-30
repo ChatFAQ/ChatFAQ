@@ -459,9 +459,9 @@ def index_e5(rag_config, caller: str = None):
     # get the k items that have no associated embeddings
     k_items = KnowledgeItem.objects.filter(
         knowledge_base=rag_config.knowledge_base
-    ).exclude(embeddings__rag_config=rag_config)
+    ).exclude(embedding__rag_config=rag_config)
 
-    generate_embeddings(k_items=k_items, rag_config=rag_config, caller=caller)
+    generate_embeddings(k_items=k_items, rag_config=rag_config)
 
 
 def modify_index(rag_config):
@@ -521,7 +521,16 @@ def modify_index(rag_config):
 
     if k_items.count() > 0:
         # add the k items to the ColBERT index
-        retriever.add_to_index(rag_config=rag_config, k_items=k_items)
+        try:
+            retriever.add_to_index(rag_config=rag_config, k_items=k_items)
+        except Exception as e:
+            logger.error(f"Error adding k items to index: {e}")
+            logger.info("This error is probably due to too few knowledge items to add to the index.")
+            logger.info("Rebuilding index from scratch...")
+            # remove all embeddings for the given rag config
+            Embedding.objects.filter(rag_config=rag_config).delete()
+            # indexing starting from scratch
+            creates_index(rag_config=rag_config)
 
     # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
     embeddings = [
@@ -546,7 +555,6 @@ def creates_index(rag_config, caller: str = None):
 
     logger.info(f"Log caller: {caller}")
 
-    RAGConfig = apps.get_model("language_model", "RAGConfig")
     Embedding = apps.get_model("language_model", "Embedding")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
 
