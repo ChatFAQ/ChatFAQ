@@ -29,7 +29,7 @@ class ConversationAPIViewSet(
     serializer_class = ConversationMessagesSerializer
 
     def get_permissions(self):
-        if self.action == 'retrieve':
+        if self.action == 'retrieve' or self.action == 'destroy':
             return [AllowAny(), ]
         return super(ConversationAPIViewSet, self).get_permissions()
 
