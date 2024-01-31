@@ -257,18 +257,27 @@ class KnowledgeItem(ChangesMixin):
 
     def __str__(self):
         return f"{self.content} ds ({self.knowledge_base.pk})"
+    
+    def save(self, *args, **kwargs):
 
+        # get the rag configs to which this knowledge base belongs
+        rag_configs = apps.get_model("language_model", "RAGConfig").objects.filter(
+            knowledge_base=self.knowledge_base
+        )
 
+        # set the rag config index_up_to_date to False
+        if self.pk is None: # new item
+            for rag_config in rag_configs:
+                rag_config.index_up_to_date = False
+                rag_config.save()
+        else: # modified item
+            old_item = KnowledgeItem.objects.get(pk=self.pk)
+            if self.content != old_item.content:
+                for rag_config in rag_configs:
+                    rag_config.index_up_to_date = False
+                    rag_config.save()
 
-def delete_knowledge_items(knowledge_item_ids):
-    # Custom batch delete function for KnowledgeItem that recaches the models once the batch delete is done
-    with transaction.atomic():
-        # Perform the batch delete
-        KnowledgeItem.objects.filter(id__in=knowledge_item_ids).delete()
-
-        # Log and perform post-delete actions
-        logger.info(f"Deleted {len(knowledge_item_ids)} knowledge items")
-        recache_models("on_ki_delete")
+        super().save(*args, **kwargs)
 
 
 def gen_safe_url_uuid():

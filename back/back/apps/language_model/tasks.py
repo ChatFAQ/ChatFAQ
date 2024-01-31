@@ -611,6 +611,9 @@ def index_task(rag_config_id, recache_models: bool = False, caller: str = None):
     elif retriever_type == "colbert":
         index_colbert(rag_config, caller=caller)
 
+    rag_config.index_up_to_date = True
+    rag_config.save()
+
     logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
         recache_models_utils(log_caller=caller)

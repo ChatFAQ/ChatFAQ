@@ -41,6 +41,7 @@ class RAGConfig(ChangesMixin):
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
     disabled = models.BooleanField(default=False)
+    index_up_to_date = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
@@ -57,6 +58,12 @@ class RAGConfig(ChangesMixin):
             if self.disabled != old.disabled:
                 load_new_llm = True
                 logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
+            if self.knowledge_base != old.knowledge_base:
+                self.index_up_to_date = False
+                logger.info(f"RAG config {self.name} changed knowledge base. Index needs to be updated...")
+            if self.retriever_config.model_name != old.retriever_config.model_name:
+                self.index_up_to_date = False
+                logger.info(f"RAG config {self.name} changed retriever model. Index needs to be updated...")
 
         super().save(*args, **kwargs)
 
@@ -109,6 +116,13 @@ class RetrieverConfig(ChangesMixin):
 
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
+
+            if self.model_name != old_retriever.model_name or self.retriever_type != old_retriever.retriever_type:
+                # change the rag config index_up_to_date to False
+                rag_configs = RAGConfig.objects.filter(retriever_config=self)
+                for rag_config in rag_configs:
+                    rag_config.index_up_to_date = False
+                    rag_config.save()
 
             if self.device != old_retriever.device:
                 device_changed = True
