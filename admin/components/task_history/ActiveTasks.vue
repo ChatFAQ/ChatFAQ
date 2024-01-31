@@ -37,17 +37,18 @@ const lastItemDate = ref(new Date())
 const apiUrl = ref("/back/api/language-model/tasks/")
 const opened = ref(false)
 const router = useRouter();
+const conf = useRuntimeConfig()
+
 
 if (process.client)
     createConnection()
-
 
 function createConnection() {
     if (ws)
         ws.close()
 
     ws = new WebSocket(
-        "ws://localhost:8000"
+        conf.public.chatfaqWS
         + "/back/ws/broker/tasks/?token="
         + useCookie('token').value
     );
