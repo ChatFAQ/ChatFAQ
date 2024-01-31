@@ -87,7 +87,7 @@ class RagConfigAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         # This makes 'index_up_to_date' readonly in all cases
-        return self.readonly_fields + ('index_up_to_date',)
+        return self.readonly_fields + ('index_up_to_date', 's3_index_path',)
 
 
 

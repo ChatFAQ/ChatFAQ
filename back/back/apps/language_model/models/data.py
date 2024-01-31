@@ -5,7 +5,7 @@ from uuid import uuid4
 import base64
 import os
 
-from django.db import models, transaction
+from django.db import models
 from django.apps import apps
 from django.core.files.base import ContentFile
 
@@ -21,8 +21,6 @@ from pgvector.django import VectorField
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django_celery_results.models import TaskResult
-
-from back.utils.celery import recache_models
 
 
 logger = getLogger(__name__)

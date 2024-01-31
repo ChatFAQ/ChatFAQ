@@ -1,6 +1,7 @@
 from django.db import models, transaction
 from django.apps import apps
 from simple_history.models import HistoricalRecords
+import uuid
 
 from back.apps.language_model.models.data import KnowledgeBase
 from back.common.models import ChangesMixin
@@ -42,6 +43,12 @@ class RAGConfig(ChangesMixin):
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
     disabled = models.BooleanField(default=False)
     index_up_to_date = models.BooleanField(default=False)
+    s3_index_path = models.CharField(max_length=255, blank=True, null=True)
+
+    def generate_s3_index_path(self):
+        unique_id = str(uuid.uuid4())[:8]
+        self.s3_index_path = f'indexes/{self.name}_index_{unique_id}'
+        self.save()        
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
