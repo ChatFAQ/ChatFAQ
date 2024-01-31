@@ -114,7 +114,7 @@ class KnowledgeBase(ChangesMixin):
                         "kb_id": self.pk,
                         "task_id": task.task_id,
                         "csv": self.original_csv.url if self.original_csv else None,
-                        "pdf": self.original_pdf.url if self.original_csv else None,
+                        "pdf": self.original_pdf.url if self.original_pdf else None,
                         "url": self.original_url,
                     },
                 },
