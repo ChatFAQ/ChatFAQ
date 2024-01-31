@@ -50,6 +50,15 @@ class KnowledgeItem:
         }
 
 
+@dataclass
+class DataSource:
+    kb_id: str
+    task_id: Optional[str]
+    csv: Optional[str]
+    pdf: Optional[str]
+    url: Optional[str]
+
+
 class WSType(Enum):
     rpc = "rpc"
     llm = "llm"

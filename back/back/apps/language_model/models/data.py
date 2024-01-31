@@ -113,9 +113,9 @@ class KnowledgeBase(ChangesMixin):
                     "payload": {
                         "kb_id": self.pk,
                         "task_id": task.task_id,
-                        "data_source": self.original_csv
-                        or self.original_pdf
-                        or self.original_url,
+                        "csv": self.original_csv.url if self.original_csv else None,
+                        "pdf": self.original_pdf.url if self.original_csv else None,
+                        "url": self.original_url,
                     },
                 },
             )

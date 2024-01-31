@@ -12,7 +12,7 @@ from typing import Callable, Optional, Union
 
 import websockets
 from chatfaq_sdk import settings
-from chatfaq_sdk.types import WSType
+from chatfaq_sdk.types import WSType, DataSource
 from chatfaq_sdk.types.messages import MessageType, RPCNodeType
 from chatfaq_sdk.conditions import Condition
 from chatfaq_sdk.data_source_parsers import DataSourceParser
@@ -340,7 +340,9 @@ class ChatFAQSDK:
     def parsing_wrapper(self, parser_func):
         async def _parsing_wrapper(payload):
             logger.info(f"[PARSE] Parsing ::: {payload}")
-            for ki in parser_func(payload["kb_id"], payload["data_source"]):
+            data_source = DataSource(**payload)
+
+            for ki in parser_func(data_source.kb_id, data_source):
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/"),
@@ -370,12 +372,12 @@ class ChatFAQSDK:
                             )
                             response.raise_for_status()
 
-            if payload["task_id"]:
+            if data_source.task_id:
                 await getattr(self, f'ws_{WSType.parse.value}').send(
                     json.dumps(
                         {
                             "type": MessageType.parser_finished.value,
-                            "data": {"task_id": payload["task_id"]},
+                            "data": {"task_id": data_source.task_id},
                         }
                     )
                 )
