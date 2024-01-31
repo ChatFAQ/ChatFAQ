@@ -9,7 +9,8 @@ class KnowledgeItemImage:
     An image contained in a KnowledgeItem.
     """
 
-    image_file: Tuple[str, bytes]
+    image_name: str
+    image_bytes: bytes
     knowledge_item: str = None
     image_caption: Optional[str] = None
 
@@ -20,7 +21,7 @@ class KnowledgeItemImage:
         }
 
     def files(self):
-        return {"image_file": self.image_file}
+        return {"image_file": (self.image_name, self.image_bytes)}
 
 
 @dataclass

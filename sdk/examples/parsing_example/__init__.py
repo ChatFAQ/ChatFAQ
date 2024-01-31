@@ -15,27 +15,33 @@ class CustomDataSourceParser(DataSourceParser):
         yield KnowledgeItem(
             title="title1",
             content="begin content 1 [[Image 0]] end content 1",
-            url="http://www.exaple.com/1"
-        ), [KnowledgeItemImage(
-            image_file=(image_name, image_bytes),
-            image_caption="image1",
-        )]
+            url="http://www.exaple.com/1",
+            images=[KnowledgeItemImage(
+                image_name=image_name,
+                image_bytes=image_bytes,
+                image_caption="image1",
+            )]
+        )
         yield KnowledgeItem(
             title="title2",
             content="begin content 2 [[Image 0]] end content 2",
-            url="http://www.exaple.com/2"
-        ), [KnowledgeItemImage(
-            image_file=(image_name, image_bytes),
-            image_caption="image2",
-        )]
+            url="http://www.exaple.com/2",
+            images=[KnowledgeItemImage(
+                image_name=image_name,
+                image_bytes=image_bytes,
+                image_caption="image2",
+            )]
+        )
         yield KnowledgeItem(
             title="title3",
             content="begin content 3 [[Image 0]] end content 3",
-            url="http://www.exaple.com/3"
-        ), [KnowledgeItemImage(
-            image_file=(image_name, image_bytes),
-            image_caption="image3",
-        )]
+            url="http://www.exaple.com/3",
+            images=[KnowledgeItemImage(
+                image_name=image_name,
+                image_bytes=image_bytes,
+                image_caption="image3",
+            )]
+        )
 
 
 def main():
