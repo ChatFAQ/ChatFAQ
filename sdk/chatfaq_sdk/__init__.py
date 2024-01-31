@@ -340,7 +340,7 @@ class ChatFAQSDK:
     def parsing_wrapper(self, parser_func):
         async def _parsing_wrapper(payload):
             logger.info(f"[PARSE] Parsing ::: {payload}")
-            for ki, ki_images in parser_func(payload["kb_id"], payload["data_source"]):
+            for ki in parser_func(payload["kb_id"], payload["data_source"]):
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/"),
@@ -348,10 +348,10 @@ class ChatFAQSDK:
                         headers={"Authorization": f"Token {self.token}"},
                     )
                     response.raise_for_status()
-                    ki = response.json()
-                    if ki_images:
-                        for index, ki_image in enumerate(ki_images):
-                            ki_image.knowledge_item = ki["id"]
+                    ki_res = response.json()
+                    if ki.images:
+                        for index, ki_image in enumerate(ki.images):
+                            ki_image.knowledge_item = ki_res["id"]
                             response = await client.post(
                                 urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-item-images/"),
                                 data=ki_image.dict(),
@@ -360,12 +360,12 @@ class ChatFAQSDK:
                             )
                             response.raise_for_status()
                             ki_image = response.json()
-                            ki["content"] = ki["content"].replace(
+                            ki_res["content"] = ki_res["content"].replace(
                                 f"[[Image {index}]]", f"![{ki_image.get('image_caption') or ki_image['image_file_name']}]({ki_image['image_file_name']})"
                             )
                             response = await client.patch(
-                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/{ki['id']}/"),
-                                json=ki,
+                                urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/{ki_res['id']}/"),
+                                json=ki_res,
                                 headers={"Authorization": f"Token {self.token}"},
                             )
                             response.raise_for_status()

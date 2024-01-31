@@ -1,22 +1,6 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from dataclasses import dataclass, asdict
 from enum import Enum
-
-
-@dataclass
-class KnowledgeItem:
-    """
-    A KnowledgeItem is a set of elements (titles, texts, urls, etc.) that are used for Retrieval Augmented Generation (RAG).
-    """
-    title: str
-    content: str
-    knowledge_base: Optional[str] = None
-    section: Optional[str] = None
-    url: Optional[str] = None
-    page_number: Optional[int] = 0
-    metadata: Optional[dict] = None
-
-    dict = asdict
 
 
 @dataclass
@@ -37,6 +21,32 @@ class KnowledgeItemImage:
 
     def files(self):
         return {"image_file": self.image_file}
+
+
+@dataclass
+class KnowledgeItem:
+    """
+    A KnowledgeItem is a set of elements (titles, texts, urls, etc.) that are used for Retrieval Augmented Generation (RAG).
+    """
+    title: str
+    content: str
+    knowledge_base: Optional[str] = None
+    section: Optional[str] = None
+    url: Optional[str] = None
+    page_number: Optional[int] = 0
+    metadata: Optional[dict] = None
+    images: Optional[List[KnowledgeItemImage]] = None
+
+    def dict(self):
+        return {
+            "title": self.title,
+            "content": self.content,
+            "knowledge_base": self.knowledge_base,
+            "section": self.section,
+            "url": self.url,
+            "page_number": self.page_number,
+            "metadata": self.metadata,
+        }
 
 
 class WSType(Enum):

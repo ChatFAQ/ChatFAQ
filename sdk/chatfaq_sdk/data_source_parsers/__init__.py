@@ -8,6 +8,6 @@ class DataSourceParser:
         raise NotImplementedError()
 
     def __call__(self, kb_id, data_source) -> Iterator[Tuple[KnowledgeItem, List[KnowledgeItemImage]]]:
-        for ki, ki_images in self.parse(data_source):
+        for ki in self.parse(data_source):
             ki.knowledge_base = kb_id
-            yield ki, ki_images
+            yield ki
