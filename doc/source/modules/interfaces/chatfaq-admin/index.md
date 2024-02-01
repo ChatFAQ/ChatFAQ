@@ -51,15 +51,15 @@ Once you select a conversation on the initial Labeling screen, you will be direc
 
 #### Right side: Evaluation and Tagging Process
 
-    A. **Evaluation of Knowledge Items**: Determine if the 'knowledge items' used by the retriever are appropriate or if there is a need to add more relevant information.
+    A. Evaluation of Knowledge Items: Determine if the 'knowledge items' used by the retriever are appropriate or if there is a need to add more relevant information.
 
-    B. **Feedback and Rating**:
+    B. Feedback and Rating:
         
-    - _Rating from 1 to 5_: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
+    - Rating from 1 to 5: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
     
-    - _Text Feedback_: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbot's response.
+    - Text Feedback: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbot's response.
 
-    C. **User Feedback**: Check whether the user has given positive or negative feedback and review any additional comments they might have provided.
+    C. User Feedback: Check whether the user has given positive or negative feedback and review any additional comments they might have provided.
 
 
 ## Data
