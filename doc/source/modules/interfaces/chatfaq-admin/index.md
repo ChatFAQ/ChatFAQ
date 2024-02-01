@@ -4,72 +4,48 @@ The ChatFAQ admin will be a node application that allows you to manage your chat
 
 ## Dashboard
 
-The Quality Monitoring Dashboard is a crucial component of the ChatFAQ admin tool, designed to provide a comprehensive overview of the current status and quality of your chatbots. This dashboard is tailored for real-time monitoring and evaluation, ensuring you have all the necessary information at a glance.
+The Quality Monitoring Dashboard is  designed to provide a comprehensive overview of the current status and quality of the chatbots. For example: 
 
-### Overview of Active RAGs (Retriever-Augmented Generations)
+- **Active RAG List**: You will see all the RAGs that are currently active. 
 
-- **Active RAG List**: This section displays all the RAGs that are currently active. It allows you to quickly assess which versions of your chatbots are in operation and how they are performing.
+- **Execution Status**: Monitor the processes that are currently running. 
 
-### Current Processes in Execution
-
-- **Execution Status**: Monitor the processes that are currently running. This feature is essential for tracking the real-time operational status of your chatbots, including updates, maintenance activities, or any ongoing training processes.
-
-### Key Metrics and Quality Indicators
-
-- **Performance Metrics**: The dashboard provides key metrics that indicate the performance and effectiveness of your chatbots. These metrics could include response accuracy, user satisfaction scores, response time, and other relevant data.
-- **Quality at a Glance**: Quickly gauge the overall quality of your chatbots' interactions. This could be represented through visual indicators like graphs, charts, or color-coded alerts, offering an instant understanding of areas that are performing well or need attention.
-
-### Real-Time Monitoring and Alerts
-
-- **Alert System**: Receive real-time alerts for any critical issues or anomalies detected in the chatbot operations. This system helps in promptly addressing any problems, thus maintaining the quality and reliability of your chatbot services.
-- **Trend Analysis**: The dashboard might also include tools for analyzing trends over time, helping you to understand the long-term performance and areas for improvement in your chatbot interactions.
+- **Performance Metrics**: These metrics could include response accuracy, user satisfaction scores, response time, and other relevant data.
 
 
 ## Labeling
 
-The Labeling section of the ChatFAQ admin tool is designed to facilitate the management and improvement of your chatbot's interactions. It provides various tools to search, filter, and review chatbot conversations for effective training and enhancement of the bot's performance. 
+The Labeling section of the ChatFAQ admin tool facilitate the management and improvement of the chatbot's interactions.  
 
-### Conversation Search and Filtering
+### Initial screen: Conversation Search and Filtering
 
-#### Search Functionality
-
-*Initial Screen*: Upon accessing the Labeling section, you will be greeted with a search bar. This feature allows you to locate specific conversations of interest based on their content or title. It's an efficient way to quickly find and analyze interactions relevant to your needs.
-
-#### Filtering Options
-
-- _Filter by Tag_: This option enables you to filter conversations based on the specific chatbot you want to evaluate. It's useful for environments where multiple chatbots are being managed and assessed.
-- *Date Range Selection*: You can filter conversations by their date range. This feature is particularly helpful when you need to review or analyze interactions from a specific period.
-- *Conversation Status Filter*: There are three statuses you can filter by, to efficiently manage your review process:
-    - *Reviewed*: Select this to view all Question & Answer (Q&A) units that have been fully reviewed.
-    - *To Review*: Use this filter to find conversations where no Q&A units have been reviewed yet, indicating they are pending your analysis.
-    - *Under Review*: This filter shows conversations where some Q&A units are currently under review, indicating an ongoing evaluation process.
+- _Search bar_ : Locate specific conversations of interest based on their content or title.
+- _Filter by RAG_: Filter conversations based on the specific chatbot you want to evaluate. 
+- *Date Range Selection*: Filter conversations by their date range. 
+- *Conversation Status Filter*: To efficiently manage your review process, there are three statuses you can filter by:
+    - *Reviewed*: Conversations that all Question & Answer (Q&A) units have been fully reviewed.
+    - *To Review*: Conversations where no Q&A units have been reviewed yet, indicating they are pending your analysis.
+    - *Under Review*: Conversations where some Q&A units are currently under review, indicating an ongoing evaluation process.
  
 ### Detailed Labeling Screen
 
-Once you select a conversation on the initial Labeling screen, you will be directed to the detailed labeling screen. This screen is designed to facilitate in-depth evaluation and tagging of each interaction.
+Once you select a conversation on the initial Labeling screen, you will be directed to the detailed labeling screen. This screen is designed to evaluation and tagging of each interaction.
 
-#### Conversation Layout and Content
+#### Left side: Conversation Layout and Content
 
-##### Conversation Structure
 - **General Information**: On the left side of the screen, you will see the complete conversation. Each conversation includes its title, the RAG (Retriever-Augmented Generation) it belongs to, and the start date of the conversation.
 - **Conversational Bubbles**:
-  - **Right Side (Question)**: Represents the user's questions or comments. This is where the user poses their queries or remarks.
-  - **Left Side (Answer)**: Displays the responses generated by the AI chatbot. These responses are the primary focus of your evaluation.
+  - **Right Side (Question)**: Represents the user's questions or comments. 
+  - **Left Side (Answer)**: Displays the answers generated by the AI chatbot. These responses are the primary focus of your evaluation.
+- _Q&A Blocks_: Each pair of question and answer forms a Q&A block, which is the key element for evaluation. Select one pair to start the evaluation and tagging process.
 
-##### Q&A Blocks
-- Each pair of question and answer forms a Q&A block, which is the key element for evaluation. Select one pair to start the evaluation and tagging process.
+#### Right side: Evaluation and Tagging Process
 
-#### Evaluation and Tagging Process
-
-##### A. Evaluation of Knowledge Items
-- **Retriever Adequacy**: Determine if the 'knowledge items' used by the retriever are appropriate or if there is a need to add more relevant information.
-
-##### B. Feedback and Rating
-- **Rating from 1 to 5**: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
-- **Text Feedback**: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbot's response.
-
-##### C. User Feedback
-- **Evaluation of User Feedback**: Observe whether the user has given positive or negative feedback and review any additional comments they might have provided.
+A. _Evaluation of Knowledge Items_: Determine if the 'knowledge items' used by the retriever are appropriate or if there is a need to add more relevant information.
+B. _Feedback and Rating_:
+    - **Rating from 1 to 5**: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
+    - **Text Feedback**: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbot's response.
+C. _User Feedback_: Check whether the user has given positive or negative feedback and review any additional comments they might have provided.
 
 
 ## Data
