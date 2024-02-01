@@ -55,12 +55,11 @@ Once you select a conversation on the initial Labeling screen, you will be direc
 
     B. Feedback and Rating:
         
-    - Rating from 1 to 5: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
+        - Rating from 1 to 5: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
     
-    - Text Feedback: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbot's response.
+        - Text Feedback: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbots response.
 
     C. User Feedback: Check whether the user has given positive or negative feedback and review any additional comments they might have provided.
-
 
 ## Data
 
