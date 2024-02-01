@@ -670,7 +670,6 @@ def parse_url_task(knowledge_base_id, url):
     runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
     KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
     kb = KnowledgeBase.objects.get(pk=knowledge_base_id)
-    kb.trigger_index_k_items()
 
 
 @app.task()
@@ -746,8 +745,6 @@ def parse_pdf_task(pdf_file_pk):
                         f"![{image_caption}]({image_instance.image_file.name})",
                     )
                     knowledge_item.save()
-
-    kb.trigger_index_k_items()
 
 
 @app.task()
@@ -839,6 +836,11 @@ def generate_suggested_intents_task(knowledge_base_pk):
     # Get the RAG config that corresponds to the knowledge base
     rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
     lang = rag_conf.knowledge_base.lang
+
+    # if the retriever type is not e5, then return
+    if rag_conf.retriever_config.retriever_type != "e5":
+        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.retriever_type} right now")
+        return
 
     e5_model = E5Model(
         model_name=rag_conf.retriever_config.model_name,
@@ -966,6 +968,11 @@ def generate_intents_task(knowledge_base_pk):
     Intent = apps.get_model("language_model", "Intent")
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
+
+    # if the retriever type is not e5, then return
+    if rag_conf.retriever_config.retriever_type != "e5":
+        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.retriever_type} right now")
+        return
 
     hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
