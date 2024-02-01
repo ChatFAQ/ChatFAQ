@@ -51,7 +51,7 @@ Once you select a conversation on the initial Labeling screen, you will be direc
 
 #### Right side: Evaluation and Tagging Process
 
-    A. Evaluation of Knowledge Items: Determine if the 'knowledge items' used by the retriever are appropriate or if there is a need to add more relevant information.
+    A. Evaluation of Knowledge Items: Determine if the knowledge items used by the retriever are appropriate or if there is a need to add more relevant information.
 
     B. Feedback and Rating:
         
