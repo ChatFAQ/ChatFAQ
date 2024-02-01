@@ -57,7 +57,7 @@ Once you select a conversation on the initial Labeling screen, you will be direc
         
     - _Rating from 1 to 5_: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
     
-    - _Text Feedback_: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbots response.
+    - _Text Feedback_: Specific feedback, including suggestions for alternative text or necessary revisions in the chatbots response.
 
 - **User Feedback**: Check whether the user has given positive or negative feedback and review any additional comments they might have provided.
 
