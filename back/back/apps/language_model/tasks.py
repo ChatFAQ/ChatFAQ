@@ -647,6 +647,8 @@ def delete_index_files_task(s3_index_path, recache_models: bool = False):
             # Delete the file from S3
             default_storage.delete(file_path)
         
+        logger.info(f"Index files deleted from S3: {s3_index_path}")
+        
         if recache_models:
             recache_models_utils()
 
