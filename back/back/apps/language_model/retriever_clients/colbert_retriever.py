@@ -43,6 +43,7 @@ class ColBERTRetriever:
             collection=contents,
             document_ids=contents_pk,
             split_documents=False,
+            max_document_length=512,
         )
 
         # Upload index files to S3
