@@ -1,12 +1,15 @@
-from django.db import models, transaction
-from django.apps import apps
-from simple_history.models import HistoricalRecords
+import os
 import uuid
+
+from django.db import models, transaction
+from django.core.files.storage import default_storage
+from simple_history.models import HistoricalRecords
 
 from back.apps.language_model.models.data import KnowledgeBase
 from back.common.models import ChangesMixin
 
 from back.utils.celery import recache_models
+from back.apps.language_model.tasks import delete_index_files_task
 
 
 from logging import getLogger

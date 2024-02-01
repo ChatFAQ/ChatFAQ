@@ -475,6 +475,7 @@ def modify_index(rag_config):
 
     from back.apps.language_model.retriever_clients import ColBERTRetriever
 
+
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     Embedding = apps.get_model("language_model", "Embedding")
 
@@ -507,7 +508,9 @@ def modify_index(rag_config):
 
     if len(k_item_ids_to_remove) > 0:
         # remove the k items from the ColBERT index
-        retriever.delete_from_index(rag_config=rag_config, k_item_ids=k_item_ids_to_remove)
+        retriever.delete_from_index(
+            rag_config=rag_config, k_item_ids=k_item_ids_to_remove
+        )
 
     # remove the embeddings with the given ids
     Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
@@ -523,24 +526,27 @@ def modify_index(rag_config):
         # add the k items to the ColBERT index
         try:
             retriever.add_to_index(rag_config=rag_config, k_items=k_items)
+
+            # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+            embeddings = [
+                Embedding(
+                    knowledge_item=item,
+                    rag_config=rag_config,
+                )
+                for item in k_items
+            ]
+            Embedding.objects.bulk_create(embeddings)
+
         except Exception as e:
             logger.error(f"Error adding k items to index: {e}")
-            logger.info("This error is probably due to too few knowledge items to add to the index.")
+            logger.info(
+                "This error is probably due to too few knowledge items to add to the index."
+            )
             logger.info("Rebuilding index from scratch...")
             # remove all embeddings for the given rag config
             Embedding.objects.filter(rag_config=rag_config).delete()
             # indexing starting from scratch
             creates_index(rag_config=rag_config)
-
-    # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
-    embeddings = [
-        Embedding(
-            knowledge_item=item,
-            rag_config=rag_config,
-        )
-        for item in k_items
-    ]
-    Embedding.objects.bulk_create(embeddings)
 
 
 def creates_index(rag_config, caller: str = None):
@@ -551,6 +557,7 @@ def creates_index(rag_config, caller: str = None):
     rag_config_id : int
         The primary key of the RAGConfig object.
     """
+
     from back.apps.language_model.retriever_clients import ColBERTRetriever
 
     logger.info(f"Log caller: {caller}")
@@ -617,6 +624,31 @@ def index_task(rag_config_id, recache_models: bool = False, caller: str = None):
     logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
         recache_models_utils(log_caller=caller)
+
+
+@app.task()
+def delete_index_files_task(s3_index_path, recache_models: bool = False):
+    """
+    Delete the index files from S3.
+    Parameters
+    ----------
+    s3_index_path : str
+        The unique index path.
+    """
+    from django.core.files.storage import default_storage
+
+    if s3_index_path:
+        logger.info(f"Deleting index files from S3: {s3_index_path}")
+        # List all files in the unique index path
+        _, files = default_storage.listdir(s3_index_path)
+        for file in files:
+            # Construct the full path for each file
+            file_path = os.path.join(s3_index_path, file)
+            # Delete the file from S3
+            default_storage.delete(file_path)
+        
+        if recache_models:
+            recache_models_utils()
 
 
 @app.task()
