@@ -55,9 +55,6 @@ A. **Evaluation of Knowledge Items**: Determine if the 'knowledge items' used by
 
 B. **Feedback and Rating**:
 
-    - _Rating from 1 to 5_: Provide a numerical rating for each chatbot response, based on criteria defined by the business.
-    
-    - _Text Feedback_: Opportunity to offer specific feedback, including suggestions for alternative text or necessary revisions in the chatbot's response.
 
 C. **User Feedback**: Check whether the user has given positive or negative feedback and review any additional comments they might have provided.
 
