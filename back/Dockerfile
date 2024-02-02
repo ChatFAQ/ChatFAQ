@@ -8,6 +8,8 @@ COPY --chown=user model-w.toml pyproject.toml poetry.lock README.md ./
 RUN modelw-docker install \
     && modelw-docker run poetry run playwright install firefox
 
+RUN poetry run pip uninstall -y effdet
+
 COPY --chown=user . .
 
 RUN modelw-docker build
