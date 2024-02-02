@@ -1,8 +1,7 @@
 from logging import getLogger
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 import numpy as np
-
 from transformers import pipeline
 
 logger = getLogger(__name__)
@@ -47,7 +46,7 @@ class ReferenceChecker:
         return False # if not question or instruction, then don't retrieve
     
 
-def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09) -> List[Dict[str, Any]]:
+def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09, min_score=0.3) -> List[Dict[str, Any]]:
     """
     Find the relevant sources from a list of sources. We use the similarity scores to find the relevant sources. We calculate the standard deviation of the gaps between consecutive sources and return all sources up to the first significant gap.
     Parameters
@@ -56,6 +55,8 @@ def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09
         List of sources to find the relevant sources from.
     min_difference: float
         Minimum difference between consecutive sources to be considered a significant gap.
+    min_score: float
+        Minimum score for a source to be considered relevant.
     Returns
     -------
     List[Dict[str, Any]]
@@ -64,8 +65,7 @@ def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09
 
     # Calculate gaps between consecutive sources
     # print the similarity scores
-    print([source['similarity'] for source in sources])
-    gaps = [sources[i]['similarity'] - sources[i + 1]['similarity'] for i in range(len(sources) - 1)]
+    gaps = [sources[i]['score'] - sources[i + 1]['score'] for i in range(len(sources) - 1)]
 
     # Compute standard deviation of the gaps if there are enough gaps
     if len(gaps) > 1:
@@ -78,6 +78,11 @@ def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09
     for i, gap in enumerate(gaps):
         if gap > std_dev and gap > min_difference:  # A significant gap
             return sources[:i + 1]
+        
+    final_sources = []
+    for source in sources:
+        if source['score'] > min_score:
+            final_sources.append(source)
 
     # If no significant gap found, return all sources
-    return sources
+    return final_sources

@@ -6,7 +6,14 @@ from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
 from chat_rag import RAG
-from chat_rag.llms import GGMLModel, HFModel, OpenAIChatModel, VLLModel, ClaudeChatModel, MistralChatModel
+from chat_rag.llms import (
+    GGMLModel,
+    HFModel,
+    OpenAIChatModel,
+    VLLModel,
+    ClaudeChatModel,
+    MistralChatModel,
+)
 from chat_rag.inf_retrieval.embedding_models import E5Model
 from chat_rag.intent_detection import clusterize_text, generate_intents
 from chat_rag.data.splitters import get_splitter
@@ -21,10 +28,10 @@ from scrapy.crawler import CrawlerRunner
 from crochet import setup
 import numpy as np
 import os
-import json
 import torch
 
 from back.utils.celery import recache_models as recache_models_utils
+from django.db.models import F
 
 if is_celery_worker():
     setup()
@@ -116,56 +123,73 @@ class RAGCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
-        from back.apps.language_model.retriever_clients import PGVectorRetriever
+        from back.apps.language_model.retriever_clients import (
+            ColBERTRetriever,
+            PGVectorRetriever,
+        )
 
         logger.info("Preloading models...")
         RAGConfig = apps.get_model("language_model", "RAGConfig")
+        Embedding = apps.get_model("language_model", "Embedding")
         cache = {}
 
-
         for rag_conf in RAGConfig.enabled_objects.all():
-            logger.info(
-                f"Loading RAG config: {rag_conf.name} "
-                f"with llm: {rag_conf.llm_config.llm_name} "
-                f"with llm type: {rag_conf.llm_config.llm_type} "
-                f"with knowledge base: {rag_conf.knowledge_base.name} "
-                f"with retriever: {rag_conf.retriever_config.model_name} "
-                f"and retriever device: {rag_conf.retriever_config.device}"
-            )
+            if Embedding.objects.filter(rag_config=rag_conf).exists():
+                logger.info(
+                    f"Loading RAG config: {rag_conf.name} "
+                    f"with llm: {rag_conf.llm_config.llm_name} "
+                    f"with llm type: {rag_conf.llm_config.llm_type} "
+                    f"with knowledge base: {rag_conf.knowledge_base.name} "
+                    f"with retriever: {rag_conf.retriever_config.model_name} "
+                    f"and retriever device: {rag_conf.retriever_config.device}"
+                )
 
-            hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
+                retriever_type = rag_conf.retriever_config.retriever_type
 
-            e5_model = E5Model(
-                model_name=rag_conf.retriever_config.model_name,
-                use_cpu=rag_conf.retriever_config.device == "cpu",
-                huggingface_key=hugginface_key,
-            )
+                if retriever_type == "colbert":
+                    retriever = ColBERTRetriever.from_index(rag_conf)
+                    rerank = False
+                elif retriever_type == "e5":
+                    hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
-            retriever = PGVectorRetriever(
-                embedding_model=e5_model,
-                rag_config=rag_conf,
-            )
+                    e5_model = E5Model(
+                        model_name=rag_conf.retriever_config.model_name,
+                        use_cpu=rag_conf.retriever_config.device == "cpu",
+                        huggingface_key=hugginface_key,
+                    )
 
-            llm_model = get_model(
-                llm_name=rag_conf.llm_config.llm_name,
-                llm_type=rag_conf.llm_config.llm_type,
-                ggml_model_filename=rag_conf.llm_config.ggml_llm_filename,
-                use_cpu=False,
-                model_config=rag_conf.llm_config.model_config,
-                load_in_8bit=rag_conf.llm_config.load_in_8bit,
-                use_fast_tokenizer=rag_conf.llm_config.use_fast_tokenizer,
-                trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
-                trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
-                revision=rag_conf.llm_config.revision,
-                model_max_length=rag_conf.llm_config.model_max_length,
-            )
+                    retriever = PGVectorRetriever(
+                        embedding_model=e5_model,
+                        rag_config=rag_conf,
+                    )
+                    rerank = True
+                else:
+                    raise ValueError(f"Retriever type: {retriever_type} not supported.")
 
-            cache[str(rag_conf.name)] = RAG(
-                retriever=retriever,
-                llm_model=llm_model,
-                lang=rag_conf.knowledge_base.lang,
-            )
-            logger.info("...model loaded.")
+                llm_model = get_model(
+                    llm_name=rag_conf.llm_config.llm_name,
+                    llm_type=rag_conf.llm_config.llm_type,
+                    ggml_model_filename=rag_conf.llm_config.ggml_llm_filename,
+                    use_cpu=False,
+                    model_config=rag_conf.llm_config.model_config,
+                    load_in_8bit=rag_conf.llm_config.load_in_8bit,
+                    use_fast_tokenizer=rag_conf.llm_config.use_fast_tokenizer,
+                    trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
+                    trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
+                    revision=rag_conf.llm_config.revision,
+                    model_max_length=rag_conf.llm_config.model_max_length,
+                )
+
+                cache[str(rag_conf.name)] = RAG(
+                    retriever=retriever,
+                    llm_model=llm_model,
+                    lang=rag_conf.knowledge_base.lang,
+                    rerank=rerank,
+                )
+                logger.info("...model loaded.")
+
+            else:
+                logger.info(f"RAG config: {rag_conf.name} needs to be indexed.")
 
         return cache
 
@@ -253,12 +277,20 @@ def llm_query_task(
     logger.info(f"Stop words: {stop_words}")
 
     # # Gatherings all the previous messages from the conversation
-    prev_messages, human_messages_id = Conversation.objects.get(pk=conversation_id).get_mml_chain(as_conv_format=True)
-    import time
+    prev_messages, human_messages_id = Conversation.objects.get(
+        pk=conversation_id
+    ).get_mml_chain(as_conv_format=True)
 
-    prev_contents = list(KnowledgeItem.objects.filter(
-        messageknowledgeitem__message_id__in=human_messages_id[:-1] # except current message
-    ).distinct().order_by('updated_date').values_list('content', flat=True))
+    prev_contents = list(
+        KnowledgeItem.objects.filter(
+            messageknowledgeitem__message_id__in=human_messages_id[
+                :-1
+            ]  # except current message
+        )
+        .distinct()
+        .order_by("updated_date")
+        .values_list("content", flat=True)
+    )
 
     rag = self.CACHED_RAGS[rag_config_name]
 
@@ -290,7 +322,12 @@ def llm_query_task(
 
     reference_kis = reference_kis[0] if len(reference_kis) > 0 else []
     logger.info(f"\nReferences: {reference_kis}")
-    print({"knowledge_base_id": rag_conf.knowledge_base.pk, "knowledge_items": reference_kis})
+    print(
+        {
+            "knowledge_base_id": rag_conf.knowledge_base.pk,
+            "knowledge_items": reference_kis,
+        }
+    )
     _send_message(
         bot_channel_name,
         lm_msg_id,
@@ -326,8 +363,31 @@ def llm_query_task(
     )
 
 
-@app.task()
-def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
+def get_modified_k_items_ids(rag_config):
+    """
+    Get the ids of the k items that have been modified.
+    Parameters
+    ----------
+    rag_config : RAGConfig
+        The RAGConfig object.
+    Returns
+    -------
+    modified_k_item_ids : list
+        A list of primary keys of the KnowledgeItem objects.
+    """
+    Embedding = apps.get_model("language_model", "Embedding")
+
+    modified_k_item_ids = list(
+        Embedding.objects.filter(
+            rag_config=rag_config,
+            updated_date__lt=F("knowledge_item__updated_date"),
+        ).values_list("knowledge_item__pk", flat=True)
+    )
+
+    return modified_k_item_ids
+
+
+def generate_embeddings(k_items, rag_config):
     """
     Generate the embeddings for a knowledge base.
     Parameters
@@ -337,17 +397,14 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     ragconfig_id : int
         The primary key of the RAGConfig object.
     """
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
-    RAGConfig = apps.get_model("language_model", "RAGConfig")
-    ki_qs = KnowledgeItem.objects.filter(pk__in=ki_ids)
-    rag_config = RAGConfig.enabled_objects.get(pk=rag_config_id)
+    Embedding = apps.get_model("language_model", "Embedding")
 
     model_name = rag_config.retriever_config.model_name
     batch_size = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.device
 
     logger.info(
-        f"Generating embeddings for {ki_qs.count()} knowledge items. Knowledge base: {rag_config.knowledge_base.name}"
+        f"Generating embeddings for {k_items.count()} knowledge items. Knowledge base: {rag_config.knowledge_base.name}"
     )
     logger.info(f"Retriever model: {model_name}")
     logger.info(f"Batch size: {batch_size}")
@@ -359,7 +416,7 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
         huggingface_key=os.environ.get("HUGGINGFACE_KEY", None),
     )
 
-    contents = [item.content for item in ki_qs]
+    contents = [item.content for item in k_items]
     embeddings = embedding_model.build_embeddings(
         contents=contents, batch_size=batch_size
     )
@@ -367,20 +424,237 @@ def generate_embeddings_task(ki_ids, rag_config_id, recache_models=False):
     # from tensor to list
     embeddings = [embedding.tolist() for embedding in embeddings]
 
-    Embedding = apps.get_model("language_model", "Embedding")
     new_embeddings = [
         Embedding(
             knowledge_item=item,
             rag_config=rag_config,
             embedding=embedding,
         )
-        for item, embedding in zip(ki_qs, embeddings)
+        for item, embedding in zip(k_items, embeddings)
     ]
 
     Embedding.objects.bulk_create(new_embeddings)
-    logger.info(f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}")
+    logger.info(
+        f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}"
+    )
+
+
+def index_e5(rag_config, caller: str = None):
+    """
+    Generate the embeddings for a knowledge base for the E5 retriever.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+    Embedding = apps.get_model("language_model", "Embedding")
+
+    # When a k item is deleted, its embedding is also deleted in cascade, so we need to remove the embeddings of only the modified k items
+    # get the modified k items ids
+    modified_k_item_ids = get_modified_k_items_ids(rag_config)
+
+    logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
+
+    # remove the embeddings of the modified k items
+    Embedding.objects.filter(knowledge_item__pk__in=modified_k_item_ids).delete()
+
+    # get the k items that have no associated embeddings
+    k_items = KnowledgeItem.objects.filter(
+        knowledge_base=rag_config.knowledge_base
+    ).exclude(embedding__rag_config=rag_config)
+
+    generate_embeddings(k_items=k_items, rag_config=rag_config)
+
+
+def modify_index(rag_config):
+    """
+    Modify the index for a knowledge base. It removes, modifies and adds the k items to an existing index.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+
+    from back.apps.language_model.retriever_clients import ColBERTRetriever
+
+
+    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+    Embedding = apps.get_model("language_model", "Embedding")
+
+    retriever = ColBERTRetriever.from_index(rag_config=rag_config)
+
+    # k items to remove
+    current_k_item_ids = KnowledgeItem.objects.filter(
+        knowledge_base=rag_config.knowledge_base
+    ).values_list("pk", flat=True)
+
+    indexed_k_item_ids = [
+        int(id) for id in retriever.retriever.model.docid_pid_map.keys()
+    ]
+
+    # Current indexed k items - k items in the database = k items to remove
+    k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
+
+    logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
+
+    # modified k items need to be removed from the index also, to detect which k items are modified we check if the k_item embedding updated_date is lower than the k_item updated_date
+    modified_k_item_ids = get_modified_k_items_ids(rag_config)
+
+    logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
+
+    # add the modified k items to the k items to remove
+    k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
+
+    # ids to string
+    k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
+
+    if len(k_item_ids_to_remove) > 0:
+        # remove the k items from the ColBERT index
+        retriever.delete_from_index(
+            rag_config=rag_config, k_item_ids=k_item_ids_to_remove
+        )
+
+    # remove the embeddings with the given ids
+    Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
+
+    # get the k items that have no associated embeddings
+    k_items = KnowledgeItem.objects.filter(
+        knowledge_base=rag_config.knowledge_base
+    ).exclude(embedding__rag_config=rag_config)
+
+    logger.info(f"Number of k items to add: {len(k_items)}")
+
+    if k_items.count() > 0:
+        # add the k items to the ColBERT index
+        try:
+            retriever.add_to_index(rag_config=rag_config, k_items=k_items)
+
+            # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+            embeddings = [
+                Embedding(
+                    knowledge_item=item,
+                    rag_config=rag_config,
+                )
+                for item in k_items
+            ]
+            Embedding.objects.bulk_create(embeddings)
+
+        except Exception as e:
+            logger.error(f"Error adding k items to index: {e}")
+            logger.info(
+                "This error is probably due to too few knowledge items to add to the index."
+            )
+            logger.info("Rebuilding index from scratch...")
+            # remove all embeddings for the given rag config
+            Embedding.objects.filter(rag_config=rag_config).delete()
+            # indexing starting from scratch
+            creates_index(rag_config=rag_config)
+
+
+def creates_index(rag_config, caller: str = None):
+    """
+    Build the index for a knowledge base.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+
+    from back.apps.language_model.retriever_clients import ColBERTRetriever
+
+    logger.info(f"Log caller: {caller}")
+
+    Embedding = apps.get_model("language_model", "Embedding")
+    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+
+    k_items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
+
+    index_path = ColBERTRetriever.index(rag_config=rag_config, k_items=k_items)
+    # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+    embeddings = [
+        Embedding(
+            knowledge_item=item,
+            rag_config=rag_config,
+        )
+        for item in k_items
+    ]
+    Embedding.objects.bulk_create(embeddings)
+
+
+def index_colbert(rag_config, caller: str = None):
+    """
+    Build the index for a knowledge base.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+
+    Embedding = apps.get_model("language_model", "Embedding")
+
+    if Embedding.objects.filter(
+        rag_config=rag_config
+    ).exists():  # if there are embeddings for the given rag config
+        modify_index(rag_config)
+
+    else:
+        creates_index(rag_config=rag_config, caller=caller)
+
+
+@app.task()
+def index_task(rag_config_id, recache_models: bool = False, caller: str = None):
+    """
+    Build the index for a knowledge base.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+    RAGConfig = apps.get_model("language_model", "RAGConfig")
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+
+    retriever_type = rag_config.retriever_config.retriever_type
+
+    if retriever_type == "e5":
+        index_e5(rag_config, caller=caller)
+    elif retriever_type == "colbert":
+        index_colbert(rag_config, caller=caller)
+
+    rag_config.index_up_to_date = True
+    rag_config.save()
+
+    logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
-        recache_models_utils("generate_embeddings_task")
+        recache_models_utils(log_caller=caller)
+
+
+@app.task()
+def delete_index_files_task(s3_index_path, recache_models: bool = False):
+    """
+    Delete the index files from S3.
+    Parameters
+    ----------
+    s3_index_path : str
+        The unique index path.
+    """
+    from django.core.files.storage import default_storage
+
+    if s3_index_path:
+        logger.info(f"Deleting index files from S3: {s3_index_path}")
+        # List all files in the unique index path
+        _, files = default_storage.listdir(s3_index_path)
+        for file in files:
+            # Construct the full path for each file
+            file_path = os.path.join(s3_index_path, file)
+            # Delete the file from S3
+            default_storage.delete(file_path)
+        
+        logger.info(f"Index files deleted from S3: {s3_index_path}")
+        
+        if recache_models:
+            recache_models_utils()
+
 
 @app.task()
 def parse_url_task(knowledge_base_id, url):
@@ -401,7 +675,6 @@ def parse_url_task(knowledge_base_id, url):
     runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
     KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
     kb = KnowledgeBase.objects.get(pk=knowledge_base_id)
-    kb.trigger_generate_embeddings()
 
 
 @app.task()
@@ -443,17 +716,16 @@ def parse_pdf_task(pdf_file_pk):
     parsed_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
 
     with transaction.atomic():
-
         for item in parsed_items:
             # Create and save the KnowledgeItem instance
             knowledge_item = KnowledgeItem(
                 knowledge_base=kb,
                 title=item.title,
-                content=item.content, # alnaf [[Image 0]] a;mda [[Image 2]]
+                content=item.content,  # alnaf [[Image 0]] a;mda [[Image 2]]
                 url=item.url,
                 section=item.section,
                 page_number=item.page_number,
-                metadata=item.metadata
+                metadata=item.metadata,
             )
             knowledge_item.save()
 
@@ -468,14 +740,16 @@ def parse_pdf_task(pdf_file_pk):
                     image_instance.save()
 
                     # If the image does not have a caption, use a default caption
-                    image_caption = image.image_caption if image.image_caption else f'Image {index}'
+                    image_caption = (
+                        image.image_caption if image.image_caption else f"Image {index}"
+                    )
 
                     # Replace the placeholder image with the actual image markdown
-                    knowledge_item.content = knowledge_item.content.replace(f'[[Image {index}]]', f'![{image_caption}]({image_instance.image_file.name})')
+                    knowledge_item.content = knowledge_item.content.replace(
+                        f"[[Image {index}]]",
+                        f"![{image_caption}]({image_instance.image_file.name})",
+                    )
                     knowledge_item.save()
-
-
-    kb.trigger_generate_embeddings()
 
 
 @app.task()
@@ -565,8 +839,13 @@ def generate_suggested_intents_task(knowledge_base_pk):
     )[:100]
 
     # Get the RAG config that corresponds to the knowledge base
-    rag_conf = RAGConfig.enabled_objects.filter(knowledge_base=knowledge_base_pk).first()
+    rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
     lang = rag_conf.knowledge_base.lang
+
+    # if the retriever type is not e5, then return
+    if rag_conf.retriever_config.retriever_type != "e5":
+        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.retriever_type} right now")
+        return
 
     e5_model = E5Model(
         model_name=rag_conf.retriever_config.model_name,
@@ -581,29 +860,33 @@ def generate_suggested_intents_task(knowledge_base_pk):
 
     # Get similarity scores for the in domain titles and the out of domain queries
     mean_sim_in_domain, std_sim_in_domain = get_similarity_scores(
-        [title.title for title in titles_in_domain],
-        retriever
+        [title.title for title in titles_in_domain], retriever
     )
 
     mean_sim_out_domain, std_sim_out_domain = get_similarity_scores(
-        get_queries_out_of_domain(lang),
-        retriever
+        get_queries_out_of_domain(lang), retriever
     )
 
-    logger.info(f"Mean similarity in domain: {mean_sim_in_domain}, std: {std_sim_in_domain}")
-    logger.info(f"Mean similarity out domain: {mean_sim_out_domain}, std: {std_sim_out_domain}")
+    logger.info(
+        f"Mean similarity in domain: {mean_sim_in_domain}, std: {std_sim_in_domain}"
+    )
+    logger.info(
+        f"Mean similarity out domain: {mean_sim_out_domain}, std: {std_sim_out_domain}"
+    )
 
     # The suggested new intents will have a similarity score between the in domain queries and the out of domain queries
     new_intents_thresholds = {
-        'max': mean_sim_in_domain - std_sim_in_domain,
-        'min': mean_sim_out_domain + std_sim_out_domain
+        "max": mean_sim_in_domain - std_sim_in_domain,
+        "min": mean_sim_out_domain + std_sim_out_domain,
     }
 
     logger.info(f"Suggested intents thresholds: {new_intents_thresholds}")
 
     # check that the max is greater than the min
-    if new_intents_thresholds['max'] < new_intents_thresholds['min']:
-        logger.info("Max threshold is lower than min threshold, no new intents will be generated")
+    if new_intents_thresholds["max"] < new_intents_thresholds["min"]:
+        logger.info(
+            "Max threshold is lower than min threshold, no new intents will be generated"
+        )
         return
 
     messages = MessageKnowledgeItem.objects.values("message_id").annotate(
@@ -614,8 +897,8 @@ def generate_suggested_intents_task(knowledge_base_pk):
 
     # filter the results if the max similarity is between the thresholds
     messages = messages.filter(
-        max_similarity__lte=new_intents_thresholds['max'],
-        max_similarity__gte=new_intents_thresholds['min']
+        max_similarity__lte=new_intents_thresholds["max"],
+        max_similarity__gte=new_intents_thresholds["min"],
     )
 
     logger.info(f"Number of messages after filtering: {messages.count()}")
@@ -630,7 +913,12 @@ def generate_suggested_intents_task(knowledge_base_pk):
     ]
 
     # get the cluster labels
-    labels = clusterize_text(messages_text, e5_model, batch_size=rag_conf.retriever_config.batch_size, prefix='query: ')
+    labels = clusterize_text(
+        messages_text,
+        e5_model,
+        batch_size=rag_conf.retriever_config.batch_size,
+        prefix="query: ",
+    )
     k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     logger.info(f"Number of clusters: {k_clusters}")
 
@@ -663,7 +951,7 @@ def generate_suggested_intents_task(knowledge_base_pk):
     # add the messages to each intent
     for intent_cluster, intent in zip(cluster_instances, new_intents):
         # get the value of key 'message_id' from each message
-        intent_cluster = [item['message_id'] for item in intent_cluster]
+        intent_cluster = [item["message_id"] for item in intent_cluster]
         intent.message.add(*intent_cluster)
 
     logger.info("New intents generated successfully")
@@ -681,9 +969,15 @@ def generate_intents_task(knowledge_base_pk):
 
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     from back.apps.language_model.models import AutoGeneratedTitle
+
     Intent = apps.get_model("language_model", "Intent")
     RAGConfig = apps.get_model("language_model", "RAGConfig")
-    rag_conf = RAGConfig.enabled_objects.filter(knowledge_base=knowledge_base_pk).first()
+    rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
+
+    # if the retriever type is not e5, then return
+    if rag_conf.retriever_config.retriever_type != "e5":
+        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.retriever_type} right now")
+        return
 
     hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
@@ -716,7 +1010,12 @@ def generate_intents_task(knowledge_base_pk):
 
     # clusterize the queries
     logger.info("Clusterizing queries...")
-    labels = clusterize_text(queries, e5_model, batch_size=rag_conf.retriever_config.batch_size, prefix='query: ')
+    labels = clusterize_text(
+        queries,
+        e5_model,
+        batch_size=rag_conf.retriever_config.batch_size,
+        prefix="query: ",
+    )
     k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     logger.info(f"Number of clusters: {k_clusters}")
 

@@ -1,12 +1,15 @@
-from django.db import models, transaction
-from django.apps import apps
-from simple_history.models import HistoricalRecords
-from back.apps.language_model.tasks import generate_embeddings_task
+import os
+import uuid
 
-from back.apps.language_model.models.data import KnowledgeItem, KnowledgeBase
+from django.db import models, transaction
+from django.core.files.storage import default_storage
+from simple_history.models import HistoricalRecords
+
+from back.apps.language_model.models.data import KnowledgeBase
 from back.common.models import ChangesMixin
 
 from back.utils.celery import recache_models
+from back.apps.language_model.tasks import delete_index_files_task
 
 
 from logging import getLogger
@@ -42,61 +45,44 @@ class RAGConfig(ChangesMixin):
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
     disabled = models.BooleanField(default=False)
+    index_up_to_date = models.BooleanField(default=False)
+    s3_index_path = models.CharField(max_length=255, blank=True, null=True)
+
+    def generate_s3_index_path(self):
+        unique_id = str(uuid.uuid4())[:8]
+        self.s3_index_path = f'indexes/{self.name}_index_{unique_id}'
+        self.save()        
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
 
-    # When saving we want to check if the knowledge_base or the retriever_config has changed and in that case regenerate
-    # all the embeddings for it.
+    # When saving we want to check if the llm_config has changed and in that reload the RAG
     def save(self, *args, **kwargs):
-        generate_and_load = False
         load_new_llm = False
 
-        if self.pk is None: # New rag config
-            generate_and_load = True
-            logger.info(f"New RAG config {self.name} being created...")
-        else:
+        if self.pk is not None:
             old = RAGConfig.objects.get(pk=self.pk)
-            if self.knowledge_base != old.knowledge_base:
-                generate_and_load = True
-                logger.info(f"RAG config {self.name} changed knowledge base...")
-            if self.retriever_config.model_name != old.retriever_config.model_name:
-                generate_and_load = True
-                logger.info(f"RAG config {self.name} changed retriever model...")
             if self.llm_config != old.llm_config:
                 load_new_llm = True
                 logger.info(f"RAG config {self.name} changed llm config...")
             if self.disabled != old.disabled:
                 load_new_llm = True
                 logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
+            if self.knowledge_base != old.knowledge_base:
+                self.index_up_to_date = False
+                logger.info(f"RAG config {self.name} changed knowledge base. Index needs to be updated...")
+            if self.retriever_config.model_name != old.retriever_config.model_name:
+                self.index_up_to_date = False
+                logger.info(f"RAG config {self.name} changed retriever model. Index needs to be updated...")
 
         super().save(*args, **kwargs)
 
-        if generate_and_load:
-            def on_commit_callback():
-                self.trigger_generate_embeddings()
-
-            # Schedule the trigger_generate_embeddings function to be called
-            # after the current transaction is committed
-            transaction.on_commit(on_commit_callback)
-        elif load_new_llm:
+        if load_new_llm:
             def on_commit_callback():
                 recache_models("RAGConfig.save")
 
             # Schedule the recache_models function to be called
             transaction.on_commit(on_commit_callback)
-
-    def trigger_generate_embeddings(self):
-        logger.info('Triggering generate embeddings task')
-        # remove all the embeddings for this rag config
-        Embedding = apps.get_model("language_model", "Embedding")
-        Embedding.objects.filter(rag_config=self).delete()
-
-        generate_embeddings_task.delay(
-            list(KnowledgeItem.objects.filter(knowledge_base=self.knowledge_base).values_list("pk", flat=True)),
-            self.pk,
-            recache_models=True
-        )
 
 
 class RetrieverConfig(ChangesMixin):
@@ -106,16 +92,26 @@ class RetrieverConfig(ChangesMixin):
         Just a name for the retriever.
     model_name: str
         The name of the retriever model to use. It must be a HuggingFace repo id.
+    retriever_type: str
+        The type of retriever to use.
     batch_size: int
         The batch size to use for the retriever.
+    device: str
+        The device to use for the retriever.
     """
     DEVICE_CHOICES = (
         ('cpu', 'CPU'),
         ('cuda', 'GPU'),
     )
 
+    RETRIEVER_TYPE_CHOICES = (
+        ('colbert', 'ColBERT Search'),
+        ('e5', 'Standard Semantic Search'),
+    )
+
     name = models.CharField(max_length=255, unique=True)
-    model_name = models.CharField(max_length=255, default="intfloat/e5-small-v2") # For dev and demo purposes.
+    model_name = models.CharField(max_length=255, default="colbert-ir/colbertv2.0") # For dev and demo purposes.
+    retriever_type = models.CharField(max_length=10, choices=RETRIEVER_TYPE_CHOICES, default="colbert")
     batch_size = models.IntegerField(default=1) # batch size 1 for better default cpu generation
     device = models.CharField(max_length=10, choices=DEVICE_CHOICES, default="cpu")
 
@@ -126,53 +122,30 @@ class RetrieverConfig(ChangesMixin):
     # knowledge bases that uses this retriever.
     def save(self, *args, **kwargs):
         logger.info('Checking if we need to generate embeddings because of a retriever config change')
-        generated_embeddings = False
         device_changed = False
 
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
-            if self.model_name != old_retriever.model_name:
-                generated_embeddings = True
+
+            if self.model_name != old_retriever.model_name or self.retriever_type != old_retriever.retriever_type:
+                # change the rag config index_up_to_date to False
+                rag_configs = RAGConfig.objects.filter(retriever_config=self)
+                for rag_config in rag_configs:
+                    rag_config.index_up_to_date = False
+                    rag_config.save()
 
             if self.device != old_retriever.device:
                 device_changed = True
 
         super().save(*args, **kwargs)
 
-        if generated_embeddings:
-            def on_commit_callback():
-                self.trigger_generate_embeddings()
-
-            # Schedule the trigger_generate_embeddings function to be called
-            # after the current transaction is committed
-            transaction.on_commit(on_commit_callback)
-        elif device_changed:
+        if device_changed:
             def on_commit_callback():
                 recache_models("RetrieverConfig.save")
 
             # Schedule the recache_models function to be called
             transaction.on_commit(on_commit_callback)
 
-
-
-    def trigger_generate_embeddings(self):
-        rag_configs = RAGConfig.objects.filter(retriever_config=self)
-        Embeddings = apps.get_model("language_model", "Embedding")
-        last_i = rag_configs.count() - 1
-
-        for i, rag_config in enumerate(rag_configs.all()):
-            # check the rag configs that use this retriever
-            if rag_config.retriever_config == self:
-                logger.info(f"Triggering generate embeddings task for RAG config {rag_config} because of a retriever config change")
-                # remove all the embeddings for this rag config
-                Embeddings.objects.filter(rag_config=rag_config).delete()
-                generate_embeddings_task.delay(
-                    list(
-                        KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base).values_list("pk", flat=True)
-                    ),
-                    rag_config.pk,
-                    recache_models=(i==last_i) # recache models if we are in the last iteration
-                )
 
 
 class LLMConfig(ChangesMixin):

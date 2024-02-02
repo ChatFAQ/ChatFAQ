@@ -8,6 +8,7 @@ from django_celery_results.models import TaskResult
 from logging import getLogger
 
 from back.apps.language_model.models.rag_pipeline import LLMConfig, RAGConfig
+from back.apps.language_model.tasks import delete_index_files_task
 from back.utils.celery import recache_models
 
 logger = getLogger(__name__)
@@ -24,7 +25,12 @@ def on_llm_config_change(instance, *args, **kwargs):
 
 @receiver(post_delete, sender=RAGConfig)
 def on_rag_config_change(instance, *args, **kwargs):
-    recache_models("on_rag_config_change")
+    s3_index_path = instance.s3_index_path
+    if s3_index_path:
+        delete_index_files_task.delay(s3_index_path, recache_models=True)
+
+    else:
+        recache_models("on_rag_config_change")
 
 
 @before_task_publish.connect

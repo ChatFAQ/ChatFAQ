@@ -16,17 +16,26 @@ class RAG:
         retriever,
         llm_model: RAGLLM,
         lang: str = "en",
+        rerank: bool = False,
     ):
         """
-        Args:
-            retriever: A retriever object that has a `retrieve` method.
-            llm_model: A RAGLLM object that has a `generate` method.
-            reference_checker: A boolean indicating whether to use a reference checker, to check if the user messages need to retrieve new contexts.
+        Parameters
+        ----------
+        retriever :
+            Retriever object for retrieving contexts.
+        llm_model : RAGLLM
+            Language model for generating responses.
+        lang : str, optional
+            Language of the language model, by default "en"
+        rerank : bool, optional
+            Whether to use cross-encoder for reranking contexts, by default False
         """
 
         self.retriever = retriever
         self.model = llm_model
-        self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
+        self.rerank = rerank
+        if rerank:
+            self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
         self.lang = lang
 
 
@@ -41,7 +50,8 @@ class RAG:
         """
         logger.info("Retrieving new contexts")
         contexts = self.retriever.retrieve([message], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
-        contexts = self.cross_encoder(message, contexts) # filter contexts
+        if self.rerank:
+            contexts = self.cross_encoder(message, contexts) # filter contexts
         if len(contexts) == 0:
             return [], []
 
