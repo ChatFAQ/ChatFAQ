@@ -12,7 +12,26 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Add the field without a default to avoid affecting existing rows
         migrations.AddField(
+            model_name="retrieverconfig",
+            name="retriever_type",
+            field=models.CharField(
+                choices=[
+                    ("colbert", "ColBERT Search"),
+                    ("e5", "Standard Semantic Search"),
+                ],
+                max_length=10,
+                null=True,  # Temporarily allow null to add the column without a default
+            ),
+        ),
+        # Run a Python operation to update existing rows to 'e5'
+        migrations.RunPython(
+            code=lambda apps, schema_editor: apps.get_model("language_model", "retrieverconfig").objects.update(retriever_type="e5"),
+            reverse_code=migrations.RunPython.noop,  # Define how to reverse this operation if needed
+        ),
+        # Alter the field to set the default for new instances and disallow null
+        migrations.AlterField(
             model_name="retrieverconfig",
             name="retriever_type",
             field=models.CharField(
@@ -22,6 +41,7 @@ class Migration(migrations.Migration):
                 ],
                 default="colbert",
                 max_length=10,
+                null=False,  # Ensure the field cannot be null
             ),
         ),
         migrations.AlterField(

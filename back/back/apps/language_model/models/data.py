@@ -280,32 +280,6 @@ class KnowledgeItem(ChangesMixin):
 
         super().save(*args, **kwargs)
 
-        if generate_embeddings:
-
-            def on_commit_callback():
-                self.trigger_generate_embeddings()
-
-            # Schedule the trigger_generate_embeddings function to be called
-            # after the current transaction is committed
-            transaction.on_commit(on_commit_callback)
-
-    def trigger_generate_embeddings(self):
-        RAGConfig = apps.get_model("language_model", "RAGConfig")
-        Embedding = apps.get_model("language_model", "Embedding")
-        rag_configs = RAGConfig.objects.filter(knowledge_base=self.knowledge_base)
-        last_i = rag_configs.count() - 1
-
-        for i, rag_config in enumerate(rag_configs.all()):
-            # remove the embedding for this item for this rag config
-            Embedding.objects.filter(
-                rag_config=rag_config, knowledge_item=self
-            ).delete()
-            generate_embeddings_task.delay(
-                [self.pk],
-                rag_config.pk,
-                recache_models=(i == last_i),
-            )
-
     def to_retrieve_context(self):
         return {
             "knowledge_item_id": self.id,
@@ -318,16 +292,6 @@ class KnowledgeItem(ChangesMixin):
             "image_urls": {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
         }
 
-
-def delete_knowledge_items(knowledge_item_ids):
-    # Custom batch delete function for KnowledgeItem that recaches the models once the batch delete is done
-    with transaction.atomic():
-        # Perform the batch delete
-        KnowledgeItem.objects.filter(id__in=knowledge_item_ids).delete()
-
-        # Log and perform post-delete actions
-        logger.info(f"Deleted {len(knowledge_item_ids)} knowledge items")
-        recache_models("on_ki_delete")
 
 
 def gen_safe_url_uuid():

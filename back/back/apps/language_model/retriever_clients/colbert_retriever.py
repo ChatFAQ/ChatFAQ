@@ -13,8 +13,6 @@ from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
 from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
-from .utils import extract_images_urls
-
 
 logger = getLogger(__name__)
 
@@ -154,17 +152,8 @@ class ColBERTRetriever:
 
             query_results = [
                 {
-                    "knowledge_item_id": item.id,
-                    "title": item.title,
-                    "content": item.content,
-                    "url": item.url,
-                    "section": item.section,
-                    "role": item.role,
-                    "page_number": str(item.page_number) if item.page_number else None,
+                    **item.to_retrieve_context(),
                     "similarity": query_results[ndx]["score"],
-                    "image_urls": extract_images_urls(item.content)
-                    if item.content
-                    else {},
                 }
                 for ndx, item in enumerate(items)
             ]
