@@ -213,7 +213,7 @@ class KnowledgeBase(ChangesMixin):
         if self.parser:
             logger.info("Updating items from remote SDK parser")
             self.update_items_with_remote_parser()
-        if self.original_csv:
+        elif self.original_csv:
             logger.info("Updating items from CSV")
             self.update_items_from_csv()
         elif self.original_pdf:
