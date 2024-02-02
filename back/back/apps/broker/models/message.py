@@ -142,11 +142,10 @@ class Conversation(ChangesMixin):
 
     def conversation_to_text(self):
         text = ""
-        first_message = self.get_first_msg()
-        msgs = first_message.get_chain()
+        msgs = self.get_mml_chain(group_by_stack=True)
 
         for msg in msgs:
-            text = f"{text}{msg.to_text()}\n"
+            text = f"{text}{Message._to_text(msg['stack'], msg['send_time'], msg['sender'])}\n"
 
         return text
 
@@ -250,8 +249,12 @@ class Message(ChangesMixin):
         return chain
 
     def to_text(self):
+        return self._to_text(self.stack, self.send_time.strftime('[%Y-%m-%d %H:%M:%S]'), self.sender)
+
+    @staticmethod
+    def _to_text(stack, send_time, sender):
         stack_text = ""
-        for layer in self.stack:
+        for layer in stack:
             if layer["type"] == StackPayloadType.text.value:
                 stack_text += layer["payload"] + "\n"
             elif layer["type"] == StackPayloadType.lm_generated_text.value:
@@ -260,7 +263,7 @@ class Message(ChangesMixin):
             else:
                 logger.error(f"Unknown stack payload type to export as csv: {layer['type']}")
 
-        return f"{self.send_time.strftime('[%Y-%m-%d %H:%M:%S]')} {self.sender['type']}: {stack_text}"
+        return f"{send_time} {sender['type']}: {stack_text}"
 
     def save(self, *args, **kwargs):
         self.prev = self.conversation.get_last_mml()
