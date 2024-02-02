@@ -55,7 +55,7 @@ class ConversationAPIViewSet(
             safe=False,
         )
 
-    @action(methods=("post",), detail=True)
+    @action(methods=("post",), detail=True, authentication_classes=[], permission_classes=[AllowAny])
     def download(self, request, *args, **kwargs):
         """
         A view to download all the knowledge base's items as a csv file:
