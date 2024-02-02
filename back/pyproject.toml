@@ -33,7 +33,7 @@ pgvector = "^0.2.3"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chat-rag = {version = "0.1.48", source = "test"}
+chat-rag = {version = "0.1.49", source = "test"}
 gevent = "23.9.0"
 torch = [
     { version = "^2.0.1", source = "torch" },

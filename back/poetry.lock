@@ -494,6 +494,17 @@ files = [
 dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [[package]]
+name = "backoff"
+version = "2.2.1"
+description = "Function decoration for backoff and retry"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
+    {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
+]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.12.2"
 description = "Screen-scraping library"
@@ -1086,13 +1097,13 @@ files = [
 
 [[package]]
 name = "chat-rag"
-version = "0.1.48"
+version = "0.1.49"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "chat_rag-0.1.48-py3-none-any.whl", hash = "sha256:ff566b9d92ac7cd1e3952787f4c7a1056050c4d720f0c521292c622a738f2975"},
-    {file = "chat_rag-0.1.48.tar.gz", hash = "sha256:6fc0f11dac40df752b064ea4afc557c3668f6ce94597e346505654470773eb53"},
+    {file = "chat_rag-0.1.49-py3-none-any.whl", hash = "sha256:0d58368206613f50ece40470ccea471224b4b6c11123f1e9dc14d572328d0b80"},
+    {file = "chat_rag-0.1.49.tar.gz", hash = "sha256:d1650a7fb272899ce475d58a432d2dd2125201f950ed4f4e27eb1a2d32f6cc5e"},
 ]
 
 [package.dependencies]
@@ -1104,7 +1115,6 @@ certifi = ">=2023.7.22,<2024.0.0"
 cryptography = ">=41.0.4,<42.0.0"
 ctransformers = ">=0.2.10,<0.3.0"
 einops = ">=0.6.1,<0.7.0"
-guidance = "0.0.64"
 mistralai = ">=0.0.9,<0.0.10"
 numpy = "1.23.5"
 openai = ">=1.3.4,<2.0.0"
@@ -1117,7 +1127,7 @@ torch = ">=2.1.0,<3.0.0"
 torchvision = "0.16.0"
 tqdm = ">=4.65.0,<5.0.0"
 transformers = ">=4.35.2,<5.0.0"
-unstructured = {version = ">=0.10.12,<0.11.0", extras = ["pdf"]}
+unstructured = {version = ">=0.12.0,<0.13.0", extras = ["pdf"], markers = "python_version >= \"3.10\" and python_version < \"3.12\""}
 unstructured-inference = "0.7.21"
 urllib3 = ">=1.26.18,<2.0.0"
 
@@ -1577,6 +1587,21 @@ marshmallow = ">=3.18.0,<4.0.0"
 typing-inspect = ">=0.4.0,<1"
 
 [[package]]
+name = "dataclasses-json-speakeasy"
+version = "0.5.11"
+description = "Easily serialize dataclasses to and from JSON."
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "dataclasses_json_speakeasy-0.5.11-py3-none-any.whl", hash = "sha256:ac52a069a01e8521015d682f37849bfdf056c36fa3f81497055e201fec684104"},
+    {file = "dataclasses_json_speakeasy-0.5.11.tar.gz", hash = "sha256:418a987cea2ccf4e4be662f39faa5cc79b47b147c9d1a69d6928d6a27e0c17e8"},
+]
+
+[package.dependencies]
+marshmallow = ">=3.18.0,<4.0.0"
+typing-inspect = ">=0.4.0,<1"
+
+[[package]]
 name = "dataproperty"
 version = "1.0.1"
 description = "Python library for extract property from data."
@@ -1707,17 +1732,6 @@ python-versions = "*"
 files = [
     {file = "dirtyjson-1.0.8-py3-none-any.whl", hash = "sha256:125e27248435a58acace26d5c2c4c11a1c0de0a9c5124c5a94ba78e517d74f53"},
     {file = "dirtyjson-1.0.8.tar.gz", hash = "sha256:90ca4a18f3ff30ce849d100dcf4a003953c79d3a2348ef056f1d9c22231a25fd"},
-]
-
-[[package]]
-name = "diskcache"
-version = "5.6.3"
-description = "Disk Cache -- Disk and file backed persistent cache."
-optional = false
-python-versions = ">=3"
-files = [
-    {file = "diskcache-5.6.3-py3-none-any.whl", hash = "sha256:5e31b2d5fbad117cc363ebaf6b689474db18a1f6438bc82358b024abd4c2ca19"},
-    {file = "diskcache-5.6.3.tar.gz", hash = "sha256:2c3a3fa2743d8535d832ec61c2054a1641f41775aa7c556758a109941e33e4fc"},
 ]
 
 [[package]]
@@ -2500,22 +2514,6 @@ gitdb = ">=4.0.1,<5"
 test = ["black", "coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock", "mypy", "pre-commit", "pytest (>=7.3.1)", "pytest-cov", "pytest-instafail", "pytest-mock", "pytest-sugar", "sumtypes"]
 
 [[package]]
-name = "gptcache"
-version = "0.1.43"
-description = "GPTCache, a powerful caching library that can be used to speed up and lower the cost of chat applications that rely on the LLM service. GPTCache works as a memcache for AIGC applications, similar to how Redis works for traditional applications."
-optional = false
-python-versions = ">=3.8.1"
-files = [
-    {file = "gptcache-0.1.43-py3-none-any.whl", hash = "sha256:9c557ec9cc14428942a0ebf1c838520dc6d2be801d67bb6964807043fc2feaf5"},
-    {file = "gptcache-0.1.43.tar.gz", hash = "sha256:cebe7ec5e32a3347bf839e933a34e67c7fcae620deaa7cb8c6d7d276c8686f1a"},
-]
-
-[package.dependencies]
-cachetools = "*"
-numpy = "*"
-requests = "*"
-
-[[package]]
 name = "greenlet"
 version = "3.0.0"
 description = "Lightweight in-process concurrent programming"
@@ -2589,35 +2587,6 @@ files = [
 [package.extras]
 docs = ["Sphinx"]
 test = ["objgraph", "psutil"]
-
-[[package]]
-name = "guidance"
-version = "0.0.64"
-description = "A guidance language for controlling large language models."
-optional = false
-python-versions = "*"
-files = [
-    {file = "guidance-0.0.64-py3-none-any.whl", hash = "sha256:b15b3bc667bb5b6e9b574781cab7c1ce7fa0a6e705651595bbd8630d124c045a"},
-    {file = "guidance-0.0.64.tar.gz", hash = "sha256:baaee2c791fe853c920b5964661bb63155feb58f84c25e45f83c47f63c4e58dd"},
-]
-
-[package.dependencies]
-aiohttp = "*"
-diskcache = "*"
-gptcache = "*"
-msal = "*"
-nest-asyncio = "*"
-numpy = "*"
-openai = ">=0.27.8"
-platformdirs = "*"
-pygtrie = "*"
-pyparsing = ">=3.0.0"
-requests = "*"
-tiktoken = ">=0.3"
-
-[package.extras]
-docs = ["ipython", "nbsphinx", "numpydoc", "sphinx", "sphinx-rtd-theme"]
-test = ["pytest", "pytest-cov", "torch", "transformers"]
 
 [[package]]
 name = "h11"
@@ -3003,6 +2972,17 @@ files = [
 jsonpointer = ">=1.9"
 
 [[package]]
+name = "jsonpath-python"
+version = "1.0.6"
+description = "A more powerful JSONPath implementation in modern python"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "jsonpath-python-1.0.6.tar.gz", hash = "sha256:dd5be4a72d8a2995c3f583cf82bf3cd1a9544cfdabf2d22595b67aff07349666"},
+    {file = "jsonpath_python-1.0.6-py3-none-any.whl", hash = "sha256:1e3b78df579f5efc23565293612decee04214609208a2335884b3ee3f786b575"},
+]
+
+[[package]]
 name = "jsonpointer"
 version = "2.4"
 description = "Identify specific nodes in a JSON document (RFC 6901)"
@@ -3282,6 +3262,20 @@ tenacity = ">=8.1.0,<9.0.0"
 
 [package.extras]
 extended-testing = ["jinja2 (>=3,<4)"]
+
+[[package]]
+name = "langdetect"
+version = "1.0.9"
+description = "Language detection library ported from Google's language-detection."
+optional = false
+python-versions = "*"
+files = [
+    {file = "langdetect-1.0.9-py2-none-any.whl", hash = "sha256:7cbc0746252f19e76f77c0b1690aadf01963be835ef0cd4b56dddf2a8f1dfc2a"},
+    {file = "langdetect-1.0.9.tar.gz", hash = "sha256:cbc1fef89f8d062739774bd51eda3da3274006b3661d199c2655f6b3f6d605a0"},
+]
+
+[package.dependencies]
+six = "*"
 
 [[package]]
 name = "langsmith"
@@ -3816,25 +3810,6 @@ develop = ["codecov", "pycodestyle", "pytest (>=4.6)", "pytest-cov", "wheel"]
 docs = ["sphinx"]
 gmpy = ["gmpy2 (>=2.1.0a4)"]
 tests = ["pytest (>=4.6)"]
-
-[[package]]
-name = "msal"
-version = "1.26.0"
-description = "The Microsoft Authentication Library (MSAL) for Python library enables your app to access the Microsoft Cloud by supporting authentication of users with Microsoft Azure Active Directory accounts (AAD) and Microsoft Accounts (MSA) using industry standard OAuth2 and OpenID Connect."
-optional = false
-python-versions = ">=2.7"
-files = [
-    {file = "msal-1.26.0-py2.py3-none-any.whl", hash = "sha256:be77ba6a8f49c9ff598bbcdc5dfcf1c9842f3044300109af738e8c3e371065b5"},
-    {file = "msal-1.26.0.tar.gz", hash = "sha256:224756079fe338be838737682b49f8ebc20a87c1c5eeaf590daae4532b83de15"},
-]
-
-[package.dependencies]
-cryptography = ">=0.6,<44"
-PyJWT = {version = ">=1.0.0,<3", extras = ["crypto"]}
-requests = ">=2.0.0,<3"
-
-[package.extras]
-broker = ["pymsalruntime (>=0.13.2,<0.14)"]
 
 [[package]]
 name = "msgpack"
@@ -4665,6 +4640,59 @@ files = [
 ]
 
 [[package]]
+name = "pikepdf"
+version = "8.12.0"
+description = "Read and write PDFs with Python, powered by qpdf"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pikepdf-8.12.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4802e48046a059b26949b16c53adb9ce8c0137a265cb8b1083957a3fadc0418b"},
+    {file = "pikepdf-8.12.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:480c69fabe958b56843dc38953c8568a4da2cc819d88b3b1080a470c114e622a"},
+    {file = "pikepdf-8.12.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:744903f2a34f8feeb781e3e5ca86b3ea60aae92246c9085392666eaa878ca7fc"},
+    {file = "pikepdf-8.12.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9f2cff2ed901b5dd6ea704a24e88dfb9e3303019473ffc224d4d72a294e7c43b"},
+    {file = "pikepdf-8.12.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:711064313c00a5dccc5306877844f4e12b33355a9f496d870158d7f906330fd2"},
+    {file = "pikepdf-8.12.0-cp310-cp310-win_amd64.whl", hash = "sha256:238cce9d9bbda606eb7050096251753b32f84c758633212d62ed5f1ecf8f5091"},
+    {file = "pikepdf-8.12.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:c1e13a4f4c7a596ad4157b93453de4dfcb7abc14c58ce9ee110b0e2ee7a0813e"},
+    {file = "pikepdf-8.12.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:73fdaa359262feda7f62aa87bfb97c66f9a30d80bcb592d2c4c5e7714f2ab30e"},
+    {file = "pikepdf-8.12.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ea368bb11c1b57b773f349e8a1283617a66227a628f94023bb4a16ed53a1adf3"},
+    {file = "pikepdf-8.12.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:19867ff1c4db1da7a74aad0fc9455a6ca1b7a45ee460c1e7fce1dd1962c0251d"},
+    {file = "pikepdf-8.12.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:485760bb22bcf25f338ab7dc003e6b5f522783f5f00bab0079ea3383152b2d98"},
+    {file = "pikepdf-8.12.0-cp311-cp311-win_amd64.whl", hash = "sha256:93ba53c05d511a5e8a1d5ccf00b71a3c89e9285ec92e8f9a86995b022e667346"},
+    {file = "pikepdf-8.12.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:9b2f8f518d7d4ee374deccc27cb65494c33cbc600885253e4454ab31dc466a04"},
+    {file = "pikepdf-8.12.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:119c18de07040cbbdf9f06a3a06fe89c8f321d3386fb96b2f68455bb2f7cab46"},
+    {file = "pikepdf-8.12.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:78f0d79548e56636deb4749fb3fa73458dcdf86e634a1ce1b6e5155f97c4155f"},
+    {file = "pikepdf-8.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8bc82d766f09fafd986d9410c7d53345b3e2963fe3253a9ba09b50812b60e9c4"},
+    {file = "pikepdf-8.12.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:5f09c4263bfcad2ba9836b578c42218d6d8cf751331f5cc9639b68d60ab7a05d"},
+    {file = "pikepdf-8.12.0-cp312-cp312-win_amd64.whl", hash = "sha256:0586b9aec4f78a4f6ab2497b47639744ce47b7ad9b96e149194b7ada2d34b848"},
+    {file = "pikepdf-8.12.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:b879e240b4d4b34822a0390fe4f30e6388d0f776e12376f043dc102fe11e9499"},
+    {file = "pikepdf-8.12.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0718f822dd75574e8c015983d870d8336fe7e62d20f1f726e86fc3156d62c921"},
+    {file = "pikepdf-8.12.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d9ee83f20559c63413fed0059ea159a11116af098f976b8480e82018d954bba9"},
+    {file = "pikepdf-8.12.0-cp38-cp38-win_amd64.whl", hash = "sha256:7fd20e259c2192ca1b718d8f78bbeff1b37340b6a2c9764068c2112449895d85"},
+    {file = "pikepdf-8.12.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:98c04283649b09c8c8d5f18389787dfe48224a3b99758d984ace9c1f1940dd33"},
+    {file = "pikepdf-8.12.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:32b033345d0979e8a0dfd7c3af76013b3a3632da50d419545d012535f0cfd3e1"},
+    {file = "pikepdf-8.12.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:fc8dcbdb7ba95ef1e8318eb2ebd2869d53e9e9f8b81d9d7b7b5f9acbc4e6557b"},
+    {file = "pikepdf-8.12.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b8a91610cf07d29ef06992cdfae902fecef3712100f25796c553e1e3a0553a33"},
+    {file = "pikepdf-8.12.0-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:7209d3cb07d238ef81d438644363a19974697ab6c0d3360292c3c1cb4f2915e6"},
+    {file = "pikepdf-8.12.0-cp39-cp39-win_amd64.whl", hash = "sha256:0c7b1404f9c7714377c3df7c756cff03ac237b2bf3273c1193d0a1849e1b83f0"},
+    {file = "pikepdf-8.12.0-pp39-pypy39_pp73-macosx_10_9_x86_64.whl", hash = "sha256:75de10328d6558e7821aadabb63cadbb40eec3cdc407b01ef990760343ad4305"},
+    {file = "pikepdf-8.12.0-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c60e8b28b9e96137adc79eade42a764ff508291270e99ac84290808a85a12d94"},
+    {file = "pikepdf-8.12.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:54eeaeaa4bdca7320511f00f403ea1ae33ef2e006fd5b5c2b92d92ab7eb77641"},
+    {file = "pikepdf-8.12.0.tar.gz", hash = "sha256:b2d9957e188785a5913deedf6f12dc7eafb5764a3cc3996e044f0e9044b28889"},
+]
+
+[package.dependencies]
+Deprecated = "*"
+lxml = {version = ">=4.8", markers = "python_version >= \"3.10\""}
+packaging = "*"
+Pillow = ">=10.0.1"
+
+[package.extras]
+dev = ["pre-commit", "typer[all]"]
+docs = ["Sphinx (>=3)", "sphinx-autoapi", "sphinx-design", "sphinx-issues", "sphinx-rtd-theme", "tomli"]
+mypy = ["lxml-stubs", "types-Pillow", "types-requests", "types-setuptools"]
+test = ["attrs (>=20.2.0)", "coverage[toml]", "hypothesis (>=6.36)", "numpy (>=1.21.0)", "psutil (>=5.9)", "pybind11", "pytest (>=6.2.5)", "pytest-cov (>=3.0.0)", "pytest-timeout (>=2.1.0)", "pytest-xdist (>=2.5.0)", "python-dateutil (>=2.8.1)", "python-xmp-toolkit (>=2.0.1)", "tomli"]
+
+[[package]]
 name = "pillow"
 version = "10.1.0"
 description = "Python Imaging Library (Fork)"
@@ -5360,37 +5388,6 @@ files = [
 plugins = ["importlib-metadata"]
 
 [[package]]
-name = "pygtrie"
-version = "2.5.0"
-description = "A pure Python trie data structure implementation."
-optional = false
-python-versions = "*"
-files = [
-    {file = "pygtrie-2.5.0-py3-none-any.whl", hash = "sha256:8795cda8105493d5ae159a5bef313ff13156c5d4d72feddefacaad59f8c8ce16"},
-    {file = "pygtrie-2.5.0.tar.gz", hash = "sha256:203514ad826eb403dab1d2e2ddd034e0d1534bbe4dbe0213bb0593f66beba4e2"},
-]
-
-[[package]]
-name = "pyjwt"
-version = "2.8.0"
-description = "JSON Web Token implementation in Python"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "PyJWT-2.8.0-py3-none-any.whl", hash = "sha256:59127c392cc44c2da5bb3192169a91f429924e17aff6534d70fdc02ab3e04320"},
-    {file = "PyJWT-2.8.0.tar.gz", hash = "sha256:57e28d156e3d5c10088e0c68abb90bfac3df82b40a71bd0daa20c65ccd5c23de"},
-]
-
-[package.dependencies]
-cryptography = {version = ">=3.4.0", optional = true, markers = "extra == \"crypto\""}
-
-[package.extras]
-crypto = ["cryptography (>=3.4.0)"]
-dev = ["coverage[toml] (==5.0.4)", "cryptography (>=3.4.0)", "pre-commit", "pytest (>=6.0.0,<7.0.0)", "sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
-docs = ["sphinx (>=4.5.0,<5.0.0)", "sphinx-rtd-theme", "zope.interface"]
-tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
-
-[[package]]
 name = "pyopenssl"
 version = "23.3.0"
 description = "Python wrapper module around the OpenSSL library"
@@ -5421,6 +5418,24 @@ files = [
 
 [package.extras]
 diagrams = ["jinja2", "railroad-diagrams"]
+
+[[package]]
+name = "pypdf"
+version = "4.0.1"
+description = "A pure-python PDF library capable of splitting, merging, cropping, and transforming PDF files"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pypdf-4.0.1-py3-none-any.whl", hash = "sha256:fe7c313c7e8074a516eae9d9df0111b7b9769f7a210479af7a342d27270ef81a"},
+    {file = "pypdf-4.0.1.tar.gz", hash = "sha256:871badcfe335dd68b6b563aa7646288c6b86f9ceecffb21e86341261d65d8173"},
+]
+
+[package.extras]
+crypto = ["PyCryptodome", "cryptography"]
+dev = ["black", "flit", "pip-tools", "pre-commit (<2.18.0)", "pytest-cov", "pytest-socket", "pytest-timeout", "pytest-xdist", "wheel"]
+docs = ["myst_parser", "sphinx", "sphinx_rtd_theme"]
+full = ["Pillow (>=8.0.0)", "PyCryptodome", "cryptography"]
+image = ["Pillow (>=8.0.0)"]
 
 [[package]]
 name = "pypdfium2"
@@ -5683,6 +5698,7 @@ files = [
     {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:855fb52b0dc35af121542a76b9a84f8d1cd886ea97c84703eaa6d88e37a2ad28"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:40df9b996c2b73138957fe23a16a4f0ba614f4c0efce1e9406a184b6d07fa3a9"},
+    {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a08c6f0fe150303c1c6b71ebcd7213c2858041a7e01975da3a99aed1e7a378ef"},
     {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c22bec3fbe2524cde73d7ada88f6566758a8f7227bfbf93a408a9d86bcc12a0"},
     {file = "PyYAML-6.0.1-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8d4e9c88387b0f5c7d5f281e55304de64cf7f9c0021a3525bd3b1c542da3b0e4"},
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
@@ -7857,76 +7873,127 @@ playwright = "*"
 
 [[package]]
 name = "unstructured"
-version = "0.10.16"
+version = "0.12.0"
 description = "A library that prepares raw documents for downstream ML tasks."
 optional = false
-python-versions = ">=3.7.0"
+python-versions = ">=3.9.0,<3.12"
 files = [
-    {file = "unstructured-0.10.16-py3-none-any.whl", hash = "sha256:f654af8f22027797a570f2de74b61d136868e2c57cc87febbe8104434c461a3e"},
-    {file = "unstructured-0.10.16.tar.gz", hash = "sha256:d01fae8ff72f996b0448aab20fc616909d679fdfee38e33e0feb8ac5103eecc2"},
+    {file = "unstructured-0.12.0-py3-none-any.whl", hash = "sha256:a79440df57cba11c056d24bc9d37ba13788edc028006a695fc6c8550d4893e30"},
+    {file = "unstructured-0.12.0.tar.gz", hash = "sha256:6390325ded3d09a91e6dd2a2c12ee597070d6a49591dbe642a14cd458538ad6b"},
 ]
 
 [package.dependencies]
+backoff = "*"
 beautifulsoup4 = "*"
 chardet = "*"
 dataclasses-json = "*"
 emoji = "*"
 filetype = "*"
+langdetect = "*"
 lxml = "*"
 nltk = "*"
+numpy = "*"
+onnx = {version = "*", optional = true, markers = "extra == \"pdf\""}
 pdf2image = {version = "*", optional = true, markers = "extra == \"pdf\""}
 "pdfminer.six" = {version = "*", optional = true, markers = "extra == \"pdf\""}
+pikepdf = {version = "*", optional = true, markers = "extra == \"pdf\""}
+pypdf = {version = "*", optional = true, markers = "extra == \"pdf\""}
 python-iso639 = "*"
 python-magic = "*"
+rapidfuzz = "*"
 requests = "*"
 tabulate = "*"
-unstructured-inference = {version = "*", optional = true, markers = "extra == \"pdf\""}
+typing-extensions = "*"
+unstructured-client = "*"
+unstructured-inference = {version = "0.7.21", optional = true, markers = "extra == \"pdf\""}
 "unstructured.pytesseract" = {version = ">=0.3.12", optional = true, markers = "extra == \"pdf\""}
+wrapt = "*"
 
 [package.extras]
 airtable = ["pyairtable"]
-all-docs = ["ebooklib", "markdown", "msg-parser", "openpyxl", "pandas", "pdf2image", "pdfminer.six", "pypandoc", "python-docx", "python-pptx (<=0.6.21)", "unstructured-inference", "unstructured.pytesseract (>=0.3.12)", "xlrd"]
-azure = ["adlfs", "fsspec (==2023.9.1)"]
+all-docs = ["markdown", "msg-parser", "networkx", "onnx", "openpyxl", "pandas", "pdf2image", "pdfminer.six", "pikepdf", "pypandoc", "pypdf", "python-docx", "python-pptx (<=0.6.23)", "unstructured-inference (==0.7.21)", "unstructured.pytesseract (>=0.3.12)", "xlrd"]
+azure = ["adlfs", "fsspec"]
+azure-cognitive-search = ["azure-search-documents"]
+bedrock = ["boto3", "langchain"]
 biomed = ["bs4"]
-box = ["boxfs", "fsspec (==2023.9.1)"]
+box = ["boxfs", "fsspec"]
+chroma = ["chromadb"]
 confluence = ["atlassian-python-api"]
 csv = ["pandas"]
-delta-table = ["deltalake", "fsspec (==2023.9.1)"]
+delta-table = ["deltalake", "fsspec"]
 discord = ["discord-py"]
 doc = ["python-docx"]
 docx = ["python-docx"]
-dropbox = ["dropboxdrivefs", "fsspec (==2023.9.1)"]
-elasticsearch = ["elasticsearch", "jq"]
-epub = ["ebooklib"]
-gcs = ["bs4", "fsspec (==2023.9.1)", "gcsfs"]
+dropbox = ["dropboxdrivefs", "fsspec"]
+elasticsearch = ["elasticsearch"]
+embed-huggingface = ["huggingface", "langchain", "sentence-transformers"]
+epub = ["pypandoc"]
+gcs = ["bs4", "fsspec", "gcsfs"]
 github = ["pygithub (>1.58.0)"]
 gitlab = ["python-gitlab"]
 google-drive = ["google-api-python-client"]
+hubspot = ["hubspot-api-client", "urllib3"]
 huggingface = ["langdetect", "sacremoses", "sentencepiece", "torch", "transformers"]
-image = ["pdf2image", "pdfminer.six", "unstructured-inference", "unstructured.pytesseract (>=0.3.12)"]
+image = ["onnx", "pdf2image", "pdfminer.six", "pikepdf", "pypdf", "unstructured-inference (==0.7.21)", "unstructured.pytesseract (>=0.3.12)"]
 jira = ["atlassian-python-api"]
-local-inference = ["ebooklib", "markdown", "msg-parser", "openpyxl", "pandas", "pdf2image", "pdfminer.six", "pypandoc", "python-docx", "python-pptx (<=0.6.21)", "unstructured-inference", "unstructured.pytesseract (>=0.3.12)", "xlrd"]
+local-inference = ["markdown", "msg-parser", "networkx", "onnx", "openpyxl", "pandas", "pdf2image", "pdfminer.six", "pikepdf", "pypandoc", "pypdf", "python-docx", "python-pptx (<=0.6.23)", "unstructured-inference (==0.7.21)", "unstructured.pytesseract (>=0.3.12)", "xlrd"]
 md = ["markdown"]
+mongodb = ["pymongo"]
 msg = ["msg-parser"]
 notion = ["htmlBuilder", "notion-client"]
 odt = ["pypandoc", "python-docx"]
-onedrive = ["Office365-REST-Python-Client (<2.4.3)", "bs4", "msal"]
+onedrive = ["Office365-REST-Python-Client", "bs4", "msal"]
+openai = ["langchain", "openai", "tiktoken"]
 org = ["pypandoc"]
-outlook = ["Office365-REST-Python-Client (<2.4.3)", "msal"]
+outlook = ["Office365-REST-Python-Client", "msal"]
 paddleocr = ["unstructured.paddleocr (==2.6.1.3)"]
-pdf = ["pdf2image", "pdfminer.six", "unstructured-inference", "unstructured.pytesseract (>=0.3.12)"]
-ppt = ["python-pptx (<=0.6.21)"]
-pptx = ["python-pptx (<=0.6.21)"]
+pdf = ["onnx", "pdf2image", "pdfminer.six", "pikepdf", "pypdf", "unstructured-inference (==0.7.21)", "unstructured.pytesseract (>=0.3.12)"]
+pinecone = ["pinecone-client"]
+ppt = ["python-pptx (<=0.6.23)"]
+pptx = ["python-pptx (<=0.6.23)"]
+qdrant = ["qdrant-client"]
 reddit = ["praw"]
 rst = ["pypandoc"]
 rtf = ["pypandoc"]
-s3 = ["fsspec (==2023.9.1)", "s3fs"]
+s3 = ["fsspec", "s3fs"]
 salesforce = ["simple-salesforce"]
-sharepoint = ["Office365-REST-Python-Client (<2.4.3)", "msal"]
+sftp = ["fsspec", "paramiko"]
+sharepoint = ["Office365-REST-Python-Client", "msal"]
 slack = ["slack-sdk"]
 tsv = ["pandas"]
+weaviate = ["weaviate-client"]
 wikipedia = ["wikipedia"]
-xlsx = ["openpyxl", "pandas", "xlrd"]
+xlsx = ["networkx", "openpyxl", "pandas", "xlrd"]
+
+[[package]]
+name = "unstructured-client"
+version = "0.17.0"
+description = "Python Client SDK for Unstructured API"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "unstructured-client-0.17.0.tar.gz", hash = "sha256:3b98affa4a47e370b7b0a1b8f0d889f20aa6d8925b2b108b60aa07cf54a04fb5"},
+    {file = "unstructured_client-0.17.0-py3-none-any.whl", hash = "sha256:2b311f0f7304ac64986b0312431fe99945f95a6fa0c88ab91094570c932a9e19"},
+]
+
+[package.dependencies]
+certifi = ">=2023.7.22"
+charset-normalizer = ">=3.2.0"
+dataclasses-json-speakeasy = ">=0.5.11"
+idna = ">=3.4"
+jsonpath-python = ">=1.0.6"
+marshmallow = ">=3.19.0"
+mypy-extensions = ">=1.0.0"
+packaging = ">=23.1"
+python-dateutil = ">=2.8.2"
+requests = ">=2.31.0"
+six = ">=1.16.0"
+typing-extensions = ">=4.7.1"
+typing-inspect = ">=0.9.0"
+urllib3 = ">=1.26.18"
+
+[package.extras]
+dev = ["pylint (==2.16.2)"]
 
 [[package]]
 name = "unstructured-inference"
@@ -8544,4 +8611,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "8dbfd8b78c663bb3f0f1cbe4ae24052c926d1fbf15eb01b15a921d5f71880d1f"
+content-hash = "fd64aebf4abaa7283e93d0c8c463938b3af83df889ecf67226f3c05f78e08f44"
