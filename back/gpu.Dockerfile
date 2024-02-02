@@ -13,6 +13,9 @@ RUN modelw-docker install \
 ARG TORCH_GPU_URL=https://download.pytorch.org/whl/cu121/torch-2.1.0%2Bcu121-cp310-cp310-linux_x86_64.whl
 RUN modelw-docker run poetry add ${TORCH_GPU_URL}
 
+# Install git for ColBERT
+RUN apt-get update && apt-get install -y git
+
 COPY --chown=user . .
 
 RUN modelw-docker build

@@ -8,6 +8,9 @@ COPY --chown=user pyproject.toml poetry.lock README.md ./
 RUN modelw-docker install \
     && modelw-docker run poetry run playwright install firefox
 
+# Install git for ColBERT
+RUN apt-get update && apt-get install -y git
+
 COPY --chown=user . .
 
 RUN modelw-docker build
