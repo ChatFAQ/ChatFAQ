@@ -1,8 +1,8 @@
 <template>
     <div>
         <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
-        <span class="reference-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }"
-              v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
+        <!-- <span class="reference-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }"
+              v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span> -->
     </div>
     <div class="separator-line" :class="{ 'dark-mode': store.darkMode }" v-if="getMarkedDownImages.length"></div>
     <div class="reference-image-wrapper" v-if="getMarkedDownImages.length">
