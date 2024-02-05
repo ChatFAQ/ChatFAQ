@@ -7,7 +7,7 @@ from ragatouille import (
     RAGPretrainedModel as Retriever,
 )  # Change name to avoid confusion
 
-from django.core.files.storage import default_storage
+from django.core.files.storage import get_storage_class
 
 from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
@@ -44,12 +44,14 @@ class ColBERTRetriever:
             max_document_length=512,
         )
 
+        private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
+
         # Upload index files to S3
         for filename in os.listdir(local_index_path):
             local_file_path = os.path.join(local_index_path, filename)
             with open(local_file_path, "rb") as file:
                 s3_file_path = os.path.join(s3_index_path, filename)
-                default_storage.save(s3_file_path, file)
+                private_storage.save(s3_file_path, file)
                 os.remove(local_file_path)  # Delete local file after uploading to S3
 
         logger.info(
@@ -73,12 +75,13 @@ class ColBERTRetriever:
         print(f"Downloading index files to {local_index_path} from S3 {rag_config.s3_index_path}")
         
         # Download index files from S3
+        private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
         # listdir returns a tuple (dirs, files)
-        for file_name in default_storage.listdir(s3_index_folder)[1]:  
+        for file_name in private_storage.listdir(s3_index_folder)[1]:  
             s3_file_path = os.path.join(s3_index_folder, file_name)
             local_file_path = os.path.join(local_index_path, file_name)
             with open(local_file_path, "wb") as local_file:
-                local_file.write(default_storage.open(s3_file_path).read())
+                local_file.write(private_storage.open(s3_file_path).read())
 
         # Load the index from the local directory
         logger.info(f"Loading index from {local_index_path}")
@@ -165,12 +168,15 @@ class ColBERTRetriever:
     def _upload_updated_index_files(
         self, rag_config: RAGConfig, index_path: str = None
     ):
+        
+        private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
+        
         local_index_path = self._get_local_index_path() # return the local path of the index
         for filename in os.listdir(local_index_path):
             local_file_path = os.path.join(local_index_path, filename)
             with open(local_file_path, "rb") as file:
                 s3_file_path = os.path.join(rag_config.s3_index_path, filename)
-                default_storage.save(s3_file_path, file)
+                private_storage.save(s3_file_path, file)
 
     def _get_local_index_path(self):
         return self.retriever.model.index_path
