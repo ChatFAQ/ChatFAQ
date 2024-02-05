@@ -4,6 +4,13 @@ function apiCacheName(apiUrl, params) {
     return apiUrl + new URLSearchParams(params).toString()
 }
 
+function authHeaders() {
+    const token = useCookie('token').value
+    return {
+        'Authorization': `Token ${token}`
+    }
+}
+
 export const useItemsStore = defineStore('items', {
     state: () => ({
         items: {},
@@ -26,16 +33,16 @@ export const useItemsStore = defineStore('items', {
             if (Object.keys(params).length) {
                 url += "&" + new URLSearchParams(params).toString()
             }
-            this.items[cacheName] = (await $axios.get(url)).data
+            this.items[cacheName] = (await $axios.get(url, {'headers': authHeaders()})).data
             return this.items[cacheName]
         },
         async deleteItem($axios, apiUrl, id) {
-            await $axios.delete(`${apiUrl}${id}`)
+            await $axios.delete(`${apiUrl}${id}`, {'headers': authHeaders()})
             await this.retrieveItems($axios, apiUrl)
         },
         async loadSchema($axios) {
             if (!this.schema) {
-                const openAPI = (await $axios.get('/back/api/schema/?format=json')).data
+                const openAPI = (await $axios.get('/back/api/schema/?format=json', {'headers': authHeaders()})).data
                 this.schema = openAPI.components.schemas
                 this.paths = openAPI.paths
             }
@@ -99,9 +106,9 @@ export const useItemsStore = defineStore('items', {
         async upsertItem($axios, apiUrl, item) {
             this.savingItem = true
             if (item.id) {
-                await $axios.patch(`${apiUrl}${item.id}/`, item)
+                await $axios.patch(`${apiUrl}${item.id}/`, item, {'headers': authHeaders()})
             } else {
-                await $axios.post(apiUrl, item)
+                await $axios.post(apiUrl, item, {'headers': authHeaders()})
             }
             await this.retrieveItems($axios, apiUrl)
             this.savingItem = false
