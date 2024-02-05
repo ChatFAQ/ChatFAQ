@@ -337,12 +337,12 @@ class ChatFAQSDK:
         async for r in results:
             yield r + [RPCNodeType.action.value if isinstance(layer, Layer) else RPCNodeType.condition.value]
 
-    def parsing_wrapper(self, parser_func):
+    def parsing_wrapper(self, parser):
         async def _parsing_wrapper(payload):
             logger.info(f"[PARSE] Parsing ::: {payload}")
             data_source = DataSource(**payload)
 
-            for ki in parser_func(data_source.kb_id, data_source):
+            for ki in parser(data_source.kb_id, data_source.ds_id, data_source):
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
                         urllib.parse.urljoin(self.chatfaq_http, f"back/api/language-model/knowledge-items/"),
