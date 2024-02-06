@@ -7,6 +7,15 @@ from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem, A
 
 
 class KnowledgeBaseSerializer(serializers.ModelSerializer):
+    num_of_data_sources = serializers.SerializerMethodField()
+    num_of_knowledge_items = serializers.SerializerMethodField()
+
+    def get_num_of_data_sources(self, obj):
+        return obj.datasource_set.count()
+
+    def get_num_of_knowledge_items(self, obj):
+        return obj.knowledgeitem_set.count()
+
     class Meta:
         model = KnowledgeBase
         fields = "__all__"

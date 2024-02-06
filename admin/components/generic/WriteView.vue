@@ -17,9 +17,9 @@
         >
             <div v-if="!Object.keys(sections).length" class="form-section">
                 <div class="edit-title">{{ createTitle(form) }}</div>
-                <div v-for="(_, fieldName) in filterInSection(true, schema.properties)">
+                <div v-for="(fieldInfo, fieldName) in filterInSection(true, schema.properties)">
                     <FormField
-                        v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
+                        v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly && !fieldInfo.readOnly"
                         :fieldName="fieldName"
                         :schema="schema"
                         :form="form"
@@ -30,7 +30,7 @@
                             <slot :name="name" v-bind="data"></slot>
                         </template>
                     </FormField>
-                    <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
+                    <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && (props.readOnly ||  fieldInfo.readOnly)"
                                    :fieldName="fieldName"
                                    :schema="schema"
                                    :value="form[fieldName]"

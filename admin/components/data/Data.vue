@@ -7,11 +7,18 @@
                 apiUrl="/back/api/language-model/knowledge-bases/"
                 :cardProps="{
                     'lang': $t('lang'),
+                    'num_of_data_sources': $t('numofdatasources'),
+                    'num_of_knowledge_items': $t('numofknowledgeitems'),
                 }"
                 :tableProps="{
-                    'lang': $t('lang'),
+                    'lang': {'name': $t('lang')},
+                    'num_of_data_sources': {'name': $t('numofdatasources')},
+                    'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
                 }"
             >
+                <template v-slot:extra-card-bottom="props">
+                    <el-button class="go-to-kis-button">{{ $t("viewknowledgeitems") }}</el-button>
+                </template>
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('knowledgeitem')" name="knowledge-item">
@@ -47,3 +54,11 @@ function submitPassword() {
     password.value.submit()
 }
 </script>
+
+<style scoped lang="scss">
+.go-to-kis-button {
+    @include button-primary;
+    width: 100%;
+    margin-top: 8px;
+}
+</style>
