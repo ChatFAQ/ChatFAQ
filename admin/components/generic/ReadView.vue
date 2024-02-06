@@ -1,10 +1,10 @@
 <template>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div v-if="items[apiUrl].length" class="section-header">
-            <slot name="legend" :total="items[apiUrl].length">
+        <div v-if="items[apiUrl]?.length" class="section-header">
+            <slot name="legend" :total="items[apiUrl]?.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
-                            "number": items[apiUrl].length,
+                            "number": items[apiUrl]?.length,
                             "readablename": readableName
                         })
                     }}
@@ -50,7 +50,7 @@
                     <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
                 </div>
             </el-card>
-            <div class="box-card-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
+            <div class="box-card-add" :class="{'no-items': !items[apiUrl]?.length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -94,7 +94,7 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
+        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl]?.length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
