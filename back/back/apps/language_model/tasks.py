@@ -649,21 +649,21 @@ def delete_index_files_task(s3_index_path, recache_models: bool = False):
             file_path = os.path.join(s3_index_path, file)
             # Delete the file from S3
             default_storage.delete(file_path)
-        
+
         logger.info(f"Index files deleted from S3: {s3_index_path}")
-        
+
         if recache_models:
             recache_models_utils()
 
 
 @app.task()
-def parse_url_task(knowledge_base_id, url):
+def parse_url_task(ds_id, url):
     """
     Get the html from the url and parse it.
     Parameters
     ----------
-    knowledge_base_id : int
-        The primary key of the knowledge base to which the crawled items will be added.
+    ds_id : int
+        The primary key of the data source to which the crawled items will be added.
     url : str
         The url to crawl.
     """
@@ -672,19 +672,19 @@ def parse_url_task(knowledge_base_id, url):
     )  # CI
 
     runner = CrawlerRunner(get_project_settings())
-    runner.crawl(GenericSpider, start_urls=url, knowledge_base_id=knowledge_base_id)
+    runner.crawl(GenericSpider, start_urls=url, data_source_id=ds_id)
     KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
-    kb = KnowledgeBase.objects.get(pk=knowledge_base_id)
+    kb = KnowledgeBase.objects.get(pk=ds_id)
 
 
 @app.task()
-def parse_pdf_task(pdf_file_pk):
+def parse_pdf_task(ds_pk):
     """
     Parse a pdf file and return a list of KnowledgeItem objects.
     Parameters
     ----------
-    pdf_file_pk : int
-        The primary key of the pdf file to parse.
+    ds_pk : int
+        The primary key of the data source to parse.
     Returns
     -------
     k_items : list
@@ -692,17 +692,17 @@ def parse_pdf_task(pdf_file_pk):
     """
 
     logger.info("Parsing PDF file...")
-    logger.info(f"PDF file pk: {pdf_file_pk}")
+    logger.info(f"PDF file pk: {ds_pk}")
 
-    KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
+    DataSource = apps.get_model("language_model", "DataSource")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     KnowledgeItemImage = apps.get_model("language_model", "KnowledgeItemImage")
-    kb = KnowledgeBase.objects.get(pk=pdf_file_pk)
-    pdf_file = kb.original_pdf.read()
-    strategy = kb.strategy
-    splitter = kb.splitter
-    chunk_size = kb.chunk_size
-    chunk_overlap = kb.chunk_overlap
+    ds = DataSource.objects.get(pk=ds_pk)
+    pdf_file = ds.original_pdf.read()
+    strategy = ds.strategy
+    splitter = ds.splitter
+    chunk_size = ds.chunk_size
+    chunk_overlap = ds.chunk_overlap
 
     pdf_file = BytesIO(pdf_file)
 
@@ -719,7 +719,8 @@ def parse_pdf_task(pdf_file_pk):
         for item in parsed_items:
             # Create and save the KnowledgeItem instance
             knowledge_item = KnowledgeItem(
-                knowledge_base=kb,
+                knowledge_base=ds.knowledge_base,
+                data_source=ds,
                 title=item.title,
                 content=item.content,  # alnaf [[Image 0]] a;mda [[Image 2]]
                 url=item.url,
