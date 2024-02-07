@@ -10,13 +10,14 @@ models_dict = {
 
 
 class ReRanker:
-    def __init__(self, lang: str = 'en', device: str = 'cuda') -> None:
+    def __init__(self, lang: str = 'en', device: str = 'cuda', model_name: str = None) -> None:
         """
         Class to rerank the retrieved contexts using a cross-encoder.
         It also filters out low confidence contexts.
         """
         lang = lang if lang in models_dict else 'multilingual' # default to multilingual model if language not supported
-        self.model = CrossEncoder(models_dict[lang], max_length=512, device=device)
+        model_name = model_name if model_name is not None else models_dict[lang]
+        self.model = CrossEncoder(model_name, max_length=512, device=device)
         self.confidence_threshold = 0.5
         self.activation_fct = torch.sigmoid
         self.max_query_length = 64 # These cross-encoder are not trained on long queries, so we restrict them down to simple queries of max 64 characters 

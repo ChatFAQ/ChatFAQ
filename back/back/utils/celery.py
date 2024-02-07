@@ -6,9 +6,7 @@ def ensure_worker_queues():
     i = c.inspect()
     active_queues_info = i.active_queues()
 
-    if active_queues_info is None:
-        # Handle the case where no queue information is returned
-        return []
+    active_queues_info = [] if active_queues_info is None else active_queues_info
 
     active_queues = set()
     for key in active_queues_info:
@@ -30,5 +28,7 @@ def recache_models(log_caller=None):
     from back.apps.language_model.tasks import llm_query_task
 
     worker_queues = ensure_worker_queues()
+    if len(worker_queues) == 0:
+        print("No workers found")
     for worker_queue in worker_queues:
         llm_query_task.apply_async(queue=worker_queue, kwargs={"recache_models": True, "log_caller": log_caller})

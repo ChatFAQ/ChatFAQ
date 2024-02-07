@@ -5,7 +5,7 @@ from uuid import uuid4
 import base64
 import os
 
-from django.db import models, transaction
+from django.db import models
 from django.apps import apps
 from django.core.files.base import ContentFile
 
@@ -13,7 +13,6 @@ from back.apps.broker.models import RemoteSDKParsers
 from back.apps.language_model.tasks import (
     parse_pdf_task,
     parse_url_task,
-    generate_embeddings_task,
 )
 from back.common.models import ChangesMixin
 from back.apps.broker.models.message import Message
@@ -53,119 +52,7 @@ class KnowledgeBase(ChangesMixin):
     )
     name = models.CharField(max_length=255, unique=True)
 
-    STRATEGY_CHOICES = (
-        ("auto", "Auto"),
-        ("fast", "Fast"),
-        ("ocr_only", "OCR Only"),
-        ("hi_res", "Hi Res"),
-    )
-
-    SPLITTERS_CHOICES = (
-        ("sentences", "Sentences"),
-        ("words", "Words"),
-        ("tokens", "Tokens"),
-        ("smart", "Smart"),
-    )
-
     lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
-    # CSV parsing options
-    csv_header = models.BooleanField(default=True)
-    title_index_col = models.IntegerField(default=0)
-    content_index_col = models.IntegerField(default=1)
-    url_index_col = models.IntegerField(default=2)
-    section_index_col = models.IntegerField(default=3)
-    role_index_col = models.IntegerField(default=4)
-    page_number_index_col = models.IntegerField(default=5)
-    # PDF parsing options
-    strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
-    # URL parsing options
-    recursive = models.BooleanField(default=True)
-    # PDF & URL parsing options
-    splitter = models.CharField(
-        max_length=10, default="sentences", choices=SPLITTERS_CHOICES
-    )
-    chunk_size = models.IntegerField(default=128)
-    chunk_overlap = models.IntegerField(default=16)
-
-    original_csv = models.FileField(blank=True, null=True, storage=PrivateMediaStorage())
-    original_pdf = models.FileField(blank=True, null=True, storage=PrivateMediaStorage())
-    original_url = models.URLField(blank=True, null=True)
-
-    parser = models.CharField(max_length=255, null=True, blank=True)
-
-    def update_items_with_remote_parser(self):
-        KnowledgeItem.objects.filter(
-            knowledge_base=self
-        ).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
-        channel_layer = get_channel_layer()
-        layer_name = RemoteSDKParsers.get_next_consumer_group_name(self.parser)
-        if layer_name:
-            task = TaskResult(
-                task_id=str(uuid4()),
-                task_name=f"{self.parser}_parser",
-            )
-            task.save()
-            async_to_sync(channel_layer.send)(
-                layer_name,
-                {
-                    "type": "send_data_source_to_parse",
-                    "parser": self.parser,
-                    "payload": {
-                        "kb_id": self.pk,
-                        "task_id": task.task_id,
-                        "csv": self.original_csv.url if self.original_csv else None,
-                        "pdf": self.original_pdf.url if self.original_pdf else None,
-                        "url": self.original_url,
-                    },
-                },
-            )
-        else:
-            logger.error(f"No parser available for {self.parser}")
-            raise Exception(f"No parser available for {self.parser}")
-
-    def update_items_from_csv(self):
-        csv_content = self.original_csv.read().decode("utf-8")
-        csv_rows = csv.reader(StringIO(csv_content))
-        if self.csv_header:
-            next(csv_rows)
-        new_items = [
-            KnowledgeItem(
-                knowledge_base=self,
-                title=row[self.title_index_col]
-                if len(row) > self.title_index_col
-                else "",
-                content=row[self.content_index_col]
-                if len(row) > self.content_index_col
-                else "",
-                url=row[self.url_index_col] if len(row) > self.url_index_col else "",
-                section=row[self.section_index_col]
-                if len(row) > self.section_index_col
-                else "",
-                role=row[self.role_index_col] if len(row) > self.role_index_col else "",
-            )
-            for row in csv_rows
-        ]
-
-        KnowledgeItem.objects.filter(
-            knowledge_base=self
-        ).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
-        KnowledgeItem.objects.bulk_create(new_items)
-        self.trigger_generate_embeddings()
-
-    def trigger_generate_embeddings(self):
-        RAGConfig = apps.get_model("language_model", "RAGConfig")
-        Embedding = apps.get_model("language_model", "Embedding")
-
-        rag_configs = RAGConfig.objects.filter(knowledge_base=self)
-        last_i = rag_configs.count() - 1
-        for i, rag_config in enumerate(rag_configs.all()):
-            # remove all existing embeddings for this rag config
-            Embedding.objects.filter(rag_config=rag_config).delete()
-            generate_embeddings_task.delay(
-                list(self.knowledgeitem_set.values_list("pk", flat=True)),
-                rag_config.pk,
-                recache_models=(i == last_i),
-            )
 
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
@@ -210,6 +97,109 @@ class KnowledgeBase(ChangesMixin):
     def __str__(self):
         return self.name or "Knowledge Base {}".format(self.id)
 
+
+class DataSource(ChangesMixin):
+    STRATEGY_CHOICES = (
+        ("auto", "Auto"),
+        ("fast", "Fast"),
+        ("ocr_only", "OCR Only"),
+        ("hi_res", "Hi Res"),
+    )
+
+    SPLITTERS_CHOICES = (
+        ("sentences", "Sentences"),
+        ("words", "Words"),
+        ("tokens", "Tokens"),
+        ("smart", "Smart"),
+    )
+
+    knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
+
+    # CSV parsing options
+    csv_header = models.BooleanField(default=True)
+    title_index_col = models.IntegerField(default=0)
+    content_index_col = models.IntegerField(default=1)
+    url_index_col = models.IntegerField(default=2)
+    section_index_col = models.IntegerField(default=3)
+    role_index_col = models.IntegerField(default=4)
+    page_number_index_col = models.IntegerField(default=5)
+    # PDF parsing options
+    strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
+    # URL parsing options
+    recursive = models.BooleanField(default=True)
+    # PDF & URL parsing options
+    splitter = models.CharField(
+        max_length=10, default="sentences", choices=SPLITTERS_CHOICES
+    )
+    chunk_size = models.IntegerField(default=128)
+    chunk_overlap = models.IntegerField(default=16)
+
+    original_csv = models.FileField(blank=True, null=True, storage=PrivateMediaStorage())
+    original_pdf = models.FileField(blank=True, null=True, storage=PrivateMediaStorage())
+    original_url = models.URLField(blank=True, null=True)
+
+    parser = models.CharField(max_length=255, null=True, blank=True)
+
+    def update_items_with_remote_parser(self):
+        KnowledgeItem.objects.filter(
+            data_source=self
+        ).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
+        channel_layer = get_channel_layer()
+        layer_name = RemoteSDKParsers.get_next_consumer_group_name(self.parser)
+        if layer_name:
+            task = TaskResult(
+                task_id=str(uuid4()),
+                task_name=f"{self.parser}_parser",
+            )
+            task.save()
+            async_to_sync(channel_layer.send)(
+                layer_name,
+                {
+                    "type": "send_data_source_to_parse",
+                    "parser": self.parser,
+                    "payload": {
+                        "kb_id": self.knowledge_base.pk,
+                        "ds_id": self.pk,
+                        "task_id": task.task_id,
+                        "csv": self.original_csv.url if self.original_csv else None,
+                        "pdf": self.original_pdf.url if self.original_pdf else None,
+                        "url": self.original_url,
+                    },
+                },
+            )
+        else:
+            logger.error(f"No parser available for {self.parser}")
+            raise Exception(f"No parser available for {self.parser}")
+
+    def update_items_from_csv(self):
+        csv_content = self.original_csv.read().decode("utf-8")
+        csv_rows = csv.reader(StringIO(csv_content))
+        if self.csv_header:
+            next(csv_rows)
+        new_items = [
+            KnowledgeItem(
+                knowledge_base=self.knowledge_base,
+                data_source=self,
+                title=row[self.title_index_col]
+                if len(row) > self.title_index_col
+                else "",
+                content=row[self.content_index_col]
+                if len(row) > self.content_index_col
+                else "",
+                url=row[self.url_index_col] if len(row) > self.url_index_col else "",
+                section=row[self.section_index_col]
+                if len(row) > self.section_index_col
+                else "",
+                role=row[self.role_index_col] if len(row) > self.role_index_col else "",
+            )
+            for row in csv_rows
+        ]
+
+        KnowledgeItem.objects.filter(
+            data_source=self
+        ).delete()  # TODO: give the option to reset the dataset or not, if reset is True, pass the last date of the last item to the spider and delete them when the crawling finishes
+        KnowledgeItem.objects.bulk_create(new_items)
+
     def save(self, *args, **kw):
         super().save(*args, **kw)
         if self._should_update_items_from_file():
@@ -219,7 +209,7 @@ class KnowledgeBase(ChangesMixin):
         if not self.pk:
             return True
 
-        orig = KnowledgeBase.objects.get(pk=self.pk)
+        orig = DataSource.objects.get(pk=self.pk)
         return (
             orig.original_csv != self.original_csv
             or orig.original_pdf != self.original_pdf
@@ -264,6 +254,7 @@ class KnowledgeItem(ChangesMixin):
     """
 
     knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
+    data_source = models.ForeignKey(DataSource, on_delete=models.CASCADE, null=True, blank=True)
     title = models.TextField(blank=True, null=True)
     content = models.TextField()
     url = models.URLField(max_length=2083, null=True)
@@ -276,45 +267,26 @@ class KnowledgeItem(ChangesMixin):
     def __str__(self):
         return f"{self.content} ds ({self.knowledge_base.pk})"
 
-    # When saving we want to check if the content has changed and in that case regenerate
-    # all the embeddings for the rag_config this item belongs to.
     def save(self, *args, **kwargs):
-        generate_embeddings = False
 
-        if self.pk is None:
-            generate_embeddings = True
-        else:
+        # get the rag configs to which this knowledge base belongs
+        rag_configs = apps.get_model("language_model", "RAGConfig").objects.filter(
+            knowledge_base=self.knowledge_base
+        )
+
+        # set the rag config index_up_to_date to False
+        if self.pk is None: # new item
+            for rag_config in rag_configs:
+                rag_config.index_up_to_date = False
+                rag_config.save()
+        else: # modified item
             old_item = KnowledgeItem.objects.get(pk=self.pk)
             if self.content != old_item.content:
-                generate_embeddings = True
+                for rag_config in rag_configs:
+                    rag_config.index_up_to_date = False
+                    rag_config.save()
 
         super().save(*args, **kwargs)
-
-        if generate_embeddings:
-
-            def on_commit_callback():
-                self.trigger_generate_embeddings()
-
-            # Schedule the trigger_generate_embeddings function to be called
-            # after the current transaction is committed
-            transaction.on_commit(on_commit_callback)
-
-    def trigger_generate_embeddings(self):
-        RAGConfig = apps.get_model("language_model", "RAGConfig")
-        Embedding = apps.get_model("language_model", "Embedding")
-        rag_configs = RAGConfig.objects.filter(knowledge_base=self.knowledge_base)
-        last_i = rag_configs.count() - 1
-
-        for i, rag_config in enumerate(rag_configs.all()):
-            # remove the embedding for this item for this rag config
-            Embedding.objects.filter(
-                rag_config=rag_config, knowledge_item=self
-            ).delete()
-            generate_embeddings_task.delay(
-                [self.pk],
-                rag_config.pk,
-                recache_models=(i == last_i),
-            )
 
     def to_retrieve_context(self):
         return {
@@ -328,16 +300,6 @@ class KnowledgeItem(ChangesMixin):
             "image_urls": {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
         }
 
-
-def delete_knowledge_items(knowledge_item_ids):
-    # Custom batch delete function for KnowledgeItem that recaches the models once the batch delete is done
-    with transaction.atomic():
-        # Perform the batch delete
-        KnowledgeItem.objects.filter(id__in=knowledge_item_ids).delete()
-
-        # Log and perform post-delete actions
-        logger.info(f"Deleted {len(knowledge_item_ids)} knowledge items")
-        recache_models("on_ki_delete")
 
 
 def gen_safe_url_uuid():

@@ -53,6 +53,7 @@ class KnowledgeItem:
 @dataclass
 class DataSource:
     kb_id: str
+    ds_id: Optional[str]
     task_id: Optional[str]
     csv: Optional[str]
     pdf: Optional[str]

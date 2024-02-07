@@ -47,3 +47,28 @@
         border-color: #8E959F;
     }
 }
+
+
+@mixin button-primary {
+    padding: 8px 16px 8px 16px;
+    min-width: 120px;
+    border-radius: 8px !important;
+    text-transform: uppercase !important;
+    border: none !important;
+    color: white;
+    background-color: $chatfaq-color-primary-500;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 20px;
+
+    &:hover {
+        background-color: $chatfaq-color-primary-900;
+    }
+    &:active {
+        background-color: $chatfaq-color-primary-500;
+    }
+    &:disabled {
+        background-color: #8E959F;
+    }
+}

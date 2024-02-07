@@ -1,10 +1,10 @@
 <template>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div v-if="items[apiUrl].length" class="section-header">
-            <slot name="legend" :total="items[apiUrl].length">
+        <div v-if="items[apiUrl]?.length" class="section-header">
+            <slot name="legend" :total="items[apiUrl]?.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
-                            "number": items[apiUrl].length,
+                            "number": items[apiUrl]?.length,
                             "readablename": readableName
                         })
                     }}
@@ -26,31 +26,34 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
-            <el-card v-for="item in items[apiUrl]" class="box-card" @click="stateToEdit(item.id)">
-                <template #header>
-                    <div class="card-header-title">{{ createTitle(item) }}</div>
-                </template>
-                <div v-for="(name, prop) in cardProps" class="property">
-                    <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
-                </div>
-                <div class="divider">
-                </div>
-                <div class="commands">
-                    <el-icon v-if="deleting !== item.id" class="command-delete">
-                        <Delete @click="deleting = item.id"/>
-                    </el-icon>
-                    <div class="command-delete-confirm">
-                        <el-icon v-if="deleting === item.id" class="command-delete">
-                            <Close @click="deleting = undefined"/>
-                        </el-icon>
-                        <el-icon v-if="deleting === item.id" class="command-delete">
-                            <Check @click="deleteItem(deleting)"/>
-                        </el-icon>
+            <div v-for="item in items[apiUrl]" class="card-wrapper">
+                <el-card class="box-card" @click="stateToEdit(item.id)">
+                    <template #header>
+                        <div class="card-header-title">{{ createTitle(item) }}</div>
+                    </template>
+                    <div v-for="(name, prop) in cardProps" class="property">
+                        <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
                     </div>
-                    <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
-                </div>
-            </el-card>
-            <div class="box-card-add" :class="{'no-items': !items[apiUrl].length}" @click="stateToAdd">
+                    <div class="divider">
+                    </div>
+                    <div class="commands">
+                        <el-icon v-if="deleting !== item.id" class="command-delete">
+                            <Delete @click="deleting = item.id"/>
+                        </el-icon>
+                        <div class="command-delete-confirm">
+                            <el-icon v-if="deleting === item.id" class="command-delete">
+                                <Close @click="deleting = undefined"/>
+                            </el-icon>
+                            <el-icon v-if="deleting === item.id" class="command-delete">
+                                <Check @click="deleteItem(deleting)"/>
+                            </el-icon>
+                        </div>
+                        <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
+                    </div>
+                </el-card>
+                <slot name="extra-card-bottom" :item="item"></slot>
+            </div>
+            <div class="box-card-add" :class="{'no-items': !items[apiUrl]?.length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -94,7 +97,7 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl].length}"
+        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl]?.length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
@@ -266,40 +269,43 @@ function solveRefProp(item, propName) {
     margin: 16px;
 }
 
-.box-card {
+.card-wrapper {
     width: 232px;
     margin: 16px;
-    cursor: pointer;
-    &:hover {
-        box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
-    }
-}
 
-.box-card-add {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    padding: 18px;
-    width: 232px;
-    margin: 16px;
-    color: $chatfaq-color-primary-500;
-    border: 1px dashed $chatfaq-color-primary-500;
-    border-radius: 10px;
-    cursor: pointer;
-    &:hover {
-        background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
+    .box-card {
+        cursor: pointer;
+        &:hover {
+            box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
+        }
     }
 
-    &.no-items {
-        width: 100%;
-        padding: 24px;
-        margin-top: 25px;
-    }
+    .box-card-add {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        padding: 18px;
+        width: 232px;
+        margin: 16px;
+        color: $chatfaq-color-primary-500;
+        border: 1px dashed $chatfaq-color-primary-500;
+        border-radius: 10px;
+        cursor: pointer;
+        &:hover {
+            background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
+        }
 
-    i {
-        width: 100%;
-        margin-bottom: 17px;
+        &.no-items {
+            width: 100%;
+            padding: 24px;
+            margin-top: 25px;
+        }
+
+        i {
+            width: 100%;
+            margin-bottom: 17px;
+        }
     }
 }
 

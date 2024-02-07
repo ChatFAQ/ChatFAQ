@@ -110,11 +110,26 @@ The retriever is the component that will retrieve the most relevant knowledge it
 The retriever is configured with the following properties:
 
 - **name**: Just a name for the retriever.
-- **model_name**: The name of the retriever model to use. It must be a HuggingFace repo id. Default: 'intfloat/e5-small-v2'.
+- **model_name**: The name of the retriever model to use. It must be a HuggingFace repo id. Default: 'colbert-ir/colbertv2.0'.
+- **retriever_type**: The type of retriever to use. It can be 'ColBERT Search' or 'Standard Semantic Search'. Default: 'ColBERT Search'.
 - **batch_size**: The batch size to use for the retriever. Default: 1.
 - **device**: The device to use for the retriever. It can be a CPU or a GPU. Default: 'cpu'.
 
-We recommend setting the **model_name** to one of the [e5 family models](https://huggingface.co/intfloat). The retriever is developed with these models as the base, so it will work better with them. We suggest to use [intfloat/e5-small-v2](https://huggingface.co/intfloat/e5-small-v2) for English and [intfloat/multilingual-e5-small](https://huggingface.co/intfloat/multilingual-e5-small) for other languages.
+#### ColBERT Search
+We recommend setting [ColBERT](https://arxiv.org/abs/2004.12832) as the retriever. It generates multiple embeddings for each knowledge item and query, which allows for more accurate retrieval generally and it is faster than the Standard Semantic Search retriever.
+
+Model per language:
+- English: [colbert-ir/colbertv2.0](https://huggingface.co/colbert-ir/colbertv2.0)
+- French: [antoinelouis/colbertv1-camembert-base-mmarcoFR](https://huggingface.co/antoinelouis/colbertv1-camembert-base-mmarcoFR)
+- Spanish: [AdrienB134/ColBERTv1.0-bert-based-spanish-mmarcoES](https://huggingface.co/AdrienB134/ColBERTv1.0-bert-based-spanish-mmarcoES)
+
+#### Standard Semantic Search
+
+We recommend setting the **model_name** to one of the [e5 family models](https://huggingface.co/intfloat). This retriever is developed with these models as the base, so it will work better with them.
+
+Model per language:
+- English: [intfloat/e5-small-v2](https://huggingface.co/intfloat/e5-small-v2)
+- Other languages: [intfloat/multilingual-e5-small](https://huggingface.co/intfloat/multilingual-e5-small)
 
 For **batch_size** we recommend using 1 for CPU and for GPU as much as your GPU can handle. For personal use, batch size of 1 is enough, but for production use, you should use a higher batch size and a GPU.
 
@@ -124,8 +139,9 @@ An example of a retriever config is the following:
 
 ```json
 {
-    "name": "e5-retriever",
-    "model_name": "intfloat/e5-small-v2",
+    "name": "colbert",
+    "model_name": "colbert-ir/colbertv2.0",
+    "retriever_type": "ColBERT Search",
     "batch_size": 1,
     "device": "cpu"
 }
@@ -359,6 +375,8 @@ The RAG config is configured with the following properties:
 - disabled: Whether to disable this RAG config or not to reduce the memory usage if it is not used. Default: False.
 
 Remember that currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
+
+It is important to run the indexing tasks manually after creating, modifying a RAG config, or after modifying the knowledge base. You can do it from the RAGConfig django admin panel.
 
 
 An example of a RAG config is the following:

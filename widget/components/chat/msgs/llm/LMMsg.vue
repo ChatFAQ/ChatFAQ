@@ -1,13 +1,16 @@
 <template>
     <div>
         <div class="marked-down-content" :class="{ 'dark-mode': store.darkMode }" v-html="markedDown"></div>
-        <span class="reference-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }"
-              v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span>
+        <!-- <span class="reference-index" v-if="isLast" :class="{ 'dark-mode': store.darkMode }"
+              v-for="refIndex in data.referenceIndexes">{{ refIndex + 1 }}</span> -->
     </div>
     <div class="separator-line" :class="{ 'dark-mode': store.darkMode }" v-if="getMarkedDownImages.length"></div>
     <div class="reference-image-wrapper" v-if="getMarkedDownImages.length">
         <div class="reference-image" v-for="(img, index) in getMarkedDownImagesTotal"
-             :style="{ 'background-image': 'url(' + imageUrls[img.file_name] + ')' }">
+             :style="{ 'background-image': 'url(' + imageUrls[img.file_name] + ')' }"
+             @click="openInNewTab(imageUrls[img.file_name])"
+
+        >
             <div class="reference-image-index target">{{ index + 1 }}</div>
         </div>
         <div class="reference-image-button-paging" v-if="getMarkedDownImages.length > minImgRefs"
@@ -124,6 +127,11 @@ const imageUrls = computed(() => {
     return res
 })
 
+function openInNewTab(url) {
+    const win = window.open(url, '_blank');
+    win.focus();
+}
+
 </script>
 <style lang="scss">
 
@@ -199,6 +207,7 @@ const imageUrls = computed(() => {
     flex-wrap: wrap;
 
     .reference-image {
+        cursor: pointer;
         position: relative;
         margin-right: 6px;
         margin-bottom: 8px;
