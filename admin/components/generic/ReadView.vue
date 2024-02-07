@@ -97,7 +97,8 @@
                 </template>
             </el-table-column>
         </el-table>
-        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add" :class="{'no-items': !items[apiUrl]?.length}"
+        <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add"
+             :class="{'no-items': !items[apiUrl]?.length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
@@ -239,6 +240,7 @@ function solveRefProp(item, propName) {
         // background: #DFDAEA66;
     }
 }
+
 .el-card:hover {
 }
 </style>
@@ -275,37 +277,39 @@ function solveRefProp(item, propName) {
 
     .box-card {
         cursor: pointer;
+
         &:hover {
             box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
         }
     }
+}
 
-    .box-card-add {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-align: center;
-        padding: 18px;
-        width: 232px;
-        margin: 16px;
-        color: $chatfaq-color-primary-500;
-        border: 1px dashed $chatfaq-color-primary-500;
-        border-radius: 10px;
-        cursor: pointer;
-        &:hover {
-            background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
-        }
+.box-card-add {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 18px;
+    width: 232px;
+    margin: 16px;
+    color: $chatfaq-color-primary-500;
+    border: 1px dashed $chatfaq-color-primary-500;
+    border-radius: 10px;
+    cursor: pointer;
 
-        &.no-items {
-            width: 100%;
-            padding: 24px;
-            margin-top: 25px;
-        }
+    &:hover {
+        background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
+    }
 
-        i {
-            width: 100%;
-            margin-bottom: 17px;
-        }
+    &.no-items {
+        width: 100%;
+        padding: 24px;
+        margin-top: 25px;
+    }
+
+    i {
+        width: 100%;
+        margin-bottom: 17px;
     }
 }
 
@@ -321,6 +325,7 @@ function solveRefProp(item, propName) {
     border: 1px dashed $chatfaq-color-primary-500;
     border-radius: 10px;
     cursor: pointer;
+
     span {
         display: flex;
         justify-content: center;
@@ -386,6 +391,7 @@ function solveRefProp(item, propName) {
         margin-left: 16px;
         margin-bottom: 13px;
     }
+
     .command-delete-confirm {
         display: flex;
         justify-content: center;
