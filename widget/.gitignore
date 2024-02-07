@@ -1,0 +1,11 @@
+node_modules
+chatfaq-widget-*
+*.log*
+.nuxt
+.nitro
+.cache
+.output
+.env
+dist
+.idea/
+components.d.ts

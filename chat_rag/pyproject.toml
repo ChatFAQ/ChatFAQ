@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "chat-rag"
+version = "0.1.49"
+description = ""
+authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
+readme = "README.md"
+packages = [{ include = "chat_rag" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "1.23.5"
+pandas = "1.4.4"
+transformers = "^4.35.2"
+sentence-transformers = "^2.2.2"
+pyarrow = "^12.0.0"
+python-dotenv = "^0.21.0"
+torch = [
+    { version = "^2.1.0", source = "torch" },
+]
+ctransformers = "^0.2.10"
+tqdm = "^4.65.0"
+einops = "^0.6.1"
+openai = "^1.3.4"
+accelerate = "^0.21.0"
+unstructured = {extras = ["pdf"], version = "^0.12.0", python = ">=3.10,<3.12"}
+pillow = "^10.1.0"
+certifi = "^2023.7.22"
+urllib3 = "^1.26.18"
+aiohttp = "^3.8.5"
+cryptography = "^41.0.4"
+unstructured-inference = "0.7.21"
+torchvision = "0.16.0"
+anthropic = "^0.6.0"
+autoawq = "^0.1.7"
+mistralai = "^0.0.9"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+secondary = true
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"

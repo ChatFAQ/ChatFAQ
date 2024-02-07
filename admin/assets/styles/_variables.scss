@@ -1,0 +1,241 @@
+@import "fonts";
+
+:root {
+    /*              */
+    /* GENERAL VARS */
+    /*              */
+
+    /* General Colors */
+
+    // Primary
+    --chatfaq-color-primary-200: #dfdaea;
+    --chatfaq-color-primary-300: #cac2da;
+    --chatfaq-color-primary-500: #463075;
+    --chatfaq-color-primary-800: #3c2d52;
+    --chatfaq-color-primary-900: #1A0438;
+
+    // Secondary
+    --chatfaq-color-secondary-pink-500: #CE0578;
+
+    // Tertiary
+    --chatfaq-color-tertiary-blue-500: #9FFFFF;
+    --chatfaq-color-tertiary-green-500: #43F6AB;
+
+    // Neutral
+    --chatfaq-color-neutral-white: #FFFFFF;
+    --chatfaq-color-neutral-black: #020C1C;
+    --chatfaq-color-neutral-purple: #4D4160;
+    --chatfaq-color-neutral-purple-light: #9a8eb5;
+
+    // Grey Scale
+    --chatfaq-color-greyscale-200: #e7e8e9;
+    --chatfaq-color-greyscale-500: #aaafb5;
+    --chatfaq-color-greyscale-800: #545a64;
+
+    // Gradient
+    --chatfaq-color-gradient-purple: linear-gradient(135deg, #463075 0%, #220D44 100%);
+    --chatfaq-color-gradient-pink: linear-gradient(135deg, #CE0578 0%, #463075 100%);
+
+    // Transparent
+    --chatfaq-color-transparent-purple-10: rgba(223, 218, 234, .1);
+    --chatfaq-color-transparent-purple-40: rgba(223, 218, 234, .4);
+    --chatfaq-color-transparent-neutral-black-60: rgba(2, 12, 28, .6);
+    --chatfaq-color-transparent-neutral-black-70: rgba(2, 12, 28, .7);
+    --chatfaq-color-transparent-primary-10: rgba(70, 48, 117, .1);
+    --chatfaq-color-transparent-primary-20: rgba(70, 48, 117, .2);
+
+
+     /* Fonts */
+
+    // Title
+    --chatfaq-font-title-xl: normal normal 700 56px/68px 'Montserrat';
+    --chatfaq-font-title-l: normal normal 700 48px/59px 'Montserrat';
+    --chatfaq-font-title-sm: normal normal 700 24px/29px 'Montserrat';
+    --chatfaq-font-title-xs: normal normal 700 18px/22px 'Montserrat';
+
+    // Body
+    --chatfaq-font-body-xl: normal normal 400 24px/33px 'Open Sans';
+    --chatfaq-font-body-m: normal normal 400 24px/33px 'Open Sans';
+    --chatfaq-font-body-m-bold: normal normal 600 16px/22px 'Open Sans';
+    --chatfaq-font-body-s: normal normal 400 14px/19px 'Open Sans';
+    --chatfaq-font-body-xs: normal normal 400 14px/19px 'Open Sans';
+
+    // Caption
+    --chatfaq-font-caption-md: italic normal 600 14px/19px 'Open Sans';
+    --chatfaq-font-caption-sm: normal normal 400 12px/16px 'Open Sans';
+
+    // Button
+    --chatfaq-font-button: normal normal 600 14px/17px 'Montserrat';
+
+
+     /* Icons */
+
+
+     /* Sizes */
+    --chatfaq-size-bubbleButton: 60px;
+
+     /* Breakpoints */
+
+    // Extra small devices (phones, 600px and down)
+    --phone-breakpoint: 600px;
+
+    /*              */
+    /* SPECIFIC VARS */
+    /*              */
+
+    /* Specific Colors */
+
+    --chatfaq-color-alertMessage-text-dark: var(--chatfaq-color-greyscale-200);
+    --chatfaq-color-alertMessage-text-light: var(--chatfaq-color-greyscale-800);
+    --chatfaq-color-bubbleButton-background-hover: var(--chatfaq-color-gradient-purple);
+    --chatfaq-color-bubbleButton-background: var(--chatfaq-color-gradient-pink);
+    --chatfaq-color-chat-background-dark: var(--chatfaq-color-neutral-purple);
+    --chatfaq-color-chat-background-light: var(--chatfaq-color-primary-200);
+    --chatfaq-color-chatInput-background-dark: var(--chatfaq-color-primary-800);
+    --chatfaq-color-chatInput-background-light: var(--chatfaq-color-primary-300);
+    --chatfaq-color-chatInput-border-dark: var(--chatfaq-color-primary-900);
+    --chatfaq-color-chatInput-border-light: var(--chatfaq-color-neutral-purple);
+    --chatfaq-color-chatInput-text-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-chatInput-text-light: var(--chatfaq-color-neutral-black);
+    --chatfaq-color-chatMessageBot-background-dark: var(--chatfaq-color-primary-800);
+    --chatfaq-color-chatMessageBot-background-light: var(--chatfaq-color-primary-300);
+    --chatfaq-color-chatMessageBot-text-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-chatMessageBot-text-light: var(--chatfaq-color-neutral-black);
+    --chatfaq-color-chatMessageHuman-background-dark: var(--chatfaq-color-primary-900);
+    --chatfaq-color-chatMessageHuman-background-light: var(--chatfaq-color-primary-500);
+    --chatfaq-color-chatMessageHuman-text-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-chatMessageHuman-text-light: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-chatMessageReference-background-dark: var(--chatfaq-color-primary-900);
+    --chatfaq-color-chatMessageReference-background-light: var(--chatfaq-color-transparent-primary-10);
+    --chatfaq-color-chatMessageReference-text-dark: var(--chatfaq-color-primary-200);
+    --chatfaq-color-chatMessageReference-text-light: var(--chatfaq-color-primary-500);
+    --chatfaq-color-chatMessageReferenceTitle-text-dark: var(--chatfaq-color-greyscale-500);
+    --chatfaq-color-chatMessageReferenceTitle-text-light: var(--chatfaq-color-neutral-purple);
+    --chatfaq-color-chatPlaceholder-text-dark: var(--chatfaq-color-primary-200);
+    --chatfaq-color-chatPlaceholder-text-light: var(--chatfaq-color-transparent-neutral-black-60);
+    --chatfaq-color-clipboard-text-dark: var(--chatfaq-color-primary-300);
+    --chatfaq-color-clipboard-text-light: var(--chatfaq-color-neutral-purple-light);
+    --chatfaq-color-darkFilter: var(--chatfaq-color-transparent-neutral-black-70);
+    --chatfaq-color-loader-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-loader-light: var(--chatfaq-color-primary-500);
+    --chatfaq-color-menu-background: var(--chatfaq-color-gradient-purple);
+    --chatfaq-color-menu-border: var(--chatfaq-color-neutral-purple);
+    --chatfaq-color-menu-scrollColor: var(--chatfaq-color-tertiary-blue-500);
+    --chatfaq-color-menu-text: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-menuButton-background: var(--chatfaq-color-primary-500);
+    --chatfaq-color-menuItem-background-hover: var(--chatfaq-color-primary-900);
+    --chatfaq-color-menuItem-background: var(--chatfaq-color-transparent-purple-10);
+    --chatfaq-color-menuItem-border-edit: var(--chatfaq-color-tertiary-blue-500);
+    --chatfaq-color-scrollBar-dark: var(--chatfaq-color-primary-500);
+    --chatfaq-color-scrollBar-light: var(--chatfaq-color-neutral-white);
+    --chatfaq-color-separator-dark: var(--chatfaq-color-neutral-purple);
+    --chatfaq-color-separator-light: var(--chatfaq-color-transparent-primary-20);
+
+    --chatfaq-color-inputLabel-dark: var(--chatfaq-color-primary-500);
+    --chatfaq-color-button-dark: var(--chatfaq-color-primary-500);
+    --chatfaq-color-forgot-pass-text-dark: var(--chatfaq-color-greyscale-800);
+    /*            */
+    /* ELEMENT UI */
+    /*            */
+
+    --el-color-primary: var(--chatfaq-color-primary-500);
+    --el-color-primary-light-5: var(--chatfaq-color-primary-500);
+    --el-color-primary-dark-2: var(--chatfaq-color-primary-900);
+    --el-color-primary-light-9: var(--chatfaq-color-primary-200);
+    --el-color-primary-light-3: var(--chatfaq-color-primary-500);
+    --el-input-inner-height: 40px;
+}
+
+
+/*
+    SASS
+*/
+
+$chatfaq-color-alertMessage-text-dark: var(--chatfaq-color-alertMessage-text-dark);
+$chatfaq-color-alertMessage-text-light: var(--chatfaq-color-alertMessage-text-light);
+$chatfaq-color-bubbleButton-background-hover: var(--chatfaq-color-bubbleButton-background-hover);
+$chatfaq-color-bubbleButton-background: var(--chatfaq-color-bubbleButton-background);
+$chatfaq-color-chat-background-dark: var(--chatfaq-color-chat-background-dark);
+$chatfaq-color-chat-background-light: var(--chatfaq-color-chat-background-light);
+$chatfaq-color-chatInput-background-dark: var(--chatfaq-color-chatInput-background-dark);
+$chatfaq-color-chatInput-background-light: var(--chatfaq-color-chatInput-background-light);
+$chatfaq-color-chatInput-border-dark: var(--chatfaq-color-chatInput-border-dark);
+$chatfaq-color-chatInput-border-light: var(--chatfaq-color-chatInput-border-light);
+$chatfaq-color-chatInput-text-dark: var(--chatfaq-color-chatInput-text-dark);
+$chatfaq-color-chatInput-text-light: var(--chatfaq-color-chatInput-text-light);
+$chatfaq-color-chatMessageBot-background-dark: var(--chatfaq-color-chatMessageBot-background-dark);
+$chatfaq-color-chatMessageBot-background-light: var(--chatfaq-color-chatMessageBot-background-light);
+$chatfaq-color-chatMessageBot-text-dark: var(--chatfaq-color-chatMessageBot-text-dark);
+$chatfaq-color-chatMessageBot-text-light: var(--chatfaq-color-chatMessageBot-text-light);
+$chatfaq-color-chatMessageHuman-background-dark: var(--chatfaq-color-chatMessageHuman-background-dark);
+$chatfaq-color-chatMessageHuman-background-light: var(--chatfaq-color-chatMessageHuman-background-light);
+$chatfaq-color-chatMessageHuman-text-dark: var(--chatfaq-color-chatMessageHuman-text-dark);
+$chatfaq-color-chatMessageHuman-text-light: var(--chatfaq-color-chatMessageHuman-text-light);
+$chatfaq-color-chatMessageReference-background-dark: var(--chatfaq-color-chatMessageReference-background-dark);
+$chatfaq-color-chatMessageReference-background-light: var(--chatfaq-color-chatMessageReference-background-light);
+$chatfaq-color-chatMessageReference-text-dark: var(--chatfaq-color-chatMessageReference-text-dark);
+$chatfaq-color-chatMessageReference-text-light: var(--chatfaq-color-chatMessageReference-text-light);
+$chatfaq-color-chatMessageReferenceTitle-text-dark: var(--chatfaq-color-chatMessageReferenceTitle-text-dark);
+$chatfaq-color-chatMessageReferenceTitle-text-light: var(--chatfaq-color-chatMessageReferenceTitle-text-light);
+$chatfaq-color-chatPlaceholder-text-dark: var(--chatfaq-color-chatPlaceholder-text-dark);
+$chatfaq-color-chatPlaceholder-text-light: var(--chatfaq-color-chatPlaceholder-text-light);
+$chatfaq-color-clipboard-text-dark: var(--chatfaq-color-clipboard-text-dark);
+$chatfaq-color-clipboard-text-light: var(--chatfaq-color-clipboard-text-light);
+$chatfaq-color-darkFilter: var(--chatfaq-color-darkFilter);
+$chatfaq-color-gradient-pink: var(--chatfaq-color-gradient-pink);
+$chatfaq-color-gradient-purple: var(--chatfaq-color-gradient-purple);
+$chatfaq-color-greyscale-200: var(--chatfaq-color-greyscale-200);
+$chatfaq-color-greyscale-500: var(--chatfaq-color-greyscale-500);
+$chatfaq-color-greyscale-800: var(--chatfaq-color-greyscale-800);
+$chatfaq-color-loader-dark: var(--chatfaq-color-loader-dark);
+$chatfaq-color-loader-light: var(--chatfaq-color-loader-light);
+$chatfaq-color-menu-background: var(--chatfaq-color-menu-background);
+$chatfaq-color-menu-border: var(--chatfaq-color-menu-border);
+$chatfaq-color-menu-scrollColor: var(--chatfaq-color-menu-scrollColor);
+$chatfaq-color-menu-text: var(--chatfaq-color-menu-text);
+$chatfaq-color-menuButton-background: var(--chatfaq-color-menuButton-background);
+$chatfaq-color-menuItem-background-hover: var(--chatfaq-color-menuItem-background-hover);
+$chatfaq-color-menuItem-background: var(--chatfaq-color-menuItem-background);
+$chatfaq-color-menuItem-border-edit: var(--chatfaq-color-menuItem-border-edit);
+$chatfaq-color-neutral-black: var(--chatfaq-color-neutral-black);
+$chatfaq-color-neutral-purple-light: var(--chatfaq-color-neutral-purple-light);
+$chatfaq-color-neutral-purple: var(--chatfaq-color-neutral-purple);
+$chatfaq-color-neutral-white: var(--chatfaq-color-neutral-white);
+$chatfaq-color-primary-200: var(--chatfaq-color-primary-200);
+$chatfaq-color-primary-300: var(--chatfaq-color-primary-300);
+$chatfaq-color-primary-500: var(--chatfaq-color-primary-500);
+$chatfaq-color-primary-800: var(--chatfaq-color-primary-800);
+$chatfaq-color-primary-900: var(--chatfaq-color-primary-900);
+$chatfaq-color-scrollBar-dark: var( -chatfaq-color-scrollBar-dark);
+$chatfaq-color-scrollBar-dark: var(--chatfaq-color-scrollBar-dark);
+$chatfaq-color-scrollBar-light: var( -chatfaq-color-scrollBar-light);
+$chatfaq-color-scrollBar-light: var(--chatfaq-color-scrollBar-light);
+$chatfaq-color-secondary-pink-500: var(--chatfaq-color-secondary-pink-500);
+$chatfaq-color-separator-dark: var(--chatfaq-color-separator-dark);
+$chatfaq-color-separator-light: var(--chatfaq-color-separator-light);
+$chatfaq-color-tertiary-blue-500: var(--chatfaq-color-tertiary-blue-500);
+$chatfaq-color-tertiary-green-500: var(--chatfaq-color-tertiary-green-500);
+$chatfaq-color-transparent-neutral-black-60: var(--chatfaq-color-transparent-neutral-black-60);
+$chatfaq-color-transparent-neutral-black-70: var(--chatfaq-color-transparent-neutral-black-70);
+$chatfaq-color-transparent-primary-10: var(--chatfaq-color-transparent-primary-10);
+$chatfaq-color-transparent-primary-20: var(--chatfaq-color-transparent-primary-20);
+$chatfaq-color-transparent-purple-10: var(--chatfaq-color-transparent-purple-10);
+$chatfaq-color-transparent-purple-40: var(--chatfaq-color-transparent-purple-40);
+$chatfaq-font-body-m-bold: var(--chatfaq-font-body-m-bold);
+$chatfaq-font-body-m: var(--chatfaq-font-body-m);
+$chatfaq-font-body-s: var(--chatfaq-font-body-s);
+$chatfaq-font-body-xl: var(--chatfaq-font-body-xl);
+$chatfaq-font-body-xs: var(--chatfaq-font-body-xs);
+$chatfaq-font-button: var(--chatfaq-font-button);
+$chatfaq-font-caption-md: var(--chatfaq-font-caption-md);
+$chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
+$chatfaq-font-title-l: var(--chatfaq-font-title-l);
+$chatfaq-font-title-sm: var(--chatfaq-font-title-sm);
+$chatfaq-font-title-xl: var(--chatfaq-font-title-xl);
+$chatfaq-font-title-xs: var(--chatfaq-font-title-xs);
+$chatfaq-size-bubbleButton: var(--chatfaq-size-bubbleButton);
+$phone-breakpoint: var(--phone-breakpoint);
+
+$chatfaq-color-inputLabel-dark: var(--chatfaq-color-inputLabel-dark);
+$chatfaq-color-button-dark: var(--chatfaq-color-button-dark);
+$chatfaq-color-forgot-pass-text-dark: var(--chatfaq-color-forgot-pass-text-dark);

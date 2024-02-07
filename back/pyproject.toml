@@ -1,0 +1,76 @@
+[tool.poetry]
+name = "back"
+version = "0.1.0"
+description = ""
+authors = ["Hector Soria <hector.soria@with-madrid.com>"]
+license = "Proprietary"
+
+packages = [
+    {include = "back"},
+]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+modelw-preset-django = {version = "~2023.4.0b2", extras = ["channels", "celery"], allow-prereleases = true}
+drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
+channels = "*"
+daphne = "*"
+Django = "*"
+django-cors-headers = "^3.13.0"
+django-extensions = "^3.2.1"
+django-better-admin-arrayfield = "^1.4.2"
+typefit = "^0.4.2"
+requests = "^2.28.1"
+python-json-logger = "^2.0.4"
+psycopg2 = "*"
+whitenoise = "*"
+python-dotenv = "^0.21.0"
+httpx = "0.25.2"
+channels-postgres = "^0.0.5"
+myst-parser = "^0.18.1"
+django-rest-knox = "^4.2.0"
+pgvector = "^0.2.3"
+django-filter = "^23.2"
+django-storages = "*"
+sqlalchemy = "^2.0.16"
+chat-rag = {version = "0.1.49", source = "test"}
+gevent = "23.9.0"
+torch = [
+    { version = "^2.0.1", source = "torch" },
+]
+boto3 = "^1.26.161"
+djfernet = "^0.8.1"
+scrapy = "^2.10.0"
+scrapy-playwright = "^0.0.28"
+undetected-playwright = "^0.1.0"
+django-simple-history = "~3.3.0"
+crochet = "^2.1.1"
+twisted = "^23.10.0rc1"
+ragatouille = "0.0.6b4"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+isort = "*"
+ipython = "*"
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "<6"
+
+
+[tool.isort]
+profile = "black"
+known_first_party = "back"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "test"
+url = "https://test.pypi.org/simple/"
+priority = "explicit"
+
+[[tool.poetry.source]]
+name = "torch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"

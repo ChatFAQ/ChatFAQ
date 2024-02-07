@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "chatfaq_sdk"
+version = "0.1.14"
+description = "ChatFAQ SDK"
+authors = ["Hector Soria <hector.soria@with-madrid.com>"]
+readme = "README.md"
+
+packages = [
+    { include = "chatfaq_sdk" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+asyncio = "^3.4.3"
+websockets = "^10.4"
+coloredlogs = "^15.0.1"
+python-dotenv = "^1.0.0"
+requests = "^2.31.0"
+certifi = "~2023.7.22"
+urllib3 = "^1.26.18"
+httpx = "^0.26.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.1.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

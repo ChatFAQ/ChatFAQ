@@ -1,0 +1,5 @@
+--extra-index-url https://test.pypi.org/simple/
+
+./back
+
+-r doc/base.txt

@@ -1,0 +1,25 @@
+---
+# Inject environment variables
+
+version: "3.8"
+services:
+
+  postgres:
+    env_file:
+      - "back/.env"
+
+  back:
+    env_file:
+      - "back/.env"
+
+  celery:
+    env_file:
+      - "back/.env"
+
+  widget:
+    env_file:
+      - "widget/.env"
+
+  state-machine:
+    env_file:
+      - "sdk/.env"

@@ -1,0 +1,22 @@
+# ignore everything by default
+*
+
+# whitelist the minimum set of files needed to run
+!assets/
+!components/
+!layouts/
+!locales/
+!pages/
+!plugins/
+!public/
+!store/
+!utils/
+!.browserslistrc
+!app.vue
+!babel.config.js
+!nuxt.config.ts
+!package.json
+!package-lock.json
+!README.md
+!rollup.config.js
+!tsconfig.json
