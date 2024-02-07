@@ -15,6 +15,7 @@
                     'num_of_data_sources': {'name': $t('numofdatasources')},
                     'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
                 }"
+                :excludeFields="['num_of_data_sources', 'num_of_knowledge_items']"
             >
                 <template v-slot:extra-card-bottom="props">
                     <el-button class="go-to-kis-button">{{ $t("viewknowledgeitems") }}</el-button>
