@@ -59,6 +59,10 @@ class RAG:
         returned_contexts = [contexts[:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
         contents = list(set(contents + prev_contents))
 
+        # Use a list comprehension to preserve order and not adding duplicates
+        seen = set()
+        contents = [x for x in prev_contents + contents if not (x in seen or seen.add(x))]
+
         return contents, returned_contexts
 
     def stream(

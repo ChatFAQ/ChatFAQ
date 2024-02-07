@@ -88,6 +88,7 @@ class RAGLLM:
         assistant_tag: str,
         assistant_end: str,
         n_contexts_to_use: int = 3,
+        max_new_tokens: int = 512,
         lang: str = "en",
         **kwargs,
     ) -> str:
@@ -116,6 +117,8 @@ class RAGLLM:
             The tag to indicate the end of the role (system role, user role, assistant role).
         n_contexts_to_use : int, optional
             The number of contexts to use, by default 3
+        max_new_tokens : int, optional
+            The maximum number of new tokens generated, by default 512
         lang : str, optional
             The language of the prompt, by default 'en'
         """
