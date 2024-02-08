@@ -21,6 +21,8 @@ export const useItemsStore = defineStore('items', {
         tableMode: false,
         loading: false,
         savingItem: false,
+        pageSize: 50,
+        currentPage: 1,
     }),
     actions: {
         async retrieveItems($axios, apiUrl = undefined, params = {}) {
@@ -29,7 +31,7 @@ export const useItemsStore = defineStore('items', {
             let ordering = "-updated_date"
             if (apiUrl.indexOf("/people/") !== -1)
                 ordering = "first_name"
-            let url = apiUrl + `?ordering=${ordering}`
+            let url = apiUrl + `?limit=${this.pageSize}&offset=${(this.currentPage - 1) * this.pageSize}&ordering=${ordering}`
             if (Object.keys(params).length) {
                 url += "&" + new URLSearchParams(params).toString()
             }

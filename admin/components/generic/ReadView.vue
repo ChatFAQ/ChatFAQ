@@ -4,7 +4,7 @@
             <slot name="legend" :total="items[apiUrl]?.results.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
-                            "number": items[apiUrl]?.count,
+                            "number": items[apiUrl]?.results.length,
                             "readablename": readableName
                         })
                     }}
@@ -107,12 +107,14 @@
                 {{ $t("additem", {"readablename": readableName}) }}
             </span>
         </div>
+        <Pagination :apiUrl="props.apiUrl"/>
     </div>
 </template>
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
 import {storeToRefs} from 'pinia'
+import Pagination from "~/components/generic/Pagination.vue";
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();

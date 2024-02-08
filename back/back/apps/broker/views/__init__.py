@@ -26,7 +26,12 @@ class ConversationAPIViewSet(
     viewsets.GenericViewSet,
 ):
     queryset = Conversation.objects.all()
-    serializer_class = ConversationMessagesSerializer
+    serializer_class = ConversationSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return ConversationMessagesSerializer
+        return super().get_serializer_class()
 
     def get_permissions(self):
         if self.action == 'retrieve' or self.action == 'destroy':
