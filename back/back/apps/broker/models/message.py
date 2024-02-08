@@ -7,7 +7,6 @@ from django.db.models import Q
 
 from back.common.models import ChangesMixin
 
-
 logger = getLogger(__name__)
 
 
@@ -85,9 +84,9 @@ class Conversation(ChangesMixin):
         human_messages_ids = []
 
         bot_content = ""
-        for m in chain[1:]: # skip predefined message
+        for m in chain[1:]:  # skip predefined message
             if m.sender['type'] == 'human':
-                if bot_content != "": # when human message, add bot message before
+                if bot_content != "":  # when human message, add bot message before
                     messages.append({'role': 'assistant', 'content': bot_content})
                     bot_content = ""
 
@@ -96,7 +95,7 @@ class Conversation(ChangesMixin):
             elif m.sender['type'] == 'bot':
                 bot_content += m.stack[0]['payload']['model_response']
 
-        if bot_content != "": # last message
+        if bot_content != "":  # last message
             messages.append({'role': 'assistant', 'content': bot_content})
 
         return messages, human_messages_ids
@@ -107,26 +106,35 @@ class Conversation(ChangesMixin):
         '''
         from back.apps.broker.serializers import MessageSerializer
 
+        def _stack_el(m):
+            el = m['stack']
+            while type(el) is list:
+                el = el[0]
+            return el
+
         grouped_chain = []
         for m in chain:
             m = MessageSerializer(m).data
+            first_stack_el = _stack_el(m)
+
             if m['sender']['type'] == 'human':
                 grouped_chain.append(m)
-            elif m['sender']['type'] == 'bot' and m['stack'][0]['type'] == StackPayloadType.text.value:
+            elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.text.value:
                 grouped_chain.append(m)
-            elif m['sender']['type'] == 'bot' and m['stack'][0]['type'] == StackPayloadType.lm_generated_text.value:
-                if len(grouped_chain) > 0 and grouped_chain[-1]['sender']['type'] == 'bot' and grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.lm_generated_text.value and grouped_chain[-1]['stack_id'] == m['stack_id']:
-                    grouped_chain[-1]['stack'][0]['payload']['model_response'] += m['stack'][0]['payload']['model_response']
+            elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.lm_generated_text.value:
+                if len(grouped_chain) > 0 and grouped_chain[-1]['sender']['type'] == 'bot' and \
+                    grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.lm_generated_text.value and \
+                    grouped_chain[-1]['stack_id'] == m['stack_id']:
+                    grouped_chain[-1]['stack'][0]['payload']['model_response'] += first_stack_el['payload'][
+                        'model_response']
                 else:
                     grouped_chain.append(m)
 
                 if m['last']:
                     grouped_chain[-1]['last'] = m['last']
                     grouped_chain[-1]['id'] = m['id']
-                    grouped_chain[-1]['stack'][0]['payload']['references'] = m['stack'][0]['payload']['references']
+                    grouped_chain[-1]['stack'][0]['payload']['references'] = first_stack_el['payload']['references']
         return grouped_chain
-
-
 
     @classmethod
     def conversations_from_sender(cls, sender_id):
@@ -243,7 +251,7 @@ class Message(ChangesMixin):
     def get_chain(self):
         next_msg = self
         chain = []
-        while next_msg:
+        while next_msg and next_msg not in chain:
             chain.append(next_msg)
             next_msg = Message.objects.filter(prev=next_msg).first()
         return chain

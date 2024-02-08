@@ -46,15 +46,6 @@ class ConversationAPIViewSet(
             safe=False,
         )
 
-    @permission_classes([IsAuthenticated])
-    def list(self, request, *args, **kwargs):
-        # get any query params from request
-        results = [ConversationSerializer(c).data for c in Conversation.objects.all()]
-        return JsonResponse(
-            results,
-            safe=False,
-        )
-
     @action(methods=("post",), detail=True, authentication_classes=[], permission_classes=[AllowAny])
     def download(self, request, *args, **kwargs):
         """

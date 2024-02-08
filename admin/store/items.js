@@ -62,7 +62,7 @@ export const useItemsStore = defineStore('items', {
             if (force || !this.items[cacheName]) {
                 await this.retrieveItems($axios, apiUrl, params)
             }
-            return this.items[cacheName].find(item => {
+            return this.items[cacheName].results.find(item => {
                 for (const [key, val] of Object.entries(filter)) {
                     if (item[key] === null && val === null)
                         continue
@@ -78,7 +78,7 @@ export const useItemsStore = defineStore('items', {
             if (force || !this.items[cacheName]) {
                 await this.retrieveItems($axios, apiUrl, params)
             }
-            return this.items[cacheName].filter(item => {
+            return this.items[cacheName].results.filter(item => {
                 for (const [key, val] of Object.entries(filter)) {
                     if (item[key] === null && val === null)
                         continue
@@ -95,13 +95,13 @@ export const useItemsStore = defineStore('items', {
                 await this.retrieveItems($axios, apiUrl)
             }
             // It takes the next item after currentItem
-            let index = this.items[cacheName].findIndex(item => item.id === itemId)
+            let index = this.items[cacheName].results.findIndex(item => item.id === itemId)
             if (index === -1)
                 return undefined
             index += direction
-            if (index < 0 || index >= this.items[cacheName].length)
+            if (index < 0 || index >= this.items[cacheName].results.length)
                 return undefined
-            return this.items[cacheName][index]
+            return this.items[cacheName].results[index]
         },
         async upsertItem($axios, apiUrl, item) {
             this.savingItem = true
@@ -128,7 +128,8 @@ export const useItemsStore = defineStore('items', {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
                         let items = await this.retrieveItems($axios, this.getPathFromSchemaName(refName))
-                        propInfo.choices = items.map((item) => ({label: item.name, value: item.id}))
+                        items.results = items.results.map((item) => ({label: item.name, value: item.id}))  // Paginated choices
+                        propInfo.choices = items
                     }
                 }
             }
@@ -144,12 +145,21 @@ export const useItemsStore = defineStore('items', {
             for (const [path, pathInfo] of Object.entries(state.paths)) {
                 if (pathInfo.get?.responses &&
                     pathInfo.get?.responses['200']?.content &&
-                    pathInfo.get?.responses['200']?.content['application/json']?.schema?.items?.$ref === `#/components/schemas/${schemaName}`) {
+                    (
+                        pathInfo.get?.responses['200']?.content['application/json']?.schema?.items?.$ref === `#/components/schemas/${schemaName}` ||
+                        pathInfo.get?.responses['200']?.content['application/json']?.schema?.$ref === `#/components/schemas/Paginated${schemaName}List` // Pagination object
+                    )
+                ) {
                     return path
                 }
             }
         },
         getSchemaNameFromPath: (state) => (path) => {
+            let ref = state.paths[path].get?.responses['200']?.content['application/json']?.schema?.$ref
+            if (ref) {  // Pagination object
+                ref = state.schema[ref.split("/").slice(-1)[0]].properties.results.items.$ref
+                return ref.split("/").slice(-1)[0]
+            }
             return state.paths[path].get?.responses['200']?.content['application/json']?.schema?.items?.$ref.split("/").slice(-1)[0]
         }
     }
