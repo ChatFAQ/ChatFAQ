@@ -5,27 +5,18 @@
                       :error="formServerErrors[fieldName]">
                 <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]"
                              :label="$t(fieldName)"/>
-                <el-select v-else-if="schema.properties[fieldName].type === 'array'" v-model="form[fieldName]" multiple>
-                    <el-option
-                        v-for="choice in (schema.properties[fieldName].choices.results ? schema.properties[fieldName].choices.results : schema.properties[fieldName].choices)"
-                        :key="choice.value"
-                        :label="choice.label"
-                        :value="choice.value"
-                    />
-                </el-select>
-                <el-select v-else-if="schema.properties[fieldName].$ref" v-model="form[fieldName]">
-                    <el-option
-                        v-for="choice in (schema.properties[fieldName].choices.results ? schema.properties[fieldName].choices.results : schema.properties[fieldName].choices)"
-                        :key="choice.value"
-                        :label="choice.label"
-                        :value="choice.value"
-                    />
-                </el-select>
+
+                <InputSelect v-else-if="isSelect"
+                             :schema="schema"
+                             :form="form"
+                             :fieldName="fieldName"/>
                 <el-input v-else v-model="form[fieldName]"/>
         </el-form-item>
     </slot>
 </template>
 <script setup>
+import InputSelect from "~/components/generic/InputSelect.vue";
+
 const props = defineProps({
     fieldName: {
         type: String,
@@ -47,6 +38,11 @@ const props = defineProps({
         default: false,
     },
 })
+
+const isSelect = computed(() => {
+    return props.schema.properties[props.fieldName].type === 'array' || props.schema.properties[props.fieldName].$ref
+})
+
 </script>
 <style lang="scss">
 .el-form-item {
