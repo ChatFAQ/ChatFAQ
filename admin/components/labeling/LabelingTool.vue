@@ -47,16 +47,16 @@
         </div>
         <div class="labeling-tool-right-side">
             <el-tabs model-value="knowledge-items" class="knowledge-items">
-                <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
+                <el-tab-pane :label="$t('knowledgeitems')" name="knowledge-items">
                     <KnowledgeItemReview v-if="msgLabeled !== undefined"
                                          :message="msgLabeled"
                                          ref="kiReviewer"
                     />
                 </el-tab-pane>
-                <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
+                <el-tab-pane :label="$t('givefeedback')" name="give-feedback">
                     <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
-                <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
+                <el-tab-pane :label="$t('usersfeedback')" name="users-feedback">
                     <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                 </el-tab-pane>
             </el-tabs>

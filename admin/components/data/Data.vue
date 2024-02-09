@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t('data') }}</div>
     <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
-        <el-tab-pane :lazy="true" :label="$t('knowledgebase')" name="knowledge-base">
+        <el-tab-pane :label="$t('knowledgebase')" name="knowledge-base">
             <ReadWriteView
                 :readableName="$t('knowledgebase')"
                 apiUrl="/back/api/language-model/knowledge-bases/"
@@ -22,7 +22,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :lazy="true" :label="$t('knowledgeitem')" name="knowledge-item">
+        <el-tab-pane :label="$t('knowledgeitem')" name="knowledge-item">
             <ReadWriteView :readableName="$t('knowledgeitem')"
                            apiUrl="/back/api/language-model/knowledge-items/"
                            :cardProps="{

@@ -1,6 +1,6 @@
 <template>
     <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
-        <el-tab-pane :lazy="true" name="tasks">
+        <el-tab-pane name="tasks">
             <ReadWriteView
                 apiUrl="/back/api/language-model/tasks/"
                 :readOnly="true"
