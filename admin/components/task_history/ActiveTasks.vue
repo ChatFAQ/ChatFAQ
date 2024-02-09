@@ -142,6 +142,7 @@ function formatState(state) {
 </script>
 <style lang="scss" scoped>
 .active-tasks {
+    z-index: 3;
     width: 330px;
     box-shadow: 0px 0px 12px 0px #0000001F;
 
