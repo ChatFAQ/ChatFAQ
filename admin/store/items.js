@@ -145,6 +145,7 @@ export const useItemsStore = defineStore('items', {
         stateToRead(){
             this.editing = undefined
             this.adding = undefined
+            this.currentPage = 1
         }
     },
     getters: {

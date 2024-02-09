@@ -115,11 +115,17 @@
 import {useItemsStore} from "~/store/items.js";
 import {storeToRefs} from 'pinia'
 import Pagination from "~/components/generic/Pagination.vue";
+import { useRoute } from 'vue-router'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const schema = ref({})
+const route = useRoute()
+
+watch(() => route.fullPath, () => {
+    itemsStore.currentPage = 1
+})
 
 const props = defineProps({
     readableName: {
