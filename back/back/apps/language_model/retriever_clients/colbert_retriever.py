@@ -40,7 +40,7 @@ class ColBERTRetriever:
             index_name=index_name,
             collection=contents,
             document_ids=contents_pk,
-            split_documents=False,
+            split_documents=True,
             max_document_length=512,
         )
 
