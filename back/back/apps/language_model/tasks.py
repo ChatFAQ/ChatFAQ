@@ -10,7 +10,7 @@ from chat_rag.llms import (
     GGMLModel,
     HFModel,
     OpenAIChatModel,
-    VLLModel,
+    VLLMModel,
     ClaudeChatModel,
     MistralChatModel,
 )
@@ -37,7 +37,7 @@ logger = getLogger(__name__)
 LLM_CLASSES = {
     "local_cpu": GGMLModel,
     "local_gpu": HFModel,
-    "vllm": VLLModel,
+    "vllm": VLLMModel,
     "openai": OpenAIChatModel,
     "claude": ClaudeChatModel,
     "mistral": MistralChatModel,
