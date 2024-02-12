@@ -1,30 +1,31 @@
 import json
-from typing import Iterable, List, Dict, Optional
 import os
+from typing import Dict, Iterable, List, Optional
 
 import requests
 from openai import OpenAI
 
 from chat_rag.llms import RAGLLM
 
-class VLLModel(RAGLLM):
+
+class VLLMModel(RAGLLM):
     """
     A client that sends requests to the VLLM server.
     """
-    def __init__(self, base_url: str = None, use_openai_api: bool = True, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, llm_name: str, base_url: str = None, use_openai_api: bool = True, **kwargs):
+        super().__init__(llm_name=llm_name, **kwargs)
         if base_url is None:
             self.base_url = os.environ["VLLM_ENDPOINT_URL"]
         else:
             self.base_url = base_url
-
+        
+        self.llm_name = llm_name
 
         # I could use the already OpenAI implementation, but I prefer to implement the OpenAI API here also
         # because I need to do checks on the prompt length before sending it to the API
         # and I cannot do that on the OpenAI implementation
-
         if use_openai_api:
-            self.client = OpenAI(base_url=base_url) # for VLLM OpenAI compatible API      
+            self.client = OpenAI(base_url=self.base_url) # for VLLM OpenAI compatible API      
         self.use_openai_api = use_openai_api
         print(f"Using vLLM OpenAI compatible API server: {self.use_openai_api}")
 
@@ -302,7 +303,7 @@ class VLLModel(RAGLLM):
         generation_config_dict: dict = None,
         lang: str = "en",
         **kwargs,
-    ) -> str:
+    ) -> Iterable[str]:
         """
         Generate text from a prompt using the model in streaming mode.
         Parameters
