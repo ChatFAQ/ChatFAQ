@@ -26,7 +26,12 @@ class ConversationAPIViewSet(
     viewsets.GenericViewSet,
 ):
     queryset = Conversation.objects.all()
-    serializer_class = ConversationMessagesSerializer
+    serializer_class = ConversationSerializer
+
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return ConversationMessagesSerializer
+        return super().get_serializer_class()
 
     def get_permissions(self):
         if self.action == 'retrieve' or self.action == 'destroy':
@@ -41,15 +46,6 @@ class ConversationAPIViewSet(
                 status=400,
             )
         results = [ConversationSerializer(c).data for c in Conversation.conversations_from_sender(request.query_params.get("sender"))]
-        return JsonResponse(
-            results,
-            safe=False,
-        )
-
-    @permission_classes([IsAuthenticated])
-    def list(self, request, *args, **kwargs):
-        # get any query params from request
-        results = [ConversationSerializer(c).data for c in Conversation.objects.all()]
         return JsonResponse(
             results,
             safe=False,

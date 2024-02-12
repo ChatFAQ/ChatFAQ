@@ -22,6 +22,7 @@
 </style>
 <script setup lang="ts">
 import ActiveTasks from "~/components/task_history/ActiveTasks.vue";
+
 </script>
 <style lang="scss" scoped>
 .active-tasks {

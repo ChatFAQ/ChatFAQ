@@ -1,10 +1,10 @@
 <template>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div v-if="items[apiUrl]?.length" class="section-header">
-            <slot name="legend" :total="items[apiUrl]?.length">
+        <div v-if="items[apiUrl]?.results.length" class="section-header">
+            <slot name="legend" :total="items[apiUrl]?.results.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
-                            "number": items[apiUrl]?.length,
+                            "number": items[apiUrl]?.results.length,
                             "readablename": readableName
                         })
                     }}
@@ -26,13 +26,13 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
-            <div v-for="item in items[apiUrl]" class="card-wrapper">
+            <div v-for="item in items[apiUrl]?.results" class="card-wrapper">
                 <el-card class="box-card" @click="stateToEdit(item.id)">
                     <template #header>
                         <div class="card-header-title">{{ createTitle(item) }}</div>
                     </template>
                     <div v-for="(name, prop) in cardProps" class="property">
-                        <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
+                        <span class="title">{{ name }}</span>
                     </div>
                     <div class="divider">
                     </div>
@@ -53,7 +53,7 @@
                 </el-card>
                 <slot name="extra-card-bottom" :item="item"></slot>
             </div>
-            <div class="box-card-add" :class="{'no-items': !items[apiUrl]?.length}" @click="stateToAdd">
+            <div class="box-card-add" :class="{'no-items': !items[apiUrl]?.results.length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -61,7 +61,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]" :stripe="false" :defaultSort="defaultSort"
+        <el-table v-else class="table-view" :data="items[apiUrl]?.results" :stripe="false" :defaultSort="defaultSort"
                   style="width: 100%">
             <el-table-column
                 v-for="(propInfo, prop) in tableProps"
@@ -98,7 +98,7 @@
             </el-table-column>
         </el-table>
         <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add"
-             :class="{'no-items': !items[apiUrl]?.length}"
+             :class="{'no-items': !items[apiUrl]?.results.length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
@@ -107,17 +107,25 @@
                 {{ $t("additem", {"readablename": readableName}) }}
             </span>
         </div>
+        <Pagination :apiUrl="props.apiUrl"/>
     </div>
 </template>
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
 import {storeToRefs} from 'pinia'
+import Pagination from "~/components/generic/Pagination.vue";
+import { useRoute } from 'vue-router'
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const schema = ref({})
+const route = useRoute()
+
+watch(() => route.fullPath, () => {
+    itemsStore.currentPage = 1
+})
 
 const props = defineProps({
     readableName: {
@@ -126,7 +134,7 @@ const props = defineProps({
     },
     apiUrl: {
         type: String,
-        required: false,
+        required: true,
     },
     cardProps: {
         type: Object,

@@ -56,6 +56,7 @@ const authFormRef = ref()
 let email = ""
 let password = ""
 let remember = false
+let serverError = false
 
 if (process.client) {
     let rememberMeCookie = document.cookie.split(';').filter((item) => item.trim().startsWith('rememberme='))
@@ -72,6 +73,12 @@ const authForm = reactive({
     password: password,
     remember: remember,
 })
+const serverErrorValidator = (rule, value, callback) => {
+    if (serverError) {
+        return callback(i18n.t('invalidemailorpassword'))
+    }
+    callback()
+}
 const authFormRules = reactive({
     email: [
         {required: true, message: i18n.t('pleaseenteryouemailaddress'), trigger: 'blur'},
@@ -79,17 +86,21 @@ const authFormRules = reactive({
     ],
     password: [
         {required: true, message: i18n.t('pleaseenteryourpassword'), trigger: 'blur'},
+        {validator: serverErrorValidator, trigger: 'blur'}
     ],
     remember: [],
 })
-
 const submitForm = async (formEl) => {
+    serverError = false
     if (!formEl) return
     await formEl.validate(async (valid, fields) => {
         if (valid) {
             await authStore.login(authForm);
             if (authStore.isAuthenticated) {
                 router.push('/');
+            } else {
+                serverError = true
+                formEl.validate()
             }
         } else {
             console.log('error submit!', fields)
