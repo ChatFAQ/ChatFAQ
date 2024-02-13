@@ -4,10 +4,12 @@ from zipfile import ZipFile
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
-from rest_framework.decorators import action, permission_classes
+from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 
 from ..models.message import AdminReview, AgentType, Conversation, Message, UserFeedback
 from ..serializers import (
@@ -27,6 +29,11 @@ class ConversationAPIViewSet(
 ):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name']
+    filterset_fields = {
+       'created_date': ['lte', 'gte']
+    }
 
     def get_serializer_class(self):
         if self.action == "retrieve":

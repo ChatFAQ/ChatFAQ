@@ -1,11 +1,11 @@
 .el-button.is-plain {
     border-radius: 8px;
 }
-.el-input__inner, .el-select-v2__wrapper {
+.el-input__inner, .el-select-v2__wrapper, .el-date-editor {
     min-height: 40px !important;
     color: $chatfaq-color-neutral-black !important;
 }
-.el-input__wrapper, .el-textarea, .el-select-v2__wrapper {
+.el-input__wrapper, .el-textarea, .el-select-v2__wrapper, .el-date-editor {
     border-radius: 8px !important;
 }
 .el-button {

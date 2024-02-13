@@ -11,6 +11,17 @@
             'view': {'name': ''},
         }"
         :defaultSort="{'prop': 'created_date', 'order': 'descending'}"
+        :filtersSchema="[
+            {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+            {'type': 'range-date', 'startPlaceholder': $t('startdate'), 'endPlaceholder': $t('enddate'), 'field': 'created_date'},
+            {'type': 'ref', 'placeholder': $t('rag'), 'field': 'rag', 'endpoint': '/back/api/language-model/rag-configs/'},
+            {
+                'type': 'enum',
+                'placeholder': $t('reviewed'),
+                'field': 'reviewed',
+                'choices': [{'value': 'completed', 'label': $t('completed')}, {'value': 'pending', 'label': $t('pending')}]
+            },
+        ]"
         read-only
     >
         <template v-slot:view="{row}">
