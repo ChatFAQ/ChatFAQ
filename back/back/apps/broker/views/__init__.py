@@ -25,6 +25,7 @@ from ...language_model.models import RAGConfig
 
 class ConversationFilterSet(django_filters.FilterSet):
     rag = django_filters.CharFilter(method='filter_rag')
+    reviewed = django_filters.CharFilter(method='filter_reviewed')
 
     class Meta:
         model = Conversation
@@ -35,6 +36,14 @@ class ConversationFilterSet(django_filters.FilterSet):
     def filter_rag(self, queryset, name, value):
         rag = RAGConfig.objects.filter(pk=value).first()
         return queryset.filter(message__stack__0__payload__rag_config_name=rag.name).distinct()
+
+    def filter_reviewed(self, queryset, name, value):
+        val = True
+        if value == "completed":
+            val = False
+        if val:
+            return queryset.filter(message__adminreview__isnull=val).exclude(message__adminreview__isnull=not val).distinct()
+        return queryset.filter(message__adminreview__isnull=val).distinct()
 
 
 class ConversationAPIViewSet(
