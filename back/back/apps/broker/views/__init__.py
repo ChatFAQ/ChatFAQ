@@ -18,6 +18,23 @@ from ..serializers import (
     UserFeedbackSerializer, ConversationSerializer,
 )
 from ..serializers.messages import MessageSerializer
+import django_filters
+
+from ...language_model.models import RAGConfig
+
+
+class ConversationFilterSet(django_filters.FilterSet):
+    rag = django_filters.CharFilter(method='filter_rag')
+
+    class Meta:
+        model = Conversation
+        fields = {
+           'created_date': ['lte', 'gte'],
+        }
+
+    def filter_rag(self, queryset, name, value):
+        rag = RAGConfig.objects.filter(pk=value).first()
+        return queryset.filter(message__stack__0__payload__rag_config_name=rag.name).distinct()
 
 
 class ConversationAPIViewSet(
@@ -31,9 +48,7 @@ class ConversationAPIViewSet(
     serializer_class = ConversationSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ['name']
-    filterset_fields = {
-       'created_date': ['lte', 'gte']
-    }
+    filterset_class = ConversationFilterSet
 
     def get_serializer_class(self):
         if self.action == "retrieve":
