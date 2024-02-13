@@ -271,3 +271,4 @@ with EnvManager(model_w_django) as env:
     # Link expiration time in seconds
     AWS_QUERYSTRING_EXPIRE = "3600"
     AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")

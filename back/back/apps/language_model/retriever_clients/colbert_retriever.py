@@ -17,6 +17,15 @@ from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 logger = getLogger(__name__)
 
 
+def get_num_gpus():
+    try:
+        import torch
+
+        return torch.cuda.device_count()
+    except:
+        return 0
+
+
 class ColBERTRetriever:
     @classmethod
     def index(cls, rag_config: RAGConfig, k_items: List[KnowledgeItem]):
@@ -26,6 +35,9 @@ class ColBERTRetriever:
         index_root, index_name = s3_index_path.split("/")
 
         colbert_name = rag_config.retriever_config.model_name
+        bsize = rag_config.retriever_config.batch_size
+        device = rag_config.retriever_config.device
+        n_gpus = 0 if device == "cpu" else get_num_gpus()
         logger.info(
             f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
@@ -33,18 +45,23 @@ class ColBERTRetriever:
         contents = [item.content for item in k_items]
         contents_pk = [str(item.pk) for item in k_items]
 
-        retriever = Retriever.from_pretrained(colbert_name, index_root=index_root)
+        retriever = Retriever.from_pretrained(
+            colbert_name, index_root=index_root, n_gpu=n_gpus
+        )
 
         # Update the index path to use the unique index path
         local_index_path = retriever.index(
             index_name=index_name,
             collection=contents,
             document_ids=contents_pk,
-            split_documents=False,
+            split_documents=True,
             max_document_length=512,
+            bsize=bsize,
         )
 
-        private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
+        private_storage = get_storage_class(
+            "back.config.storage_backends.PrivateMediaStorage"
+        )()
 
         # Upload index files to S3
         for filename in os.listdir(local_index_path):
@@ -67,17 +84,21 @@ class ColBERTRetriever:
         instance = cls()
 
         index_root, index_name = rag_config.s3_index_path.split("/")
-        index_root = f'{index_root}/colbert/indexes/'
-        local_index_path = f'{index_root}/{index_name}'
+        index_root = f"{index_root}/colbert/indexes/"
+        local_index_path = f"{index_root}/{index_name}"
         s3_index_folder = rag_config.s3_index_path
 
         os.makedirs(local_index_path, exist_ok=True)
-        print(f"Downloading index files to {local_index_path} from S3 {rag_config.s3_index_path}")
-        
+        print(
+            f"Downloading index files to {local_index_path} from S3 {rag_config.s3_index_path}"
+        )
+
         # Download index files from S3
-        private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
+        private_storage = get_storage_class(
+            "back.config.storage_backends.PrivateMediaStorage"
+        )()
         # listdir returns a tuple (dirs, files)
-        for file_name in private_storage.listdir(s3_index_folder)[1]:  
+        for file_name in private_storage.listdir(s3_index_folder)[1]:
             s3_file_path = os.path.join(s3_index_folder, file_name)
             local_file_path = os.path.join(local_index_path, file_name)
             with open(local_file_path, "wb") as local_file:
@@ -168,10 +189,14 @@ class ColBERTRetriever:
     def _upload_updated_index_files(
         self, rag_config: RAGConfig, index_path: str = None
     ):
-        
-        private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
-        
-        local_index_path = self._get_local_index_path() # return the local path of the index
+
+        private_storage = get_storage_class(
+            "back.config.storage_backends.PrivateMediaStorage"
+        )()
+
+        local_index_path = (
+            self._get_local_index_path()
+        )  # return the local path of the index
         for filename in os.listdir(local_index_path):
             local_file_path = os.path.join(local_index_path, filename)
             with open(local_file_path, "rb") as file:

@@ -1217,10 +1217,8 @@ version = "0.2.18"
 description = "Efficient and Effective Passage Search via Contextualized Late Interaction over BERT"
 optional = false
 python-versions = ">=3.8"
-files = [
-    {file = "colbert-ai-0.2.18.tar.gz", hash = "sha256:076effd5178eaeadacc2c480fc3088d89c36cdea163474cb8999e9c9bc506d3e"},
-    {file = "colbert_ai-0.2.18-py3-none-any.whl", hash = "sha256:c5786ba7aa3f1c121371f3d659d4b313fa2fb4c5d0cf04b105ffb3b807d76267"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 bitarray = "*"
@@ -1238,6 +1236,12 @@ ujson = "*"
 faiss-cpu = ["faiss-cpu (>=1.7.0)"]
 faiss-gpu = ["faiss-gpu (>=1.7.0)"]
 torch = ["torch (==1.13.1)"]
+
+[package.source]
+type = "git"
+url = "https://github.com/stanford-futuredata/ColBERT.git"
+reference = "HEAD"
+resolved_reference = "7be0114f00dc938aca4a3a5929bef5bbb99485e6"
 
 [[package]]
 name = "colorama"
@@ -5805,29 +5809,33 @@ files = [
 
 [[package]]
 name = "ragatouille"
-version = "0.0.6b4"
+version = "0.0.6c2"
 description = "Library to facilitate the use of state-of-the-art retrieval models in common RAG contexts."
 optional = false
-python-versions = ">=3.9,<4.0"
-files = [
-    {file = "ragatouille-0.0.6b4-py3-none-any.whl", hash = "sha256:d7209299a111db64d303cfb8a97cee1ce8c4879ba2ed295449b7feb1b1e46a8c"},
-    {file = "ragatouille-0.0.6b4.tar.gz", hash = "sha256:0e751152b24201c45fe7054e07db01c59f76059e978c33ed8ca13f7008dc04f7"},
-]
+python-versions = "^3.9"
+files = []
+develop = false
 
 [package.dependencies]
 aiohttp = "3.9.1"
-colbert-ai = "0.2.18"
-faiss-cpu = ">=1.7.4,<2.0.0"
-langchain = ">=0.1.0,<0.2.0"
-langchain_core = ">=0.1.4,<0.2.0"
-llama-index = ">=0.9.24,<0.10.0"
-onnx = ">=1.15.0,<2.0.0"
-ruff = ">=0.1.9,<0.2.0"
-sentence-transformers = ">=2.2.2,<3.0.0"
+colbert-ai = {git = "https://github.com/stanford-futuredata/ColBERT.git"}
+faiss-cpu = "^1.7.4"
+langchain = "^0.1.0"
+langchain_core = "^0.1.4"
+llama-index = "^0.9.24"
+onnx = "^1.15.0"
+ruff = "^0.1.9"
+sentence-transformers = "^2.2.2"
 srsly = "2.4.8"
-torch = ">=2.0.1,<3.0.0"
-transformers = ">=4.36.2,<5.0.0"
-voyager = ">=2.0.2,<3.0.0"
+torch = "^2.0.1"
+transformers = "^4.36.2"
+voyager = "^2.0.2"
+
+[package.source]
+type = "git"
+url = "https://github.com/Diegi97/RAGatouille.git"
+reference = "main"
+resolved_reference = "be80864cdda2d37c98889651723fea11ed7e815e"
 
 [[package]]
 name = "rapidfuzz"
@@ -8726,4 +8734,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "dfdbc5d7c4b8a1bd42c3d1322a7f5ba8eeb6f677740a10f9062728620fe7fcef"
+content-hash = "87c16aa6f6130f0685a33937e447cdd6104ba2ee68d120aca66028185aff39af"
