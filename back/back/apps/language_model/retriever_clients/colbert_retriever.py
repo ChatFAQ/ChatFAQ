@@ -26,6 +26,7 @@ class ColBERTRetriever:
         index_root, index_name = s3_index_path.split("/")
 
         colbert_name = rag_config.retriever_config.model_name
+        bsize = rag_config.retriever_config.batch_size
         logger.info(
             f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
@@ -42,6 +43,7 @@ class ColBERTRetriever:
             document_ids=contents_pk,
             split_documents=True,
             max_document_length=512,
+            bsize=bsize,
         )
 
         private_storage = get_storage_class("back.config.storage_backends.PrivateMediaStorage")()
