@@ -1,11 +1,11 @@
 <template>
     <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div v-if="items[apiUrl]?.results.length" class="section-header">
-            <slot name="legend" :total="items[apiUrl]?.results.length">
+        <div v-if="itemsStore.items[apiUrl]?.results.length" class="section-header">
+            <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
-                            "number": items[apiUrl]?.results.length,
+                            "number": itemsStore.items[apiUrl]?.results.length,
                             "readablename": readableName
                         })
                     }}
@@ -27,7 +27,7 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
-            <div v-for="item in items[apiUrl]?.results" class="card-wrapper">
+            <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
                 <el-card class="box-card" @click="stateToEdit(item.id)">
                     <template #header>
                         <div class="card-header-title">{{ createTitle(item) }}</div>
@@ -54,7 +54,7 @@
                 </el-card>
                 <slot name="extra-card-bottom" :item="item"></slot>
             </div>
-            <div class="box-card-add" :class="{'no-items': !items[apiUrl]?.results.length}" @click="stateToAdd">
+            <div class="box-card-add" :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}" @click="stateToAdd">
                 <el-icon>
                     <Plus/>
                 </el-icon>
@@ -62,7 +62,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="items[apiUrl]?.results" :stripe="false" :defaultSort="defaultSort"
+        <el-table v-else class="table-view" :data="itemsStore.items[apiUrl]?.results" :stripe="false" :defaultSort="defaultSort"
                   style="width: 100%">
             <el-table-column
                 v-for="(propInfo, prop) in tableProps"
@@ -99,7 +99,7 @@
             </el-table-column>
         </el-table>
         <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add"
-             :class="{'no-items': !items[apiUrl]?.results.length}"
+             :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
@@ -140,7 +140,7 @@ const props = defineProps({
     },
     cardProps: {
         type: Object,
-        required: true,
+        required: false,
     },
     tableProps: {
         type: Object,
@@ -167,20 +167,13 @@ const props = defineProps({
     }
 });
 
-itemsStore.loading = true
-const {data} = await useAsyncData(
-    "schema_" + props.apiUrl,
-    async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
-)
-schema.value = data.value
-
-await useAsyncData(
-    props.apiUrl,
-    async () => await itemsStore.retrieveItems($axios, props.apiUrl)
-)
-
-const {items} = storeToRefs(itemsStore)
-itemsStore.loading = false
+async function initData() {
+    itemsStore.loading = true
+    schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    await itemsStore.retrieveItems($axios, props.apiUrl)
+    itemsStore.loading = false
+}
+await initData()
 
 function createTitle(item) {
     return props.titleProps.map(prop => item[prop]).join(" ")

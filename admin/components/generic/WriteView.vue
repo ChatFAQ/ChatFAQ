@@ -159,14 +159,13 @@ const props = defineProps({
         default: false,
     },
 })
-itemsStore.loading = true
+async function initData() {
+    itemsStore.loading = true
+    schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    itemsStore.loading = false
+}
+await initData()
 
-const {data} = await useAsyncData(
-    "schema_" + props.apiUrl,
-    async () => await itemsStore.getSchemaDef($axios, props.apiUrl)
-)
-itemsStore.loading = false
-schema.value = data.value
 const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
