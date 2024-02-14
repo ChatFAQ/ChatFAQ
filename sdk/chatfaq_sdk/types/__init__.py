@@ -32,6 +32,7 @@ class KnowledgeItem:
     title: str
     content: str
     knowledge_base: Optional[str] = None
+    data_source: Optional[str] = None
     section: Optional[str] = None
     url: Optional[str] = None
     page_number: Optional[int] = 0
@@ -43,6 +44,7 @@ class KnowledgeItem:
             "title": self.title,
             "content": self.content,
             "knowledge_base": self.knowledge_base,
+            "data_source": self.data_source,
             "section": self.section,
             "url": self.url,
             "page_number": self.page_number,
