@@ -23,7 +23,7 @@ def get_num_gpus():
 
         return torch.cuda.device_count()
     except:
-        return 0
+        return -1
 
 
 class ColBERTRetriever:
