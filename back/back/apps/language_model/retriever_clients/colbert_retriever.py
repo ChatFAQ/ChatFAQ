@@ -37,7 +37,7 @@ class ColBERTRetriever:
         colbert_name = rag_config.retriever_config.model_name
         bsize = rag_config.retriever_config.batch_size
         device = rag_config.retriever_config.device
-        n_gpus = 0 if device == "cpu" else get_num_gpus()
+        n_gpus = -1 if device == "cpu" else get_num_gpus()
         logger.info(
             f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
