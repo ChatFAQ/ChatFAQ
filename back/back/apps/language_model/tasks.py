@@ -224,7 +224,9 @@ def llm_query_task(
     if recache_models:
         # clear CACHED_RAGS
         torch.cuda.empty_cache()
-        del self.CACHED_RAGS
+        
+        if hasattr(self, "CACHED_RAGS"):
+            del self.CACHED_RAGS
         gc.collect()
         self.CACHED_RAGS = self.preload_models()
         return
