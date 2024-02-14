@@ -1,4 +1,5 @@
 <template>
+    <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="items[apiUrl]?.results.length" class="section-header">
             <slot name="legend" :total="items[apiUrl]?.results.length">
@@ -116,6 +117,7 @@ import {useItemsStore} from "~/store/items.js";
 import {storeToRefs} from 'pinia'
 import Pagination from "~/components/generic/Pagination.vue";
 import { useRoute } from 'vue-router'
+import Filters from "~/components/generic/filters/Filters.vue";
 
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
@@ -159,6 +161,10 @@ const props = defineProps({
         required: false,
         default: false,
     },
+    filtersSchema: {
+        type: Array,
+        required: false,
+    }
 });
 
 itemsStore.loading = true

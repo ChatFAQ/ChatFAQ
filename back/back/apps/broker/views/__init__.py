@@ -4,10 +4,12 @@ from zipfile import ZipFile
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
-from rest_framework.decorators import action, permission_classes
+from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 
 from ..models.message import AdminReview, AgentType, Conversation, Message, UserFeedback
 from ..serializers import (
@@ -16,6 +18,32 @@ from ..serializers import (
     UserFeedbackSerializer, ConversationSerializer,
 )
 from ..serializers.messages import MessageSerializer
+import django_filters
+
+from ...language_model.models import RAGConfig
+
+
+class ConversationFilterSet(django_filters.FilterSet):
+    rag = django_filters.CharFilter(method='filter_rag')
+    reviewed = django_filters.CharFilter(method='filter_reviewed')
+
+    class Meta:
+        model = Conversation
+        fields = {
+           'created_date': ['lte', 'gte'],
+        }
+
+    def filter_rag(self, queryset, name, value):
+        rag = RAGConfig.objects.filter(pk=value).first()
+        return queryset.filter(message__stack__0__payload__rag_config_name=rag.name).distinct()
+
+    def filter_reviewed(self, queryset, name, value):
+        val = True
+        if value == "completed":
+            val = False
+        if val:
+            return queryset.filter(message__adminreview__isnull=val).exclude(message__adminreview__isnull=not val).distinct()
+        return queryset.filter(message__adminreview__isnull=val).distinct()
 
 
 class ConversationAPIViewSet(
@@ -27,6 +55,9 @@ class ConversationAPIViewSet(
 ):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name']
+    filterset_class = ConversationFilterSet
 
     def get_serializer_class(self):
         if self.action == "retrieve":

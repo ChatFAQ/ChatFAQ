@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 
 function apiCacheName(apiUrl, params) {
+    return apiUrl
     return apiUrl + new URLSearchParams(params).toString()
 }
 
@@ -15,6 +16,7 @@ export const useItemsStore = defineStore('items', {
     state: () => ({
         items: {},
         paths: {},
+        filters: {},
         schema: undefined,
         editing: undefined,
         adding: false,
@@ -38,6 +40,11 @@ export const useItemsStore = defineStore('items', {
                 params.offset = (this.currentPage - 1) * this.pageSize
             if (params.ordering === undefined)
                 params.ordering = ordering
+            // add this.filter into params:
+            for (const [key, val] of Object.entries(this.filters)) {
+                if (params[key] === undefined)
+                    params[key] = val
+            }
             apiUrl += "?" + new URLSearchParams(params).toString()
 
             this.items[cacheName] = (await $axios.get(apiUrl, {'headers': authHeaders()})).data
