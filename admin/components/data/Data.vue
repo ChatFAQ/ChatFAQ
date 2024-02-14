@@ -29,6 +29,11 @@
                                 'title': {'name': $t('title')},
                                 'created_date': {'name': $t('created_date')},
                            }"
+                           :filtersSchema="[
+                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+                               {'type': 'range-date', 'startPlaceholder': $t('startdate'), 'endPlaceholder': $t('enddate'), 'field': 'created_date'},
+                               {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                           ]"
             >
             </ReadWriteView>
         </el-tab-pane>
