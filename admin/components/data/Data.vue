@@ -25,12 +25,11 @@
         <el-tab-pane :label="$t('knowledgeitem')" name="knowledge-item">
             <ReadWriteView :readableName="$t('knowledgeitem')"
                            apiUrl="/back/api/language-model/knowledge-items/"
-                           :cardProps="{
-                    'title': $t('title'),
-                }"
                            :tableProps="{
-                    'title': $t('title'),
-                }">
+                                'title': {'name': $t('title')},
+                                'created_date': {'name': $t('created_date')},
+                           }"
+            >
             </ReadWriteView>
         </el-tab-pane>
     </el-tabs>
