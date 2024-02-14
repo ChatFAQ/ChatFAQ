@@ -55,10 +55,12 @@
                 <slot name="extra-card-bottom" :item="item"></slot>
             </div>
             <div class="box-card-add" :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}" @click="stateToAdd">
-                <el-icon>
-                    <Plus/>
-                </el-icon>
-                <span>{{ $t("additem", {"readablename": readableName}) }}</span>
+                <div class="box-card-add-content">
+                    <el-icon>
+                        <Plus/>
+                    </el-icon>
+                    <span>{{ $t("additem", {"readablename": readableName}) }}</span>
+                </div>
             </div>
         </div>
 
@@ -262,10 +264,11 @@ function solveRefProp(item, propName) {
 }
 
 .cards-view {
-    display: flex;
-    justify-content: auto;
+    display: grid;
     flex-wrap: wrap;
     width: 100%;
+    justify-items: stretch;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
 /* Override justify-content for the last row */
@@ -279,8 +282,8 @@ function solveRefProp(item, propName) {
 }
 
 .card-wrapper {
-    width: 232px;
-    margin: 16px;
+    width: 100%;
+    padding: 16px;
 
     .box-card {
         cursor: pointer;
@@ -292,31 +295,35 @@ function solveRefProp(item, propName) {
 }
 
 .box-card-add {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: center;
-    padding: 18px;
-    width: 232px;
-    margin: 16px;
+    width: 100%;
+    padding: 16px;
     color: $chatfaq-color-primary-500;
-    border: 1px dashed $chatfaq-color-primary-500;
-    border-radius: 10px;
+    box-sizing: border-box;
     cursor: pointer;
 
-    &:hover {
-        background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
-    }
-
-    &.no-items {
+    .box-card-add-content {
+        border: 1px dashed $chatfaq-color-primary-500;
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
         width: 100%;
-        padding: 24px;
-        margin-top: 25px;
-    }
+        height: 100%;
+        &:hover {
+            background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
+        }
 
-    i {
-        width: 100%;
-        margin-bottom: 17px;
+        &.no-items {
+            width: 100%;
+            padding: 24px;
+            margin-top: 25px;
+        }
+
+        i {
+            width: 100%;
+            margin-bottom: 17px;
+        }
     }
 }
 
