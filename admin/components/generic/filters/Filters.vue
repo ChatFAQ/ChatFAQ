@@ -58,6 +58,7 @@ function initForm() {  // For when setting filters from outside
             form.value[filter_name] = filter_val
     }
 }
+initForm()
 
 for (const fieldInfo of props.filtersSchema) {
     form[fieldInfo.field] = undefined
