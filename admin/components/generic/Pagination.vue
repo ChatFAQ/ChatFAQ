@@ -21,6 +21,7 @@
 import {useItemsStore} from "~/store/items.js";
 import {ref} from 'vue'
 const {$axios} = useNuxtApp();
+const emit = defineEmits(['change'])
 
 const props = defineProps({
     apiUrl: {
@@ -34,10 +35,8 @@ const small = ref(false)
 const background = ref(false)
 const disabled = ref(false)
 const pageChange = async (val: number) => {
-    itemsStore.loading = true
     itemsStore.currentPage = val
-    await itemsStore.retrieveItems($axios, props.apiUrl)
-    itemsStore.loading = false
+    emit("change")
 }
 const total = computed(() => {
     return itemsStore?.items[props.apiUrl]?.count || 0

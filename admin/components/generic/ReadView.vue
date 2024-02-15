@@ -26,7 +26,7 @@
                 </div>
             </div>
         </div>
-        <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
+        <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
             <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
                 <el-card class="box-card">
                     <template #header>
@@ -64,7 +64,7 @@
             </div>
         </div>
 
-        <el-table v-else class="table-view" :data="itemsStore.items[apiUrl]?.results" :stripe="false" :defaultSort="defaultSort"
+        <el-table v-else-if="requiredFilterSatisfied" class="table-view" :data="itemsStore.items[apiUrl]?.results" :stripe="false" :defaultSort="defaultSort"
                   style="width: 100%">
             <el-table-column
                 v-for="(propInfo, prop) in tableProps"
@@ -132,6 +132,14 @@ watch(() => route.fullPath, () => {
     itemsStore.currentPage = 1
 })
 
+watch(() => itemsStore.filters, async () => {
+    await loadItems()
+}, {deep: true})
+
+watch(() => itemsStore.currentPage, async () => {
+    await loadItems()
+})
+
 const props = defineProps({
     readableName: {
         type: String,
@@ -167,12 +175,36 @@ const props = defineProps({
     filtersSchema: {
         type: Array,
         required: false,
+    },
+    requiredFilter: {
+        type: String,
+        required: false,
     }
 });
+
+const requiredFilterSatisfied = computed(() => {
+    return !props.requiredFilter || itemsStore.filters[props.requiredFilter] !== undefined
+})
 
 async function initData() {
     itemsStore.loading = true
     schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    if(!requiredFilterSatisfied.value) {
+        itemsStore.loading = false
+        itemsStore.items[props.apiUrl] = {results: []}
+        return
+    }
+    await itemsStore.retrieveItems($axios, props.apiUrl)
+    itemsStore.loading = false
+}
+
+async function loadItems() {
+    itemsStore.loading = true
+    if(!requiredFilterSatisfied.value) {
+        itemsStore.loading = false
+        itemsStore.items[props.apiUrl] = {results: []}
+        return
+    }
     await itemsStore.retrieveItems($axios, props.apiUrl)
     itemsStore.loading = false
 }
@@ -211,6 +243,8 @@ function solveRefProp(item, propName) {
     return item[propName]
 
 }
+
+
 </script>
 
 <style lang="scss">
