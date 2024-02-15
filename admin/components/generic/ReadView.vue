@@ -1,6 +1,6 @@
 <template>
-    <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
         <div v-if="itemsStore.items[apiUrl]?.results.length" class="section-header">
             <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
                 <div class="item-count"> {{
