@@ -142,7 +142,8 @@ export const useItemsStore = defineStore('items', {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
                         let items = await this.retrieveItems($axios, this.getPathFromSchemaName(refName))
-                        items.results = [...items].results.map((item) => ({label: item.name, value: item.id}))  // Paginated choices
+                        items = JSON.parse(JSON.stringify(items))  // Deep copy
+                        items.results = items.results.map((item) => ({label: item.name, value: item.id}))  // Paginated choices
                         propInfo.choices = items
                     }
                 }
