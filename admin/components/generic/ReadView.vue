@@ -1,7 +1,7 @@
 <template>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
-        <div v-if="itemsStore.items[apiUrl]?.results.length" class="section-header">
+        <div class="section-header">
             <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
@@ -309,6 +309,8 @@ function solveRefProp(item, propName) {
         text-align: center;
         width: 100%;
         height: 100%;
+        padding-top: 30px;
+        padding-bottom: 30px;
         &:hover {
             background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
         }
