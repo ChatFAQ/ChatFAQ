@@ -36,7 +36,7 @@ class VLLMModel(RAGLLM):
             self.client = OpenAI(
                 base_url=self.endpoint_url
             )  # for VLLM OpenAI compatible API
-        self.use_openai_api = False # use_openai_api
+        self.use_openai_api = use_openai_api
         print(f"Using vLLM OpenAI compatible API server: {self.use_openai_api}")
 
     def _format_prompt_openai(
