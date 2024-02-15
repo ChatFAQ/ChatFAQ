@@ -33,6 +33,7 @@ import InputSelect from "~/components/generic/InputSelect.vue";
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const form = ref({})
+const emit = defineEmits(['change'])
 
 const ignoreParams = ['offset', 'limit', 'id'];
 
@@ -46,6 +47,18 @@ const props = defineProps({
         required: false,
     },
 });
+
+watch(() => itemsStore.filters, async () => {  // For when setting filters from outside
+    await initForm()
+}, {deep: true})
+
+function initForm() {  // For when setting filters from outside
+    for (const [filter_name, filter_val] of Object.entries(itemsStore.filters)) {
+        if (form.value[filter_name] === undefined)
+            form.value[filter_name] = filter_val
+    }
+}
+
 for (const fieldInfo of props.filtersSchema) {
     form[fieldInfo.field] = undefined
 }
@@ -63,7 +76,6 @@ function debounce(func, timeout = 500) {
 const submitFiltersDebounce = debounce(async () => await submitFilters());
 
 async function submitFilters() {
-    itemsStore.loading = true
     const fitlers = {}
     for (const [key, value] of Object.entries(form.value)) {
         if (Array.isArray(value)) {
@@ -76,8 +88,8 @@ async function submitFilters() {
         }
     }
     itemsStore.filters = fitlers
-    await itemsStore.retrieveItems($axios, props.apiUrl)
-    itemsStore.loading = false
+    itemsStore.currentPage = 1
+    emit("change")
 }
 
 

@@ -11,6 +11,7 @@
                 :readOnly="readOnly"
                 :defaultSort="defaultSort"
                 :filtersSchema="filtersSchema"
+                :requiredFilter="requiredFilter"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -99,7 +100,11 @@ const props = defineProps({
     filtersSchema: {
         type: Array,
         required: false,
-    }
+    },
+    requiredFilter: {
+        type: String,
+        required: false,
+    },
 })
 </script>
 <style lang="scss">

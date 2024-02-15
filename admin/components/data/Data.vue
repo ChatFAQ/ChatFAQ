@@ -18,7 +18,7 @@
                 :excludeFields="['num_of_data_sources', 'num_of_knowledge_items']"
             >
                 <template v-slot:extra-card-bottom="props">
-                    <el-button class="go-to-kis-button">{{ $t("viewknowledgeitems") }}</el-button>
+                    <el-button class="go-to-kis-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -30,10 +30,11 @@
                                 'created_date': {'name': $t('created_date')},
                            }"
                            :filtersSchema="[
-                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
-                               {'type': 'range-date', 'startPlaceholder': $t('startdate'), 'endPlaceholder': $t('enddate'), 'field': 'created_date'},
                                {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                               {'type': 'range-date', 'startPlaceholder': $t('startdate'), 'endPlaceholder': $t('enddate'), 'field': 'created_date'},
+                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                            ]"
+                           requiredFilter="knowledge_base__id"
             >
             </ReadWriteView>
         </el-tab-pane>
@@ -55,9 +56,12 @@ const itemType = ref("knowledge-base")
 await itemsStore.loadSchema($axios)
 
 
-function submitPassword() {
-    password.value.submit()
+function goToKIs(kb_id) {
+    itemsStore.stateToRead()
+    itemType.value = "knowledge-item"
+    itemsStore.filters["knowledge_base__id"] = kb_id
 }
+
 </script>
 
 <style scoped lang="scss">
