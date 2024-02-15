@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t('data') }}</div>
-    <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('knowledgebase')" name="knowledge-base">
             <ReadWriteView
                 :readableName="$t('knowledgebase')"

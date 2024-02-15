@@ -82,21 +82,40 @@ async function submitFilters() {
 
 
 </script>
+<style lang="scss">
+.filters-wrapper {
+    .filter-wrapper {
+        .filter {
+            > div {
+                width: 100%;
+            }
+        }
+    }
+}
+</style>
 <style scoped lang="scss">
 .filters-wrapper {
     display: flex;
     flex-wrap: wrap;
-    margin-left: 136px;
-    margin-right: 136px;
-    max-width: 1300px;
-    width: fit-content;
+    width: 100%;
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 26px;
     padding: 16px;
     background-color: white;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
 
-    .filter {
+    .filter-wrapper {
+        flex: 1;
         margin-right: 16px;
+
+        .filter {
+            width: 100%;
+            > div {
+                width: 100%;
+            }
+        }
     }
 }
 </style>

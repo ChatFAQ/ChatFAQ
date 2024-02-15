@@ -80,7 +80,8 @@ const isRef = computed(() => {
 onMounted(async () => {
     if (props.filterSchema) {
         if (props.filterSchema.type === "ref") {
-            const items = await itemsStore.retrieveItems($axios, props.filterSchema.endpoint)
+            let items = await itemsStore.retrieveItems($axios, props.filterSchema.endpoint)
+            items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
                     value: item.id,
@@ -125,7 +126,8 @@ useIntersectionObserver(lastElement, async ([{ isIntersecting }], observerElemen
           let url = next.split('?')[0]
           let params = next.split('?')[1]
           params = Object.fromEntries(new URLSearchParams(params))
-          const items = await itemsStore.retrieveItems($axios, url, params)
+          let items = await itemsStore.retrieveItems($axios, url, params)
+          items = JSON.parse(JSON.stringify(items))
           items.results = items.results.map((item) => {
               return {
                   value: item.id,

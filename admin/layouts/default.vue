@@ -15,8 +15,6 @@
     display: flex;
 }
 .content-wrapper {
-    margin-top: 25px;
-    margin-left: 40px;
     width: 100%;
 }
 </style>

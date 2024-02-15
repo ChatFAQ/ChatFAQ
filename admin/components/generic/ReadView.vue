@@ -1,7 +1,7 @@
 <template>
-    <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div v-if="itemsStore.items[apiUrl]?.results.length" class="section-header">
+        <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
+        <div class="section-header">
             <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
@@ -12,7 +12,7 @@
                 </div>
             </slot>
             <div class="section-header-right">
-                <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
+                <el-button v-if="!readOnly" class="add-button" :class="{'not-only-command': cardProps && tableProps}" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
                 <div v-if="cardProps && tableProps" class="selected-icon card-view"
@@ -28,7 +28,7 @@
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
             <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
-                <el-card class="box-card" @click="stateToEdit(item.id)">
+                <el-card class="box-card">
                     <template #header>
                         <div class="card-header-title">{{ createTitle(item) }}</div>
                     </template>
@@ -49,7 +49,7 @@
                                 <Check @click="deleteItem(deleting)"/>
                             </el-icon>
                         </div>
-                        <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
+                        <span class="command-edit" @click="(ev) => stateToEdit(item.id, ev.target)">{{ $t("edit") }}</span>
                     </div>
                 </el-card>
                 <slot name="extra-card-bottom" :item="item"></slot>
@@ -126,6 +126,7 @@ const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const schema = ref({})
 const route = useRoute()
+const deleteCommand = ref(undefined)
 
 watch(() => route.fullPath, () => {
     itemsStore.currentPage = 1
@@ -181,7 +182,7 @@ function createTitle(item) {
     return props.titleProps.map(prop => item[prop]).join(" ")
 }
 
-function stateToEdit(id) {
+function stateToEdit(id, target) {
     itemsStore.editing = id
 }
 
@@ -258,8 +259,8 @@ function solveRefProp(item, propName) {
 .read-view-wrapper {
     display: flex;
     flex-wrap: wrap;
-    margin-left: 120px;
-    margin-right: 120px;
+    margin-left: 160px;
+    margin-right: 160px;
     max-width: 1300px;
 }
 
@@ -286,8 +287,6 @@ function solveRefProp(item, propName) {
     padding: 16px;
 
     .box-card {
-        cursor: pointer;
-
         &:hover {
             box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
         }
@@ -310,6 +309,8 @@ function solveRefProp(item, propName) {
         text-align: center;
         width: 100%;
         height: 100%;
+        padding-top: 30px;
+        padding-bottom: 30px;
         &:hover {
             background: linear-gradient(0deg, rgba(223, 218, 234, 0.4), rgba(223, 218, 234, 0.4));
         }
@@ -388,6 +389,9 @@ function solveRefProp(item, propName) {
 
 .command-edit, .command-delete {
     cursor: pointer;
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .command-delete-confirm.on-table {
@@ -423,7 +427,7 @@ function solveRefProp(item, propName) {
     justify-content: space-between;
     margin-right: 16px;
     margin-left: 16px;
-    margin-top: 9px;
+    margin-top: 26px;
 
     .item-count {
         display: flex;
@@ -441,7 +445,7 @@ function solveRefProp(item, propName) {
     .section-header-right {
         display: flex;
 
-        > .add-button {
+        > .add-button.not-only-command {
             margin-right: 32px;
         }
 

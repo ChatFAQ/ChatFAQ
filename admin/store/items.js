@@ -48,6 +48,9 @@ export const useItemsStore = defineStore('items', {
             apiUrl += "?" + new URLSearchParams(params).toString()
 
             this.items[cacheName] = (await $axios.get(apiUrl, {'headers': authHeaders()})).data
+            if (Array.isArray(this.items[cacheName])) { // When the endpoint is not paginated
+                this.items[cacheName] = {results: this.items[cacheName]}
+            }
             return this.items[cacheName]
         },
         async deleteItem($axios, apiUrl, id) {
@@ -142,6 +145,7 @@ export const useItemsStore = defineStore('items', {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
                         let items = await this.retrieveItems($axios, this.getPathFromSchemaName(refName))
+                        items = JSON.parse(JSON.stringify(items))  // Deep copy
                         items.results = items.results.map((item) => ({label: item.name, value: item.id}))  // Paginated choices
                         propInfo.choices = items
                     }
