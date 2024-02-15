@@ -23,7 +23,6 @@ def ensure_worker_queues():
     return worker_queues
 
 
-
 def recache_models(log_caller=None):
     from back.apps.language_model.tasks import llm_query_task
 

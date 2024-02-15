@@ -28,7 +28,7 @@
       <option name="useCurrentConnection" value="false" />
     </EXTENSION>
     <option name="SCRIPT_NAME" value="celery" />
-    <option name="PARAMETERS" value="-A back.config worker -l INFO -P threads --concurrency=2 --without-heartbeat -n worker1@%h" />
+    <option name="PARAMETERS" value="-A back.config worker -l INFO -Q indexing -P threads --concurrency=2 --without-heartbeat -n worker1@%h" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="true" />

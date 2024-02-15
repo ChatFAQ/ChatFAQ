@@ -25,6 +25,7 @@ LLM_CHOICES = (
     ('mistral', 'Mistral Model'),  # Mistral models from Mistral
 )
 
+
 # First, define the Manager subclass.
 class EnabledRAGConfigManager(models.Manager):
     def get_queryset(self):
@@ -51,7 +52,7 @@ class RAGConfig(ChangesMixin):
     def generate_s3_index_path(self):
         unique_id = str(uuid.uuid4())[:8]
         self.s3_index_path = f'indexes/{self.name}_index_{unique_id}'
-        self.save()        
+        self.save()
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
