@@ -28,7 +28,7 @@
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps">
             <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
-                <el-card class="box-card" @click="stateToEdit(item.id)">
+                <el-card class="box-card">
                     <template #header>
                         <div class="card-header-title">{{ createTitle(item) }}</div>
                     </template>
@@ -49,7 +49,7 @@
                                 <Check @click="deleteItem(deleting)"/>
                             </el-icon>
                         </div>
-                        <!-- <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span> -->
+                        <span class="command-edit" @click="(ev) => stateToEdit(item.id, ev.target)">{{ $t("edit") }}</span>
                     </div>
                 </el-card>
                 <slot name="extra-card-bottom" :item="item"></slot>
@@ -126,6 +126,7 @@ const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const schema = ref({})
 const route = useRoute()
+const deleteCommand = ref(undefined)
 
 watch(() => route.fullPath, () => {
     itemsStore.currentPage = 1
@@ -181,7 +182,7 @@ function createTitle(item) {
     return props.titleProps.map(prop => item[prop]).join(" ")
 }
 
-function stateToEdit(id) {
+function stateToEdit(id, target) {
     itemsStore.editing = id
 }
 
@@ -286,8 +287,6 @@ function solveRefProp(item, propName) {
     padding: 16px;
 
     .box-card {
-        cursor: pointer;
-
         &:hover {
             box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
         }
@@ -388,6 +387,9 @@ function solveRefProp(item, propName) {
 
 .command-edit, .command-delete {
     cursor: pointer;
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .command-delete-confirm.on-table {
