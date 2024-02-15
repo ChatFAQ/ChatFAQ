@@ -100,6 +100,7 @@ async function submitFilters() {
     width: 100%;
     margin-left: 16px;
     margin-right: 16px;
+    margin-top: 26px;
     padding: 16px;
     background-color: white;
     border-radius: 8px;

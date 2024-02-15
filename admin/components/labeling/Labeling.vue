@@ -1,5 +1,5 @@
 <template>
-    <div class="dashboard-page-title">{{ $t('labeling') }}</div>
+    <div class="dashboard-page-title alone">{{ $t('labeling') }}</div>
     <ReadWriteView
         v-if="itemsStore.editing === undefined"
         :readableName="$t('conversation')"

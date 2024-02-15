@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t("aiconfiguration") }}</div>
-    <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('retriever')" name="retriever-configs">
             <ReadWriteView :readableName="$t('retriever')" apiUrl="/back/api/language-model/retriever-configs/"
                            :cardProps="{

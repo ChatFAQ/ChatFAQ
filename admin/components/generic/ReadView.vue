@@ -12,7 +12,7 @@
                 </div>
             </slot>
             <div class="section-header-right">
-                <el-button v-if="!readOnly" class="add-button" type="primary" round plain @click="stateToAdd">+
+                <el-button v-if="!readOnly" class="add-button" :class="{'not-only-command': cardProps && tableProps}" type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
                 <div v-if="cardProps && tableProps" class="selected-icon card-view"
@@ -258,8 +258,8 @@ function solveRefProp(item, propName) {
 .read-view-wrapper {
     display: flex;
     flex-wrap: wrap;
-    margin-left: 120px;
-    margin-right: 120px;
+    margin-left: 160px;
+    margin-right: 160px;
     max-width: 1300px;
 }
 
@@ -423,7 +423,7 @@ function solveRefProp(item, propName) {
     justify-content: space-between;
     margin-right: 16px;
     margin-left: 16px;
-    margin-top: 9px;
+    margin-top: 26px;
 
     .item-count {
         display: flex;
@@ -441,7 +441,7 @@ function solveRefProp(item, propName) {
     .section-header-right {
         display: flex;
 
-        > .add-button {
+        > .add-button.not-only-command {
             margin-right: 32px;
         }
 

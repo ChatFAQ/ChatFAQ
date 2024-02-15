@@ -1,67 +1,63 @@
 <template>
-    <el-tabs @tab-change="itemsStore.stateToRead" v-model="itemType">
-        <el-tab-pane name="tasks">
-            <ReadWriteView
-                apiUrl="/back/api/language-model/tasks/"
-                :readOnly="true"
-                :readable-name='$t("asynctasks")'
-                :tableProps="{
-                    'status': {'name': '', 'width': 50},
-                    'task_name': {'name': $t('task_name')},
-                    'date_created': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates},
-                    'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration},
-                    'view': {'name': $t('view')},
-                }"
-                :sections="{
-                    [$t('generalinfo')]: [
-                        'status',
-                        'task_name',
-                        'periodic_task_name',
-                        'task_args',
-                        'task_kwargs',
-                        'worker',
-						'content_type',
-						'content_encoding',
-						'result',
-						'date_created',
-						'date_done',
-                        'meta',
-                    ],
-                    [$t('logs')]: [
-                        'traceback',
-                    ]
-                }"
-            >
-                <template #legend>
-                    <div class="legend"><span>Status:</span>
-                        <span><span class="status success"></span>{{ $t("success") }}</span>
-                        <span><span class="status started"></span>{{ $t("started") }}</span>
-                        <span><span class="status waiting"></span>{{ $t("waiting") }}</span>
-                        <span><span class="status failure"></span>{{ $t("failure") }}</span>
-                    </div>
-                </template>
-                <template v-slot:duration="{row}">
-                    <div>{{ calculateDuration(row) }}</div>
-                </template>
-                <template v-slot:date_created="{row}">
-                    <div>{{ formatDate(row.date_created) }}</div>
-                </template>
-                <template v-slot:task_name="{row}">
-                    <div>{{ formatTaskName(row.task_name) }}</div>
-                </template>
-                <template v-slot:status="{row}">
-                    <div width="10" class="status" :class="{[row.status.toLowerCase()]: true}">-</div>
-                </template>
-                <template v-slot:view="{row}">
-                    <span class="command-edit" @click="stateToDetail(row.id)">{{ $t("view") }}</span>
-                </template>
-                <template v-slot:write-traceback="value">
-                    <div class="traceback">{{ value["value"] }}</div>
-                </template>
-            </ReadWriteView>
-            <!-- <DetailTask v-else :id="itemsStore.detail"></DetailTask> -->
-        </el-tab-pane>
-    </el-tabs>
+    <div class="dashboard-page-title alone">{{ $t('tasks') }}</div>
+    <ReadWriteView
+        apiUrl="/back/api/language-model/tasks/"
+        :readOnly="true"
+        :readable-name='$t("asynctasks")'
+        :tableProps="{
+            'status': {'name': '', 'width': 50},
+            'task_name': {'name': $t('task_name')},
+            'date_created': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates},
+            'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration},
+            'view': {'name': $t('view')},
+        }"
+        :sections="{
+            [$t('generalinfo')]: [
+                'status',
+                'task_name',
+                'periodic_task_name',
+                'task_args',
+                'task_kwargs',
+                'worker',
+                'content_type',
+                'content_encoding',
+                'result',
+                'date_created',
+                'date_done',
+                'meta',
+            ],
+            [$t('logs')]: [
+                'traceback',
+            ]
+        }"
+    >
+        <template #legend>
+            <div class="legend"><span>Status:</span>
+                <span><span class="status success"></span>{{ $t("success") }}</span>
+                <span><span class="status started"></span>{{ $t("started") }}</span>
+                <span><span class="status waiting"></span>{{ $t("waiting") }}</span>
+                <span><span class="status failure"></span>{{ $t("failure") }}</span>
+            </div>
+        </template>
+        <template v-slot:duration="{row}">
+            <div>{{ calculateDuration(row) }}</div>
+        </template>
+        <template v-slot:date_created="{row}">
+            <div>{{ formatDate(row.date_created) }}</div>
+        </template>
+        <template v-slot:task_name="{row}">
+            <div>{{ formatTaskName(row.task_name) }}</div>
+        </template>
+        <template v-slot:status="{row}">
+            <div width="10" class="status" :class="{[row.status.toLowerCase()]: true}">-</div>
+        </template>
+        <template v-slot:view="{row}">
+            <span class="command-edit" @click="stateToDetail(row.id)">{{ $t("view") }}</span>
+        </template>
+        <template v-slot:write-traceback="value">
+            <div class="traceback">{{ value["value"] }}</div>
+        </template>
+    </ReadWriteView>
 </template>
 
 <script setup>

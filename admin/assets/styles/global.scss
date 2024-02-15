@@ -11,10 +11,25 @@ body {
 }
 
 .dashboard-page-title {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 22px;
-  letter-spacing: 0em;
-  text-align: left;
-  margin-bottom: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    padding-left: 40px;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    background-color: white;
+    &.alone {
+        border-bottom: 2px solid var(--el-border-color-light);
+    }
+}
+
+.main-page-tabs {
+    > .el-tabs__header {
+        background-color: white;
+        margin: 0px;
+        .el-tabs__nav-wrap {
+            padding-left: 40px;
+        }
+    }
 }

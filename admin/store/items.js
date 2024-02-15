@@ -48,6 +48,9 @@ export const useItemsStore = defineStore('items', {
             apiUrl += "?" + new URLSearchParams(params).toString()
 
             this.items[cacheName] = (await $axios.get(apiUrl, {'headers': authHeaders()})).data
+            if (Array.isArray(this.items[cacheName])) { // When the endpoint is not paginated
+                this.items[cacheName] = {results: this.items[cacheName]}
+            }
             return this.items[cacheName]
         },
         async deleteItem($axios, apiUrl, id) {
