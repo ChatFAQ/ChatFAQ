@@ -47,6 +47,18 @@ class RAG:
     ):
         """
         Retrieve new contexts if needed.
+        Parameters
+        ----------
+        message : str
+            User message.
+        prev_contents : List[str]
+            List of previous contexts.
+        prompt_structure_dict : dict
+            Dictionary containing the structure of the prompt.
+        Returns
+        -------
+        Tuple[List[str], List[Dict[str, str]]]
+            List of all conversation contexts and list of the retrieved contexts for the current user message.
         """
         logger.info("Retrieving new contexts")
         contexts = self.retriever.retrieve([message], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
@@ -57,7 +69,6 @@ class RAG:
 
         contents = [context["content"] for context in contexts] # get unique contexts
         returned_contexts = [contexts[:prompt_structure_dict["n_contexts_to_use"]]] # structure for references
-        contents = list(set(contents + prev_contents))
 
         # Use a list comprehension to preserve order and not adding duplicates
         seen = set()
