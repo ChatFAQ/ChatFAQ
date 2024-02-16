@@ -177,6 +177,7 @@ class VLLMModel(RAGLLM):
         )
 
         try:
+            print(f'LLM name: {self.llm_name}')
             response = self.client.chat.completions.create(
                 model=self.llm_name,
                 messages=messages,

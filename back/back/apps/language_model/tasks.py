@@ -209,6 +209,13 @@ def _send_message(
     )
 
 
+def handle_error(error_type, exception, bot_channel_name, lm_msg_id, channel_layer, channel_name, message='There was an error generating the response. Please try again or contact the administrator.'):
+    logger.error(f"{error_type}: {exception}")
+    _send_message(
+        bot_channel_name, lm_msg_id, channel_layer, channel_name, final=True, msg={"res": message}
+    )
+
+
 @app.task(bind=True, base=RAGCacheOnWorkerTask)
 def llm_query_task(
     self,
@@ -317,11 +324,17 @@ def llm_query_task(
             _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
             reference_kis = res.get("context")
 
+    except PromptTooLongException as e:
+        handle_error("PromptTooLongException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
+        return
+    except RequestException as e:
+        handle_error("RequestException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
+        return
+    except ModelNotFoundException as e:
+        handle_error("ModelNotFoundException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
+        return
     except Exception as e:
-        logger.error("Prompt too long.")
-        _send_message(
-            bot_channel_name, lm_msg_id, channel_layer, chanel_name, final=True, msg={"res": e.message}
-        )
+        handle_error("Exception", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name)
         return
 
     reference_kis = reference_kis[0] if len(reference_kis) > 0 else []
