@@ -1,5 +1,6 @@
 <template>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
         <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
         <div class="section-header">
             <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
@@ -177,6 +178,10 @@ const props = defineProps({
         required: false,
     },
     requiredFilter: {
+        type: String,
+        required: false,
+    },
+    textExplanation: {
         type: String,
         required: false,
     }
@@ -454,7 +459,17 @@ function solveRefProp(item, propName) {
         margin-bottom: 13px;
     }
 }
+.text-explanation {
+    margin-right: 16px;
+    margin-left: 16px;
+    margin-top: 26px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    padding-left: 18px;
+    border-left: 2px solid $chatfaq-color-primary-500;
 
+}
 .section-header {
     display: flex;
     width: 100%;

@@ -16,6 +16,7 @@
                     'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
                 }"
                 :excludeFields="['num_of_data_sources', 'num_of_knowledge_items']"
+                :textExplanation="$t('knowledgebaseexplanation')"
             >
                 <template v-slot:extra-card-bottom="props">
                     <el-button class="go-to-kis-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
@@ -35,6 +36,24 @@
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                            ]"
                            requiredFilter="knowledge_base__id"
+                           :textExplanation="$t('knowledgeitemexplanation')"
+            >
+            </ReadWriteView>
+        </el-tab-pane>
+        <el-tab-pane :label="$t('intents')" name="intents">
+            <ReadWriteView :readableName="$t('intents')"
+                           apiUrl="/back/api/language-model/intents/"
+                           :tableProps="{
+                                'intent_name': {'name': $t('intentname')},
+                                'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
+                                'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
+                           }"
+                           :filtersSchema="[
+                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+                               {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                           ]"
+                           :textExplanation="$t('intentexplanation')"
+                           readOnly
             >
             </ReadWriteView>
         </el-tab-pane>
