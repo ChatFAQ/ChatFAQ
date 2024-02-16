@@ -12,6 +12,7 @@
                 :defaultSort="defaultSort"
                 :filtersSchema="filtersSchema"
                 :requiredFilter="requiredFilter"
+                :textExplanation="textExplanation"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -102,6 +103,10 @@ const props = defineProps({
         required: false,
     },
     requiredFilter: {
+        type: String,
+        required: false,
+    },
+    textExplanation: {
         type: String,
         required: false,
     },

@@ -16,6 +16,7 @@
                     'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
                 }"
                 :excludeFields="['num_of_data_sources', 'num_of_knowledge_items']"
+                :textExplanation="$t('knowledgebaseexplanation')"
             >
                 <template v-slot:extra-card-bottom="props">
                     <el-button class="go-to-kis-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
@@ -35,6 +36,7 @@
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                            ]"
                            requiredFilter="knowledge_base__id"
+                           :textExplanation="$t('knowledgeitemexplanation')"
             >
             </ReadWriteView>
         </el-tab-pane>
@@ -50,6 +52,7 @@
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                                {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
                            ]"
+                           :textExplanation="$t('intentexplanation')"
                            readOnly
             >
             </ReadWriteView>

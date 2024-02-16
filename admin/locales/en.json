@@ -122,5 +122,8 @@
     "chatfaq-color-menuItem-background": "Menu item background",
     "chatfaq-color-menuItem-border-edit": "Menu item border edit",
     "chatfaq-color-darkFilter": "Dark filter",
-    "numberofactivetasks": "{number} Active tasks"
+    "numberofactivetasks": "{number} Active tasks",
+    "knowledgebaseexplanation": "Access databases, knowledge items, and search or add more data in this tab to manage and enrich your chatbot's informational resources. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Read more</a>",
+    "knowledgeitemexplanation": "Access the knowledge items in your knowledge base to examine the splitter units of information that the RAG (Retrieval-Augmented Generation) system retrieves as part of its response generation process. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Read more</a>",
+    "intentexplanation": "Optimize chatbot understanding by managing existing intents and exploring user-based intent suggestions. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Read more</a>"
 }

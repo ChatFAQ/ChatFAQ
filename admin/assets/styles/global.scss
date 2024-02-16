@@ -33,3 +33,15 @@ body {
         }
     }
 }
+
+.read-more-link {
+    color: $chatfaq-color-primary-500;
+    text-decoration: none;
+    font-weight: 600;
+    &::after {
+        content: "›";
+        margin-left: 5px;
+        display: inline-block;
+        transition: transform 0.3s;
+    }
+}
