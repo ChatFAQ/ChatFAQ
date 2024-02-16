@@ -2,6 +2,7 @@ import gc
 import uuid
 from io import BytesIO
 from logging import getLogger
+import psutil
 from asgiref.sync import async_to_sync
 from celery import Task
 from channels.layers import get_channel_layer
@@ -103,11 +104,19 @@ def get_model(
     )
 
 
+def belongs_to_indexing_queue():
+    """
+    Hack to check if the current worker belongs to the indexing queue.
+    """
+    cmdline = " ".join(psutil.Process(os.getpid()).cmdline())
+    return "-Q indexing " in cmdline
+
+
 class RAGCacheOnWorkerTask(Task):
     CACHED_RAGS = {}
 
     def __init__(self):
-        if is_celery_worker() and not self.CACHED_RAGS:
+        if is_celery_worker() and not self.CACHED_RAGS and not belongs_to_indexing_queue():
             self.CACHED_RAGS = self.preload_models()
 
     @staticmethod
@@ -224,7 +233,7 @@ def llm_query_task(
     if recache_models:
         # clear CACHED_RAGS
         torch.cuda.empty_cache()
-        
+
         if hasattr(self, "CACHED_RAGS"):
             del self.CACHED_RAGS
         gc.collect()
