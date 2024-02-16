@@ -117,6 +117,7 @@ class RAGCacheOnWorkerTask(Task):
     CACHED_RAGS = {}
 
     def __init__(self):
+        self.CACHED_RAGS = {}
         if is_celery_worker() and not self.CACHED_RAGS and not belongs_to_indexing_queue():
             self.CACHED_RAGS = self.preload_models()
 
