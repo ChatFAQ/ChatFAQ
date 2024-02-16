@@ -6,11 +6,11 @@ import requests
 from openai import OpenAI
 
 from chat_rag.llms import RAGLLM
+from chat_rag.exceptions import ModelNotFoundException, RequestException, PromptTooLongException
 
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 
 class VLLMModel(RAGLLM):
@@ -44,7 +44,6 @@ class VLLMModel(RAGLLM):
         messages: List[Dict[str, str]],
         contexts: List[str],
         system_prefix: str,
-        n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
     ) -> List[Dict[str, str]]:
@@ -56,30 +55,12 @@ class VLLMModel(RAGLLM):
             The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
-        system_prefix : str
-            The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
-        n_contexts_to_use : int, optional
-            The number of contexts to use, by default 3
         lang : str, optional
             The language of the prompt, by default 'en'
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
             system_prefix=system_prefix,
-            n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
 
@@ -119,7 +100,7 @@ class VLLMModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(
+        prompt, _ = self.format_prompt(
             messages, contexts, **prompt_structure_dict, lang=lang
         )
 
@@ -139,9 +120,9 @@ class VLLMModel(RAGLLM):
         response = requests.post(self.endpoint_url, json=pload, stream=False)
 
         if response.status_code != 200:
-            raise Exception(
-                f"Error with the request to the VLLM server: {response.content}, {response.status_code}"
-            )
+            logger.error(f"Error with the request to the vLLM server: {response.content}")
+            raise RequestException()
+
 
         data = json.loads(response.content)
 
@@ -149,7 +130,8 @@ class VLLMModel(RAGLLM):
         output = data["text"][0][len(prompt) :]
 
         if not output: # if there is an error vllm returns an empty string
-            return "There was an error processing your request. Please try again or contact the administrator."
+            logger.error(f"Error with the request to the vLLM server.")
+            raise RequestException()
 
         return output
 
@@ -182,15 +164,20 @@ class VLLMModel(RAGLLM):
             The generated text.
         """
 
+        # Check how many messages and contexts we can fit in the model context length constraints
+        _, (n_contexts, n_messages_to_keep) = self.format_prompt(
+            messages, contexts, **prompt_structure_dict, lang=lang
+        )
+
         messages = self._format_prompt_openai(
-            messages=messages,
-            contexts=contexts,
+            messages=messages[:n_messages_to_keep],  # keep only the last n_messages_to_keep
+            contexts=contexts[:n_contexts],  # keep only the last n_contexts
             **prompt_structure_dict,
             lang=lang,
         )
 
         try:
-
+            print(f'LLM name: {self.llm_name}')
             response = self.client.chat.completions.create(
                 model=self.llm_name,
                 messages=messages,
@@ -290,7 +277,7 @@ class VLLMModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(
+        prompt, _ = self.format_prompt(
             messages, contexts, **prompt_structure_dict, lang=lang
         )
 
@@ -314,13 +301,12 @@ class VLLMModel(RAGLLM):
             chunk_size=8192, decode_unicode=False, delimiter=b"\0"
         )):
             if n_token == 1 and not output: # if there is an error vllm returns an empty string as the second chunk (the first one is the prompt)
-                yield "There was an error processing your request. Please try again or contact the administrator."
+                raise RequestException()
             if chunk:
                 data = json.loads(chunk.decode("utf-8"))
                 if 'detail' in data:
                     logger.error(f"Error with the request to the vLLM server: {data['detail']}")
-                    yield f'There was an error processing your request. Please try again or contact the administrator. Error: {data["detail"]}'
-                    return
+                    raise RequestException()
                 output = data["text"]
                 # yield the difference between the previous output and the current output
                 output = output[0][len(prev_output) :]
@@ -356,9 +342,14 @@ class VLLMModel(RAGLLM):
             The generated text.
         """
 
+        # Check how many messages and contexts we can fit in the model context length constraints
+        _, (n_contexts, n_messages_to_keep) = self.format_prompt(
+            messages, contexts, **prompt_structure_dict, lang=lang
+        )
+
         messages = self._format_prompt_openai(
-            messages=messages,
-            contexts=contexts,
+            messages=messages[:n_messages_to_keep],  # keep only the last n_messages_to_keep
+            contexts=contexts[:n_contexts],  # keep only the last n_contexts
             **prompt_structure_dict,
             lang=lang,
         )
@@ -446,8 +437,9 @@ class VLLMModel(RAGLLM):
 def return_openai_error(e):
     logger.error(f"Error with the request to the vLLM OpenAI server: {e}")
     if e.code == 400: # BadRequestError
-        return 'There was an error processing your request because the prompt is too long. Please open a new conversation and try again with a shorter prompt.'
+        raise PromptTooLongException()
     elif e.code == 404: # NotFoundError
-        return 'There was an error processing your request because the LLM was not found. Contact the administrator.'
+        raise ModelNotFoundException()
     else:
-        return f'There was an error processing your request. Error: {e.body["message"]}'
+        logger.error(f"Error with the request to the vLLM OpenAI server: {e.body['message']}")
+        raise RequestException()

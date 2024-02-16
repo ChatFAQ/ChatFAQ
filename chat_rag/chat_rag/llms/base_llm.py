@@ -3,6 +3,8 @@ import os
 
 from transformers import AutoTokenizer, AutoConfig
 
+from chat_rag.exceptions import PromptTooLongException
+
 
 CONTEXT_PREFIX = {
     "en": "Information:",
@@ -55,7 +57,6 @@ class RAGLLM:
             self,
             contexts: List[str],
             system_prefix: str,
-            n_contexts_to_use: int = 3,
             lang: str = "en",
             **kwargs,
         ) -> str:
@@ -68,13 +69,41 @@ class RAGLLM:
             for ndx, context in enumerate(contexts):
                 system_prompt += f"- {context}"
 
-                if ndx < len(contexts[:n_contexts_to_use]) - 1: # no newline on last context
+                if ndx < len(contexts) - 1: # no newline on last context
                     system_prompt += "\n"
 
             return system_prompt
         else:
             return system_prefix + f"\n{CONTEXT_PREFIX[lang]}\n{NO_CONTEXT_SUFFIX[lang]}"
 
+    def apply_chat_template(self, messages, contexts, system_prefix, system_tag, system_end, user_tag, user_end, assistant_tag, assistant_end, lang):
+        """
+        Applies the chat template to the messages and contexts.
+        """
+        system_prompt = self.format_system_prompt(
+                contexts, system_prefix, lang
+            )
+
+        if self.has_chat_template:
+            new_messages = messages.copy() # copy the messages to avoid modifying the original list
+            new_messages.insert(0, {"role": "system", "content": system_prompt})
+            prompt = self.tokenizer.apply_chat_template(
+                    new_messages,
+                    add_generation_prompt=True,
+                    tokenize=False,
+                )
+        else:
+            if (system_tag == "" or system_tag is None):  # To avoid adding the role_end tag if there is no system prefix
+                prompt = f"{system_prompt}\n"
+            else:
+                prompt = f"{system_tag}{system_prompt}{system_end}"
+
+            for message in messages:
+                if message['role'] == 'user':
+                    prompt += f"{user_tag}{message['content']}{user_end}{assistant_tag}"
+                elif message['role'] == 'assistant':
+                    prompt += f"{message['content']}{assistant_end}"
+        return prompt
 
     def format_prompt(
         self,
@@ -88,7 +117,6 @@ class RAGLLM:
         assistant_tag: str,
         assistant_end: str,
         n_contexts_to_use: int = 3,
-        max_new_tokens: int = 512,
         lang: str = "en",
         **kwargs,
     ) -> str:
@@ -117,46 +145,35 @@ class RAGLLM:
             The tag to indicate the end of the role (system role, user role, assistant role).
         n_contexts_to_use : int, optional
             The number of contexts to use, by default 3
-        max_new_tokens : int, optional
-            The maximum number of new tokens generated, by default 512
         lang : str, optional
             The language of the prompt, by default 'en'
         """
 
-        for n_contexts in range(n_contexts_to_use, 0, -1):
+        n_messages_to_keep = len(messages)
+        n_contexts = n_contexts_to_use if len(contexts) > n_contexts_to_use else len(contexts)
 
-            system_prompt = self.format_system_prompt(
-                contexts, system_prefix, n_contexts, lang
-            )
+        prompt = self.apply_chat_template(messages, contexts, system_prefix, system_tag, system_end, user_tag, user_end, assistant_tag, assistant_end, lang)
+        num_tokens = len(self.tokenizer.tokenize(prompt))
 
-            if self.has_chat_template:
-                messages.insert(0, {"role": "system", "content": system_prompt})
-                prompt = self.tokenizer.apply_chat_template(
-                    messages,
-                    add_generation_prompt=True,
-                    tokenize=False,
-                )
-            else:
-                if (system_tag == "" or system_tag is None):  # To avoid adding the role_end tag if there is no system prefix
-                    prompt = f"{system_prompt}\n"
-                else:
-                    prompt = f"{system_tag}{system_prompt}{system_end}"
+        margin = int(self.model_max_length * 0.1)
 
-                for message in messages:
-                    if message['role'] == 'user':
-                        prompt += f"{user_tag}{message['content']}{user_end}{assistant_tag}"
-                    elif message['role'] == 'assistant':
-                        prompt += f"{message['content']}{assistant_end}"
+        while num_tokens > (self.model_max_length -  margin):
+
+            if n_contexts == 1 and n_messages_to_keep > 1:
+                n_messages_to_keep -= 1
+
+            n_contexts = n_contexts - 1 if n_contexts > 1 else 1
+
+            # When we reach the minimum number of contexts and messages and the prompt is still too long, we return None
+            if n_contexts == 1 and n_messages_to_keep == 1:
+                raise PromptTooLongException()
+
+            prompt = self.apply_chat_template(messages[:n_messages_to_keep], contexts[:n_contexts], system_prefix, system_tag, system_end, user_tag, user_end, assistant_tag, assistant_end, lang)
 
             # get number of tokens
             num_tokens = len(self.tokenizer.tokenize(prompt))
 
-            if num_tokens < self.model_max_length:
-                return prompt
-
-        raise Exception(
-            "Prompt is too long for the model, please try to reduce the size of the contents"
-        )
+        return prompt, (n_contexts, n_messages_to_keep)
 
     def generate(
         self,

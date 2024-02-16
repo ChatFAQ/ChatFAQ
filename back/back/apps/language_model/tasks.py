@@ -14,6 +14,7 @@ from chat_rag.llms import (
     ClaudeChatModel,
     MistralChatModel,
 )
+from chat_rag.exceptions import PromptTooLongException, RequestException, ModelNotFoundException
 from scrapy.utils.project import get_project_settings
 from django.db import transaction
 from django.apps import apps
@@ -208,6 +209,13 @@ def _send_message(
     )
 
 
+def handle_error(error_type, exception, bot_channel_name, lm_msg_id, channel_layer, channel_name, message='There was an error generating the response. Please try again or contact the administrator.'):
+    logger.error(f"{error_type}: {exception}")
+    _send_message(
+        bot_channel_name, lm_msg_id, channel_layer, channel_name, final=True, msg={"res": message}
+    )
+
+
 @app.task(bind=True, base=RAGCacheOnWorkerTask)
 def llm_query_task(
     self,
@@ -219,9 +227,9 @@ def llm_query_task(
     recache_models=False,
     log_caller="None",
 ):
-    import torch
     logger.info(f"Log caller: {log_caller}")
     if recache_models:
+        import torch
         # clear CACHED_RAGS
         torch.cuda.empty_cache()
         
@@ -230,6 +238,7 @@ def llm_query_task(
         gc.collect()
         self.CACHED_RAGS = self.preload_models()
         return
+    
     channel_layer = get_channel_layer()
     lm_msg_id = str(uuid.uuid4())
 
@@ -289,29 +298,44 @@ def llm_query_task(
 
     logger.info(f"Using RAG config: {rag_config_name}")
 
-    streaming = True
+    streaming = True # TODO: make this a parameter
     reference_kis = []
-    if streaming:
-        for res in rag.stream(
-            prev_messages,
-            prev_contents,
-            prompt_structure_dict=p_conf,
-            generation_config_dict=g_conf,
-            stop_words=stop_words,
-        ):
-            _send_message(
-                bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
+
+    try:
+        if streaming:
+            for res in rag.stream(
+                prev_messages,
+                prev_contents,
+                prompt_structure_dict=p_conf,
+                generation_config_dict=g_conf,
+                stop_words=stop_words,
+            ):
+                _send_message(
+                    bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
+                )
+                reference_kis = res.get("context")
+        else:
+            res = rag.generate(
+                prev_messages,
+                prompt_structure_dict=p_conf,
+                generation_config_dict=g_conf,
+                stop_words=stop_words,
             )
+            _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
             reference_kis = res.get("context")
-    else:
-        res = rag.generate(
-            prev_messages,
-            prompt_structure_dict=p_conf,
-            generation_config_dict=g_conf,
-            stop_words=stop_words,
-        )
-        _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-        reference_kis = res.get("context")
+
+    except PromptTooLongException as e:
+        handle_error("PromptTooLongException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
+        return
+    except RequestException as e:
+        handle_error("RequestException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
+        return
+    except ModelNotFoundException as e:
+        handle_error("ModelNotFoundException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
+        return
+    except Exception as e:
+        handle_error("Exception", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name)
+        return
 
     reference_kis = reference_kis[0] if len(reference_kis) > 0 else []
     logger.info(f"\nReferences: {reference_kis}")
