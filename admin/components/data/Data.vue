@@ -38,6 +38,22 @@
             >
             </ReadWriteView>
         </el-tab-pane>
+        <el-tab-pane :label="$t('intents')" name="intents">
+            <ReadWriteView :readableName="$t('intents')"
+                           apiUrl="/back/api/language-model/intents/"
+                           :tableProps="{
+                                'intent_name': {'name': $t('intentname')},
+                                'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
+                                'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
+                           }"
+                           :filtersSchema="[
+                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+                               {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                           ]"
+                           readOnly
+            >
+            </ReadWriteView>
+        </el-tab-pane>
     </el-tabs>
 </template>
 
