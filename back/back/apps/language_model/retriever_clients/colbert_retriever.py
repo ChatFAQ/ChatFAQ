@@ -157,6 +157,9 @@ class ColBERTRetriever:
 
         queries_results = self.retriever.search(queries, k=top_k)
 
+        # For normalizing the scores
+        query_maxlen = self.retriever.model.searcher.config.query_maxlen
+
         # If only one query was passed, the result is not a list
         queries_results = [queries_results] if len(queries) == 1 else queries_results
 
@@ -164,7 +167,7 @@ class ColBERTRetriever:
         for query_results in queries_results:
             for result in query_results:
                 result["score"] = (
-                    result["score"] / 32.0
+                    result["score"] / query_maxlen
                 )  # Normalize scores to be between 0 and 1
 
             # Filter out results not relevant to the query
