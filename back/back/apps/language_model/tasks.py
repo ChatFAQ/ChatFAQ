@@ -918,9 +918,11 @@ def generate_suggested_intents_task(knowledge_base_pk):
         )
         return
 
-    messages = MessageKnowledgeItem.objects.values("message_id").annotate(
+    messages = MessageKnowledgeItem.objects.filter(
+        knowledge_item__knowledge_base_id=knowledge_base_pk  # Filter by knowledge base
+    ).values("message_id").annotate(
         max_similarity=Max("similarity")
-    )
+    ) # 
 
     logger.info(f"Number of messages: {messages.count()}")
 
