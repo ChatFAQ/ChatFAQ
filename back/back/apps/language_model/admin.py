@@ -32,7 +32,7 @@ class PromptConfigAdmin(SimpleHistoryAdmin):
 class KnowledgeItemAdmin(admin.ModelAdmin):
     list_display = ["content", "url"]
     list_filter = ["knowledge_base"]
-    search_fields = ["title", "content", "url", "data_source", "metadata"]
+    search_fields = ["title", "content", "url", "metadata"]
 
 
 class KnowledgeItemImageAdmin(admin.ModelAdmin):
