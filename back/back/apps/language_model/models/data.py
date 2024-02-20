@@ -257,7 +257,7 @@ class KnowledgeItem(ChangesMixin):
     data_source = models.ForeignKey(DataSource, on_delete=models.CASCADE, null=True, blank=True)
     title = models.TextField(blank=True, null=True)
     content = models.TextField()
-    url = models.URLField(max_length=2083, null=True)
+    url = models.URLField(max_length=2083, null=True, blank=True)
     section = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
     page_number = models.IntegerField(blank=True, null=True)
