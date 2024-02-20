@@ -105,20 +105,12 @@ def get_model(
     )
 
 
-def belongs_to_indexing_queue():
-    """
-    Hack to check if the current worker belongs to the indexing queue.
-    """
-    cmdline = " ".join(psutil.Process(os.getpid()).cmdline())
-    return "-Q indexing " in cmdline
-
-
 class RAGCacheOnWorkerTask(Task):
     CACHED_RAGS = {}
 
     def __init__(self):
         self.CACHED_RAGS = {}
-        if is_celery_worker() and not self.CACHED_RAGS and not belongs_to_indexing_queue():
+        if is_celery_worker() and not self.CACHED_RAGS:
             self.CACHED_RAGS = self.preload_models()
 
     @staticmethod

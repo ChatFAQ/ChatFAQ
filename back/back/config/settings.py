@@ -261,9 +261,6 @@ with EnvManager(model_w_django) as env:
     #         'exchange': 'broadcast_tasks'
     #     },
     # }
-    CELERY_ROUTES = {
-        'back.apps.language_model.tasks.index_task': {'queue': 'indexing'},
-    }
     # --------------------------- S3 ---------------------------
     AWS_S3_OBJECT_PARAMETERS = {
         "CacheControl": "max-age=86400",

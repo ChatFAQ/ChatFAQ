@@ -92,17 +92,11 @@ workers:
     image: sdk
     envs: [ sentry, sdk ]
     instance_size: XS
-  - name: celery_worker_inference
+  - name: celery_worker
     image: back
     envs: [ sentry, django ]
     instance_size: M
     command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads --concurrency 2
-  - name: celery_worker_indexing
-    image: back
-    envs: [ sentry, django ]
-    instance_size: M
-    command: modelw-docker run python -m celery -A back.config worker -Q indexing -l INFO --pool threads --concurrency 2
-
 jobs:
   - name: migrate
     when: PRE_DEPLOY
