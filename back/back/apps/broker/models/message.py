@@ -274,7 +274,8 @@ class Message(ChangesMixin):
         return f"{send_time} {sender['type']}: {stack_text}"
 
     def save(self, *args, **kwargs):
-        self.prev = self.conversation.get_last_mml()
+        if not self.prev: # avoid setting prev to itself if model is being updated
+            self.prev = self.conversation.get_last_mml()
         super(Message, self).save(*args, **kwargs)
 
 

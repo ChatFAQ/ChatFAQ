@@ -5,10 +5,14 @@ from .models import ConsumerRoundRobinQueue, RemoteSDKParsers
 
 
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ["sender_type", "conversation", "stack", "created_date"]
+    list_display = ["conversation_id", "sender_type", "payload_text", "created_date"]
 
     def payload_text(self, obj):
-        return obj.payload["text"]
+        payload = obj.stack[0]['payload']
+        if isinstance(payload, str):
+            return payload
+        else:
+            return payload['model_response']
 
     def sender_type(self, obj):
         return obj.sender["type"]
