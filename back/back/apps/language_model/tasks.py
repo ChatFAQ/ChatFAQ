@@ -1163,7 +1163,6 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
             message__in=messages, 
         )
 
-        k_items = 
         
 
 

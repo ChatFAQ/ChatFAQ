@@ -46,7 +46,7 @@ undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 twisted = "^23.10.0rc1"
-ragatouille = { git = "https://github.com/Diegi97/RAGatouille.git", branch = "main" }  # Temporary until a new version with baching is released
+ragatouille = "0.0.7.post5"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
