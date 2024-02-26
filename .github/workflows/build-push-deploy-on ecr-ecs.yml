@@ -23,6 +23,7 @@ jobs:
                 [
                 "back",
                 "widget",
+                "admin",
                 "sdk"
                 ]
     runs-on: ubuntu-latest
