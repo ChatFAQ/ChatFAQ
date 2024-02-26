@@ -362,10 +362,10 @@ def llm_query_task(
         final=True,
     )
 
-    # TODO: fix async errors where sometimes this function is called before the MessageSerializer saves all the messages
-    import time
-    time.sleep(0.5)
-    join_bot_messages(conversation_id, Message) 
+    # # TODO: fix async errors where sometimes this function is called before the MessageSerializer saves all the messages
+    # import time
+    # time.sleep(0.5)
+    # join_bot_messages(conversation_id, Message) 
 
     # get the last human message from the conversation
     last_message = (
