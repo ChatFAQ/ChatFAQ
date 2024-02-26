@@ -240,7 +240,7 @@ def llm_query_task(
         gc.collect()
         self.CACHED_RAGS = self.preload_models()
         return
-    
+
     channel_layer = get_channel_layer()
     lm_msg_id = str(uuid.uuid4())
 
@@ -362,11 +362,6 @@ def llm_query_task(
         final=True,
     )
 
-    # # TODO: fix async errors where sometimes this function is called before the MessageSerializer saves all the messages
-    # import time
-    # time.sleep(0.5)
-    # join_bot_messages(conversation_id, Message) 
-
     # get the last human message from the conversation
     last_message = (
         Message.objects.filter(
@@ -386,32 +381,6 @@ def llm_query_task(
             for ki in reference_kis
         ]
     )
-
-def join_bot_messages(conversation_id, Message):
-    messages = Message.objects.filter(conversation_id=conversation_id).order_by("created_date")
-
-    last_human_message = messages.filter(sender__type='human').last()
-    # get all the messages after the last human message that are from a bot
-    bot_messages = messages.filter(created_date__gt=last_human_message.created_date, sender__type='bot').order_by('created_date')
-
-    full_message = ''.join([m.stack[0]['payload']['model_response'] for m in bot_messages])
-
-    first_bot_message = bot_messages.first()
-
-    stack = bot_messages.last().stack
-
-    stack[0]['payload']['model_response'] = full_message
-
-
-    with transaction.atomic():
-        # modify the last bot message to include the full message
-        first_bot_message.stack = stack
-        first_bot_message.last = True
-        first_bot_message.save()
-
-        # remove all bot messages except the first one
-        bot_messages.exclude(id=first_bot_message.id).delete()
-
 
 def get_modified_k_items_ids(rag_config):
     """
@@ -953,7 +922,7 @@ def generate_suggested_intents_task(knowledge_base_pk):
         knowledge_item__knowledge_base_id=knowledge_base_pk  # Filter by knowledge base
     ).values("message_id").annotate(
         max_similarity=Max("similarity")
-    ) # 
+    ) #
 
     logger.info(f"Number of messages: {messages.count()}")
 

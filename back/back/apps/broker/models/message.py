@@ -50,11 +50,8 @@ class Conversation(ChangesMixin):
             conversation=self,
         ).first()
 
-    def get_mml_chain(self, as_conv_format=False, group_by_stack=False, include_reviewed=False):
+    def get_mml_chain(self, as_conv_format=False):
         from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
-        def _add_reviewed(m):
-            return {**m, "reviewed": AdminReview.objects.filter(message=m['id']).exists()}
-
         first_message = self.get_first_msg()
 
         if not first_message:
@@ -63,11 +60,6 @@ class Conversation(ChangesMixin):
 
         if as_conv_format:
             return self.get_formatted_conversation(chain)
-        elif group_by_stack:
-            res = self.group_by_stack(chain)
-            if include_reviewed:
-                return [_add_reviewed(m) for m in res]
-            return res
 
         return [MessageSerializer(m).data for m in chain]
 
@@ -150,7 +142,7 @@ class Conversation(ChangesMixin):
 
     def conversation_to_text(self):
         text = ""
-        msgs = self.get_mml_chain(group_by_stack=True)
+        msgs = self.get_mml_chain()
 
         for msg in msgs:
             text = f"{text}{Message._to_text(msg['stack'], msg['send_time'], msg['sender'])}\n"

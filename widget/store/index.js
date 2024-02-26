@@ -72,72 +72,31 @@ export const useGlobalStore = defineStore('globalStore', {
         createNewConversation() {
             this.messages = [];
             this.selectedPlConversationId = Math.floor(Math.random() * 1000000000);
+        },
+        addMessage(message) {
+            const index = this.messages.findIndex(m => m.id === message.id)
+            if (index !== -1)
+                this.messages[index] = message
+            else
+                this.messages.push(message)
         }
     },
     getters: {
         conversationsIds() {
             return this.conversations.reduce((acc, current) => acc.concat([current.id]), [])
         },
-        getStacks() {
-            return (msgId) => {
-                // Returns the block of messages of the same type that ends with the last message being msg_id
-                for (let i = this.messages.length - 1; i >= 0; i--) {
-                    if (this.messages[i].id === msgId)
-                        return this.messages[i].stack;
-                }
-            }
-        },
-        flatStacks() {
-            const res = [];
-            const _messages = JSON.parse(JSON.stringify(this.messages));
-            let last_lm_msg_payload = {}
-            for (let i = 0; i < _messages.length; i++) {
-                for (let j = 0; j < _messages[i].stack.length; j++) {
-                    const data = _messages[i].stack[j];
-                    if (data.type === "lm_generated_text") {
-                        if (data.payload.lm_msg_id === last_lm_msg_payload.lm_msg_id) {
-                            last_lm_msg_payload.model_response += data.payload.model_response
-                            last_lm_msg_payload.references = data.payload.references
-                            res[res.length - 1].last = _messages[i].last
-                        } else {
-                            last_lm_msg_payload = data.payload
-                            res.push({..._messages[i], ...data});
-                        }
-                    } else {
-                        res.push({..._messages[i], ...data});
-                    }
-                }
-            }
-            return res;
-        },
-        gropedStacks() {
-            // Group stacks by stack_id
-            const res = []
-            let last_stack_id = undefined
-            for (let i = 0; i < this.flatStacks.length; i++) {
-                if (this.flatStacks[i].stack_id !== last_stack_id) {
-                    res.push({ "layers": [ this.flatStacks[i] ], "references": this.flatStacks[i].payload.references || {}, layerToReferences: {} })
-                    last_stack_id = this.flatStacks[i].stack_id
-                } else {
-                    res[res.length - 1].layers.push(this.flatStacks[i])
-                    res[res.length - 1].references.knowledge_items = res[res.length - 1].references.knowledge_items.concat(this.flatStacks[i].payload.references.knowledge_items || [])
-                }
-            }
-            _indexLayerRefs(res)
-            return res
-        },
         waitingForResponse() {
-            const gs = this.gropedStacks
-            return !gs.length ||
-            (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'human') ||
-            (gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].sender.type === 'bot' &&
-            !gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1].last)
+            const msgs = this.messages
+            return !msgs.length ||
+            (msgs[msgs.length - 1].sender.type === 'human') ||
+            (msgs[msgs.length - 1].sender.type === 'bot' &&
+            !msgs[msgs.length - 1].last)
         },
-        lastLayer() {
-            const gs = this.gropedStacks;
-            if (!gs.length || !gs[gs.length - 1].layers.length)
+        lastMsg() {
+            const msgs = this.messages;
+            if (!msgs.length)
                 return undefined
-            return gs[gs.length - 1].layers[gs[gs.length - 1].layers.length - 1]
+            return msgs[msgs.length - 1]
         }
     }
 })

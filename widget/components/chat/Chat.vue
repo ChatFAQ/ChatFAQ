@@ -1,13 +1,12 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
-            <div class="stacks" v-for="(layers_data, index) in store.gropedStacks">
+            <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
-                    :layers="layers_data.layers"
-                    :references="layers_data.references"
+                    :message="message"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
-                    :is-last="index === store.gropedStacks.length - 1"
+                    :is-last="index === store.messages.length - 1"
                 ></ChatMsg>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
@@ -59,7 +58,7 @@ watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 
 function isLastOfType(index) {
-    return index === store.gropedStacks.length - 1 || store.gropedStacks[index + 1].layers[0].sender.type !== store.gropedStacks[index].layers[0].sender.type
+    return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
 }
 
 function managePaste(ev) {
@@ -120,12 +119,12 @@ function createConnection() {
             return
         }
 
-        if (store.lastLayer && store.lastLayer.sender.type === 'human')  // Scroll down if brand a new message from bot just came
+        if (store.lastMsg && store.lastMsg.sender.type === 'human')  // Scroll down if brand a new message from bot just came
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
 
-        store.messages.push(msg);
+        store.addMessage(msg);
         if (store.messages.length === 1) // First message, update list of conversations
             await store.gatherConversations()
     };
