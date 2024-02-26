@@ -365,7 +365,7 @@ def llm_query_task(
     # TODO: fix async errors where sometimes this function is called before the MessageSerializer saves all the messages
     import time
     time.sleep(0.5)
-    join_bot_messages(conversation_id, Message) 
+    join_bot_messages(conversation_id, Message, rag_conf.pk) 
 
     # get the last human message from the conversation
     last_message = (
@@ -387,7 +387,7 @@ def llm_query_task(
         ]
     )
 
-def join_bot_messages(conversation_id, Message):
+def join_bot_messages(conversation_id, Message, rag_config_id):
     messages = Message.objects.filter(conversation_id=conversation_id).order_by("created_date")
 
     last_human_message = messages.filter(sender__type='human').last()
@@ -401,6 +401,7 @@ def join_bot_messages(conversation_id, Message):
     stack = bot_messages.last().stack
 
     stack[0]['payload']['model_response'] = full_message
+    stack[0]['payload']['rag_config_id'] = rag_config_id
 
 
     with transaction.atomic():
