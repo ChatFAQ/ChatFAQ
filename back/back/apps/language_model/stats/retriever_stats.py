@@ -1,4 +1,4 @@
-def calculate_precision(admin_labels, k_items):
+def calculate_precision(admin_labels, n_items):
     # Count the number of positive labels
     positive_count = sum(1 for label in admin_labels if label['value'] == 'positive')
     
@@ -7,7 +7,7 @@ def calculate_precision(admin_labels, k_items):
     total_labeled = len([label for label in admin_labels if label['value'] in ['positive', 'negative']])
     
     # Calculate precision
-    precision = positive_count / k_items # total_labeled if total_labeled > 0 else 0
+    precision = positive_count / n_items # total_labeled if total_labeled > 0 else 0
     
     return precision
 
