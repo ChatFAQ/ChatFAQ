@@ -11,13 +11,13 @@
             <div v-for="item in items" :key="item.id" class="active-task" @click="goToTaskToDetail(item.id)">
                 <div class="active-task-name">
                     <span class="name">{{ formatTaskName(item.task_name) }}</span>
-                    <span v-if="item.status !== 'WAITING'" class="action" @click="removeItem(item.id)">Close</span>
+                    <span v-if="item.status !== 'WAITING'" class="action" @click.stop @click="removeItem(item.id)">{{ $t("close") }}</span>
                 </div>
                 <div class="active-task-status" v-if="item.status !== 'STARTED'">{{ formatState(item.status) }}</div>
-                <div class="active-task-status" v-else-if="item.status">56% 3H Remaining</div>
+                <div class="active-task-status" v-else-if="item.status">{{ $t("inprogress") }}</div>
                 <div class="active-task-progress">
                     <el-progress v-if="item.status === 'STARTED'" :percentage="50" :show-text="false" :stroke-width="6"
-                                 :color="getColor(item.status)"></el-progress>
+                                 :color="getColor(item.status)"><span>{{ $t("inprogress") }}</span></el-progress>
                     <el-progress v-else :percentage="100" :show-text="false" :stroke-width="6"
                                  :color="getColor(item.status)"></el-progress>
                 </div>
@@ -29,6 +29,7 @@
 <script setup>
 import {useItemsStore} from "~/store/items.js";
 import {ArrowDown, ArrowUp} from "@element-plus/icons-vue";
+import {useI18n} from "vue-i18n";
 
 let ws = undefined
 const itemsStore = useItemsStore()
@@ -38,6 +39,7 @@ const apiUrl = ref("/back/api/language-model/tasks/")
 const opened = ref(false)
 const router = useRouter();
 const conf = useRuntimeConfig()
+const { t } = useI18n();
 
 
 if (process.client)
@@ -78,7 +80,8 @@ function setItems(newItems) {
     // If lastItemDate.value is null the only add items that are WAITING or STARTED
     // If lastItemDate.value is not null add all new items that are newer than lastItemDate.value
     // Update lastItemDate.value
-    const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
+    const filteredItems = newItems
+    // const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
     // add pendingNewItems if they dont exists yet
     filteredItems.forEach(filteredItem => {
         if (!items.value.find(item => item.id === filteredItem.id))
@@ -132,7 +135,7 @@ function formatState(state) {
     else if (state === "Failure")
         return state
     else if (state === "Started")
-        return "56% 3h remaining"  // TODO
+        return t("inprogress")
     else if (state === "Waiting")
         return state
     else
