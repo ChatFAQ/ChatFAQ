@@ -80,8 +80,7 @@ function setItems(newItems) {
     // If lastItemDate.value is null the only add items that are WAITING or STARTED
     // If lastItemDate.value is not null add all new items that are newer than lastItemDate.value
     // Update lastItemDate.value
-    const filteredItems = newItems
-    // const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
+    const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
     // add pendingNewItems if they dont exists yet
     filteredItems.forEach(filteredItem => {
         if (!items.value.find(item => item.id === filteredItem.id))
