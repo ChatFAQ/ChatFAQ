@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.0.46",
+    "version": "0.0.47",
     "private": false,
     "main": "./dist/chatfaq-widget.umd.cjs",
     "module": "./dist/chatfaq-widget.mjs",

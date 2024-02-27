@@ -31,7 +31,7 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
-import {computed} from "vue";
+import {computed, ref} from "vue";
 
 const store = useGlobalStore();
 
