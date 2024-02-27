@@ -173,8 +173,8 @@ class Payload(serializers.Field):
 
 
 class MessageStackSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType])
-    payload = Payload()
+    type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType], required=False)
+    payload = Payload(required=False)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
 
