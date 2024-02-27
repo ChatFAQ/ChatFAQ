@@ -109,6 +109,7 @@ class ReferenceKi(serializers.Serializer):
 
 class Reference(serializers.Serializer):
     knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
+    knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
     knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 

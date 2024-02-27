@@ -287,17 +287,12 @@ def llm_query_task(
     prev_messages, human_messages_id = Conversation.objects.get(
         pk=conversation_id
     ).get_mml_chain(as_conv_format=True)
-
-    prev_contents = list(
-        KnowledgeItem.objects.filter(
-            messageknowledgeitem__message_id__in=human_messages_id[
-                :-1
-            ]  # except current message
-        )
-        .distinct()
-        .order_by("updated_date")
-        .values_list("content", flat=True)
-    )
+    prev_kis = KnowledgeItem.objects.filter(
+        messageknowledgeitem__message_id__in=human_messages_id[
+            :-1  # except current message
+        ]
+    ).distinct().order_by("updated_date")
+    prev_contents = list(prev_kis.values_list("content", flat=True))
 
     rag = self.CACHED_RAGS[rag_config_name]
 
@@ -342,14 +337,17 @@ def llm_query_task(
         handle_error("Exception", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name)
         return
 
-    reference_kis = reference_kis[0] if len(reference_kis) > 0 else []
+    reference_kis = reference_kis[0] if reference_kis else []
     logger.info(f"\nReferences: {reference_kis}")
-    print(
-        {
-            "knowledge_base_id": rag_conf.knowledge_base.pk,
-            "knowledge_items": reference_kis,
-        }
-    )
+
+    # ALl images of the conversation so far
+    reference_ki_images = {}
+    for ki in prev_kis:
+        for ki_img in ki.knowledgeitemimage_set.all():
+            reference_ki_images[ki_img.image_file.name] = ki_img.image_file.url
+    for reference_ki in reference_kis:
+        reference_ki_images = {**reference_ki_images, **reference_ki["image_urls"]}
+
     _send_message(
         bot_channel_name,
         lm_msg_id,
@@ -357,7 +355,8 @@ def llm_query_task(
         chanel_name,
         references={
             "knowledge_base_id": rag_conf.knowledge_base.pk,
-            "knowledge_items": reference_kis
+            "knowledge_items": reference_kis,
+            "knowledge_item_images": reference_ki_images,
         },
         final=True,
     )

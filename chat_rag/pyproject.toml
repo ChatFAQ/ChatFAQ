@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chat-rag"
-version = "0.1.51"
+version = "0.1.54"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"

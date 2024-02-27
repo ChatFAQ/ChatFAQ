@@ -117,14 +117,7 @@ const getMarkedDownImagesTotal = computed(() => {
 })
 
 const imageUrls = computed(() => {
-    const res = {}
-    if (!props.data.payload.references.knowledge_items)
-        return res
-
-    props.data.payload.references.knowledge_items.forEach(item => {
-        Object.assign(res, item.image_urls)
-    })
-    return res
+    return props.data.payload.references.knowledge_item_images || {}
 })
 
 function openInNewTab(url) {
