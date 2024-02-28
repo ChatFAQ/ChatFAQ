@@ -47,7 +47,7 @@ class RPCResultSerializer(serializers.Serializer):
         if message is not None and self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
             more_model_response = self.validated_data["stack"][0]['payload']['model_response']
             old_payload = message.stack[0]['payload']
-            self.validated_data["stack"][0]['payload'].update(old_payload)
+            self.validated_data["stack"][0]['payload']['rag_config_id'] = old_payload['rag_config_id']
             self.validated_data["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
             message.stack = self.validated_data["stack"]
             message.last = self.validated_data["last"]
