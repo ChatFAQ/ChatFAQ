@@ -4,6 +4,7 @@ from django.urls import include, path
 from django.utils.translation import gettext_lazy as _
 from knox import views as knox_views
 from rest_framework.routers import DefaultRouter, SimpleRouter
+from django.conf.urls.static import static
 
 from drf_spectacular.views import SpectacularAPIView
 from back.apps.people.views import LoginView
@@ -50,3 +51,6 @@ if settings.DEBUG:
             name="redoc",
         ),
     ] + urlpatterns
+
+if settings.LOCAL_STORAGE:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -2,7 +2,7 @@
 
 ## Installation
 
-The system comprises three main components that you need to install:
+The system comprises three main components that you need to set up:
 
 
 ![ChatFAQ Components](./_static/images/chatfaq_components.png)

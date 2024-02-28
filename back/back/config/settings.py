@@ -8,6 +8,7 @@ from model_w.preset.django import ModelWDjango
 MIDDLEWARE = []
 INSTALLED_APPS = []
 LOGGING = {}
+LOCAL_STORAGE = os.getenv("STORAGES_MODE") == "local"
 
 
 def get_package_version() -> str:
@@ -78,7 +79,7 @@ class CustomPreset(ModelWDjango):
         yield channel_layers_config
 
 
-model_w_django = CustomPreset(enable_storages=True, enable_celery=True)
+model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=True)
 
 with EnvManager(model_w_django) as env:
     # ---
@@ -261,13 +262,17 @@ with EnvManager(model_w_django) as env:
     #         'exchange': 'broadcast_tasks'
     #     },
     # }
-    # --------------------------- S3 ---------------------------
-    AWS_S3_OBJECT_PARAMETERS = {
-        "CacheControl": "max-age=86400",
-    }
-    DEFAULT_FILE_STORAGE = "back.config.storage_backends.PublicMediaStorage"
-    PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateMediaStorage"
-    # Link expiration time in seconds
-    AWS_QUERYSTRING_EXPIRE = "3600"
-    AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
-    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+    if LOCAL_STORAGE:
+        MEDIA_URL = '/local_storage/'
+        MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local_storage")
+    else:
+        # --------------------------- S3 ---------------------------
+        AWS_S3_OBJECT_PARAMETERS = {
+            "CacheControl": "max-age=86400",
+        }
+        DEFAULT_FILE_STORAGE = "back.config.storage_backends.PublicS3MediaStorage"
+        PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateS3MediaStorage"
+        # Link expiration time in seconds
+        AWS_QUERYSTRING_EXPIRE = "3600"
+        AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
+        AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
