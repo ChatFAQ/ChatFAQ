@@ -130,6 +130,7 @@ class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
 class AdminReviewAPIViewSet(viewsets.ModelViewSet):
     serializer_class = AdminReviewSerializer
     queryset = AdminReview.objects.all()
+    filterset_fields = ["message"]
 
 
 class SenderAPIView(CreateAPIView, UpdateAPIView):
