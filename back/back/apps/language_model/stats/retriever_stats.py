@@ -1,4 +1,6 @@
-def calculate_precision(admin_labels, n_items):
+from typing import List, Dict, Any
+
+def calculate_precision(admin_labels: List[Dict[str, Any]]):
     # Count the number of positive labels
     positive_count = sum(1 for label in admin_labels if label['value'] == 'positive')
     
@@ -7,12 +9,12 @@ def calculate_precision(admin_labels, n_items):
     total_labeled = len([label for label in admin_labels if label['value'] in ['positive', 'negative']])
     
     # Calculate precision
-    precision = positive_count / n_items # total_labeled if total_labeled > 0 else 0
+    precision = (positive_count / total_labeled) if total_labeled > 0 else 0
     
     return precision
 
 
-def calculate_recall(admin_labels):
+def calculate_recall(admin_labels: List[Dict[str, Any]]):
     relevant_labels = ['positive', 'alternative']
 
     positive_count = sum(1 for label in admin_labels if label['value'] == 'positive')
@@ -35,17 +37,43 @@ def calculate_unlabeled_item_rate(retrieved_items, admin_labels):
     return unlabeled_item_rate
 
 
-def calculate_retriever_stats(admin_labels, retrieved_items):
-    k_items = len(retrieved_items)
-    precision = calculate_precision(admin_labels, k_items)
-    recall = calculate_recall(admin_labels)
+def calculate_retriever_stats(admin_labels: List[List[Dict[str, Any]]]):
+    """
+    Calculate precision, recall, f1, and unlabeled item rate for a list of admin labels
+    Parameters
+    ----------
+    admin_labels : List[List[Dict[str, Any]]]
+        A list of admin labels, where each list contains the admin labels of the retrieved items for a single message
+    Returns
+    -------
+    Dict[str, float]
+        A dictionary containing the precision, recall, f1, and unlabeled item rate
+    """
+
+    if not admin_labels:
+        return {
+            'precision': 0,
+            'recall': 0,
+            'f1': 0,
+            # 'unlabeled_item_rate': 0
+        }
+
+    precision = 0
+    recall = 0
+
+    for admin_label in admin_labels:
+        precision += calculate_precision(admin_label)
+        recall += calculate_recall(admin_label)
+
+    precision /= len(admin_labels)
+    recall /= len(admin_labels)
     f1 = calculate_f1(precision, recall)
-    unlabeled_item_rate = calculate_unlabeled_item_rate(retrieved_items, admin_labels)
+    # unlabeled_item_rate = calculate_unlabeled_item_rate(retrieved_items, admin_labels)
     
     return {
         'precision': precision,
         'recall': recall,
         'f1': f1,
-        'unlabeled_item_rate': unlabeled_item_rate
+        # 'unlabeled_item_rate': unlabeled_item_rate
     }
 

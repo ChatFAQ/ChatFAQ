@@ -1090,25 +1090,91 @@ def generate_intents_task(knowledge_base_pk):
 
 
 @app.task()
-def compute_stats(rag_config_id):
+def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
     """
     Compute the statistics for a knowledge base.
     Parameters
     ----------
     rag_config_id : int
         The primary key of the RAGConfig object.
+    dates_ranges : list
+        A list of tuples with the start and end dates for the statistics.
     """
+    from datetime import datetime
+    from back.apps.language_model.stats import calculate_retriever_stats
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     Message = apps.get_model("broker", "Message")
+    AdminReview = apps.get_model("broker", "AdminReview")
+    UserFeedback = apps.get_model("broker", "UserFeedback")
 
-    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    all_retriever_stats = []
+    all_quality_stats = []
 
-    k_items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
+    for start_date_str, end_date_str in dates_ranges:
 
-    logger.info(f"Number of knowledge items: {k_items.count()}")
+        # else all the messages
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d") if start_date_str else None
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d") if end_date_str else None
 
-    # For retriever metrics, the votes are 'positive' and 'negative' votes
-    # MRR may not be computed because it's specially useful when we have one clear item to be returned for a query
-    # and here we don't have that, we have a list of items to be returned
+        logger.info(f"Start date: {start_date}, end date: {end_date}")
+
+        messages = Message.objects.filter(
+            stack__contains=[
+            {"type": "lm_generated_text", "payload": {"rag_config_id": str(82)}}
+        ]
+        )
+
+        if start_date is not None:  # Apply start_date if not None
+            messages = messages.filter(created_date__gte=start_date)
+
+        if end_date is not None:   # Apply end_date if not None
+            messages = messages.filter(created_date__lte=end_date)
+
+        # Retriever stats
+
+        admin_reviews = AdminReview.objects.filter(
+            message__in=messages, 
+        )
+
+        ki_review_data_list = [admin_review.ki_review_data for admin_review in admin_reviews]
+
+        print(f"Number of admin reviews: {admin_reviews.count()}")
+        
+        retriever_stats = calculate_retriever_stats(ki_review_data_list)
+
+        all_retriever_stats.append(retriever_stats)
+
+        # print retriever stats
+        for k, v in retriever_stats.items():
+            print(f"{k}: {v:.2f}")
+
+        # Response quality stats
+            
+        user_feedbacks = UserFeedback.objects.filter(
+            message__in=messages,
+            value__isnull=False,
+        )
+
+        # get the quality values
+        admin_quality_values = [admin_review.gen_review_val for admin_review in admin_reviews]
+        user_quality_values = [user_feedback.value for user_feedback in user_feedbacks]
+        
+        # Compute the average value and normalize to 0-1
+        admin_quality = sum(admin_quality_values) / len(admin_quality_values) if admin_quality_values else 0
+        scale = max(AdminReview.VALUE_CHOICES)[0]
+        admin_quality = admin_quality / scale  # normalize
+        
+
+        # map user feedback from positive/negative to 1/0 and compute the average
+        user_quality_values = [1 if user_feedback == "positive" else 0 for user_feedback in user_quality_values]
+        user_quality = sum(user_quality_values) / len(user_quality_values) if user_quality_values else 0
+
+        print(f"Admin quality: {admin_quality:.2f}")
+        print(f"User quality: {user_quality:.2f}")
+
+        all_quality_stats.append({
+            "admin_quality": admin_quality,
+            "user_quality": user_quality,
+        })
