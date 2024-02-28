@@ -34,7 +34,7 @@
                         <div class="card-header-title">{{ createTitle(item) }}</div>
                     </template>
                     <div v-for="(name, prop) in cardProps" class="property">
-                        <span class="title">{{ name }}</span>
+                        <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
                     </div>
                     <div class="divider">
                     </div>
@@ -240,7 +240,11 @@ function solveRefProp(item, propName) {
         return item[propName]
     if (prop.$ref && schema.value.properties[propName].choices) {
         // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
-        const choice = schema.value.properties[propName].choices.find(choice => choice.value === item[propName])
+        let choice
+        if (schema.value.properties[propName].choices.results)
+            choice = schema.value.properties[propName].choices.results.find(choice => choice.value === item[propName])
+        else
+            choice = schema.value.properties[propName].choices.find(choice => choice.value === item[propName])
         if (choice) {
             return choice.label
         }
