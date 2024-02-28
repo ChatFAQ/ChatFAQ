@@ -69,14 +69,14 @@ async function initKIReview() {
     for (const ki_ref of references.knowledge_items) {
         const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
             id: ki_ref.knowledge_item_id
-        }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0})
+        }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
-    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}, {limit: 0, offset: 0}) || {}
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}, {limit: 0, offset: 0, ordering: undefined}) || {}
     ki_choices.value = await itemsStore.requestOrGetItems($axios, "/back/api/language-model/knowledge-items/", {
         knowledge_base: references.knowledge_base_id
-    }, {knowledge_base__id: references.knowledge_base_id}), {limit: 0, offset: 0}
+    }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})
     itemsStore.loading = false
 }
 
@@ -126,7 +126,7 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0})
+    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
 }
 
 function getVoteKI(kiId) {

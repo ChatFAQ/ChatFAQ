@@ -25,21 +25,23 @@ export const useItemsStore = defineStore('items', {
         savingItem: false,
         pageSize: 50,
         currentPage: 1,
+        ordering: undefined,
     }),
     actions: {
         async retrieveItems($axios, apiUrl = undefined, params = {}) {
             const cacheName = apiCacheName(apiUrl, params)
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
-            let ordering = "-updated_date"
-            if (apiUrl.indexOf("/people/") !== -1)
-                ordering = "first_name"
+            // let ordering = "-updated_date"
+            // if (apiUrl.indexOf("/people/") !== -1)
+            //     ordering = "first_name"
             // check if params has "limit", "order" or "offset" and use them instead of the default ones
-            if (params.limit === undefined)
+            if (!("limit" in params))
                 params.limit = this.pageSize
-            if (params.offset === undefined)
+            if (!("offset" in params))
                 params.offset = (this.currentPage - 1) * this.pageSize
-            if (params.ordering === undefined)
-                params.ordering = ordering
+            if (!("ordering" in params)) {
+                params.ordering = this.ordering
+            }
             // add this.filter into params:
             for (const [key, val] of Object.entries(this.filters)) {
                 if (params[key] === undefined)

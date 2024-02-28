@@ -65,7 +65,13 @@
             </div>
         </div>
 
-        <el-table v-else-if="requiredFilterSatisfied" class="table-view" :data="itemsStore.items[apiUrl]?.results" :stripe="false" :defaultSort="defaultSort"
+        <el-table v-else-if="requiredFilterSatisfied"
+                  class="table-view"
+                  :data="itemsStore.items[apiUrl]?.results"
+                  :stripe="false"
+                  :defaultSort="defaultSort"
+                  sortable="custom"
+                  @sort-change="sortChange"
                   style="width: 100%">
             <el-table-column
                 v-for="(propInfo, prop) in tableProps"
@@ -129,18 +135,6 @@ const schema = ref({})
 const route = useRoute()
 const deleteCommand = ref(undefined)
 
-watch(() => route.fullPath, () => {
-    itemsStore.currentPage = 1
-})
-
-watch(() => itemsStore.filters, async () => {
-    await loadItems()
-}, {deep: true})
-
-watch(() => itemsStore.currentPage, async () => {
-    await loadItems()
-})
-
 const props = defineProps({
     readableName: {
         type: String,
@@ -191,16 +185,29 @@ const requiredFilterSatisfied = computed(() => {
     return !props.requiredFilter || itemsStore.filters[props.requiredFilter] !== undefined
 })
 
+function initStoreWatchers() {
+    watch(() => route.fullPath, () => {
+        itemsStore.currentPage = 1
+    })
+
+    watch(() => itemsStore.filters, async () => {
+        await loadItems()
+    }, {deep: true})
+
+    watch(() => itemsStore.currentPage, async () => {
+        await loadItems()
+    })
+
+    watch(() => itemsStore.ordering, async () => {
+        await loadItems()
+    })
+}
 async function initData() {
     itemsStore.loading = true
     schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
-    if(!requiredFilterSatisfied.value) {
-        itemsStore.loading = false
-        itemsStore.items[props.apiUrl] = {results: []}
-        return
-    }
-    await itemsStore.retrieveItems($axios, props.apiUrl)
-    itemsStore.loading = false
+    sortChange(props.defaultSort)
+    await loadItems()
+    initStoreWatchers()
 }
 
 async function loadItems() {
@@ -250,9 +257,16 @@ function solveRefProp(item, propName) {
         }
     }
     return item[propName]
-
 }
 
+function sortChange({column, prop, order}) {
+    if (!order)
+        itemsStore.ordering = undefined
+    else if (order === "descending")
+        itemsStore.ordering = `-${prop}`
+    else
+        itemsStore.ordering = prop
+}
 
 </script>
 

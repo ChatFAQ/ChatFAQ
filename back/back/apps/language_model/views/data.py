@@ -3,7 +3,7 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
 import django_filters
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from back.apps.language_model.models.data import (
     KnowledgeBase,
@@ -100,7 +100,7 @@ class KnowledgeItemAPIViewSet(viewsets.ModelViewSet):
     queryset = KnowledgeItem.objects.all()
     serializer_class = KnowledgeItemSerializer
 
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ['title', 'content']
     filterset_class = KnowledgeItemFilterSet
 
@@ -172,7 +172,7 @@ class IntentAPIViewSet(viewsets.ModelViewSet):
     serializer_class = IntentSerializer
     search_fields = ['intent_name']
     filterset_class = IntentFilterSet
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
 
     @action(
