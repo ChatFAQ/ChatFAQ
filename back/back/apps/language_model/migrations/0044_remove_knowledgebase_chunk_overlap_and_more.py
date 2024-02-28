@@ -130,7 +130,7 @@ class Migration(migrations.Migration):
                     models.FileField(
                         blank=True,
                         null=True,
-                        storage=back.config.storage_backends.PrivateMediaStorage(),
+                        storage=back.config.storage_backends.PrivateMediaS3Storage(),
                         upload_to="",
                     ),
                 ),
@@ -139,7 +139,7 @@ class Migration(migrations.Migration):
                     models.FileField(
                         blank=True,
                         null=True,
-                        storage=back.config.storage_backends.PrivateMediaStorage(),
+                        storage=back.config.storage_backends.PrivateMediaS3Storage(),
                         upload_to="",
                     ),
                 ),

@@ -117,6 +117,7 @@ class LMGeneratedTextPayload(serializers.Serializer):
     class _LMGeneratedTextPayload(serializers.Serializer):
         model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
         rag_config_name = serializers.CharField()
+        rag_config_id = serializers.CharField()
         lm_msg_id = serializers.CharField()
         references = Reference(required=False, allow_null=True)
 

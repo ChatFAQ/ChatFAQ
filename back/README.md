@@ -62,7 +62,9 @@ First of all, create a `.env` file with the needed variables set. You can see an
 
 `BASE_URL`: Base URL of the server. This is the URL that will be used to connect to the server. It should be in the following format: `http://HOST:PORT`
 
-`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` + `AWS_STORAGE_BUCKET_NAME` + `DO_REGION` + `STORAGES_MODE` + `STORAGE_MAKE_FILES_PUBLIC`: These variables are used to configure the storage backend. If you want to use AWS S3, you should set `STORAGES_MODE` to "s3" and set the other variables accordingly. If you want to use Digital Ocean Spaces, you should set `STORAGES_MODE` to "spaces" and set the other variables accordingly. If you want to use the local filesystem, you should set `STORAGES_MODE` to "local".
+`STORAGES_MODE`: The values can be "local", "s3" or "do", if "local" mode is set, the files will be stored under the `MEDIA_ROOT` directory (`./back/local_storage` by default) and if "s3" or "do" mode is set you will need to set the variables specified below.
+
+`AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` + `AWS_STORAGE_BUCKET_NAME` + `DO_REGION` + `STORAGE_MAKE_FILES_PUBLIC`: These variables are used to configure the storage backend. If you want to use AWS S3, you should set `STORAGES_MODE` to "s3" and set the other variables accordingly. If you want to use Digital Ocean Spaces, you should set `STORAGES_MODE` to "do" and set the other variables accordingly. If you want to use the local filesystem, you should set `STORAGES_MODE` to "local".
 
 `TG_TOKEN`, `WHATSAPP_TOKEN`, `SIGNAL_TOKEN`, `FB_TOKEN`: These variables are used to configure the messaging platforms. You should set the token of the platforms you want to use. If you don't want to use a platform (ie: you are using our [Widget](../widget/README.md) solution), you can leave its token empty.
 

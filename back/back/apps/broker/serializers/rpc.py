@@ -1,10 +1,11 @@
 import time
 
 from rest_framework import serializers
-from back.apps.broker.models.message import AgentType
+from back.apps.broker.models.message import AgentType, StackPayloadType
 from back.apps.broker.serializers.messages import MessageSerializer
 from back.apps.broker.consumers.message_types import RPCMessageType, ParseMessageType, RPCNodeType
 from back.apps.broker.models.message import Message
+from back.apps.language_model.models import RAGConfig
 
 
 class CtxSerializer(serializers.Serializer):
@@ -39,12 +40,15 @@ class RPCResultSerializer(serializers.Serializer):
         if not self.is_valid():
             raise serializers.ValidationError("RPCResultSerializer is not valid")
         if self.validated_data["node_type"] != RPCNodeType.action.value:
-            raise serializers.ValidationError("RPCResultSerializer is not valid")
+            raise serializers.ValidationError("RPCResultSerializer is not an action")
 
-        # Check if extists already a message with the same stack_id:
+        # Check if extists already a message with the same stack_id, if so we append the new stack to the existing one
         message = Message.objects.filter(stack_id=self.validated_data["stack_id"]).first()
-        if message is not None:
-            self.validated_data["stack"][0]['payload']['model_response'] = message.stack[0]['payload']['model_response'] + self.validated_data["stack"][0]['payload']['model_response']
+        if message is not None and self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
+            more_model_response = self.validated_data["stack"][0]['payload']['model_response']
+            old_payload = message.stack[0]['payload']
+            self.validated_data["stack"][0]['payload'].update(old_payload)
+            self.validated_data["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
             message.stack = self.validated_data["stack"]
             message.last = self.validated_data["last"]
             message.save()
@@ -61,6 +65,9 @@ class RPCResultSerializer(serializers.Serializer):
                 "conversation": self.validated_data["ctx"]["conversation_id"],
                 "send_time": int(time.time() * 1000),
             }
+            if self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
+                rag_config_id = RAGConfig.objects.get(name=self.validated_data['stack'][0]['payload']['rag_config_name']).id
+                data['stack'][0]['payload']["rag_config_id"] = rag_config_id
             if self.validated_data["ctx"]["user_id"] is not None:
                 data["receiver"] = {"type": AgentType.human.value, "id": self.validated_data["ctx"]["user_id"]}
             serializer = MessageSerializer(data=data)
