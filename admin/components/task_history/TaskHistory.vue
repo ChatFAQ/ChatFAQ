@@ -49,7 +49,7 @@
             <div>{{ formatTaskName(row.task_name) }}</div>
         </template>
         <template v-slot:status="{row}">
-            <div width="10" class="status" :class="{[row.status.toLowerCase()]: true}">-</div>
+            <div width="10" class="status" :class="{[row.status]: true}">-</div>
         </template>
         <template v-slot:view="{row}">
             <span class="command-edit" @click="stateToDetail(row.id)">{{ $t("view") }}</span>
@@ -156,15 +156,15 @@ function sortDuration(a, b) {
     margin: 0 auto;
     background-color: #F2C94C; // waiting
 
-    &.success {
+    &.SUCCESS {
         background-color: #27AE60;
     }
 
-    &.failure {
+    &.FAILURE {
         background-color: #EB5757;
     }
 
-    &.started {
+    &.STARTED {
         background-color: #2D9CDB;
     }
 }
