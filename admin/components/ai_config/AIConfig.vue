@@ -20,7 +20,12 @@
                     'updated_date': $t('updateddate'),
                 }">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)">{{ $t("reindex") }}</el-button>
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)">
+                        <span>{{ $t("reindex") }}</span>
+                        <el-icon>
+                            <Refresh/>
+                        </el-icon>
+                    </el-button>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -135,5 +140,8 @@ async function callRagReindex(ragId) {
     @include button-primary;
     width: 100%;
     margin-top: 8px;
+    span {
+        margin-right: 8px;
+    }
 }
 </style>
