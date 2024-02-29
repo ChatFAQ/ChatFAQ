@@ -28,7 +28,7 @@ from django.conf import settings
 import os
 
 from back.utils.celery import recache_models as recache_models_utils
-from django.db.models import F
+from django.db.models import F, Subquery
 
 
 if is_celery_worker():
@@ -1101,16 +1101,19 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
         A list of tuples with the start and end dates for the statistics.
     """
     from datetime import datetime
-    from back.apps.language_model.stats import calculate_retriever_stats
+    from back.apps.language_model.stats import calculate_retriever_stats, calculate_response_stats
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     Message = apps.get_model("broker", "Message")
     AdminReview = apps.get_model("broker", "AdminReview")
     UserFeedback = apps.get_model("broker", "UserFeedback")
+    MessageKnowledgeItem = apps.get_model("language_model", "MessageKnowledgeItem")
+    Intent = apps.get_model("language_model", "Intent")
 
     all_retriever_stats = []
     all_quality_stats = []
+    all_general_stats = []
 
     for start_date_str, end_date_str in dates_ranges:
 
@@ -1132,7 +1135,11 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
         if end_date is not None:   # Apply end_date if not None
             messages = messages.filter(created_date__lte=end_date)
 
-        # Retriever stats
+        ##############################
+        # Retriever stats 
+        ##############################
+            
+        # TODO: add the % of unlabeled knowledge items
 
         admin_reviews = AdminReview.objects.filter(
             message__in=messages, 
@@ -1150,31 +1157,53 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
         for k, v in retriever_stats.items():
             print(f"{k}: {v:.2f}")
 
+        ##############################
         # Response quality stats
+        ##############################
+            
+        # TODO: add the % of unlabeled responses
             
         user_feedbacks = UserFeedback.objects.filter(
             message__in=messages,
             value__isnull=False,
         )
 
-        # get the quality values
-        admin_quality_values = [admin_review.gen_review_val for admin_review in admin_reviews]
-        user_quality_values = [user_feedback.value for user_feedback in user_feedbacks]
+        response_stats = calculate_response_stats(admin_reviews, user_feedbacks)
         
-        # Compute the average value and normalize to 0-1
-        admin_quality = sum(admin_quality_values) / len(admin_quality_values) if admin_quality_values else 0
-        scale = max(AdminReview.VALUE_CHOICES)[0]
-        admin_quality = admin_quality / scale  # normalize
-        
+        for k, v in response_stats.items():
+            print(f"{k}: {v:.2f}")
 
-        # map user feedback from positive/negative to 1/0 and compute the average
-        user_quality_values = [1 if user_feedback == "positive" else 0 for user_feedback in user_quality_values]
-        user_quality = sum(user_quality_values) / len(user_quality_values) if user_quality_values else 0
+        all_quality_stats.append(response_stats)
 
-        print(f"Admin quality: {admin_quality:.2f}")
-        print(f"User quality: {user_quality:.2f}")
+        ##############################
+        # General RAG stats
+        ##############################
 
-        all_quality_stats.append({
-            "admin_quality": admin_quality,
-            "user_quality": user_quality,
+        prev_messages_ids = messages.annotate(previous_message_id=F('prev__id'))\
+                                    .values('prev_id')\
+                                    .filter(previous_message_id__isnull=False)
+
+        prev_messages = Message.objects.filter(id__in=prev_messages_ids)
+
+        chit_chats_count = prev_messages.filter(messageknowledgeitem__isnull=True).count()
+
+        # % of chit-chats with respect to the total number of messages
+        chit_chats_percentage = chit_chats_count / messages.count() * 100
+
+        print(f"Chit-chats: {chit_chats_count} ({chit_chats_percentage:.2f}%)")
+
+        intents_suggested = Intent.objects.filter(suggested_intent=True).values("pk")
+
+        fallbacks_count = prev_messages.filter(intent__in=Subquery(intents_suggested)).count()
+
+        # % of fallbacks with respect to the total number of messages
+        fallbacks_percentage = fallbacks_count / messages.count() * 100
+
+        print(f"Fallbacks: {fallbacks_count} ({fallbacks_percentage:.2f}%)")
+
+        all_general_stats.append({
+            "chit_chats_count": chit_chats_count,
+            "chit_chats_percentage": chit_chats_percentage,
+            "fallbacks_count": fallbacks_count,
+            "fallbacks_percentage": fallbacks_percentage
         })

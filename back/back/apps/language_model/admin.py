@@ -116,7 +116,12 @@ class RagConfigAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         # This makes 'index_up_to_date' readonly in all cases
         return self.readonly_fields + ('index_up_to_date', 's3_index_path',)
+    
 
+class MessageKnowledgeItemAdmin(admin.ModelAdmin):
+    list_display = ["message_id", "knowledge_item_id", "similarity", "valid"]
+    list_filter = ["knowledge_item__knowledge_base"]
+    ordering = ["message_id"]
 
 
 admin.site.register(RAGConfig, RagConfigAdmin)
@@ -131,4 +136,4 @@ admin.site.register(RetrieverConfig)
 admin.site.register(Embedding)
 admin.site.register(DataSource, DataSourceAdmin)
 admin.site.register(Intent, IntentAdmin)
-admin.site.register(MessageKnowledgeItem)
+admin.site.register(MessageKnowledgeItem, MessageKnowledgeItemAdmin)
