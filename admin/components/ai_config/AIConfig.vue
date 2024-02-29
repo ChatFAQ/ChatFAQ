@@ -33,6 +33,7 @@
                             class="system-prefix-input"
                             v-model="form[fieldName]"
                             autosize
+                            @keydown.enter.stop
                             type="textarea"
                         />
                     </el-form-item>

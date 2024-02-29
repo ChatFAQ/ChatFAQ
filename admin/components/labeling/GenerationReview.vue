@@ -22,6 +22,7 @@
             class="review-message"
             v-model="review.gen_review_msg"
             type="textarea"
+            @keydown.enter.stop
             :placeholder="$t('giveanalternativeanswer')"
             :autosize="{ minRows: 3 }"
             @input="submitReviewMsg"
