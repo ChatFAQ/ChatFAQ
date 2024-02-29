@@ -229,5 +229,6 @@
     "waiting": "Waiting",
     "worker": "Worker",
     "failedtotriggerreindex": "Failed to trigger reindex",
-    "reindextriggered": "Reindex triggered"
+    "reindextriggered": "Reindex triggered",
+    "reindex": "Reindex"
 }
