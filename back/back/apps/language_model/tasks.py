@@ -1107,7 +1107,7 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
 
 
     from datetime import datetime
-    from back.apps.language_model.stats import calculate_retriever_stats, calculate_response_stats
+    from back.apps.language_model.stats import calculate_retriever_stats, calculate_response_stats, calculate_general_rag_stats
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
@@ -1151,7 +1151,7 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
 
         ki_review_data_list = [admin_review.ki_review_data for admin_review in admin_reviews]
 
-        print(f"Number of admin reviews: {admin_reviews.count()}")
+        logger.info(f"Number of admin reviews: {admin_reviews.count()}")
         
         retriever_stats = calculate_retriever_stats(ki_review_data_list)
 
@@ -1159,7 +1159,7 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
 
         # print retriever stats
         for k, v in retriever_stats.items():
-            print(f"{k}: {v:.2f}")
+            logger.info(f"{k}: {v:.2f}")
 
         ##############################
         # Response quality stats
@@ -1173,7 +1173,7 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
         response_stats = calculate_response_stats(admin_reviews, user_feedbacks)
         
         for k, v in response_stats.items():
-            print(f"{k}: {v:.2f}")
+            logger.info(f"{k}: {v:.2f}")
 
         all_quality_stats.append(response_stats)
 
@@ -1187,27 +1187,11 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
 
         prev_messages = Message.objects.filter(id__in=prev_messages_ids)
 
-        chit_chats_count = prev_messages.filter(messageknowledgeitem__isnull=True).count()
+        general_rag_stats = calculate_general_rag_stats(prev_messages, messages.count())
 
-        # % of chit-chats with respect to the total number of messages
-        chit_chats_percentage = chit_chats_count / messages.count() * 100
+        for k, v in general_rag_stats.items():
+            logger.info(f"{k}: {v:.2f}")       
 
-        print(f"Chit-chats: {chit_chats_count} ({chit_chats_percentage:.2f}%)")
-
-        intents_suggested = Intent.objects.filter(suggested_intent=True).values("pk")
-
-        fallbacks_count = prev_messages.filter(intent__in=Subquery(intents_suggested)).count()
-
-        # % of fallbacks with respect to the total number of messages
-        fallbacks_percentage = fallbacks_count / messages.count() * 100
-
-        print(f"Fallbacks: {fallbacks_count} ({fallbacks_percentage:.2f}%)")
-
-        all_general_stats.append({
-            "chit_chats_count": chit_chats_count,
-            "chit_chats_percentage": chit_chats_percentage,
-            "fallbacks_count": fallbacks_count,
-            "fallbacks_percentage": fallbacks_percentage
-        })
+        all_general_stats.append(general_rag_stats)
 
         

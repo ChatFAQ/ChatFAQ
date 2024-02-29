@@ -1,2 +1,3 @@
 from back.apps.language_model.stats.retriever_stats import calculate_retriever_stats
 from back.apps.language_model.stats.response_stats import calculate_response_stats
+from back.apps.language_model.stats.general_rag_stats import calculate_general_rag_stats
