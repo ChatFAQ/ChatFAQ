@@ -1091,7 +1091,7 @@ def generate_intents_task(knowledge_base_pk):
 
 
 @app.task()
-def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
+def compute_rag_stats(rag_config_id, dates_ranges=[(None, None)]):
     """
     Compute the statistics for a knowledge base.
     Parameters
@@ -1120,6 +1120,7 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
     all_retriever_stats = []
     all_quality_stats = []
     all_general_stats = []
+    all_usage_stats = []
 
     for start_date_str, end_date_str in dates_ranges:
 
@@ -1193,5 +1194,8 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
             logger.info(f"{k}: {v:.2f}")       
 
         all_general_stats.append(general_rag_stats)
+
+    
+    # TODO: Return the stats to the frontend
 
         
