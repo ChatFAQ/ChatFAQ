@@ -22,7 +22,7 @@
     "sdkvisualizer": "SDK Visualizer",
     "stats": "Stats",
     "usermanagement": "User Management",
-    "taskhistory": "Task history",
+    "taskhistory": "Task History",
     "accountsettings": "Account settings",
     "logout": "Log Out",
 
@@ -227,5 +227,7 @@
     "view": "View",
     "viewknowledgeitems": "View Knowledge Items",
     "waiting": "Waiting",
-    "worker": "Worker"
+    "worker": "Worker",
+    "failedtotriggerreindex": "Failed to trigger reindex",
+    "reindextriggered": "Reindex triggered"
 }

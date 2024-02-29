@@ -106,7 +106,8 @@ async function submitFilters() {
     }
 }
 .el-date-editor {
-    width: 360px !important;
+    width: 100% !important;
+    min-width: 360px !important;
 }
 </style>
 <style scoped lang="scss">

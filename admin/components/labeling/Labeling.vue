@@ -48,6 +48,7 @@ function goToLabelingConversation(id) {
 .go-to-view {
     cursor: pointer;
     text-decoration: underline;
+    font-weight: 600;
 }
 </style>
 

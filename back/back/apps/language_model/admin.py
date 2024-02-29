@@ -102,7 +102,7 @@ class IntentAdmin(admin.ModelAdmin):
 
 def run_index_task(modeladmin, request, queryset):
     for rag_config in queryset:
-        index_task.delay(rag_config.id, recache_models=True, caller='RagConfig Admin')  # Trigger the Celery task
+        rag_config.trigger_reindex(True, 'RagConfig Django Admin')
         modeladmin.message_user(request, f"Index task started for {rag_config.name}", messages.SUCCESS)
 
 run_index_task.short_description = "Index selected RAG configs"

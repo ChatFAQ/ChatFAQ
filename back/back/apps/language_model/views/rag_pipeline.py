@@ -1,5 +1,6 @@
 from rest_framework import viewsets, filters
-
+from django.http import JsonResponse
+from rest_framework.decorators import action
 from back.apps.language_model.models.rag_pipeline import LLMConfig, RAGConfig, GenerationConfig, PromptConfig, RetrieverConfig
 from back.apps.language_model.serializers.rag_pipeline import LLMConfigSerializer, RAGConfigSerializer, \
     GenerationConfigSerializer, PromptConfigSerializer, RetrieverConfigSerializer
@@ -17,6 +18,17 @@ class RAGConfigAPIViewSet(viewsets.ModelViewSet):
             if kb:
                 self.kwargs["pk"] = str(kb.pk)
         return super().get_queryset()
+
+    @action(detail=True, url_name="trigger-reindex", url_path="trigger-reindex")
+    def trigger_reindex(self, request, *args, **kwargs):
+        """
+        A view to trigger reindexing of the knowledge base:
+        """
+        rag_conf = RAGConfig.objects.filter(pk=kwargs["pk"]).first()
+        if not rag_conf:
+            return JsonResponse({"status": "knowledge base not found"}, status=404)
+        rag_conf.trigger_reindex()
+        return JsonResponse({"status": "reindex triggered"})
 
 
 class LLMConfigAPIViewSet(viewsets.ModelViewSet):

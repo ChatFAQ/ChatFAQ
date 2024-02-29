@@ -29,9 +29,10 @@
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
             <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
-                <el-card class="box-card">
+                <el-card class="box-card" @click="stateToEdit(item.id)">
                     <template #header>
                         <div class="card-header-title">{{ createTitle(item) }}</div>
+                        <div class="extra-commands"><slot name="extra-commands" :item="item"></slot></div>
                     </template>
                     <div v-for="(name, prop) in cardProps" class="property">
                         <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
@@ -39,18 +40,18 @@
                     <div class="divider">
                     </div>
                     <div class="commands">
-                        <el-icon v-if="deleting !== item.id" class="command-delete">
+                        <el-icon v-if="deleting !== item.id" class="command-delete" @click.stop>
                             <Delete @click="deleting = item.id"/>
                         </el-icon>
                         <div class="command-delete-confirm">
                             <el-icon v-if="deleting === item.id" class="command-delete">
-                                <Close @click="deleting = undefined"/>
+                                <Close @click="deleting = undefined"  @click.stop/>
                             </el-icon>
                             <el-icon v-if="deleting === item.id" class="command-delete">
-                                <Check @click="deleteItem(deleting)"/>
+                                <Check @click="deleteItem(deleting)"  @click.stop/>
                             </el-icon>
                         </div>
-                        <span class="command-edit" @click="(ev) => stateToEdit(item.id, ev.target)">{{ $t("edit") }}</span>
+                        <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
                     </div>
                 </el-card>
                 <slot name="extra-card-bottom" :item="item"></slot>
@@ -86,7 +87,7 @@
                     <slot :name="prop" v-bind="scope"></slot>
                 </template>
             </el-table-column>
-            <el-table-column v-if="!readOnly" align="center">
+            <el-table-column v-if="!readOnly" align="center" fit="true">
                 <template #default="{ row }">
                     <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
                 </template>
@@ -226,7 +227,7 @@ function createTitle(item) {
     return props.titleProps.map(prop => item[prop]).join(" ")
 }
 
-function stateToEdit(id, target) {
+function stateToEdit(id) {
     itemsStore.editing = id
 }
 
@@ -280,6 +281,8 @@ function sortChange({column, prop, order}) {
 .el-card__header {
     padding-left: 16px;
     border: unset;
+    display: flex;
+    justify-content: space-between;
 }
 
 .el-card__body {
@@ -344,6 +347,7 @@ function sortChange({column, prop, order}) {
     padding: 16px;
 
     .box-card {
+        cursor: pointer;
         &:hover {
             box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
         }
@@ -409,13 +413,13 @@ function sortChange({column, prop, order}) {
 }
 
 .card-header-title {
+    font-family: "Montserrat";
     font-size: 18px;
     font-weight: 700;
     line-height: 22px;
     letter-spacing: 0em;
     text-align: left;
 }
-
 .property {
     overflow: hidden;
     width: 100%;
@@ -446,9 +450,8 @@ function sortChange({column, prop, order}) {
 
 .command-edit, .command-delete {
     cursor: pointer;
-    &:hover {
-        text-decoration: underline;
-    }
+    text-decoration: underline;
+    font-weight: 600;
 }
 
 .command-delete-confirm.on-table {
