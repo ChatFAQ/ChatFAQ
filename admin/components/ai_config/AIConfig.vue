@@ -19,10 +19,8 @@
                     'retriever_config': $t('retrieverconfig'),
                     'updated_date': $t('updateddate'),
                 }">
-                <template v-slot:extra-commands="{item}">
-                    <el-icon alt="asdsad" class="reindex-button"  @click="callRagReindex(item.id)">
-                        <Refresh/>
-                    </el-icon>
+                <template v-slot:extra-card-bottom="{item}">
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)">{{ $t("reindex") }}</el-button>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -132,8 +130,10 @@ async function callRagReindex(ragId) {
 
 </script>
 
-<style lang="scss" scoped>
-.reindex-button {
-    cursor: pointer;
+<style scoped lang="scss">
+.bottom-card-button {
+    @include button-primary;
+    width: 100%;
+    margin-top: 8px;
 }
 </style>
