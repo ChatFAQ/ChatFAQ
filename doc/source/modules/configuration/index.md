@@ -121,7 +121,7 @@ We recommend setting [ColBERT](https://arxiv.org/abs/2004.12832) as the retrieve
 Model per language:
 - English: [colbert-ir/colbertv2.0](https://huggingface.co/colbert-ir/colbertv2.0)
 - French: [antoinelouis/colbertv1-camembert-base-mmarcoFR](https://huggingface.co/antoinelouis/colbertv1-camembert-base-mmarcoFR)
-- Spanish: [AdrienB134/ColBERTv1.0-bert-based-spanish-mmarcoES](https://huggingface.co/AdrienB134/ColBERTv1.0-bert-based-spanish-mmarcoES)
+- Spanish: [AdrienB134/ColBERTv2.0-spanish-mmarcoES](https://huggingface.co/AdrienB134/ColBERTv2.0-spanish-mmarcoES)
 
 #### Standard Semantic Search
 

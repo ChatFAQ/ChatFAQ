@@ -775,6 +775,7 @@ def parse_pdf_task(ds_pk):
                     )
                     knowledge_item.save()
 
+
 @app.task()
 def generate_titles(knowledge_base_pk, n_titles=10):
     """
@@ -1100,6 +1101,11 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
     dates_ranges : list
         A list of tuples with the start and end dates for the statistics.
     """
+    # TODO: add the % of unlabeled knowledge items  
+    # TODO: add the % of unlabeled responses
+    # TODO: number of messages per RAG and FSM
+
+
     from datetime import datetime
     from back.apps.language_model.stats import calculate_retriever_stats, calculate_response_stats
 
@@ -1138,8 +1144,6 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
         ##############################
         # Retriever stats 
         ##############################
-            
-        # TODO: add the % of unlabeled knowledge items
 
         admin_reviews = AdminReview.objects.filter(
             message__in=messages, 
@@ -1160,8 +1164,6 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
         ##############################
         # Response quality stats
         ##############################
-            
-        # TODO: add the % of unlabeled responses
             
         user_feedbacks = UserFeedback.objects.filter(
             message__in=messages,
@@ -1207,3 +1209,5 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
             "fallbacks_count": fallbacks_count,
             "fallbacks_percentage": fallbacks_percentage
         })
+
+        

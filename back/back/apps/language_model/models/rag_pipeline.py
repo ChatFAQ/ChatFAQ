@@ -46,8 +46,8 @@ class RAGConfig(ChangesMixin):
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
     disabled = models.BooleanField(default=False)
-    index_up_to_date = models.BooleanField(default=False)
-    s3_index_path = models.CharField(max_length=255, blank=True, null=True)
+    index_up_to_date = models.BooleanField(default=False, editable=False)
+    s3_index_path = models.CharField(max_length=255, blank=True, null=True, editable=False)
 
     def generate_s3_index_path(self):
         unique_id = str(uuid.uuid4())[:8]

@@ -7,7 +7,7 @@ from ragatouille import (
     RAGPretrainedModel as Retriever,
 )  # Change name to avoid confusion
 
-from django.core.files.storage import get_storage_class
+from back.config.storage_backends import select_private_storage
 
 from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
@@ -59,17 +59,15 @@ class ColBERTRetriever:
             bsize=bsize,
         )
 
-        private_storage = get_storage_class(
-            "back.config.storage_backends.PrivateMediaStorage"
-        )()
+        private_storage = select_private_storage()
 
-        # Upload index files to S3
+        # Save index files to storage
         for filename in os.listdir(local_index_path):
             local_file_path = os.path.join(local_index_path, filename)
             with open(local_file_path, "rb") as file:
                 s3_file_path = os.path.join(s3_index_path, filename)
                 private_storage.save(s3_file_path, file)
-                os.remove(local_file_path)  # Delete local file after uploading to S3
+                os.remove(local_file_path)  # Delete local file after saving to storage
 
         logger.info(
             f"Index built for knowledge base: {rag_config.knowledge_base.name} at {local_index_path}"
@@ -93,10 +91,9 @@ class ColBERTRetriever:
             f"Downloading index files to {local_index_path} from S3 {rag_config.s3_index_path}"
         )
 
-        # Download index files from S3
-        private_storage = get_storage_class(
-            "back.config.storage_backends.PrivateMediaStorage"
-        )()
+        # Download index files from storage
+        private_storage = select_private_storage()
+
         # listdir returns a tuple (dirs, files)
         for file_name in private_storage.listdir(s3_index_folder)[1]:
             s3_file_path = os.path.join(s3_index_folder, file_name)
@@ -193,9 +190,7 @@ class ColBERTRetriever:
         self, rag_config: RAGConfig, index_path: str = None
     ):
 
-        private_storage = get_storage_class(
-            "back.config.storage_backends.PrivateMediaStorage"
-        )()
+        private_storage = select_private_storage()
 
         local_index_path = (
             self._get_local_index_path()
