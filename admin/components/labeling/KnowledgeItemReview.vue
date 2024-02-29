@@ -32,7 +32,7 @@
                 />
             </el-select>
         </div>
-        <div v-if="!itemsStore.loading" class="ki-title add-command" @click="addAlternativeKI()">{{$t("+addknowledgeitem")}}</div>
+        <div v-if="!itemsStore.loading" class="ki-title add-command" @click="addAlternativeKI()">+ {{$t("addknowledgeitem")}}</div>
     </div>
 </template>
 
