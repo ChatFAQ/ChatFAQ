@@ -1131,7 +1131,7 @@ def compute_stats(rag_config_id, dates_ranges=[(None, None)]):
 
         messages = Message.objects.filter(
             stack__contains=[
-            {"type": "lm_generated_text", "payload": {"rag_config_id": str(82)}}
+            {"type": "lm_generated_text", "payload": {"rag_config_id": str(rag_config_id)}}
         ]
         )
 
