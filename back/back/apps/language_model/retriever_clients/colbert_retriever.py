@@ -7,8 +7,6 @@ from ragatouille import (
     RAGPretrainedModel as Retriever,
 )  # Change name to avoid confusion
 
-from django.core.files.storage import get_storage_class
-
 from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
 from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
