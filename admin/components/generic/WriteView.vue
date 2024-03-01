@@ -128,7 +128,10 @@ import {useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 import BackButton from "~/components/generic/BackButton.vue";
+import {ElNotification} from 'element-plus'
+import {useI18n} from "vue-i18n";
 
+const { t } = useI18n();
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
@@ -236,6 +239,12 @@ const submitForm = async (formEl) => {
             else
                 await $axios.post(props.apiUrl, form.value)
         } catch (e) {
+            ElNotification({
+                title: 'Error',
+                message: t('errorsavingitem'),
+                type: 'error',
+                position: 'bottom-right',
+            })
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
                     formServerErrors.value[fieldName] = errorMessages.join(", ")
@@ -249,16 +258,39 @@ const submitForm = async (formEl) => {
             }
         }
         itemsStore.stateToRead()
+
+        ElNotification({
+            title: 'Success',
+            message: t('successsavingitem'),
+            type: 'success',
+                position: 'bottom-right',
+        })
         itemsStore.loading = false
     })
 }
 
 function deleteItem() {
-    itemsStore.loading = true
-    itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
-    deleteDialogVisible.value = undefined
-    itemsStore.stateToRead()
-    itemsStore.loading = false
+    try {
+        itemsStore.loading = true
+        itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
+        deleteDialogVisible.value = undefined
+        itemsStore.stateToRead()
+        itemsStore.loading = false
+    } catch (e) {
+        itemsStore.loading = false
+        ElNotification({
+            title: 'Error',
+            message: t('errordeletingitem'),
+            type: 'error',
+            position: 'bottom-right',
+        })
+    }
+    ElNotification({
+        title: 'Success',
+        message: t('successdeletingitem'),
+        type: 'success',
+            position: 'bottom-right',
+    })
 }
 
 function filterInSection(inSection, _obj) {

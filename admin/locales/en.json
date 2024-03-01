@@ -229,10 +229,14 @@
     "worker": "Worker",
     "failedtotriggerreindex": "Failed to trigger reindex",
     "reindextriggered": "Reindex triggered",
-"reindex": "Reindex",
+    "reindex": "Reindex",
     "warning": "Warning",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "delete": "Delete",
-    "deleteitemwarning": "Are you sure you want to delete this item?"
+    "deleteitemwarning": "Are you sure you want to delete this item?",
+    "errordeletingitem": "Error deleting item",
+    "successdeletingitem": "Item deleted successfully",
+    "errorsavingitem": "Error saving item",
+    "successsavingitem": "Item saved successfully"
 }

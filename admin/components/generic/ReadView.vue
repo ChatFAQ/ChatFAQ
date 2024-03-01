@@ -130,7 +130,10 @@ import {storeToRefs} from 'pinia'
 import Pagination from "~/components/generic/Pagination.vue";
 import {useRoute} from 'vue-router'
 import Filters from "~/components/generic/filters/Filters.vue";
+import {ElNotification} from 'element-plus'
+import {useI18n} from "vue-i18n";
 
+const { t } = useI18n();
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
@@ -241,10 +244,28 @@ function stateToAdd() {
 }
 
 function deleteItem(id) {
-    itemsStore.loading = true
-    itemsStore.deleteItem($axios, props.apiUrl, id)
-    deleting.value = undefined
-    itemsStore.loading = false
+    try {
+        itemsStore.loading = true
+        itemsStore.deleteItem($axios, props.apiUrl, id)
+        deleting.value = undefined
+        itemsStore.loading = false
+    }
+    catch (e) {
+        itemsStore.loading = false
+        ElNotification({
+            title: 'Error',
+            message: t('errordeletingitem'),
+            type: 'error',
+            position: 'bottom-right',
+        })
+        return
+    }
+    ElNotification({
+        title: 'Success',
+        message: t('successdeletingitem'),
+        type: 'success',
+            position: 'bottom-right',
+    })
 }
 
 function solveRefProp(item, propName) {

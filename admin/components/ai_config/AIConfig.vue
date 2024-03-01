@@ -104,12 +104,10 @@ import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
 import {ElNotification} from 'element-plus'
 import {useI18n} from "vue-i18n";
+
 const { t } = useI18n();
-
 const {$axios} = useNuxtApp();
-
 const itemsStore = useItemsStore()
-
 const itemType = ref("rag-configs")
 await itemsStore.loadSchema($axios)
 
