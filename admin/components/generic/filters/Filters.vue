@@ -2,8 +2,12 @@
     <div class="filters-wrapper">
         <div class="filter-wrapper" v-for="filterInfo in filtersSchema">
             <div class="filter" v-if="filterInfo.type === 'search'">
-                <el-input v-model="form[filterInfo.field]" @input="submitFiltersDebounce" :placeholder="filterInfo.placeholder"
-                          clearable></el-input>
+                <el-input v-model="form[filterInfo.field]"
+                          @input="submitFiltersDebounce"
+                          :placeholder="filterInfo.placeholder"
+                          suffix-icon="Search"
+                          clearable
+                ></el-input>
             </div>
             <div class="filter" v-else-if="filterInfo.type === 'range-date'">
                 <el-date-picker
