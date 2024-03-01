@@ -7,22 +7,29 @@
                 :label="item.label"
                 :value="item.value"
             />
+            <template v-slot:prefix>
+                <el-icon>
+                    <ArrowDown/>
+                </el-icon>
+            </template>
         </el-select>
     </div>
 </template>
 
 <script setup>
+import {ArrowDown} from "@element-plus/icons-vue";
 </script>
 
 <style lang="scss">
 .language-wrapper {
-    .el-input__wrapper, .el-select {
-        display: flex;
-        flex-direction: row-reverse;
+    .el-select {
+        padding: 0px 24px 0px 24px;
+    }
+    .el-input__wrapper {
         background-color: transparent;
         box-shadow: none !important;
         border: none !important;
-
+        padding: 0 !important;
         .el-input__inner {
             color: white !important;
             font-family: Open Sans;
@@ -31,6 +38,12 @@
             line-height: 20px;
             margin-left: 8px
         }
+    }
+    svg {
+        color: white;
+    }
+    .el-input__suffix-inner {
+        display: none;
     }
 }
 </style>
