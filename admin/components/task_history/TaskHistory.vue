@@ -9,7 +9,7 @@
             'task_name': {'name': $t('task_name')},
             'date_created': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates},
             'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration},
-            'view': {'name': $t('view')},
+            'view': {'name': $t('view'), 'width': $t('view').length * 20, 'align': 'center'},
         }"
         :sections="{
             [$t('generalinfo')]: [

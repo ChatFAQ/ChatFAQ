@@ -80,6 +80,7 @@
                 :label="propInfo.name"
                 :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefProp(row, column.property)"
                 :width="propInfo.width ? propInfo.width : undefined"
+                :align="propInfo.align ? propInfo.align : undefined"
                 :sortable="propInfo.sortable"
                 :sortMethod="propInfo.sortMethod"
             >
@@ -87,12 +88,12 @@
                     <slot :name="prop" v-bind="scope"></slot>
                 </template>
             </el-table-column>
-            <el-table-column v-if="!readOnly" align="center" fit="true">
+            <el-table-column v-if="!readOnly" align="center" :width="$t('edit').length * 13">
                 <template #default="{ row }">
                     <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
-            <el-table-column v-if="!readOnly" align="center">
+            <el-table-column v-if="!readOnly" align="center"  width="100">
                 <template #default="{ row }">
                     <el-icon v-if="deleting !== row.id" class="command-delete">
                         <Delete @click="deleting = row.id"/>

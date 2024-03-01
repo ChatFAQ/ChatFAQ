@@ -8,7 +8,7 @@
             'name': {'name': $t('name')},
             'created_date': {'name': $t('created_date'), 'sortable': true},
             'user_id': {'name': $t('userid')},
-            'view': {'name': ''},
+            'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
         :defaultSort="{'prop': 'created_date', 'order': 'descending'}"
         :filtersSchema="[
@@ -25,7 +25,7 @@
         read-only
     >
         <template v-slot:view="{row}">
-            <div class="go-to-view" @click="goToLabelingConversation(row.id)">{{ $t("View") }}</div>
+            <div class="go-to-view" @click="goToLabelingConversation(row.id)">{{ $t("view") }}</div>
         </template>
     </ReadWriteView>
     <LabelingTool v-else :id="itemsStore.editing"></LabelingTool>
