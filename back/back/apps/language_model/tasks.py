@@ -1091,7 +1091,7 @@ def generate_intents_task(knowledge_base_pk):
 
 
 @app.task()
-def compute_rag_stats(rag_config_id, dates_ranges=[(None, None)]):
+def calculate_rag_stats_task(rag_config_id, dates_ranges=[(None, None)]):
     """
     Compute the statistics for a knowledge base.
     Parameters
@@ -1103,24 +1103,18 @@ def compute_rag_stats(rag_config_id, dates_ranges=[(None, None)]):
     """
     # TODO: add the % of unlabeled knowledge items  
     # TODO: add the % of unlabeled responses
-    # TODO: number of messages per RAG and FSM
-
 
     from datetime import datetime
     from back.apps.language_model.stats import calculate_retriever_stats, calculate_response_stats, calculate_general_rag_stats
 
-    RAGConfig = apps.get_model("language_model", "RAGConfig")
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     Message = apps.get_model("broker", "Message")
     AdminReview = apps.get_model("broker", "AdminReview")
     UserFeedback = apps.get_model("broker", "UserFeedback")
-    MessageKnowledgeItem = apps.get_model("language_model", "MessageKnowledgeItem")
-    Intent = apps.get_model("language_model", "Intent")
+
 
     all_retriever_stats = []
     all_quality_stats = []
     all_general_stats = []
-    all_usage_stats = []
 
     for start_date_str, end_date_str in dates_ranges:
 
@@ -1198,4 +1192,54 @@ def compute_rag_stats(rag_config_id, dates_ranges=[(None, None)]):
     
     # TODO: Return the stats to the frontend
 
-        
+
+@app.task()
+def calculate_usage_stats_task(rag_config_id=None, dates_ranges=[(None, None)]):
+    """
+    Compute the usage statistics related to the number of messages, conversations, etc.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object to calculate the usage stats for. If None, the stats will be calculated for all the historical data.
+    dates_ranges : list
+        A list of tuples with the start and end dates for the statistics.
+    """
+
+    from datetime import datetime
+    from back.apps.language_model.stats import calculate_usage_stats
+
+    Message = apps.get_model("broker", "Message")
+
+    all_usage_stats = []
+
+    for start_date_str, end_date_str in dates_ranges:
+
+        # else all the messages
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d") if start_date_str else None
+        end_date = datetime.strptime(end_date_str, "%Y-%m-%d") if end_date_str else None
+
+        logger.info(f"Start date: {start_date}, end date: {end_date}")
+
+        messages = Message.objects.all()
+
+        if rag_config_id:
+            messages = messages.filter(stack__contains=[
+                {"type": "lm_generated_text", "payload": {"rag_config_id": str(rag_config_id)}}
+            ])
+
+        if start_date is not None:  # Apply start_date if not None
+            messages = messages.filter(created_date__gte=start_date)
+
+        if end_date is not None:   # Apply end_date if not None
+            messages = messages.filter(created_date__lte=end_date)
+
+        usage_stats = calculate_usage_stats(messages)
+
+        for k, v in usage_stats.items():
+            logger.info(f"{k}: {v}")
+
+        all_usage_stats.append(usage_stats)
+
+
+    # TODO: Return the stats to the frontend
+    
