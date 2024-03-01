@@ -11,6 +11,7 @@
                     'num_of_knowledge_items': $t('numofknowledgeitems'),
                 }"
                 :tableProps="{
+                    'name': {'name': $t('name')},
                     'lang': {'name': $t('lang')},
                     'num_of_data_sources': {'name': $t('numofdatasources')},
                     'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
