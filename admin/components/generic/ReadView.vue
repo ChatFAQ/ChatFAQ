@@ -329,7 +329,7 @@ function sortChange({column, prop, order}) {
     flex-wrap: wrap;
     width: 100%;
     justify-items: stretch;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 25% 25% 25% 25%;
 }
 
 /* Override justify-content for the last row */
