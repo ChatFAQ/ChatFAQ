@@ -41,6 +41,10 @@ export default envManager((env) => {
                 chatfaqWS: (process.env.NUXT_PUBLIC_CHATFAQ_WS || process.env.CHATFAQ_WS) ?? "",
             },
         },
+        i18n: {
+            locales: ['en', 'es', 'fr'],
+            defaultLocale: 'en'
+        }
     });
 
     const out = defu(config, viteNuxtConfig);

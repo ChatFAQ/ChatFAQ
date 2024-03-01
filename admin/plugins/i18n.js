@@ -1,5 +1,7 @@
 import { createI18n } from "vue-i18n";
 import en from '~/locales/en.json'
+import es from '~/locales/es.json'
+import fr from '~/locales/fr.json'
 function _createI18n() {
     return createI18n({
         legacy: false,
@@ -7,6 +9,8 @@ function _createI18n() {
         locale: "en",
         messages: {
             en,
+            es,
+            fr,
         },
     });
 }

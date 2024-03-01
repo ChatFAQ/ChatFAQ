@@ -12,7 +12,6 @@
     "pleaseenteravalidemailaddress": "Please enter a valid email address",
     "pleaseenteryourpassword":  "Please enter your password",
     "contactadmin" : "Please contact a ChatFAQ's administrator for recovering your password",
-
     "dashboard": "Dashboard",
     "labeling": "Labeling",
     "data": "Data",
@@ -25,14 +24,12 @@
     "taskhistory": "Task History",
     "accountsettings": "Account settings",
     "logout": "Log Out",
-
     "aiconfiguration": "AI Configuration",
     "retriever": "Retriever",
     "prompt":  "Prompt",
     "generation": "Generation",
     "llm":  "LLM",
     "rag": "RAG",
-
     "name": "Name",
     "modelname": "Model Name",
     "batchsize": "Batch Size",
@@ -84,7 +81,6 @@
     "captions": "Captions",
     "buttons": "Buttons",
     "colors": "Colors",
-
     "chatfaq-font-body-xl": "Body XL",
     "chatfaq-font-body-m": "Body M",
     "chatfaq-font-body-m-bold": "Body M bold",
