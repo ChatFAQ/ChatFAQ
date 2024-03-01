@@ -13,6 +13,7 @@ from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
 from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
+from back.config.storage_backends import select_private_storage
 
 logger = getLogger(__name__)
 
@@ -59,9 +60,7 @@ class ColBERTRetriever:
             bsize=bsize,
         )
 
-        private_storage = get_storage_class(
-            "back.config.storage_backends.PrivateMediaStorage"
-        )()
+        private_storage = select_private_storage()
 
         # Upload index files to S3
         for filename in os.listdir(local_index_path):
@@ -94,9 +93,7 @@ class ColBERTRetriever:
         )
 
         # Download index files from S3
-        private_storage = get_storage_class(
-            "back.config.storage_backends.PrivateMediaStorage"
-        )()
+        private_storage = select_private_storage()
         # listdir returns a tuple (dirs, files)
         for file_name in private_storage.listdir(s3_index_folder)[1]:
             s3_file_path = os.path.join(s3_index_folder, file_name)
@@ -193,9 +190,7 @@ class ColBERTRetriever:
         self, rag_config: RAGConfig, index_path: str = None
     ):
 
-        private_storage = get_storage_class(
-            "back.config.storage_backends.PrivateMediaStorage"
-        )()
+        private_storage = select_private_storage()
 
         local_index_path = (
             self._get_local_index_path()
