@@ -30,4 +30,4 @@ def recache_models(logger_name=None):
     if len(worker_queues) == 0:
         print("No workers found")
     for worker_queue in worker_queues:
-        llm_query_task.apply_async(queue=worker_queue, kwargs={"recache_models": True, "log_caller": logger_name})
+        llm_query_task.apply_async(queue=worker_queue, kwargs={"recache_models": True, "logger_name": logger_name})
