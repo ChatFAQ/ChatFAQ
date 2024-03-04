@@ -11,14 +11,15 @@
                     'retriever_config': $t('retrieverconfig'),
                 }"
                            :tableProps="{
-                    'name': $t('name'),
-                    'knowledge_base': $t('knowledgebase'),
-                    'llm_config': $t('llmconfig'),
-                    'prompt_config': $t('promptconfig'),
-                    'generation_config': $t('generationconfig'),
-                    'retriever_config': $t('retrieverconfig'),
-                    'updated_date': $t('updateddate'),
-                }">
+                    'name': {'name': $t('name'), 'sortable': true},
+                    'knowledge_base': {'name': $t('knowledgebase')},
+                    'llm_config': {'name': $t('llmconfig')},
+                    'prompt_config': {'name': $t('promptconfig')},
+                    'generation_config': {'name': $t('generationconfig')},
+                    'retriever_config': {'name': $t('retrieverconfig')},
+                    'updated_date': {'name': $t('updateddate'), 'sortable': true},
+                }"
+                :defaultSort="{'prop': 'name'}">
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRagReindex(item.id)">
                         <span>{{ $t("reindex") }}</span>
@@ -36,11 +37,12 @@
                     'device': $t('device'),
                 }"
                            :tableProps="{
-                    'name': {'name': $t('name')},
+                    'name': {'name': $t('name'), 'sortable': true},
                     'model_name': {'name': $t('modelname')},
                     'device': {'name': $t('device')},
-                    'updated_date': {'name': $t('updateddate')},
-                }">
+                    'updated_date': {'name': $t('updateddate'), 'sortable': true},
+                }"
+                :defaultSort="{'prop': 'name'}">
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :label="$t('prompt')" name="prompt-configs">
@@ -49,10 +51,11 @@
                     'n_contexts_to_use': $t('contextsnumber'),
                 }"
                            :tableProps="{
-                    'name': $t('name'),
-                    'n_contexts_to_use': $t('contextsnumber'),
-                    'updated_date': $t('updateddate'),
-                }">
+                    'name': {'name': $t('name'), 'sortable': true},
+                    'n_contexts_to_use': {'name': $t('contextsnumber')},
+                    'updated_date': {'name': $t('updateddate'), 'sortable': true},
+                }"
+                :defaultSort="{'prop': 'name'}">
                 <template v-slot:write-system_prefix="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
                                   :prop="fieldName"
@@ -75,11 +78,12 @@
                     'max_new_tokens': $t('maxtokens'),
                 }"
                            :tableProps="{
-                    'name': $t('name'),
-                    'temperature': $t('temperature'),
-                    'max_new_tokens': $t('maxtokens'),
-                    'updated_date': $t('updateddate'),
-                }">
+                    'name': {'name': $t('name'), 'sortable': true},
+                    'temperature': {'name': $t('temperature')},
+                    'max_new_tokens': {'name': $t('maxtokens')},
+                    'updated_date': {'name': $t('updateddate'), 'sortable': true},
+                }"
+                :defaultSort="{'prop': 'name'}">
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :label="$t('llm')" name="llm-configs">
@@ -89,11 +93,12 @@
                     'llm_name': $t('llmname'),
                 }"
                            :tableProps="{
-                    'name': $t('name'),
-                    'llm_type': $t('llmtype'),
-                    'llm_name': $t('llmname'),
-                    'updated_date': $t('updateddate'),
-                }">
+                    'name': {'name': $t('name'), 'sortable': true},
+                    'llm_type': {'name': $t('llmtype')},
+                    'llm_name': {'name': $t('llmname')},
+                    'updated_date': {'name': $t('updateddate'), 'sortable': true},
+                }"
+                :defaultSort="{'prop': 'name'}">
             </ReadWriteView>
         </el-tab-pane>
     </el-tabs>

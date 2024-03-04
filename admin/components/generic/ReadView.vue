@@ -61,7 +61,6 @@
                 </div>
             </div>
         </div>
-
         <el-table v-else-if="requiredFilterSatisfied"
                   class="table-view"
                   :data="itemsStore.items[apiUrl]?.results"
