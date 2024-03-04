@@ -98,7 +98,7 @@ workers:
   - name: celery_worker
     image: back
     envs: [ sentry, django ]
-    instance_size: XL
+    instance_size: '{{ production("XL", default="M") }}'
     command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
 
 jobs:
