@@ -227,9 +227,9 @@ def llm_query_task(
     conversation_id=None,
     bot_channel_name=None,
     recache_models=False,
-    log_caller="None",
+    logger_name=None,
 ):
-    logger.info(f"Log caller: {log_caller}")
+    logger.info(f"Log caller: {logger_name}")
     if recache_models:
         import torch
         # clear CACHED_RAGS
@@ -460,7 +460,7 @@ def generate_embeddings(k_items, rag_config):
     )
 
 
-def index_e5(rag_config, caller: str = None):
+def index_e5(rag_config, logger_name: str = None):
     """
     Generate the embeddings for a knowledge base for the E5 retriever.
     Parameters
@@ -573,7 +573,7 @@ def modify_index(rag_config):
             creates_index(rag_config=rag_config)
 
 
-def creates_index(rag_config, caller: str = None):
+def creates_index(rag_config, logger_name: str = None):
     """
     Build the index for a knowledge base.
     Parameters
@@ -584,7 +584,7 @@ def creates_index(rag_config, caller: str = None):
 
     from back.apps.language_model.retriever_clients import ColBERTRetriever
 
-    logger.info(f"Log caller: {caller}")
+    logger.info(f"Log caller: {logger_name}")
 
     Embedding = apps.get_model("language_model", "Embedding")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
@@ -603,7 +603,7 @@ def creates_index(rag_config, caller: str = None):
     Embedding.objects.bulk_create(embeddings)
 
 
-def index_colbert(rag_config, caller: str = None):
+def index_colbert(rag_config, logger_name: str = None):
     """
     Build the index for a knowledge base.
     Parameters
@@ -620,11 +620,11 @@ def index_colbert(rag_config, caller: str = None):
         modify_index(rag_config)
 
     else:
-        creates_index(rag_config=rag_config, caller=caller)
+        creates_index(rag_config=rag_config, logger_name=logger_name)
 
 
 @app.task()
-def index_task(rag_config_id, recache_models: bool = False, caller: str = None):
+def index_task(rag_config_id, recache_models: bool = False, logger_name: str = None):
     """
     Build the index for a knowledge base.
     Parameters
@@ -638,16 +638,16 @@ def index_task(rag_config_id, recache_models: bool = False, caller: str = None):
     retriever_type = rag_config.retriever_config.retriever_type
 
     if retriever_type == "e5":
-        index_e5(rag_config, caller=caller)
+        index_e5(rag_config, logger_name=logger_name)
     elif retriever_type == "colbert":
-        index_colbert(rag_config, caller=caller)
+        index_colbert(rag_config, logger_name=logger_name)
 
     rag_config.index_up_to_date = True
     rag_config.save()
 
     logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
     if recache_models:
-        recache_models_utils(log_caller=caller)
+        recache_models_utils(logger_name=logger_name)
 
 
 @app.task()

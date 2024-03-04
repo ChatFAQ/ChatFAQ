@@ -7,12 +7,11 @@ from ragatouille import (
     RAGPretrainedModel as Retriever,
 )  # Change name to avoid confusion
 
-from back.config.storage_backends import select_private_storage
-
 from back.apps.language_model.models.data import KnowledgeItem
 from back.apps.language_model.models.rag_pipeline import RAGConfig
 from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
+from back.config.storage_backends import select_private_storage
 
 logger = getLogger(__name__)
 
@@ -91,9 +90,8 @@ class ColBERTRetriever:
             f"Downloading index files to {local_index_path} from S3 {rag_config.s3_index_path}"
         )
 
-        # Download index files from storage
+        # Download index files from S3
         private_storage = select_private_storage()
-
         # listdir returns a tuple (dirs, files)
         for file_name in private_storage.listdir(s3_index_folder)[1]:
             s3_file_path = os.path.join(s3_index_folder, file_name)

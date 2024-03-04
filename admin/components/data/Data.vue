@@ -11,6 +11,7 @@
                     'num_of_knowledge_items': $t('numofknowledgeitems'),
                 }"
                 :tableProps="{
+                    'name': {'name': $t('name')},
                     'lang': {'name': $t('lang')},
                     'num_of_data_sources': {'name': $t('numofdatasources')},
                     'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
@@ -19,7 +20,7 @@
                 :textExplanation="$t('knowledgebaseexplanation')"
             >
                 <template v-slot:extra-card-bottom="props">
-                    <el-button class="go-to-kis-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
+                    <el-button class="bottom-card-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -84,7 +85,7 @@ function goToKIs(kb_id) {
 </script>
 
 <style scoped lang="scss">
-.go-to-kis-button {
+.bottom-card-button {
     @include button-primary;
     width: 100%;
     margin-top: 8px;

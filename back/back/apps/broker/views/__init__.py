@@ -7,7 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny
 
@@ -55,7 +55,7 @@ class ConversationAPIViewSet(
 ):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ['name']
     filterset_class = ConversationFilterSet
 
@@ -130,6 +130,7 @@ class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
 class AdminReviewAPIViewSet(viewsets.ModelViewSet):
     serializer_class = AdminReviewSerializer
     queryset = AdminReview.objects.all()
+    filterset_fields = ["message"]
 
 
 class SenderAPIView(CreateAPIView, UpdateAPIView):

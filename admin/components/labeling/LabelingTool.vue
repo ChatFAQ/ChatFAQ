@@ -169,8 +169,10 @@ async function pageConversation(direction) {
 
 <style lang="scss">
 .labeling-tool-wrapper {
+    .el-tabs__nav  {
+        margin-top: 16px !important;
+    }
     .labeling-tool {
-
         .el-tabs {
             margin-left: 24px;
             margin-right: 24px;
@@ -190,7 +192,6 @@ async function pageConversation(direction) {
 
         .el-tabs__nav {
             float: unset;
-            justify-content: space-between;
         }
 
         .el-tabs__header {
@@ -230,7 +231,7 @@ async function pageConversation(direction) {
 
         .qa-group {
             position: relative;
-            padding: 16px 12px;
+            padding: 16px;
 
             &:hover {
                 background: rgba(223, 218, 234, 0.49);

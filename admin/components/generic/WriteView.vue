@@ -94,11 +94,8 @@
         </el-form>
 
         <div class="commands">
-            <el-button v-if="!itemsStore.adding" type="danger" @click="deleting = true" class="delete-button">
-                <span v-if="!deleting">Delete</span>
-                <el-icon v-else>
-                    <Check @click="deleteItem()"/>
-                </el-icon>
+            <el-button v-if="!itemsStore.adding" type="danger" @click="deleteDialogVisible = true" class="delete-button">
+                <span>{{ $t("delete") }}</span>
             </el-button>
             <div v-else></div>
             <div class="flex-right">
@@ -111,6 +108,19 @@
             </div>
         </div>
     </div>
+    <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
+        <span>
+            {{ $t('deleteitemwarning') }}
+        </span>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="() => {deleteDialogVisible = false}">{{ $t('cancel') }}</el-button>
+                <el-button type="primary" @click="deleteItem">
+                    {{ $t('confirm') }}
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 <script setup>
 import {ref} from "vue";
@@ -118,14 +128,17 @@ import {useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 import BackButton from "~/components/generic/BackButton.vue";
+import {ElNotification} from 'element-plus'
+import {useI18n} from "vue-i18n";
 
+const { t } = useI18n();
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
 const formRef = ref()
 const fieldsRef = ref({})
-const deleting = ref(false)
+const deleteDialogVisible = ref(false)
 const emit = defineEmits(['submitForm'])
 
 const props = defineProps({
@@ -226,6 +239,12 @@ const submitForm = async (formEl) => {
             else
                 await $axios.post(props.apiUrl, form.value)
         } catch (e) {
+            ElNotification({
+                title: 'Error',
+                message: t('errorsavingitem'),
+                type: 'error',
+                position: 'bottom-right',
+            })
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
                     formServerErrors.value[fieldName] = errorMessages.join(", ")
@@ -239,16 +258,39 @@ const submitForm = async (formEl) => {
             }
         }
         itemsStore.stateToRead()
+
+        ElNotification({
+            title: 'Success',
+            message: t('successsavingitem'),
+            type: 'success',
+                position: 'bottom-right',
+        })
         itemsStore.loading = false
     })
 }
 
-function deleteItem(id) {
-    itemsStore.loading = true
-    itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
-    deleting.value = undefined
-    itemsStore.stateToRead()
-    itemsStore.loading = false
+function deleteItem() {
+    try {
+        itemsStore.loading = true
+        itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
+        deleteDialogVisible.value = undefined
+        itemsStore.stateToRead()
+        itemsStore.loading = false
+    } catch (e) {
+        itemsStore.loading = false
+        ElNotification({
+            title: 'Error',
+            message: t('errordeletingitem'),
+            type: 'error',
+            position: 'bottom-right',
+        })
+    }
+    ElNotification({
+        title: 'Success',
+        message: t('successdeletingitem'),
+        type: 'success',
+            position: 'bottom-right',
+    })
 }
 
 function filterInSection(inSection, _obj) {

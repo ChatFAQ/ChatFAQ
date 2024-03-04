@@ -13,10 +13,9 @@
         <MenuItem icon="DataLine" :name="$t('stats')" page="/stats"/>
         <MenuItem icon="User" :name="$t('usermanagement')" page="/user_management"/>
         <MenuItem icon="Clock" :name="$t('taskhistory')" page="/task_history"/>
-        <div class="separator"></div>
-        <MenuItem icon="Setting" :name="$t('accountsettings')" page="account_settings"/>
-
         <div class="menu-bottom">
+            <div class="separator"></div>
+            <LangSwitcher/>
             <div class="separator"></div>
             <MenuItem @click="logOut" icon="SwitchButton" :name="$t('logout')"/>
         </div>

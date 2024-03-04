@@ -9,8 +9,7 @@ from back.apps.language_model.models.data import KnowledgeBase
 from back.common.models import ChangesMixin
 
 from back.utils.celery import recache_models
-from back.apps.language_model.tasks import delete_index_files_task
-
+from back.apps.language_model.tasks import delete_index_files_task, index_task
 
 from logging import getLogger
 
@@ -84,6 +83,9 @@ class RAGConfig(ChangesMixin):
 
             # Schedule the recache_models function to be called
             transaction.on_commit(on_commit_callback)
+
+    def trigger_reindex(self, recache_models: bool = False, logger_name: str = None):
+        index_task.delay(self.id, recache_models=recache_models, logger_name=logger_name)  # Trigger the Celery task
 
 
 class RetrieverConfig(ChangesMixin):

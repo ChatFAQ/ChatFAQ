@@ -9,7 +9,7 @@
             'task_name': {'name': $t('task_name')},
             'date_created': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates},
             'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration},
-            'view': {'name': $t('view')},
+            'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
         :sections="{
             [$t('generalinfo')]: [
@@ -49,7 +49,7 @@
             <div>{{ formatTaskName(row.task_name) }}</div>
         </template>
         <template v-slot:status="{row}">
-            <div width="10" class="status" :class="{[row.status.toLowerCase()]: true}">-</div>
+            <div width="10" class="status" :class="{[row.status]: true}">-</div>
         </template>
         <template v-slot:view="{row}">
             <span class="command-edit" @click="stateToDetail(row.id)">{{ $t("view") }}</span>
@@ -156,15 +156,15 @@ function sortDuration(a, b) {
     margin: 0 auto;
     background-color: #F2C94C; // waiting
 
-    &.success {
+    &.SUCCESS {
         background-color: #27AE60;
     }
 
-    &.failure {
+    &.FAILURE {
         background-color: #EB5757;
     }
 
-    &.started {
+    &.STARTED {
         background-color: #2D9CDB;
     }
 }

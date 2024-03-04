@@ -22,6 +22,7 @@
             class="review-message"
             v-model="review.gen_review_msg"
             type="textarea"
+            @keydown.enter.stop
             :placeholder="$t('giveanalternativeanswer')"
             :autosize="{ minRows: 3 }"
             @input="submitReviewMsg"
@@ -53,7 +54,7 @@ watch(() => props.messageId, async (_) => {
 
 async function initGenReview() {
     itemsStore.loading = true
-    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.messageId}) || {}
+    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.messageId}, {limit: 0, offset: 0, ordering: undefined}) || {}
     reviewType.value = review.value.gen_review_type
     itemsStore.loading = false
 }
@@ -72,7 +73,7 @@ async function save() {
     const _review = JSON.parse(JSON.stringify(review.value))
     delete _review.ki_review_data
     _review.message = props.messageId
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review)
+    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
 }
 async function submitReviewMsg(val) {
     itemsStore.savingItem = true
