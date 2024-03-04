@@ -99,8 +99,12 @@ workers:
     image: back
     envs: [ sentry, django ]
     instance_size: L
+<<<<<<< HEAD
     command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
 
+=======
+    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads --concurrency 2
+>>>>>>> 1d95fc7 (Increasing worker memory)
 jobs:
   - name: migrate
     when: PRE_DEPLOY
