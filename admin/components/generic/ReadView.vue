@@ -467,6 +467,8 @@ function sortChange({column, prop, order}) {
     line-height: 22px;
     letter-spacing: 0em;
     text-align: left;
+    text-overflow: ellipsis;
+    overflow-y: hidden;
 }
 
 .property {
