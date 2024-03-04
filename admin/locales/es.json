@@ -234,5 +234,6 @@
     "errordeletingitem": "Error al eliminar el elemento",
     "successdeletingitem": "Elemento eliminado correctamente",
     "errorsavingitem": "Error al guardar el elemento",
-    "successsavingitem": "Elemento guardado correctamente"
+    "successsavingitem": "Elemento guardado correctamente",
+    "selectananswertolabel": "Selecciona una respuesta para etiquetar"
 }

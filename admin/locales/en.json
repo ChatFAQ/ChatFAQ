@@ -234,5 +234,6 @@
     "errordeletingitem": "Error deleting item",
     "successdeletingitem": "Item deleted successfully",
     "errorsavingitem": "Error saving item",
-    "successsavingitem": "Item saved successfully"
+    "successsavingitem": "Item saved successfully",
+    "selectananswertolabel": "Select an answer to label"
 }

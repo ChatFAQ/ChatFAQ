@@ -53,12 +53,15 @@
                                              :message="msgLabeled"
                                              ref="kiReviewer"
                         />
+                        <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
                     <el-tab-pane :label="$t('givefeedback')" name="give-feedback">
                         <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
+                        <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
                     <el-tab-pane :label="$t('usersfeedback')" name="users-feedback">
                         <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
+                        <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
                 </el-tabs>
                 <!--
@@ -197,6 +200,11 @@ async function pageConversation(direction) {
         .el-tabs__header {
             margin-bottom: 24px;
         }
+    }
+    .no-answer-selected {
+        margin-bottom: 8px;
+        font-style: italic;
+        font-size: 14px;
     }
 }
 </style>

@@ -227,7 +227,7 @@ defineExpose({
     }
 
     .ki-title {
-        color: #463075;
+        color: $chatfaq-color-primary-500;
         font-size: 16px;
         font-weight: 600;
         line-height: 20px;

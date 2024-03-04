@@ -234,5 +234,6 @@
     "errordeletingitem": "Erreur lors de la suppression de l'élément",
     "successdeletingitem": "Élément supprimé avec succès",
     "errorsavingitem": "Erreur lors de l'enregistrement de l'élément",
-    "successsavingitem": "Élément enregistré avec succès"
+    "successsavingitem": "Élément enregistré avec succès",
+    "selectananswertolabel": "Sélectionnez une réponse à étiqueter"
 }
