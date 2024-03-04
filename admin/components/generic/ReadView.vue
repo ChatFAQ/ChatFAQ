@@ -38,7 +38,7 @@
                         </div>
                     </template>
                     <div v-for="(name, prop) in cardProps" class="property">
-                        <span class="title">{{ name }}</span>{{ solveRefProp(item, prop) }}
+                        <span class="title">{{ name }}:</span>{{ solveRefProp(item, prop) }}
                     </div>
                     <div class="divider">
                     </div>

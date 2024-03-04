@@ -7,14 +7,14 @@
                 apiUrl="/back/api/language-model/knowledge-bases/"
                 :cardProps="{
                     'lang': $t('lang'),
-                    'num_of_data_sources': $t('numofdatasources'),
-                    'num_of_knowledge_items': $t('numofknowledgeitems'),
+                    'num_of_data_sources': $t('datasources'),
+                    'num_of_knowledge_items': $t('knowledgeitems'),
                 }"
                 :tableProps="{
                     'name': {'name': $t('name')},
                     'lang': {'name': $t('lang')},
-                    'num_of_data_sources': {'name': $t('numofdatasources')},
-                    'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
+                    'num_of_data_sources': {'name': $t('datasources')},
+                    'num_of_knowledge_items': {'name': $t('knowledgeitems')},
                 }"
                 :excludeFields="['num_of_data_sources', 'num_of_knowledge_items']"
                 :textExplanation="$t('knowledgebaseexplanation')"
@@ -46,7 +46,7 @@
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
                                 'intent_name': {'name': $t('intentname')},
-                                'num_of_knowledge_items': {'name': $t('numofknowledgeitems')},
+                                'num_of_knowledge_items': {'name': $t('knowledgeitems')},
                                 'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
                            }"
                            :filtersSchema="[
