@@ -2,9 +2,13 @@ from datetime import datetime
 from io import BytesIO
 from zipfile import ZipFile
 
+from django.db.models.functions import Trunc
+from django.db.models import Count
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.views import APIView
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -15,7 +19,7 @@ from ..models.message import AdminReview, AgentType, Conversation, Message, User
 from ..serializers import (
     AdminReviewSerializer,
     ConversationMessagesSerializer,
-    UserFeedbackSerializer, ConversationSerializer,
+    UserFeedbackSerializer, ConversationSerializer, StatsSerializer,
 )
 from ..serializers.messages import MessageSerializer
 import django_filters
@@ -141,5 +145,73 @@ class SenderAPIView(CreateAPIView, UpdateAPIView):
                 .values_list("sender__id", flat=True)
                 .distinct()
             ),
+            safe=False,
+        )
+
+
+class Stats(APIView):
+    def get(self, request):
+        serializer = StatsSerializer(data=request.GET)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if not RAGConfig.objects.filter(pk=data["rag"]).exists():
+            return JsonResponse(
+                {"error": "RAG config not found"},
+                status=400,
+            )
+        rag = RAGConfig.objects.get(pk=data["rag"])
+        min_date = data.get("min_date", None)
+        max_date = data.get("max_date", None)
+        granularity = data.get("granularity", None)
+
+        # ----------- Conversations -----------
+        conversations = Conversation.objects
+        if min_date:
+            conversations = conversations.filter(created_date__gte=min_date)
+        if max_date:
+            conversations = conversations.filter(created_date__lte=max_date)
+
+        conversations_rag_filtered = conversations.filter(
+            message__stack__0__payload__rag_config_name=rag.name
+        ).distinct()
+        # --- Total conversations
+        total_conversations = conversations_rag_filtered.count()
+        # --- Message count per conversation
+        conversations_message_count = conversations_rag_filtered.annotate(
+            messages_count=Count("message")
+        ).values("messages_count", "name")
+        # --- Conversations by date
+        conversations_by_date = conversations_rag_filtered.annotate(
+            date=Trunc("created_date", granularity)
+        ).values("created_date").annotate(count=Count("id"))
+
+        # --- Conversations per RAG Config
+        conversations_per_rag = conversations.filter(
+            message__stack__0__payload__rag_config_id__isnull=False
+        ).annotate(
+            rag_id=Count("message__stack__0__payload__rag_config_id")
+        ).values("message__stack__0__payload__rag_config_id")
+
+        # ----------- Messages -----------
+        # --- Messages per RAG Config
+        messages = Message.objects
+        if min_date:
+            messages = messages.filter(created_date__gte=min_date)
+        if max_date:
+            messages = messages.filter(created_date__lte=max_date)
+        messages_per_rag = Message.objects.filter(
+            stack__0__payload__rag_config_id__isnull=False
+        ).annotate(
+            rag_id=Count("stack__0__payload__rag_config_id")
+        ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
+
+        return JsonResponse(
+            {
+                "total_conversations": total_conversations,
+                "conversations_per_rag": list(conversations_per_rag.all()),
+                "conversations_message_count": list(conversations_message_count.all()),
+                "messages_per_rag": list(messages_per_rag.all()),
+                "conversations_by_date": list(conversations_by_date.all())
+            },
             safe=False,
         )

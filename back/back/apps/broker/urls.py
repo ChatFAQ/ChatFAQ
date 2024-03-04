@@ -20,4 +20,5 @@ router.register(
 urlpatterns = [
     path("", include(router.urls)),
     path("senders/", views.SenderAPIView.as_view()),
+    path("stats/", views.Stats.as_view()),
 ]

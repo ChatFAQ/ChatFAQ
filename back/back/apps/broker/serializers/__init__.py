@@ -71,3 +71,12 @@ class AdminReviewSerializer(serializers.ModelSerializer):
 
         model = AdminReview
         fields = "__all__"
+
+
+class StatsSerializer(serializers.Serializer):
+    rag = serializers.CharField()
+    min_date = serializers.DateField(required=False, allow_null=True)
+    max_date = serializers.DateField(required=False, allow_null=True)
+    granularity = serializers.ChoiceField(
+        required=False, choices=["year", "quarter", "month", "week", "day", "date", "time", "hour", "minute", "second"], default="day"
+    )
