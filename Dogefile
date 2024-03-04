@@ -71,6 +71,7 @@ services:
     image: widget
     envs: [ sentry, widget ]
     port: 3000
+    instance_size: S
     route_prefixes:
       - "/demo"
 
@@ -78,11 +79,13 @@ services:
     image: admin
     envs: [ sentry, admin ]
     port: 3000
+    instance_size: S
 
   - name: back
     image: back
     envs: [ sentry, django ]
     port: 8000
+    instance_size: S
     route_prefixes:
       - "/back"
 
@@ -90,6 +93,7 @@ workers:
   - name: fsm_llm
     image: sdk
     envs: [ sentry, sdk ]
+    instance_size: S
 
   - name: celery_worker
     image: back
@@ -101,5 +105,6 @@ jobs:
   - name: migrate
     when: PRE_DEPLOY
     image: back
+    instance_size: S
     envs: [ sentry, django ]
     command: modelw-docker run python manage.py migrate
