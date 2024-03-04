@@ -4,10 +4,10 @@ name: ChatFAQ
 on:
   push:
     paths:
-      - "back/**"
-      - "widget/**"
-      - "sdk/**"
       - "admin/**"
+      - "back/**"
+      - "sdk/**"
+      - "widget/**"
       - "Dogefile"
     branches:
       - "master"
@@ -22,9 +22,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v4
 
       - name: Deploy via DogeOps
         uses: WithAgency/dogeops-action@v1
