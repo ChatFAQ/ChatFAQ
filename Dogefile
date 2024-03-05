@@ -70,20 +70,22 @@ services:
   - name: widget
     image: widget
     envs: [ sentry, widget ]
-    instance_size: XXS
     port: 3000
+    instance_size: XS
     route_prefixes:
       - "/demo"
+
   - name: admin
     image: admin
     envs: [ sentry, admin ]
-    instance_size: XXS
     port: 3000
+    instance_size: XS
+
   - name: back
     image: back
     envs: [ sentry, django ]
-    instance_size: XS
     port: 8000
+    instance_size: XS
     route_prefixes:
       - "/back"
 
@@ -92,15 +94,17 @@ workers:
     image: sdk
     envs: [ sentry, sdk ]
     instance_size: XS
+
   - name: celery_worker
     image: back
     envs: [ sentry, django ]
     instance_size: M
-    command: modelw-docker run python -m celery -A back.config worker -l INFO --pool threads --concurrency 2
+    command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
+
 jobs:
   - name: migrate
     when: PRE_DEPLOY
     image: back
+    instance_size: XS
     envs: [ sentry, django ]
     command: modelw-docker run python manage.py migrate
-    instance_size: XXS
