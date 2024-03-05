@@ -33,10 +33,10 @@
     >
         <template #legend>
             <div class="legend"><span>Status:</span>
-                <span><span class="status success"></span>{{ $t("success") }}</span>
-                <span><span class="status started"></span>{{ $t("started") }}</span>
-                <span><span class="status waiting"></span>{{ $t("waiting") }}</span>
-                <span><span class="status failure"></span>{{ $t("failure") }}</span>
+                <span><span class="status SUCCESS"></span>{{ $t("success") }}</span>
+                <span><span class="status STARTED"></span>{{ $t("started") }}</span>
+                <span><span class="status WAITING"></span>{{ $t("waiting") }}</span>
+                <span><span class="status FAILURE"></span>{{ $t("failure") }}</span>
             </div>
         </template>
         <template v-slot:duration="{row}">
