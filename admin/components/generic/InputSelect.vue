@@ -11,6 +11,8 @@
             :options="choices"
             :placeholder="placeholder"
             @change="$emit('change', form)"
+            @clear="remoteSearch('')"
+            @focus="remoteSearch('')"
         >
             <template v-slot:default="props">
                 <div v-if="props.index < choices.length - 1">
@@ -24,12 +26,13 @@
     </client-only>
 </template>
 <script setup>
-const loading = ref(false)
-const lastElement = ref(undefined)
+import { ref, computed, defineProps, onMounted } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
 import { useItemsStore } from "~/store/items.js";
 const { $axios } = useNuxtApp();
 
+const loading = ref(false)
+const lastElement = ref(undefined)
 const itemsStore = useItemsStore()
 const filterChoices = ref({})
 const props = defineProps({
@@ -106,10 +109,39 @@ const choices = computed(() => {
 
 function remoteSearch(query) {
     loading.value = true
+    let url
+    let ref = false
+    let resultHolder
 
-    setTimeout(() => {
-        loading.value = false
-    }, 1000)
+    if (props.filterSchema) {
+        url = props.filterSchema.endpoint
+        resultHolder = filterChoices.value
+        if (props.filterSchema.type === "ref")
+            ref = true
+    } else {
+        url = props.schema.properties[props.fieldName].choices.next.split('?')[0]
+        resultHolder = props.schema.properties[props.fieldName].choices
+        ref = true
+    }
+    if (ref) {
+        itemsStore.retrieveItems($axios, url, {search: query, limit: 0, offset: 0, ordering: undefined}).then((items) => {
+            items = JSON.parse(JSON.stringify(items))
+            console.log("items")
+            console.log(items)
+            items.results = items.results.map((item) => {
+                return {
+                    value: item.id,
+                    label: item.name,
+                }
+            })
+            resultHolder.results = [...items.results]
+            if (!items.next && resultHolder.next)
+                resultHolder.next = resultHolder.next
+            else
+                resultHolder.next = items.next
+        })
+    }
+    loading.value = false
 }
 
 useIntersectionObserver(lastElement, async ([{ isIntersecting }], observerElement) => {

@@ -4,12 +4,15 @@ from rest_framework.decorators import action
 from back.apps.language_model.models.rag_pipeline import LLMConfig, RAGConfig, GenerationConfig, PromptConfig, RetrieverConfig
 from back.apps.language_model.serializers.rag_pipeline import LLMConfigSerializer, RAGConfigSerializer, \
     GenerationConfigSerializer, PromptConfigSerializer, RetrieverConfigSerializer
+from django_filters.rest_framework.backends import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 class RAGConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RAGConfig.objects.all()
     serializer_class = RAGConfigSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['name']
 
 
     def get_queryset(self):
@@ -34,22 +37,26 @@ class RAGConfigAPIViewSet(viewsets.ModelViewSet):
 class LLMConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = LLMConfig.objects.all()
     serializer_class = LLMConfigSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['name']
 
 
 class RetrieverConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RetrieverConfig.objects.all()
     serializer_class = RetrieverConfigSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['name']
 
 
 class GenerationConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = GenerationConfig.objects.all()
     serializer_class = GenerationConfigSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['name']
 
 
 class PromptConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = PromptConfig.objects.all()
     serializer_class = PromptConfigSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['name']
