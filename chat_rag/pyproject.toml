@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chat-rag"
-version = "0.1.54"
+version = "0.1.56"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
@@ -30,9 +30,9 @@ aiohttp = "^3.8.5"
 cryptography = "^41.0.4"
 unstructured-inference = "0.7.21"
 torchvision = "0.16.0"
-anthropic = "^0.6.0"
-autoawq = "^0.1.7"
-mistralai = "^0.0.9"
+anthropic = "0.18.1"
+autoawq = "0.1.7"
+mistralai = "0.0.9"
 
 [build-system]
 requires = ["poetry-core"]
