@@ -27,7 +27,6 @@ We also provide an example of each component here, so you can use it as a refere
 
 Currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
 
-
 ### Knowledge Base
 
 The knowledge base is your source of truth.
