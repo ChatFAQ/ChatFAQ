@@ -46,7 +46,7 @@
                 :cardProps="{
                 }"
                 :tableProps="{
-                    'name': $t('name'),
+                    'name': {'name': $t('name')},
                 }"
                 :outsideSection="['data']"
                 @submitForm="submitFieldData"
