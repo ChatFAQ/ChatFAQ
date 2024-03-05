@@ -566,7 +566,9 @@ function sortChange({column, prop, order}) {
 
     .section-header-right {
         display: flex;
-
+        .add-button {
+            @include button-round;
+        }
         > .add-button.not-only-command {
             margin-right: 32px;
         }
