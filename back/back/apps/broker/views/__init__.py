@@ -24,7 +24,7 @@ from ..serializers import (
 from ..serializers.messages import MessageSerializer
 import django_filters
 
-from ...language_model.models import RAGConfig
+from ...language_model.models import RAGConfig, Intent
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -172,7 +172,7 @@ class Stats(APIView):
             conversations = conversations.filter(created_date__lte=max_date)
 
         conversations_rag_filtered = conversations.filter(
-            message__stack__0__payload__rag_config_name=rag.name
+            message__stack__0__payload__rag_config_id=rag.id
         ).distinct()
         # --- Total conversations
         total_conversations = conversations_rag_filtered.count()
@@ -193,25 +193,49 @@ class Stats(APIView):
         ).values("message__stack__0__payload__rag_config_id")
 
         # ----------- Messages -----------
-        # --- Messages per RAG Config
         messages = Message.objects
         if min_date:
             messages = messages.filter(created_date__gte=min_date)
         if max_date:
             messages = messages.filter(created_date__lte=max_date)
+        messages_rag_filtered = messages.filter(
+            stack__0__payload__rag_config_id=rag.id
+        ).distinct()
+        # --- Messages per RAG Config
         messages_per_rag = Message.objects.filter(
             stack__0__payload__rag_config_id__isnull=False
         ).annotate(
             rag_id=Count("stack__0__payload__rag_config_id")
         ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
+        messages_per_rag_with_prev = messages_per_rag.filter(prev__isnull=False)
+        # --- Chit chat count
+        chit_chats_count = messages_per_rag_with_prev.filter(
+            messageknowledgeitem__isnull=True
+        ).count()
+        chit_chats_percentage = chit_chats_count / messages_per_rag_with_prev.count() * 100
+        # --- Unanswerable queries count
+        intents_suggested = Intent.objects.filter(suggested_intent=True).values("pk")
+        unanswerable_queries_count = messages_per_rag_with_prev.filter(
+            intent__in=intents_suggested
+        ).count()
+        unanswerable_queries_percentage = unanswerable_queries_count / messages_per_rag_with_prev.count() * 100
+        # --- Answerable queries count
+        answerable_queries_count = messages_per_rag_with_prev.count() - unanswerable_queries_count
+        answerable_queries_percentage = answerable_queries_count / messages_per_rag_with_prev.count() * 100
 
         return JsonResponse(
             {
                 "total_conversations": total_conversations,
-                "conversations_per_rag": list(conversations_per_rag.all()),
+                # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
                 "messages_per_rag": list(messages_per_rag.all()),
-                "conversations_by_date": list(conversations_by_date.all())
+                "conversations_by_date": list(conversations_by_date.all()),
+                "chit_chats_count": chit_chats_count,
+                "chit_chats_percentage": chit_chats_percentage,
+                "unanswerable_queries_count": unanswerable_queries_count,
+                "unanswerable_queries_percentage": unanswerable_queries_percentage,
+                "answerable_queries_count": answerable_queries_count,
+                "answerable_queries_percentage": answerable_queries_percentage,
             },
             safe=False,
         )
