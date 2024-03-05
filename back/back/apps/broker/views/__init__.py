@@ -120,8 +120,9 @@ class ConversationAPIViewSet(
         return response
 
 
-class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
+class MessageView(viewsets.ModelViewSet):
     queryset = Message.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     serializer_class = MessageSerializer
 
 
