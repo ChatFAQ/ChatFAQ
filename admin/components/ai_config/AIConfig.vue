@@ -124,7 +124,7 @@ async function callRagReindex(ragId) {
             title: 'Error',
             message: t('failedtotriggerreindex'),
             type: 'error',
-            position: 'bottom-right',
+            position: 'top-right',
         })
         return
     }
@@ -132,7 +132,7 @@ async function callRagReindex(ragId) {
         title: 'Success',
         message: t('reindextriggered'),
         type: 'success',
-            position: 'bottom-right',
+            position: 'top-right',
     })
 }
 

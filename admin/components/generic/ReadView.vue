@@ -255,7 +255,7 @@ function deleteItem(id) {
             title: 'Error',
             message: t('errordeletingitem'),
             type: 'error',
-            position: 'bottom-right',
+            position: 'top-right',
         })
         return
     }
@@ -263,7 +263,7 @@ function deleteItem(id) {
         title: 'Success',
         message: t('successdeletingitem'),
         type: 'success',
-            position: 'bottom-right',
+            position: 'top-right',
     })
 }
 
