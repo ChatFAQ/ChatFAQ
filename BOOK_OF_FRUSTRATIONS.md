@@ -10,3 +10,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 - [ ] RAGs should not be loaded in shared celery memory, but in another service which celery calls.
 - [ ] RAG need to be deleted and created if the retriever type wants to be changed. This deletion and creation shouldn't be needed and the RAG should be able to handle this change. 
 - [ ] Search correct faiss-gpu version and pin it.
+- [ ] Default PDF parser doesn't handle images yet.

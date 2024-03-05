@@ -1,7 +1,7 @@
 from typing import List, Dict
 import os
 
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from anthropic import Anthropic
 
 from chat_rag.llms import RAGLLM, CONTEXT_PREFIX
 
@@ -9,13 +9,12 @@ from chat_rag.llms import RAGLLM, CONTEXT_PREFIX
 class ClaudeChatModel(RAGLLM):
     def __init__(self, llm_name, **kwargs) -> None:
         self.llm_name = llm_name
-        self.anthropic = Anthropic(
-            api_key=os.environ["ANTHROPIC_API_KEY"],
+        self.client = Anthropic(
+            api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
     def format_prompt(
         self,
-        messages: List[Dict[str, str]],
         contexts: List[str],
         system_prefix: str,
         n_contexts_to_use: int = 3,
@@ -26,8 +25,6 @@ class ClaudeChatModel(RAGLLM):
         Formats the prompt to be used by the model.
         Parameters
         ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
         system_prefix : str
@@ -49,20 +46,14 @@ class ClaudeChatModel(RAGLLM):
         list
             The formatted prompt.
         """
-        prompt = self.format_system_prompt(
+        system_prompt = self.format_system_prompt(
             contexts=contexts,
             system_prefix=system_prefix,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
 
-        for message in messages:
-            if message['role'] == 'user':
-                prompt += f"{HUMAN_PROMPT} {message['content']}{AI_PROMPT}"
-            elif message['role'] == 'assistant':
-                prompt += " " + message['content']
-
-        return prompt
+        return system_prompt
 
     def generate(
         self,
@@ -93,18 +84,19 @@ class ClaudeChatModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
+        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
 
-        completion = self.anthropic.completions.create(
+        message = self.client.messages.create(
             model=self.llm_name,
-            max_tokens_to_sample=generation_config_dict['max_new_tokens'],
+            system=system_prompt,
+            messages=messages,
+            max_tokens=generation_config_dict['max_new_tokens'],
             temperature=generation_config_dict['temperature'],
             top_p=generation_config_dict['top_p'],
             top_k=generation_config_dict['top_k'],
-            prompt=prompt,
         )
 
-        return completion.completion
+        return message.content[0].text
     
     def stream(
         self,
@@ -114,7 +106,7 @@ class ClaudeChatModel(RAGLLM):
         generation_config_dict: dict = None,
         lang: str = "en",
         **kwargs,
-    ) -> str:
+    ):
         """
         Generate text from a prompt using the model.
         Parameters
@@ -135,20 +127,22 @@ class ClaudeChatModel(RAGLLM):
             The generated text.
         """
 
-        prompt = self.format_prompt(messages, contexts, **prompt_structure_dict, lang=lang)
+        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
 
-        stream = self.anthropic.completions.create(
+        stream = self.client.messages.create(
             model=self.llm_name,
-            max_tokens_to_sample=generation_config_dict['max_new_tokens'],
+            system=system_prompt,
+            messages=messages,
+            max_tokens=generation_config_dict['max_new_tokens'],
             temperature=generation_config_dict['temperature'],
             top_p=generation_config_dict['top_p'],
             top_k=generation_config_dict['top_k'],
-            prompt=prompt,
             stream=True,
         )
 
-        for completion in stream:
-            yield completion.completion
+        for event in stream:
+            if event.type == "content_block_delta":
+                yield event.delta.text
 
         
 
