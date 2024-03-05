@@ -16,7 +16,7 @@ drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
 channels = "*"
 daphne = "*"
 Django = "*"
-django-cors-headers = "^3.13.0"
+django-cors-headers = "^4.3.0"
 django-extensions = "^3.2.1"
 django-better-admin-arrayfield = "^1.4.2"
 typefit = "^0.4.2"
