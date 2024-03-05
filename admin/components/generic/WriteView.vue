@@ -92,7 +92,7 @@
                 </ReadOnlyField>
             </div>
         </el-form>
-
+        <slot name="extra-write-bottom"></slot>
         <div class="commands">
             <el-button v-if="!itemsStore.adding" type="danger" @click="deleteDialogVisible = true" class="delete-button">
                 <span>{{ $t("delete") }}</span>
@@ -243,7 +243,7 @@ const submitForm = async (formEl) => {
                 title: 'Error',
                 message: t('errorsavingitem'),
                 type: 'error',
-                position: 'bottom-right',
+                position: 'top-right',
             })
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
@@ -263,7 +263,7 @@ const submitForm = async (formEl) => {
             title: 'Success',
             message: t('successsavingitem'),
             type: 'success',
-                position: 'bottom-right',
+                position: 'top-right',
         })
         itemsStore.loading = false
     })
@@ -282,14 +282,14 @@ function deleteItem() {
             title: 'Error',
             message: t('errordeletingitem'),
             type: 'error',
-            position: 'bottom-right',
+            position: 'top-right',
         })
     }
     ElNotification({
         title: 'Success',
         message: t('successdeletingitem'),
         type: 'success',
-            position: 'bottom-right',
+            position: 'top-right',
     })
 }
 
@@ -382,7 +382,7 @@ function filterInSection(inSection, _obj) {
             display: flex;
             flex-direction: row;
 
-            *:first-child {
+            > *:first-child {
                 margin-right: 8px;
             }
         }

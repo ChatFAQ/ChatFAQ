@@ -241,7 +241,7 @@ class SmartSplitter:
     Splits the text into information meaningful chunks using the GPT-4 model.
     This can reach API rate limits very quickly.
     """
-    def __init__(self, model_name='gpt-4'):
+    def __init__(self, model_name='gpt-4-0125-preview'):
         """
         Parameters
         ----------

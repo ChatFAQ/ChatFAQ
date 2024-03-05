@@ -1,6 +1,12 @@
 from back.config.celery import app as celery_app
 
 
+def get_worker_names():
+    c = celery_app.control
+    i = c.inspect()
+    return list(i.stats().keys())
+
+
 def ensure_worker_queues():
     c = celery_app.control
     i = c.inspect()

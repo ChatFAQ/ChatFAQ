@@ -27,7 +27,6 @@ We also provide an example of each component here, so you can use it as a refere
 
 Currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
 
-
 ### Knowledge Base
 
 The knowledge base is your source of truth.
@@ -376,7 +375,7 @@ The RAG config is configured with the following properties:
 
 Remember that currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
 
-It is important to run the indexing tasks manually after creating, modifying a RAG config, or after modifying the knowledge base. You can do it from the RAGConfig django admin panel.
+It is **very important** to run the indexing tasks manually after creating, modifying a RAG config, or after modifying the knowledge base. You can do it from the RAGConfig django admin panel.
 
 
 An example of a RAG config is the following:

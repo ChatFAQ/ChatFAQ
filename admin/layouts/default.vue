@@ -16,6 +16,7 @@
 }
 .content-wrapper {
     width: 100%;
+    margin-bottom: 55px;
 }
 </style>
 <script setup lang="ts">

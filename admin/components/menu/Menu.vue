@@ -1,5 +1,5 @@
 <template>
-    <div class="chatfaq-demo">
+    <div class="chatfaq-menu">
         <div class="chatfaq-logo">
             <div class="chatfaq-cq-icon"></div>
             <div class="chatfaq-icon"></div>
@@ -33,7 +33,9 @@ function logOut() {
 }
 </script>
 <style lang="scss" scoped>
-.chatfaq-demo {
+.chatfaq-menu {
+    position: sticky;
+    top: 0;
     background-color: $chatfaq-color-primary-900;
     padding-top: 10px;
     padding-bottom: 10px;

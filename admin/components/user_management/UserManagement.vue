@@ -10,7 +10,7 @@
                     'email': $t('email'),
                 }"
                 :tableProps="{
-                    'email': $t('email'),
+                    'email': {'name': $t('email')},
                 }"
                 :excludeFields="['date_joined', 'last_login', 'rpc_group']"
                 @submitForm="submitPassword"

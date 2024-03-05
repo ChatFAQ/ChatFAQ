@@ -21,7 +21,7 @@
                 }"
                 :defaultSort="{'prop': 'name'}">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)">
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)" :disabled="item.disabled || item.index_up_to_date">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
                             <Refresh/>
@@ -124,7 +124,7 @@ async function callRagReindex(ragId) {
             title: 'Error',
             message: t('failedtotriggerreindex'),
             type: 'error',
-            position: 'bottom-right',
+            position: 'top-right',
         })
         return
     }
@@ -132,7 +132,7 @@ async function callRagReindex(ragId) {
         title: 'Success',
         message: t('reindextriggered'),
         type: 'success',
-            position: 'bottom-right',
+            position: 'top-right',
     })
 }
 

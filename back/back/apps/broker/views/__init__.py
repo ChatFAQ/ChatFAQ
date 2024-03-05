@@ -24,7 +24,8 @@ from ..serializers import (
 from ..serializers.messages import MessageSerializer
 import django_filters
 
-from ...language_model.models import RAGConfig
+from ...language_model.models import RAGConfig, Intent
+from ...language_model.stats import calculate_response_stats, calculate_general_rag_stats
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -119,8 +120,9 @@ class ConversationAPIViewSet(
         return response
 
 
-class MessageView(LoginRequiredMixin, viewsets.ModelViewSet):
+class MessageView(viewsets.ModelViewSet):
     queryset = Message.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     serializer_class = MessageSerializer
 
 
@@ -172,7 +174,7 @@ class Stats(APIView):
             conversations = conversations.filter(created_date__lte=max_date)
 
         conversations_rag_filtered = conversations.filter(
-            message__stack__0__payload__rag_config_name=rag.name
+            message__stack__0__payload__rag_config_id=rag.id
         ).distinct()
         # --- Total conversations
         total_conversations = conversations_rag_filtered.count()
@@ -193,25 +195,36 @@ class Stats(APIView):
         ).values("message__stack__0__payload__rag_config_id")
 
         # ----------- Messages -----------
-        # --- Messages per RAG Config
         messages = Message.objects
         if min_date:
             messages = messages.filter(created_date__gte=min_date)
         if max_date:
             messages = messages.filter(created_date__lte=max_date)
+        messages_rag_filtered = messages.filter(
+            stack__0__payload__rag_config_id=rag.id
+        ).distinct()
+        # --- Messages per RAG Config
         messages_per_rag = Message.objects.filter(
             stack__0__payload__rag_config_id__isnull=False
         ).annotate(
             rag_id=Count("stack__0__payload__rag_config_id")
         ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
+        messages_per_rag_with_prev = messages_per_rag.filter(prev__isnull=False)
+        general_stats = calculate_general_rag_stats(messages_per_rag_with_prev, messages_per_rag_with_prev.count())
+        # ----------- Reviews and Feedbacks -----------
+        admin_reviews = AdminReview.objects.filter(message__in=messages_rag_filtered)
+        user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)
+        reviews_and_feedbacks = calculate_response_stats(admin_reviews, user_feedbacks)
 
         return JsonResponse(
             {
                 "total_conversations": total_conversations,
-                "conversations_per_rag": list(conversations_per_rag.all()),
+                # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
                 "messages_per_rag": list(messages_per_rag.all()),
-                "conversations_by_date": list(conversations_by_date.all())
+                "conversations_by_date": list(conversations_by_date.all()),
+                **general_stats,
+                **reviews_and_feedbacks
             },
             safe=False,
         )

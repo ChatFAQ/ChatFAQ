@@ -3,7 +3,7 @@
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
         <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
         <div class="section-header">
-            <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
+            <slot name="legend" :total="itemsStore.items[apiUrl]?.results?.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
                             "number": itemsStore.items[apiUrl]?.results.length,
@@ -255,7 +255,7 @@ function deleteItem(id) {
             title: 'Error',
             message: t('errordeletingitem'),
             type: 'error',
-            position: 'bottom-right',
+            position: 'top-right',
         })
         return
     }
@@ -263,7 +263,7 @@ function deleteItem(id) {
         title: 'Success',
         message: t('successdeletingitem'),
         type: 'success',
-            position: 'bottom-right',
+            position: 'top-right',
     })
 }
 
@@ -374,7 +374,7 @@ function sortChange({column, prop, order}) {
     flex-wrap: wrap;
     width: 100%;
     justify-items: stretch;
-    grid-template-columns: 25% 25% 25% 25%;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 25%));
 }
 
 /* Override justify-content for the last row */
@@ -566,7 +566,9 @@ function sortChange({column, prop, order}) {
 
     .section-header-right {
         display: flex;
-
+        .add-button {
+            @include button-round;
+        }
         > .add-button.not-only-command {
             margin-right: 32px;
         }
