@@ -21,7 +21,7 @@
                 }"
                 :defaultSort="{'prop': 'name'}">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)" :disabled="item.disabled">
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)" :disabled="item.disabled || item.index_up_to_date">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
                             <Refresh/>
