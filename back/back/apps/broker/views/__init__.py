@@ -25,6 +25,7 @@ from ..serializers.messages import MessageSerializer
 import django_filters
 
 from ...language_model.models import RAGConfig, Intent
+from ...language_model.stats import calculate_response_stats, calculate_general_rag_stats
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -208,20 +209,11 @@ class Stats(APIView):
             rag_id=Count("stack__0__payload__rag_config_id")
         ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
         messages_per_rag_with_prev = messages_per_rag.filter(prev__isnull=False)
-        # --- Chit chat count
-        chit_chats_count = messages_per_rag_with_prev.filter(
-            messageknowledgeitem__isnull=True
-        ).count()
-        chit_chats_percentage = chit_chats_count / messages_per_rag_with_prev.count() * 100
-        # --- Unanswerable queries count
-        intents_suggested = Intent.objects.filter(suggested_intent=True).values("pk")
-        unanswerable_queries_count = messages_per_rag_with_prev.filter(
-            intent__in=intents_suggested
-        ).count()
-        unanswerable_queries_percentage = unanswerable_queries_count / messages_per_rag_with_prev.count() * 100
-        # --- Answerable queries count
-        answerable_queries_count = messages_per_rag_with_prev.count() - unanswerable_queries_count
-        answerable_queries_percentage = answerable_queries_count / messages_per_rag_with_prev.count() * 100
+        general_stats = calculate_general_rag_stats(messages_per_rag_with_prev, messages_per_rag_with_prev.count())
+        # ----------- Reviews and Feedbacks -----------
+        admin_reviews = AdminReview.objects.filter(message__in=messages_rag_filtered)
+        user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)
+        reviews_and_feedbacks = calculate_response_stats(admin_reviews, user_feedbacks)
 
         return JsonResponse(
             {
@@ -230,12 +222,8 @@ class Stats(APIView):
                 "conversations_message_count": list(conversations_message_count.all()),
                 "messages_per_rag": list(messages_per_rag.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
-                "chit_chats_count": chit_chats_count,
-                "chit_chats_percentage": chit_chats_percentage,
-                "unanswerable_queries_count": unanswerable_queries_count,
-                "unanswerable_queries_percentage": unanswerable_queries_percentage,
-                "answerable_queries_count": answerable_queries_count,
-                "answerable_queries_percentage": answerable_queries_percentage,
+                **general_stats,
+                **reviews_and_feedbacks
             },
             safe=False,
         )
