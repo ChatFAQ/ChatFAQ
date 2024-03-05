@@ -3,7 +3,7 @@
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
         <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
         <div class="section-header">
-            <slot name="legend" :total="itemsStore.items[apiUrl]?.results.length">
+            <slot name="legend" :total="itemsStore.items[apiUrl]?.results?.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
                             "number": itemsStore.items[apiUrl]?.results.length,
