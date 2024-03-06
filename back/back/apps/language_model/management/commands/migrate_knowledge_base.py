@@ -94,7 +94,6 @@ class Command(BaseCommand):
                     knowledge_item.content = content
                     knowledge_item.save()
 
-        self.stdout.write(self.style.SUCCESS('Knowledge items and images migrated successfully.'))
     
     def migrate_knowledge_items(self, source_back_url, source_kb_name, destination_base, starting_offset, batch_size, header):
         '''
