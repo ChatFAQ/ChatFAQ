@@ -9,3 +9,4 @@
     Widget <modules/widget/index.md>
     AI Configuration <modules/configuration/index.md>
     Interfaces <modules/interfaces/index.rst>
+    Utilities <modules/utilities/index.md>
