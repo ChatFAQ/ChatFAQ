@@ -4,6 +4,8 @@ from back.config.celery import app as celery_app
 def get_worker_names():
     c = celery_app.control
     i = c.inspect()
+    if not i.stats():
+        return []
     return list(i.stats().keys())
 
 
@@ -19,7 +21,7 @@ def ensure_worker_queues():
         for queue in active_queues_info[key]:
             active_queues.add(queue["name"])
 
-    workers = i.stats().keys()
+    workers = i.stats().keys() if i.stats() else []
     worker_queues = []
     for worker in workers:
         q_name = f"queue-{worker}"

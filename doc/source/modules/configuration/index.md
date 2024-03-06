@@ -81,22 +81,24 @@ An example of a CSV for the Knowledge Base is the following:
 
 | title | content | url | section | role |
 | --- | --- | --- | --- | --- |
-| Can ChatFAQ integrate with communication tools like Slack and Teams? | Yes, ChatFAQ can integrate with communication tools like Slack and Teams, enhancing your communication capabilities and enabling seamless interactions with your audience. | https://www.chatfaq.io/features/integrations | Features > Integrations | user |
-| Can the ChatFAQ Widget be tailored to fit specific brand identities? | Absolutely, the ChatFAQ Widget can be fully branded to reflect your brand's uniqueness, including size, color, fonts, and logo. This ensures it aligns perfectly with your brand identity. | https://www.chatfaq.io/features/widget | Features > Widget | user |
-| Does ChatFAQ offer a customized Natural Language Processing (NLP) engine? | Yes, ChatFAQ includes a specialized NLP/NLG engine that enhances the conversational capabilities of chatbots, making them more effective in understanding and responding to user queries. | https://github.com/ChatFAQ/ChatFAQ | GitHub > Documentation | user |
-| Does ChatFAQ offer specific enterprise solutions? | Indeed, ChatFAQ is suitable for businesses and can be tailored to meet enterprise needs. It offers features and customization options suitable for businesses of all sizes. | https://github.com/ChatFAQ/ChatFAQ | GitHub > About | user |
-| Does the ChatFAQ Widget support multiple languages? | Yes, the ChatFAQ Widget is multilingual, allowing businesses to communicate with a global customer base while maintaining service quality. | https://www.chatfaq.io/features/widget | Features > Widget | user |
-| How can I customize the user interface of the ChatFAQ Widget? | The ChatFAQ Widget offers complete flexibility over UI aspects, including size, color, fonts, and logo, to align with your brand's uniqueness and cater to your audience's needs. | https://www.chatfaq.io/features/widget | Features > Widget | user |
-| How can I expand my knowledge dataset with ChatFAQ? | You can expand your knowledge dataset with ChatFAQ by uploading your business content as CSV or PDF files. ChatFAQ will automatically generate utterances to enhance your knowledge dataset, improving the accuracy of the AI model. Even if you don't have existing Frequently Asked Questions, ChatFAQ can infer FAQs and prepare a training dataset covering your business context. | https://www.chatfaq.io/features/generative-ai | Features > Generative AI | user |
+| Can ChatFAQ integrate with communication tools like Slack and Teams? | Yes, ChatFAQ can integrate with communication tools like Slack and Teams, enhancing your communication capabilities and enabling seamless interactions with your audience. | <https://www.chatfaq.io/features/integrations> | Features > Integrations | user |
+| Can the ChatFAQ Widget be tailored to fit specific brand identities? | Absolutely, the ChatFAQ Widget can be fully branded to reflect your brand's uniqueness, including size, color, fonts, and logo. This ensures it aligns perfectly with your brand identity. | <https://www.chatfaq.io/features/widget> | Features > Widget | user |
+| Does ChatFAQ offer a customized Natural Language Processing (NLP) engine? | Yes, ChatFAQ includes a specialized NLP/NLG engine that enhances the conversational capabilities of chatbots, making them more effective in understanding and responding to user queries. | <https://github.com/ChatFAQ/ChatFAQ> | GitHub > Documentation | user |
+| Does ChatFAQ offer specific enterprise solutions? | Indeed, ChatFAQ is suitable for businesses and can be tailored to meet enterprise needs. It offers features and customization options suitable for businesses of all sizes. | <https://github.com/ChatFAQ/ChatFAQ> | GitHub > About | user |
+| Does the ChatFAQ Widget support multiple languages? | Yes, the ChatFAQ Widget is multilingual, allowing businesses to communicate with a global customer base while maintaining service quality. | <https://www.chatfaq.io/features/widget> | Features > Widget | user |
+| How can I customize the user interface of the ChatFAQ Widget? | The ChatFAQ Widget offers complete flexibility over UI aspects, including size, color, fonts, and logo, to align with your brand's uniqueness and cater to your audience's needs. | <https://www.chatfaq.io/features/widget> | Features > Widget | user |
+| How can I expand my knowledge dataset with ChatFAQ? | You can expand your knowledge dataset with ChatFAQ by uploading your business content as CSV or PDF files. ChatFAQ will automatically generate utterances to enhance your knowledge dataset, improving the accuracy of the AI model. Even if you don't have existing Frequently Asked Questions, ChatFAQ can infer FAQs and prepare a training dataset covering your business context. | <https://www.chatfaq.io/features/generative-ai> | Features > Generative AI | user |
 | ... | ... | ... | ... | ... |
 
 #### Knowledge items Recomendations
 
 **Title Column**
+
 - Semantically Descriptive: Ensure that the title of each knowledge item is semantically descriptive. It should clearly and accurately reflect the content within.
 - Uniqueness: Each title should be unique within the knowledge base. This uniqueness aids in distinguishing between different knowledge items and helps in efficient retrieval.
 
 **Content Column**
+
 - Markdown Format: Content can be formatted in Markdown. This allows for structured and visually appealing presentation of information.
 - Prompt Reinforcement: When integrating content, reinforce the prompt by indicating to the model that it is capable of interpreting Markdown. This can enhance the model's ability to process and understand the content effectively.
 - Balanced Length: The content of each knowledge item should neither be too short nor excessively long. Aim for a balanced length to provide sufficient detail without overwhelming.
@@ -115,9 +117,11 @@ The retriever is configured with the following properties:
 - **device**: The device to use for the retriever. It can be a CPU or a GPU. Default: 'cpu'.
 
 #### ColBERT Search
+
 We recommend setting [ColBERT](https://arxiv.org/abs/2004.12832) as the retriever. It generates multiple embeddings for each knowledge item and query, which allows for more accurate retrieval generally and it is faster than the Standard Semantic Search retriever.
 
 Model per language:
+
 - English: [colbert-ir/colbertv2.0](https://huggingface.co/colbert-ir/colbertv2.0)
 - French: [antoinelouis/colbertv1-camembert-base-mmarcoFR](https://huggingface.co/antoinelouis/colbertv1-camembert-base-mmarcoFR)
 - Spanish: [AdrienB134/ColBERTv2.0-spanish-mmarcoES](https://huggingface.co/AdrienB134/ColBERTv2.0-spanish-mmarcoES)
@@ -127,6 +131,7 @@ Model per language:
 We recommend setting the **model_name** to one of the [e5 family models](https://huggingface.co/intfloat). This retriever is developed with these models as the base, so it will work better with them.
 
 Model per language:
+
 - English: [intfloat/e5-small-v2](https://huggingface.co/intfloat/e5-small-v2)
 - Other languages: [intfloat/multilingual-e5-small](https://huggingface.co/intfloat/multilingual-e5-small)
 
@@ -146,8 +151,8 @@ An example of a retriever config is the following:
 }
 ```
 
-
 ### LLM Config
+
 The LLM is the component that defines the model that will generate the answer from the prompt.
 
 The LLM is configured with the following properties:
@@ -164,20 +169,20 @@ The LLM is configured with the following properties:
 - **revision**: The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models. Default: main.
 - **model_max_length**: The maximum length of the model. Default: None.
 
-
-Our preferred option is to use an open-source LLM like [Llama-2](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) for English and [Qwen-Chat](https://huggingface.co/Qwen/Qwen-7B-Chat) for other languages. 
+Our preferred option is to use an open-source LLM like [Llama-2](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) for English and [Qwen-Chat](https://huggingface.co/Qwen/Qwen-7B-Chat) for other languages.
 
 To access Llama-2 models you need to set a environment variable in the back `.env` file with your HuggingFace API key:
+
 ```
 HUGGINGFACE_KEY=XXXXXX
 ```
 
-
-We can run these models locally, using a GPU or a CPU. 
+We can run these models locally, using a GPU or a CPU.
 
 #### GPU
 
 For GPU we recommend using the following configuration:
+
 ```json
 {
     "name": "Llama2_GPU",
@@ -191,14 +196,15 @@ For GPU we recommend using the following configuration:
     "model_max_length": 4096
 }
 ```
+
 This uses the HuggingFace model implementations.
 
 > ⚠️ To know if our GPU is enough to load the model we need to multiply its number of parameters by 2. For example, Llama-2-7B has 7B parameters, so we need at least 14GB of GPU memory to load it. This is because every parameter is stored in 2 bytes.
 
-
 #### CPU
 
 For CPU we recommend using the following configuration:
+
 ```json
 {
     "name": "Llama2_CPU",
@@ -225,6 +231,7 @@ For these configurations we need to specify the repo where the models files are 
 #### OpenAI
 
 This is the easiest way to get a model running. We just need to specify the model type and the model name. For example:
+
 ```json
 {
     "name": "ChatGPT",
@@ -234,6 +241,7 @@ This is the easiest way to get a model running. We just need to specify the mode
 ```
 
 The OpenAI models are specified [here](https://platform.openai.com/docs/models/). `gpt-3.5-turbo` should be enough for most use cases. To access OpenAI models you need to set a environment variable in the back `.env` file with your OpenAI API key:
+
 ```
 OPENAI_API_KEY=XXXXXX
 ```
@@ -241,6 +249,7 @@ OPENAI_API_KEY=XXXXXX
 #### Claude
 
 This uses the [Claude models by Anthropic](https://docs.anthropic.com/claude/reference/selecting-a-model), example:
+
 ```json
 {
     "name": "Claude",
@@ -249,10 +258,9 @@ This uses the [Claude models by Anthropic](https://docs.anthropic.com/claude/ref
 }
 ```
 
-
 #### vLLM Client
 
-This uses a client to connect to a [vLLM server](https://github.com/vllm-project/vllm). The vLLM server is a server that runs a LLM model and exposes an API to generate answers, it has the best latency and throughput performance. 
+This uses a client to connect to a [vLLM server](https://github.com/vllm-project/vllm). The vLLM server is a server that runs a LLM model and exposes an API to generate answers, it has the best latency and throughput performance.
 
 To configure this server you need to:
 
@@ -260,8 +268,8 @@ To configure this server you need to:
 - - You need to specify the URL of the vLLM server in the `.env`. Usually it will be `VLLM_ENDPOINT_URL=http://localhost:5000/generate`.
 - Start the back, go to the admin and from it you only need to specify that you want to use the `vLLM Client`.
 
-
 ### Prompt Config
+
 The prompt is the input that the LLM will use to generate the answer. This config indicates how to build the final prompt that the LLM reads.
 
 - **name**: Just a name for this prompt.
@@ -274,8 +282,8 @@ The prompt is the input that the LLM will use to generate the answer. This confi
 - **assistant_end**: The tag to indicate the end of the assistant output.
 - **n_contexts_to_use**: The maximum number of knowledge items that will be appear in the sources. Default: 3
 
-
 In the system prefix you can use the following text behavior:
+
 ```
 You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
 
@@ -287,7 +295,9 @@ If a question does not make any sense, or is not factually coherent, explain why
 The system prefix indicates the LLM how to behave. We recommend that your system prefix contains at least these two parts:
 
 ##### Description of the assistant
+
 Here you can describe the assistant, its personality, its role, etc. For example:
+
 ```
 - You are a helpul AI assistant chatbot for ChatFAQ.
 - ChatFAQ is a platform enabling a conversational experience for your customers using Large Language Models (LLMs).
@@ -297,7 +307,9 @@ Here you can describe the assistant, its personality, its role, etc. For example
 ```
 
 ##### Refusals to out of scope questions
+
 Here you can specify what to do when the user asks a question that is out of scope. For example:
+
 ```
 - Your task is to provide an answer based on the information extracts only. Never provide an answer if you don't have the necessary information in the relevant extracts.
 - If the question is not about ChatFAQ, politely inform them that you are tuned to only answer questions about ChatFAQ.
@@ -307,6 +319,7 @@ Here you can specify what to do when the user asks a question that is out of sco
 You can modify this previous text to adapt it to your use case, but it is important to keep the same structure.
 
 #### Tags Recommendations
+
 Tags should only be set when using a HuggingFace model that **doesn't contain a chat template**. In case the model contains a chat template, the tags should be empty and will be ignored, only the system prefix will be used. For more information about chat templates check the following links:
 
 [Blog introducing chat templates](https://huggingface.co/blog/chat-templates)
@@ -314,6 +327,7 @@ Tags should only be set when using a HuggingFace model that **doesn't contain a 
 
 In case a chat template is not available for your model, let's say you are using a Llama-2 model, you
 must check the model's documentation to see what tags are needed. For example, for Llama-2 we need to use the following tags:
+
 ```json
 {
     "name": "Llama2_PromptConfig",
@@ -329,8 +343,8 @@ must check the model's documentation to see what tags are needed. For example, f
 
 > ⚠️ If you use an OpenAI, Claude or vLLM model you only need to specify the **system prefix**, the other fields are not used.
 
-
 ### Generation Config
+
 The generation config is used to define the characteristics of the second part from the RAG pipeline, the generation process. We use sampling to generate the answer.
 
 The sampling generation process is configured with the following properties:
@@ -346,6 +360,7 @@ The sampling generation process is configured with the following properties:
 We recommend setting the temperature to low values, less than 1.0 because we want the model to be factual, not creative. A very good guide of all this parameters can be found in the [HuggingFace documentation](https://huggingface.co/blog/how-to-generate).
 
 An example of a generation config is the following:
+
 ```json
 {
     "name": "Llama2_GenerationConfig",
@@ -359,6 +374,7 @@ An example of a generation config is the following:
 ```
 
 ### RAG Config
+
 Finally, the RAG config is used to glue all the previous components together.
 
 It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline.
@@ -377,8 +393,8 @@ Remember that currently all the relevant data/models can be accessed and modifie
 
 It is **very important** to run the indexing tasks manually after creating, modifying a RAG config, or after modifying the knowledge base. You can do it from the RAGConfig django admin panel.
 
-
 An example of a RAG config is the following:
+
 ```json
 {
     "name": "chatfaq_llama_rag",
@@ -396,10 +412,10 @@ An example of a RAG config is the following:
 To create the RAG pipeline you just need to link all the components together. You can do it from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)).
 
 Then, if you go to the Celery logs you will see that the RAG pipeline is being built. This process can take several minutes, depending on the size of the knowledge base. When it is finished you will see a message like this:
+
 ```
 [2023-10-20 11:03:22,743: INFO/MainProcess] Loading RAG config: chatfaq_llama_rag with llm: meta-llama/Llama-2-7b-chat-hf with llm type: Local GPU Model with knowledge base: chatfaq retriever: intfloat/e5-small-v2 and retriever device: cpu
 ```
-
 
 Once you have created your RAG pipeline, you can use it to generate answers.
 
