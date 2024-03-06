@@ -29,6 +29,8 @@
                 :outsideSection="outsideSection"
                 v-bind="$attrs"
                 :readOnly="readOnly"
+                :order="order"
+                :backButton="backButton"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -108,6 +110,16 @@ const props = defineProps({
     textExplanation: {
         type: String,
         required: false,
+    },
+    order: {
+        type: Array,
+        required: false,
+        default: undefined,
+    },
+    backButton: {
+        type: Boolean,
+        required: false,
+        default: true,
     },
 })
 </script>

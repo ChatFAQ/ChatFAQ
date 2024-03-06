@@ -1,6 +1,6 @@
 <template>
     <div class="write-view-wrapper"  v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div class="navigation-header">
+        <div v-if="backButton" class="navigation-header">
             <BackButton/>
         </div>
         <el-form
@@ -175,6 +175,16 @@ const props = defineProps({
         required: false,
         default: false,
     },
+    order: {
+        type: Array,
+        required: false,
+        default: undefined,
+    },
+    backButton: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
 })
 async function initData() {
     itemsStore.loading = true
@@ -297,12 +307,23 @@ function deleteItem() {
 }
 
 function filterInSection(inSection, _obj) {
-    const res = Object.keys(_obj)
+    let res = Object.keys(_obj)
         .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
         .reduce((obj, key) => {
             obj[key] = _obj[key];
             return obj;
         }, {});
+    // reorder fields if order is defined
+    if (props.order) {
+        const ordered = {}
+        for (const key of props.order) {
+            if (res[key]) {
+                ordered[key] = res[key]
+                delete res[key]
+            }
+        }
+        res = {...ordered, ...res}
+    }
     return res
 }
 
@@ -329,6 +350,11 @@ function filterInSection(inSection, _obj) {
     label::after {
         color: $chatfaq-color-primary-500 !important;
     }
+}
+.el-form-item__label {
+    color: var(--chatfaq-color-primary-500);
+    font-size: 14px;
+    font-weight: 600;
 }
 </style>
 

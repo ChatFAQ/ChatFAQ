@@ -1,15 +1,19 @@
 <template>
-    <el-collapse>
-        <el-collapse-item v-for="(dataSource, index) in dataSources" :title="$t('datasource', {index})" :name="index">
-            <WriteView
-                :readableName="'Data Sources'"
-                :apiUrl="endpoint"
-                :itemId="dataSource.id"
-            >
-            </WriteView>
-      </el-collapse-item>
-        1<div v-if="!addingDataSource" @click="addDataSource">{{ $t('adddatasource') }}</div>2
-    </el-collapse>
+    <div class="data-sources-wrapper">
+        <el-collapse>
+            <el-collapse-item v-for="(dataSource, index) in dataSources" :title="$t('datasource', {index})" :name="index">
+                <WriteView
+                    :readableName="'Data Sources'"
+                    :apiUrl="endpoint"
+                    :itemId="dataSource.id"
+                    :backButton="false"
+                    :order="['original_pdf', 'original_csv', 'original_url']"
+                >
+                </WriteView>
+          </el-collapse-item>
+            <div v-if="!addingDataSource" @click="addDataSource">{{ $t('adddatasource') }}</div>
+        </el-collapse>
+    </div>
 </template>
 
 
@@ -31,22 +35,32 @@ const addingDataSource = computed(() => dataSources.value.length > 0 && dataSour
 </script>
 
 <style lang="scss">
-.el-collapse {
+.data-sources-wrapper {
     width: 100%;
-    .el-collapse-item {
-        margin-bottom: 24px;
-        border-radius: 10px;
-        border: 1px solid $chatfaq-color-primary-200;
+    .write-view-wrapper {
+        margin: 0;
     }
+    .form-section {
+        border: none;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    .el-collapse {
+        .el-collapse-item {
+            margin-bottom: 24px;
+            border-radius: 10px;
+            border: 1px solid $chatfaq-color-primary-200;
+        }
 
-    .el-collapse-item__header {
-        //styleName: Title/XS/Bold;
-        border-radius: 10px;
-        font-family: Montserrat;
-        font-size: 18px;
-        font-weight: 700;
-        padding: 32px;
+        .el-collapse-item__header {
+            //styleName: Title/XS/Bold;
+            border-radius: 10px;
+            font-family: Montserrat;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 32px;
 
+        }
     }
 }
 </style>
