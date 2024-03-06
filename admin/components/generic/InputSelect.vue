@@ -124,7 +124,7 @@ function remoteSearch(query) {
         ref = true
     }
     if (ref) {
-        itemsStore.retrieveItems($axios, url, {search: query, limit: 0, offset: 0, ordering: undefined}).then((items) => {
+        itemsStore.retrieveItems($axios, url, {search: query, limit: 0, offset: 0, ordering: undefined}, false).then((items) => {
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
