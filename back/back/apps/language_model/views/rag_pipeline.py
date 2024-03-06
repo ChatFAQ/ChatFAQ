@@ -12,6 +12,7 @@ class RAGConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RAGConfig.objects.all()
     serializer_class = RAGConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
     search_fields = ['name']
 
 
@@ -38,6 +39,7 @@ class LLMConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = LLMConfig.objects.all()
     serializer_class = LLMConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
     search_fields = ['name']
 
 
@@ -45,6 +47,7 @@ class RetrieverConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RetrieverConfig.objects.all()
     serializer_class = RetrieverConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
     search_fields = ['name']
 
 
@@ -52,6 +55,7 @@ class GenerationConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = GenerationConfig.objects.all()
     serializer_class = GenerationConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
     search_fields = ['name']
 
 
@@ -59,4 +63,5 @@ class PromptConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = PromptConfig.objects.all()
     serializer_class = PromptConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
     search_fields = ['name']
