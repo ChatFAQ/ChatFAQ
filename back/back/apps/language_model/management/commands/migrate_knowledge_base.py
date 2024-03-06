@@ -15,40 +15,44 @@ class Command(BaseCommand):
         parser.add_argument('destination_kb_name', type=str, help='Name of the destination knowledge base')
         parser.add_argument('--token', type=str, help='Token for header authentication')
 
-    def handle(self, *args, **options):
-        source_back_url = options['source_back_url']
-        source_kb_name = options['source_kb_name']
-        destination_kb_name = options['destination_kb_name']
-        token = options['token']
-        header = {'Authorization': f'Token {token}'} if token else {}
-
-        # Retrieve the destination knowledge base by name
-        try:
-            destination_base = KnowledgeBase.objects.get(name=destination_kb_name)
-        except KnowledgeBase.DoesNotExist:
-            self.stdout.write(self.style.ERROR(f'No knowledge base found with name "{destination_kb_name}" in the destination deployment.'))
-            return
-
-        # Retrieve the source knowledge base by name to check if it exists
+    def retrieve_kb_name(self, source_back_url, source_kb_name, header):
+        '''
+        Retrieve the source knowledge base by name to check if it exists
+        '''
         response = requests.get(f'{source_back_url}/api/language-model/knowledge-bases/?name={source_kb_name}', headers=header)
         source_base_data = response.json()
 
         if not source_base_data:
             self.stdout.write(self.style.ERROR(f'No knowledge base found with name "{source_kb_name}" in the source deployment.'))
-            return
+            return False
+        
         self.stdout.write(self.style.SUCCESS(f'Found knowledge base "{source_kb_name}" in the source deployment.'))
+        return True
+    
+    def retrieve_knowledge_items(self, source_back_url, source_kb_name, header):
+        '''
+        Retrieve the knowledge items count for the specified knowledge base
+        '''
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}&limit=1', headers=header)
+        knowledge_items_count = response.json()['count']
 
         # Retrieve knowledge items from the source deployment for the specified knowledge base
-        response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}', headers=header)
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}&limit={knowledge_items_count}', headers=header)
         knowledge_items_data = response.json()
 
         if knowledge_items_data['count'] == 0:
             self.stdout.write(self.style.ERROR(f'No knowledge items found for knowledge base "{source_kb_name}" in the source deployment.'))
             return
         self.stdout.write(self.style.SUCCESS(f'Found {knowledge_items_data["count"]} knowledge items for knowledge base "{source_kb_name}" in the source deployment.'))
+        return knowledge_items_data['results']
+    
+    def retrieve_knowledge_item_images(self, source_back_url, source_kb_name, header):
+        # Retrieve the knowledge item images count for the specified knowledge base
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__knowledge_base__name={source_kb_name}&limit=1', headers=header)
+        knowledge_item_images_count = response.json()['count']
 
         # Retrieve knowledge item images from the source deployment for the specified knowledge base
-        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__knowledge_base__name={source_kb_name}', headers=header)
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__knowledge_base__name={source_kb_name}&limit={knowledge_item_images_count}', headers=header)
         knowledge_item_images_data = response.json()
 
         images_data = {} # {knowledge_item_id: [image_data]}
@@ -61,10 +65,15 @@ class Command(BaseCommand):
                 images_data[knowledge_item_id].append(item_image_data)
             self.stdout.write(self.style.SUCCESS(f'Found {knowledge_item_images_data["count"]} knowledge item images for knowledge base "{source_kb_name}" in the source deployment.'))
 
+        return images_data
+    
+    def saving_items(self, knowledge_items, images_data, destination_base):
+        '''
+        Save knowledge items and images to the destination deployment
+        '''
+        self.stdout.write(f"Saving {len(knowledge_items)} knowledge items and {len(images_data.keys())} images...")
 
-        self.stdout.write(f"Saving {len(knowledge_items_data['results'])} knowledge items and {len(images_data.keys())} images...")
-
-        for item_data in tqdm(knowledge_items_data['results']):
+        for item_data in tqdm(knowledge_items):
             # Create a new knowledge item in the destination deployment
             knowledge_item = KnowledgeItem(
                 knowledge_base=destination_base,
@@ -96,3 +105,32 @@ class Command(BaseCommand):
                     knowledge_item.save()
 
         self.stdout.write(self.style.SUCCESS('Knowledge items and images migrated successfully.'))
+
+    def handle(self, *args, **options):
+        source_back_url = options['source_back_url']
+        source_kb_name = options['source_kb_name']
+        destination_kb_name = options['destination_kb_name']
+        token = options['token']
+        header = {'Authorization': f'Token {token}'} if token else {}
+
+        # Retrieve the destination knowledge base by name
+        try:
+            destination_base = KnowledgeBase.objects.get(name=destination_kb_name)
+        except KnowledgeBase.DoesNotExist:
+            self.stdout.write(self.style.ERROR(f'No knowledge base found with name "{destination_kb_name}" in the destination deployment.'))
+            return
+        
+        # Check if the source knowledge base exists
+        if not self.retrieve_kb_name(source_back_url, source_kb_name, header):
+            return
+        
+        # Retrieve knowledge items from the source deployment for the specified knowledge base
+        knowledge_items = self.retrieve_knowledge_items(source_back_url, source_kb_name, header)
+        if not knowledge_items:
+            return
+        
+        # Retrieve knowledge item images from the source deployment for the specified knowledge base
+        images_data = self.retrieve_knowledge_item_images(source_back_url, source_kb_name, header)
+
+        # Save knowledge items and images to the destination deployment
+        self.saving_items(knowledge_items, images_data, destination_base)
