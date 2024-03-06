@@ -70,7 +70,7 @@ class ConversationAPIViewSet(
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action == 'retrieve' or self.action == 'destroy':
+        if self.action == 'retrieve' or self.action == 'destroy' or 'update' in self.action:
             return [AllowAny(), ]
         return super(ConversationAPIViewSet, self).get_permissions()
 
