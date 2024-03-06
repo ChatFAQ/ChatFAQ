@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Django command migrates knowledge items and images from a knowlegde base from a source deployment to a knowledge base in adestination deployment. It is useful for synchronizing or moving content between different instances of a Django application.
+This Django command migrates knowledge items and images from a knowlegde base from a source deployment to a knowledge base in a destination deployment. It is useful for synchronizing or moving content between different instances of a Django application.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ This Django command migrates knowledge items and images from a knowlegde base fr
 
 ## Usage
 
-The command is executed with the following syntax:
+The command is to be executed from the **destination** back component with the following syntax:
 
 ```bash
 python manage.py migrate_knowledge_base <source_base_url> <source_kb_name> <destination_kb_name> --token=<token>
@@ -38,6 +38,8 @@ The command performs the following steps:
 3. Creates new knowledge items in the destination deployment with the fetched content.
 4. Downloads and re-uploads images associated with each knowledge item to the destination deployment.
 5. Updates the content of migrated knowledge items to reference the new image paths.
+
+The command might take some time for large knowledge bases with many images.
 
 ## Error Handling
 
