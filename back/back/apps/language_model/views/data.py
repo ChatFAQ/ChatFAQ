@@ -149,6 +149,7 @@ class KnowledgeItemImageFilterSet(django_filters.FilterSet):
         model = KnowledgeItemImage
         fields = {
             'knowledge_item__knowledge_base__name': ['exact'],
+            'knowledge_item__id': ['exact', 'in'],
         }
 
 
