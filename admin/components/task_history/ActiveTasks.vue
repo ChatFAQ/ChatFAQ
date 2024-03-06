@@ -60,8 +60,6 @@ function createConnection() {
             console.error(`Error in message from WS: ${msg.payload}`)
             return
         }
-
-        itemsStore.items[apiUrl.value] = msg
         setItems(msg)
     };
     ws.onopen = function (e) {

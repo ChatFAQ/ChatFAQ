@@ -33,18 +33,6 @@ def on_rag_config_change(instance, *args, **kwargs):
         recache_models("on_rag_config_change")
 
 
-@before_task_publish.connect
-@after_task_publish.connect
-@task_prerun.connect
-@task_postrun.connect
-@task_retry.connect
-@task_success.connect
-@task_failure.connect
-@task_internal_error.connect
-@task_received.connect
-@task_revoked.connect
-@task_unknown.connect
-@task_rejected.connect
 @receiver(post_save, sender=TaskResult)
 def on_celery_task_signal(sender=None, headers=None, body=None, **kwargs):
     channel_layer = get_channel_layer()

@@ -141,6 +141,7 @@ watch(() => itemsStore.savingItem, async () => {
 }, {immediate: true})
 watch(() => props.id, async () => {
     await initConversation()
+    selectFirstMessage()
 }, {immediate: true})
 
 function getQAMessageGroups(MMLChain) {
@@ -162,11 +163,22 @@ function getQAMessageGroups(MMLChain) {
 
 async function pageConversation(direction) {
     loadingConversation.value = true
+    msgLabeled.value = undefined
     const nextItem = await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, direction)
     if (nextItem !== undefined) {
         itemsStore.editing = nextItem.id
     }
+    selectFirstMessage()
     loadingConversation.value = false
+}
+function selectFirstMessage() {
+    const qas = getQAMessageGroups(conversation.value.mml_chain)
+    for (let i = 0; i < qas.length; i++) {
+        if (qas[i].length === 2) {
+            msgLabeled.value = qas[i][qas[i].length - 1]
+            return
+        }
+    }
 }
 </script>
 

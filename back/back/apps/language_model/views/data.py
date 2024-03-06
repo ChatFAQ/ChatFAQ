@@ -25,11 +25,20 @@ from back.apps.language_model.tasks import (
 )
 
 
+class KnowledgeBaseFilter(django_filters.FilterSet):
+    class Meta:
+        model = KnowledgeBase
+        fields = {
+            'name': ['exact'],
+        }
+
+
 class KnowledgeBaseAPIViewSet(viewsets.ModelViewSet):
     queryset = KnowledgeBase.objects.all()
     serializer_class = KnowledgeBaseSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ['name']
+    filterset_class = KnowledgeBaseFilter
 
     def get_queryset(self):
         if self.kwargs.get("pk"):
