@@ -35,6 +35,7 @@ class Command(BaseCommand):
         if not source_base_data:
             self.stdout.write(self.style.ERROR(f'No knowledge base found with name "{source_kb_name}" in the source deployment.'))
             return
+        self.stdout.write(self.style.SUCCESS(f'Found knowledge base "{source_kb_name}" in the source deployment.'))
 
         # Retrieve knowledge items from the source deployment for the specified knowledge base
         response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}', headers=header)
@@ -43,8 +44,9 @@ class Command(BaseCommand):
         if knowledge_items_data['count'] == 0:
             self.stdout.write(self.style.ERROR(f'No knowledge items found for knowledge base "{source_kb_name}" in the source deployment.'))
             return
+        self.stdout.write(self.style.SUCCESS(f'Found {knowledge_items_data["count"]} knowledge items for knowledge base "{source_kb_name}" in the source deployment.'))
 
-        for item_data in knowledge_items_data:
+        for item_data in knowledge_items_data['results']:
             # Create a new knowledge item in the destination deployment
             knowledge_item = KnowledgeItem(
                 knowledge_base=destination_base,
