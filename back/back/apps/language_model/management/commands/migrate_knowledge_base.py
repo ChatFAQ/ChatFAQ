@@ -90,7 +90,8 @@ class Command(BaseCommand):
                     image_instance.save()
 
                     # Modify the knowledge item content to replace the image file path with the new image instance file path
-                    knowledge_item.content.replace(image_data['image_file_name'], image_instance.image_file.name)
+                    content = knowledge_item.content.replace(image_data['image_file_name'], image_instance.image_file.name)
+                    knowledge_item.content = content
                     knowledge_item.save()
 
         self.stdout.write(self.style.SUCCESS('Knowledge items and images migrated successfully.'))
