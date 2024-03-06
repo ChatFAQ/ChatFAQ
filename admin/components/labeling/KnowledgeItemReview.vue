@@ -23,7 +23,7 @@
         </div>
         <div v-if="!itemsStore.loading" class="ki-title add-command-title">{{$t("alternativeknowledgeitem")}}</div>
         <div v-if="!itemsStore.loading" v-for="alt2Title in alternatives2Titles" class="alternative-wrapper">
-            <el-select v-model="alt2Title[0]" @change="(val) => alternativeChanged(alt2Title[1], val)">
+            <el-select v-model="alt2Title[0]" @change="(val) => alternativeChanged(alt2Title[1], val)" clearable>
                 <el-option
                     v-for="choice in ki_choices"
                     :key="choice.id"
@@ -120,7 +120,7 @@ async function voteKI(kiId, vote) {
 
 async function save() {
     review.value.message = reviewedKIs.value.message_id
-    review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null)
+    review.value.ki_review_data = review.value.ki_review_data.filter((d) => d.knowledge_item_id !== null && d.knowledge_item_id !== undefined && d.knowledge_item_id !== "")
     // deep copy review.value
     const _review = JSON.parse(JSON.stringify(review.value))
     delete _review.gen_review_msg
