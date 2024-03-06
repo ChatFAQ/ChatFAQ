@@ -207,7 +207,7 @@ async function initializeFormValues() {
         itemsStore.loading = true
         const {data} = await useAsyncData(
             props.apiUrl + "_" + itemsStore.editing,
-            async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, {id: itemsStore.editing})
+            async () => await itemsStore.retrieveItems($axios, props.apiUrl, {id: itemsStore.editing}, false, true)
         )
         if (data.value) {
             for (const [fieldName, fieldValue] of Object.entries(data.value)) {

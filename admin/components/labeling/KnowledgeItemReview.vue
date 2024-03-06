@@ -67,16 +67,14 @@ async function initKIReview() {
         return
     }
     for (const ki_ref of references.knowledge_items) {
-        const ki = await itemsStore.requestOrGetItem($axios, "/back/api/language-model/knowledge-items/", {
-            id: ki_ref.knowledge_item_id
-        }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})
+        const ki = await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, false, true)
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
-    review.value = await itemsStore.requestOrGetItem($axios, "/back/api/broker/admin-review/", {message: props.message.id}, {limit: 0, offset: 0, ordering: undefined}) || {}
-    ki_choices.value = await itemsStore.requestOrGetItems($axios, "/back/api/language-model/knowledge-items/", {
+    review.value = await itemsStore.retrieveItems($axios, "/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
+    ki_choices.value = await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {
         knowledge_base: references.knowledge_base_id
-    }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})
+    }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)
     itemsStore.loading = false
 }
 

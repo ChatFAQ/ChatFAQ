@@ -36,6 +36,7 @@ class ConversationFilterSet(django_filters.FilterSet):
         model = Conversation
         fields = {
            'created_date': ['lte', 'gte'],
+           'id': ['exact'],
         }
 
     def filter_rag(self, queryset, name, value):
@@ -124,22 +125,28 @@ class MessageView(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     serializer_class = MessageSerializer
+    filterset_fields = ["id"]
 
 
 class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     serializer_class = UserFeedbackSerializer
     queryset = UserFeedback.objects.all()
     permission_classes = [AllowAny]
-    filterset_fields = ["message"]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id", "message"]
 
 
 class AdminReviewAPIViewSet(viewsets.ModelViewSet):
     serializer_class = AdminReviewSerializer
     queryset = AdminReview.objects.all()
-    filterset_fields = ["message"]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id", "message"]
 
 
 class SenderAPIView(CreateAPIView, UpdateAPIView):
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id", "message"]
+
     def get(self, request):
         return JsonResponse(
             list(
