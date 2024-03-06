@@ -7,7 +7,8 @@
                     :apiUrl="endpoint"
                     :itemId="dataSource.id"
                     :backButton="false"
-                    :order="['original_pdf', 'original_csv', 'original_url']"
+                    :order="['original_pdf', 'original_csv', 'original_url', 'parser']"
+                    :excludeFields="['knowledge_base']"
                 >
                 </WriteView>
           </el-collapse-item>
