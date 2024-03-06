@@ -22,8 +22,7 @@
                 v-else
                 :readableName="readableName"
                 :apiUrl="apiUrl"
-                :editing="editing"
-                :adding="adding"
+                :itemId="editing"
                 :titleProps="titleProps"
                 :excludeFields="excludeFields"
                 :sections="sections"

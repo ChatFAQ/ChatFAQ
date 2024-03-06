@@ -236,5 +236,6 @@
     "successdeletingitem": "Élément supprimé avec succès",
     "errorsavingitem": "Erreur lors de l'enregistrement de l'élément",
     "successsavingitem": "Élément enregistré avec succès",
-    "selectananswertolabel": "Sélectionnez une réponse à étiqueter"
+    "selectananswertolabel": "Sélectionnez une réponse à étiqueter",
+    "droporclickupload": "Déposez ou <em>cliquez</em> pour télécharger"
 }

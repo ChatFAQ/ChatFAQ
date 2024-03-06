@@ -241,3 +241,5 @@ class IntentAPIViewSet(viewsets.ModelViewSet):
 class DataSourceAPIViewSet(viewsets.ModelViewSet):
     queryset = DataSource.objects.all()
     serializer_class = DataSourceSerializer
+    filterset_fields = ['knowledge_base__id']
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

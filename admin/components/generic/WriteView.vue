@@ -94,7 +94,7 @@
         </el-form>
         <slot name="extra-write-bottom"></slot>
         <div class="commands">
-            <el-button v-if="!itemsStore.adding" type="danger" @click="deleteDialogVisible = true" class="delete-button">
+            <el-button v-if="itemId !== undefined" type="danger" @click="deleteDialogVisible = true" class="delete-button">
                 <span>{{ $t("delete") }}</span>
             </el-button>
             <div v-else></div>
@@ -142,6 +142,10 @@ const deleteDialogVisible = ref(false)
 const emit = defineEmits(['submitForm'])
 
 const props = defineProps({
+    itemId: {
+        type: String,
+        required: false,
+    },
     apiUrl: {
         type: String,
         required: false,
@@ -201,13 +205,12 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 
 // Initialize form values
 initializeFormValues()
-watch(() => itemsStore.editing, initializeFormValues, {immediate: true})
 async function initializeFormValues() {
-    if (itemsStore.editing) {
+    if (props.itemId !== undefined) {
         itemsStore.loading = true
         const {data} = await useAsyncData(
-            props.apiUrl + "_" + itemsStore.editing,
-            async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, {id: itemsStore.editing})
+            props.apiUrl + "_" + props.itemId,
+            async () => await itemsStore.requestOrGetItem($axios, props.apiUrl, {id: props.itemId})
         )
         if (data.value) {
             for (const [fieldName, fieldValue] of Object.entries(data.value)) {
@@ -234,8 +237,8 @@ const submitForm = async (formEl) => {
         // emit event "submitForm":
         emit("submitForm", form.value)
         try {
-            if (itemsStore.editing)
-                await $axios.put(`${props.apiUrl}${itemsStore.editing}/`, form.value)
+            if (props.itemId !== undefined)
+                await $axios.put(`${props.apiUrl}${props.itemId}/`, form.value)
             else
                 await $axios.post(props.apiUrl, form.value)
         } catch (e) {
@@ -272,7 +275,7 @@ const submitForm = async (formEl) => {
 function deleteItem() {
     try {
         itemsStore.loading = true
-        itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
+        itemsStore.deleteItem($axios, props.apiUrl, props.itemId)
         deleteDialogVisible.value = undefined
         itemsStore.stateToRead()
         itemsStore.loading = false

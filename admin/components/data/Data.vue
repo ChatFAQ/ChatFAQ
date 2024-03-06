@@ -22,6 +22,9 @@
                 <template v-slot:extra-card-bottom="props">
                     <el-button class="bottom-card-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
                 </template>
+                <template v-slot:extra-write-bottom>
+                    <WriteViewDataSources :itemType="itemType" />
+                </template>
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :label="$t('knowledgeitem')" name="knowledge-item">
@@ -64,7 +67,7 @@
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import { useItemsStore } from "~/store/items.js";
-import Password from "~/components/user_management/fields/Password.vue";
+import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 
 const password = ref(null)
 

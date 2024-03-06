@@ -85,7 +85,7 @@ export const useItemsStore = defineStore('items', {
                 for (const [key, val] of Object.entries(filter)) {
                     if (item[key] === null && val === null)
                         continue
-                    if (item[key] !== null && item[key].toString() !== val.toString())
+                    if (item[key] !== null && item[key] !== undefined && item[key].toString() !== val.toString())
                         return false
                 }
                 return true
@@ -99,9 +99,9 @@ export const useItemsStore = defineStore('items', {
             }
             return this.items[cacheName].results.filter(item => {
                 for (const [key, val] of Object.entries(filter)) {
-                    if (item[key] === null && val === null)
+                    if ((item[key] === null || item[key] === undefined) && (val === null || val === undefined))
                         continue
-                    if (item[key] !== null && val !== null && item[key].toString() !== val.toString())
+                    if (item[key] !== null && item[key] !== undefined && val !== null && item[key].toString() !== val.toString())
                         return false
                 }
                 return true

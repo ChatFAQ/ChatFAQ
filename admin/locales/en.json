@@ -236,5 +236,6 @@
     "successdeletingitem": "Item deleted successfully",
     "errorsavingitem": "Error saving item",
     "successsavingitem": "Item saved successfully",
-    "selectananswertolabel": "Select an answer to label"
+    "selectananswertolabel": "Select an answer to label",
+    "droporclickupload": "Drop file here or <em>click to upload</em>"
 }

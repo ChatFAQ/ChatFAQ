@@ -17,6 +17,8 @@ def postprocess_schema_foreign_keys(result, generator, **kwargs):
                         model_class_field = getattr(model, prop_name)
                     except AttributeError:
                         continue
+                    if model._meta.get_field(prop_name).get_internal_type() == "FileField":
+                        prop_schema['type'] = 'file'
                     if type(model_class_field) is ForwardManyToOneDescriptor:
                         prop_schema['$ref'] = f'#/components/schemas/{model_class_field.field.related_model.__name__}'
                     elif type(model_class_field) is ManyToManyDescriptor:

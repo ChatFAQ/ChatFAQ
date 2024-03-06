@@ -236,5 +236,6 @@
     "successdeletingitem": "Elemento eliminado correctamente",
     "errorsavingitem": "Error al guardar el elemento",
     "successsavingitem": "Elemento guardado correctamente",
-    "selectananswertolabel": "Selecciona una respuesta para etiquetar"
+    "selectananswertolabel": "Selecciona una respuesta para etiquetar",
+    "droporclickupload": "Arrastra o <em> haz clic aquí </em> para subir"
 }
