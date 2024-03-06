@@ -72,9 +72,7 @@ async function initKIReview() {
             reviewedKIs.value.kis.push(ki)
     }
     review.value = await itemsStore.retrieveItems($axios, "/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
-    ki_choices.value = await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {
-        knowledge_base: references.knowledge_base_id
-    }, {knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)
+    ki_choices.value = (await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)).results
     itemsStore.loading = false
 }
 
@@ -141,7 +139,7 @@ function addAlternativeKI() {
             ki_review_data: []
         }
     }
-    return review.value.ki_review_data.push({
+    review.value.ki_review_data.push({
         value: "alternative",
         knowledge_item_id: null,
     })
