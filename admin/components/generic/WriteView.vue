@@ -92,7 +92,7 @@
                 </ReadOnlyField>
             </div>
         </el-form>
-
+        <slot name="extra-write-bottom"></slot>
         <div class="commands">
             <el-button v-if="!itemsStore.adding" type="danger" @click="deleteDialogVisible = true" class="delete-button">
                 <span>{{ $t("delete") }}</span>
@@ -382,7 +382,7 @@ function filterInSection(inSection, _obj) {
             display: flex;
             flex-direction: row;
 
-            *:first-child {
+            > *:first-child {
                 margin-right: 8px;
             }
         }

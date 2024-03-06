@@ -28,13 +28,9 @@ export const useItemsStore = defineStore('items', {
         ordering: undefined,
     }),
     actions: {
-        async retrieveItems($axios, apiUrl = undefined, params = {}) {
+        async retrieveItems($axios, apiUrl = undefined, params = {}, cache= true) {
             const cacheName = apiCacheName(apiUrl, params)
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
-            // let ordering = "-updated_date"
-            // if (apiUrl.indexOf("/people/") !== -1)
-            //     ordering = "first_name"
-            // check if params has "limit", "order" or "offset" and use them instead of the default ones
             if (!("limit" in params))
                 params.limit = this.pageSize
             if (!("offset" in params))
@@ -49,10 +45,14 @@ export const useItemsStore = defineStore('items', {
             }
             apiUrl += "?" + new URLSearchParams(params).toString()
 
-            this.items[cacheName] = (await $axios.get(apiUrl, {'headers': authHeaders()})).data
-            if (Array.isArray(this.items[cacheName])) { // When the endpoint is not paginated
-                this.items[cacheName] = {results: this.items[cacheName]}
+            let res = (await $axios.get(apiUrl, {'headers': authHeaders()})).data
+            if (Array.isArray(res)) { // When the endpoint is not paginated
+                res = {results: res}
             }
+            if (!cache)
+                return res
+
+            this.items[cacheName] = res
             return this.items[cacheName]
         },
         async deleteItem($axios, apiUrl, id) {
