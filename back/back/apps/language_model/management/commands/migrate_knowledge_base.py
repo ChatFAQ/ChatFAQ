@@ -14,6 +14,8 @@ class Command(BaseCommand):
         parser.add_argument('source_kb_name', type=str, help='Name of the source knowledge base')
         parser.add_argument('destination_kb_name', type=str, help='Name of the destination knowledge base')
         parser.add_argument('--token', type=str, help='Token for header authentication')
+        parser.add_argument('--batch-size', type=int, help='Batch size for pagination', default=100)
+        parser.add_argument('--offset', type=int, help='Offset for pagination', default=0)
 
     def retrieve_kb_name(self, source_back_url, source_kb_name, header):
         '''
@@ -29,30 +31,19 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'Found knowledge base "{source_kb_name}" in the source deployment.'))
         return True
     
-    def retrieve_knowledge_items(self, source_back_url, source_kb_name, header):
+    def retrieve_knowledge_item_images(self, source_back_url, knowledge_item_ids, header):
         '''
-        Retrieve the knowledge items count for the specified knowledge base
+        Retrieve knowledge item images from the source deployment for the specified knowledge items.
         '''
-        response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}&limit=1', headers=header)
-        knowledge_items_count = response.json()['count']
 
-        # Retrieve knowledge items from the source deployment for the specified knowledge base
-        response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}&limit={knowledge_items_count}', headers=header)
-        knowledge_items_data = response.json()
+        ids_string = ",".join(map(str, knowledge_item_ids))
 
-        if knowledge_items_data['count'] == 0:
-            self.stdout.write(self.style.ERROR(f'No knowledge items found for knowledge base "{source_kb_name}" in the source deployment.'))
-            return
-        self.stdout.write(self.style.SUCCESS(f'Found {knowledge_items_data["count"]} knowledge items for knowledge base "{source_kb_name}" in the source deployment.'))
-        return knowledge_items_data['results']
-    
-    def retrieve_knowledge_item_images(self, source_back_url, source_kb_name, header):
         # Retrieve the knowledge item images count for the specified knowledge base
-        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__knowledge_base__name={source_kb_name}&limit=1', headers=header)
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__id__in={ids_string}&limit=1', headers=header)
         knowledge_item_images_count = response.json()['count']
 
         # Retrieve knowledge item images from the source deployment for the specified knowledge base
-        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__knowledge_base__name={source_kb_name}&limit={knowledge_item_images_count}', headers=header)
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-item-images/?knowledge_item__id__in={ids_string}&limit={knowledge_item_images_count}', headers=header)
         knowledge_item_images_data = response.json()
 
         images_data = {} # {knowledge_item_id: [image_data]}
@@ -63,7 +54,6 @@ class Command(BaseCommand):
                 if knowledge_item_id not in images_data:
                     images_data[knowledge_item_id] = []
                 images_data[knowledge_item_id].append(item_image_data)
-            self.stdout.write(self.style.SUCCESS(f'Found {knowledge_item_images_data["count"]} knowledge item images for knowledge base "{source_kb_name}" in the source deployment.'))
 
         return images_data
     
@@ -71,9 +61,8 @@ class Command(BaseCommand):
         '''
         Save knowledge items and images to the destination deployment
         '''
-        self.stdout.write(f"Saving {len(knowledge_items)} knowledge items and {len(images_data.keys())} images...")
 
-        for item_data in tqdm(knowledge_items):
+        for item_data in knowledge_items:
             # Create a new knowledge item in the destination deployment
             knowledge_item = KnowledgeItem(
                 knowledge_base=destination_base,
@@ -105,12 +94,36 @@ class Command(BaseCommand):
                     knowledge_item.save()
 
         self.stdout.write(self.style.SUCCESS('Knowledge items and images migrated successfully.'))
+    
+    def migrate_knowledge_items(self, source_back_url, source_kb_name, destination_base, starting_offset, batch_size, header):
+        '''
+        Retrieve the knowledge items count for the specified knowledge base.
+        '''
+        response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}&limit=1', headers=header)
+        knowledge_items_count = response.json()['count']
+
+        self.stdout.write(self.style.SUCCESS(f'Found {knowledge_items_count} knowledge items in the source deployment for knowledge base "{source_kb_name}".'))
+        self.stdout.write(self.style.SUCCESS('Saving knowledge items and images...'))
+
+        # We do pagination to not overload the source deployment or the destination deployment
+        for offset in tqdm(range(starting_offset, knowledge_items_count, batch_size), desc="Retrieving knowledge items", unit="batch"):
+            response = requests.get(f'{source_back_url}/api/language-model/knowledge-items/?knowledge_base__name={source_kb_name}&limit={batch_size}&offset={offset}', headers=header)
+            knowledge_items_data = response.json()
+
+            images_data = {}
+            if knowledge_items_data['count'] > 0:
+                knowledge_item_ids = [item['id'] for item in knowledge_items_data['results']]
+                images_data = self.retrieve_knowledge_item_images(source_back_url, knowledge_item_ids, header)
+
+            self.saving_items(knowledge_items_data['results'], images_data, destination_base)
 
     def handle(self, *args, **options):
         source_back_url = options['source_back_url']
         source_kb_name = options['source_kb_name']
         destination_kb_name = options['destination_kb_name']
         token = options['token']
+        batch_size = options['batch_size']
+        starting_offset = options['offset']
         header = {'Authorization': f'Token {token}'} if token else {}
 
         # Retrieve the destination knowledge base by name
@@ -125,12 +138,4 @@ class Command(BaseCommand):
             return
         
         # Retrieve knowledge items from the source deployment for the specified knowledge base
-        knowledge_items = self.retrieve_knowledge_items(source_back_url, source_kb_name, header)
-        if not knowledge_items:
-            return
-        
-        # Retrieve knowledge item images from the source deployment for the specified knowledge base
-        images_data = self.retrieve_knowledge_item_images(source_back_url, source_kb_name, header)
-
-        # Save knowledge items and images to the destination deployment
-        self.saving_items(knowledge_items, images_data, destination_base)
+        self.migrate_knowledge_items(source_back_url, source_kb_name, destination_base, starting_offset, batch_size, header)

@@ -24,6 +24,8 @@ python manage.py migrate_knowledge_base <source_base_url> <source_kb_name> <dest
 - `source_kb_name`: The name of the knowledge base in the source deployment.
 - `destination_kb_name`: The name of the knowledge base in the destination deployment.
 - `--token`: The token to authenticate the request to the source deployment. To generate the token use the following command:
+- `--batch_size`: The number of knowledge items to fetch in each request. Default is 100.
+- `--offset`: The number of knowledge items to skip before fetching. Default is 0.
 
 ```bash
 curl -X POST -u username:password http://develop.your-deploy.com/back/api/login/
