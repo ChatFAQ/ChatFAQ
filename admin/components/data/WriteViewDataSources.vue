@@ -12,7 +12,7 @@
                 >
                 </WriteView>
           </el-collapse-item>
-            <div v-if="!addingDataSource" @click="addDataSource">{{ $t('adddatasource') }}</div>
+          -<div v-if="!addingDataSource" @click="addDataSource">{{ $t('adddatasource') }}</div>-
         </el-collapse>
     </div>
 </template>
@@ -25,7 +25,14 @@ const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const dataSources = ref([])
-dataSources.value = await itemsStore.requestOrGetItems($axios, endpoint.value, {knowledge_base__id: itemsStore.editing})
+dataSources.value = (await itemsStore.retrieveItems($axios, endpoint.value, {
+    limit: 0,
+    offset: 0,
+    knowledge_base__id: itemsStore.editing
+}, false)).results
+
+console.log("------------------------")
+console.log(dataSources.value)
 
 function addDataSource() {
     dataSources.value.push({})

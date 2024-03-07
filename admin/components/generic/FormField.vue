@@ -12,18 +12,14 @@
                          :schema="schema"
                          :form="form"
                          :fieldName="fieldName"/>
-            <el-upload v-else-if="schema.properties[fieldName].type === 'file'" drag :auto-upload="false">
-                <el-icon>
-                    <upload/>
-                </el-icon>
-                <div class="el-upload__text" v-html="$t('droporclickupload')"></div>
-            </el-upload>
+            <FileField v-else-if="schema.properties[fieldName].type === 'file'" :form="form" :fieldName="fieldName"/>
             <el-input v-else v-model="form[fieldName]"/>
         </el-form-item>
     </slot>
 </template>
 <script setup>
 import InputSelect from "~/components/generic/InputSelect.vue";
+import FileField from "~/components/generic/fields/FileField.vue";
 
 const props = defineProps({
     fieldName: {

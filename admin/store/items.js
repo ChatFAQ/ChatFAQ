@@ -28,7 +28,7 @@ export const useItemsStore = defineStore('items', {
         ordering: undefined,
     }),
     actions: {
-        async retrieveItems($axios, apiUrl = undefined, params = {}, cache= true) {
+        async retrieveItems($axios, apiUrl = undefined, params = {}, cache= true, one= false) {
             const cacheName = apiCacheName(apiUrl, params)
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
             if (!("limit" in params))
@@ -49,10 +49,17 @@ export const useItemsStore = defineStore('items', {
             if (Array.isArray(res)) { // When the endpoint is not paginated
                 res = {results: res}
             }
-            if (!cache)
+            if (!cache) {
+                if (one) {
+                    return res.results[0]
+                }
                 return res
+            }
 
             this.items[cacheName] = res
+            if (one) {
+                return this.items[cacheName][0]
+            }
             return this.items[cacheName]
         },
         async deleteItem($axios, apiUrl, id) {
@@ -74,38 +81,6 @@ export const useItemsStore = defineStore('items', {
             if (resolveRefs)
                 return await this.resolveRefs($axios, this.schema[schemaName])
             return this.schema[schemaName]
-        },
-        async requestOrGetItem($axios, apiUrl, filter, params= {}, force = false) {
-            const cacheName = apiCacheName(apiUrl, params)
-
-            if (force || !this.items[cacheName]) {
-                await this.retrieveItems($axios, apiUrl, params)
-            }
-            return this.items[cacheName].results.find(item => {
-                for (const [key, val] of Object.entries(filter)) {
-                    if (item[key] === null && val === null)
-                        continue
-                    if (item[key] !== null && item[key] !== undefined && item[key].toString() !== val.toString())
-                        return false
-                }
-                return true
-            })
-        },
-        async requestOrGetItems($axios, apiUrl, filter, params= {}, force = false) {
-            const cacheName = apiCacheName(apiUrl, params)
-
-            if (force || !this.items[cacheName]) {
-                await this.retrieveItems($axios, apiUrl, params)
-            }
-            return this.items[cacheName].results.filter(item => {
-                for (const [key, val] of Object.entries(filter)) {
-                    if ((item[key] === null || item[key] === undefined) && (val === null || val === undefined))
-                        continue
-                    if (item[key] !== null && item[key] !== undefined && val !== null && item[key].toString() !== val.toString())
-                        return false
-                }
-                return true
-            })
         },
         async getNextItem($axios, apiUrl, itemId, direction = 1, params = {}, force= false) {
             const cacheName = apiCacheName(apiUrl, params)
