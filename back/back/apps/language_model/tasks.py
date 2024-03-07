@@ -29,12 +29,22 @@ import os
 
 from back.utils.celery import recache_models as recache_models_utils
 from django.db.models import F, Subquery
+import ray
 
 
 if is_celery_worker():
     setup()
 
 logger = getLogger(__name__)
+
+if not ray.is_initialized() and os.environ.get('RUN_MAIN'): # only start ray on the main thread
+    # connect to ray
+    RAY_ADRESS= os.environ.get('RAY_ADDRESS')
+    logger.info(f"Connecting to Ray at {RAY_ADRESS}")
+    ray.init(address=RAY_ADRESS)
+
+    logger.info("Available resources:", ray.available_resources())
+
 
 LLM_CLASSES = {
     "local_cpu": GGMLModel,
