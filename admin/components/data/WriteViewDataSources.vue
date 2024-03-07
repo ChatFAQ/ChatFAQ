@@ -10,6 +10,7 @@
                     :commandButtons="false"
                     :order="['original_pdf', 'original_csv', 'original_url', 'parser']"
                     :excludeFields="['knowledge_base']"
+                    :ref="el => dataSourceForms.push(el)"
                 >
                 </WriteView>
           </el-collapse-item>
@@ -27,6 +28,7 @@ const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const dataSources = ref([])
+const dataSourceForms = ref([])
 
 defineExpose({submit})
 
@@ -41,8 +43,11 @@ if (itemsStore.editing) {
 function addDataSource() {
     dataSources.value.push({})
 }
-function submit(kbId) {
-    alert(kbId)
+async function submit(kbId) {
+    for (let i = 0; i < dataSourceForms.value.length; i++) {
+        if (dataSourceForms.value[i])
+            await dataSourceForms.value[i].submitForm({knowledge_base: kbId})
+    }
 }
 const addingDataSource = computed(() => dataSources.value.length > 0 && dataSources.value[dataSources.value.length - 1].id === undefined)
 

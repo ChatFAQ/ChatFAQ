@@ -94,8 +94,8 @@ function goToKIs(kb_id) {
     itemsStore.filters["knowledge_base__id"] = kb_id
 }
 
-function submitKnowledgeBase(id) {
-    dataSources.value.submit(id)
+async function submitKnowledgeBase(id, form) {
+    await dataSources.value.submit(id)
 }
 </script>
 

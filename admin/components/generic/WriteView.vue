@@ -11,7 +11,7 @@
             status-icon
             label-position="top"
             require-asterisk-position="right"
-            @keydown.enter.native="submitForm"
+            @keydown.enter.native="submitForm()"
             :scroll-to-error="true"
             :scroll-into-view-options="{ behavior: 'smooth', block: 'center' }"
         >
@@ -102,7 +102,7 @@
                 <el-button @click="itemsStore.stateToRead">
                     Cancel
                 </el-button>
-                <el-button type="primary" @click="submitForm">
+                <el-button type="primary" @click="submitForm()">
                     Save changes
                 </el-button>
             </div>
@@ -238,16 +238,20 @@ function createTitle(form) {
     return props.titleProps.map(prop => form[prop]).join(" ")
 }
 
-async function submitForm() {
+async function submitForm(extraVals = {}, extraFiles = {}) {
     await formRef.value.validate(async (valid) => {
         if (!valid)
             return
         itemsStore.loading = true
         let _itemId = props.itemId
         emit("submitFormStart", props.itemId, form.value)
+
+        form.value = {...form.value, ...extraVals}
+
         try {
-            if (props.itemId !== undefined)
+            if (props.itemId !== undefined) {
                 await $axios.put(`${props.apiUrl}${props.itemId}/`, form.value)
+            }
             else {
                 const res = await $axios.post(props.apiUrl, form.value)
                 _itemId = res.data.id

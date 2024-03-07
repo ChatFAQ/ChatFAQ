@@ -28,8 +28,12 @@ class DataSourceSerializer(serializers.ModelSerializer):
 
     # extra step when validating CSVs: the file must contain the following columns: title, content, url
     def validate(self, data):
-        title_index, content_index, url_index = data["title_index_col"], data["content_index_col"], data["url_index_col"]
-        if data['original_csv'] is not None:
+        if data.get('original_csv') is not None:
+            title_index, content_index, url_index = data.get("title_index_col"), data.get("content_index_col"), data.get("url_index_col")
+            if title_index is None or content_index is None or url_index is None:
+                raise serializers.ValidationError(
+                    "You must specify the index of the title, content and url columns in the CSV"
+                )
             f = data["original_csv"]
             decoded_file = f.read().decode("utf-8").splitlines()
             reader = csv.reader(decoded_file)
