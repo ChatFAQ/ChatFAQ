@@ -21,6 +21,7 @@
                 :filtersSchema="[
                    {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                ]"
+                :leaveAfterSave="false"
                 @submitFormEnd="submitKnowledgeBase"
             >
                 <template v-slot:extra-card-bottom="props">

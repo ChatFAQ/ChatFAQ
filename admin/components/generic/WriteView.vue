@@ -1,5 +1,6 @@
 <template>
-    <div class="write-view-wrapper"  v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="write-view-wrapper" v-loading="itemsStore.loading"
+         element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="backButton" class="navigation-header">
             <BackButton/>
         </div>
@@ -30,10 +31,11 @@
                             <slot :name="name" v-bind="data"></slot>
                         </template>
                     </FormField>
-                    <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && (props.readOnly ||  fieldInfo.readOnly)"
-                                   :fieldName="fieldName"
-                                   :schema="schema"
-                                   :value="form[fieldName]"
+                    <ReadOnlyField
+                        v-else-if="allExcludeFields.indexOf(fieldName) === -1 && (props.readOnly ||  fieldInfo.readOnly)"
+                        :fieldName="fieldName"
+                        :schema="schema"
+                        :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
                             <slot :name="name" v-bind="data"></slot>
@@ -94,7 +96,8 @@
         </el-form>
         <slot name="extra-write-bottom"></slot>
         <div v-if="commandButtons" class="commands">
-            <el-button v-if="itemId !== undefined" type="danger" @click="deleteDialogVisible = true" class="delete-button">
+            <el-button v-if="itemId !== undefined" type="danger" @click="deleteDialogVisible = true"
+                       class="delete-button">
                 <span>{{ $t("delete") }}</span>
             </el-button>
             <div v-else></div>
@@ -131,7 +134,7 @@ import BackButton from "~/components/generic/BackButton.vue";
 import {ElNotification} from 'element-plus'
 import {useI18n} from "vue-i18n";
 
-const { t } = useI18n();
+const {t} = useI18n();
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
@@ -191,12 +194,19 @@ const props = defineProps({
         required: false,
         default: true,
     },
+    leaveAfterSave: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
 })
+
 async function initData() {
     itemsStore.loading = true
     schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
     itemsStore.loading = false
 }
+
 await initData()
 
 const form = ref({})
@@ -221,10 +231,15 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 
 // Initialize form values
 initializeFormValues()
+
 async function initializeFormValues() {
     if (props.itemId !== undefined) {
         itemsStore.loading = true
-        const data = await itemsStore.retrieveItems($axios, props.apiUrl, {id: props.itemId, limit: 0, offset: 0}, false, true) || {}
+        const data = await itemsStore.retrieveItems($axios, props.apiUrl, {
+            id: props.itemId,
+            limit: 0,
+            offset: 0
+        }, false, true) || {}
         for (const [fieldName, fieldValue] of Object.entries(data)) {
             if (allExcludeFields.value.indexOf(fieldName) === -1) {
                 form.value[fieldName] = fieldValue
@@ -239,9 +254,10 @@ function createTitle(form) {
 }
 
 async function submitForm(extraVals = {}, extraFiles = {}) {
+    if (!formRef.value) return true
     await formRef.value.validate(async (valid) => {
         if (!valid)
-            return
+            return false
         itemsStore.loading = true
         let _itemId = props.itemId
         emit("submitFormStart", props.itemId, form.value)
@@ -249,11 +265,14 @@ async function submitForm(extraVals = {}, extraFiles = {}) {
         form.value = {...form.value, ...extraVals}
 
         try {
-            if (props.itemId !== undefined) {
-                await $axios.put(`${props.apiUrl}${props.itemId}/`, form.value)
+            const headers = {
+                'Content-Type': 'multipart/form-data'
             }
-            else {
-                const res = await $axios.post(props.apiUrl, form.value)
+
+            if (props.itemId !== undefined) {
+                await $axios.put(`${props.apiUrl}${props.itemId}/`, form.value,  {headers})
+            } else {
+                const res = await $axios.post(props.apiUrl, form.value,  {headers})
                 _itemId = res.data.id
             }
         } catch (e) {
@@ -269,23 +288,25 @@ async function submitForm(extraVals = {}, extraFiles = {}) {
                 }
                 const ref = fieldsRef.value[Object.keys(e.response.data)[0]]
                 ref.$el.parentElement.scrollIntoView({behavior: "smooth", block: "center"})
-                return
+                return false
             } else {
                 itemsStore.loading = false
                 throw e
             }
         }
         emit("submitFormEnd", _itemId, form.value)
-        itemsStore.stateToRead()
+        if (props.leaveAfterSave)
+            itemsStore.stateToRead()
 
         ElNotification({
             title: 'Success',
             message: t('successsavingitem'),
             type: 'success',
-                position: 'top-right',
+            position: 'top-right',
         })
         itemsStore.loading = false
     })
+    return true
 }
 
 function deleteItem() {
@@ -308,7 +329,7 @@ function deleteItem() {
         title: 'Success',
         message: t('successdeletingitem'),
         type: 'success',
-            position: 'top-right',
+        position: 'top-right',
     })
 }
 
@@ -357,6 +378,7 @@ function filterInSection(inSection, _obj) {
         color: $chatfaq-color-primary-500 !important;
     }
 }
+
 .el-form-item__label {
     color: var(--chatfaq-color-primary-500);
     font-size: 14px;

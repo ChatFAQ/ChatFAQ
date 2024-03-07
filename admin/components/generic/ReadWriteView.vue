@@ -31,6 +31,8 @@
                 :readOnly="readOnly"
                 :order="order"
                 :backButton="backButton"
+                :commandButtons="commandButtons"
+                :leaveAfterSave="leaveAfterSave"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -117,6 +119,16 @@ const props = defineProps({
         default: undefined,
     },
     backButton: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    commandButtons: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    leaveAfterSave: {
         type: Boolean,
         required: false,
         default: true,

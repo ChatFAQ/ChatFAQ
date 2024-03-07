@@ -1,29 +1,27 @@
 <template>
     <div class="file-field-wrapper">
-        <el-upload drag :auto-upload="false" @change="fileUpload" @remove="fileUpload(undefined)">
+        <el-upload drag :auto-upload="false" @change="fileUpload" @remove="fileUpload(undefined)" ref="upload" :limit="1">
             <el-icon>
                 <upload/>
             </el-icon>
             <div class="el-upload__text" v-html="$t('droporclickupload')"></div>
         </el-upload>
-        <div class="uploaded-file" v-if="form[fieldName]">
+        <div class="uploaded-file" v-if="existingFile && existingFile.length">
             <div>
                 <el-icon><Document/></el-icon>
-                <a class="doc-name" :href="form[fieldName]" target="_blank">{{form[fieldName].split("/").pop().split("?").shift()}}</a>
+                <a class="doc-name" :href="existingFile" target="_blank">{{existingFile.split("/").pop().split("?").shift()}}</a>
             </div>
-            <el-icon class="close" @click="form[fieldName] = undefined"><Close/></el-icon>
+            <el-icon class="close" @click="existingFile = undefined"><Close/></el-icon>
         </div>
     </div>
 </template>
 
 <script setup>
 
-import { ref, defineExpose, defineProps } from 'vue'
+import { ref, defineProps, watch } from 'vue'
 
-const uploadedFile = ref(null)
-defineExpose({
-    submit,
-})
+const upload = ref(null)
+
 const props = defineProps({
     form: {
         type: Object,
@@ -34,16 +32,20 @@ const props = defineProps({
         mandatory: true
     }
 })
-function fileUpload(uploadFile) {
-    uploadedFile.value = uploadFile
+const existingFile = ref(props.form[props.fieldName] || "")
+watch(() => props.form[props.fieldName], (newValue, oldValue) => {
+    existingFile.value = newValue || ""
     props.form[props.fieldName] = undefined
-}
-function submit() {
-    if(!uploadedFile.value && props.form[props.fieldName]) {
-        delete props.form[props.fieldName]
-    } else if (uploadedFile.value) {
-        props.form[props.fieldName] = uploadedFile.value
+})
+
+existingFile.value = props.form[props.fieldName]
+function fileUpload(uploadFile) {
+    if (!uploadFile) {
+        props.form[props.fieldName] = undefined
+        return
     }
+    props.form[props.fieldName] = uploadFile.raw
+    existingFile.value = undefined
 }
 </script>
 <style lang="scss">

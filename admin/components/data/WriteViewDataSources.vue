@@ -8,14 +8,15 @@
                     :itemId="dataSource.id"
                     :backButton="false"
                     :commandButtons="false"
+                    :leaveAfterSave="false"
                     :order="['original_pdf', 'original_csv', 'original_url', 'parser']"
                     :excludeFields="['knowledge_base']"
-                    :ref="el => dataSourceForms.push(el)"
+                    ref="dataSourceForms"
                 >
                 </WriteView>
           </el-collapse-item>
         </el-collapse>
-        <div class="add-new-data-source-button" @click="addDataSource">{{ $t('addnewdatasource') }}</div>
+        <div ref="xxx" class="add-new-data-source-button" @click="addDataSource">{{ $t('addnewdatasource') }}</div>
     </div>
 </template>
 
@@ -28,7 +29,7 @@ const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const dataSources = ref([])
-const dataSourceForms = ref([])
+const dataSourceForms = ref(null)
 
 defineExpose({submit})
 
@@ -44,10 +45,16 @@ function addDataSource() {
     dataSources.value.push({})
 }
 async function submit(kbId) {
+    let success = true
     for (let i = 0; i < dataSourceForms.value.length; i++) {
-        if (dataSourceForms.value[i])
-            await dataSourceForms.value[i].submitForm({knowledge_base: kbId})
+        if (dataSourceForms.value[i]) {
+            const _success = await dataSourceForms.value[i].submitForm({knowledge_base: kbId})
+            if (!_success)
+                success = _success
+        }
     }
+    if (success)
+        itemsStore.stateToRead()
 }
 
 </script>
