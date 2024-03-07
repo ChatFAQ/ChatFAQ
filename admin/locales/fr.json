@@ -237,5 +237,6 @@
     "errorsavingitem": "Erreur lors de l'enregistrement de l'élément",
     "successsavingitem": "Élément enregistré avec succès",
     "selectananswertolabel": "Sélectionnez une réponse à étiqueter",
-    "droporclickupload": "Déposez ou <em>cliquez</em> pour télécharger"
+    "droporclickupload": "Déposez ou <em>cliquez</em> pour télécharger",
+    "addnewdatasource": "Ajouter une nouvelle source de données"
 }

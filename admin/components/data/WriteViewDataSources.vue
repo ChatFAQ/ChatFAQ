@@ -14,8 +14,8 @@
                 >
                 </WriteView>
           </el-collapse-item>
-          -<div v-if="!addingDataSource" @click="addDataSource">{{ $t('adddatasource') }}</div>-
         </el-collapse>
+        <div class="add-new-data-source-button" @click="addDataSource">{{ $t('addnewdatasource') }}</div>
     </div>
 </template>
 
@@ -49,7 +49,6 @@ async function submit(kbId) {
             await dataSourceForms.value[i].submitForm({knowledge_base: kbId})
     }
 }
-const addingDataSource = computed(() => dataSources.value.length > 0 && dataSources.value[dataSources.value.length - 1].id === undefined)
 
 </script>
 
@@ -80,6 +79,19 @@ const addingDataSource = computed(() => dataSources.value.length > 0 && dataSour
             padding: 32px;
 
         }
+    }
+    .add-new-data-source-button {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 24px;
+        color: $chatfaq-color-primary-500;
+        border: 1px dashed $chatfaq-color-primary-500;
+        border-radius: 10px;
+        cursor: pointer;
     }
 }
 </style>

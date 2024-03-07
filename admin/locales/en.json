@@ -237,5 +237,6 @@
     "errorsavingitem": "Error saving item",
     "successsavingitem": "Item saved successfully",
     "selectananswertolabel": "Select an answer to label",
-    "droporclickupload": "Drop file here or <em>click to upload</em>"
+    "droporclickupload": "Drop file here or <em>click to upload</em>",
+    "addnewdatasource": "+ Add new Data Source"
 }
