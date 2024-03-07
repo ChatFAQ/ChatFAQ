@@ -53,8 +53,9 @@ async function submit(kbId) {
                 success = _success
         }
     }
-    if (success)
-        itemsStore.stateToRead()
+    if (success) {
+        // itemsStore.stateToRead()
+    }
 }
 
 </script>

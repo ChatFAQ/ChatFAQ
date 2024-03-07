@@ -255,9 +255,12 @@ function createTitle(form) {
 
 async function submitForm(extraVals = {}, extraFiles = {}) {
     if (!formRef.value) return true
+    let success = true
     await formRef.value.validate(async (valid) => {
-        if (!valid)
-            return false
+        if (!valid) {
+            success = false
+            return
+        }
         itemsStore.loading = true
         let _itemId = props.itemId
         emit("submitFormStart", props.itemId, form.value)
@@ -288,9 +291,11 @@ async function submitForm(extraVals = {}, extraFiles = {}) {
                 }
                 const ref = fieldsRef.value[Object.keys(e.response.data)[0]]
                 ref.$el.parentElement.scrollIntoView({behavior: "smooth", block: "center"})
-                return false
+                success = false
+                return
             } else {
                 itemsStore.loading = false
+                success = false
                 throw e
             }
         }
@@ -306,7 +311,7 @@ async function submitForm(extraVals = {}, extraFiles = {}) {
         })
         itemsStore.loading = false
     })
-    return true
+    return success
 }
 
 function deleteItem() {

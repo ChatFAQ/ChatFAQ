@@ -34,8 +34,10 @@ const props = defineProps({
 })
 const existingFile = ref(props.form[props.fieldName] || "")
 watch(() => props.form[props.fieldName], (newValue, oldValue) => {
-    existingFile.value = newValue || ""
-    props.form[props.fieldName] = undefined
+    if (typeof newValue === "string") {
+        existingFile.value = newValue
+        props.form[props.fieldName] = undefined
+    }
 })
 
 existingFile.value = props.form[props.fieldName]
