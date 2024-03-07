@@ -13,7 +13,7 @@
                     'email': {'name': $t('email')},
                 }"
                 :excludeFields="['date_joined', 'last_login', 'rpc_group']"
-                @submitForm="submitPassword"
+                @submitFormStart="submitPassword"
                 :sections="{
                     [$t('userinformation')]: [
                         'first_name',

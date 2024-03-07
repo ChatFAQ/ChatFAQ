@@ -18,12 +18,19 @@
                 }"
                 :excludeFields="['num_of_data_sources', 'num_of_knowledge_items']"
                 :textExplanation="$t('knowledgebaseexplanation')"
+                :filtersSchema="[
+                   {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+               ]"
+                @submitFormEnd="submitKnowledgeBase"
             >
                 <template v-slot:extra-card-bottom="props">
-                    <el-button class="bottom-card-button" @click="goToKIs(props.item.id)">{{ $t("viewknowledgeitems") }}</el-button>
+                    <el-button class="bottom-card-button" @click="goToKIs(props.item.id)">{{
+                            $t("viewknowledgeitems")
+                        }}
+                    </el-button>
                 </template>
                 <template v-slot:extra-write-bottom>
-                    <WriteViewDataSources :itemType="itemType" />
+                    <WriteViewDataSources :itemType="itemType" ref="dataSources"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -66,16 +73,18 @@
 
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
-import { useItemsStore } from "~/store/items.js";
+import {useItemsStore} from "~/store/items.js";
 import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 
 const password = ref(null)
 
-const { $axios } = useNuxtApp();
+const {$axios} = useNuxtApp();
 
 const itemsStore = useItemsStore()
 
 const itemType = ref("knowledge-base")
+const dataSources = ref(null)
+
 await itemsStore.loadSchema($axios)
 
 
@@ -85,6 +94,9 @@ function goToKIs(kb_id) {
     itemsStore.filters["knowledge_base__id"] = kb_id
 }
 
+function submitKnowledgeBase(id) {
+    dataSources.value.submit(id)
+}
 </script>
 
 <style scoped lang="scss">

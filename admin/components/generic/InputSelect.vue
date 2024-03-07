@@ -123,6 +123,10 @@ function remoteSearch(query) {
         resultHolder = props.schema.properties[props.fieldName].choices
         ref = true
     }
+    if (!url) {
+        loading.value = false
+        return
+    }
     if (ref) {
         itemsStore.retrieveItems($axios, url, {search: query, limit: 0, offset: 0, ordering: undefined}, false).then((items) => {
             items = JSON.parse(JSON.stringify(items))

@@ -1,6 +1,6 @@
 <template>
     <div class="file-field-wrapper">
-        <el-upload drag :auto-upload="false" @change="fileUpload">
+        <el-upload drag :auto-upload="false" @change="fileUpload" @remove="fileUpload(undefined)">
             <el-icon>
                 <upload/>
             </el-icon>
@@ -9,7 +9,7 @@
         <div class="uploaded-file" v-if="form[fieldName]">
             <div>
                 <el-icon><Document/></el-icon>
-                <a class="doc-name" :href="form[fieldName]" target="_blank">{{form[fieldName].split("/").pop()}}</a>
+                <a class="doc-name" :href="form[fieldName]" target="_blank">{{form[fieldName].split("/").pop().split("?").shift()}}</a>
             </div>
             <el-icon class="close" @click="form[fieldName] = undefined"><Close/></el-icon>
         </div>
@@ -18,6 +18,9 @@
 
 <script setup>
 
+import { ref, defineExpose, defineProps } from 'vue'
+
+const uploadedFile = ref(null)
 defineExpose({
     submit,
 })
@@ -32,12 +35,15 @@ const props = defineProps({
     }
 })
 function fileUpload(uploadFile) {
-    console.log(uploadFile)
+    uploadedFile.value = uploadFile
+    props.form[props.fieldName] = undefined
 }
 function submit() {
-    // if(!editingPassword.value) {
-    //     delete props.form[props.fieldName]
-    // }
+    if(!uploadedFile.value && props.form[props.fieldName]) {
+        delete props.form[props.fieldName]
+    } else if (uploadedFile.value) {
+        props.form[props.fieldName] = uploadedFile.value
+    }
 }
 </script>
 <style lang="scss">

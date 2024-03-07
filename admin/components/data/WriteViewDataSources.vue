@@ -7,6 +7,7 @@
                     :apiUrl="endpoint"
                     :itemId="dataSource.id"
                     :backButton="false"
+                    :commandButtons="false"
                     :order="['original_pdf', 'original_csv', 'original_url', 'parser']"
                     :excludeFields="['knowledge_base']"
                 >
@@ -19,25 +20,30 @@
 
 
 <script setup>
+import {ref, defineExpose} from "vue";
 import WriteView from "~/components/generic/WriteView.vue";
 import { useItemsStore } from "~/store/items.js";
 const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const dataSources = ref([])
-dataSources.value = (await itemsStore.retrieveItems($axios, endpoint.value, {
-    limit: 0,
-    offset: 0,
-    knowledge_base__id: itemsStore.editing
-}, false)).results
 
-console.log("------------------------")
-console.log(dataSources.value)
+defineExpose({submit})
+
+if (itemsStore.editing) {
+    dataSources.value = (await itemsStore.retrieveItems($axios, endpoint.value, {
+        limit: 0,
+        offset: 0,
+        knowledge_base__id: itemsStore.editing
+    }, false)).results
+}
 
 function addDataSource() {
     dataSources.value.push({})
 }
-
+function submit(kbId) {
+    alert(kbId)
+}
 const addingDataSource = computed(() => dataSources.value.length > 0 && dataSources.value[dataSources.value.length - 1].id === undefined)
 
 </script>

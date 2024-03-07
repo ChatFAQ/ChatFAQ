@@ -11,7 +11,7 @@
             status-icon
             label-position="top"
             require-asterisk-position="right"
-            @keydown.enter.native="submitForm(formRef)"
+            @keydown.enter.native="submitForm"
             :scroll-to-error="true"
             :scroll-into-view-options="{ behavior: 'smooth', block: 'center' }"
         >
@@ -93,7 +93,7 @@
             </div>
         </el-form>
         <slot name="extra-write-bottom"></slot>
-        <div class="commands">
+        <div v-if="commandButtons" class="commands">
             <el-button v-if="itemId !== undefined" type="danger" @click="deleteDialogVisible = true" class="delete-button">
                 <span>{{ $t("delete") }}</span>
             </el-button>
@@ -102,7 +102,7 @@
                 <el-button @click="itemsStore.stateToRead">
                     Cancel
                 </el-button>
-                <el-button type="primary" @click="submitForm(formRef)">
+                <el-button type="primary" @click="submitForm">
                     Save changes
                 </el-button>
             </div>
@@ -123,7 +123,7 @@
     </el-dialog>
 </template>
 <script setup>
-import {ref} from "vue";
+import {ref, defineExpose} from "vue";
 import {useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
@@ -139,7 +139,8 @@ const schema = ref({})
 const formRef = ref()
 const fieldsRef = ref({})
 const deleteDialogVisible = ref(false)
-const emit = defineEmits(['submitForm'])
+const emit = defineEmits(['submitFormStart', 'submitFormEnd'])
+defineExpose({submitForm})
 
 const props = defineProps({
     itemId: {
@@ -185,6 +186,11 @@ const props = defineProps({
         required: false,
         default: true,
     },
+    commandButtons: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
 })
 async function initData() {
     itemsStore.loading = true
@@ -218,7 +224,7 @@ initializeFormValues()
 async function initializeFormValues() {
     if (props.itemId !== undefined) {
         itemsStore.loading = true
-        const data = await itemsStore.retrieveItems($axios, props.apiUrl, {id: props.itemId, limit: 0, offset: 0}, false, true)
+        const data = await itemsStore.retrieveItems($axios, props.apiUrl, {id: props.itemId, limit: 0, offset: 0}, false, true) || {}
         for (const [fieldName, fieldValue] of Object.entries(data)) {
             if (allExcludeFields.value.indexOf(fieldName) === -1) {
                 form.value[fieldName] = fieldValue
@@ -232,20 +238,20 @@ function createTitle(form) {
     return props.titleProps.map(prop => form[prop]).join(" ")
 }
 
-const submitForm = async (formEl) => {
-
-    if (!formEl) return
-    await formEl.validate(async (valid) => {
+async function submitForm() {
+    await formRef.value.validate(async (valid) => {
         if (!valid)
             return
         itemsStore.loading = true
-        // emit event "submitForm":
-        emit("submitForm", form.value)
+        let _itemId = props.itemId
+        emit("submitFormStart", props.itemId, form.value)
         try {
             if (props.itemId !== undefined)
                 await $axios.put(`${props.apiUrl}${props.itemId}/`, form.value)
-            else
-                await $axios.post(props.apiUrl, form.value)
+            else {
+                const res = await $axios.post(props.apiUrl, form.value)
+                _itemId = res.data.id
+            }
         } catch (e) {
             ElNotification({
                 title: 'Error',
@@ -265,6 +271,7 @@ const submitForm = async (formEl) => {
                 throw e
             }
         }
+        emit("submitFormEnd", _itemId, form.value)
         itemsStore.stateToRead()
 
         ElNotification({

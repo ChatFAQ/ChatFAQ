@@ -49,7 +49,7 @@
                     'name': {'name': $t('name')},
                 }"
                 :outsideSection="['data']"
-                @submitForm="submitFieldData"
+                @submitFormStart="submitFieldData"
             >
                 <template v-slot:write-data="props">
                     <FieldData :form="props.form" :fieldName="props.fieldName"  ref="fieldData">123</FieldData>
