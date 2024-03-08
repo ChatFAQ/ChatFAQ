@@ -1,7 +1,7 @@
 <template>
     <div class="data-sources-wrapper">
         <el-collapse>
-            <el-collapse-item v-for="(dataSource, index) in dataSources" :title="$t('datasource', {index})" :name="index">
+            <el-collapse-item v-for="(dataSource, index) in dataSources" :title="getTabName(index)" :name="index">
                 <WriteView
                     :readableName="'Data Sources'"
                     :apiUrl="endpoint"
@@ -51,6 +51,10 @@
 import {ref, defineExpose} from "vue";
 import WriteView from "~/components/generic/WriteView.vue";
 import { useItemsStore } from "~/store/items.js";
+
+import {useI18n} from "vue-i18n";
+const { t } = useI18n();
+
 const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
@@ -65,6 +69,26 @@ if (itemsStore.editing) {
         offset: 0,
         knowledge_base__id: itemsStore.editing
     }, false)).results
+}
+
+function getNameFromFile(file) {
+    if (typeof file === "string")
+        return file.split("/").pop().split("?").shift()
+    return file.name.split("/").pop().split("?").shift()
+}
+
+function getTabName(index) {
+    if (!dataSourceForms.value || !dataSourceForms.value[index] || !dataSourceForms.value[index].form)
+        return t("newdatasource")
+
+    if (dataSourceForms.value[index].form["original_pdf"]) {
+        return getNameFromFile(dataSourceForms.value[index].form["original_pdf"])
+    }
+    if (dataSourceForms.value[index].form["original_csv"])
+        return getNameFromFile(dataSourceForms.value[index].form["original_csv"])
+    if (dataSourceForms.value[index].form["original_url"])
+        return dataSourceForms.value[index].form["original_url"]
+    return t("newdatasource")
 }
 
 function addDataSource() {

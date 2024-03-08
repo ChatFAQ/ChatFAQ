@@ -36,7 +36,7 @@ const existingFile = ref(props.form[props.fieldName] || "")
 watch(() => props.form[props.fieldName], (newValue, oldValue) => {
     if (typeof newValue === "string") {
         existingFile.value = newValue
-        props.form[props.fieldName] = undefined
+        props.form[props.fieldName] = {name: newValue, unmodifiedFile: true}
     }
 })
 

@@ -298,6 +298,12 @@ async function submitForm(extraVals = {}, callback = undefined) {
 
         form.value = {...form.value, ...extraVals}
 
+        for (const [fieldName, fieldValue] of Object.entries(form.value)) {
+            if (fieldValue && fieldValue.unmodifiedFile) {
+                delete form.value[fieldName]
+            }
+        }
+
         try {
             const headers = {
                 'Content-Type': 'multipart/form-data'
