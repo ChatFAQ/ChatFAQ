@@ -72,25 +72,36 @@ async function submit(kbId) {
         margin: 0;
     }
     .form-section {
-        border: none;
+        border: none !important;
         padding-top: 0 !important;
         margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
     .el-collapse {
         .el-collapse-item {
             margin-bottom: 24px;
             border-radius: 10px;
             border: 1px solid $chatfaq-color-primary-200;
+            border-radius: 10px;
         }
 
         .el-collapse-item__header {
             //styleName: Title/XS/Bold;
-            border-radius: 10px;
             font-family: Montserrat;
             font-size: 18px;
             font-weight: 700;
             padding: 32px;
+            border-radius: 10px;
+            &.is-active {
+                border-radius: 10px 10px 0px 0px;
+            }
 
+        }
+        .el-collapse-item__content {
+            padding-bottom: 0px !important;
+        }
+        .el-collapse-item__wrap {
+            border-radius: 0px 0px 10px 10px !important;
         }
     }
     .add-new-data-source-button {
