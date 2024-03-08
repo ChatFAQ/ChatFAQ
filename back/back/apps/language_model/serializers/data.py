@@ -31,9 +31,15 @@ class DataSourceSerializer(serializers.ModelSerializer):
         if data.get('original_csv') is not None:
             title_index, content_index, url_index = data.get("title_index_col"), data.get("content_index_col"), data.get("url_index_col")
             if title_index is None or content_index is None or url_index is None:
-                raise serializers.ValidationError(
-                    "You must specify the index of the title, content and url columns in the CSV"
-                )
+                errors = {}
+                if title_index is None:
+                    errors["title_index_col"] = ["You must specify the index of the title column in the CSV"]
+                if content_index is None:
+                    errors["content_index_col"] = ["You must specify the index of the content column in the CSV"]
+                if url_index is None:
+                    errors["url_index_col"] = ["You must specify the index of the url column in the CSV"]
+                raise serializers.ValidationError(errors)
+
             f = data["original_csv"]
             decoded_file = f.read().decode("utf-8").splitlines()
             reader = csv.reader(decoded_file)
@@ -41,13 +47,13 @@ class DataSourceSerializer(serializers.ModelSerializer):
             mandatory_columns = [title_index, content_index, url_index]
             for _i, row in enumerate(reader):
                 if len(row) < max(mandatory_columns):
-                    raise serializers.ValidationError(
-                        f"Row {_i + 1} does not contain all the required columns: {', '.join(str(i) for i in mandatory_columns)}"
-                    )
+                    raise serializers.ValidationError({
+                        "original_csv": f"Row {_i + 1} does not contain all the required columns: {', '.join(str(i) for i in mandatory_columns)}"
+                    })
                 if not all(row[i].strip() for i in mandatory_columns):
-                    raise serializers.ValidationError(
-                        f"Row {_i + 1} does not contain all the required columns: {', '.join(str(i) for i in mandatory_columns)}"
-                    )
+                    raise serializers.ValidationError({
+                        "original_csv": f"Row {_i + 1} does not contain all the required columns: {', '.join(str(i) for i in mandatory_columns)}"
+                    })
             f.seek(0)
         return data
 

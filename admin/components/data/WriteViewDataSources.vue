@@ -46,15 +46,20 @@ function addDataSource() {
 }
 async function submit(kbId) {
     let success = true
+
+    let totalDSForms = dataSourceForms.value.length
+    function successCB(success) {
+        if (success)
+            totalDSForms--
+        if (totalDSForms === 0)
+            itemsStore.stateToRead()
+    }
     for (let i = 0; i < dataSourceForms.value.length; i++) {
         if (dataSourceForms.value[i]) {
-            const _success = await dataSourceForms.value[i].submitForm({knowledge_base: kbId})
+            const _success = await dataSourceForms.value[i].submitForm({knowledge_base: kbId}, successCB)
             if (!_success)
                 success = _success
         }
-    }
-    if (success) {
-        // itemsStore.stateToRead()
     }
 }
 

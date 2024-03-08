@@ -253,12 +253,10 @@ function createTitle(form) {
     return props.titleProps.map(prop => form[prop]).join(" ")
 }
 
-async function submitForm(extraVals = {}, extraFiles = {}) {
+async function submitForm(extraVals = {}, callback = undefined) {
     if (!formRef.value) return true
-    let success = true
     await formRef.value.validate(async (valid) => {
         if (!valid) {
-            success = false
             return
         }
         itemsStore.loading = true
@@ -288,14 +286,25 @@ async function submitForm(extraVals = {}, extraFiles = {}) {
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
                     formServerErrors.value[fieldName] = errorMessages.join(", ")
+                    if (fieldName === "non_field_errors") {
+                        ElNotification({
+                            title: 'Error',
+                            message: errorMessages,
+                            type: 'error',
+                            position: 'top-right',
+                        })
+                    }
                 }
                 const ref = fieldsRef.value[Object.keys(e.response.data)[0]]
                 ref.$el.parentElement.scrollIntoView({behavior: "smooth", block: "center"})
-                success = false
+                itemsStore.loading = false
+                if (callback)
+                    callback(false)
                 return
             } else {
                 itemsStore.loading = false
-                success = false
+                if (callback)
+                    callback(false)
                 throw e
             }
         }
@@ -309,9 +318,10 @@ async function submitForm(extraVals = {}, extraFiles = {}) {
             type: 'success',
             position: 'top-right',
         })
+        if (callback)
+            callback(true)
         itemsStore.loading = false
     })
-    return success
 }
 
 function deleteItem() {
