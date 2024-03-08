@@ -1,7 +1,7 @@
 <template>
     <div class="data-sources-wrapper">
         <el-collapse>
-            <el-collapse-item v-for="(dataSource, index) in dataSources" :name="index">
+            <el-collapse-item v-for="(dataSource, index) in dataSources" :key="dataSource.id || dataSource.fakeId" :name="index">
                 <WriteView
                     :readableName="'Data Sources'"
                     :apiUrl="endpoint"
@@ -115,7 +115,7 @@ function getTabName(index) {
 }
 
 function addDataSource() {
-    dataSources.value.push({})
+    dataSources.value.push({fakeId: Math.random()})
 }
 async function submit(kbId) {
     let success = true
