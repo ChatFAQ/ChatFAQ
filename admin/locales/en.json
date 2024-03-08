@@ -239,5 +239,21 @@
     "selectananswertolabel": "Select an answer to label",
     "droporclickupload": "Drop file here or <em>click to upload</em>",
     "newdatasource": "New Data Source",
-    "addnewdatasource": "+ Add new Data Source"
+    "addnewdatasource": "+ Add new Data Source",
+    "original_pdf": "PDF",
+    "original_csv": "CSV",
+    "original_url": "URL",
+    "parser": "Parser",
+    "strategy": "Strategy",
+    "splitter": "Splitter",
+    "chunk_size": "Chunk Size",
+    "chunk_overlap": "Chunk Overlap",
+    "csv_header": "CSV Header",
+    "title_index_col": "Title Index Col",
+    "content_index_col": "Content Index Col",
+    "url_index_col": "URL Index Col",
+    "section_index_col": "Section Index Col",
+    "role_index_col": "Role Index Col",
+    "page_number_index_col": "Page Number Index Col",
+    "recursive": "Recursive"
 }

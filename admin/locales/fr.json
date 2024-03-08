@@ -239,5 +239,21 @@
     "selectananswertolabel": "Sélectionnez une réponse à étiqueter",
     "droporclickupload": "Déposez ou <em>cliquez</em> pour télécharger",
     "newdatasource": "Nouvelle source de données",
-    "addnewdatasource": "Ajouter une nouvelle source de données"
+    "addnewdatasource": "Ajouter une nouvelle source de données",
+    "original_pdf": "PDF",
+    "original_csv": "CSV",
+    "original_url": "URL",
+    "parser": "Parser",
+    "strategy": "Stratégie",
+    "splitter": "Splitter",
+    "chunk_size": "Taille du chunk",
+    "chunk_overlap": "Chevauchement de chunk",
+    "csv_header": "En-tête CSV",
+    "title_index_col": "Index de colonne de titre",
+    "content_index_col": "Index de colonne de contenu",
+    "url_index_col": "Index de colonne d'URL",
+    "section_index_col": "Index de colonne de section",
+    "role_index_col": "Index de colonne de rôle",
+    "page_number_index_col": "Index de colonne de numéro de page",
+    "recursive": "Récursif"
 }
