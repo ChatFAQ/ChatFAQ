@@ -68,7 +68,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             "stack__0__payload__rag_config_id", flat=True
         ).distinct()
         # get the RAGConfign names from the ids:
-        rag_names = RAGConfig.objects.filter(id__in=list(rag_ids.all())).values_list("name", flat=True)
+        rag_names = list(RAGConfig.objects.filter(id__in=list(rag_ids.all())).values_list("name", flat=True).all())
         return rag_names
 
 
