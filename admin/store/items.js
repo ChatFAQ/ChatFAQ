@@ -62,9 +62,10 @@ export const useItemsStore = defineStore('items', {
             }
             return this.items[cacheName]
         },
-        async deleteItem($axios, apiUrl, id) {
+        async deleteItem($axios, apiUrl, id, refresh = true) {
             await $axios.delete(`${apiUrl}${id}`, {'headers': authHeaders()})
-            await this.retrieveItems($axios, apiUrl)
+            if (refresh)
+                await this.retrieveItems($axios, apiUrl)
         },
         async loadSchema($axios) {
             if (!this.schema) {

@@ -1,7 +1,7 @@
 <template>
     <div class="data-sources-wrapper">
         <el-collapse>
-            <el-collapse-item v-for="(dataSource, index) in dataSources" :title="getTabName(index)" :name="index">
+            <el-collapse-item v-for="(dataSource, index) in dataSources" :name="index">
                 <WriteView
                     :readableName="'Data Sources'"
                     :apiUrl="endpoint"
@@ -40,10 +40,31 @@
                     ref="dataSourceForms"
                 >
                 </WriteView>
+                <template #title>
+                    <div class="tab-title">
+                        <div>{{ getTabName(index) }} </div>
+                        <el-icon :size="14" @click="setDeleteDataSource(dataSource.id, index)" @click.stop>
+                            <Delete/>
+                        </el-icon>
+                    </div>
+                </template>
           </el-collapse-item>
         </el-collapse>
-        <div ref="xxx" class="add-new-data-source-button" @click="addDataSource">{{ $t('addnewdatasource') }}</div>
+        <div class="add-new-data-source-button" @click="addDataSource">{{ $t('addnewdatasource') }}</div>
     </div>
+    <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
+        <span>
+            {{ $t('deleteitemwarning') }}
+        </span>
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="() => {deleteDialogVisible = false}">{{ $t('cancel') }}</el-button>
+                <el-button type="primary" @click="deleteDataSource">
+                    {{ $t('confirm') }}
+                </el-button>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 
 
@@ -60,6 +81,9 @@ const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const dataSources = ref([])
 const dataSourceForms = ref(null)
+const deleteDialogVisible = ref(false)
+const deletingDataSourceID = ref(undefined)
+const deletingIndex = ref(undefined)
 
 defineExpose({submit})
 
@@ -81,9 +105,8 @@ function getTabName(index) {
     if (!dataSourceForms.value || !dataSourceForms.value[index] || !dataSourceForms.value[index].form)
         return t("newdatasource")
 
-    if (dataSourceForms.value[index].form["original_pdf"]) {
+    if (dataSourceForms.value[index].form["original_pdf"])
         return getNameFromFile(dataSourceForms.value[index].form["original_pdf"])
-    }
     if (dataSourceForms.value[index].form["original_csv"])
         return getNameFromFile(dataSourceForms.value[index].form["original_csv"])
     if (dataSourceForms.value[index].form["original_url"])
@@ -110,6 +133,22 @@ async function submit(kbId) {
             if (!_success)
                 success = _success
         }
+    }
+}
+function setDeleteDataSource(id, index) {
+    deletingDataSourceID.value = id
+    deletingIndex.value = index
+    deleteDialogVisible.value = true
+}
+async function deleteDataSource() {
+    if(deletingDataSourceID.value !== undefined) {
+        await itemsStore.deleteItem($axios, endpoint.value, deletingDataSourceID.value, false)
+        dataSources.value.splice(deletingIndex.value, 1)
+        deleteDialogVisible.value = false
+    }
+    else {
+        dataSources.value.splice(deletingIndex.value, 1)
+        deleteDialogVisible.value = false
     }
 }
 
@@ -166,6 +205,19 @@ async function submit(kbId) {
         border: 1px dashed $chatfaq-color-primary-500;
         border-radius: 10px;
         cursor: pointer;
+    }
+    .tab-title {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        i {
+            margin-right: 24px;
+            color: $chatfaq-color-primary-500;
+        }
+    }
+    .el-collapse-item__arrow {
+        font-size: 16px;
+
     }
 }
 </style>
