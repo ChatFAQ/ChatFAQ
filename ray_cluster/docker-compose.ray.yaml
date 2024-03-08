@@ -12,28 +12,41 @@ services:
     networks:
       - ray_net
 
-  ray-indexing-worker-1:
+  ray-tasks-worker:
     image: rayproject/ray-ml:latest-py310-gpu
-    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"indexing_node\": 5}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"tasks\": 1}", "--block"]
     env_file:
       - .env
     depends_on:
       - ray-head
     deploy:
       mode: replicated
-      replicas: ${INDEXING_WORKERS}
+      replicas: ${TASKS_WORKERS}
       resources:
         limits:
-          cpus: ${INDEXING_WORKER_CPU}
+          cpus: ${NUM_CPU_TASKS_WORKER}
+          memory: 2G
+    networks:
+      - ray_net
+    
+  ray-rag-worker:
+    image: rayproject/ray-ml:latest-py310-gpu
+    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"rags\": 2}", "--block"]
+    env_file:
+      - .env
+    depends_on:
+      - ray-head
+    deploy:
+      mode: replicated
+      replicas: ${RAGS_WORKERS}
+      resources:
+        limits:
+          cpus: ${NUM_CPU_RAGS_WORKER}
           memory: 2G
     networks:
       - ray_net
 
-  # ray-pdf-parsing-worker-1:
-  #   image: rayproject/ray-ml:latest-py310-gpu
-  #   command: ["ray", "start", "--address=ray-head:6379", "--resources={\"pdf_parsing_node\": 5}"]
-  #   depends_on:
-  #     - ray-head
+
 
 
 networks:
