@@ -14,9 +14,11 @@ services:
 
   ray-tasks-worker:
     image: rayproject/ray-ml:latest-py310-gpu
-    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"tasks\": 1}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
     env_file:
       - .env
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
     depends_on:
       - ray-head
     deploy:
@@ -31,7 +33,7 @@ services:
     
   ray-rag-worker:
     image: rayproject/ray-ml:latest-py310-gpu
-    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"rags\": 2}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"rags\": 2}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
     env_file:
       - .env
     depends_on:
