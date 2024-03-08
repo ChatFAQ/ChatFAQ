@@ -255,5 +255,6 @@
     "section_index_col": "Index de colonne de section",
     "role_index_col": "Index de colonne de rôle",
     "page_number_index_col": "Index de colonne de numéro de page",
-    "recursive": "Récursif"
+    "recursive": "Récursif",
+    "rags": "RAGs"
 }

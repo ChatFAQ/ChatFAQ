@@ -255,5 +255,6 @@
     "section_index_col": "Section Index Col",
     "role_index_col": "Role Index Col",
     "page_number_index_col": "Page Number Index Col",
-    "recursive": "Recursive"
+    "recursive": "Recursive",
+    "rags": "RAGs"
 }

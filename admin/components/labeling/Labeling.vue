@@ -6,7 +6,7 @@
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
             'name': {'name': $t('name')},
-            'rags': {'rags': $t('rags')},
+            'rags': {'name': $t('rags')},
             'created_date': {'name': $t('created_date'), 'sortable': true},
             'user_id': {'name': $t('userid')},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
@@ -29,7 +29,7 @@
             <div class="go-to-view" @click="goToLabelingConversation(row.id)">{{ $t("view") }}</div>
         </template>
         <template v-slot:rags="{row}">
-            {{ row.rags.join(",") }}
+            {{ row?.rags ? row.rags.join(",") : "" }}
         </template>
     </ReadWriteView>
     <LabelingTool v-else :id="itemsStore.editing"></LabelingTool>
