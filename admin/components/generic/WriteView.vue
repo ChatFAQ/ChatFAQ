@@ -139,11 +139,15 @@ const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
 const schema = ref({})
+const deleteDialogVisible = ref(false)
+const form = ref({})
+const formServerErrors = ref({})
+const formRules = ref({})
 const formRef = ref()
 const fieldsRef = ref({})
-const deleteDialogVisible = ref(false)
+
 const emit = defineEmits(['submitFormStart', 'submitFormEnd'])
-defineExpose({submitForm})
+defineExpose({submitForm, form})
 
 const props = defineProps({
     itemId: {
@@ -163,6 +167,11 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
+    },
+    conditionalIncludedFields: { // the values are the only fields that are conditionally included if the keys (fields names) are present in the form
+        type: Object,
+        required: false,
+        default: undefined,
     },
     sections: {
         type: Object,
@@ -201,6 +210,36 @@ const props = defineProps({
     },
 })
 
+const allExcludeFields = computed(() => {
+    let excludes = []
+
+    if (props.conditionalIncludedFields) {
+
+        const onlyFieldsIfEmpty = Object.keys(props.conditionalIncludedFields)
+        if (onlyFieldsIfEmpty.length) {
+            let areOnlyFieldsIfEmptyEmpty = true
+            for (const field of onlyFieldsIfEmpty) {
+                if (form.value[field] !== undefined && form.value[field] !== "") {
+                    areOnlyFieldsIfEmptyEmpty = false
+                    break
+                }
+            }
+            if (areOnlyFieldsIfEmptyEmpty) {
+                const allFields = Object.keys(form.value)
+                excludes = allFields.filter(field => !onlyFieldsIfEmpty.includes(field))
+            }
+        }
+
+        const allFields = Object.keys(form.value)
+        for (const [fieldCondition, includedFields] of Object.entries(props.conditionalIncludedFields)) {
+            if (form.value[fieldCondition]) {
+                excludes = allFields.filter(field => field !== fieldCondition && !includedFields.includes(field))
+                break
+            }
+        }
+    }
+    return [...props.excludeFields, ...excludes, "id", "created_date", "updated_date"]
+})
 async function initData() {
     itemsStore.loading = true
     schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
@@ -209,12 +248,6 @@ async function initData() {
 
 await initData()
 
-const form = ref({})
-const formServerErrors = ref({})
-const formRules = ref({})
-const allExcludeFields = computed(() => {
-    return [...props.excludeFields, "id", "created_date", "updated_date"]
-})
 
 // Initialize form
 for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {

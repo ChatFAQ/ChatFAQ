@@ -11,6 +11,32 @@
                     :leaveAfterSave="false"
                     :order="['original_pdf', 'original_csv', 'original_url', 'parser']"
                     :excludeFields="['knowledge_base']"
+                    :conditionalIncludedFields="{
+                        'original_pdf': [
+                            'parser',
+                            'strategy',
+                            'splitter',
+                            'chunk_size',
+                            'chunk_overlap'
+                        ],
+                        'original_csv': [
+                            'parser',
+                            'csv_header',
+                            'title_index_col',
+                            'content_index_col',
+                            'url_index_col',
+                            'section_index_col',
+                            'role_index_col',
+                            'page_number_index_col'
+                        ],
+                        'original_url': [
+                            'parser',
+                            'recursive',
+                            'splitter',
+                            'chunk_size',
+                            'chunk_overlap'
+                        ]
+                    }"
                     ref="dataSourceForms"
                 >
                 </WriteView>

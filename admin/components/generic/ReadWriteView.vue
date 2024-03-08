@@ -25,6 +25,7 @@
                 :itemId="editing"
                 :titleProps="titleProps"
                 :excludeFields="excludeFields"
+                :conditionalIncludedFields="conditionalIncludedFields"
                 :sections="sections"
                 :outsideSection="outsideSection"
                 v-bind="$attrs"
@@ -80,6 +81,11 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
+    },
+    conditionalIncludedFields: { // the values are the only fields that are conditionally included if the keys (fields names) are present in the form
+        type: Object,
+        required: false,
+        default: undefined,
     },
     sections: {
         type: Object,
