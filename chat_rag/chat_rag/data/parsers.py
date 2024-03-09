@@ -1,7 +1,6 @@
 from typing import List, Optional, Union, BinaryIO, IO, Callable
 from tempfile import SpooledTemporaryFile
 
-import pandas as pd
 from unstructured.documents.elements import (
     Element,
     Text,  # Uncategorized text
