@@ -2,7 +2,7 @@ version: '3'
 services:
   ray-head:
     image: rayproject/ray:latest-py310 
-    command: /bin/bash -c "ray start --head --port ${RAY_ADDRESS_PORT} --dashboard-host 0.0.0.0 --block"
+    command: /bin/bash -c "ray start --head --num-cpus=0 --num-gpus=0 --port ${RAY_ADDRESS_PORT} --dashboard-host 0.0.0.0 --block"
     env_file:
       - .env
     ports:
