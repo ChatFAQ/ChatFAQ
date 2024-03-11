@@ -50,6 +50,19 @@
                            requiredFilter="knowledge_base__id"
                            :textExplanation="$t('knowledgeitemexplanation')"
             >
+                <template v-slot:write-content="{fieldName, form, formServerErrors}">
+                    <el-form-item :label="$t(fieldName)"
+                                  :prop="fieldName"
+                                  :error="formServerErrors[fieldName]">
+                        <el-input
+                            class="system-prefix-input"
+                            v-model="form[fieldName]"
+                            autosize
+                            @keydown.enter.stop
+                            type="textarea"
+                        />
+                    </el-form-item>
+                </template>
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :label="$t('intents')" name="intents">
