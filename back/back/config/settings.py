@@ -4,6 +4,9 @@ from importlib import metadata
 from urllib.parse import quote as urlquote
 from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
+from dotenv import load_dotenv
+
+load_dotenv()
 
 MIDDLEWARE = []
 INSTALLED_APPS = []
