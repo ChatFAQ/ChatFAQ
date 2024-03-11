@@ -223,6 +223,13 @@ class Stats(APIView):
         user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)
         reviews_and_feedbacks = calculate_response_stats(admin_reviews, user_feedbacks)
 
+        positive_admin_reviews = admin_reviews.filter(ki_review_data__value="positive").count()
+        total_admin_reviews = admin_reviews.filter(ki_review_data__value__in=["positive", "negative"]).count()
+        total_admin_relevant_reviews = admin_reviews.filter(ki_review_data__value__in=["positive", "alternative"]).count()
+        precision = positive_admin_reviews / total_admin_reviews if total_admin_reviews > 0 else 0
+        recall = positive_admin_reviews / total_admin_relevant_reviews if total_admin_relevant_reviews > 0 else 0
+        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
         return JsonResponse(
             {
                 "total_conversations": total_conversations,
@@ -231,7 +238,10 @@ class Stats(APIView):
                 "messages_per_rag": list(messages_per_rag.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
-                **reviews_and_feedbacks
+                **reviews_and_feedbacks,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1
             },
             safe=False,
         )
