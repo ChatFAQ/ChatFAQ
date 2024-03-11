@@ -1,7 +1,7 @@
 <template>
     <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
-        <Filters v-if="filtersSchema" :apiUrl="apiUrl" :filtersSchema="filtersSchema"/>
+        <Filters v-if="filtersSchema" :filtersSchema="filtersSchema"/>
         <div class="section-header">
             <slot name="legend" :total="itemsStore.items[apiUrl]?.results?.length">
                 <div class="item-count"> {{

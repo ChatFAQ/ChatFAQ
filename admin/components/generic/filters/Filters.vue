@@ -42,10 +42,6 @@ const emit = defineEmits(['change'])
 const ignoreParams = ['offset', 'limit', 'id'];
 
 const props = defineProps({
-    apiUrl: {
-        type: String,
-        required: true,
-    },
     filtersSchema: {
         type: Array,
         required: false,

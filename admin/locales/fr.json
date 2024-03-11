@@ -256,5 +256,20 @@
     "role_index_col": "Index de colonne de rôle",
     "page_number_index_col": "Index de colonne de numéro de page",
     "recursive": "Récursif",
-    "rags": "RAGs"
+    "rags": "RAGs",
+    "statsexplanation": "Vue d'ensemble complète évaluant l'efficacité des réponses, de l'interaction et de la satisfaction de l'utilisateur dans le système RAG. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>En savoir plus</a>",
+    "totalconversations": "Total des conversations",
+    "conversationsmessagecount": "Nombre de messages de conversation",
+    "conversationsbydate": "Conversations par date",
+    "chitchatscount": "Nombre de bavardages",
+    "chitchatspercentage": "Pourcentage de bavardages",
+    "unanswerablequeriescount": "Nombre de requêtes sans réponse",
+    "unanswerablequeriespercentage": "Pourcentage de requêtes sans réponse",
+    "answerablequeriescount": "Nombre de requêtes répondables",
+    "answerablequeriespercentage": "Pourcentage de requêtes répondables",
+    "precision": "Précision",
+    "recall": "Rappel",
+    "f1": "F1",
+    "adminquality": "Qualité de l'administrateur",
+    "userquality": "Qualité de l'utilisateur"
 }
