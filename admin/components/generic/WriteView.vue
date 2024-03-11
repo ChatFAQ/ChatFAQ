@@ -127,7 +127,7 @@
 </template>
 <script setup>
 import {ref, defineExpose} from "vue";
-import {useItemsStore} from "~/store/items.js";
+import {authHeaders, useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 import BackButton from "~/components/generic/BackButton.vue";
@@ -306,7 +306,8 @@ async function submitForm(extraVals = {}, callback = undefined) {
 
         try {
             const headers = {
-                'Content-Type': 'multipart/form-data'
+                'Content-Type': 'multipart/form-data',
+                ...authHeaders()
             }
 
             if (props.itemId !== undefined) {

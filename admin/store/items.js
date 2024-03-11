@@ -5,7 +5,7 @@ function apiCacheName(apiUrl, params) {
     return apiUrl + new URLSearchParams(params).toString()
 }
 
-function authHeaders() {
+export function authHeaders() {
     const token = useCookie('token').value
     return {
         'Authorization': `Token ${token}`
