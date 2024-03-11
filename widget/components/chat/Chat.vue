@@ -4,6 +4,7 @@
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
                     :message="message"
+                    :key="message.id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"

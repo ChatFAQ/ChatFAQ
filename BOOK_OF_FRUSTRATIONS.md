@@ -12,3 +12,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 - [ ] Search correct faiss-gpu version and pin it.
 - [ ] Default PDF parser doesn't handle images yet.
 - [ ] Remove the cache system from the item store.
+- [ ] Accept a list of ids to be deleted in the conversation API endpoint so the widget won't need to call the endpoint multiple times.
