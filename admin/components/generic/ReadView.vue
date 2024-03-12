@@ -30,7 +30,7 @@
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
             <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
-                <Card :item="item" :cardProps="cardProps" :schema="schema" :titleProps="titleProps" :apiUrl="apiUrl">
+                <Card :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
                     <template v-slot:extra-card-bottom="{item}">
                         <slot name="extra-card-bottom" :item="item"></slot>
                     </template>
@@ -58,7 +58,7 @@
                 v-for="(propInfo, prop) in tableProps"
                 :prop="prop"
                 :label="propInfo.name"
-                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefPropValue(row, column.property, schema)"
+                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefPropValue(row, column.property, itemSchema)"
                 :width="propInfo.width ? propInfo.width : undefined"
                 :align="propInfo.align ? propInfo.align : undefined"
                 :sortable="propInfo.sortable"
@@ -116,13 +116,15 @@ import Filters from "~/components/generic/filters/Filters.vue";
 import Card from "~/components/generic/Card.vue";
 import {useI18n} from "vue-i18n";
 import {solveRefPropValue, deleteItem} from "~/utils/index.js";
+import {storeToRefs} from 'pinia'
 
 const { t } = useI18n();
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const deleteDialogVisible = ref(false)
-const schema = ref({})
+const {schema} = storeToRefs(itemsStore)
+const itemSchema = ref({})
 const route = useRoute()
 
 const props = defineProps({
@@ -195,7 +197,7 @@ function initStoreWatchers() {
 
 async function initData() {
     itemsStore.loading = true
-    schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    itemSchema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
     sortChange(props.defaultSort)
     await loadItems()
     initStoreWatchers()

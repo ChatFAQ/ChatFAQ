@@ -4,7 +4,7 @@
             <div class="card-header-title">{{ createTitle(item) }}</div>
         </template>
         <div v-for="(name, prop) in cardProps" class="property">
-            <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, schema) }}
+            <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
         </div>
         <div class="divider">
         </div>
@@ -53,7 +53,7 @@ const props = defineProps({
         type: Object,
         required: false,
     },
-    schema: {
+    itemSchema: {
         type: Object,
         required: true,
     },

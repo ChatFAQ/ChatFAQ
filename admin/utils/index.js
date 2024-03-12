@@ -41,17 +41,19 @@ export function formatDate(date) {
     return `${day}/${month}/${year} ${hour}:${minutes}`;
 }
 
-export function solveRefPropValue(item, propName, schema) {
-    const prop = schema.properties[propName]
+export function solveRefPropValue(item, propName, itemSchema) {
+    if (!itemSchema)
+        return
+    const prop = itemSchema.properties[propName]
     if (!prop)
         return item[propName]
-    if (prop.$ref && schema.properties[propName].choices) {
-        // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
+    if (prop.$ref && itemSchema.properties[propName].choices) {
+        // itemSchema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
         let choice
-        if (schema.properties[propName].choices.results)
-            choice = schema.properties[propName].choices.results.find(choice => choice.value === item[propName])
+        if (itemSchema.properties[propName].choices.results)
+            choice = itemSchema.properties[propName].choices.results.find(choice => choice.value === item[propName])
         else
-            choice = schema.properties[propName].choices.find(choice => choice.value === item[propName])
+            choice = itemSchema.properties[propName].choices.find(choice => choice.value === item[propName])
         if (choice) {
             return choice.label
         }

@@ -18,11 +18,11 @@
         >
             <div v-if="!Object.keys(sections).length" class="form-section">
                 <div class="edit-title">{{ createTitle(form) }}</div>
-                <div v-for="(fieldInfo, fieldName) in filterInSection(true, schema.properties)">
+                <div v-for="(fieldInfo, fieldName) in filterInSection(true, itemSchema.properties)">
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly && !fieldInfo.readOnly"
                         :fieldName="fieldName"
-                        :schema="schema"
+                        :schema="itemSchema"
                         :form="form"
                         :formServerErrors="formServerErrors"
                         :ref="el => fieldsRef[fieldName] = el"
@@ -34,7 +34,7 @@
                     <ReadOnlyField
                         v-else-if="allExcludeFields.indexOf(fieldName) === -1 && (props.readOnly ||  fieldInfo.readOnly)"
                         :fieldName="fieldName"
-                        :schema="schema"
+                        :schema="itemSchema"
                         :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -49,7 +49,7 @@
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                         :fieldName="fieldName"
-                        :schema="schema"
+                        :schema="itemSchema"
                         :form="form"
                         :formServerErrors="formServerErrors"
                         :ref="el => fieldsRef[fieldName] = el"
@@ -60,7 +60,7 @@
                     </FormField>
                     <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
                                    :fieldName="fieldName"
-                                   :schema="schema"
+                                   :schema="itemSchema"
                                    :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -69,11 +69,11 @@
                     </ReadOnlyField>
                 </div>
             </div>
-            <div v-for="(_, fieldName) in filterInSection(false, schema.properties)">
+            <div v-for="(_, fieldName) in filterInSection(false, itemSchema.properties)">
                 <FormField
                     v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                     :fieldName="fieldName"
-                    :schema="schema"
+                    :schema="itemSchema"
                     :form="form"
                     :formServerErrors="formServerErrors"
                     :noLabel="true"
@@ -85,7 +85,7 @@
                 </FormField>
                 <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
                                :fieldName="fieldName"
-                               :schema="schema"
+                               :schema="itemSchema"
                                :value="form[fieldName]"
                 >
                     <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -133,18 +133,20 @@ import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import {ElNotification} from 'element-plus'
 import {useI18n} from "vue-i18n";
+import {storeToRefs} from "pinia";
 
 const {t} = useI18n();
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
-const schema = ref({})
 const deleteDialogVisible = ref(false)
 const form = ref({})
 const formServerErrors = ref({})
 const formRules = ref({})
 const formRef = ref()
 const fieldsRef = ref({})
+const {schema} = storeToRefs(itemsStore)
+const itemSchema = ref({})
 
 const emit = defineEmits(['submitFormStart', 'submitFormEnd'])
 defineExpose({submitForm, form})
@@ -242,7 +244,7 @@ const allExcludeFields = computed(() => {
 })
 async function initData() {
     itemsStore.loading = true
-    schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    itemSchema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
     itemsStore.loading = false
 }
 
@@ -250,12 +252,12 @@ await initData()
 
 
 // Initialize form
-for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
+for (const [fieldName, fieldInfo] of Object.entries(itemSchema.value.properties)) {
     if (allExcludeFields.value.indexOf(fieldName) === -1) {
         form.value[fieldName] = undefined
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
-        if (schema.value.required.indexOf(fieldName) !== -1) {
+        if (itemSchema.value.required.indexOf(fieldName) !== -1) {
             formRules.value[fieldName].push({required: true, message: `Please enter ${fieldName}`, trigger: 'blur'})
         }
     }
