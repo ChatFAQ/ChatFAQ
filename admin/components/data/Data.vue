@@ -24,8 +24,8 @@
                 :leaveAfterSave="false"
                 @submitFormEnd="submitKnowledgeBase"
             >
-                <template v-slot:extra-card-bottom="props">
-                    <el-button class="bottom-card-button" @click="goToKIs(props.item.id)">{{
+                <template v-slot:extra-card-bottom="{item}">
+                    <el-button class="bottom-card-button" @click="goToKIs(item.id)">{{
                             $t("viewknowledgeitems")
                         }}
                     </el-button>

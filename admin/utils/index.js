@@ -1,3 +1,5 @@
+import {ElNotification} from 'element-plus'
+
 export function rgba2hex(orig) {
     if (!orig.toLowerCase().startsWith('rgba'))
         return orig;
@@ -37,4 +39,47 @@ export function formatDate(date) {
     if (minutes < 10) minutes = `0${minutes}`;
 
     return `${day}/${month}/${year} ${hour}:${minutes}`;
+}
+
+export function solveRefPropValue(item, propName, schema) {
+    const prop = schema.properties[propName]
+    if (!prop)
+        return item[propName]
+    if (prop.$ref && schema.properties[propName].choices) {
+        // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
+        let choice
+        if (schema.properties[propName].choices.results)
+            choice = schema.properties[propName].choices.results.find(choice => choice.value === item[propName])
+        else
+            choice = schema.properties[propName].choices.find(choice => choice.value === item[propName])
+        if (choice) {
+            return choice.label
+        }
+    }
+    return item[propName]
+}
+
+
+export async function deleteItem(id, itemsStore, apiUrl, t, $axios) {
+    try {
+        itemsStore.loading = true
+        await itemsStore.deleteItem($axios, apiUrl, id)
+        itemsStore.loading = false
+    }
+    catch (e) {
+        itemsStore.loading = false
+        ElNotification({
+            title: 'Error',
+            message: t('errordeletingitem'),
+            type: 'error',
+            position: 'top-right',
+        })
+        return
+    }
+    ElNotification({
+        title: 'Success',
+        message: t('successdeletingitem'),
+        type: 'success',
+            position: 'top-right',
+    })
 }

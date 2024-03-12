@@ -30,26 +30,11 @@
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
             <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
-                <el-card class="box-card" @click="stateToEdit(item.id)">
-                    <template #header>
-                        <div class="card-header-title">{{ createTitle(item) }}</div>
-                        <div class="extra-commands">
-                            <slot name="extra-commands" :item="item"></slot>
-                        </div>
+                <Card :item="item" :cardProps="cardProps" :schema="schema" :titleProps="titleProps" :apiUrl="apiUrl">
+                    <template v-slot:extra-card-bottom="{item}">
+                        <slot name="extra-card-bottom" :item="item"></slot>
                     </template>
-                    <div v-for="(name, prop) in cardProps" class="property">
-                        <span class="title">{{ name }}:</span>{{ solveRefProp(item, prop) }}
-                    </div>
-                    <div class="divider">
-                    </div>
-                    <div class="commands">
-                        <el-icon class="command-delete">
-                            <Delete @click.stop @click="() => {deleting = item.id; deleteDialogVisible = true}"/>
-                        </el-icon>
-                        <span class="command-edit" @click="stateToEdit(item.id)">{{ $t("edit") }}</span>
-                    </div>
-                </el-card>
-                <slot name="extra-card-bottom" :item="item"></slot>
+                </Card>
             </div>
             <div class="box-card-add" :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}"
                  @click="stateToAdd">
@@ -73,7 +58,7 @@
                 v-for="(propInfo, prop) in tableProps"
                 :prop="prop"
                 :label="propInfo.name"
-                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefProp(row, column.property)"
+                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefPropValue(row, column.property, schema)"
                 :width="propInfo.width ? propInfo.width : undefined"
                 :align="propInfo.align ? propInfo.align : undefined"
                 :sortable="propInfo.sortable"
@@ -85,7 +70,7 @@
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" :width="$t('edit').length * 13">
                 <template #default="{ row }">
-                    <span class="command-edit" @click="stateToEdit(row.id)">{{ $t("edit") }}</span>
+                    <span class="command-edit" @click="itemsStore.editing = id">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" width="100">
@@ -115,7 +100,7 @@
         <template #footer>
             <div class="dialog-footer">
                 <el-button @click="() => {deleting = undefined; deleteDialogVisible = false}">{{ $t('cancel') }}</el-button>
-                <el-button type="primary" @click="() => {deleteItem(deleting); deleteDialogVisible = false}">
+                <el-button type="primary" @click="delItem">
                     {{ $t('confirm') }}
                 </el-button>
             </div>
@@ -125,12 +110,12 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
-import {storeToRefs} from 'pinia'
 import Pagination from "~/components/generic/Pagination.vue";
 import {useRoute} from 'vue-router'
 import Filters from "~/components/generic/filters/Filters.vue";
-import {ElNotification} from 'element-plus'
+import Card from "~/components/generic/Card.vue";
 import {useI18n} from "vue-i18n";
+import {solveRefPropValue, deleteItem} from "~/utils/index.js";
 
 const { t } = useI18n();
 const itemsStore = useItemsStore()
@@ -139,7 +124,6 @@ const deleting = ref(undefined)
 const deleteDialogVisible = ref(false)
 const schema = ref({})
 const route = useRoute()
-const deleteCommand = ref(undefined)
 
 const props = defineProps({
     readableName: {
@@ -230,59 +214,8 @@ async function loadItems() {
 
 await initData()
 
-function createTitle(item) {
-    return props.titleProps.map(prop => item[prop]).join(" ")
-}
-
-function stateToEdit(id) {
-    itemsStore.editing = id
-}
-
 function stateToAdd() {
     itemsStore.adding = true
-}
-
-function deleteItem(id) {
-    try {
-        itemsStore.loading = true
-        itemsStore.deleteItem($axios, props.apiUrl, id)
-        deleting.value = undefined
-        itemsStore.loading = false
-    }
-    catch (e) {
-        itemsStore.loading = false
-        ElNotification({
-            title: 'Error',
-            message: t('errordeletingitem'),
-            type: 'error',
-            position: 'top-right',
-        })
-        return
-    }
-    ElNotification({
-        title: 'Success',
-        message: t('successdeletingitem'),
-        type: 'success',
-            position: 'top-right',
-    })
-}
-
-function solveRefProp(item, propName) {
-    const prop = schema.value.properties[propName]
-    if (!prop)
-        return item[propName]
-    if (prop.$ref && schema.value.properties[propName].choices) {
-        // schema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
-        let choice
-        if (schema.value.properties[propName].choices.results)
-            choice = schema.value.properties[propName].choices.results.find(choice => choice.value === item[propName])
-        else
-            choice = schema.value.properties[propName].choices.find(choice => choice.value === item[propName])
-        if (choice) {
-            return choice.label
-        }
-    }
-    return item[propName]
 }
 
 function sortChange({column, prop, order}) {
@@ -294,6 +227,12 @@ function sortChange({column, prop, order}) {
         itemsStore.ordering = prop
 }
 
+
+async function delItem() {
+    await deleteItem(deleting.value, itemsStore, props.apiUrl, t, $axios);
+    deleting.value = undefined;
+    deleteDialogVisible.value = false
+}
 </script>
 
 <style lang="scss">
@@ -456,78 +395,6 @@ function sortChange({column, prop, order}) {
         i {
             margin-right: 10px;
         }
-    }
-}
-
-.card-header-title {
-    font-family: "Montserrat";
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 22px;
-    letter-spacing: 0em;
-    text-align: left;
-    text-overflow: ellipsis;
-    overflow-y: hidden;
-}
-
-.property {
-    overflow: hidden;
-    width: 100%;
-    text-overflow: ellipsis;
-    display: inline-block;
-    white-space: nowrap;
-    padding-left: 16px;
-
-    .title {
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 20px;
-        letter-spacing: 0em;
-        text-align: left;
-        color: $chatfaq-color-primary-500;
-        margin-right: 10px;
-
-    }
-}
-
-.divider {
-    width: 100%;
-    height: 1px;
-    background-color: $chatfaq-color-primary-200;
-    margin-top: 10px;
-    margin-bottom: 13px;
-}
-
-.command-edit, .command-delete {
-    cursor: pointer;
-    text-decoration: underline;
-    font-weight: 600;
-}
-
-.command-delete-confirm.on-table {
-    .command-delete {
-        margin-right: 10px;
-    }
-}
-
-.commands {
-    display: flex;
-    justify-content: space-between;
-    color: $chatfaq-color-primary-500;
-
-    .command-delete {
-        margin-left: 16px;
-        margin-bottom: 13px;
-    }
-
-    .command-delete-confirm {
-        display: flex;
-        justify-content: center;
-    }
-
-    .command-edit {
-        margin-right: 16px;
-        margin-bottom: 13px;
     }
 }
 
