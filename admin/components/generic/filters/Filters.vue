@@ -77,18 +77,20 @@ function debounce(func, timeout = 500) {
 const submitFiltersDebounce = debounce(async () => await submitFilters());
 
 async function submitFilters() {
-    const fitlers = {}
+    const _filters = {}
     for (const [key, value] of Object.entries(form.value)) {
+        if (key.indexOf("__gte") !== -1 || key.indexOf("__lte") !== -1)
+            continue
         if (Array.isArray(value)) {
             if (value.length > 0) {
-                fitlers[key + "__gte"] = value[0].toISOString().split('T')[0]
-                fitlers[key + "__lte"] = value[1].toISOString().split('T')[0]
+                _filters[key + "__gte"] = value[0].toISOString().split('T')[0]
+                _filters[key + "__lte"] = value[1].toISOString().split('T')[0]
             }
         } else if (value !== undefined && !ignoreParams.includes(key)) {
-            fitlers[key] = value
+            _filters[key] = value
         }
     }
-    itemsStore.filters = fitlers
+    itemsStore.filters = _filters
     itemsStore.currentPage = 1
     emit("change")
 }

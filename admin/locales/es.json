@@ -259,7 +259,7 @@
     "rags": "RAGs",
     "statsexplanation": "Visión general integral que evalúa la efectividad de las respuestas, la interacción y la satisfacción del usuario en el sistema RAG. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Leer más</a>",
     "totalconversations": "Total de Conversaciones",
-    "conversationsmessagecount": "Conversaciones por Mensaje",
+    "conversationsmessagecount": "Mensajes por Conversacion",
     "conversationsbydate": "Conversaciones por Fecha",
     "chitchatscount": "Conversaciones de Chitchats",
     "chitchatspercentage": "Porcentaje de Chitchats",
@@ -271,5 +271,6 @@
     "recall": "Recuperación",
     "f1": "F1",
     "adminquality": "Calidad de Administrador",
-    "userquality": "Calidad de Usuario"
+    "userquality": "Calidad de Usuario",
+    "count": "Cuenta"
 }

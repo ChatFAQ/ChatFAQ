@@ -181,14 +181,14 @@ class Stats(APIView):
             conversations = conversations.filter(created_date__lte=max_date)
 
         conversations_rag_filtered = conversations.filter(
-            message__stack__0__payload__rag_config_id=rag.id
+            message__stack__0__payload__rag_config_id=str(rag.id)
         ).distinct()
         # --- Total conversations
         total_conversations = conversations_rag_filtered.count()
         # --- Message count per conversation
         conversations_message_count = conversations_rag_filtered.annotate(
-            messages_count=Count("message")
-        ).values("messages_count", "name")
+            count=Count("message")
+        ).values("count", "name")
         # --- Conversations by date
         conversations_by_date = conversations_rag_filtered.annotate(
             date=Trunc("created_date", granularity)
@@ -208,7 +208,7 @@ class Stats(APIView):
         if max_date:
             messages = messages.filter(created_date__lte=max_date)
         messages_rag_filtered = messages.filter(
-            stack__0__payload__rag_config_id=rag.id
+            stack__0__payload__rag_config_id=str(rag.id)
         ).distinct()
         # --- Messages per RAG Config
         messages_per_rag = Message.objects.filter(

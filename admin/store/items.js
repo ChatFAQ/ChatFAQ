@@ -137,6 +137,7 @@ export const useItemsStore = defineStore('items', {
             this.editing = undefined
             this.adding = undefined
             this.currentPage = 1
+            this.filters = {}
         }
     },
     getters: {

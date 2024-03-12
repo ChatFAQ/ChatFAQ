@@ -1,7 +1,25 @@
 <template>
 <div class="stat-card-wrapper">
-    <div class="stat-title">{{title}}</div>
-    <div class="stat-content">{{content}}</div>
+    <div v-if="typeof content === 'number'">
+        <div class="stat-title">{{title}}</div>
+        <div class="stat-content">{{content}}<span v-if="type == 'percentage'">%</span></div>
+    </div>
+    <div v-else class="table-wrapper">
+        <div class="stat-title">{{title}}</div>
+        <div class="table">
+            <el-table :data="content"
+                      :stripe="false"
+                      style="width: 100%">
+                <el-table-column
+                    v-for="prop in tableProps"
+                    :prop="prop"
+                    :label="$t(prop)"
+                    :sortable="true"
+                >
+                </el-table-column>
+            </el-table>
+        </div>
+    </div>
 </div>
 </template>
 
@@ -16,17 +34,29 @@ const props = defineProps({
         required: true
     },
     content: {
-        type: String,
+        type: [Number, Object],
         required: true
+    },
+    type: {
+        type: String,
+        required: false
     }
 });
+
+const tableProps = computed(() => {
+    if (props.content === undefined)
+        return []
+    if (Array.isArray(props.content))
+        return Object.keys(props.content[0])
+    return []
+})
 
 </script>
 
 
 <style lang="scss" scoped>
 .stat-card-wrapper {
-    height: 106px;
+    max-height: 200px;
     padding: 24px;
     border-radius: 10px;
     border: 1px;
@@ -52,6 +82,14 @@ const props = defineProps({
         letter-spacing: 0em;
         text-align: left;
         color: #020C1C;
+    }
+    .table-wrapper {
+        display: flex;
+        flex-direction: column;
+        .table {
+            overflow-y: auto;
+            height: 125px;
+        }
     }
 }
 </style>

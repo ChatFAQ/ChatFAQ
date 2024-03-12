@@ -1,4 +1,5 @@
 <template>
+    <div class="dashboard-page-title">{{ $t("stats") }}</div>
     <div class="stats-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="text-explanation" v-html="$t('statsexplanation')"></div>
         <Filters :filtersSchema="filterSchema"/>
@@ -9,16 +10,16 @@
                 <StatCard :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/>
                 <StatCard :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/>
                 <StatCard :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
-                <StatCard :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
+                <StatCard type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
             </div>
             <div class="section-title">Messages</div>
             <div class="group-stats">
                 <StatCard :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
-                <StatCard :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
+                <StatCard type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
                 <StatCard :title="$t('unanswerablequeriescount')" :content="stats.unanswerable_queries_count"/>
-                <StatCard :title="$t('unanswerablequeriespercentage')" :content="stats.unanswerable_queries_percentage"/>
+                <StatCard type="percentage" :title="$t('unanswerablequeriespercentage')" :content="stats.unanswerable_queries_percentage"/>
                 <StatCard :title="$t('answerablequeriescount')" :content="stats.answerable_queries_count"/>
-                <StatCard :title="$t('answerablequeriespercentage')" :content="stats.answerable_queries_percentage"/>
+                <StatCard type="percentage" :title="$t('answerablequeriespercentage')" :content="stats.answerable_queries_percentage"/>
             </div>
             <div class="section-title">Reviews & Feedback</div>
             <div class="group-stats">
@@ -62,10 +63,14 @@ async function requestStats() {
     if (filters.created_date__gte) {
         filters.min_date = filters.created_date__gte
         delete filters.created_date__gte
+    } else {
+        filters.min_date = undefined
     }
     if (filters.created_date__lte) {
         filters.max_date = filters.created_date__lte
         delete filters.created_date__lte
+    } else {
+        filters.max_date = undefined
     }
 
     const response = await $axios.get('/back/api/broker/stats/', {params: filters})
@@ -84,8 +89,9 @@ async function requestStats() {
     margin-left: 160px;
     margin-right: 160px;
     max-width: 1300px;
+    margin-top: 32px;
     .stats {
-
+        width: 100%;
         margin-left: 16px;
         margin-right: 16px;
         margin-top: 26px;
@@ -103,9 +109,12 @@ async function requestStats() {
             margin-top: 26px;
         }
         .group-stats {
-            display: flex;
+            display: grid;
             flex-wrap: wrap;
-            gap: 16px;
+            width: 100%;
+            justify-items: stretch;
+            grid-template-columns: repeat(auto-fill, 400px);
+            gap: 16px 32px;
         }
     }
 }
