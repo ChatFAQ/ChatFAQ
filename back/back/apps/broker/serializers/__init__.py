@@ -1,6 +1,7 @@
 from django.apps import apps
 from rest_framework import serializers
 
+from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.broker.models.message import Message, AdminReviewValue, AgentType
 from back.apps.language_model.models import RAGConfig
 
@@ -17,6 +18,12 @@ class UserFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
         model = apps.get_model("broker", "UserFeedback")
+
+
+class ConsumerRoundRobinQueueSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = apps.get_model("broker", "ConsumerRoundRobinQueue")
 
 
 class AdminReviewSerializer(serializers.ModelSerializer):
