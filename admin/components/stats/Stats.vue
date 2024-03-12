@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import {useItemsStore} from "~/store/items.js";
+import {authHeaders, useItemsStore} from "~/store/items.js";
 import Filters from "~/components/generic/filters/Filters.vue";
 import {useI18n} from "vue-i18n";
 import StatCard from "~/components/stats/StatCard.vue";
@@ -72,8 +72,7 @@ async function requestStats() {
     } else {
         filters.max_date = undefined
     }
-
-    const response = await $axios.get('/back/api/broker/stats/', {params: filters})
+    const response = await $axios.get('/back/api/broker/stats/', {params: filters, headers: authHeaders()})
     stats.value = response.data
 }
 
