@@ -26,6 +26,7 @@ import django_filters
 
 from ...language_model.models import RAGConfig, Intent
 from ...language_model.stats import calculate_response_stats, calculate_general_rag_stats
+from django.db.models import Q
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -223,9 +224,13 @@ class Stats(APIView):
         user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)
         reviews_and_feedbacks = calculate_response_stats(admin_reviews, user_feedbacks)
 
-        positive_admin_reviews = admin_reviews.filter(ki_review_data__value="positive").count()
-        total_admin_reviews = admin_reviews.filter(ki_review_data__value__in=["positive", "negative"]).count()
-        total_admin_relevant_reviews = admin_reviews.filter(ki_review_data__value__in=["positive", "alternative"]).count()
+        positive_admin_reviews = admin_reviews.filter(ki_review_data__contains=[{"value": "positive"}]).count()
+        total_admin_reviews = admin_reviews.filter(
+            Q(ki_review_data__contains=[{"value": "positive"}]) | Q(ki_review_data__contains=[{"value": "negative"}])
+        ).count()
+        total_admin_relevant_reviews = admin_reviews.filter(
+            Q(ki_review_data__contains=[{"value": "positive"}]) | Q(ki_review_data__contains=[{"value": "alternative"}])
+        ).count()
         precision = positive_admin_reviews / total_admin_reviews if total_admin_reviews > 0 else 0
         recall = positive_admin_reviews / total_admin_relevant_reviews if total_admin_relevant_reviews > 0 else 0
         f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
@@ -239,9 +244,9 @@ class Stats(APIView):
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
                 **reviews_and_feedbacks,
-                "precision": precision,
-                "recall": recall,
-                "f1": f1
+                "precision": round(precision, 2),
+                "recall": round(recall, 2),
+                "f1": round(f1, 2),
             },
             safe=False,
         )
