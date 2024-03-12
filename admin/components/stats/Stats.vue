@@ -4,13 +4,13 @@
         <div class="text-explanation" v-html="$t('statsexplanation')"></div>
         <Filters :filtersSchema="filterSchema"/>
         <div class="stats" v-if="stats">
-            <div class="section-title">Conversations</div>
+            <div class="section-title">{{ $t("conversations") }}</div>
             <div class="group-stats">
                 <StatCard class="stat" :title="$t('totalconversations')" :content="stats.total_conversations"/>
                 <StatCard class="stat" :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/>
                 <StatCard class="stat" :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/>
             </div>
-            <div class="section-title">Messages</div>
+            <div class="section-title">{{ $t("messages") }}</div>
             <div class="group-stats">
                 <StatCard class="stat" :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
                 <StatCard class="stat" type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
@@ -19,7 +19,7 @@
                 <StatCard class="stat" :title="$t('answerablequeriescount')" :content="stats.answerable_queries_count"/>
                 <StatCard class="stat" type="percentage" :title="$t('answerablequeriespercentage')" :content="stats.answerable_queries_percentage"/>
             </div>
-            <div class="section-title">Reviews & Feedback</div>
+            <div class="section-title">{{ $t("reviewsandfeedback") }}</div>
             <div class="group-stats">
                 <StatCard class="stat" :title="$t('precision')" :content="stats.precision"/>
                 <StatCard class="stat" :title="$t('recall')" :content="stats.recall"/>
@@ -93,15 +93,9 @@ async function requestStats() {
         margin-right: 16px;
         margin-top: 26px;
         .section-title {
-
-            //styleName: Body/SM/SemiBold;
-            font-family: Open Sans;
             font-size: 14px;
             font-weight: 600;
-            line-height: 20px;
-            letter-spacing: 0em;
-            text-align: left;
-            color: #020C1C;
+            color: $chatfaq-color-neutral-black;
             margin-bottom: 16px;
             margin-top: 26px;
         }

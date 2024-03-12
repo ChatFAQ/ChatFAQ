@@ -53,7 +53,6 @@ const tableProps = computed(() => {
 
 </script>
 
-
 <style lang="scss" scoped>
 .stat-card-wrapper {
     max-height: 200px;
@@ -61,16 +60,12 @@ const tableProps = computed(() => {
     border-radius: 10px;
     border: 1px;
     gap: 24px;
-    border: 1px solid #DFDAEA;
+    border: 1px solid $chatfaq-color-primary-200;
     background: #FFFFFF99;
     .stat-title {
-        font-family: Open Sans;
         font-size: 14px;
         font-weight: 400;
-        line-height: 20px;
-        letter-spacing: 0em;
-        text-align: left;
-        color: #020C1C;
+        color: $chatfaq-color-neutral-black;
         margin-bottom: 8px;
     }
     .stat-content {
@@ -78,10 +73,7 @@ const tableProps = computed(() => {
         font-family: Montserrat;
         font-size: 24px;
         font-weight: 700;
-        line-height: 30px;
-        letter-spacing: 0em;
-        text-align: left;
-        color: #020C1C;
+        color: $chatfaq-color-neutral-black;
     }
     .table-wrapper {
         display: flex;
