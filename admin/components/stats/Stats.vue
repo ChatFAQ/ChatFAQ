@@ -6,28 +6,28 @@
         <div class="stats" v-if="stats">
             <div class="section-title">Conversations</div>
             <div class="group-stats">
-                <StatCard :title="$t('totalconversations')" :content="stats.total_conversations"/>
-                <StatCard :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/>
-                <StatCard :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/>
-                <StatCard :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
-                <StatCard type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
+                <StatCard class="stat" :title="$t('totalconversations')" :content="stats.total_conversations"/>
+                <StatCard class="stat" :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/>
+                <StatCard class="stat" :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/>
+                <StatCard class="stat" :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
+                <StatCard class="stat" type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
             </div>
             <div class="section-title">Messages</div>
             <div class="group-stats">
-                <StatCard :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
-                <StatCard type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
-                <StatCard :title="$t('unanswerablequeriescount')" :content="stats.unanswerable_queries_count"/>
-                <StatCard type="percentage" :title="$t('unanswerablequeriespercentage')" :content="stats.unanswerable_queries_percentage"/>
-                <StatCard :title="$t('answerablequeriescount')" :content="stats.answerable_queries_count"/>
-                <StatCard type="percentage" :title="$t('answerablequeriespercentage')" :content="stats.answerable_queries_percentage"/>
+                <StatCard class="stat" :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
+                <StatCard class="stat" type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
+                <StatCard class="stat" :title="$t('unanswerablequeriescount')" :content="stats.unanswerable_queries_count"/>
+                <StatCard class="stat" type="percentage" :title="$t('unanswerablequeriespercentage')" :content="stats.unanswerable_queries_percentage"/>
+                <StatCard class="stat" :title="$t('answerablequeriescount')" :content="stats.answerable_queries_count"/>
+                <StatCard class="stat" type="percentage" :title="$t('answerablequeriespercentage')" :content="stats.answerable_queries_percentage"/>
             </div>
             <div class="section-title">Reviews & Feedback</div>
             <div class="group-stats">
-                <StatCard :title="$t('precision')" :content="stats.precision"/>
-                <StatCard :title="$t('recall')" :content="stats.recall"/>
-                <StatCard :title="$t('f1')" :content="stats.f1"/>
-                <StatCard :title="$t('adminquality')" :content="stats.admin_quality"/>
-                <StatCard :title="$t('userquality')" :content="stats.user_quality"/>
+                <StatCard class="stat" :title="$t('precision')" :content="stats.precision"/>
+                <StatCard class="stat" :title="$t('recall')" :content="stats.recall"/>
+                <StatCard class="stat" :title="$t('f1')" :content="stats.f1"/>
+                <StatCard class="stat" :title="$t('adminquality')" :content="stats.admin_quality"/>
+                <StatCard class="stat" :title="$t('userquality')" :content="stats.user_quality"/>
             </div>
         </div>
     </div>
@@ -108,12 +108,13 @@ async function requestStats() {
             margin-top: 26px;
         }
         .group-stats {
-            display: grid;
-            flex-wrap: wrap;
+            display: flex;
+            flex-wrap:wrap;
             width: 100%;
-            justify-items: stretch;
-            grid-template-columns: repeat(auto-fill, 400px);
-            gap: 16px 32px;
+            .stat  {
+              margin: .5rem;
+              flex: 1 1 calc(33% - 1rem);
+            }
         }
     }
 }
