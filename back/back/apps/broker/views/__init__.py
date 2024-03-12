@@ -216,8 +216,8 @@ class Stats(APIView):
         ).annotate(
             rag_id=Count("stack__0__payload__rag_config_id")
         ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
-        messages_per_rag_with_prev = messages_per_rag.filter(prev__isnull=False)
-        general_stats = calculate_general_rag_stats(messages_per_rag_with_prev, messages_per_rag_with_prev.count())
+        messages_with_prev = messages.filter(prev__isnull=False)
+        general_stats = calculate_general_rag_stats(messages_with_prev, messages_with_prev.count())
         # ----------- Reviews and Feedbacks -----------
         admin_reviews = AdminReview.objects.filter(message__in=messages_rag_filtered)
         user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)

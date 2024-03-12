@@ -9,8 +9,6 @@
                 <StatCard class="stat" :title="$t('totalconversations')" :content="stats.total_conversations"/>
                 <StatCard class="stat" :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/>
                 <StatCard class="stat" :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/>
-                <StatCard class="stat" :title="$t('chitchatscount')" :content="stats.chit_chats_count"/>
-                <StatCard class="stat" type="percentage" :title="$t('chitchatspercentage')" :content="stats.chit_chats_percentage"/>
             </div>
             <div class="section-title">Messages</div>
             <div class="group-stats">
