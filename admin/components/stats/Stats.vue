@@ -7,8 +7,9 @@
             <div class="section-title">{{ $t("conversations") }}</div>
             <div class="group-stats">
                 <StatCard class="stat" :title="$t('totalconversations')" :content="stats.total_conversations"/>
-                <StatCard class="stat" :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/>
-                <StatCard class="stat" :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/>
+                <!-- <StatCard class="stat" :title="$t('conversationsmessagecount')" :content="stats.conversations_message_count"/> -->
+                <StatCard class="stat" :title="$t('conversationsmessagecount')" :content="stats.conversations_message_avg"/>
+                <!-- <StatCard class="stat" :title="$t('conversationsbydate')" :content="stats.conversations_by_date"/> -->
             </div>
             <div class="section-title">{{ $t("messages") }}</div>
             <div class="group-stats">

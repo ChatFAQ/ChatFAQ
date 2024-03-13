@@ -3,7 +3,7 @@ from io import BytesIO
 from zipfile import ZipFile
 
 from django.db.models.functions import Trunc
-from django.db.models import Count
+from django.db.models import Count, Avg
 
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -200,6 +200,10 @@ class Stats(APIView):
         conversations_message_count = conversations_rag_filtered.annotate(
             count=Count("message")
         ).values("count", "name")
+        # average of conversations_message_count
+        conversations_message_avg = conversations_rag_filtered.annotate(
+            count=Count("message")
+        ).aggregate(avg=Avg("count"))
         # --- Conversations by date
         conversations_by_date = conversations_rag_filtered.annotate(
             date=Trunc("created_date", granularity)
@@ -244,12 +248,16 @@ class Stats(APIView):
         precision = positive_admin_reviews / total_admin_reviews if total_admin_reviews > 0 else 0
         recall = positive_admin_reviews / total_admin_relevant_reviews if total_admin_relevant_reviews > 0 else 0
         f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-
+        print(conversations_message_avg)
+        print(conversations_message_avg)
+        print(conversations_message_avg)
+        print(conversations_message_avg)
         return JsonResponse(
             {
                 "total_conversations": total_conversations,
                 # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
+                "conversations_message_avg": conversations_message_avg.get('avg'),
                 "messages_per_rag": list(messages_per_rag.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
