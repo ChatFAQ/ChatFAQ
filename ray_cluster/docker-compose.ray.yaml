@@ -13,7 +13,7 @@ services:
       - ray_net
 
   ray-tasks-worker:
-    image: rayproject/ray-ml:latest-py310-gpu
+    image: chatfaq-gpu
     command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
     env_file:
       - .env
@@ -32,7 +32,7 @@ services:
       - ray_net
     
   ray-rag-worker:
-    image: rayproject/ray-ml:latest-py310-gpu
+    image: chatfaq-cpu
     command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"rags\": 2}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
     env_file:
       - .env
