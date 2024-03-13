@@ -28,8 +28,13 @@ services:
         limits:
           cpus: ${NUM_CPU_TASKS_WORKER}
           memory: 2G
+        reservations:  # Added reservations section
+          devices:
+            - driver: nvidia
+              count: 1  # Or 'all'
+              capabilities: [gpu] 
     networks:
-      - ray_net
+      - ray_net 
     
   ray-rag-worker:
     image: chatfaq-cpu
