@@ -248,10 +248,7 @@ class Stats(APIView):
         precision = positive_admin_reviews / total_admin_reviews if total_admin_reviews > 0 else 0
         recall = positive_admin_reviews / total_admin_relevant_reviews if total_admin_relevant_reviews > 0 else 0
         f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-        print(conversations_message_avg)
-        print(conversations_message_avg)
-        print(conversations_message_avg)
-        print(conversations_message_avg)
+
         return JsonResponse(
             {
                 "total_conversations": total_conversations,

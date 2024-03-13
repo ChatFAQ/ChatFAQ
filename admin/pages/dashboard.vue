@@ -1,5 +1,7 @@
 <template>
-    <Dashboard/>
+    <client-only>
+        <Dashboard/>
+    </client-only>
 </template>
 
 <script setup>

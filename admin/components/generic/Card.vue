@@ -6,13 +6,13 @@
         <div v-for="(name, prop) in cardProps" class="property">
             <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
         </div>
-        <div class="divider">
+        <div class="divider" v-if="editable || deletable">
         </div>
-        <div class="commands">
-            <el-icon class="command-delete">
+        <div class="commands" v-if="editable || deletable">
+            <el-icon v-if="deletable" class="command-delete">
                 <Delete @click.stop @click="() => {deleting = item.id; deleteDialogVisible = true}"/>
             </el-icon>
-            <span class="command-edit" @click="itemsStore.editing = id">{{ $t("edit") }}</span>
+            <span v-if="editable" class="command-edit" @click='itemsStore.editing = id; emit("click-edit", item.id)'>{{ $t("edit") }}</span>
         </div>
     </el-card>
     <slot name="extra-card-bottom" :item="item"></slot>
@@ -43,6 +43,7 @@ const itemsStore = useItemsStore()
 const deleting = ref(undefined)
 const deleteDialogVisible = ref(false)
 const {$axios} = useNuxtApp();
+const emit = defineEmits(['click-edit', 'click-delete'])
 
 const props = defineProps({
     item: {
@@ -66,6 +67,16 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    editable: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    deletable: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
 });
 
 
@@ -77,6 +88,7 @@ async function delItem() {
     await deleteItem(deleting.value, itemsStore, props.apiUrl, t, $axios);
     deleting.value = undefined;
     deleteDialogVisible.value = false
+    emit('click-delete', props.item.id)
 }
 </script>
 
@@ -173,6 +185,9 @@ async function delItem() {
         color: $chatfaq-color-primary-500;
         margin-right: 10px;
 
+    }
+    &:last-child {
+        margin-bottom: 10px;
     }
 }
 
