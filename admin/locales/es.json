@@ -273,5 +273,6 @@
     "adminquality": "Calidad de Administrador",
     "userquality": "Calidad de Usuario",
     "count": "Cuenta",
-    "welcome": "Bienvenue, {name}"
+    "welcome": "Bienvenue, {name}",
+    "enabled": "Habilitado"
 }

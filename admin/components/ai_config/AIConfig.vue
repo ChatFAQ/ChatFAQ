@@ -21,7 +21,7 @@
                 }"
                 :defaultSort="{'prop': 'name'}">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex(item.id)" :disabled="item.disabled || item.index_up_to_date">
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)" :disabled="item.disabled || item.index_up_to_date">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
                             <Refresh/>
@@ -107,34 +107,13 @@
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
-import {ElNotification} from 'element-plus'
 import {useI18n} from "vue-i18n";
+import {callRagReindex} from "~/utils/index.js";
 
-const { t } = useI18n();
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const itemType = ref("rag-configs")
 await itemsStore.loadSchema($axios)
-
-async function callRagReindex(ragId) {
-    try {
-        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`)
-    } catch (e) {
-        ElNotification({
-            title: 'Error',
-            message: t('failedtotriggerreindex'),
-            type: 'error',
-            position: 'top-right',
-        })
-        return
-    }
-    ElNotification({
-        title: 'Success',
-        message: t('reindextriggered'),
-        type: 'success',
-            position: 'top-right',
-    })
-}
 
 </script>
 

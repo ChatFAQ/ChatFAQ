@@ -14,13 +14,22 @@
                 <Card @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
                       :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                     <template v-slot:extra-card-bottom="{item}">
-                        <el-button class="bottom-card-button" @click="callRagReindex(item.id)"
+                        <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
                                    :disabled="item.disabled || item.index_up_to_date">
                             <span>{{ $t("reindex") }}</span>
                             <el-icon>
                                 <Refresh/>
                             </el-icon>
                         </el-button>
+                    </template>
+                    <template v-slot:enabled="{item, name}">
+                        <span class="title">{{ name }}:</span>
+                        <el-switch
+                            @change="switchDisabled({id: item.id, disabled: item.disabled})"
+                            v-model="item.disabled"
+                            :active-value="false"
+                            :inactive-value="true"
+                        />
                     </template>
                 </Card>
             </div>
@@ -40,6 +49,7 @@ import {ref} from 'vue'
 import {authHeaders, useItemsStore} from "~/store/items.js";
 import {useI18n} from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
+import {callRagReindex} from "~/utils/index.js";
 
 const {t} = useI18n();
 const itemsStore = useItemsStore()
@@ -49,11 +59,7 @@ const router = useRouter();
 // -------- RAG --------
 const RAGAPIUrl = ref("/back/api/language-model/rag-configs/")
 const cardPropsRAG = ref({
-    'knowledge_base': t('knowledgebase'),
-    'llm_config': t('llmconfig'),
-    'prompt_config': t('promptconfig'),
-    'generation_config': t('generationconfig'),
-    'retriever_config': t('retrieverconfig'),
+    'enabled': t('enabled'),
 })
 const itemSchemaRAG = ref({})
 
@@ -94,6 +100,9 @@ await initItems()
 
 function goTo(route) {
     router.push({name: route})
+}
+async function switchDisabled(val) {
+    await itemsStore.upsertItem($axios, RAGAPIUrl.value, val, {limit: 0, offset: 0, ordering: undefined})
 }
 </script>
 

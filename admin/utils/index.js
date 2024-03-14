@@ -1,5 +1,25 @@
 import {ElNotification} from 'element-plus'
 
+
+export async function callRagReindex(ragId, t) {
+    try {
+        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`)
+    } catch (e) {
+        ElNotification({
+            title: 'Error',
+            message: t('failedtotriggerreindex'),
+            type: 'error',
+            position: 'top-right',
+        })
+        return
+    }
+    ElNotification({
+        title: 'Success',
+        message: t('reindextriggered'),
+        type: 'success',
+            position: 'top-right',
+    })
+}
 export function rgba2hex(orig) {
     if (!orig.toLowerCase().startsWith('rgba'))
         return orig;

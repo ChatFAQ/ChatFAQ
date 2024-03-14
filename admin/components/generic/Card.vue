@@ -4,7 +4,9 @@
             <div class="card-header-title">{{ createTitle(item) }}</div>
         </template>
         <div v-for="(name, prop) in cardProps" class="property">
-            <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
+            <slot :name="prop" v-bind="{item, name, prop}">
+                <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
+            </slot>
         </div>
         <div class="divider" v-if="editable || deletable">
         </div>
@@ -152,7 +154,29 @@ async function delItem() {
     }
 }
 
-.el-card:hover {
+.box-card {
+    .property {
+        overflow: hidden;
+        width: 100%;
+        text-overflow: ellipsis;
+        display: inline-block;
+        white-space: nowrap;
+        padding-left: 16px;
+
+        .title {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            letter-spacing: 0em;
+            text-align: left;
+            color: $chatfaq-color-primary-500;
+            margin-right: 10px;
+
+        }
+        &:last-child {
+            margin-bottom: 10px;
+        }
+    }
 }
 </style>
 
@@ -168,28 +192,6 @@ async function delItem() {
     overflow-y: hidden;
 }
 
-.property {
-    overflow: hidden;
-    width: 100%;
-    text-overflow: ellipsis;
-    display: inline-block;
-    white-space: nowrap;
-    padding-left: 16px;
-
-    .title {
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 20px;
-        letter-spacing: 0em;
-        text-align: left;
-        color: $chatfaq-color-primary-500;
-        margin-right: 10px;
-
-    }
-    &:last-child {
-        margin-bottom: 10px;
-    }
-}
 
 .divider {
     width: 100%;

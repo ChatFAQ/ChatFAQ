@@ -273,5 +273,6 @@
     "adminquality": "Qualité de l'administrateur",
     "userquality": "Qualité de l'utilisateur",
     "count": "Compter",
-    "welcome": "Bienvenido, {name}"
+    "welcome": "Bienvenido, {name}",
+    "enabled": "Activé"
 }
