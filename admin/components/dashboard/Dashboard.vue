@@ -2,30 +2,46 @@
     <div class="dashboard-page-title">{{ $t("welcome", {name: ""}) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="section-title">{{ $t("sdks") }}</div>
-        <div class="cards-wrapper">
-            <Card :editable="false" :deletable="false" @click-delete="initItems" class="dashboard-card" v-for="sdk in sdks" :item="sdk" :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl" :titleProps="['fsm_name']">
-            </Card>
+        <div class="cards-view">
+            <div class="card-wrapper" v-for="sdk in sdks">
+                <Card :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
+                      :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl" :titleProps="['fsm_name']"/>
+            </div>
         </div>
         <div class="section-title">{{ $t("rags") }}</div>
-        <div class="cards-wrapper">
-            <Card @click-delete="initItems" @click-edit="() => goTo('ai_config')" class="dashboard-card" v-for="rag in rags" :item="rag" :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
-            </Card>
+        <div class="cards-view">
+            <div class="card-wrapper" v-for="rag in rags">
+                <Card @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
+                      :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
+                    <template v-slot:extra-card-bottom="{item}">
+                        <el-button class="bottom-card-button" @click="callRagReindex(item.id)"
+                                   :disabled="item.disabled || item.index_up_to_date">
+                            <span>{{ $t("reindex") }}</span>
+                            <el-icon>
+                                <Refresh/>
+                            </el-icon>
+                        </el-button>
+                    </template>
+                </Card>
+            </div>
         </div>
         <div class="section-title">{{ $t("widgets") }}</div>
-        <div class="cards-wrapper">
-            <Card @click-delete="initItems" @click-edit="() => goTo('widget_config')" class="dashboard-card" v-for="widget in widgets" :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl">
-            </Card>
+        <div class="cards-view">
+            <div class="card-wrapper" v-for="widget in widgets">
+                <Card @click-delete="initItems" @click-edit="() => goTo('widget_config')"
+                      :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl"/>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 import {authHeaders, useItemsStore} from "~/store/items.js";
 import {useI18n} from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
 
-const { t } = useI18n();
+const {t} = useI18n();
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const router = useRouter();
@@ -66,6 +82,7 @@ async function initData() {
     itemSchemaSDK.value = await itemsStore.getSchemaDef($axios, SDKAPIUrl.value)
     itemsStore.loading = false
 }
+
 async function initItems() {
     rags.value = (await $axios.get(RAGAPIUrl.value, {headers: authHeaders()})).data.results
     widgets.value = (await $axios.get(WidgetAPIUrl.value, {headers: authHeaders()})).data.results
@@ -85,6 +102,7 @@ function goTo(route) {
 .dashboard-wrapper {
     margin-left: 146px;
     margin-right: 160px;
+
     .section-title {
         font-family: Open Sans;
         font-size: 14px;
@@ -94,14 +112,33 @@ function goTo(route) {
         margin-top: 24px;
         margin-left: 16px;
     }
-    .cards-wrapper {
+
+    .cards-view {
         display: grid;
         flex-wrap: wrap;
         width: 100%;
         justify-items: stretch;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 350px));
-        > .el-card {
-            margin: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 25%));
+    }
+
+    .card-wrapper {
+        width: 100%;
+        padding: 16px;
+
+        .box-card {
+            cursor: pointer;
+
+            &:hover {
+                box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
+            }
+        }
+    }
+    .bottom-card-button {
+        @include button-primary;
+        width: 100%;
+        margin-top: 8px;
+        span {
+            margin-right: 8px;
         }
     }
 }
