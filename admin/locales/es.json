@@ -276,5 +276,8 @@
     "welcome": "Bienvenue, {name}",
     "enabled": "Habilitado",
     "actionsuccess": "Acción exitosa",
-    "failedaction": "Acción fallida"
+    "failedaction": "Acción fallida",
+    "nowidgets": "No hay widgets",
+    "nosdks": "No hay SDKs",
+    "norags": "No hay RAGs"
 }

@@ -3,12 +3,14 @@
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
+            <div class="no-items" v-if="!widgets || !widgets.length">{{ $('nowidgets') }}</div>
             <Card v-for="sdk in sdks" :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
                   :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
                   :titleProps="['fsm_name']" />
         </div>
         <div class="section-title">{{ $t("rags") }}</div>
         <div class="cards-view">
+            <div class="no-items" v-if="!widgets || !widgets.length">{{ $('norags') }}</div>
             <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
@@ -34,6 +36,7 @@
         </div>
         <div class="section-title">{{ $t("widgets") }}</div>
         <div class="cards-view">
+            <div class="no-items" v-if="!widgets || !widgets.length">{{ $('nowidgets') }}</div>
             <Card v-for="widget in widgets" @click-delete="initItems" @click-edit="() => goTo('widget_config')"
                   :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl" />
         </div>
@@ -145,6 +148,9 @@ async function switchDisabled(item) {
         span {
             margin-right: 8px;
         }
+    }
+    .no-items {
+        padding: 16px;
     }
 }
 </style>

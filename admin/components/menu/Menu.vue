@@ -4,7 +4,7 @@
             <div class="chatfaq-cq-icon"></div>
             <div class="chatfaq-icon"></div>
         </div>
-        <MenuItem icon="House" :name="$t('dashboard')" page="/dashboard"/>
+        <MenuItem icon="House" :name="$t('dashboard')" page="/"/>
         <MenuItem icon="Edit" :name="$t('labeling')" page="/labeling"/>
         <MenuItem icon="Reading" :name="$t('data')" page="/data"/>
         <MenuItem icon="SetUp" :name="$t('aiconfig')" page="/ai_config/"/>

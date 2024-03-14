@@ -1,16 +1,11 @@
 <template>
-    <div></div>
+    <client-only>
+        <Dashboard/>
+    </client-only>
 </template>
 
 <script setup>
-import {useAuthStore} from '~/store/auth';
-
-const authStore = useAuthStore();
-const router = useRouter();
-function logOut() {
-    authStore.logout();
-    router.push('/login');
-}
+import Dashboard from "~/components/dashboard/Dashboard.vue";
 
 </script>
 
