@@ -3,7 +3,6 @@ from django.db.models import Q
 from django.contrib import messages
 
 from .forms import PromptConfigForm
-from .tasks import add_task
 from simple_history.admin import SimpleHistoryAdmin
 
 from .models.data import (
@@ -108,18 +107,10 @@ def run_index_task(modeladmin, request, queryset):
 run_index_task.short_description = "Index selected RAG configs"
 
 
-def run_add_task(modeladmin, request, queryset):
-    for rag_config in queryset:
-        add_task()
-        modeladmin.message_user(request, f"Add task started for {rag_config.name}", messages.SUCCESS)
-
-run_add_task.short_description = "Add selected RAG configs"
-
-
 class RagConfigAdmin(admin.ModelAdmin):
     list_display = ["name", "disabled", "index_up_to_date"]
     list_filter = ["disabled", "index_up_to_date"]
-    actions = [run_index_task, run_add_task]
+    actions = [run_index_task]
 
     def get_readonly_fields(self, request, obj=None):
         # This makes 'index_up_to_date' readonly in all cases

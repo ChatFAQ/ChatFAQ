@@ -3,16 +3,11 @@ import os
 import ray
 
 
-@ray.remote(
-    runtime_env={
-        "HUGGINGFACE_API_KEY": os.environ.get("HUGGINGFACE_API_KEY", None),
-    }
-)
+@ray.remote
 def generate_embeddings(data):
 
     from chat_rag.inf_retrieval.embedding_models import E5Model
 
-    print("Ray: generate_embeddings")
     embedding_model = E5Model(
         model_name=data["model_name"],
         use_cpu=data["device"] == "cpu",

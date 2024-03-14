@@ -27,7 +27,7 @@ services:
       resources:
         limits:
           cpus: ${NUM_CPU_TASKS_WORKER}
-          memory: 2G
+          memory: 4G
         reservations:  # Added reservations section
           devices:
             - driver: nvidia
@@ -49,7 +49,7 @@ services:
       resources:
         limits:
           cpus: ${NUM_CPU_RAGS_WORKER}
-          memory: 2G
+          memory: 4G
     networks:
       - ray_net
 

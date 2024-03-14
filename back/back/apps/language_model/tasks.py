@@ -30,6 +30,7 @@ import os
 from back.utils.celery import recache_models as recache_models_utils
 from django.db.models import F, Subquery
 import ray
+from back.apps.language_model.ray_tasks import generate_embeddings as ray_generate_embeddings
 
 
 if is_celery_worker():
@@ -425,15 +426,11 @@ def generate_embeddings(k_items, rag_config):
     ragconfig_id : int
         The primary key of the RAGConfig object.
     """
-
-    from chat_rag.inf_retrieval.embedding_models import E5Model
-
     Embedding = apps.get_model("language_model", "Embedding")
 
     model_name = rag_config.retriever_config.model_name
     batch_size = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.device
-
     logger.info(
         f"Generating embeddings for {k_items.count()} knowledge items. Knowledge base: {rag_config.knowledge_base.name}"
     )
@@ -441,19 +438,18 @@ def generate_embeddings(k_items, rag_config):
     logger.info(f"Batch size: {batch_size}")
     logger.info(f"Device: {device}")
 
-    embedding_model = E5Model(
-        model_name=model_name,
-        use_cpu=device == "cpu",
-        huggingface_key=os.environ.get("HUGGINGFACE_KEY", None),
-    )
-
     contents = [item.content for item in k_items]
-    embeddings = embedding_model.build_embeddings(
-        contents=contents, batch_size=batch_size
-    )
+    data = {
+        "model_name": model_name,
+        "device": device,
+        "contents": contents,
+        "batch_size": batch_size,
+    }
 
-    # from tensor to list
-    embeddings = [embedding.tolist() for embedding in embeddings]
+    # Submit the task to the Ray cluster
+    num_gpus = 1 if device == "cuda" else 0
+    embeddings_ref = ray_generate_embeddings.options(resources={"tasks": 1}, num_gpus=num_gpus).remote(data)
+    embeddings = ray.get(embeddings_ref)
 
     new_embeddings = [
         Embedding(
@@ -463,7 +459,6 @@ def generate_embeddings(k_items, rag_config):
         )
         for item, embedding in zip(k_items, embeddings)
     ]
-
     Embedding.objects.bulk_create(new_embeddings)
     logger.info(
         f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}"
