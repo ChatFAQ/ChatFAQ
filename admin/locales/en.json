@@ -274,5 +274,7 @@
     "userquality": "User Quality",
     "count": "Count",
     "welcome": "Welcome, {name}",
-    "enabled": "Enabled"
+    "enabled": "Enabled",
+    "actionsuccess": "Action successful",
+    "failedaction": "Failed action"
 }

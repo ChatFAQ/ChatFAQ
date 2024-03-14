@@ -1,31 +1,12 @@
-import {ElNotification} from 'element-plus'
+import { ElNotification } from "element-plus";
+import { authHeaders } from "~/store/items.js";
 
-
-export async function callRagReindex(ragId, t) {
-    try {
-        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`)
-    } catch (e) {
-        ElNotification({
-            title: 'Error',
-            message: t('failedtotriggerreindex'),
-            type: 'error',
-            position: 'top-right',
-        })
-        return
-    }
-    ElNotification({
-        title: 'Success',
-        message: t('reindextriggered'),
-        type: 'success',
-            position: 'top-right',
-    })
-}
 export function rgba2hex(orig) {
-    if (!orig.toLowerCase().startsWith('rgba'))
+    if (!orig.toLowerCase().startsWith("rgba"))
         return orig;
 
     var a, isPercent,
-        rgb = orig.replace(/\s/g, '').match(/^rgba?\((\d+),(\d+),(\d+),?([^,\s)]+)?/i),
+        rgb = orig.replace(/\s/g, "").match(/^rgba?\((\d+),(\d+),(\d+),?([^,\s)]+)?/i),
         alpha = (rgb && rgb[4] || "").trim(),
         hex = rgb ?
             (rgb[1] | 1 << 8).toString(16).slice(1) +
@@ -38,9 +19,9 @@ export function rgba2hex(orig) {
         a = 1;
     }
     // multiply before convert to HEX
-    a = ((a * 255) | 1 << 8).toString(16).slice(1)
+    a = ((a * 255) | 1 << 8).toString(16).slice(1);
     hex = hex + a;
-    if (hex.endsWith('ff') && hex.length === 8) hex = hex.slice(0, -2);
+    if (hex.endsWith("ff") && hex.length === 8) hex = hex.slice(0, -2);
     return `#${hex}`.toUpperCase();
 }
 
@@ -63,45 +44,95 @@ export function formatDate(date) {
 
 export function solveRefPropValue(item, propName, itemSchema) {
     if (!itemSchema)
-        return
-    const prop = itemSchema.properties[propName]
+        return;
+    const prop = itemSchema.properties[propName];
     if (!prop)
-        return item[propName]
+        return item[propName];
     if (prop.$ref && itemSchema.properties[propName].choices) {
         // itemSchema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
-        let choice
+        let choice;
         if (itemSchema.properties[propName].choices.results)
-            choice = itemSchema.properties[propName].choices.results.find(choice => choice.value === item[propName])
+            choice = itemSchema.properties[propName].choices.results.find(choice => choice.value === item[propName]);
         else
-            choice = itemSchema.properties[propName].choices.find(choice => choice.value === item[propName])
+            choice = itemSchema.properties[propName].choices.find(choice => choice.value === item[propName]);
         if (choice) {
-            return choice.label
+            return choice.label;
         }
     }
-    return item[propName]
+    return item[propName];
 }
 
 
 export async function deleteItem(id, itemsStore, apiUrl, t, $axios) {
     try {
-        itemsStore.loading = true
-        await itemsStore.deleteItem($axios, apiUrl, id)
-        itemsStore.loading = false
-    }
-    catch (e) {
-        itemsStore.loading = false
+        itemsStore.loading = true;
+        await itemsStore.deleteItem($axios, apiUrl, id);
+        itemsStore.loading = false;
+    } catch (e) {
+        itemsStore.loading = false;
         ElNotification({
-            title: 'Error',
-            message: t('errordeletingitem'),
-            type: 'error',
-            position: 'top-right',
-        })
-        return
+            title: "Error",
+            message: t("errordeletingitem"),
+            type: "error",
+            position: "top-right",
+        });
+        return;
     }
     ElNotification({
-        title: 'Success',
-        message: t('successdeletingitem'),
-        type: 'success',
-            position: 'top-right',
-    })
+        title: "Success",
+        message: t("successdeletingitem"),
+        type: "success",
+        position: "top-right",
+    });
+}
+
+
+export async function callRagReindex(ragId, t) {
+    try {
+        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`);
+    } catch (e) {
+        ElNotification({
+            title: "Error",
+            message: t("failedtotriggerreindex"),
+            type: "error",
+            position: "top-right",
+        });
+        return;
+    }
+    ElNotification({
+        title: "Success",
+        message: t("reindextriggered"),
+        type: "success",
+        position: "top-right",
+    });
+}
+
+export async function upsertItem($axios, apiUrl, item, itemStore, t, updateItems = false, params = {}) {
+    let res;
+    try {
+        itemStore.savingItem = true;
+        if (item.id) {
+            res = (await $axios.patch(`${apiUrl}${item.id}/`, item, { "headers": authHeaders() })).data;
+        } else {
+            res = (await $axios.post(apiUrl, item, { "headers": authHeaders() })).data;
+        }
+        if (updateItems)
+            await itemStore.retrieveItems($axios, apiUrl, params);
+        itemStore.savingItem = false;
+    } catch (e) {
+        ElNotification({
+            title: "Error",
+            message: t("failedaction"),
+            type: "error",
+            position: "top-right",
+        });
+        throw e
+    }
+    ElNotification({
+        title: "Success",
+        message: t("actionsuccess"),
+        type: "success",
+        position: "top-right",
+    });
+    return res;
 }

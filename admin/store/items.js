@@ -98,18 +98,6 @@ export const useItemsStore = defineStore('items', {
                 return undefined
             return this.items[cacheName].results[index]
         },
-        async upsertItem($axios, apiUrl, item, params = {}) {
-            this.savingItem = true
-            let res
-            if (item.id) {
-                res = await $axios.patch(`${apiUrl}${item.id}/`, item, {'headers': authHeaders()})
-            } else {
-                res = await $axios.post(apiUrl, item, {'headers': authHeaders()})
-            }
-            await this.retrieveItems($axios, apiUrl, params)
-            this.savingItem = false
-            return res
-        },
         async resolveRefs($axios, schema) {
             if (!schema.properties && schema.oneOf) {
                 const oneOf = await this.getSchemaDef($axios, undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])

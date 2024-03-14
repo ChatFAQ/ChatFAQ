@@ -32,6 +32,10 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import { upsertItem } from "~/utils/index.js";
+import {useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 
 const itemsStore = useItemsStore()
 
@@ -73,7 +77,8 @@ async function save() {
     const _review = JSON.parse(JSON.stringify(review.value))
     delete _review.ki_review_data
     _review.message = props.messageId
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
+    await upsertItem($axios, "/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
+
 }
 async function submitReviewMsg(val) {
     itemsStore.savingItem = true

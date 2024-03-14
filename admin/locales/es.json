@@ -274,5 +274,7 @@
     "userquality": "Calidad de Usuario",
     "count": "Cuenta",
     "welcome": "Bienvenue, {name}",
-    "enabled": "Habilitado"
+    "enabled": "Habilitado",
+    "actionsuccess": "Acción exitosa",
+    "failedaction": "Acción fallida"
 }

@@ -25,8 +25,9 @@
                     <template v-slot:enabled="{item, name}">
                         <span class="title">{{ name }}:</span>
                         <el-switch
-                            @change="switchDisabled({id: item.id, disabled: item.disabled})"
                             v-model="item.disabled"
+                            :before-change="() => switchDisabled(item)"
+                            :loading="loading[item.id]"
                             :active-value="false"
                             :inactive-value="true"
                         />
@@ -49,12 +50,14 @@ import {ref} from 'vue'
 import {authHeaders, useItemsStore} from "~/store/items.js";
 import {useI18n} from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
-import {callRagReindex} from "~/utils/index.js";
+import { callRagReindex, upsertItem } from "~/utils/index.js";
 
 const {t} = useI18n();
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const router = useRouter();
+
+const loading = ref({})
 
 // -------- RAG --------
 const RAGAPIUrl = ref("/back/api/language-model/rag-configs/")
@@ -101,8 +104,16 @@ await initItems()
 function goTo(route) {
     router.push({name: route})
 }
-async function switchDisabled(val) {
-    await itemsStore.upsertItem($axios, RAGAPIUrl.value, val, {limit: 0, offset: 0, ordering: undefined})
+async function switchDisabled(item) {
+    try {
+        loading.value[item.id] = true
+        const res = await upsertItem($axios, RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, t);
+        item.disabled = res.disabled;
+        loading.value[item.id] = false
+    } catch (e) {
+        loading.value[item.id] = false
+        console.error(e);
+    }
 }
 </script>
 

@@ -274,5 +274,7 @@
     "userquality": "Qualité de l'utilisateur",
     "count": "Compter",
     "welcome": "Bienvenido, {name}",
-    "enabled": "Activé"
+    "enabled": "Activé",
+    "actionsuccess": "Action réussie",
+    "failedaction": "Action échouée"
 }
