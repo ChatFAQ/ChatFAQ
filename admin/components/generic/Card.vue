@@ -1,51 +1,55 @@
 <template>
-    <el-card class="box-card" @click="itemsStore.editing = item.id">
-        <template #header>
-            <div class="card-header-title">{{ createTitle(item) }}</div>
-        </template>
-        <div v-for="(name, prop) in cardProps" class="property">
-            <slot :name="prop" v-bind="{item, name, prop}">
-                <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
-            </slot>
-        </div>
-        <div class="divider" v-if="editable || deletable">
-        </div>
-        <div class="commands" v-if="editable || deletable">
-            <el-icon v-if="deletable" class="command-delete">
-                <Delete @click.stop @click="() => {deleting = item.id; deleteDialogVisible = true}"/>
-            </el-icon>
-            <span v-if="editable" class="command-edit" @click='itemsStore.editing = id; emit("click-edit", item.id)'>{{ $t("edit") }}</span>
-        </div>
-    </el-card>
-    <slot name="extra-card-bottom" :item="item"></slot>
-    <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
-        <span>
-            {{ $t('deleteitemwarning') }}
-        </span>
-        <template #footer>
-            <div class="dialog-footer">
-                <el-button @click="() => {deleting = undefined; deleteDialogVisible = false}">{{ $t('cancel') }}</el-button>
-                <el-button type="primary" @click="delItem">
-                    {{ $t('confirm') }}
-                </el-button>
+    <div class="card-wrapper">
+        <el-card class="box-card" @click="itemsStore.editing = item.id">
+            <template #header>
+                <div class="card-header-title">{{ createTitle(item) }}</div>
+            </template>
+            <div v-for="(name, prop) in cardProps" class="property">
+                <slot :name="prop" v-bind="{item, name, prop}">
+                    <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
+                </slot>
             </div>
-        </template>
-    </el-dialog>
+            <div class="divider" v-if="editable || deletable">
+            </div>
+            <div class="commands" v-if="editable || deletable">
+                <el-icon v-if="deletable" class="command-delete">
+                    <Delete @click.stop @click="() => {deleting = item.id; deleteDialogVisible = true}" />
+                </el-icon>
+                <span v-if="editable" class="command-edit"
+                      @click='itemsStore.editing = id; emit("click-edit", item.id)'>{{ $t("edit") }}</span>
+            </div>
+        </el-card>
+        <slot name="extra-card-bottom" :item="item"></slot>
+        <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
+            <span>
+                {{ $t("deleteitemwarning") }}
+            </span>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="() => {deleting = undefined; deleteDialogVisible = false}">{{ $t("cancel") }}
+                    </el-button>
+                    <el-button type="primary" @click="delItem">
+                        {{ $t("confirm") }}
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+    </div>
 </template>
 
 
 <script setup>
-import {useItemsStore} from "~/store/items.js";
-import {solveRefPropValue, deleteItem} from "~/utils/index.js";
-import {useI18n} from "vue-i18n";
+import { useItemsStore } from "~/store/items.js";
+import { solveRefPropValue, deleteItem } from "~/utils/index.js";
+import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const itemsStore = useItemsStore()
-const deleting = ref(undefined)
-const deleteDialogVisible = ref(false)
-const {$axios} = useNuxtApp();
-const emit = defineEmits(['click-edit', 'click-delete'])
+const itemsStore = useItemsStore();
+const deleting = ref(undefined);
+const deleteDialogVisible = ref(false);
+const { $axios } = useNuxtApp();
+const emit = defineEmits(["click-edit", "click-delete"]);
 
 const props = defineProps({
     item: {
@@ -83,14 +87,14 @@ const props = defineProps({
 
 
 function createTitle(item) {
-    return props.titleProps.map(prop => item[prop]).join(" ")
+    return props.titleProps.map(prop => item[prop]).join(" ");
 }
 
 async function delItem() {
     await deleteItem(deleting.value, itemsStore, props.apiUrl, t, $axios);
     deleting.value = undefined;
-    deleteDialogVisible.value = false
-    emit('click-delete', props.item.id)
+    deleteDialogVisible.value = false;
+    emit("click-delete", props.item.id);
 }
 </script>
 
@@ -99,14 +103,17 @@ async function delItem() {
 
 .el-dialog {
     border-radius: 10px;
+
     .el-dialog__header {
         text-align: left;
+
         .el-dialog__title {
             color: $chatfaq-color-primary-500 !important;
             font-size: 16px;
             font-weight: 600;
         }
     }
+
     .el-dialog__body {
         text-align: left;
         color: $chatfaq-color-neutral-black !important;
@@ -173,6 +180,7 @@ async function delItem() {
             margin-right: 10px;
 
         }
+
         &:last-child {
             margin-bottom: 10px;
         }
@@ -231,6 +239,19 @@ async function delItem() {
     .command-edit {
         margin-right: 16px;
         margin-bottom: 13px;
+    }
+}
+
+.card-wrapper {
+    width: 100%;
+    padding: 16px;
+
+    .box-card {
+        cursor: pointer;
+
+        &:hover {
+            box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
+        }
     }
 }
 </style>

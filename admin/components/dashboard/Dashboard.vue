@@ -1,117 +1,113 @@
 <template>
-    <div class="dashboard-page-title">{{ $t("welcome", {name: ""}) }}</div>
+    <div class="dashboard-page-title">{{ $t("welcome", { name: "" }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
-            <div class="card-wrapper" v-for="sdk in sdks">
-                <Card :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
-                      :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl" :titleProps="['fsm_name']"/>
-            </div>
+            <Card v-for="sdk in sdks" :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
+                  :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
+                  :titleProps="['fsm_name']" />
         </div>
         <div class="section-title">{{ $t("rags") }}</div>
         <div class="cards-view">
-            <div class="card-wrapper" v-for="rag in rags">
-                <Card @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
-                      :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
-                    <template v-slot:extra-card-bottom="{item}">
-                        <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
-                                   :disabled="item.disabled || item.index_up_to_date">
-                            <span>{{ $t("reindex") }}</span>
-                            <el-icon>
-                                <Refresh/>
-                            </el-icon>
-                        </el-button>
-                    </template>
-                    <template v-slot:enabled="{item, name}">
-                        <span class="title">{{ name }}:</span>
-                        <el-switch
-                            v-model="item.disabled"
-                            :before-change="() => switchDisabled(item)"
-                            :loading="loading[item.id]"
-                            :active-value="false"
-                            :inactive-value="true"
-                        />
-                    </template>
-                </Card>
-            </div>
+            <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
+                  :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
+                <template v-slot:extra-card-bottom="{item}">
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
+                               :disabled="item.disabled || item.index_up_to_date">
+                        <span>{{ $t("reindex") }}</span>
+                        <el-icon>
+                            <Refresh />
+                        </el-icon>
+                    </el-button>
+                </template>
+                <template v-slot:enabled="{item, name}">
+                    <span class="title">{{ name }}:</span>
+                    <el-switch
+                        v-model="item.disabled"
+                        :before-change="() => switchDisabled(item)"
+                        :loading="loading[item.id]"
+                        :active-value="false"
+                        :inactive-value="true"
+                    />
+                </template>
+            </Card>
         </div>
         <div class="section-title">{{ $t("widgets") }}</div>
         <div class="cards-view">
-            <div class="card-wrapper" v-for="widget in widgets">
-                <Card @click-delete="initItems" @click-edit="() => goTo('widget_config')"
-                      :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl"/>
-            </div>
+            <Card v-for="widget in widgets" @click-delete="initItems" @click-edit="() => goTo('widget_config')"
+                  :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl" />
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref} from 'vue'
-import {authHeaders, useItemsStore} from "~/store/items.js";
-import {useI18n} from "vue-i18n";
+import { ref } from "vue";
+import { authHeaders, useItemsStore } from "~/store/items.js";
+import { useI18n } from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
 import { callRagReindex, upsertItem } from "~/utils/index.js";
 
-const {t} = useI18n();
-const itemsStore = useItemsStore()
-const {$axios} = useNuxtApp();
+const { t } = useI18n();
+const itemsStore = useItemsStore();
+const { $axios } = useNuxtApp();
 const router = useRouter();
 
-const loading = ref({})
+const loading = ref({});
 
 // -------- RAG --------
-const RAGAPIUrl = ref("/back/api/language-model/rag-configs/")
+const RAGAPIUrl = ref("/back/api/language-model/rag-configs/");
 const cardPropsRAG = ref({
-    'enabled': t('enabled'),
-})
-const itemSchemaRAG = ref({})
+    "enabled": t("enabled"),
+});
+const itemSchemaRAG = ref({});
 
 // -------- Widget --------
-const WidgetAPIUrl = ref("/back/api/widget/widgets/")
+const WidgetAPIUrl = ref("/back/api/widget/widgets/");
 const cardPropsWidget = ref({
-    'domain': t('domain'),
-    'fsm_def': t('fsmdef'),
-})
-const itemSchemaWidget = ref({})
+    "domain": t("domain"),
+    "fsm_def": t("fsmdef"),
+});
+const itemSchemaWidget = ref({});
 
 // -------- SDK --------
-const SDKAPIUrl = ref("/back/api/broker/sdks/")
+const SDKAPIUrl = ref("/back/api/broker/sdks/");
 const cardPropsSDK = ref({
-    'created_date': t('created_date')
-})
-const itemSchemaSDK = ref({})
-const rags = ref([])
-const widgets = ref([])
-const sdks = ref([])
+    "created_date": t("created_date"),
+});
+const itemSchemaSDK = ref({});
+const rags = ref([]);
+const widgets = ref([]);
+const sdks = ref([]);
 
 async function initData() {
-    itemsStore.loading = true
-    itemSchemaRAG.value = await itemsStore.getSchemaDef($axios, RAGAPIUrl.value)
-    itemSchemaWidget.value = await itemsStore.getSchemaDef($axios, WidgetAPIUrl.value)
-    itemSchemaSDK.value = await itemsStore.getSchemaDef($axios, SDKAPIUrl.value)
-    itemsStore.loading = false
+    itemsStore.loading = true;
+    itemSchemaRAG.value = await itemsStore.getSchemaDef($axios, RAGAPIUrl.value);
+    itemSchemaWidget.value = await itemsStore.getSchemaDef($axios, WidgetAPIUrl.value);
+    itemSchemaSDK.value = await itemsStore.getSchemaDef($axios, SDKAPIUrl.value);
+    itemsStore.loading = false;
 }
 
 async function initItems() {
-    rags.value = (await $axios.get(RAGAPIUrl.value, {headers: authHeaders()})).data.results
-    widgets.value = (await $axios.get(WidgetAPIUrl.value, {headers: authHeaders()})).data.results
-    sdks.value = (await $axios.get(SDKAPIUrl.value, {headers: authHeaders()})).data.results
+    rags.value = (await $axios.get(RAGAPIUrl.value, { headers: authHeaders() })).data.results;
+    widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
+    sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
 }
 
-await initData()
-await initItems()
+await initData();
+await initItems();
 
 function goTo(route) {
-    router.push({name: route})
+    router.push({ name: route });
 }
+
 async function switchDisabled(item) {
     try {
-        loading.value[item.id] = true
+        loading.value[item.id] = true;
         const res = await upsertItem($axios, RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, t);
         item.disabled = res.disabled;
-        loading.value[item.id] = false
+        loading.value[item.id] = false;
     } catch (e) {
-        loading.value[item.id] = false
+        loading.value[item.id] = false;
         console.error(e);
     }
 }
@@ -141,22 +137,11 @@ async function switchDisabled(item) {
         grid-template-columns: repeat(auto-fill, minmax(100px, 25%));
     }
 
-    .card-wrapper {
-        width: 100%;
-        padding: 16px;
-
-        .box-card {
-            cursor: pointer;
-
-            &:hover {
-                box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
-            }
-        }
-    }
     .bottom-card-button {
         @include button-primary;
         width: 100%;
         margin-top: 8px;
+
         span {
             margin-right: 8px;
         }
