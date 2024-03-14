@@ -448,7 +448,8 @@ def generate_embeddings(k_items, rag_config):
 
     # Submit the task to the Ray cluster
     num_gpus = 1 if device == "cuda" else 0
-    embeddings_ref = ray_generate_embeddings.options(resources={"tasks": 1}, num_gpus=num_gpus).remote(data)
+    task_name = f"generate_embeddings_{rag_config.name}"
+    embeddings_ref = ray_generate_embeddings.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(data)
     embeddings = ray.get(embeddings_ref)
 
     new_embeddings = [
