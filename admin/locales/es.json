@@ -273,5 +273,11 @@
     "adminquality": "Calidad de Administrador",
     "userquality": "Calidad de Usuario",
     "count": "Cuenta",
-    "welcome": "Bienvenue, {name}"
+    "welcome": "Bienvenue, {name}",
+    "enabled": "Habilitado",
+    "actionsuccess": "Acción exitosa",
+    "failedaction": "Acción fallida",
+    "nowidgets": "No hay widgets",
+    "nosdks": "No hay SDKs",
+    "norags": "No hay RAGs"
 }

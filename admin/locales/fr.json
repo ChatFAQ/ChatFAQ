@@ -273,5 +273,11 @@
     "adminquality": "Qualité de l'administrateur",
     "userquality": "Qualité de l'utilisateur",
     "count": "Compter",
-    "welcome": "Bienvenido, {name}"
+    "welcome": "Bienvenido, {name}",
+    "enabled": "Activé",
+    "actionsuccess": "Action réussie",
+    "failedaction": "Action échouée",
+    "nowidgets": "No widgets",
+    "nosdks": "No SDKs",
+    "norags": "No RAGs"
 }

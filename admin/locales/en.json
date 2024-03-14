@@ -273,5 +273,11 @@
     "adminquality": "Admin Quality",
     "userquality": "User Quality",
     "count": "Count",
-    "welcome": "Welcome, {name}"
+    "welcome": "Welcome, {name}",
+    "enabled": "Enabled",
+    "actionsuccess": "Action successful",
+    "failedaction": "Failed action",
+    "nowidgets": "No widgets",
+    "nosdks": "No SDKs",
+    "norags": "No RAGs"
 }

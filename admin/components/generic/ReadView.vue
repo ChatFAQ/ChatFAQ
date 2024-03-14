@@ -29,13 +29,11 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
-            <div v-for="item in itemsStore.items[apiUrl]?.results" class="card-wrapper">
-                <Card :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
-                    <template v-slot:extra-card-bottom="{item}">
-                        <slot name="extra-card-bottom" :item="item"></slot>
-                    </template>
-                </Card>
-            </div>
+            <Card v-for="item in itemsStore.items[apiUrl]?.results" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
+                <template v-slot:extra-card-bottom="{item}">
+                    <slot name="extra-card-bottom" :item="item"></slot>
+                </template>
+            </Card>
             <div class="box-card-add" :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}"
                  @click="stateToAdd">
                 <div class="box-card-add-content">

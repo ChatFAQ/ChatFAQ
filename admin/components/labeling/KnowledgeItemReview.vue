@@ -39,6 +39,10 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import { upsertItem } from "~/utils/index.js";
+import {useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 
 const itemsStore = useItemsStore()
 
@@ -122,7 +126,7 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    const res = await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
+    const res = await upsertItem($axios, "/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
     review.value = res.data
 }
 
