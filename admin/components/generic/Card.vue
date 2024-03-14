@@ -199,36 +199,4 @@ async function delItem() {
     margin-bottom: 13px;
 }
 
-.command-edit, .command-delete {
-    cursor: pointer;
-    text-decoration: underline;
-    font-weight: 600;
-}
-
-.command-delete-confirm.on-table {
-    .command-delete {
-        margin-right: 10px;
-    }
-}
-
-.commands {
-    display: flex;
-    justify-content: space-between;
-    color: $chatfaq-color-primary-500;
-
-    .command-delete {
-        margin-left: 16px;
-        margin-bottom: 13px;
-    }
-
-    .command-delete-confirm {
-        display: flex;
-        justify-content: center;
-    }
-
-    .command-edit {
-        margin-right: 16px;
-        margin-bottom: 13px;
-    }
-}
 </style>

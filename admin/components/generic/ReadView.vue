@@ -70,7 +70,7 @@
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" :width="$t('edit').length * 13">
                 <template #default="{ row }">
-                    <span class="command-edit" @click="itemsStore.editing = id">{{ $t("edit") }}</span>
+                    <span class="command-edit" @click="itemsStore.editing = row.id">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" width="100">
