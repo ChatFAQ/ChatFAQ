@@ -14,7 +14,7 @@
             <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
+                    <el-button class="bottom-card-button" @click="callRagReindex($axios, item.id, $t)"
                                :disabled="item.disabled || item.index_up_to_date">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
