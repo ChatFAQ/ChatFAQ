@@ -50,7 +50,7 @@ class DataSourceSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         "original_csv": f"Row {_i + 1} does not contain all the required columns: {', '.join(str(i) for i in mandatory_columns)}"
                     })
-                if not all(row[i].strip() for i in mandatory_columns):
+                if not all(row[i].strip() if len(row) > i else None for i in mandatory_columns):
                     raise serializers.ValidationError({
                         "original_csv": f"Row {_i + 1} does not contain all the required columns: {', '.join(str(i) for i in mandatory_columns)}"
                     })
