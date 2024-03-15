@@ -54,8 +54,7 @@ watch(() => itemsStore.filters, async () => {  // For when setting filters from 
 
 function initForm() {  // For when setting filters from outside
     for (const [filter_name, filter_val] of Object.entries(itemsStore.filters)) {
-        if (form.value[filter_name] === undefined)
-            form.value[filter_name] = filter_val
+        form.value[filter_name] = filter_val
     }
 }
 initForm()
