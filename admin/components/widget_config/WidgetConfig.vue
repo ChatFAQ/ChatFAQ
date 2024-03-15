@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t('widgetconfig') }}</div>
-    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('widget')" name="widgetsettings">
             <ReadWriteView :readableName="$t('widget')" apiUrl="/back/api/widget/widgets/"
                            :cardProps="{

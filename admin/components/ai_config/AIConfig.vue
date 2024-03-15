@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t("aiconfiguration") }}</div>
-    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('rag')" name="rag-configs">
             <ReadWriteView :readableName="$t('rag')" apiUrl="/back/api/language-model/rag-configs/"
                            :cardProps="{
