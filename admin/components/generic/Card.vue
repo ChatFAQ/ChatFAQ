@@ -241,17 +241,4 @@ async function delItem() {
         margin-bottom: 13px;
     }
 }
-
-.card-wrapper {
-    width: 100%;
-    padding: 16px;
-
-    .box-card {
-        cursor: pointer;
-
-        &:hover {
-            box-shadow: 0px 4px 4px 0px #DFDAEA66 !important;
-        }
-    }
-}
 </style>

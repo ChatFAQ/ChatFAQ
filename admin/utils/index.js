@@ -87,7 +87,7 @@ export async function deleteItem(id, itemsStore, apiUrl, t, $axios) {
 }
 
 
-export async function callRagReindex(ragId, t) {
+export async function callRagReindex($axios, ragId, t) {
     try {
         await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`);
     } catch (e) {
@@ -97,7 +97,7 @@ export async function callRagReindex(ragId, t) {
             type: "error",
             position: "top-right",
         });
-        return;
+        throw e
     }
     ElNotification({
         title: "Success",
