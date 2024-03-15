@@ -83,7 +83,7 @@ const isRef = computed(() => {
 onMounted(async () => {
     if (props.filterSchema) {
         if (props.filterSchema.type === "ref") {
-            let items = await itemsStore.retrieveItems($axios, props.filterSchema.endpoint)
+            let items = await itemsStore.retrieveItems($axios, props.filterSchema.endpoint, {}, false)
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {

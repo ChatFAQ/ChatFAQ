@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t('data') }}</div>
-    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('knowledgebase')" name="knowledge-base">
             <ReadWriteView
                 :readableName="$t('knowledgebase')"
@@ -104,8 +104,8 @@ await itemsStore.loadSchema($axios)
 
 function goToKIs(kb_id) {
     itemsStore.stateToRead()
+    itemsStore.filters = {"knowledge_base__id": kb_id}
     itemType.value = "knowledge-item"
-    itemsStore.filters["knowledge_base__id"] = kb_id
 }
 
 async function submitKnowledgeBase(id, form) {
