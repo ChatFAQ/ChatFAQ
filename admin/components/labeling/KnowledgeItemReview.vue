@@ -126,12 +126,11 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    const res = await upsertItem($axios, "/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
-    review.value = res.data
+    review.value = await upsertItem($axios, "/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
 }
 
 function getVoteKI(kiId) {
-    if (review.value.id === undefined) {
+    if (review.value === undefined || review.value.id === undefined) {
         return undefined
     } else {
         return review.value.ki_review_data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
