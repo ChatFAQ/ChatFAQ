@@ -11,7 +11,7 @@
         <div class="section-title">{{ $t("rags") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!rags || !rags.length">{{ $t('norags') }}</div>
-            <Card v-for="rag in [...rags, ...rags, ...rags]" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
+            <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRagReindex($axios, item.id, $t)"
