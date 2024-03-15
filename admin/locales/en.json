@@ -279,5 +279,7 @@
     "failedaction": "Failed action",
     "nowidgets": "No widgets",
     "nosdks": "No SDKs",
-    "norags": "No RAGs"
+    "norags": "No RAGs",
+    "comment:": "Comment:",
+    ". selections:" : ". Selections:"
 }

@@ -131,19 +131,19 @@ async function sendUserFeedback(value, _collapse) {
     const feedbackData = {
         message: props.msgId,
         value: value,
-        feedback: ""
     };
     if (feedbackInput.value) {
         const feedback = feedbackInput.value.innerText.trim()
         if (feedback)
-            feedbackData["feedback"] += feedback
+            feedbackData["feedback_comment"] = feedback
     }
+    feedbackData["feedback_selection"] = []
     if (quickAnswer1.value)
-        feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason1")}`
+        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason1")]
     if (quickAnswer2.value)
-        feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason2")}`
+        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason2")]
     if (quickAnswer3.value)
-        feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason3")}`
+        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason3")]
 
     let method = "POST"
     let endpoint = '/back/api/broker/user-feedback/'

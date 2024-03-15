@@ -2,7 +2,10 @@
     <div class="user-feedback-wrapper">
         <div v-if="userFeedback.value === 'positive'" class="vote-icon thumb-up"></div>
         <div v-else-if="userFeedback.value === 'negative'" class="vote-icon thumb-down"></div>
-        <div class="user-feedback">{{ userFeedback.feedback }}</div>
+        <div class="user-feedback" v-if="userFeedback.feedback_comment">{{$t("comment:")}} {{ userFeedback.feedback_comment }}</div>
+        <div class="user-feedback" v-if="userFeedback.feedback_selection && userFeedback.feedback_selection.length">
+            {{$t(". selections:")}} {{ userFeedback.feedback_selection.join(", ") }}
+        </div>
     </div>
 </template>
 
