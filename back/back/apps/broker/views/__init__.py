@@ -174,12 +174,9 @@ class Stats(APIView):
         serializer = StatsSerializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        if not RAGConfig.objects.filter(pk=data["rag"]).exists():
-            return JsonResponse(
-                {"error": "RAG config not found"},
-                status=400,
-            )
-        rag = RAGConfig.objects.get(pk=data["rag"])
+        rag = None
+        if data.get("rag") is not None:
+            rag = RAGConfig.objects.get(pk=data["rag"])
         min_date = data.get("min_date", None)
         max_date = data.get("max_date", None)
         granularity = data.get("granularity", None)
@@ -191,9 +188,12 @@ class Stats(APIView):
         if max_date:
             conversations = conversations.filter(created_date__lte=max_date)
 
-        conversations_rag_filtered = conversations.filter(
-            message__stack__0__payload__rag_config_id=str(rag.id)
-        ).distinct()
+        if rag:
+            conversations_rag_filtered = conversations.filter(
+                message__stack__0__payload__rag_config_id=str(rag.id)
+            ).distinct()
+        else:
+            conversations_rag_filtered = conversations.all()
         # --- Total conversations
         total_conversations = conversations_rag_filtered.count()
         # --- Message count per conversation
@@ -222,9 +222,14 @@ class Stats(APIView):
             messages = messages.filter(created_date__gte=min_date)
         if max_date:
             messages = messages.filter(created_date__lte=max_date)
-        messages_rag_filtered = messages.filter(
-            stack__0__payload__rag_config_id=str(rag.id)
-        ).distinct()
+
+        if rag:
+            messages_rag_filtered = messages.filter(
+                stack__0__payload__rag_config_id=str(rag.id)
+            ).distinct()
+        else:
+            messages_rag_filtered = messages.all()
+
         # --- Messages per RAG Config
         messages_per_rag = Message.objects.filter(
             stack__0__payload__rag_config_id__isnull=False

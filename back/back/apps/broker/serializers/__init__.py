@@ -103,7 +103,7 @@ class AdminReviewSerializer(serializers.ModelSerializer):
 
 
 class StatsSerializer(serializers.Serializer):
-    rag = serializers.CharField()
+    rag = serializers.CharField(required=False, allow_null=True)
     min_date = serializers.DateField(required=False, allow_null=True)
     max_date = serializers.DateField(required=False, allow_null=True)
     granularity = serializers.ChoiceField(

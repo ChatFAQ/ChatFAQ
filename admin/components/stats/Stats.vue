@@ -55,8 +55,8 @@ watch(() => itemsStore.filters, async () => {  // For when setting filters from 
 }, {deep: true})
 
 async function requestStats() {
-    if (itemsStore.filters.rag === undefined)
-        stats.value = undefined
+    // if (itemsStore.filters.rag === undefined)
+    //     stats.value = undefined
 
     let filters = {...itemsStore.filters}
     if (filters.created_date__gte) {
@@ -74,6 +74,7 @@ async function requestStats() {
     const response = await $axios.get('/back/api/broker/stats/', {params: filters, headers: authHeaders()})
     stats.value = response.data
 }
+requestStats()
 
 </script>
 
