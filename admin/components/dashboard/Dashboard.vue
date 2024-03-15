@@ -3,15 +3,15 @@
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
-            <div class="no-items" v-if="!widgets || !widgets.length">{{ $t('nosdks') }}</div>
+            <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
             <Card v-for="sdk in sdks" :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
                   :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
                   :titleProps="['fsm_name']" />
         </div>
         <div class="section-title">{{ $t("rags") }}</div>
         <div class="cards-view">
-            <div class="no-items" v-if="!widgets || !widgets.length">{{ $t('norags') }}</div>
-            <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
+            <div class="no-items" v-if="!rags || !rags.length">{{ $t('norags') }}</div>
+            <Card v-for="rag in [...rags, ...rags, ...rags]" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRagReindex($axios, item.id, $t)"
