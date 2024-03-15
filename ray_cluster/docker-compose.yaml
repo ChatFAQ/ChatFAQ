@@ -2,21 +2,23 @@ version: '3'
 services:
   ray-head:
     image: rayproject/ray:latest-py310 
-    command: /bin/bash -c "ray start --head --num-cpus=0 --num-gpus=0 --port ${RAY_ADDRESS_PORT} --dashboard-host 0.0.0.0 --block"
+    command: /bin/bash -c "ray start --head --num-cpus=0 --num-gpus=0 --port ${RAY_HEAD_PORT} --dashboard-host 0.0.0.0 --block"
     env_file:
       - .env
     ports:
-      - ${RAY_ADDRESS_PORT}:${RAY_ADDRESS_PORT}
+      - ${RAY_HEAD_PORT}:${RAY_HEAD_PORT}
       - ${RAY_DASHBOARD_PORT}:${RAY_DASHBOARD_PORT}
-      - ${RAY_HEAD_NODE_PORT}:${RAY_HEAD_NODE_PORT}
+      - ${RAY_CLIENT_PORT}:${RAY_CLIENT_PORT}
     networks:
       - ray_net
 
   ray-tasks-worker:
     image: chatfaq-gpu
-    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
     env_file:
       - .env
+    ports:
+      - ${TASKS_SERVING_PORT}:8000
     environment:
       - CUDA_VISIBLE_DEVICES=0
     depends_on:
@@ -38,7 +40,7 @@ services:
     
   ray-rag-worker:
     image: chatfaq-cpu
-    command: ["ray", "start", "--address=ray-head:${RAY_ADDRESS_PORT}", "--resources={\"rags\": 2}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 2}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
     env_file:
       - .env
     depends_on:

@@ -42,7 +42,7 @@ if not ray.is_initialized() and os.environ.get('RUN_MAIN'): # only start ray on 
     # connect to ray
     RAY_ADRESS= os.environ.get('RAY_ADDRESS')
     logger.info(f"Connecting to Ray at {RAY_ADRESS}")
-    ray.init(address=RAY_ADRESS)
+    ray.init(address=RAY_ADRESS, namespace="back-end")
 
     logger.info("Available resources:", ray.available_resources())
 

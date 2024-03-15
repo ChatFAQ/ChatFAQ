@@ -47,7 +47,7 @@ django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 twisted = "^23.10.0rc1"
 ragatouille = { git = "https://github.com/Diegi97/RAGatouille.git", branch = "main" }  # Temporary until a new version with baching is released
-ray = { version = "2.9.3", extras = ["data", "serve"] }
+ray = { version = "2.9.3", extras = ["serve"] }
 
 
 [tool.poetry.group.dev.dependencies]
