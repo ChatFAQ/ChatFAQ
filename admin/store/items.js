@@ -26,6 +26,7 @@ export const useItemsStore = defineStore('items', {
         pageSize: 50,
         currentPage: 1,
         ordering: undefined,
+        itemsChanged: 0,
     }),
     actions: {
         async retrieveItems($axios, apiUrl = undefined, params = {}, cache= true, one= false) {
@@ -122,6 +123,8 @@ export const useItemsStore = defineStore('items', {
             return schema
         },
         stateToRead(){
+            if (this.editing === undefined && this.adding === undefined && this.currentPage === 1 && Object.keys(this.filters).length === 0)
+                return
             this.editing = undefined
             this.adding = undefined
             this.currentPage = 1
