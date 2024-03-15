@@ -277,9 +277,9 @@
     "enabled": "Activé",
     "actionsuccess": "Action réussie",
     "failedaction": "Action échouée",
-    "nowidgets": "No widgets",
-    "nosdks": "No SDKs",
-    "norags": "No RAGs",
+    "nowidgets": "Pas de widgets",
+    "nosdks": "Pas de SDK",
+    "No RAGs": "Pas de RAGs",
     "comment:": "Commentaire:",
     ". selections:" : ". Sélections:"
 }
