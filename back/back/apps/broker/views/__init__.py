@@ -254,7 +254,7 @@ class Stats(APIView):
                 "total_conversations": total_conversations,
                 # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
-                "conversations_message_avg": conversations_message_avg.get('avg'),
+                "conversations_message_avg": round(conversations_message_avg.get('avg'), 2),
                 "messages_per_rag": list(messages_per_rag.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
