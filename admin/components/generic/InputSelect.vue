@@ -35,6 +35,8 @@ const loading = ref(false)
 const lastElement = ref(undefined)
 const itemsStore = useItemsStore()
 const filterChoices = ref({})
+import {solveRefPropValue} from "~/utils/index.js";
+
 const props = defineProps({
     fieldName: {
         type: String,
@@ -59,6 +61,22 @@ const props = defineProps({
         default: "",
     },
 })
+watch(() => props.form, async () => {
+    await initChoices()
+}, {deep: true})
+const choices = ref([])
+async function initChoices() {
+    if (props.filterSchema && props.filterSchema.type === "enum") {
+        choices.value = props.filterSchema.choices
+    }
+    else if (props.filterSchema && props.filterSchema.type === "ref") {
+        choices.value = filterChoices.value.results || []
+    }
+    if(props.schema?.properties[props.fieldName]?.$ref && props.form[props.fieldName] !== undefined) {
+        await solveRefPropValue(props.form, props.fieldName, props.schema)
+    }
+    choices.value = props.schema.properties[props.fieldName].choices.results ? props.schema.properties[props.fieldName].choices.results : props.schema.properties[props.fieldName].choices
+}
 
 const isMulti = computed(() => {
     if (props.filterSchema) {
@@ -95,15 +113,6 @@ onMounted(async () => {
             filterChoices.value.next = items.next
         }
     }
-})
-const choices = computed(() => {
-    if (props.filterSchema && props.filterSchema.type === "enum") {
-        return props.filterSchema.choices
-    }
-    else if (props.filterSchema && props.filterSchema.type === "ref") {
-        return filterChoices.value.results || []
-    }
-    return props.schema.properties[props.fieldName].choices.results ? props.schema.properties[props.fieldName].choices.results : props.schema.properties[props.fieldName].choices
 })
 
 
