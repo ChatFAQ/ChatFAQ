@@ -148,6 +148,11 @@ const props = defineProps({
         required: false,
         default: {},
     },
+    defaultFilters: {
+        type: Object,
+        required: false,
+        default: undefined,
+    },
     titleProps: {
         type: Array,
         required: false,
@@ -209,7 +214,10 @@ async function loadItems() {
         itemsStore.items[props.apiUrl] = {results: []}
         return
     }
-    await itemsStore.retrieveItems($axios, props.apiUrl)
+    const params = {}
+    if (props.defaultFilters)
+        Object.assign(params, props.defaultFilters)
+    await itemsStore.retrieveItems($axios, props.apiUrl, params)
     await resolveTableRowProps(itemsStore.items[props.apiUrl]?.results)
     itemsStore.loading = false
 }

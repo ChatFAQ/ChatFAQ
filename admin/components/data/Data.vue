@@ -65,21 +65,48 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('intents')" name="intents">
+        <el-tab-pane :label="$t('existingintents')" name="existing_intents">
             <ReadWriteView :readableName="$t('intents')"
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
                                 'intent_name': {'name': $t('intentname')},
                                 'num_of_knowledge_items': {'name': $t('knowledgeitems')},
                                 'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
+                                'intents': {'name': $t('intents')},
                            }"
                            :filtersSchema="[
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                                {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
                            ]"
+                           :defaultFilters="{'suggested_intent': false}"
                            :textExplanation="$t('intentexplanation')"
                            readOnly
             >
+                <template v-slot:intents="{row}">
+                    <span class="command-edit" @click="showKIsForIntent(row)">{{ $t("view") }}</span>
+                </template>
+            </ReadWriteView>
+        </el-tab-pane>
+        <el-tab-pane :label="$t('suggestedintents')" name="suggested_intents">
+            <ReadWriteView :readableName="$t('intents')"
+                           apiUrl="/back/api/language-model/intents/"
+                           :tableProps="{
+                                'intent_name': {'name': $t('intentname')},
+                                'num_of_knowledge_items': {'name': $t('knowledgeitems')},
+                                'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
+                                'questions': {'name': $t('questions')},
+                           }"
+                           :filtersSchema="[
+                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+                               {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                           ]"
+                           :defaultFilters="{'suggested_intent': true}"
+                           :textExplanation="$t('intentexplanation')"
+                           readOnly
+            >
+                <template v-slot:questions="{row}">
+                    <span class="command-edit" @click="showQuestionsForIntent(row)">{{ $t("view") }}</span>
+                </template>
             </ReadWriteView>
         </el-tab-pane>
     </el-tabs>
@@ -110,6 +137,15 @@ function goToKIs(kb_id) {
 
 async function submitKnowledgeBase(id, form) {
     await dataSources.value.submit(id)
+}
+async function showKIsForIntent(row) {
+    console.log("----------")
+    console.log(row)
+}
+async function showQuestionsForIntent(row) {
+    console.log("----------")
+    console.log(row)
+
 }
 </script>
 

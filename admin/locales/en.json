@@ -281,5 +281,8 @@
     "nosdks": "No SDKs",
     "norags": "No RAGs",
     "comment:": "Comment:",
-    ". selections:" : ". Selections:"
+    ". selections:" : ". Selections:",
+    "existingintents": "Existing Intents",
+    "suggestedintents": "Suggested Intents",
+    "questions": "Questions"
 }

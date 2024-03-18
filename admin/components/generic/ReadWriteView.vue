@@ -10,6 +10,7 @@
                 :titleProps="titleProps"
                 :readOnly="readOnly"
                 :defaultSort="defaultSort"
+                :defaultFilters="defaultFilters"
                 :filtersSchema="filtersSchema"
                 :requiredFilter="requiredFilter"
                 :textExplanation="textExplanation"
@@ -96,6 +97,11 @@ const props = defineProps({
         type: Object,
         required: false,
         default: {},
+    },
+    defaultFilters: {
+        type: Object,
+        required: false,
+        default: undefined,
     },
     outsideSection: {
         type: Array,
