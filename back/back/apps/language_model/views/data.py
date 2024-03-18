@@ -104,6 +104,7 @@ class KnowledgeItemFilterSet(django_filters.FilterSet):
         fields = {
            'id': ['exact'],
            'knowledge_base__id': ['exact'],
+           'intent__id': ['exact'],
            'knowledge_base__name': ['exact'],
            'created_date': ['lte', 'gte'],
         }

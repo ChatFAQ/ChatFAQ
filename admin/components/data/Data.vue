@@ -110,6 +110,11 @@
             </ReadWriteView>
         </el-tab-pane>
     </el-tabs>
+    <el-dialog v-model="showingIntentRefs" :title="$t('refs')" width="500" center>
+        <span>
+            {{ intentRefs }}
+        </span>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -118,7 +123,8 @@ import {useItemsStore} from "~/store/items.js";
 import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 
 const password = ref(null)
-
+const intentRefs = ref([])
+const showingIntentRefs = ref(false)
 const itemsStore = useItemsStore()
 
 const itemType = ref("knowledge-base")
@@ -137,13 +143,14 @@ async function submitKnowledgeBase(id, form) {
     await dataSources.value.submit(id)
 }
 async function showKIsForIntent(row) {
-    console.log("----------")
-    console.log(row)
+    const res = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {"intent__id": row.id, limit: 0, offset: 0, ordering: undefined})
+    intentRefs.value = res.results
+    showingIntentRefs.value = true
 }
 async function showQuestionsForIntent(row) {
-    console.log("----------")
-    console.log(row)
-
+    const res = await itemsStore.retrieveItems("/back/api/language-model/messages/", {"intent__id": row.id, limit: 0, offset: 0, ordering: undefined})
+    intentRefs.value = res.results
+    showingIntentRefs.value = true
 }
 </script>
 

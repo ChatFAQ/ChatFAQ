@@ -127,7 +127,7 @@ class MessageView(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     serializer_class = MessageSerializer
-    filterset_fields = ["id"]
+    filterset_fields = ["id", "intent__id"]
 
 
 class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
