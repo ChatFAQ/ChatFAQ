@@ -126,7 +126,6 @@ class RAGCacheOnWorkerTask(Task):
 
     @staticmethod
     def preload_models():
-        from chat_rag.inf_retrieval.embedding_models import E5Model
         from back.apps.language_model.retriever_clients import (
             ColBERTRetriever,
             PGVectorRetriever,
@@ -152,8 +151,10 @@ class RAGCacheOnWorkerTask(Task):
 
                 if retriever_type == "colbert":
                     retriever = ColBERTRetriever.from_index(rag_conf)
-                    rerank = False
                 elif retriever_type == "e5":
+                    from chat_rag.inf_retrieval.embedding_models import E5Model
+                    from chat_rag.inf_retrieval.retrievers import ReRankRetriever
+
                     hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
                     e5_model = E5Model(
@@ -162,11 +163,16 @@ class RAGCacheOnWorkerTask(Task):
                         huggingface_key=hugginface_key,
                     )
 
-                    retriever = PGVectorRetriever(
+                    base_retriever = PGVectorRetriever(
                         embedding_model=e5_model,
                         rag_config=rag_conf,
                     )
-                    rerank = True
+                    retriever = ReRankRetriever(
+                        retriever=base_retriever,
+                        lang=rag_conf.knowledge_base.lang,
+                        device=rag_conf.retriever_config.device,
+                    )
+                    
                 else:
                     raise ValueError(f"Retriever type: {retriever_type} not supported.")
 
@@ -188,7 +194,6 @@ class RAGCacheOnWorkerTask(Task):
                     retriever=retriever,
                     llm_model=llm_model,
                     lang=rag_conf.knowledge_base.lang,
-                    rerank=rerank,
                 )
                 logger.info("...model loaded.")
 

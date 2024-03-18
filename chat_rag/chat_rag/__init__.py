@@ -16,7 +16,6 @@ class RAG:
         retriever,
         llm_model: RAGLLM,
         lang: str = "en",
-        rerank: bool = False,
     ):
         """
         Parameters
@@ -33,9 +32,6 @@ class RAG:
 
         self.retriever = retriever
         self.model = llm_model
-        self.rerank = rerank
-        if rerank:
-            self.cross_encoder = ReRanker(lang=lang, device=retriever.embedding_model.device)
         self.lang = lang
 
 
@@ -62,8 +58,6 @@ class RAG:
         """
         logger.info("Retrieving new contexts")
         contexts = self.retriever.retrieve([message], top_k=prompt_structure_dict["n_contexts_to_use"])[0] # retrieve contexts
-        if self.rerank:
-            contexts = self.cross_encoder(message, contexts) # filter contexts
         if len(contexts) == 0:
             return [], []
 
