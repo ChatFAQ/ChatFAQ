@@ -119,14 +119,12 @@ import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 
 const password = ref(null)
 
-const {$axios} = useNuxtApp();
-
 const itemsStore = useItemsStore()
 
 const itemType = ref("knowledge-base")
 const dataSources = ref(null)
 
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 
 function goToKIs(kb_id) {

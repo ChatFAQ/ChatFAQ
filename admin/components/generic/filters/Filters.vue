@@ -33,8 +33,6 @@
 <script lang="ts" setup>
 import {useItemsStore} from "~/store/items.js";
 import InputSelect from "~/components/generic/InputSelect.vue";
-
-const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const form = ref({})
 const emit = defineEmits(['change'])

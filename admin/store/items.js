@@ -29,7 +29,9 @@ export const useItemsStore = defineStore('items', {
         itemsChanged: 0,
     }),
     actions: {
-        async retrieveItems($axios, apiUrl = undefined, params = {}, cache= true, one= false) {
+        async retrieveItems(apiUrl = undefined, params = {}, cache= true, one= false) {
+            const {$axios} = useNuxtApp();
+
             const cacheName = apiCacheName(apiUrl, params)
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
             if (!("limit" in params))
@@ -63,32 +65,38 @@ export const useItemsStore = defineStore('items', {
             }
             return this.items[cacheName]
         },
-        async deleteItem($axios, apiUrl, id, refresh = true) {
+        async deleteItem(apiUrl, id, refresh = true) {
+            const {$axios} = useNuxtApp();
+
             await $axios.delete(`${apiUrl}${id}`, {'headers': authHeaders()})
             if (refresh)
-                await this.retrieveItems($axios, apiUrl)
+                await this.retrieveItems(apiUrl)
         },
-        async loadSchema($axios) {
+        async loadSchema() {
+            const {$axios} = useNuxtApp();
+
             if (!this.schema) {
                 const openAPI = (await $axios.get('/back/api/schema/?format=json', {'headers': authHeaders()})).data
                 this.schema = openAPI.components.schemas
                 this.paths = openAPI.paths
             }
         },
-        async getSchemaDef($axios, apiUrl, resolveRefs = true, _schemaName = undefined) {
-            await this.loadSchema($axios)
+        async getSchemaDef(apiUrl, resolveRefs = true, _schemaName = undefined) {
+            await this.loadSchema()
             let schemaName = _schemaName
             if (!schemaName)
                 schemaName = this.getSchemaNameFromPath(apiUrl)
             if (resolveRefs)
-                return await this._resolveRefs($axios, this.schema[schemaName])
+                return await this._resolveRefs(this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async getNextItem($axios, apiUrl, itemId, direction = 1, params = {}, force= false) {
+        async getNextItem(apiUrl, itemId, direction = 1, params = {}, force= false) {
+            const {$axios} = useNuxtApp();
+
             const cacheName = apiCacheName(apiUrl, params)
 
             if (force || !this.items[cacheName]) {
-                await this.retrieveItems($axios, apiUrl)
+                await this.retrieveItems(apiUrl)
             }
             // It takes the next item after currentItem
             let index = this.items[cacheName].results.findIndex(item => item.id === itemId)
@@ -99,9 +107,9 @@ export const useItemsStore = defineStore('items', {
                 return undefined
             return this.items[cacheName].results[index]
         },
-        async _resolveRefs($axios, schema) {
+        async _resolveRefs(schema) {
             if (!schema.properties && schema.oneOf) {
-                const oneOf = await this.getSchemaDef($axios, undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])
+                const oneOf = await this.getSchemaDef(undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])
                 schema.properties = oneOf.properties
                 schema.required = oneOf.required
             }
@@ -109,11 +117,11 @@ export const useItemsStore = defineStore('items', {
                 let ref = propInfo.$ref || propInfo.items?.$ref
                 if (ref) {
                     const refName = ref.split("/").slice(-1)[0]
-                    let obj = await this.getSchemaDef($axios, undefined, false, refName)
+                    let obj = await this.getSchemaDef(undefined, false, refName)
                     if (obj.enum)  {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
-                        let items = await this.retrieveItems($axios, this.getPathFromSchemaName(refName))
+                        let items = await this.retrieveItems(this.getPathFromSchemaName(refName))
                         items = JSON.parse(JSON.stringify(items))  // Deep copy
                         items.results = items.results.map((item) => ({label: item.name, value: item.id}))  // Paginated choices
                         propInfo.choices = items

@@ -46,8 +46,6 @@ const { t } = useI18n();
 
 const itemsStore = useItemsStore()
 
-const {$axios} = useNuxtApp()
-
 const ki_choices = ref([])
 const reviewedKIs = ref({})
 const review = ref({})
@@ -71,12 +69,12 @@ async function initKIReview() {
         return
     }
     for (const ki_ref of references.knowledge_items) {
-        const ki = await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, false, true)
+        const ki = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, false, true)
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
-    review.value = await itemsStore.retrieveItems($axios, "/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
-    ki_choices.value = (await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)).results
+    review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
+    ki_choices.value = (await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)).results
     itemsStore.loading = false
 }
 
@@ -126,7 +124,7 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    review.value = await upsertItem($axios, "/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
+    review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
 }
 
 function getVoteKI(kiId) {

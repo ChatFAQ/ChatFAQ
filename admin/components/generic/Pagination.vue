@@ -20,7 +20,6 @@
 <script lang="ts" setup>
 import {useItemsStore} from "~/store/items.js";
 import {ref} from 'vue'
-const {$axios} = useNuxtApp();
 const emit = defineEmits(['change'])
 
 const props = defineProps({

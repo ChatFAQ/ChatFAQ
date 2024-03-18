@@ -244,7 +244,7 @@ const allExcludeFields = computed(() => {
 })
 async function initData() {
     itemsStore.loading = true
-    itemSchema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    itemSchema.value = await itemsStore.getSchemaDef(props.apiUrl)
     itemsStore.loading = false
 }
 
@@ -270,7 +270,7 @@ initializeFormValues()
 async function initializeFormValues() {
     if (props.itemId !== undefined) {
         itemsStore.loading = true
-        const data = await itemsStore.retrieveItems($axios, props.apiUrl, {
+        const data = await itemsStore.retrieveItems(props.apiUrl, {
             id: props.itemId,
             limit: 0,
             offset: 0
@@ -369,7 +369,7 @@ async function submitForm(extraVals = {}, callback = undefined) {
 function deleteItem() {
     try {
         itemsStore.loading = true
-        itemsStore.deleteItem($axios, props.apiUrl, props.itemId)
+        itemsStore.deleteItem(props.apiUrl, props.itemId)
         deleteDialogVisible.value = undefined
         itemsStore.stateToRead()
         itemsStore.loading = false

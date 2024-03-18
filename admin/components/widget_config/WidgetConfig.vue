@@ -72,7 +72,7 @@ const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 
 const itemType = ref("widgetsettings")
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 function submitFieldData() {
     fieldData.value.submit()

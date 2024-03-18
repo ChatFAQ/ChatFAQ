@@ -91,7 +91,7 @@ function createTitle(item) {
 }
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl, t, $axios);
+    await deleteItem(deleting.value, itemsStore, props.apiUrl);
     deleting.value = undefined;
     deleteDialogVisible.value = false;
     emit("click-delete", props.item.id);

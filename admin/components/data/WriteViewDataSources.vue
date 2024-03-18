@@ -78,7 +78,6 @@ const { t } = useI18n();
 
 const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
-const {$axios} = useNuxtApp();
 const dataSources = ref([])
 const dataSourceForms = ref(null)
 const deleteDialogVisible = ref(false)
@@ -88,7 +87,7 @@ const deletingIndex = ref(undefined)
 defineExpose({submit})
 
 if (itemsStore.editing) {
-    dataSources.value = (await itemsStore.retrieveItems($axios, endpoint.value, {
+    dataSources.value = (await itemsStore.retrieveItems(endpoint.value, {
         limit: 0,
         offset: 0,
         knowledge_base__id: itemsStore.editing
@@ -142,7 +141,7 @@ function setDeleteDataSource(id, index) {
 }
 async function deleteDataSource() {
     if(deletingDataSourceID.value !== undefined) {
-        await itemsStore.deleteItem($axios, endpoint.value, deletingDataSourceID.value, false)
+        await itemsStore.deleteItem(endpoint.value, deletingDataSourceID.value, false)
         dataSources.value.splice(deletingIndex.value, 1)
         deleteDialogVisible.value = false
     }

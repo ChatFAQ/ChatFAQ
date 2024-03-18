@@ -101,7 +101,7 @@ const isRef = computed(() => {
 onMounted(async () => {
     if (props.filterSchema) {
         if (props.filterSchema.type === "ref") {
-            let items = await itemsStore.retrieveItems($axios, props.filterSchema.endpoint, {}, false)
+            let items = await itemsStore.retrieveItems(props.filterSchema.endpoint, {}, false)
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
@@ -137,7 +137,7 @@ function remoteSearch(query) {
         return
     }
     if (ref) {
-        itemsStore.retrieveItems($axios, url, {search: query, limit: 0, offset: 0, ordering: undefined}, false).then((items) => {
+        itemsStore.retrieveItems(url, {search: query, limit: 0, offset: 0, ordering: undefined}, false).then((items) => {
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
@@ -169,7 +169,7 @@ useIntersectionObserver(lastElement, async ([{ isIntersecting }], observerElemen
           let url = next.split('?')[0]
           let params = next.split('?')[1]
           params = Object.fromEntries(new URLSearchParams(params))
-          let items = await itemsStore.retrieveItems($axios, url, params)
+          let items = await itemsStore.retrieveItems(url, params)
           items = JSON.parse(JSON.stringify(items))
           items.results = items.results.map((item) => {
               return {

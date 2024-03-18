@@ -118,7 +118,6 @@ import {storeToRefs} from 'pinia'
 
 const { t } = useI18n();
 const itemsStore = useItemsStore()
-const {$axios} = useNuxtApp();
 const deleting = ref(undefined)
 const deleteDialogVisible = ref(false)
 const {schema} = storeToRefs(itemsStore)
@@ -201,7 +200,7 @@ function initStoreWatchers() {
 
 async function initData() {
     itemsStore.loading = true
-    itemSchema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    itemSchema.value = await itemsStore.getSchemaDef(props.apiUrl)
     sortChange(props.defaultSort)
     await loadItems()
     initStoreWatchers()
@@ -217,7 +216,7 @@ async function loadItems() {
     const params = {}
     if (props.defaultFilters)
         Object.assign(params, props.defaultFilters)
-    await itemsStore.retrieveItems($axios, props.apiUrl, params)
+    await itemsStore.retrieveItems(props.apiUrl, params)
     await resolveTableRowProps(itemsStore.items[props.apiUrl]?.results)
     itemsStore.loading = false
 }
@@ -253,7 +252,7 @@ function sortChange({column, prop, order}) {
 
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl, t, $axios);
+    await deleteItem(deleting.value, itemsStore, props.apiUrl);
     deleting.value = undefined;
     deleteDialogVisible.value = false
 }

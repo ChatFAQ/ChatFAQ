@@ -1,8 +1,7 @@
 import { ElNotification } from "element-plus";
 import { authHeaders } from "~/store/items.js";
 import { useItemsStore } from "~/store/items.js";
-
-
+import {useI18n} from "vue-i18n";
 
 export function rgba2hex(orig) {
     if (!orig.toLowerCase().startsWith("rgba"))
@@ -47,7 +46,6 @@ export function formatDate(date) {
 
 export async function solveRefPropValue(item, propName, itemSchema) {
     const itemsStore = useItemsStore();
-    const {$axios} = useNuxtApp();
     if (!itemSchema)
         return;
     const prop = itemSchema.properties[propName];
@@ -67,7 +65,7 @@ export async function solveRefPropValue(item, propName, itemSchema) {
             let apiUrl = prop?.choices?.next  // it better ahs a next...
             if (apiUrl) {
                 apiUrl = apiUrl.split("?")[0];
-                const res = await itemsStore.retrieveItems($axios, apiUrl, {
+                const res = await itemsStore.retrieveItems(apiUrl, {
                     id: item[propName],
                     limit: 0,
                     offset: 0,
@@ -84,10 +82,11 @@ export async function solveRefPropValue(item, propName, itemSchema) {
 }
 
 
-export async function deleteItem(id, itemsStore, apiUrl, t, $axios) {
+export async function deleteItem(id, itemsStore, apiUrl) {
+    const { t } = useI18n();
     try {
         itemsStore.loading = true;
-        await itemsStore.deleteItem($axios, apiUrl, id);
+        await itemsStore.deleteItem(apiUrl, id);
         itemsStore.loading = false;
     } catch (e) {
         itemsStore.loading = false;
@@ -108,7 +107,9 @@ export async function deleteItem(id, itemsStore, apiUrl, t, $axios) {
 }
 
 
-export async function callRagReindex($axios, ragId, t) {
+export async function callRagReindex(ragId, t) {
+    const {$axios} = useNuxtApp();
+
     try {
         await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`);
     } catch (e) {
@@ -128,7 +129,9 @@ export async function callRagReindex($axios, ragId, t) {
     });
 }
 
-export async function upsertItem($axios, apiUrl, item, itemStore, t, updateItems = false, params = {}) {
+export async function upsertItem(apiUrl, item, itemStore, t, updateItems = false, params = {}) {
+    const {$axios} = useNuxtApp()
+
     let res;
     try {
         itemStore.savingItem = true;
@@ -138,7 +141,7 @@ export async function upsertItem($axios, apiUrl, item, itemStore, t, updateItems
             res = (await $axios.post(apiUrl, item, { "headers": authHeaders() })).data;
         }
         if (updateItems)
-            await itemStore.retrieveItems($axios, apiUrl, params);
+            await itemStore.retrieveItems(apiUrl, params);
         itemStore.savingItem = false;
     } catch (e) {
         ElNotification({

@@ -59,7 +59,7 @@ const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 
 const itemType = ref("user")
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 
 function submitPassword() {

@@ -84,9 +84,9 @@ const sdks = ref([]);
 
 async function initData() {
     itemsStore.loading = true;
-    itemSchemaRAG.value = await itemsStore.getSchemaDef($axios, RAGAPIUrl.value);
-    itemSchemaWidget.value = await itemsStore.getSchemaDef($axios, WidgetAPIUrl.value);
-    itemSchemaSDK.value = await itemsStore.getSchemaDef($axios, SDKAPIUrl.value);
+    itemSchemaRAG.value = await itemsStore.getSchemaDef(RAGAPIUrl.value);
+    itemSchemaWidget.value = await itemsStore.getSchemaDef(WidgetAPIUrl.value);
+    itemSchemaSDK.value = await itemsStore.getSchemaDef(SDKAPIUrl.value);
     itemsStore.loading = false;
 }
 
