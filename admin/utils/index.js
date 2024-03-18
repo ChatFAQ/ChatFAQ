@@ -1,5 +1,8 @@
 import { ElNotification } from "element-plus";
 import { authHeaders } from "~/store/items.js";
+import { useItemsStore } from "~/store/items.js";
+
+
 
 export function rgba2hex(orig) {
     if (!orig.toLowerCase().startsWith("rgba"))
@@ -42,12 +45,15 @@ export function formatDate(date) {
     return `${day}/${month}/${year} ${hour}:${minutes}`;
 }
 
-export function solveRefPropValue(item, propName, itemSchema) {
+export async function solveRefPropValue(item, propName, itemSchema) {
+    const itemsStore = useItemsStore();
+    const {$axios} = useNuxtApp();
     if (!itemSchema)
         return;
     const prop = itemSchema.properties[propName];
-    if (!prop)
+    if (!prop) {
         return item[propName];
+    }
     if (prop.$ref && itemSchema.properties[propName].choices) {
         // itemSchema.choices has the values for the $ref: [{label: "label", value: "value"}, {...}] item[propName] has the value, we want the label
         let choice;
@@ -55,8 +61,21 @@ export function solveRefPropValue(item, propName, itemSchema) {
             choice = itemSchema.properties[propName].choices.results.find(choice => choice.value === item[propName]);
         else
             choice = itemSchema.properties[propName].choices.find(choice => choice.value === item[propName]);
-        if (choice) {
+        if (choice)
             return choice.label;
+        else if (!choice && prop.$ref) {
+            let apiUrl = prop?.choices?.next  // it better ahs a next...
+            if (apiUrl) {
+                apiUrl = apiUrl.split("?")[0];
+                const res = await itemsStore.retrieveItems($axios, apiUrl, { // TODO: we should cache this, because it tables with a lot of items will make a lot of the same requests
+                    id: item[propName],
+                    limit: 0,
+                    offset: 0,
+                    ordering: undefined
+                }, false, true);
+                if (res)
+                    return res.name
+            }
         }
     }
     return item[propName];

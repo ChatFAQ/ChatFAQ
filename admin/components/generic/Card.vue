@@ -4,9 +4,9 @@
             <template #header>
                 <div class="card-header-title">{{ createTitle(item) }}</div>
             </template>
-            <div v-for="(name, prop) in cardProps" class="property">
+            <div v-for="(prop, name) in resolvedCardProps" class="property">
                 <slot :name="prop" v-bind="{item, name, prop}">
-                    <span class="title">{{ name }}:</span>{{ solveRefPropValue(item, prop, itemSchema) }}
+                    <span class="title">{{ name }}:</span>{{ prop.finalValue }}
                 </slot>
             </div>
             <div class="divider" v-if="editable || deletable">
@@ -96,6 +96,18 @@ async function delItem() {
     deleteDialogVisible.value = false;
     emit("click-delete", props.item.id);
 }
+
+async function resolveCardProps() {
+    const res = {};
+    for (const [prop, name] of Object.entries(props.cardProps)) {
+        const value = await solveRefPropValue(props.item, prop, props.itemSchema);
+        res[name] = {prop: prop, finalValue: value};
+    }
+    return res
+}
+
+const resolvedCardProps = ref(await resolveCardProps())
+
 </script>
 
 <style lang="scss">

@@ -46,7 +46,7 @@
         </div>
         <el-table v-else-if="requiredFilterSatisfied"
                   class="table-view"
-                  :data="itemsStore.items[apiUrl]?.results"
+                  :data="resolvedTableRowProps"
                   :stripe="false"
                   :defaultSort="defaultSort"
                   sortable="custom"
@@ -56,7 +56,7 @@
                 v-for="(propInfo, prop) in tableProps"
                 :prop="prop"
                 :label="propInfo.name"
-                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : solveRefPropValue(row, column.property, itemSchema)"
+                :formatter="(row, column) => propInfo.formatter ? propInfo.formatter(row, column.property) : row[column.property]"
                 :width="propInfo.width ? propInfo.width : undefined"
                 :align="propInfo.align ? propInfo.align : undefined"
                 :sortable="propInfo.sortable"
@@ -124,6 +124,7 @@ const deleteDialogVisible = ref(false)
 const {schema} = storeToRefs(itemsStore)
 const itemSchema = ref({})
 const route = useRoute()
+const resolvedTableRowProps = ref([])
 
 const props = defineProps({
     readableName: {
@@ -209,10 +210,25 @@ async function loadItems() {
         return
     }
     await itemsStore.retrieveItems($axios, props.apiUrl)
+    await resolveTableRowProps(itemsStore.items[props.apiUrl]?.results)
     itemsStore.loading = false
 }
 
 await initData()
+
+
+async function resolveTableRowProps(results) {
+    const res = []
+    for (const row of results) {
+        const resolvedRow = {...row}
+        for (const [prop, propInfo] of Object.entries(props.tableProps)) {
+            const value = await solveRefPropValue(row, prop, itemSchema.value)
+            resolvedRow[prop] = value
+        }
+        res.push(resolvedRow)
+    }
+    resolvedTableRowProps.value = res
+}
 
 function stateToAdd() {
     itemsStore.adding = true
