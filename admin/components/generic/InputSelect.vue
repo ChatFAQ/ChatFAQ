@@ -72,7 +72,7 @@ async function initChoices() {
     else if (props.filterSchema && props.filterSchema.type === "ref") {
         choices.value = filterChoices.value.results || []
     }
-    if(props.schema?.properties[props.fieldName]?.$ref && props.form[props.fieldName] !== undefined) {
+    if(props.schema?.properties[props.fieldName]?.$ref && props.form && props.form[props.fieldName] !== undefined) {
         await solveRefPropValue(props.form, props.fieldName, props.schema)
     }
     choices.value = props.schema.properties[props.fieldName].choices.results ? props.schema.properties[props.fieldName].choices.results : props.schema.properties[props.fieldName].choices

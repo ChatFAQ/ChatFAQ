@@ -129,8 +129,9 @@ export async function callRagReindex(ragId, t) {
     });
 }
 
-export async function upsertItem(apiUrl, item, itemStore, t, updateItems = false, params = {}) {
+export async function upsertItem(apiUrl, item, itemStore, updateItems = false, params = {}) {
     const {$axios} = useNuxtApp()
+    const { t } = useI18n();
 
     let res;
     try {

@@ -106,7 +106,7 @@ function goTo(route) {
 async function switchDisabled(item) {
     try {
         loading.value[item.id] = true;
-        const res = await upsertItem($axios, RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, t);
+        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore);
         item.disabled = res.disabled;
         loading.value[item.id] = false;
     } catch (e) {

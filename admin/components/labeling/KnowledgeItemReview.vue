@@ -124,7 +124,7 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore, t, true, {limit: 0, offset: 0, ordering: undefined})
+    review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore,true, {limit: 0, offset: 0, ordering: undefined})
 }
 
 function getVoteKI(kiId) {
