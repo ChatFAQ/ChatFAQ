@@ -254,7 +254,7 @@ function sortChange({column, prop, order}) {
 
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl);
+    await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
     deleting.value = undefined;
     deleteDialogVisible.value = false
 }

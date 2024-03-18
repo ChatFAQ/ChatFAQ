@@ -82,8 +82,7 @@ export async function solveRefPropValue(item, propName, itemSchema) {
 }
 
 
-export async function deleteItem(id, itemsStore, apiUrl) {
-    const { t } = useI18n();
+export async function deleteItem(id, itemsStore, apiUrl, $t) {
     try {
         itemsStore.loading = true;
         await itemsStore.deleteItem(apiUrl, id);
@@ -92,7 +91,7 @@ export async function deleteItem(id, itemsStore, apiUrl) {
         itemsStore.loading = false;
         ElNotification({
             title: "Error",
-            message: t("errordeletingitem"),
+            message: $t("errordeletingitem"),
             type: "error",
             position: "top-right",
         });
@@ -100,14 +99,14 @@ export async function deleteItem(id, itemsStore, apiUrl) {
     }
     ElNotification({
         title: "Success",
-        message: t("successdeletingitem"),
+        message: $t("successdeletingitem"),
         type: "success",
         position: "top-right",
     });
 }
 
 
-export async function callRagReindex(ragId, t) {
+export async function callRagReindex(ragId, $t) {
     const {$axios} = useNuxtApp();
 
     try {
@@ -115,7 +114,7 @@ export async function callRagReindex(ragId, t) {
     } catch (e) {
         ElNotification({
             title: "Error",
-            message: t("failedtotriggerreindex"),
+            message: $t("failedtotriggerreindex"),
             type: "error",
             position: "top-right",
         });
@@ -123,15 +122,14 @@ export async function callRagReindex(ragId, t) {
     }
     ElNotification({
         title: "Success",
-        message: t("reindextriggered"),
+        message: $t("reindextriggered"),
         type: "success",
         position: "top-right",
     });
 }
 
-export async function upsertItem(apiUrl, item, itemStore, updateItems = false, params = {}) {
-    const {$axios} = useNuxtApp()
-    const { t } = useI18n();
+export async function upsertItem(apiUrl, item, itemStore, updateItems = false, params = {}, $t) {
+    const { $axios } = useNuxtApp()
 
     let res;
     try {
@@ -147,7 +145,7 @@ export async function upsertItem(apiUrl, item, itemStore, updateItems = false, p
     } catch (e) {
         ElNotification({
             title: "Error",
-            message: t("failedaction"),
+            message: $t("failedaction"),
             type: "error",
             position: "top-right",
         });
@@ -155,7 +153,7 @@ export async function upsertItem(apiUrl, item, itemStore, updateItems = false, p
     }
     ElNotification({
         title: "Success",
-        message: t("actionsuccess"),
+        message: $t("actionsuccess"),
         type: "success",
         position: "top-right",
     });
