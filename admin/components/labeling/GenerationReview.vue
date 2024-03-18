@@ -58,7 +58,7 @@ watch(() => props.messageId, async (_) => {
 
 async function initGenReview() {
     itemsStore.loading = true
-    review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.messageId, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
+    review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.messageId, limit: 0, offset: 0, ordering: undefined}, true) || {}
     reviewType.value = review.value.gen_review_type
     itemsStore.loading = false
 }

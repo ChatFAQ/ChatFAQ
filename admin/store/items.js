@@ -1,10 +1,5 @@
 import {defineStore} from 'pinia';
 
-function apiCacheName(apiUrl, params) {
-    return apiUrl
-    return apiUrl + new URLSearchParams(params).toString()
-}
-
 export function authHeaders() {
     const token = useCookie('token').value
     return {
@@ -14,7 +9,6 @@ export function authHeaders() {
 
 export const useItemsStore = defineStore('items', {
     state: () => ({
-        items: {},
         paths: {},
         filters: {},
         schema: undefined,
@@ -27,12 +21,12 @@ export const useItemsStore = defineStore('items', {
         currentPage: 1,
         ordering: undefined,
         itemsChanged: 0,
+        total: 0
     }),
     actions: {
-        async retrieveItems(apiUrl = undefined, params = {}, cache= true, one= false) {
+        async retrieveItems(apiUrl = undefined, params = {}, one= false) {
             const {$axios} = useNuxtApp();
 
-            const cacheName = apiCacheName(apiUrl, params)
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
             if (!("limit" in params))
                 params.limit = this.pageSize
@@ -52,18 +46,10 @@ export const useItemsStore = defineStore('items', {
             if (Array.isArray(res)) { // When the endpoint is not paginated
                 res = {results: res}
             }
-            if (!cache) {
-                if (one) {
-                    return res.results[0]
-                }
-                return res
-            }
-
-            this.items[cacheName] = res
             if (one) {
-                return this.items[cacheName][0]
+                return res.results[0]
             }
-            return this.items[cacheName]
+            return res
         },
         async deleteItem(apiUrl, id, refresh = true) {
             const {$axios} = useNuxtApp();
@@ -90,22 +76,18 @@ export const useItemsStore = defineStore('items', {
                 return await this._resolveRefs(this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async getNextItem(apiUrl, itemId, direction = 1, params = {}, force= false) {
-            const {$axios} = useNuxtApp();
-
-            const cacheName = apiCacheName(apiUrl, params)
-
-            if (force || !this.items[cacheName]) {
-                await this.retrieveItems(apiUrl)
+        async getNextItem(items, apiUrl, itemId, direction = 1, params = {}, force= false) {
+            if (force || !items) {
+                items = await this.retrieveItems(apiUrl)
             }
             // It takes the next item after currentItem
-            let index = this.items[cacheName].results.findIndex(item => item.id === itemId)
+            let index = items.results.findIndex(item => item.id === itemId)
             if (index === -1)
                 return undefined
             index += direction
-            if (index < 0 || index >= this.items[cacheName].results.length)
+            if (index < 0 || index >= items.results.length)
                 return undefined
-            return this.items[cacheName].results[index]
+            return items.results[index]
         },
         async _resolveRefs(schema) {
             if (!schema.properties && schema.oneOf) {

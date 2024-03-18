@@ -91,7 +91,7 @@ if (itemsStore.editing) {
         limit: 0,
         offset: 0,
         knowledge_base__id: itemsStore.editing
-    }, false)).results
+    })).results
 }
 
 function getNameFromFile(file) {

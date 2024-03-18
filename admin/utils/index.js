@@ -70,7 +70,7 @@ export async function solveRefPropValue(item, propName, itemSchema) {
                     limit: 0,
                     offset: 0,
                     ordering: undefined
-                }, false, true);
+                }, true);
                 if (res) {
                     itemSchema.properties[propName].choices.results.push({label: res.name, value: res.id})
                     return res.name

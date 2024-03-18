@@ -10,7 +10,7 @@
             :disabled="disabled"
             :background="background"
             layout="prev, pager, next"
-            :total="itemsStore?.items[props.apiUrl]?.count || 0"
+            :total="itemsStore.total || 0"
             @current-change="pageChange"
         />
         <div></div>
@@ -38,7 +38,7 @@ const pageChange = async (val: number) => {
     emit("change")
 }
 const total = computed(() => {
-    return itemsStore?.items[props.apiUrl]?.count || 0
+    return itemsStore.total || 0
 })
 
 </script>

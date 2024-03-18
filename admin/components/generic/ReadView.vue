@@ -3,10 +3,10 @@
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
         <Filters v-if="filtersSchema" :filtersSchema="filtersSchema"/>
         <div class="section-header">
-            <slot name="legend" :total="itemsStore.items[apiUrl]?.results?.length">
+            <slot name="legend" :total="items.results?.length">
                 <div class="item-count"> {{
                         $t("numberofitems", {
-                            "number": itemsStore.items[apiUrl]?.results.length,
+                            "number": items.results.length,
                             "readablename": readableName
                         })
                     }}
@@ -29,12 +29,12 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
-            <Card v-for="item in itemsStore.items[apiUrl]?.results" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
+            <Card v-for="item in items.results" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
                 <template v-slot:extra-card-bottom="{item}">
                     <slot name="extra-card-bottom" :item="item"></slot>
                 </template>
             </Card>
-            <div class="box-card-add" :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}"
+            <div class="box-card-add" :class="{'no-items': !items.results.length}"
                  @click="stateToAdd">
                 <div class="box-card-add-content">
                     <el-icon>
@@ -80,7 +80,7 @@
             </el-table-column>
         </el-table>
         <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add"
-             :class="{'no-items': !itemsStore.items[apiUrl]?.results.length}"
+             :class="{'no-items': !items.results.length}"
              @click="stateToAdd">
             <span>
                 <el-icon>
@@ -124,6 +124,7 @@ const {schema} = storeToRefs(itemsStore)
 const itemSchema = ref({})
 const route = useRoute()
 const resolvedTableRowProps = ref([])
+const items = ref({results: []})
 
 const props = defineProps({
     readableName: {
@@ -210,14 +211,15 @@ async function loadItems() {
     itemsStore.loading = true
     if (!requiredFilterSatisfied.value) {
         itemsStore.loading = false
-        itemsStore.items[props.apiUrl] = {results: []}
+        items.value = {results: []}
         return
     }
     const params = {}
     if (props.defaultFilters)
         Object.assign(params, props.defaultFilters)
-    await itemsStore.retrieveItems(props.apiUrl, params)
-    await resolveTableRowProps(itemsStore.items[props.apiUrl]?.results)
+    items.value = await itemsStore.retrieveItems(props.apiUrl, params)
+    await resolveTableRowProps(items.value.results)
+    itemsStore.total = items.value.count
     itemsStore.loading = false
 }
 

@@ -101,7 +101,7 @@ const isRef = computed(() => {
 onMounted(async () => {
     if (props.filterSchema) {
         if (props.filterSchema.type === "ref") {
-            let items = await itemsStore.retrieveItems(props.filterSchema.endpoint, {}, false)
+            let items = await itemsStore.retrieveItems(props.filterSchema.endpoint, {})
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
@@ -137,7 +137,7 @@ function remoteSearch(query) {
         return
     }
     if (ref) {
-        itemsStore.retrieveItems(url, {search: query, limit: 0, offset: 0, ordering: undefined}, false).then((items) => {
+        itemsStore.retrieveItems(url, {search: query, limit: 0, offset: 0, ordering: undefined}).then((items) => {
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {

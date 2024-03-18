@@ -274,7 +274,7 @@ async function initializeFormValues() {
             id: props.itemId,
             limit: 0,
             offset: 0
-        }, false, true) || {}
+        }, true) || {}
         for (const [fieldName, fieldValue] of Object.entries(data)) {
             if (allExcludeFields.value.indexOf(fieldName) === -1) {
                 form.value[fieldName] = fieldValue
