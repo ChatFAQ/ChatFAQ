@@ -67,14 +67,16 @@ export async function solveRefPropValue(item, propName, itemSchema) {
             let apiUrl = prop?.choices?.next  // it better ahs a next...
             if (apiUrl) {
                 apiUrl = apiUrl.split("?")[0];
-                const res = await itemsStore.retrieveItems($axios, apiUrl, { // TODO: we should cache this, because it tables with a lot of items will make a lot of the same requests
+                const res = await itemsStore.retrieveItems($axios, apiUrl, {
                     id: item[propName],
                     limit: 0,
                     offset: 0,
                     ordering: undefined
                 }, false, true);
-                if (res)
+                if (res) {
+                    itemSchema.properties[propName].choices.results.push({label: res.name, value: res.id})
                     return res.name
+                }
             }
         }
     }
