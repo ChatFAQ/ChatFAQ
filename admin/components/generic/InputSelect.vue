@@ -72,6 +72,8 @@ async function initChoices() {
     else if (props.filterSchema && props.filterSchema.type === "ref") {
         choices.value = filterChoices.value.results || []
     }
+    if(!props.schema.properties)
+        return
     if(props.schema?.properties[props.fieldName]?.$ref && props.form && props.form[props.fieldName] !== undefined) {
         await solveRefPropValue(props.form, props.fieldName, props.schema)
     }
@@ -116,7 +118,7 @@ onMounted(async () => {
 })
 
 
-function remoteSearch(query) {
+async function remoteSearch(query) {
     loading.value = true
     let url
     let ref = false
@@ -152,6 +154,7 @@ function remoteSearch(query) {
                 resultHolder.next = items.next
         })
     }
+    await initChoices()
     loading.value = false
 }
 
