@@ -112,7 +112,28 @@
     </el-tabs>
     <el-dialog v-model="showingIntentRefs" :title="$t('refs')" width="500" center>
         <span>
-            {{ intentRefs }}
+            1{{intentKisRefs}}2
+            <el-table v-if="intentKisRefs"
+                      class="table-view"
+                      :data="intentKisRefs"
+                      :stripe="false"
+                      style="width: 100%">
+                <el-table-column
+                    :prop="'title'"
+                    :label="$t('title')"
+                    sortable
+                />
+                <el-table-column
+                    :prop="'content'"
+                    :label="$t('title')"
+                    sortable
+                />
+                <el-table-column
+                    :prop="'url'"
+                    :label="$t('title')"
+                    sortable
+                />
+            </el-table>
         </span>
     </el-dialog>
 </template>
@@ -123,7 +144,8 @@ import {useItemsStore} from "~/store/items.js";
 import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 
 const password = ref(null)
-const intentRefs = ref([])
+const intentKIsRefs = ref(undefined)
+const intentQuestionsRefs = ref(undefined)
 const showingIntentRefs = ref(false)
 const itemsStore = useItemsStore()
 
@@ -144,12 +166,14 @@ async function submitKnowledgeBase(id, form) {
 }
 async function showKIsForIntent(row) {
     const res = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {"intent__id": row.id, limit: 0, offset: 0, ordering: undefined})
-    intentRefs.value = res.results
+    intentKIsRefs.value = res.results
+    intentQuestionsRefs.value = undefined
     showingIntentRefs.value = true
 }
 async function showQuestionsForIntent(row) {
     const res = await itemsStore.retrieveItems("/back/api/language-model/messages/", {"intent__id": row.id, limit: 0, offset: 0, ordering: undefined})
-    intentRefs.value = res.results
+    intentQuestionsRefs.value = res.results
+    intentKIsRefs.value = undefined
     showingIntentRefs.value = true
 }
 </script>
