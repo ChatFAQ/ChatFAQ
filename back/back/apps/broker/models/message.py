@@ -4,6 +4,7 @@ from enum import Enum
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.contrib.postgres.fields import ArrayField
 
 from back.common.models import ChangesMixin
 
@@ -280,7 +281,9 @@ class UserFeedback(ChangesMixin):
         Message, null=True, unique=True, on_delete=models.SET_NULL
     )
     value = models.CharField(max_length=255, choices=VALUE_CHOICES)
-    feedback = models.TextField(null=True, blank=True)
+
+    feedback_selection = ArrayField(models.TextField(), null=True, blank=True)
+    feedback_comment = models.TextField(null=True, blank=True)
 
 
 class AdminReview(ChangesMixin):

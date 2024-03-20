@@ -33,8 +33,6 @@
 <script lang="ts" setup>
 import {useItemsStore} from "~/store/items.js";
 import InputSelect from "~/components/generic/InputSelect.vue";
-
-const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const form = ref({})
 const emit = defineEmits(['change'])
@@ -42,10 +40,6 @@ const emit = defineEmits(['change'])
 const ignoreParams = ['offset', 'limit', 'id'];
 
 const props = defineProps({
-    apiUrl: {
-        type: String,
-        required: true,
-    },
     filtersSchema: {
         type: Array,
         required: false,
@@ -58,8 +52,7 @@ watch(() => itemsStore.filters, async () => {  // For when setting filters from 
 
 function initForm() {  // For when setting filters from outside
     for (const [filter_name, filter_val] of Object.entries(itemsStore.filters)) {
-        if (form.value[filter_name] === undefined)
-            form.value[filter_name] = filter_val
+        form.value[filter_name] = filter_val
     }
 }
 initForm()
@@ -81,18 +74,20 @@ function debounce(func, timeout = 500) {
 const submitFiltersDebounce = debounce(async () => await submitFilters());
 
 async function submitFilters() {
-    const fitlers = {}
+    const _filters = {}
     for (const [key, value] of Object.entries(form.value)) {
+        if (key.indexOf("__gte") !== -1 || key.indexOf("__lte") !== -1)
+            continue
         if (Array.isArray(value)) {
             if (value.length > 0) {
-                fitlers[key + "__gte"] = value[0].toISOString().split('T')[0]
-                fitlers[key + "__lte"] = value[1].toISOString().split('T')[0]
+                _filters[key + "__gte"] = value[0].toISOString().split('T')[0]
+                _filters[key + "__lte"] = value[1].toISOString().split('T')[0]
             }
         } else if (value !== undefined && !ignoreParams.includes(key)) {
-            fitlers[key] = value
+            _filters[key] = value
         }
     }
-    itemsStore.filters = fitlers
+    itemsStore.filters = _filters
     itemsStore.currentPage = 1
     emit("change")
 }

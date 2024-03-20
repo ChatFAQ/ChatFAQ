@@ -104,6 +104,7 @@ class KnowledgeItemFilterSet(django_filters.FilterSet):
         fields = {
            'id': ['exact'],
            'knowledge_base__id': ['exact'],
+           'intent__id': ['exact'],
            'knowledge_base__name': ['exact'],
            'created_date': ['lte', 'gte'],
         }
@@ -264,4 +265,4 @@ class DataSourceAPIViewSet(viewsets.ModelViewSet):
     queryset = DataSource.objects.all()
     serializer_class = DataSourceSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["id"]
+    filterset_fields = ["id", "knowledge_base__id"]

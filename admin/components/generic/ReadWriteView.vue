@@ -10,6 +10,7 @@
                 :titleProps="titleProps"
                 :readOnly="readOnly"
                 :defaultSort="defaultSort"
+                :defaultFilters="defaultFilters"
                 :filtersSchema="filtersSchema"
                 :requiredFilter="requiredFilter"
                 :textExplanation="textExplanation"
@@ -22,14 +23,18 @@
                 v-else
                 :readableName="readableName"
                 :apiUrl="apiUrl"
-                :editing="editing"
-                :adding="adding"
+                :itemId="editing"
                 :titleProps="titleProps"
                 :excludeFields="excludeFields"
+                :conditionalIncludedFields="conditionalIncludedFields"
                 :sections="sections"
                 :outsideSection="outsideSection"
                 v-bind="$attrs"
                 :readOnly="readOnly"
+                :order="order"
+                :backButton="backButton"
+                :commandButtons="commandButtons"
+                :leaveAfterSave="leaveAfterSave"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -78,6 +83,11 @@ const props = defineProps({
         required: false,
         default: [],
     },
+    conditionalIncludedFields: { // the values are the only fields that are conditionally included if the keys (fields names) are present in the form
+        type: Object,
+        required: false,
+        default: undefined,
+    },
     sections: {
         type: Object,
         required: false,
@@ -87,6 +97,11 @@ const props = defineProps({
         type: Object,
         required: false,
         default: {},
+    },
+    defaultFilters: {
+        type: Object,
+        required: false,
+        default: undefined,
     },
     outsideSection: {
         type: Array,
@@ -109,6 +124,26 @@ const props = defineProps({
     textExplanation: {
         type: String,
         required: false,
+    },
+    order: {
+        type: Array,
+        required: false,
+        default: undefined,
+    },
+    backButton: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    commandButtons: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    leaveAfterSave: {
+        type: Boolean,
+        required: false,
+        default: true,
     },
 })
 </script>

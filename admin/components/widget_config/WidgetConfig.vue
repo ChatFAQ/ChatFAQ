@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t('widgetconfig') }}</div>
-    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('widget')" name="widgetsettings">
             <ReadWriteView :readableName="$t('widget')" apiUrl="/back/api/widget/widgets/"
                            :cardProps="{
@@ -49,7 +49,7 @@
                     'name': {'name': $t('name')},
                 }"
                 :outsideSection="['data']"
-                @submitForm="submitFieldData"
+                @submitFormStart="submitFieldData"
             >
                 <template v-slot:write-data="props">
                     <FieldData :form="props.form" :fieldName="props.fieldName"  ref="fieldData">123</FieldData>
@@ -72,7 +72,7 @@ const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 
 const itemType = ref("widgetsettings")
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 function submitFieldData() {
     fieldData.value.submit()

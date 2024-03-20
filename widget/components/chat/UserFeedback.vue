@@ -8,7 +8,7 @@
             <div class="feedback-controls">
                 <!-- Thumb Up -->
                 <div class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}">
-                    <svg @click="userFeedback('positive')"
+                    <svg @click="sendUserFeedback('positive')"
                          width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M2 7C2 6.44772 2.44772 6 3 6H4.66667V14H3C2.44772 14 2 13.5523 2 13V7Z"
                               stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -23,7 +23,7 @@
 
                 <!-- Thumb Down -->
                 <div class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'collapse': collapse}">
-                    <svg @click="userFeedback('negative')"
+                    <svg @click="sendUserFeedback('negative')"
                          width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 9C14 9.55228 13.5523 10 13 10H11.3333V2H13C13.5523 2 14 2.44772 14 3V9Z"
                               stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -47,7 +47,7 @@
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
                     ref="feedbackInput"
-                    @keydown="(ev) => manageEnterInput(ev, () => userFeedback(feedbackValue, true))"
+                    @keydown="(ev) => manageEnterInput(ev, () => sendUserFeedback(feedbackValue, true))"
                     contenteditable
                     oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 />
@@ -57,7 +57,7 @@
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
                     ref="feedbackInput"
-                    @keydown="(ev) => manageEnterInput(ev, () => userFeedback(feedbackValue, true))"
+                    @keydown="(ev) => manageEnterInput(ev, () => sendUserFeedback(feedbackValue, true))"
                     contenteditable
                     oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                 />
@@ -78,7 +78,7 @@
             </div>
             <div class="submit-feedback-wrapper">
                 <div
-                    @click="userFeedback(feedbackValue, true)"
+                    @click="sendUserFeedback(feedbackValue, true)"
                     :class="{ 'dark-mode': store.darkMode }"
                 > {{ $t('submitfeedback') }}</div>
             </div>
@@ -113,7 +113,17 @@ function manageEnterInput(ev, cb) {
     }
 };
 
-async function userFeedback(value, _collapse) {
+onMounted(async () => {
+    let response = await fetch(store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`)
+    response = await response.json();
+    if (response.results && response.results.length) {
+        const userFeedback = response.results[0]
+        collapse.value = true
+        feedbackValue.value = userFeedback.value
+    }
+})
+
+async function sendUserFeedback(value, _collapse) {
     if (collapse.value)
         return
     feedbackValue.value = value
@@ -121,19 +131,19 @@ async function userFeedback(value, _collapse) {
     const feedbackData = {
         message: props.msgId,
         value: value,
-        feedback: ""
     };
     if (feedbackInput.value) {
         const feedback = feedbackInput.value.innerText.trim()
         if (feedback)
-            feedbackData["feedback"] += feedback
+            feedbackData["feedback_comment"] = feedback
     }
+    feedbackData["feedback_selection"] = []
     if (quickAnswer1.value)
-        feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason1")}`
+        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason1")]
     if (quickAnswer2.value)
-        feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason2")}`
+        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason2")]
     if (quickAnswer3.value)
-        feedbackData["feedback"] += `${'\n' ? feedbackData["feedback"].length : ''}${t("reason3")}`
+        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason3")]
 
     let method = "POST"
     let endpoint = '/back/api/broker/user-feedback/'

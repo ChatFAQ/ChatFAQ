@@ -1,11 +1,13 @@
 <template>
-    <div class="page-wrapper">
-        <Menu />
-        <div class="content-wrapper">
-            <slot />
-            <ActiveTasks class="active-tasks"></ActiveTasks>
+    <client-only>
+        <div class="page-wrapper">
+            <Menu />
+            <div class="content-wrapper">
+                <slot />
+                <ActiveTasks class="active-tasks"></ActiveTasks>
+            </div>
         </div>
-    </div>
+    </client-only>
 </template>
 <style scoped lang="scss">
 .page-wrapper {

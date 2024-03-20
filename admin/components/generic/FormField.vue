@@ -1,21 +1,25 @@
 <template>
-    <slot :name="'write-' + fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName" v-bind:formServerErrors="formServerErrors">
-        <el-form-item v-if="schema.properties[fieldName]" :label="schema.properties[fieldName].type === 'boolean' || noLabel ? '' : $t(fieldName)"
+    <slot :name="'write-' + fieldName" v-bind:schema="schema" v-bind:form="form" v-bind:fieldName="fieldName"
+          v-bind:formServerErrors="formServerErrors">
+        <el-form-item v-if="schema.properties[fieldName]"
+                      :label="schema.properties[fieldName].type === 'boolean' || noLabel ? '' : $t(fieldName)"
                       :prop="fieldName"
                       :error="formServerErrors[fieldName]">
-                <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]"
-                             :label="$t(fieldName)"/>
+            <el-checkbox v-if="schema.properties[fieldName].type === 'boolean'" v-model="form[fieldName]"
+                         :label="$t(fieldName)"/>
 
-                <InputSelect v-else-if="isSelect"
-                             :schema="schema"
-                             :form="form"
-                             :fieldName="fieldName"/>
-                <el-input v-else v-model="form[fieldName]"/>
+            <InputSelect v-else-if="isSelect"
+                         :schema="schema"
+                         :form="form"
+                         :fieldName="fieldName"/>
+            <FileField v-else-if="schema.properties[fieldName].type === 'file'" :form="form" :fieldName="fieldName"/>
+            <el-input v-else v-model="form[fieldName]"/>
         </el-form-item>
     </slot>
 </template>
 <script setup>
 import InputSelect from "~/components/generic/InputSelect.vue";
+import FileField from "~/components/generic/fields/FileField.vue";
 
 const props = defineProps({
     fieldName: {

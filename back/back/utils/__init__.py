@@ -1,3 +1,5 @@
+import json
+
 import sys
 import tempfile
 from enum import Enum

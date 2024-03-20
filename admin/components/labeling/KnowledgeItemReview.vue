@@ -39,10 +39,12 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import { upsertItem } from "~/utils/index.js";
+import {useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 
 const itemsStore = useItemsStore()
-
-const {$axios} = useNuxtApp()
 
 const ki_choices = ref([])
 const reviewedKIs = ref({})
@@ -67,12 +69,12 @@ async function initKIReview() {
         return
     }
     for (const ki_ref of references.knowledge_items) {
-        const ki = await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, false, true)
+        const ki = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, true)
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
-    review.value = await itemsStore.retrieveItems($axios, "/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
-    ki_choices.value = (await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)).results
+    review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, true) || {}
+    ki_choices.value = (await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})).results
     itemsStore.loading = false
 }
 
@@ -122,11 +124,11 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
+    review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore,true, {limit: 0, offset: 0, ordering: undefined}, t)
 }
 
 function getVoteKI(kiId) {
-    if (review.value.id === undefined) {
+    if (review.value === undefined || review.value.id === undefined) {
         return undefined
     } else {
         return review.value.ki_review_data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())

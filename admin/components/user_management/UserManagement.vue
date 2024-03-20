@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
-    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
         <el-tab-pane :label="$t('user')" name="user">
             <ReadWriteView
                 :readableName="$t('user')"
@@ -13,7 +13,7 @@
                     'email': {'name': $t('email')},
                 }"
                 :excludeFields="['date_joined', 'last_login', 'rpc_group']"
-                @submitForm="submitPassword"
+                @submitFormStart="submitPassword"
                 :sections="{
                     [$t('userinformation')]: [
                         'first_name',
@@ -59,7 +59,7 @@ const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 
 const itemType = ref("user")
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 
 function submitPassword() {

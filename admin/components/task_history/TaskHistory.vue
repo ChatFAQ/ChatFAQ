@@ -66,12 +66,10 @@ import {useItemsStore} from "~/store/items.js";
 
 const password = ref(null)
 
-const {$axios} = useNuxtApp();
-
 const itemsStore = useItemsStore()
 
 const itemType = ref("tasks")
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 
 function calculateDuration({date_created, date_done}) {

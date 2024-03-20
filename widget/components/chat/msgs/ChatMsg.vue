@@ -32,10 +32,11 @@
                 <UserFeedback
                     v-if="
                         props.message.sender.type === 'bot' &&
+                        props.message.stack[props.message.stack.length - 1].meta &&
                         props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
-                        props.message.stack[props.message.stack.length - 1].last
+                        props.message.last
                     "
-                    :msg-id="props.message.stack[props.message.stack.length - 1].id"
+                    :msgId="props.message.id"
                     @feedbacking="feedbacking = true"
                     @collapse="feedbacking = false"
                 ></UserFeedback>

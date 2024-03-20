@@ -121,17 +121,14 @@ const conversation = ref({})
 const loadingConversation = ref(false)
 const thereIsNext = ref(true)
 const thereIsPrev = ref(true)
-
+let conversations = []
 // get conversation async data
 async function initConversation() {
     loadingConversation.value = true
-    const {data} = await useAsyncData(
-        "conversation" + props.id,
-        async () => await $axios.get("/back/api/broker/conversations/" + props.id + "/")
-    )
-    conversation.value = data.value.data
-    thereIsNext.value = (await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, 1)) !== undefined
-    thereIsPrev.value = (await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, -1)) !== undefined
+    conversation.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/")).data
+    conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
+    thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, 1)) !== undefined
+    thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, -1)) !== undefined
     loadingConversation.value = false
 }
 
@@ -164,7 +161,7 @@ function getQAMessageGroups(MMLChain) {
 async function pageConversation(direction) {
     loadingConversation.value = true
     msgLabeled.value = undefined
-    const nextItem = await itemsStore.getNextItem($axios, "/back/api/broker/conversations/", props.id, direction)
+    const nextItem = await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, direction)
     if (nextItem !== undefined) {
         itemsStore.editing = nextItem.id
     }

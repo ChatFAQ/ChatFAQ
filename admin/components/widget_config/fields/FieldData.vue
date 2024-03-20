@@ -83,16 +83,6 @@ function submit() {
     props.form[props.fieldName] = res
 }
 </script>
-<style lang="scss">
-.field-data-wrapper {
-
-    .el-form-item__label {
-        color: var(--chatfaq-color-primary-500);
-        font-size: 14px;
-        font-weight: 600;
-    }
-}
-</style>
 
 <style lang="scss" scoped>
 .field-data-wrapper {

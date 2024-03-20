@@ -10,7 +10,7 @@
             :disabled="disabled"
             :background="background"
             layout="prev, pager, next"
-            :total="itemsStore?.items[props.apiUrl]?.count || 0"
+            :total="itemsStore.total || 0"
             @current-change="pageChange"
         />
         <div></div>
@@ -20,7 +20,6 @@
 <script lang="ts" setup>
 import {useItemsStore} from "~/store/items.js";
 import {ref} from 'vue'
-const {$axios} = useNuxtApp();
 const emit = defineEmits(['change'])
 
 const props = defineProps({
@@ -39,7 +38,7 @@ const pageChange = async (val: number) => {
     emit("change")
 }
 const total = computed(() => {
-    return itemsStore?.items[props.apiUrl]?.count || 0
+    return itemsStore.total || 0
 })
 
 </script>
