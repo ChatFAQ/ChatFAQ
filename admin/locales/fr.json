@@ -285,5 +285,10 @@
     "existingintents": "Intentions existantes",
     "suggestedintents": "Intentions suggérées",
     "questions": "Questions",
-    "messages": "Messages"
+    "messages": "Messages",
+    "error": "Erreur",
+    "errorgeneratingitents": "Erreur lors de la génération des intentions",
+    "generateintents": "Générer des intentions",
+    "selectaknowledgebase": "Sélectionnez une base de connaissances",
+    "suggestintents": "Suggérer des intentions"
 }

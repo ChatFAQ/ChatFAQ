@@ -13,6 +13,7 @@
                 </div>
             </slot>
             <div class="section-header-right">
+                <slot name="extra-actions"></slot>
                 <el-button v-if="!readOnly" class="add-button" :class="{'not-only-command': cardProps && tableProps}"
                            type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}

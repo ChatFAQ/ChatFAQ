@@ -85,6 +85,12 @@
                 <template v-slot:intents="{row}">
                     <span class="command-edit" @click="showKIsForIntent(row.id)">{{ $t("view") }}</span>
                 </template>
+                <template v-slot:extra-actions>
+                    <el-button class="extra-command" round plain @click="generateIntents(itemsStore.filters.knowledge_base__id)" :disabled="itemsStore.filters.knowledge_base__id === undefined">
+                        <span v-if="itemsStore.filters.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
+                        <span v-else>{{ $t("generateintents") }}</span>
+                    </el-button>
+                </template>
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :label="$t('suggestedintents')" name="suggested_intents">
@@ -105,6 +111,12 @@
             >
                 <template v-slot:messages="{row}">
                     <span class="command-edit" @click="showMessagesForIntent(row.id)">{{ $t("view") }}</span>
+                </template>
+                <template v-slot:extra-actions>
+                    <el-button class="extra-command" round plain @click="suggestIntents(itemsStore.filters.knowledge_base__id)" :disabled="itemsStore.filters.knowledge_base__id === undefined">
+                        <span v-if="itemsStore.filters.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
+                        <span v-else>{{ $t("suggestintents") }}</span>
+                    </el-button>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -143,6 +155,8 @@
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
 import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
+import {ElNotification} from 'element-plus'
+import {useI18n} from "vue-i18n";
 
 const intentKIsRefs = ref(undefined)
 const intentMessagesRefs = ref(undefined)
@@ -151,6 +165,8 @@ const itemsStore = useItemsStore()
 
 const itemType = ref("knowledge-base")
 const dataSources = ref(null)
+const { t } = useI18n();
+const { $axios } = useNuxtApp();
 
 await itemsStore.loadSchema()
 
@@ -178,6 +194,30 @@ async function showMessagesForIntent(IntentId) {
     intentKIsRefs.value = undefined
     showingIntentRefs.value = true
 }
+async function generateIntents(knowledgeBaseId) {
+    await _triggerIntentsTask(`/back/api/language-model/intents/${knowledgeBaseId}/generate-intents/?generate_titles=1`)
+}
+async function suggestIntents(knowledgeBaseId) {
+    await _triggerIntentsTask(`/back/api/language-model/intents/${knowledgeBaseId}/suggest-intents/?generate_titles=1`)
+
+}
+async function _triggerIntentsTask(endpoint) {
+    try {
+        await $axios.post(endpoint)
+    } catch (e) {
+        ElNotification({
+            title: t("error"),
+            message: t("errorgeneratingitents"),
+            type: "error",
+        })
+        throw e
+    }
+    ElNotification({
+        title: t("success"),
+        message: t("intentsgenerated"),
+        type: "success",
+    })
+}
 </script>
 <style lang="scss">
 .el-dialog__header {
@@ -189,5 +229,8 @@ async function showMessagesForIntent(IntentId) {
     @include button-primary;
     width: 100%;
     margin-top: 8px;
+}
+.extra-command {
+    @include button-round;
 }
 </style>
