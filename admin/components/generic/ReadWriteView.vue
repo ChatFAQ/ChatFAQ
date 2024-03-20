@@ -14,6 +14,7 @@
                 :filtersSchema="filtersSchema"
                 :requiredFilter="requiredFilter"
                 :textExplanation="textExplanation"
+                ref="readView"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -52,6 +53,9 @@ import {storeToRefs} from 'pinia'
 import {useItemsStore} from "~/store/items.js";
 
 const itemsStore = useItemsStore()
+const readView = ref(undefined)
+
+defineExpose({readView})
 
 
 const {editing, adding} = storeToRefs(itemsStore)

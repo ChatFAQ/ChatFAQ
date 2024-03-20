@@ -1,8 +1,8 @@
 <template>
     <div class="dashboard-page-title">{{ $t("stats") }}</div>
-    <div class="stats-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="stats-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="text-explanation" v-html="$t('statsexplanation')"></div>
-        <Filters :filtersSchema="filterSchema"/>
+        <Filters :filtersSchema="filterSchema"  ref="filtersEl"/>
         <div class="stats" v-if="stats">
             <div class="section-title">{{ $t("conversations") }}</div>
             <div class="group-stats">
@@ -43,6 +43,8 @@ const { t } = useI18n();
 const itemsStore = useItemsStore()
 const {$axios} = useNuxtApp();
 const stats = ref(undefined)
+const filtersEl = ref(undefined)
+const loading = ref(false)
 
 const filterSchema = ref(
    [
@@ -50,15 +52,21 @@ const filterSchema = ref(
        {'type': 'range-date', 'startPlaceholder': t('startdate'), 'endPlaceholder': t('enddate'), 'field': 'created_date'},
    ]
 )
-watch(() => itemsStore.filters, async () => {  // For when setting filters from outside
-    await requestStats()
+
+watch(() => filtersEl.value, async () => {
+    watch(() => filtersEl.value.filters, async () => {
+        await requestStats()
+    }, {deep: true})
 }, {deep: true})
 
 async function requestStats() {
     // if (itemsStore.filters.rag === undefined)
     //     stats.value = undefined
-
-    let filters = {...itemsStore.filters}
+    loading.value = true
+    let filters = {}
+    if (filtersEl?.value?.filters) {
+        filters = {...filtersEl.value.filters}
+    }
     if (filters.created_date__gte) {
         filters.min_date = filters.created_date__gte
         delete filters.created_date__gte
@@ -73,6 +81,7 @@ async function requestStats() {
     }
     const response = await $axios.get('/back/api/broker/stats/', {params: filters, headers: authHeaders()})
     stats.value = response.data
+    loading.value = false
 }
 requestStats()
 

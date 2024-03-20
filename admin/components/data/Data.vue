@@ -80,14 +80,15 @@
                            ]"
                            :defaultFilters="{'suggested_intent': false}"
                            :textExplanation="$t('intentexplanation')"
+                           ref="suggestedIntentsView"
                            readOnly
             >
                 <template v-slot:intents="{row}">
                     <span class="command-edit" @click="showKIsForIntent(row.id)">{{ $t("view") }}</span>
                 </template>
                 <template v-slot:extra-actions>
-                    <el-button class="extra-command" round plain @click="generateIntents(itemsStore.filters.knowledge_base__id)" :disabled="itemsStore.filters.knowledge_base__id === undefined">
-                        <span v-if="itemsStore.filters.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
+                    <el-button class="extra-command" round plain @click="generateIntents(suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id)" :disabled="suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">
+                        <span v-if="suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
                         <span v-else>{{ $t("generateintents") }}</span>
                     </el-button>
                 </template>
@@ -107,14 +108,15 @@
                            ]"
                            :defaultFilters="{'suggested_intent': true}"
                            :textExplanation="$t('intentexplanation')"
+                           ref="generatedIntentsView"
                            readOnly
             >
                 <template v-slot:messages="{row}">
                     <span class="command-edit" @click="showMessagesForIntent(row.id)">{{ $t("view") }}</span>
                 </template>
                 <template v-slot:extra-actions>
-                    <el-button class="extra-command" round plain @click="suggestIntents(itemsStore.filters.knowledge_base__id)" :disabled="itemsStore.filters.knowledge_base__id === undefined">
-                        <span v-if="itemsStore.filters.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
+                    <el-button class="extra-command" round plain @click="suggestIntents(generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id)" :disabled="generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">
+                        <span v-if="generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
                         <span v-else>{{ $t("suggestintents") }}</span>
                     </el-button>
                 </template>
@@ -167,6 +169,8 @@ const itemType = ref("knowledge-base")
 const dataSources = ref(null)
 const { t } = useI18n();
 const { $axios } = useNuxtApp();
+const generatedIntentsView = ref(undefined)
+const suggestedIntentsView = ref(undefined)
 
 await itemsStore.loadSchema()
 
