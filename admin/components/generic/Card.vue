@@ -16,7 +16,7 @@
                     <Delete @click.stop @click="() => {deleting = item.id; deleteDialogVisible = true}" />
                 </el-icon>
                 <span v-if="editable" class="command-edit"
-                      @click='itemsStore.editing = id; emit("click-edit", item.id)'>{{ $t("edit") }}</span>
+                      @click='itemsStore.editing = item.id; emit("click-edit", item.id)'>{{ $t("edit") }}</span>
             </div>
         </el-card>
         <slot name="extra-card-bottom" :item="item"></slot>

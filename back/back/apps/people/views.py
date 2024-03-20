@@ -8,6 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
+from django_filters.rest_framework.backends import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 from .models import User
 from django.contrib.auth.models import Group, Permission
@@ -113,7 +115,8 @@ class LoginView(KnoxLoginView):
 class UserAPIViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
-    filter_backends = [filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
 
     def update(self, request, *args, **kwargs):
         password = request.data.get("password")

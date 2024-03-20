@@ -285,5 +285,10 @@
     "existingintents": "Existing Intents",
     "suggestedintents": "Suggested Intents",
     "questions": "Questions",
-    "messages": "Messages"
+    "messages": "Messages",
+    "error": "Error",
+    "errorgeneratingitents": "Error generating intents",
+    "generateintents": "Generate Intents",
+    "selectaknowledgebase": "Select a knowledge base",
+    "suggestintents": "Suggest Intents"
 }

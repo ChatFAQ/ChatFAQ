@@ -10,7 +10,7 @@
             :disabled="disabled"
             :background="background"
             layout="prev, pager, next"
-            :total="itemsStore.total || 0"
+            :total="total"
             @current-change="pageChange"
         />
         <div></div>
@@ -27,6 +27,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    total: {
+        type: Number,
+        required: true,
+    },
 });
 
 const itemsStore = useItemsStore()
@@ -37,10 +41,6 @@ const pageChange = async (val: number) => {
     itemsStore.currentPage = val
     emit("change")
 }
-const total = computed(() => {
-    return itemsStore.total || 0
-})
-
 </script>
 <style lang="scss">
 

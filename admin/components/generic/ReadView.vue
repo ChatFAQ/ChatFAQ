@@ -1,7 +1,7 @@
 <template>
-    <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="read-view-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
-        <Filters v-if="filtersSchema" :filtersSchema="filtersSchema"/>
+        <Filters v-if="filtersSchema" :filtersSchema="filtersSchema" :key="readableName" ref="filtersEl"/>
         <div class="section-header">
             <slot name="legend" :total="items.results?.length">
                 <div class="item-count"> {{
@@ -13,6 +13,7 @@
                 </div>
             </slot>
             <div class="section-header-right">
+                <slot name="extra-actions"></slot>
                 <el-button v-if="!readOnly" class="add-button" :class="{'not-only-command': cardProps && tableProps}"
                            type="primary" round plain @click="stateToAdd">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
@@ -89,7 +90,7 @@
                 {{ $t("additem", {"readablename": readableName}) }}
             </span>
         </div>
-        <Pagination :apiUrl="props.apiUrl"/>
+        <Pagination :apiUrl="props.apiUrl" :total="total"/>
     </div>
     <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
         <span>
@@ -125,6 +126,10 @@ const itemSchema = ref({})
 const route = useRoute()
 const resolvedTableRowProps = ref([])
 const items = ref({results: []})
+const loading = ref(false)
+const total = ref(0)
+const filtersEl = ref(undefined)
+defineExpose({filtersEl})
 
 const props = defineProps({
     readableName: {
@@ -178,7 +183,7 @@ const props = defineProps({
 });
 
 const requiredFilterSatisfied = computed(() => {
-    return !props.requiredFilter || itemsStore.filters[props.requiredFilter] !== undefined
+    return !props.requiredFilter || filtersEl.value.filters[props.requiredFilter] !== undefined
 })
 
 function initStoreWatchers() {
@@ -186,8 +191,12 @@ function initStoreWatchers() {
         itemsStore.currentPage = 1
     })
 
-    watch(() => itemsStore.filters, async () => {
-        await loadItems()
+    watch(() => filtersEl.value, async () => {
+        if (filtersEl?.value?.filters) {
+            watch(() => filtersEl?.value?.filters, async () => {
+                await loadItems(filtersEl?.value?.filters ? filtersEl?.value?.filters : {})
+            }, {deep: true})
+        }
     }, {deep: true})
 
     watch(() => itemsStore.currentPage, async () => {
@@ -200,27 +209,27 @@ function initStoreWatchers() {
 }
 
 async function initData() {
-    itemsStore.loading = true
+    loading.value = true
     itemSchema.value = await itemsStore.getSchemaDef(props.apiUrl)
     sortChange(props.defaultSort)
     await loadItems()
     initStoreWatchers()
 }
 
-async function loadItems() {
-    itemsStore.loading = true
+async function loadItems(_filters = {}) {
+    loading.value = true
     if (!requiredFilterSatisfied.value) {
-        itemsStore.loading = false
+        loading.value = false
         items.value = {results: []}
         return
     }
-    const params = {}
+    let params = {..._filters}
     if (props.defaultFilters)
         Object.assign(params, props.defaultFilters)
     items.value = await itemsStore.retrieveItems(props.apiUrl, params)
     await resolveTableRowProps(items.value.results)
-    itemsStore.total = items.value.count
-    itemsStore.loading = false
+    total.value = items.value.count
+    loading.value = false
 }
 
 await initData()
