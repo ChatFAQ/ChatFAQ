@@ -1,5 +1,5 @@
 <template>
-    <div class="read-view-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="read-view-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
         <Filters v-if="filtersSchema" :filtersSchema="filtersSchema"/>
         <div class="section-header">
@@ -90,7 +90,7 @@
                 {{ $t("additem", {"readablename": readableName}) }}
             </span>
         </div>
-        <Pagination :apiUrl="props.apiUrl"/>
+        <Pagination :apiUrl="props.apiUrl" :total="total"/>
     </div>
     <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
         <span>
@@ -126,6 +126,8 @@ const itemSchema = ref({})
 const route = useRoute()
 const resolvedTableRowProps = ref([])
 const items = ref({results: []})
+const loading = ref(false)
+const total = ref(0)
 
 const props = defineProps({
     readableName: {
@@ -201,7 +203,7 @@ function initStoreWatchers() {
 }
 
 async function initData() {
-    itemsStore.loading = true
+    loading.value = true
     itemSchema.value = await itemsStore.getSchemaDef(props.apiUrl)
     sortChange(props.defaultSort)
     await loadItems()
@@ -209,9 +211,9 @@ async function initData() {
 }
 
 async function loadItems() {
-    itemsStore.loading = true
+    loading.value = true
     if (!requiredFilterSatisfied.value) {
-        itemsStore.loading = false
+        loading.value = false
         items.value = {results: []}
         return
     }
@@ -220,8 +222,8 @@ async function loadItems() {
         Object.assign(params, props.defaultFilters)
     items.value = await itemsStore.retrieveItems(props.apiUrl, params)
     await resolveTableRowProps(items.value.results)
-    itemsStore.total = items.value.count
-    itemsStore.loading = false
+    total.value = items.value.count
+    loading.value = false
 }
 
 await initData()
