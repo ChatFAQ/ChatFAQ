@@ -14,11 +14,9 @@ services:
 
   ray-tasks-worker:
     image: chatfaq-gpu
-    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_CPU_TASKS_WORKER}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
     env_file:
       - .env
-    ports:
-      - ${TASKS_SERVING_PORT}:8000
     environment:
       - CUDA_VISIBLE_DEVICES=0
     depends_on:
@@ -38,11 +36,13 @@ services:
     networks:
       - ray_net 
     
-  ray-rag-worker:
+  ray-rags-worker:
     image: chatfaq-cpu
-    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 2}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 2}", "--num-gpus=${NUM_CPU_RAGS_WORKER}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
     env_file:
       - .env
+    ports:
+      - ${RAGS_SERVING_PORT}:8000
     depends_on:
       - ray-head
     deploy:

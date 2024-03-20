@@ -1,4 +1,4 @@
 FROM rayproject/ray:latest-py310-cpu
 
 
-RUN pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple chat-rag==0.1.60 --no-cache-dir
+RUN pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple chat-rag==0.1.61 --no-cache-dir
