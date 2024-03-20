@@ -42,7 +42,7 @@ services:
     env_file:
       - .env
     ports:
-      - ${RAGS_SERVING_PORT}:8000
+      - ${RAGS_SERVING_PORT}:8001
     depends_on:
       - ray-head
     deploy:
@@ -54,8 +54,8 @@ services:
           memory: 4G
     networks:
       - ray_net
-
-
+    extra_hosts:
+        - host.docker.internal:host-gateway
 
 
 networks:
