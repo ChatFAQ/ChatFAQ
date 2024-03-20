@@ -284,5 +284,6 @@
     ". selections:" : ". Selections:",
     "existingintents": "Existing Intents",
     "suggestedintents": "Suggested Intents",
-    "questions": "Questions"
+    "questions": "Questions",
+    "messages": "Messages"
 }

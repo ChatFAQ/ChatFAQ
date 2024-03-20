@@ -83,7 +83,7 @@
                            readOnly
             >
                 <template v-slot:intents="{row}">
-                    <span class="command-edit" @click="showKIsForIntent(row)">{{ $t("view") }}</span>
+                    <span class="command-edit" @click="showKIsForIntent(row.id)">{{ $t("view") }}</span>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -92,9 +92,8 @@
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
                                 'intent_name': {'name': $t('intentname')},
-                                'num_of_knowledge_items': {'name': $t('knowledgeitems')},
-                                'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
-                                'questions': {'name': $t('questions')},
+                                'num_of_messages': {'name': $t('messages')},
+                                'messages': {'name': $t('messages')},
                            }"
                            :filtersSchema="[
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
@@ -104,37 +103,39 @@
                            :textExplanation="$t('intentexplanation')"
                            readOnly
             >
-                <template v-slot:questions="{row}">
-                    <span class="command-edit" @click="showQuestionsForIntent(row)">{{ $t("view") }}</span>
+                <template v-slot:messages="{row}">
+                    <span class="command-edit" @click="showMessagesForIntent(row.id)">{{ $t("view") }}</span>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
     </el-tabs>
-    <el-dialog v-model="showingIntentRefs" :title="$t('refs')" width="500" center>
-        <span>
-            1{{intentKisRefs}}2
-            <el-table v-if="intentKisRefs"
-                      class="table-view"
-                      :data="intentKisRefs"
-                      :stripe="false"
-                      style="width: 100%">
-                <el-table-column
-                    :prop="'title'"
-                    :label="$t('title')"
-                    sortable
-                />
-                <el-table-column
-                    :prop="'content'"
-                    :label="$t('title')"
-                    sortable
-                />
-                <el-table-column
-                    :prop="'url'"
-                    :label="$t('title')"
-                    sortable
-                />
-            </el-table>
-        </span>
+    <el-dialog v-model="showingIntentRefs" :title="$t(intentKIsRefs ? 'knowledgeitems' : 'messages')" width="750" center>
+        <el-table v-if="intentKIsRefs"
+                  class="table-view"
+                  :data="intentKIsRefs"
+                  :stripe="false"
+                  style="width: 100%">
+            <el-table-column
+                prop="title"
+                :label="$t('title')"
+                sortable
+            />
+            <el-table-column
+                prop="content"
+                :label="$t('content')"
+            />
+        </el-table>
+        <el-table if="intentKIsRefs"
+                  class="table-view"
+                  :data="intentMessagesRefs"
+                  :stripe="false"
+                  style="width: 100%">
+            <el-table-column
+                prop="message"
+                :label="$t('message')"
+                sortable
+            />
+        </el-table>
     </el-dialog>
 </template>
 
@@ -143,9 +144,8 @@ import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
 import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 
-const password = ref(null)
 const intentKIsRefs = ref(undefined)
-const intentQuestionsRefs = ref(undefined)
+const intentMessagesRefs = ref(undefined)
 const showingIntentRefs = ref(false)
 const itemsStore = useItemsStore()
 
@@ -164,20 +164,26 @@ function goToKIs(kb_id) {
 async function submitKnowledgeBase(id, form) {
     await dataSources.value.submit(id)
 }
-async function showKIsForIntent(row) {
-    const res = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {"intent__id": row.id, limit: 0, offset: 0, ordering: undefined})
+async function showKIsForIntent(IntentId) {
+    const res = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {"intent__id": IntentId, limit: 0, offset: 0, ordering: undefined})
     intentKIsRefs.value = res.results
-    intentQuestionsRefs.value = undefined
+    intentMessagesRefs.value = undefined
     showingIntentRefs.value = true
 }
-async function showQuestionsForIntent(row) {
-    const res = await itemsStore.retrieveItems("/back/api/language-model/messages/", {"intent__id": row.id, limit: 0, offset: 0, ordering: undefined})
-    intentQuestionsRefs.value = res.results
+async function showMessagesForIntent(IntentId) {
+    const res = await itemsStore.retrieveItems("/back/api/broker/messages/", {"intent__id": IntentId, limit: 0, offset: 0, ordering: undefined})
+    intentMessagesRefs.value = res.results.map(res =>
+        res.stack && res.stack.length ? {message: res.stack[0].payload} : {message: ""}
+    )
     intentKIsRefs.value = undefined
     showingIntentRefs.value = true
 }
 </script>
-
+<style lang="scss">
+.el-dialog__header {
+    padding-left: 25px;
+}
+</style>
 <style scoped lang="scss">
 .bottom-card-button {
     @include button-primary;
