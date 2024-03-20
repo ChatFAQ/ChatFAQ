@@ -192,9 +192,11 @@ function initStoreWatchers() {
     })
 
     watch(() => filtersEl.value, async () => {
-        watch(() => filtersEl.value.filters, async () => {
-            await loadItems()
-        }, {deep: true})
+        if (filtersEl?.value?.filters) {
+            watch(() => filtersEl?.value?.filters, async () => {
+                await loadItems(filtersEl?.value?.filters ? filtersEl?.value?.filters : {})
+            }, {deep: true})
+        }
     }, {deep: true})
 
     watch(() => itemsStore.currentPage, async () => {
@@ -214,17 +216,14 @@ async function initData() {
     initStoreWatchers()
 }
 
-async function loadItems() {
+async function loadItems(_filters = {}) {
     loading.value = true
     if (!requiredFilterSatisfied.value) {
         loading.value = false
         items.value = {results: []}
         return
     }
-    let params = {}
-    if (filtersEl?.value?.filters) {
-        params = {...filtersEl.value.filters}
-    }
+    let params = {..._filters}
     if (props.defaultFilters)
         Object.assign(params, props.defaultFilters)
     items.value = await itemsStore.retrieveItems(props.apiUrl, params)

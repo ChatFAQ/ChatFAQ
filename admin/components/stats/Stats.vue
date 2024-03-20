@@ -54,19 +54,18 @@ const filterSchema = ref(
 )
 
 watch(() => filtersEl.value, async () => {
-    watch(() => filtersEl.value.filters, async () => {
-        await requestStats()
-    }, {deep: true})
+    if (filtersEl?.value?.filters) {
+        watch(() => filtersEl?.value?.filters, async () => {
+            await requestStats(filtersEl?.value?.filters ? filtersEl?.value?.filters : {})
+        }, {deep: true})
+    }
 }, {deep: true})
 
-async function requestStats() {
+async function requestStats(_filters) {
     // if (itemsStore.filters.rag === undefined)
     //     stats.value = undefined
     loading.value = true
-    let filters = {}
-    if (filtersEl?.value?.filters) {
-        filters = {...filtersEl.value.filters}
-    }
+    let filters = {..._filters}
     if (filters.created_date__gte) {
         filters.min_date = filters.created_date__gte
         delete filters.created_date__gte
