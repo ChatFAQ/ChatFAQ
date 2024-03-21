@@ -52,7 +52,6 @@
                         <KnowledgeItemReview v-if="msgLabeled !== undefined"
                                              :message="msgLabeled"
                                              ref="kiReviewer"
-                                             @change="getProgress"
                         />
                         <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
@@ -131,15 +130,11 @@ async function initConversation() {
     conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
     thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, 1)) !== undefined
     thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, -1)) !== undefined
+    progressInfo.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/")).data
     loadingConversation.value = false
-}
-async function getProgress() {
-    const res = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/")).data
-    progressInfo.value = res
 }
 
 await initConversation()
-await getProgress()
 watch(() => itemsStore.savingItem, async () => {
     await initConversation()
 }, {immediate: true})
