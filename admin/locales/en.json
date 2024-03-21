@@ -290,5 +290,6 @@
     "errorgeneratingitents": "Error generating intents",
     "generateintents": "Generate Intents",
     "selectaknowledgebase": "Select a knowledge base",
-    "suggestintents": "Suggest Intents"
+    "suggestintents": "Suggest Intents",
+    "pleaserateallthekis": "Please rate all the knowledge items, otherwise the answers will not be taken into account."
 }
