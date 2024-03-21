@@ -90,13 +90,13 @@ class ConversationAPIViewSet(
             safe=False,
         )
 
-    # @action(methods=("get",), detail=True)
-    # def review_progress(self, request, pk=None):
-    #     conv = Conversation.objects.get(pk=pk)
-    #     return JsonResponse(
-    #         {"results": pk},
-    #         safe=False,
-    #     )
+    @action(methods=("get",), detail=True)
+    def review_progress(self, request, pk=None):
+        conv = Conversation.objects.get(pk=pk)
+        return JsonResponse(
+            conv.get_review_progress(),
+            safe=False,
+        )
 
     @action(methods=("post",), detail=True, authentication_classes=[], permission_classes=[AllowAny])
     def download(self, request, *args, **kwargs):

@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 
 from back.common.models import ChangesMixin
 
@@ -68,6 +69,21 @@ class Conversation(ChangesMixin):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
         )
+
+    def get_all_reviewable_bot_msgs(self):
+        return Message.objects.filter(
+            conversation=self,
+            sender__type=AgentType.bot.value,
+            stack__contains=[{"type": StackPayloadType.lm_generated_text.value}]
+        )
+
+    def get_review_progress(self):
+        reviewable_bot_msgs = self.get_all_reviewable_bot_msgs()
+        progress = 0
+        for bot_msg in reviewable_bot_msgs:
+            if bot_msg.is_completely_reviewed():
+                progress += 1
+        return {"progress": progress, "total": reviewable_bot_msgs.count()}
 
     def get_formatted_conversation(self, chain):
         '''
@@ -265,6 +281,26 @@ class Message(ChangesMixin):
                 logger.error(f"Unknown stack payload type to export as csv: {layer['type']}")
 
         return f"{send_time} {sender['type']}: {stack_text}"
+
+    def is_completely_reviewed(self):
+        try:
+            if not self.adminreview:
+                return False
+        except AdminReview.DoesNotExist:
+            return False
+
+        if not self.adminreview.ki_review_data:
+            return False
+
+        all_kis_to_review = set()
+        for stack in self.conversation.get_last_mml().stack:
+            if stack["type"] == StackPayloadType.lm_generated_text.value:
+                for ki_ref in stack.get("payload", {}).get("references", {}).get("knowledge_items", []):
+                    all_kis_to_review.add(str(ki_ref.get("knowledge_item_id")))
+
+        reviewed_kis = set(str(review["knowledge_item_id"]) for review in self.adminreview.ki_review_data)
+
+        return all_kis_to_review == reviewed_kis
 
     def save(self, *args, **kwargs):
         if not self.prev: # avoid setting prev to itself if model is being updated
