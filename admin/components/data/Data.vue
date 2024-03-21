@@ -159,6 +159,7 @@ import {useItemsStore} from "~/store/items.js";
 import WriteViewDataSources from "~/components/data/WriteViewDataSources.vue";
 import {ElNotification} from 'element-plus'
 import {useI18n} from "vue-i18n";
+import {authHeaders} from "~/store/items.js";
 
 const intentKIsRefs = ref(undefined)
 const intentMessagesRefs = ref(undefined)
@@ -207,7 +208,7 @@ async function suggestIntents(knowledgeBaseId) {
 }
 async function _triggerIntentsTask(endpoint) {
     try {
-        await $axios.post(endpoint)
+        await $axios.post(endpoint, {headers: authHeaders()})
     } catch (e) {
         ElNotification({
             title: t("error"),
