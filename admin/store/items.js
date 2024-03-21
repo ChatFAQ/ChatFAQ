@@ -11,7 +11,7 @@ export const useItemsStore = defineStore('items', {
     state: () => ({
         paths: {},
         schema: undefined,
-        editing: undefined,
+        taskID: undefined,
         adding: false,
         tableMode: false,
         loading: false,
@@ -107,10 +107,8 @@ export const useItemsStore = defineStore('items', {
             return schema
         },
         stateToRead(){
-            if (this.editing === undefined && this.adding === undefined && this.currentPage === 1 && Object.keys(this.filters).length === 0)
+            if (this.currentPage === 1 && Object.keys(this.filters).length === 0)
                 return
-            this.editing = undefined
-            this.adding = undefined
             this.currentPage = 1
             this.filters = {}
         }

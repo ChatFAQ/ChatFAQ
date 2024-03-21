@@ -64,15 +64,6 @@
                         <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
                 </el-tabs>
-                <!--
-                <div class="labeling-ki-commands">
-                    <div class="clear-command" @click="kiReviewer.clear()">Clear</div>
-                    <div>
-                        <el-button class="cancel-command command" @click="itemsStore.editing = undefined">Cancel</el-button>
-                        <el-button class="save-command command" @click="kiReviewer.save()">Save</el-button>
-                    </div>
-                </div>
-                -->
             </div>
         </div>
         <div class="page-buttons">
@@ -116,6 +107,7 @@ const props = defineProps({
         mandatory: true
     },
 })
+const itemId = ref(props.id)
 const review = ref({data: []})
 const kiReviewer = ref(null)
 const conversation = ref({})
@@ -126,11 +118,11 @@ let conversations = []
 // get conversation async data
 async function initConversation() {
     loadingConversation.value = true
-    conversation.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/")).data
+    conversation.value = (await $axios.get("/back/api/broker/conversations/" + itemId.value + "/")).data
     conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
-    thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, 1)) !== undefined
-    thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, -1)) !== undefined
-    progressInfo.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/")).data
+    thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, 1)) !== undefined
+    thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, -1)) !== undefined
+    progressInfo.value = (await $axios.get("/back/api/broker/conversations/" + itemId.value + "/review_progress/")).data
     loadingConversation.value = false
 }
 
@@ -138,7 +130,7 @@ await initConversation()
 watch(() => itemsStore.savingItem, async () => {
     await initConversation()
 }, {immediate: true})
-watch(() => props.id, async () => {
+watch(itemId, async () => {
     await initConversation()
     selectFirstMessage()
 }, {immediate: true})
@@ -163,9 +155,9 @@ function getQAMessageGroups(MMLChain) {
 async function pageConversation(direction) {
     loadingConversation.value = true
     msgLabeled.value = undefined
-    const nextItem = await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, direction)
+    const nextItem = await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, direction)
     if (nextItem !== undefined) {
-        itemsStore.editing = nextItem.id
+        itemId.value = nextItem.id
     }
     selectFirstMessage()
     loadingConversation.value = false

@@ -15,7 +15,7 @@
             <div class="section-header-right">
                 <slot name="extra-actions"></slot>
                 <el-button v-if="!readOnly" class="add-button" :class="{'not-only-command': cardProps && tableProps}"
-                           type="primary" round plain @click="stateToAdd">+
+                           type="primary" round plain @click="emit('adding')">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
                 <div v-if="cardProps && tableProps" class="selected-icon card-view"
@@ -30,13 +30,13 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
-            <Card v-for="item in items.results" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
+            <Card v-for="item in items.results" @edit="(id) => emit('editing', id)" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
                 <template v-slot:extra-card-bottom="{item}">
                     <slot name="extra-card-bottom" :item="item"></slot>
                 </template>
             </Card>
             <div class="box-card-add" :class="{'no-items': !items.results.length}"
-                 @click="stateToAdd">
+                 @click="emit('adding')">
                 <div class="box-card-add-content">
                     <el-icon>
                         <Plus/>
@@ -69,7 +69,7 @@
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" :width="$t('edit').length * 13">
                 <template #default="{ row }">
-                    <span class="command-edit" @click="itemsStore.editing = row.id">{{ $t("edit") }}</span>
+                    <span class="command-edit" @click="emit('editing', row.id)">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" width="100">
@@ -82,7 +82,7 @@
         </el-table>
         <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add"
              :class="{'no-items': !items.results.length}"
-             @click="stateToAdd">
+             @click="emit('adding')">
             <span>
                 <el-icon>
                     <Plus/>
@@ -130,6 +130,7 @@ const loading = ref(false)
 const total = ref(0)
 const filtersEl = ref(undefined)
 defineExpose({filtersEl})
+const emit = defineEmits(["editing", "adding"])
 
 const props = defineProps({
     readableName: {
@@ -246,10 +247,6 @@ async function resolveTableRowProps(results) {
         res.push(resolvedRow)
     }
     resolvedTableRowProps.value = res
-}
-
-function stateToAdd() {
-    itemsStore.adding = true
 }
 
 function sortChange({column, prop, order}) {

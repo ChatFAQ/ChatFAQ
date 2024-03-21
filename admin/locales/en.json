@@ -291,5 +291,6 @@
     "generateintents": "Generate Intents",
     "selectaknowledgebase": "Select a knowledge base",
     "suggestintents": "Suggest Intents",
-    "pleaserateallthekis": "Please rate all the knowledge items, otherwise the answers will not be taken into account."
+    "pleaserateallthekis": "Please rate all the knowledge items, otherwise the answers will not be taken into account.",
+    "savewidgettoseeexample": "Save the widget to see the example script"
 }

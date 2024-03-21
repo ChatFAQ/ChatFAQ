@@ -1,8 +1,11 @@
 <template>
     <div class="dashboard-page-title">{{ $t('widgetconfig') }}</div>
-    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
+    <el-tabs class="main-page-tabs" v-model="itemType">
         <el-tab-pane :label="$t('widget')" name="widgetsettings">
-            <ReadWriteView :readableName="$t('widget')" apiUrl="/back/api/widget/widgets/"
+            <ReadWriteView
+                ref="readWriteViewWidget"
+                :readableName="$t('widget')"
+                apiUrl="/back/api/widget/widgets/"
                            :cardProps="{
                 'domain': $t('domain'),
                 'fsm_def': $t('fsmdef'),
@@ -34,8 +37,8 @@
                     ]
                 }"
             >
-                <template v-slot:script="props">
-                    <ExampleScript/>
+                <template v-slot:write-script="props">
+                    <ExampleScript :editing="readWriteViewWidget.editing"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -66,6 +69,7 @@ import FieldData from "~/components/widget_config/fields/FieldData.vue";
 import ExampleScript from "~/components/widget_config/fields/ExampleScript.vue";
 
 const fieldData = ref(null)
+const readWriteViewWidget = ref({})
 
 const { $axios } = useNuxtApp();
 

@@ -4,14 +4,14 @@
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
-            <Card v-for="sdk in sdks" :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
+            <Card v-for="sdk in sdks" :editable="false" :deletable="false" @delete="initItems" :item="sdk"
                   :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
                   :titleProps="['fsm_name']" />
         </div>
         <div class="section-title">{{ $t("rags") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!rags || !rags.length">{{ $t('norags') }}</div>
-            <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
+            <Card v-for="rag in rags" @delete="initItems" @edit="() => goTo('ai_config')" :item="rag"
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRagReindex($axios, item.id, $t)"
@@ -37,7 +37,7 @@
         <div class="section-title">{{ $t("widgets") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!widgets || !widgets.length">{{ $t('nowidgets') }}</div>
-            <Card v-for="widget in widgets" @click-delete="initItems" @click-edit="() => goTo('widget_config')"
+            <Card v-for="widget in widgets" @delete="initItems" @edit="() => goTo('widget_config')"
                   :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl" />
         </div>
     </div>

@@ -45,7 +45,7 @@ const props = defineProps({
         required: false,
     },
 });
-defineExpose({filters})
+defineExpose({filters, form})
 
 for (const fieldInfo of props.filtersSchema) {
     form[fieldInfo.field] = undefined

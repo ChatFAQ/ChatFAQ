@@ -85,12 +85,19 @@ const deletingDataSourceID = ref(undefined)
 const deletingIndex = ref(undefined)
 
 defineExpose({submit})
+const emit = defineEmits(["exit"])
 
-if (itemsStore.editing) {
+const props = defineProps({
+    id: {
+        type: String,
+        required: false,
+    }
+})
+if (props.id !== undefined) {
     dataSources.value = (await itemsStore.retrieveItems(endpoint.value, {
         limit: 0,
         offset: 0,
-        knowledge_base__id: itemsStore.editing
+        knowledge_base__id: props.id
     })).results
 }
 
@@ -117,14 +124,16 @@ function addDataSource() {
     dataSources.value.push({fakeId: Math.random()})
 }
 async function submit(kbId) {
+    let totalDSForms = dataSourceForms.value.length
+    if (!totalDSForms)
+        emit("exit")
     let success = true
 
-    let totalDSForms = dataSourceForms.value.length
     function successCB(success) {
         if (success)
             totalDSForms--
         if (totalDSForms === 0)
-            itemsStore.stateToRead()
+            emit("exit")
     }
     for (let i = 0; i < dataSourceForms.value.length; i++) {
         if (dataSourceForms.value[i]) {

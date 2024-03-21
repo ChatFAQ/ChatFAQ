@@ -1,15 +1,15 @@
 <template>
-    <div v-if="itemsStore.editing" class="example-script">
+    <div v-if="props.editing" class="example-script">
         {{ example }}
     </div>
-    <div v-else>
-        Save the widget to see the example script
+    <div class="info-text" v-else>
+        {{ $t("savewidgettoseeexample") }}
     </div>
 </template>
 
 <script setup>
 const props = defineProps([
-    "widgetConfigId"
+    "widgetConfigId", "editing"
 ]);
 import { useItemsStore } from "~/store/items.js";
 
@@ -25,7 +25,7 @@ const example = ref(`
     element: "#chatfaq-widget",
     chatfaqApi: "<HTTP_YOUR_CHATFAQ_HOST>",
     chatfaqWs: "<WS_YOUR_CHATFAQ_HOST>",
-    widgetConfigId: "${itemsStore.editing}"
+    widgetConfigId: "${props.editing}"
   }
   const chatfaqWidget = new ChatfaqWidget(config);
   chatfaqWidget.mount()
@@ -44,5 +44,10 @@ const example = ref(`
         line-height: 1.5;
         color: white;
         white-space: pre-wrap;
+ }
+ .info-text {
+     font-size: 14px;
+     font-style: italic;
+     color: #424242;
  }
 </style>

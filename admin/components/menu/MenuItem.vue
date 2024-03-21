@@ -32,7 +32,6 @@ const iconComponent = shallowRef(resolveComponent(props.icon))
 
 function goToPage() {
     if (props.page) {
-        itemsStore.stateToRead()
         router.push(props.page)
     }
 }
