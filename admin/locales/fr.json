@@ -290,5 +290,6 @@
     "errorgeneratingitents": "Erreur lors de la génération des intentions",
     "generateintents": "Générer des intentions",
     "selectaknowledgebase": "Sélectionnez une base de connaissances",
-    "suggestintents": "Suggérer des intentions"
+    "suggestintents": "Suggérer des intentions",
+    "pleaserateallthekis": "Veuillez noter tous les éléments de connaissance, sinon les réponses ne seront pas prises en compte."
 }

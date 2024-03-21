@@ -73,7 +73,7 @@ class ConversationAPIViewSet(
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action == 'retrieve' or self.action == 'destroy' or 'update' in self.action:
+        if self.action is not None and (self.action == 'retrieve' or self.action == 'destroy' or 'update' in self.action):
             return [AllowAny(), ]
         return super(ConversationAPIViewSet, self).get_permissions()
 
@@ -87,6 +87,14 @@ class ConversationAPIViewSet(
         results = [ConversationSerializer(c).data for c in Conversation.conversations_from_sender(request.query_params.get("sender"))]
         return JsonResponse(
             results,
+            safe=False,
+        )
+
+    @action(methods=("get",), detail=True)
+    def review_progress(self, request, pk=None):
+        conv = Conversation.objects.get(pk=pk)
+        return JsonResponse(
+            conv.get_review_progress(),
             safe=False,
         )
 
@@ -259,14 +267,14 @@ class Stats(APIView):
                 "total_conversations": total_conversations,
                 # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
-                "conversations_message_avg": round(conversations_message_avg.get('avg'), 2),
+                "conversations_message_avg": round(conversations_message_avg.get('avg'), 2) if conversations_message_avg is not None else None,
                 "messages_per_rag": list(messages_per_rag.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
                 **reviews_and_feedbacks,
-                "precision": round(precision, 2),
-                "recall": round(recall, 2),
-                "f1": round(f1, 2),
+                "precision": round(precision, 2) if precision is not None else None,
+                "recall": round(recall, 2) if recall is not None else None,
+                "f1": round(f1, 2) if f1 is not None else None,
             },
             safe=False,
         )

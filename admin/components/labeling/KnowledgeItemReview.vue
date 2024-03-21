@@ -1,6 +1,7 @@
 <template>
     <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)"
          class="labeling-kis-wrapper">
+        <div class="rate-all-kis-info">{{$t("pleaserateallthekis")}}</div>
         <div class="ki-title">{{$t("knowledgeitems")}}</div>
         <div class="no-knowledge-items" v-if="!reviewedKIs.kis.length">{{$t("noknowledgeitems")}}</div>
         <div v-for="ki in reviewedKIs.kis" class="labeling-ki-wrapper">
@@ -49,6 +50,9 @@ const itemsStore = useItemsStore()
 const ki_choices = ref([])
 const reviewedKIs = ref({})
 const review = ref({})
+
+const emit = defineEmits(["change"])
+
 
 const props = defineProps({
     message: {
@@ -125,6 +129,7 @@ async function save() {
     delete _review.gen_review_val
     delete _review.gen_review_type
     review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore,true, {limit: 0, offset: 0, ordering: undefined}, t)
+    emit("change")
 }
 
 function getVoteKI(kiId) {
@@ -223,7 +228,13 @@ defineExpose({
             margin-right: 24px;
         }
     }
-
+    .rate-all-kis-info {
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 20px;
+        margin-bottom: 16px;
+        color: #8E959F;
+    }
     .ki-title {
         color: $chatfaq-color-primary-500;
         font-size: 16px;

@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 
 from back.common.models import ChangesMixin
 
@@ -68,6 +69,21 @@ class Conversation(ChangesMixin):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
         )
+
+    def get_all_reviewable_bot_msgs(self):
+        return Message.objects.filter(
+            conversation=self,
+            sender__type=AgentType.bot.value,
+            stack__contains=[{"type": StackPayloadType.lm_generated_text.value}]
+        )
+
+    def get_review_progress(self):
+        reviewable_bot_msgs = self.get_all_reviewable_bot_msgs()
+        progress = 0
+        for bot_msg in reviewable_bot_msgs:
+            if bot_msg.completed_review:
+                progress += 1
+        return {"progress": progress, "total": reviewable_bot_msgs.count()}
 
     def get_formatted_conversation(self, chain):
         '''
@@ -238,8 +254,26 @@ class Message(ChangesMixin):
     stack_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
 
-    def cycle_fsm(self):
-        pass
+    @property
+    def completed_review(self):
+        try:
+            if not self.adminreview:
+                return False
+        except AdminReview.DoesNotExist:
+            return False
+
+        if not self.adminreview.ki_review_data:
+            return False
+
+        all_kis_to_review = set()
+        for stackItem in self.stack:
+            if stackItem["type"] == StackPayloadType.lm_generated_text.value:
+                for ki_ref in stackItem.get("payload", {}).get("references", {}).get("knowledge_items", []):
+                    all_kis_to_review.add(str(ki_ref.get("knowledge_item_id")))
+
+        reviewed_kis = set(str(review["knowledge_item_id"]) for review in self.adminreview.ki_review_data)
+
+        return all_kis_to_review == reviewed_kis
 
     def get_chain(self):
         next_msg = self

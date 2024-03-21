@@ -15,7 +15,7 @@
                     </el-icon>
                     {{ $t("saved") }}
                 </div>
-                <div class="number-of-items">0/3 {{ $t("items") }}</div>
+                <div class="number-of-items">{{progressInfo.progress}}/{{progressInfo.total}} {{ $t("items") }}</div>
             </div>
         </div>
         <div class="labeling-tool" v-loading="loadingConversation" element-loading-background="rgba(255, 255, 255, 0.8)">
@@ -108,6 +108,7 @@ const router = useRouter()
 const {$axios} = useNuxtApp()
 
 const msgLabeled = ref(undefined)
+const progressInfo = ref({"progress": 0, "total": 0})
 
 const props = defineProps({
     id: {
@@ -129,6 +130,7 @@ async function initConversation() {
     conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
     thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, 1)) !== undefined
     thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, -1)) !== undefined
+    progressInfo.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/")).data
     loadingConversation.value = false
 }
 
