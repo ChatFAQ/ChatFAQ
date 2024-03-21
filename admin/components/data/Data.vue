@@ -208,7 +208,7 @@ async function suggestIntents(knowledgeBaseId) {
 }
 async function _triggerIntentsTask(endpoint) {
     try {
-        await $axios.post(endpoint, {headers: authHeaders()})
+        await $axios.post(endpoint, {}, {'headers': authHeaders()})
     } catch (e) {
         ElNotification({
             title: t("error"),
