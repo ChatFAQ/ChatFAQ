@@ -293,9 +293,9 @@ class Message(ChangesMixin):
             return False
 
         all_kis_to_review = set()
-        for stack in self.conversation.get_last_mml().stack:
-            if stack["type"] == StackPayloadType.lm_generated_text.value:
-                for ki_ref in stack.get("payload", {}).get("references", {}).get("knowledge_items", []):
+        for stackItem in self.stack:
+            if stackItem["type"] == StackPayloadType.lm_generated_text.value:
+                for ki_ref in stackItem.get("payload", {}).get("references", {}).get("knowledge_items", []):
                     all_kis_to_review.add(str(ki_ref.get("knowledge_item_id")))
 
         reviewed_kis = set(str(review["knowledge_item_id"]) for review in self.adminreview.ki_review_data)

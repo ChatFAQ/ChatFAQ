@@ -15,7 +15,7 @@
                     </el-icon>
                     {{ $t("saved") }}
                 </div>
-                <div class="number-of-items">0/3 {{ $t("items") }}</div>
+                <div class="number-of-items">{{progressInfo.progress}}/{{progressInfo.total}} {{ $t("items") }}</div>
             </div>
         </div>
         <div class="labeling-tool" v-loading="loadingConversation" element-loading-background="rgba(255, 255, 255, 0.8)">
@@ -52,6 +52,7 @@
                         <KnowledgeItemReview v-if="msgLabeled !== undefined"
                                              :message="msgLabeled"
                                              ref="kiReviewer"
+                                             @change="getProgress"
                         />
                         <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
@@ -108,6 +109,7 @@ const router = useRouter()
 const {$axios} = useNuxtApp()
 
 const msgLabeled = ref(undefined)
+const progressInfo = ref({"progress": 0, "total": 0})
 
 const props = defineProps({
     id: {
@@ -131,8 +133,13 @@ async function initConversation() {
     thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, -1)) !== undefined
     loadingConversation.value = false
 }
+async function getProgress() {
+    const res = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/")).data
+    progressInfo.value = res
+}
 
 await initConversation()
+await getProgress()
 watch(() => itemsStore.savingItem, async () => {
     await initConversation()
 }, {immediate: true})

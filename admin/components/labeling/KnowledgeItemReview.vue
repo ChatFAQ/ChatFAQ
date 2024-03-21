@@ -50,6 +50,9 @@ const ki_choices = ref([])
 const reviewedKIs = ref({})
 const review = ref({})
 
+const emit = defineEmits(["change"])
+
+
 const props = defineProps({
     message: {
         type: Object,
@@ -125,6 +128,7 @@ async function save() {
     delete _review.gen_review_val
     delete _review.gen_review_type
     review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore,true, {limit: 0, offset: 0, ordering: undefined}, t)
+    emit("change")
 }
 
 function getVoteKI(kiId) {
