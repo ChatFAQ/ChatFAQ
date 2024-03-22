@@ -2,7 +2,7 @@
     <div class="write-view-wrapper" v-loading="itemsStore.loading"
          element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="backButton" class="navigation-header">
-            <BackButton/>
+            <BackButton @click="emit('exit')"/>
         </div>
         <el-form
             class="form-content"
