@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t('data') }}</div>
     <el-tabs class="main-page-tabs" v-model="itemType">
-        <el-tab-pane :label="$t('knowledgebase')" name="knowledge-base">
+        <el-tab-pane :lazy="true" :label="$t('knowledgebase')" name="knowledge-base">
             <ReadWriteView
                 ref="readWriteViewKB"
                 @submitFormEnd="submitKnowledgeBase"
@@ -36,7 +36,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('knowledgeitem')" name="knowledge-item">
+        <el-tab-pane :lazy="true" :label="$t('knowledgeitem')" name="knowledge-item">
             <ReadWriteView :readableName="$t('knowledgeitem')"
                            ref="readWriteViewKIs"
                            apiUrl="/back/api/language-model/knowledge-items/"
@@ -68,7 +68,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('existingintents')" name="existing_intents">
+        <el-tab-pane :lazy="true" :label="$t('existingintents')" name="existing_intents">
             <ReadWriteView :readableName="$t('intents')"
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
@@ -97,7 +97,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('suggestedintents')" name="suggested_intents">
+        <el-tab-pane :lazy="true" :label="$t('suggestedintents')" name="suggested_intents">
             <ReadWriteView :readableName="$t('intents')"
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{

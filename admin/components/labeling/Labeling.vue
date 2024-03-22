@@ -33,7 +33,7 @@
         </template>
     </ReadView>
 
-    <LabelingTool v-else :id="editing"></LabelingTool>
+    <LabelingTool v-else :id="editing" @exit="editing = undefined"></LabelingTool>
 </template>
 
 <script setup>

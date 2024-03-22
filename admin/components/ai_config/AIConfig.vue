@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t("aiconfiguration") }}</div>
     <el-tabs class="main-page-tabs" v-model="itemType">
-        <el-tab-pane :label="$t('rag')" name="rag-configs">
+        <el-tab-pane :lazy="true" :label="$t('rag')" name="rag-configs">
             <ReadWriteView :readableName="$t('rag')" apiUrl="/back/api/language-model/rag-configs/"
                            :cardProps="{
                     'knowledge_base': $t('knowledgebase'),
@@ -30,7 +30,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('retriever')" name="retriever-configs">
+        <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
             <ReadWriteView :readableName="$t('retriever')" apiUrl="/back/api/language-model/retriever-configs/"
                            :cardProps="{
                     'model_name': $t('modelname'),
@@ -45,7 +45,7 @@
                 :defaultSort="{'prop': 'name'}">
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('prompt')" name="prompt-configs">
+        <el-tab-pane :lazy="true" :label="$t('prompt')" name="prompt-configs">
             <ReadWriteView :readableName="$t('prompt')" apiUrl="/back/api/language-model/prompt-configs/"
                            :cardProps="{
                     'n_contexts_to_use': $t('contextsnumber'),
@@ -71,7 +71,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('generation')" name="generation-configs">
+        <el-tab-pane :lazy="true" :label="$t('generation')" name="generation-configs">
             <ReadWriteView :readableName="$t('generation')" apiUrl="/back/api/language-model/generation-configs/"
                            :cardProps="{
                     'temperature': $t('temperature'),
@@ -86,7 +86,7 @@
                 :defaultSort="{'prop': 'name'}">
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('llm')" name="llm-configs">
+        <el-tab-pane :lazy="true" :label="$t('llm')" name="llm-configs">
             <ReadWriteView :readableName="$t('llm')" apiUrl="/back/api/language-model/llm-configs/"
                            :cardProps="{
                     'llm_type': $t('llmtype'),

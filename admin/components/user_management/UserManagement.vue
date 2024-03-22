@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
     <el-tabs class="main-page-tabs" v-model="itemType">
-        <el-tab-pane :label="$t('user')" name="user">
+        <el-tab-pane :lazy="true" :label="$t('user')" name="user">
             <ReadWriteView
                 :readableName="$t('user')"
                 apiUrl="/back/api/people/users/"
@@ -35,7 +35,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('grouppermissions')" name="group-permissions">
+        <el-tab-pane :lazy="true" :label="$t('grouppermissions')" name="group-permissions">
             <ReadWriteView :readableName="$t('group')" apiUrl="/back/api/people/groups/"
                            :cardProps="{
                 }"

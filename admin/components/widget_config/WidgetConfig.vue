@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t('widgetconfig') }}</div>
     <el-tabs class="main-page-tabs" v-model="itemType">
-        <el-tab-pane :label="$t('widget')" name="widgetsettings">
+        <el-tab-pane :lazy="true" :label="$t('widget')" name="widgetsettings">
             <ReadWriteView
                 ref="readWriteViewWidget"
                 :readableName="$t('widget')"
@@ -42,7 +42,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('theme')" name="theme">
+        <el-tab-pane :lazy="true" :label="$t('theme')" name="theme">
             <ReadWriteView
                 :readableName="$t('theme')"
                 apiUrl="/back/api/widget/themes/"

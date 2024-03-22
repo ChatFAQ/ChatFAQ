@@ -1,7 +1,7 @@
 <template>
     <div class="labeling-tool-wrapper">
         <div class="back-button-wrapper" >
-            <BackButton class="back-button"/>
+            <BackButton @click="emit('exit')" class="back-button"/>
             <div class="saving-indicator">
                 <div v-if="itemsStore.savingItem">
                     <el-icon>
@@ -48,18 +48,18 @@
             </div>
             <div class="labeling-tool-right-side">
                 <el-tabs model-value="knowledge-items" class="knowledge-items">
-                    <el-tab-pane :label="$t('knowledgeitems')" name="knowledge-items">
+                    <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
                         <KnowledgeItemReview v-if="msgLabeled !== undefined"
                                              :message="msgLabeled"
                                              ref="kiReviewer"
                         />
                         <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
-                    <el-tab-pane :label="$t('givefeedback')" name="give-feedback">
+                    <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
                         <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                         <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
-                    <el-tab-pane :label="$t('usersfeedback')" name="users-feedback">
+                    <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
                         <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
                         <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                     </el-tab-pane>
@@ -107,6 +107,7 @@ const props = defineProps({
         mandatory: true
     },
 })
+const emit = defineEmits(["exit"])
 const itemId = ref(props.id)
 const review = ref({data: []})
 const kiReviewer = ref(null)
