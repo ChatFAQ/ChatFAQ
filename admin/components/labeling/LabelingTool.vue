@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import {useItemsStore} from "~/store/items.js";
+import {useItemsStore, authHeaders} from "~/store/items.js";
 import KnowledgeItemReview from "~/components/labeling/KnowledgeItemReview.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import UserFeedback from "~/components/labeling/UserFeedback.vue";
@@ -130,7 +130,7 @@ async function initConversation() {
     conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
     thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, 1)) !== undefined
     thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", props.id, -1)) !== undefined
-    progressInfo.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/")).data
+    progressInfo.value = (await $axios.get("/back/api/broker/conversations/" + props.id + "/review_progress/", { headers: authHeaders() })).data
     loadingConversation.value = false
 }
 
