@@ -13,6 +13,7 @@
                 :readOnly="readOnly"
                 :defaultSort="defaultSort"
                 :defaultFilters="defaultFilters"
+                :initialFiltersValues="initialFiltersValues"
                 :filtersSchema="filtersSchema"
                 :requiredFilter="requiredFilter"
                 :textExplanation="textExplanation"
@@ -106,6 +107,11 @@ const props = defineProps({
         type: Object,
         required: false,
         default: undefined,
+    },
+    initialFiltersValues: {
+        type: Object,
+        required: false,
+        default: {},
     },
     outsideSection: {
         type: Array,

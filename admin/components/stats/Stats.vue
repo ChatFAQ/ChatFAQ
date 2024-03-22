@@ -2,7 +2,7 @@
     <div class="dashboard-page-title">{{ $t("stats") }}</div>
     <div class="stats-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="text-explanation" v-html="$t('statsexplanation')"></div>
-        <Filters :filtersSchema="filterSchema"  ref="filtersEl"/>
+        <Filters :filtersSchema="filterSchema" @change="requestStats" ref="filtersEl"/>
         <div class="stats" v-if="stats">
             <div class="section-title">{{ $t("conversations") }}</div>
             <div class="group-stats">
@@ -52,14 +52,6 @@ const filterSchema = ref(
        {'type': 'range-date', 'startPlaceholder': t('startdate'), 'endPlaceholder': t('enddate'), 'field': 'created_date'},
    ]
 )
-
-watch(() => filtersEl.value, async () => {
-    if (filtersEl?.value?.filters) {
-        watch(() => filtersEl?.value?.filters, async () => {
-            await requestStats(filtersEl?.value?.filters ? filtersEl?.value?.filters : {})
-        }, {deep: true})
-    }
-}, {deep: true})
 
 async function requestStats(_filters) {
     // if (itemsStore.filters.rag === undefined)

@@ -1,7 +1,7 @@
 <template>
     <div class="read-view-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
-        <Filters v-if="filtersSchema" :filtersSchema="filtersSchema" :key="readableName" ref="filtersEl"/>
+        <Filters @change="loadItems" v-if="filtersSchema" :initialFiltersValues="initialFiltersValues" :filtersSchema="filtersSchema" :key="readableName" ref="filtersEl"/>
         <div class="section-header">
             <slot name="legend" :total="items.results?.length">
                 <div class="item-count"> {{
@@ -159,6 +159,11 @@ const props = defineProps({
         required: false,
         default: undefined,
     },
+    initialFiltersValues: {
+        type: Object,
+        required: false,
+        default: {},
+    },
     titleProps: {
         type: Array,
         required: false,
@@ -191,14 +196,6 @@ function initStoreWatchers() {
     watch(() => route.fullPath, () => {
         itemsStore.currentPage = 1
     })
-
-    watch(() => filtersEl.value, async () => {
-        if (filtersEl?.value?.filters) {
-            watch(() => filtersEl?.value?.filters, async () => {
-                await loadItems(filtersEl?.value?.filters ? filtersEl?.value?.filters : {})
-            }, {deep: true})
-        }
-    }, {deep: true})
 
     watch(() => itemsStore.currentPage, async () => {
         await loadItems()

@@ -51,6 +51,7 @@
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                            ]"
                            :textExplanation="$t('knowledgeitemexplanation')"
+                           :initialFiltersValues="initialFiltersForKIsView"
             >
                 <template v-slot:write-content="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
@@ -175,13 +176,12 @@ const { $axios } = useNuxtApp();
 const generatedIntentsView = ref(undefined)
 const suggestedIntentsView = ref(undefined)
 const readWriteViewKB = ref(undefined)
-const readWriteViewKIs = ref(undefined)
-
+const initialFiltersForKIsView = ref({})
 await itemsStore.loadSchema()
 
 
 function goToKIs(kb_id) {
-    readWriteViewKIs.value.readView.filtersEl.form['knowledge_base__id'] = kb_id
+    initialFiltersForKIsView.value = {knowledge_base__id: kb_id}
     itemType.value = "knowledge-item"
 }
 

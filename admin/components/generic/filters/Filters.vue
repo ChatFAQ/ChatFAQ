@@ -34,17 +34,32 @@
 import {useItemsStore} from "~/store/items.js";
 import InputSelect from "~/components/generic/InputSelect.vue";
 const itemsStore = useItemsStore()
-const form = ref({})
 const filters = ref({})
 
 const ignoreParams = ['offset', 'limit', 'id'];
+const emit = defineEmits(["change"])
 
 const props = defineProps({
     filtersSchema: {
         type: Array,
         required: false,
     },
+    initialFiltersValues: {
+        type: Object,
+        required: false,
+        default: {},
+    },
 });
+const form = ref(props.initialFiltersValues)
+
+if (Object.keys(form.value).length > 0) {
+    submitFilters()
+}
+watch(() => props.initialFiltersValues, (newValue) => {
+    form.value = newValue
+    submitFilters()
+}, {deep: true})
+
 defineExpose({filters, form})
 
 for (const fieldInfo of props.filtersSchema) {
@@ -79,6 +94,7 @@ async function submitFilters() {
     }
     itemsStore.currentPage = 1
     filters.value = _filters
+    emit("change", filters.value)
 }
 
 
