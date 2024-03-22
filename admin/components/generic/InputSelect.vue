@@ -71,6 +71,9 @@ async function initChoices() {
     }
     else if (props.filterSchema && props.filterSchema.type === "ref") {
         choices.value = filterChoices.value.results || []
+        // if (props.form && props.form[props.fieldName] !== undefined) {
+        //     await solveRefPropValue(props.form, props.fieldName, props.schema)
+        // }
     }
     if(!props.schema.properties)
         return
@@ -79,6 +82,7 @@ async function initChoices() {
     }
     choices.value = props.schema.properties[props.fieldName].choices.results ? props.schema.properties[props.fieldName].choices.results : props.schema.properties[props.fieldName].choices
 }
+// await initChoices()
 
 const isMulti = computed(() => {
     if (props.filterSchema) {
