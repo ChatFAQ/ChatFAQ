@@ -198,11 +198,11 @@ function initStoreWatchers() {
     })
 
     watch(() => itemsStore.currentPage, async () => {
-        await loadItems()
+        await loadItems() // TODO: Fix: we lose the filters here...
     })
 
     watch(() => itemsStore.ordering, async () => {
-        await loadItems()
+        await loadItems() // TODO: Fix: we lose the filters here...
     })
 }
 
@@ -215,6 +215,7 @@ async function initData() {
 }
 
 async function loadItems(_filters = {}) {
+    console.trace("loadItems")
     loading.value = true
     if (!requiredFilterSatisfied.value) {
         loading.value = false
