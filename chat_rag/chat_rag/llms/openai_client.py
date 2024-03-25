@@ -118,7 +118,7 @@ class OpenAIChatModel(RAGLLM):
         generation_config_dict: dict = None,
         lang: str = "en",
         **kwargs,
-    ) -> str:
+    ):
         """
         Generate text from a prompt using the model in streaming mode.
         Parameters
@@ -276,7 +276,7 @@ class AsyncOpenAIChatModel(RAGLLM):
         generation_config_dict: dict = None,
         lang: str = "en",
         **kwargs,
-    ) -> str:
+    ):
         """
         Generate text from a prompt using the model in streaming mode.
         Parameters
