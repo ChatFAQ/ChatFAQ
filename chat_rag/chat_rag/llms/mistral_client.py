@@ -1,10 +1,12 @@
-from typing import List, Dict
 import os
+from typing import Dict, List
 
+from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
 from chat_rag.llms import RAGLLM
+
 
 class MistralChatModel(RAGLLM):
     def __init__(
@@ -113,7 +115,6 @@ class MistralChatModel(RAGLLM):
 
         return chat_response.choices[0].message.content
 
-
     def stream(
         self,
         messages: List[Dict[str, str]],
@@ -162,3 +163,110 @@ class MistralChatModel(RAGLLM):
                 yield chunk.choices[0].delta.content
 
         return
+
+
+class AsyncMistralChatModel(RAGLLM):
+    def __init__(
+        self,
+        llm_name: str,
+        base_url: str = None,
+        **kwargs,
+    ):
+        self.client = MistralAsyncClient(api_key=os.environ["MISTRAL_API_KEY"])
+        self.llm_name = llm_name
+
+    async def generate(
+        self,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
+        prompt_structure_dict: dict,
+        generation_config_dict: dict = None,
+        lang: str = "en",
+        **kwargs,
+    ) -> str:
+        """
+        Generate text from a prompt using the model.
+        Parameters
+        ---------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        contexts : List[str]
+            The contexts to use for generation.
+        prompt_structure_dict : dict
+            Dictionary containing the structure of the prompt.
+        generation_config_dict : dict
+            Keyword arguments for the generation.
+        lang : str
+            The language of the prompt.
+        Returns
+        -------
+        str
+            The generated text.
+        """
+
+        messages = self.format_prompt(
+            messages=messages,
+            contexts=contexts,
+            **prompt_structure_dict,
+            lang=lang,
+        )
+
+        chat_response = await self.client.chat(
+            model=self.llm_name,
+            messages=messages,
+            temperature=generation_config_dict["temperature"],
+            top_p=generation_config_dict["top_p"],
+            max_tokens=generation_config_dict["max_new_tokens"],
+            random_seed=generation_config_dict["seed"],
+        )
+
+        return chat_response.choices[0].message.content
+
+    async def stream(
+        self,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
+        prompt_structure_dict: dict,
+        generation_config_dict: dict = None,
+        lang: str = "en",
+        **kwargs,
+    ) -> str:
+            """
+            Generate text from a prompt using the model in streaming mode.
+            Parameters
+            ---------
+            messages : List[Tuple[str, str]]
+                The messages to use for the prompt. Pair of (role, message).
+            contexts : List[str]
+                The contexts to use for generation.
+            prompt_structure_dict : dict
+                Dictionary containing the structure of the prompt.
+            generation_config_dict : dict
+                Keyword arguments for the generation.
+            lang : str
+                The language of the prompt.
+            Returns
+            -------
+            str
+                The generated text.
+            """
+            
+            messages = self.format_prompt(
+                messages=messages,
+                contexts=contexts,
+                **prompt_structure_dict,
+                lang=lang,
+            )
+    
+            async for chunk in self.client.chat_stream(
+                model=self.llm_name,
+                messages=messages,
+                temperature=generation_config_dict["temperature"],
+                top_p=generation_config_dict["top_p"],
+                max_tokens=generation_config_dict["max_new_tokens"],
+                random_seed=generation_config_dict["seed"],
+            ):
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+    
+            return

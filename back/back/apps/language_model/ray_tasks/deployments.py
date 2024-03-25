@@ -12,16 +12,23 @@ from chat_rag.inf_retrieval.embedding_models import E5Model
     ray_actor_options={"resources": {"rags": 1}},
 )
 class RetrieverDeployment:
+    """
+    RetrieverDeployment class for serving the retriever model in a Ray Serve deployment in a Ray cluster.
+    TODO: Add reranker model to the deployment.
+    """
     def __init__(self, model_name, use_cpu, rag_config_id):
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.retrieve_endpoint = os.environ.get('BACKEND_URL') + f'/api/language-model/rag-configs/{rag_config_id}/retrieve/'
-        # host.docker.internal:8000/back/api/language-model/rag-configs/96/retrieve/
         self.token = os.environ.get('BACKEND_TOKEN')
         print(f"RetrieverDeployment initialized with model_name={model_name}, use_cpu={use_cpu}, retrieve_endpoint={self.retrieve_endpoint}")
 
     @serve.batch(max_batch_size=5, batch_wait_timeout_s=0.2)
     async def batch_handler(self, requests_list: List[Request]):
+        """
+        Batch handler for the retriever model. This method is called by Ray Serve when a batch of requests is received.
+        It creates the query embeddings, sends them to a pgvector backend endpoint for retrieval asynchronously and returns the results.
+        """
         queries = []
         top_ks = []
         thresholds = []
