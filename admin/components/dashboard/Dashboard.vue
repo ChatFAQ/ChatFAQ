@@ -122,6 +122,7 @@ async function switchDisabled(item) {
 .dashboard-wrapper {
     margin-left: 146px;
     margin-right: 160px;
+    margin-top: 32px;
 
     .section-title {
         font-family: Open Sans;
