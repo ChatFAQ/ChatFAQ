@@ -154,4 +154,14 @@ async function switchDisabled(item) {
         padding: 16px;
     }
 }
+.text-explanation {
+    margin-right: 16px;
+    margin-left: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    padding-left: 18px;
+    border-left: 2px solid $chatfaq-color-primary-500;
+
+}
 </style>
