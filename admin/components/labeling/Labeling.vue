@@ -1,5 +1,7 @@
 <template>
     <div class="dashboard-page-title alone">{{ $t('labeling') }}</div>
+    <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div class="text-explanation" v-html="$t('labelingexplanation')"></div>
     <ReadWriteView
         v-if="itemsStore.editing === undefined"
         :readableName="$t('conversation')"
@@ -49,10 +51,25 @@ function goToLabelingConversation(id) {
 </script>
 
 <style lang="scss" scoped>
+.dashboard-wrapper {
+    margin-left: 146px;
+    margin-right: 160px;
+    margin-top: 32px;
+}
 .go-to-view {
     cursor: pointer;
     text-decoration: underline;
     font-weight: 600;
+}
+.text-explanation {
+    margin-right: 16px;
+    margin-left: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    padding-left: 18px;
+    border-left: 2px solid $chatfaq-color-primary-500;
+
 }
 </style>
 
