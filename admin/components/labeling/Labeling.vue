@@ -1,5 +1,6 @@
 <template>
     <div class="dashboard-page-title alone">{{ $t('labeling') }}</div>
+    <div class="text-explanation" v-html="$t('labelingexplanation')"></div>
     <ReadWriteView
         v-if="itemsStore.editing === undefined"
         :readableName="$t('conversation')"
