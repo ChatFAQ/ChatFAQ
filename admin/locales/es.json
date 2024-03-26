@@ -292,5 +292,5 @@
     "selectaknowledgebase": "Selecciona una Base de Conocimiento",
     "suggestintents": "Sugerir Intenciones",
     "pleaserateallthekis": "Por favor califica todos los elementos de conocimiento, de lo contrario las respuestas no serán tomadas en cuenta."
-    "dashboardexplanation": "El panel principal de ChatFAQ podrás visualizar los SDKs existentes, los RAGs activos y los widgets.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Read more</a>"
+    "dashboardexplanation": "Visualiza los SDKs existentes, los RAGs activos y los widgets.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Read more</a>"
 }
