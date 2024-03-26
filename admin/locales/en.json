@@ -292,4 +292,5 @@
     "selectaknowledgebase": "Select a knowledge base",
     "suggestintents": "Suggest Intents",
     "pleaserateallthekis": "Please rate all the knowledge items, otherwise the answers will not be taken into account."
+    "dashboardexplanation": "The Dashboard provides a centralized hub to visualize existing SDKs, monitor active RAGs, and track widget usage."
 }
