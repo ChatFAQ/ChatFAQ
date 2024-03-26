@@ -292,6 +292,6 @@
     "selectaknowledgebase": "Select a knowledge base",
     "suggestintents": "Suggest Intents",
     "pleaserateallthekis": "Please rate all the knowledge items, otherwise the answers will not be taken into account.",
-    "dashboardexplanation": "This is a centralized hub to visualize existing SDKs, monitor active RAGs, and track widget usage.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>"
+    "dashboardexplanation": "This is a centralized hub to visualize existing SDKs, monitor active RAGs, and track widget usage.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>",
     "labelingexplanation": "Label interactions to train and enhance the chatbot's performance in response accuracy and query comprehension.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>"
 }
