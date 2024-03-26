@@ -292,4 +292,6 @@
     "selectaknowledgebase": "Sélectionnez une base de connaissances",
     "suggestintents": "Suggérer des intentions",
     "pleaserateallthekis": "Veuillez noter tous les éléments de connaissance, sinon les réponses ne seront pas prises en compte."
+    "dashboardexplanation": "Dans le tableau de bord principal, vous pourrez visualiser les SDK existants, les RAG actifs et les widgets.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/'>Read more</a>"
+
 }
