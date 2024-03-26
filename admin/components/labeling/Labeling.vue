@@ -1,6 +1,5 @@
 <template>
     <div class="dashboard-page-title alone">{{ $t('labeling') }}</div>
-    <div class="labeling-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
     <div class="text-explanation" v-html="$t('labelingexplanation')"></div>
     <ReadWriteView
         v-if="itemsStore.editing === undefined"
@@ -51,11 +50,6 @@ function goToLabelingConversation(id) {
 </script>
 
 <style lang="scss" scoped>
-.labeling-wrapper {
-    margin-left: 146px;
-    margin-right: 160px;
-    margin-top: 32px;
-}
 .go-to-view {
     cursor: pointer;
     text-decoration: underline;
