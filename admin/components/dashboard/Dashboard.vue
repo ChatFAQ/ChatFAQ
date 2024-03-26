@@ -1,6 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t("welcome", { name: "" }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div class="text-explanation" v-html="$t('dashboardexplanation')"></div>
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
