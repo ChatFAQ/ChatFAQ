@@ -1,0 +1,3 @@
+from back.apps.language_model.ray_deployments.colbert_deployment import ColBERTDeployment
+from back.apps.language_model.ray_deployments.e5_deployment import E5Deployment
+from back.apps.language_model.ray_deployments.rag_deployment import RAGDeployment

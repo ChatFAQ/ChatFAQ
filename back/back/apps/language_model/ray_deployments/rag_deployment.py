@@ -5,7 +5,6 @@ from ray.serve.handle import DeploymentHandle
 from starlette.responses import StreamingResponse
 from starlette.requests import Request
 
-from chat_rag.inf_retrieval.retrievers import RetrieverClient
 from chat_rag.llms import AsyncClaudeChatModel, AsyncMistralChatModel, AsyncOpenAIChatModel, AsyncVLLMModel
 from chat_rag import AsyncRAG
 

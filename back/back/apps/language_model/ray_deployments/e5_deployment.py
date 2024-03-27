@@ -12,9 +12,9 @@ from chat_rag.inf_retrieval.cross_encoder import ReRanker
     name="retriever_deployment",
     ray_actor_options={"resources": {"rags": 1}},
 )
-class RetrieverDeployment:
+class E5Deployment:
     """
-    RetrieverDeployment class for serving the retriever model in a Ray Serve deployment in a Ray cluster.
+    Ray Serve Deployment class for serving the embedding and reranker retriever models in a Ray cluster.
     """
 
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):

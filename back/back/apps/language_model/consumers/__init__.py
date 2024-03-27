@@ -7,7 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 
 from back.apps.broker.consumers.message_types import RPCMessageType
 from back.apps.broker.serializers.rpc import LLMRequestSerializer, RPCResponseSerializer
-from back.apps.language_model.tasks import llm_query_task
+from back.apps.language_model.tasks import rag_query_task
 from back.utils import WSStatusCodes
 
 logger = getLogger(__name__)
@@ -56,7 +56,7 @@ class LLMConsumer(AsyncJsonWebsocketConsumer):
             await self.error_response({"payload": serializer.errors})
             return
         data = serializer.validated_data
-        llm_query_task.delay(
+        rag_query_task.delay(
             chanel_name=self.channel_name,
             rag_config_name=data["rag_config_name"],
             input_text=data["input_text"],

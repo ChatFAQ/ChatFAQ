@@ -1,37 +1,35 @@
 import gc
+import os
 import uuid
 from io import BytesIO
 from logging import getLogger
-import psutil
+
+import requests
+import json
+import ray
+from ray import serve
 from asgiref.sync import async_to_sync
-from celery import Task
 from channels.layers import get_channel_layer
-from chat_rag import RAG
-from chat_rag.llms import (
-    GGMLModel,
-    HFModel,
-    OpenAIChatModel,
-    VLLMModel,
-    ClaudeChatModel,
-    MistralChatModel,
-)
-from chat_rag.exceptions import PromptTooLongException, RequestException, ModelNotFoundException
-from scrapy.utils.project import get_project_settings
-from django.db import transaction
+from crochet import setup
 from django.apps import apps
-from back.config.celery import app
-from back.utils import is_celery_worker
+from django.conf import settings
+from django.db import transaction
+from django.db.models import F
 from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
-from crochet import setup
-from django.conf import settings
-import os
+from scrapy.utils.project import get_project_settings
 
+from back.apps.language_model.ray_tasks import (
+    generate_embeddings as ray_generate_embeddings,
+)
+from back.config.celery import app
+from back.utils import is_celery_worker
 from back.utils.celery import recache_models as recache_models_utils
-from django.db.models import F, Subquery
-import ray
-from back.apps.language_model.ray_tasks import generate_embeddings as ray_generate_embeddings
-
+from chat_rag.exceptions import (
+    ModelNotFoundException,
+    PromptTooLongException,
+    RequestException,
+)
 
 if is_celery_worker():
     setup()
@@ -47,94 +45,56 @@ if not ray.is_initialized() and os.environ.get('RUN_MAIN'): # only start ray on 
     logger.info("Available resources:", ray.available_resources())
 
 
+@app.task()
+def launch_rag_deployment(rag_config_id):
 
+    from back.apps.language_model.ray_deployments import (
+        ColBERTDeployment,
+        E5Deployment,
+        RAGDeployment,
+    )
 
+    RAGConfig = apps.get_model("language_model", "RAGConfig")
 
-class RAGCacheOnWorkerTask(Task):
-    CACHED_RAGS = {}
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
-    def __init__(self):
-        self.CACHED_RAGS = {}
-        if is_celery_worker() and not self.CACHED_RAGS:
-            self.CACHED_RAGS = self.preload_models()
+    retriever_type = rag_config.retriever_config.retriever_type
+    retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
 
-    @staticmethod
-    def preload_models():
-        from back.apps.language_model.retriever_clients import (
-            ColBERTRetriever,
-            PGVectorRetriever,
-        )
-
-        logger.info("Preloading models...")
-        RAGConfig = apps.get_model("language_model", "RAGConfig")
-        Embedding = apps.get_model("language_model", "Embedding")
-        cache = {}
-
-        for rag_conf in RAGConfig.enabled_objects.all():
-            if Embedding.objects.filter(rag_config=rag_conf).exists():
-                logger.info(
-                    f"Loading RAG config: {rag_conf.name} "
-                    f"with llm: {rag_conf.llm_config.llm_name} "
-                    f"with llm type: {rag_conf.llm_config.llm_type} "
-                    f"with knowledge base: {rag_conf.knowledge_base.name} "
-                    f"with retriever: {rag_conf.retriever_config.model_name} "
-                    f"and retriever device: {rag_conf.retriever_config.device}"
-                )
-
-                retriever_type = rag_conf.retriever_config.retriever_type
-
-                if retriever_type == "colbert":
-                    retriever = ColBERTRetriever.from_index(rag_conf)
-                elif retriever_type == "e5":
-                    from chat_rag.inf_retrieval.embedding_models import E5Model
-                    from chat_rag.inf_retrieval.retrievers import ReRankRetriever
-
-                    hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
-
-                    e5_model = E5Model(
-                        model_name=rag_conf.retriever_config.model_name,
-                        use_cpu=rag_conf.retriever_config.device == "cpu",
-                        huggingface_key=hugginface_key,
-                    )
-
-                    base_retriever = PGVectorRetriever(
-                        embedding_model=e5_model,
-                        rag_config=rag_conf,
-                    )
-                    retriever = ReRankRetriever(
-                        retriever=base_retriever,
-                        lang=rag_conf.knowledge_base.lang,
-                        device=rag_conf.retriever_config.device,
-                    )
-                    
-                else:
-                    raise ValueError(f"Retriever type: {retriever_type} not supported.")
-
-                llm_model = get_model(
-                    llm_name=rag_conf.llm_config.llm_name,
-                    llm_type=rag_conf.llm_config.llm_type,
-                    ggml_model_filename=rag_conf.llm_config.ggml_llm_filename,
-                    use_cpu=False,
-                    model_config=rag_conf.llm_config.model_config,
-                    load_in_8bit=rag_conf.llm_config.load_in_8bit,
-                    use_fast_tokenizer=rag_conf.llm_config.use_fast_tokenizer,
-                    trust_remote_code_tokenizer=rag_conf.llm_config.trust_remote_code_tokenizer,
-                    trust_remote_code_model=rag_conf.llm_config.trust_remote_code_model,
-                    revision=rag_conf.llm_config.revision,
-                    model_max_length=rag_conf.llm_config.model_max_length,
-                )
-
-                cache[str(rag_conf.name)] = RAG(
-                    retriever=retriever,
-                    llm_model=llm_model,
-                    lang=rag_conf.knowledge_base.lang,
-                )
-                logger.info("...model loaded.")
-
-            else:
-                logger.info(f"RAG config: {rag_conf.name} needs to be indexed.")
-
-        return cache
+    if retriever_type == "e5":
+        model_name = rag_config.retriever_config.model_name
+        use_cpu = rag_config.retriever_config.device == "cpu"
+        lang = rag_config.knowledge_base.lang
+        retriever_handle = E5Deployment.options(
+            name=retriever_deploy_name,
+            resources={
+                "rags": 1,
+                "num_cpus": 1,
+                }
+            ).bind(model_name, use_cpu, rag_config_id, lang)
+    elif retriever_type == "colbert":
+        index_path = os.path.join("/indexes/colbert/", rag_config.s3_index_path) # TODO: temporary for local development
+        retriever_handle = ColBERTDeployment.options(
+            name=retriever_deploy_name,
+            resources={
+                "rags": 1,
+                "num_cpus": 1,
+                }
+            ).bind(index_path)
+    else:
+        raise ValueError(f"Retriever type: {retriever_type} not supported.")
+    
+    rag_deploy_name = f'rag_{rag_config.name}'
+    llm_name = rag_config.llm_config.llm_name
+    llm_type = rag_config.llm_config.llm_type
+    rag_handle = RAGDeployment.options(
+        name=rag_deploy_name,
+        resources={
+            "rags": 1,
+            "num_cpus": 1,
+            }
+        ).bind(retriever_handle, llm_name, llm_type)
+    serve.run(rag_handle, host="0.0.0.0", port=8000, route_prefix="/rag", name='rag_deployment')
 
 
 def _send_message(
@@ -168,8 +128,8 @@ def handle_error(error_type, exception, bot_channel_name, lm_msg_id, channel_lay
     )
 
 
-@app.task(bind=True, base=RAGCacheOnWorkerTask)
-def llm_query_task(
+@app.task()
+def rag_query_task(
     self,
     chanel_name=None,
     rag_config_name=None,
@@ -180,16 +140,6 @@ def llm_query_task(
     logger_name=None,
 ):
     logger.info(f"Log caller: {logger_name}")
-    if recache_models:
-        import torch
-        # clear CACHED_RAGS
-        torch.cuda.empty_cache()
-
-        if hasattr(self, "CACHED_RAGS"):
-            del self.CACHED_RAGS
-        gc.collect()
-        self.CACHED_RAGS = self.preload_models()
-        return
 
     channel_layer = get_channel_layer()
     lm_msg_id = str(uuid.uuid4())
@@ -221,17 +171,6 @@ def llm_query_task(
     # remove the ids
     p_conf.pop("id")
     g_conf.pop("id")
-    # remove the tags and end tokens from the stop words
-    stop_words = [
-        p_conf["user_tag"],
-        p_conf["assistant_tag"],
-        p_conf["user_end"],
-        p_conf["assistant_end"],
-    ]
-    # remove empty stop words
-    stop_words = [word for word in stop_words if word]
-
-    logger.info(f"Stop words: {stop_words}")
 
     # # Gatherings all the previous messages from the conversation
     prev_messages, human_messages_id = Conversation.objects.get(
@@ -251,28 +190,26 @@ def llm_query_task(
     streaming = True # TODO: make this a parameter
     reference_kis = []
 
+    request_data = {
+        "messages": prev_messages,
+        "prev_contents": prev_contents,
+        "prompt_structure_dict": p_conf,
+        "generation_config_dict": g_conf,
+    }
+
     try:
         if streaming:
-            for res in rag.stream(
-                prev_messages,
-                prev_contents,
-                prompt_structure_dict=p_conf,
-                generation_config_dict=g_conf,
-                stop_words=stop_words,
-            ):
+            r = requests.post("http://localhost:10002/rag", stream=True, json=request_data)
+            r.raise_for_status()
+            reference_kis = None
+            for chunk in r.iter_content(chunk_size=None, decode_unicode=True):
+                response_dict = json.loads(chunk)
+                res = response_dict.get("res")
                 _send_message(
                     bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
                 )
-                reference_kis = res.get("context")
-        else:
-            res = rag.generate(
-                prev_messages,
-                prompt_structure_dict=p_conf,
-                generation_config_dict=g_conf,
-                stop_words=stop_words,
-            )
-            _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res)
-            reference_kis = res.get("context")
+                if reference_kis is None:
+                    reference_kis = response_dict.get("context")
 
     except PromptTooLongException as e:
         handle_error("PromptTooLongException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
@@ -633,9 +570,9 @@ def parse_url_task(ds_id, url):
     url : str
         The url to crawl.
     """
-    from back.apps.language_model.scraping.scraping.spiders.generic import (
+    from back.apps.language_model.scraping.scraping.spiders.generic import (  # CI
         GenericSpider,
-    )  # CI
+    )
 
     runner = CrawlerRunner(get_project_settings())
     runner.crawl(GenericSpider, start_urls=url, data_source_id=ds_id)
@@ -656,8 +593,8 @@ def parse_pdf_task(ds_pk):
     k_items : list
         A list of KnowledgeItem objects.
     """
-    from chat_rag.data.splitters import get_splitter
     from chat_rag.data.parsers import parse_pdf
+    from chat_rag.data.splitters import get_splitter
 
     logger.info("Parsing PDF file...")
     logger.info(f"PDF file pk: {ds_pk}")
@@ -733,6 +670,7 @@ def generate_titles(knowledge_base_pk, n_titles=10):
         The number of titles to generate for each knowledge item.
     """
     from tqdm import tqdm
+
     from chat_rag.inf_retrieval.query_generator import QueryGenerator
 
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
@@ -791,11 +729,12 @@ def generate_suggested_intents_task(knowledge_base_pk):
         The primary key of the knowledge base.
     """
 
+    from django.db.models import Max
+
+    from back.apps.language_model.prompt_templates import get_queries_out_of_domain
+    from back.apps.language_model.retriever_clients import PGVectorRetriever
     from chat_rag.inf_retrieval.embedding_models import E5Model
     from chat_rag.intent_detection import clusterize_text, generate_intents
-    from django.db.models import Max
-    from back.apps.language_model.retriever_clients import PGVectorRetriever
-    from back.apps.language_model.prompt_templates import get_queries_out_of_domain
 
     logger.info("generate_new_intents_task called")
 
@@ -942,9 +881,9 @@ def generate_intents_task(knowledge_base_pk):
     knowledge_base_pk : int
         The primary key of the knowledge base.
     """
+    from back.apps.language_model.models import AutoGeneratedTitle
     from chat_rag.inf_retrieval.embedding_models import E5Model
     from chat_rag.intent_detection import clusterize_text, generate_intents
-    from back.apps.language_model.models import AutoGeneratedTitle
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
 
     Intent = apps.get_model("language_model", "Intent")
@@ -1050,7 +989,12 @@ def calculate_rag_stats_task(rag_config_id, dates_ranges=[(None, None)]):
     # TODO: add the % of unlabeled responses
 
     from datetime import datetime
-    from back.apps.language_model.stats import calculate_retriever_stats, calculate_response_stats, calculate_general_rag_stats
+
+    from back.apps.language_model.stats import (
+        calculate_general_rag_stats,
+        calculate_response_stats,
+        calculate_retriever_stats,
+    )
 
     Message = apps.get_model("broker", "Message")
     AdminReview = apps.get_model("broker", "AdminReview")
@@ -1151,6 +1095,7 @@ def calculate_usage_stats_task(rag_config_id=None, dates_ranges=[(None, None)]):
     """
 
     from datetime import datetime
+
     from back.apps.language_model.stats import calculate_usage_stats
 
     Message = apps.get_model("broker", "Message")
