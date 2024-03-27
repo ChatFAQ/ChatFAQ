@@ -31,7 +31,7 @@ class ColBERTRetriever:
         # Generate a unique index path for this RAGConfig
         rag_config.generate_s3_index_path()
         s3_index_path = rag_config.s3_index_path
-        index_root, index_name = s3_index_path.split("/")
+        index_root, index_name = os.path.split(s3_index_path)
 
         colbert_name = rag_config.retriever_config.model_name
         bsize = rag_config.retriever_config.batch_size
@@ -80,7 +80,7 @@ class ColBERTRetriever:
 
         instance = cls()
 
-        index_root, index_name = rag_config.s3_index_path.split("/")
+        index_root, index_name = os.path.split(rag_config.s3_index_path)
         index_root = f"{index_root}/colbert/indexes/"
         local_index_path = f"{index_root}/{index_name}"
         s3_index_folder = rag_config.s3_index_path
