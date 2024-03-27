@@ -169,7 +169,6 @@ class AsyncMistralChatModel(RAGLLM):
     def __init__(
         self,
         llm_name: str,
-        base_url: str = None,
         **kwargs,
     ):
         self.client = MistralAsyncClient(api_key=os.environ["MISTRAL_API_KEY"])

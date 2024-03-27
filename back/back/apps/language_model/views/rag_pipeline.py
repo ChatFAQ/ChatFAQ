@@ -46,7 +46,7 @@ class RAGConfigAPIViewSet(viewsets.ModelViewSet):
         """
         rag_config = RAGConfig.objects.filter(pk=kwargs.get("pk")).first()
         query_embeddings_data = request.data.get('query_embeddings')  # Expecting a list of embeddings
-        threshold = request.data.get('threshold')
+        threshold = request.data.get('threshold', 0.0)
         top_k = request.data.get('top_k')
 
         if None in (query_embeddings_data, threshold, top_k) or not isinstance(query_embeddings_data, list):

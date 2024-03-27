@@ -25,17 +25,11 @@ class ColBERTDeployment:
         
 
     @serve.batch(max_batch_size=5, batch_wait_timeout_s=0.2)
-    async def batch_handler(self, requests_list: List[Request]):
+    async def batch_handler(self, queries: List[str], top_ks: List[int]):
         """
         Batch handler for the retriever model. This method is called by Ray Serve when a batch of requests is received.
         It creates the query embeddings, sends them to a pgvector backend endpoint for retrieval asynchronously and returns the results.
         """
-        queries = []
-        top_ks = []
-        for r in requests_list:
-            data = await r.json()
-            queries.append(data['query'])
-            top_ks.append(data['top_k'])
         
         queries_results = self.retriever.search(queries, k=max(top_ks))
 
@@ -58,15 +52,10 @@ class ColBERTDeployment:
             results.append(query_results[:top_k])
 
         return results
-   
-
-    async def post_request(self, session, url, json, headers):
-        async with session.post(url, json=json, headers=headers) as response:
-            return await response.json()
 
     def update_batch_params(self, max_batch_size, batch_wait_timeout_s):
         self.batch_handler.set_max_batch_size(max_batch_size)
         self.batch_handler.set_batch_wait_timeout_s(batch_wait_timeout_s)
 
-    async def __call__(self, request: Request):
-        return await self.batch_handler(request)
+    async def __call__(self, query: str, top_k: int):
+        return await self.batch_handler(query, top_k)
