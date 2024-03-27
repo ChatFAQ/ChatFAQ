@@ -34,7 +34,7 @@ def retrieve_kitems(query_embedding, threshold, top_k, rag_config):
     query_results = [
         {
             **item.to_retrieve_context(),
-            "similarity": -item.similarity,
+            "similarity": item.similarity,
         }
         for item in items_for_query
     ]
