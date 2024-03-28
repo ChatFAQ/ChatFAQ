@@ -21,10 +21,6 @@ class E5Deployment:
     Ray Serve Deployment class for serving the embedding and reranker retriever models in a Ray cluster.
     """
 
-    class TestClass:
-        def __init__(self):
-            print("TestClass initialized")
-
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
@@ -32,7 +28,6 @@ class E5Deployment:
 
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.reranker = ReRanker(lang=lang, device='cpu' if use_cpu else 'cuda')
-        self.test_class = self.TestClass()
 
         print(f"RetrieverDeployment initialized with model_name={model_name}, use_cpu={use_cpu}")
 

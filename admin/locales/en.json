@@ -149,7 +149,7 @@
     "ggml_llm_filename": "GGML LLM Filename",
     "giveanalternativeanswer": "Give an Alternative Answer",
     "givefeedback": "Give Feedback",
-    "index_up_to_date": "Index Up to Date",
+    "index_status": "Index Status",
     "intent_name": "Intent Name",
     "intentname": "Intent Name",
     "intents": "Intents",

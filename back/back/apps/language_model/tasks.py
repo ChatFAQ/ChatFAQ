@@ -25,6 +25,7 @@ from back.apps.language_model.ray_tasks import (
 from back.config.celery import app
 from back.utils import is_celery_worker
 from back.utils.celery import recache_models as recache_models_utils
+from back.apps.language_model.models.enums import DeviceChoices, RetrieverTypeChoices, IndexStatusChoices
 from chat_rag.exceptions import (
     ModelNotFoundException,
     PromptTooLongException,
@@ -51,6 +52,10 @@ if not ray.is_initialized() and os.environ.get('RUN_MAIN'): # only start ray on 
     logger.info("Available resources:", ray.available_resources())
 
 
+def get_rag_deploy_name(rag_config):
+    return f'rag_{rag_config.name}'
+
+
 @app.task()
 def launch_rag_deployment(rag_config_id):
 
@@ -58,23 +63,25 @@ def launch_rag_deployment(rag_config_id):
 
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
-    retriever_type = rag_config.retriever_config.retriever_type
+    retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
 
-    if retriever_type == "e5":
+    if retriever_type == RetrieverTypeChoices.E5:
         model_name = rag_config.retriever_config.model_name
-        use_cpu = rag_config.retriever_config.device == "cpu"
-        lang = rag_config.knowledge_base.lang
+        use_cpu = rag_config.retriever_config.get_device() == DeviceChoices.CPU
+        lang = rag_config.knowledge_base.get_lang().value
         retriever_handle = launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang)
-    elif retriever_type == "colbert":
+
+    elif retriever_type == RetrieverTypeChoices.COLBERT:
         index_path = os.path.join("/indexes/colbert/", rag_config.s3_index_path) # TODO: temporary for local development
         retriever_handle = launch_colbert(retriever_deploy_name, index_path)
+
     else:
-        raise ValueError(f"Retriever type: {retriever_type} not supported.")
+        raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
     
-    rag_deploy_name = f'rag_{rag_config.name}'
+    rag_deploy_name = get_rag_deploy_name(rag_config)
     llm_name = rag_config.llm_config.llm_name
-    llm_type = rag_config.llm_config.llm_type
+    llm_type = rag_config.llm_config.get_llm_type().value
     launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
 
 
@@ -163,7 +170,6 @@ def rag_query_task(
     ).distinct().order_by("updated_date")
     prev_contents = list(prev_kis.values_list("content", flat=True))
 
-    logger.info(f"Using RAG config: {rag_config_name}")
 
     streaming = True # TODO: make this a parameter
     reference_kis = []
@@ -175,9 +181,14 @@ def rag_query_task(
         "generation_config_dict": g_conf,
     }
 
+    ray_serve_address = os.environ.get("RAY_SERVE_ADDRESS", "http://localhost:10002")
+    rag_url = f'{ray_serve_address}/{get_rag_deploy_name(rag_conf)}'
+
+    logger.info(f'Querying RAG {rag_conf.name} at {rag_url}')
+
     try:
         if streaming:
-            r = requests.post("http://localhost:10002/rag", stream=True, json=request_data)
+            r = requests.post(rag_url, stream=True, json=request_data)
             r.raise_for_status()
             reference_kis = None
             for chunk in r.iter_content(chunk_size=None, decode_unicode=True):
@@ -189,7 +200,7 @@ def rag_query_task(
                 )
                 if reference_kis is None:
                     reference_kis = response_dict.get("context")
-
+    # TODO: handle error inside the RAG Deployment instead of here
     except PromptTooLongException as e:
         handle_error("PromptTooLongException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
         return
@@ -206,7 +217,7 @@ def rag_query_task(
     reference_kis = reference_kis[0] if reference_kis else []
     logger.info(f"\nReferences: {reference_kis}")
 
-    # ALl images of the conversation so far
+    # All images of the conversation so far
     reference_ki_images = {}
     for ki in prev_kis:
         for ki_img in ki.knowledgeitemimage_set.all():
@@ -285,7 +296,7 @@ def generate_embeddings(k_items, rag_config):
 
     model_name = rag_config.retriever_config.model_name
     batch_size = rag_config.retriever_config.batch_size
-    device = rag_config.retriever_config.device
+    device = rag_config.retriever_config.get_device().value
     logger.info(
         f"Generating embeddings for {k_items.count()} knowledge items. Knowledge base: {rag_config.knowledge_base.name}"
     )
@@ -496,14 +507,14 @@ def index_task(rag_config_id, recache_models: bool = False, logger_name: str = N
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
-    retriever_type = rag_config.retriever_config.retriever_type
+    retriever_type = rag_config.retriever_config.get_retriever_type()
 
-    if retriever_type == "e5":
+    if retriever_type == RetrieverTypeChoices.E5:
         index_e5(rag_config, logger_name=logger_name)
-    elif retriever_type == "colbert":
+    elif retriever_type == RetrieverTypeChoices.COLBERT:
         index_colbert(rag_config, logger_name=logger_name)
 
-    rag_config.index_up_to_date = True
+    rag_config.index_status = IndexStatusChoices.UP_TO_DATE
     rag_config.save()
 
     logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
@@ -585,8 +596,8 @@ def parse_pdf_task(ds_pk):
     KnowledgeItemImage = apps.get_model("language_model", "KnowledgeItemImage")
     ds = DataSource.objects.get(pk=ds_pk)
     pdf_file = ds.original_pdf.read()
-    strategy = ds.strategy
-    splitter = ds.splitter
+    strategy = ds.get_strategy().value
+    splitter = ds.get_splitter().value
     chunk_size = ds.chunk_size
     chunk_overlap = ds.chunk_overlap
 
@@ -734,16 +745,16 @@ def generate_suggested_intents_task(knowledge_base_pk):
 
     # Get the RAG config that corresponds to the knowledge base
     rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
-    lang = rag_conf.knowledge_base.lang
+    lang = rag_conf.knowledge_base.get_lang().value
 
     # if the retriever type is not e5, then return
-    if rag_conf.retriever_config.retriever_type != "e5":
-        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.retriever_type} right now")
+    if rag_conf.retriever_config.get_retriever_type() != RetrieverTypeChoices.E5:
+        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.get_retriever_type().value} right now")
         return
 
     e5_model = E5Model(
         model_name=rag_conf.retriever_config.model_name,
-        use_cpu=rag_conf.retriever_config.device == "cpu",
+        use_cpu=rag_conf.retriever_config.get_device() == DeviceChoices.CPU,
         huggingface_key=hugginface_key,
     )
 
@@ -872,15 +883,15 @@ def generate_intents_task(knowledge_base_pk):
     rag_conf = RAGConfig.objects.filter(knowledge_base=knowledge_base_pk).first()
 
     # if the retriever type is not e5, then return
-    if rag_conf.retriever_config.retriever_type != "e5":
-        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.retriever_type} right now")
+    if rag_conf.retriever_config.get_retriever_type() != RetrieverTypeChoices.E5:
+        logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.get_retriever_type().value} right now")
         return
 
     hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
 
     e5_model = E5Model(
         model_name=rag_conf.retriever_config.model_name,
-        use_cpu=rag_conf.retriever_config.device == "cpu",
+        use_cpu=rag_conf.retriever_config.get_device() == DeviceChoices.CPU,
         huggingface_key=hugginface_key,
     )
     # AutoGeneratedTitle = apps.get_model("language_model", "AutoGeneratedTitle")

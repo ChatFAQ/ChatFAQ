@@ -28,11 +28,11 @@ services:
         limits:
           cpus: ${NUM_CPU_TASKS_WORKER}
           memory: 4G
-        reservations:  # Added reservations section
-          devices:
-            - driver: nvidia
-              count: 1  # Or 'all'
-              capabilities: [gpu] 
+        # reservations:  # Added reservations section
+        #   devices:
+        #     - driver: nvidia
+        #       count: 1  # Or 'all'
+        #       capabilities: [gpu] 
     networks:
       - ray_net 
     

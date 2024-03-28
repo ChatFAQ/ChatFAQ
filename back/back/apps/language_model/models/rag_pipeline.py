@@ -1,10 +1,15 @@
 import os
 import uuid
 
+
 from django.db import models, transaction
 from django.core.files.storage import default_storage
+from django.utils.translation import gettext_lazy as _
+
+
 from simple_history.models import HistoricalRecords
 
+from back.apps.language_model.models.enums import IndexStatusChoices, DeviceChoices, RetrieverTypeChoices, LLMChoices
 from back.apps.language_model.models.data import KnowledgeBase
 from back.common.models import ChangesMixin
 
@@ -15,26 +20,18 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 
-LLM_CHOICES = (
-    ('local_cpu', 'Local CPU Model'),  # GGML models optimized for CPU inference
-    ('local_gpu', 'Local GPU Model'),  # Use locally VLLM or HuggingFace for GPU inference.
-    ('vllm', 'VLLM Client'),  # Access VLLM engine remotely
-    ('openai', 'OpenAI Model'),  # ChatGPT models from OpenAI
-    ('claude', 'Claude Model'),  # Claude models from Anthropic
-    ('mistral', 'Mistral Model'),  # Mistral models from Mistral
-)
-
 
 # First, define the Manager subclass.
 class EnabledRAGConfigManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(disabled=False)
-
+    
 
 class RAGConfig(ChangesMixin):
     """
     It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline
     """
+    
     objects = models.Manager()  # The default manager.
     enabled_objects = EnabledRAGConfigManager()  # The Dahl-specific manager.
 
@@ -45,13 +42,22 @@ class RAGConfig(ChangesMixin):
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
     disabled = models.BooleanField(default=False)
-    index_up_to_date = models.BooleanField(default=False, editable=False)
     s3_index_path = models.CharField(max_length=255, blank=True, null=True, editable=False)
+
+    index_status = models.CharField(
+        max_length=20,
+        choices=IndexStatusChoices.choices,
+        default=IndexStatusChoices.NO_INDEX,
+        editable=False
+    )
 
     def generate_s3_index_path(self):
         unique_id = str(uuid.uuid4())[:8]
         self.s3_index_path = f'indexes/{self.name}_index_{unique_id}'
         self.save()
+
+    def get_index_status(self):
+        return IndexStatusChoices(self.index_status)
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
@@ -69,10 +75,10 @@ class RAGConfig(ChangesMixin):
                 load_new_llm = True
                 logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
             if self.knowledge_base != old.knowledge_base:
-                self.index_up_to_date = False
+                self.index_status = IndexStatusChoices.NO_INDEX
                 logger.info(f"RAG config {self.name} changed knowledge base. Index needs to be updated...")
             if self.retriever_config.model_name != old.retriever_config.model_name:
-                self.index_up_to_date = False
+                self.index_status = IndexStatusChoices.NO_INDEX
                 logger.info(f"RAG config {self.name} changed retriever model. Index needs to be updated...")
 
         super().save(*args, **kwargs)
@@ -102,24 +108,21 @@ class RetrieverConfig(ChangesMixin):
     device: str
         The device to use for the retriever.
     """
-    DEVICE_CHOICES = (
-        ('cpu', 'CPU'),
-        ('cuda', 'GPU'),
-    )
-
-    RETRIEVER_TYPE_CHOICES = (
-        ('colbert', 'ColBERT Search'),
-        ('e5', 'Standard Semantic Search'),
-    )
 
     name = models.CharField(max_length=255, unique=True)
     model_name = models.CharField(max_length=255, default="colbert-ir/colbertv2.0") # For dev and demo purposes.
-    retriever_type = models.CharField(max_length=10, choices=RETRIEVER_TYPE_CHOICES, default="colbert")
+    retriever_type = models.CharField(max_length=10, choices=RetrieverTypeChoices.choices, default=RetrieverTypeChoices.COLBERT)
     batch_size = models.IntegerField(default=1) # batch size 1 for better default cpu generation
-    device = models.CharField(max_length=10, choices=DEVICE_CHOICES, default="cpu")
+    device = models.CharField(max_length=10, choices=DeviceChoices.choices, default=DeviceChoices.CPU)
 
     def __str__(self):
         return self.name
+    
+    def get_retriever_type(self):
+        return RetrieverTypeChoices(self.retriever_type)
+    
+    def get_device(self):
+        return DeviceChoices(self.device)
 
     # When saving we want to check if the model_name has changed and in that case regenerate all the embeddings for the
     # knowledge bases that uses this retriever.
@@ -130,14 +133,14 @@ class RetrieverConfig(ChangesMixin):
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
 
-            if self.model_name != old_retriever.model_name or self.retriever_type != old_retriever.retriever_type:
-                # change the rag config index_up_to_date to False
+            if self.model_name != old_retriever.model_name or self.get_retriever_type() != old_retriever.get_retriever_type():
+                # change the rag config index status to NO_INDEX
                 rag_configs = RAGConfig.objects.filter(retriever_config=self)
                 for rag_config in rag_configs:
-                    rag_config.index_up_to_date = False
+                    rag_config.index_status = IndexStatusChoices.NO_INDEX
                     rag_config.save()
 
-            if self.device != old_retriever.device:
+            if self.get_device() != old_retriever.get_device():
                 device_changed = True
 
         super().save(*args, **kwargs)
@@ -179,7 +182,7 @@ class LLMConfig(ChangesMixin):
     """
 
     name = models.CharField(max_length=255, unique=True)
-    llm_type = models.CharField(max_length=10, choices=LLM_CHOICES, default="local_gpu")
+    llm_type = models.CharField(max_length=10, choices=LLMChoices.choices, default=LLMChoices.OPENAI)
     llm_name = models.CharField(max_length=100, default="gpt2")
     ggml_llm_filename = models.CharField(max_length=255, blank=True, null=True)
     model_config = models.CharField(max_length=255, blank=True, null=True)
@@ -192,6 +195,9 @@ class LLMConfig(ChangesMixin):
 
     def __str__(self):
         return self.name
+    
+    def get_llm_type(self):
+        return LLMChoices(self.llm_type)
 
 
 class PromptConfig(ChangesMixin):

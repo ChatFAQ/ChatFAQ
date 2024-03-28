@@ -108,13 +108,13 @@ run_index_task.short_description = "Index selected RAG configs"
 
 
 class RagConfigAdmin(admin.ModelAdmin):
-    list_display = ["name", "disabled", "index_up_to_date"]
-    list_filter = ["disabled", "index_up_to_date"]
+    list_display = ["name", "disabled", "index_status"]
+    list_filter = ["disabled", "index_status"]
     actions = [run_index_task]
 
     def get_readonly_fields(self, request, obj=None):
-        # This makes 'index_up_to_date' readonly in all cases
-        return self.readonly_fields + ('index_up_to_date', 's3_index_path',)
+        # This makes 'index_status' readonly in all cases
+        return self.readonly_fields + ('index_status', 's3_index_path',)
     
 
 class MessageKnowledgeItemAdmin(admin.ModelAdmin):
