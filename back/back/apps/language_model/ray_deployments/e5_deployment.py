@@ -9,7 +9,12 @@ from chat_rag.inf_retrieval.cross_encoder import ReRanker
 
 @serve.deployment(
     name="retriever_deployment",
-    ray_actor_options={"resources": {"rags": 1}},
+    ray_actor_options={
+            "num_cpus": 1,
+            "resources": {
+                "rags": 1,
+            }
+        }
 )
 class E5Deployment:
     """
@@ -90,12 +95,6 @@ def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='e
     print(f"Launching E5 deployment with name: {retriever_deploy_name}")
     retriever_handle = E5Deployment.options(
             name=retriever_deploy_name,
-            ray_actor_options={
-                "resources": {
-                    "rags": 1, 
-                    # "num_cpus": 1,
-                    }
-                },
             ).bind(model_name, use_cpu, rag_config_id, lang)
 
     print("E5 deployment started")

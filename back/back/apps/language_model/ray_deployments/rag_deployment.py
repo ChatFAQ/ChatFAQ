@@ -18,8 +18,13 @@ LLM_CLASSES = {
     
 
 @serve.deployment(
-    name="rag_deployment",
-    ray_actor_options={"resources": {"rags": 1}},
+    name="RAG Orchestrator",
+    ray_actor_options={
+            "num_cpus": 0.2,
+            "resources": {
+                "rags": 1,
+            }
+        }
 )
 class RAGDeployment:
 
@@ -63,14 +68,13 @@ class RAGDeployment:
     
 def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
 
-    # retriever_handle = serve.get_deployment_handle(retriever_deploy_name, app_name='retriever_deployment')
     print(f'Got retriever handle: {retriever_handle}')
     print(f'Launching RAG deployment with name: {rag_deploy_name}')
     rag_handle = RAGDeployment.options(
-        name=rag_deploy_name,
-        ray_actor_options={"resources": {"rags": 1}},
+        num_replicas=2,
     ).bind(retriever_handle, llm_name, llm_type)
     
     print(f'Launched RAG deployment with name: {rag_deploy_name}')
-    serve.run(rag_handle, host="0.0.0.0", port=8000, route_prefix="/rag", name='rag_deployment')
+    route_prefix = f'/rag/{rag_deploy_name}'
+    serve.run(rag_handle, host="0.0.0.0", port=8000, route_prefix=route_prefix, name=rag_deploy_name)
     print(f'Launched all deployments')

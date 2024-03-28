@@ -9,7 +9,12 @@ from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
 @serve.deployment(
     name="colbert_deployment",
-    ray_actor_options={"resources": {"rags": 1}},
+    ray_actor_options={
+            "num_cpus": 1,
+            "resources": {
+                "rags": 1,
+            }
+        }
 )
 class ColBERTDeployment:
     """
@@ -65,11 +70,6 @@ def launch_colbert(retriever_deploy_name, index_path):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
     retriever_handle = ColBERTDeployment.options(
             name=retriever_deploy_name,
-            ray_actor_options={
-                "resources": {
-                    "rags": 1, 
-                }
-            }
-        ).remote(index_path)
+        ).bind(index_path)
     print(f'Launched ColBERT deployment with name: {retriever_deploy_name}')
     return retriever_handle
