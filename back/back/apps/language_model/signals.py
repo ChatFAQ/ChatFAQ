@@ -19,8 +19,8 @@ logger = getLogger(__name__)
 def on_llm_config_change(instance, *args, **kwargs):
     # if the llm instance belongs to a RAGConfig, then we need to reload the models
     rag_configs = RAGConfig.objects.filter(llm_config=instance)
-    if rag_configs.exists():
-        recache_models("on_llm_config_change")
+    # if rag_configs.exists():
+    #     recache_models("on_llm_config_change")
 
 
 @receiver(post_delete, sender=RAGConfig)
@@ -29,8 +29,8 @@ def on_rag_config_change(instance, *args, **kwargs):
     if s3_index_path:
         delete_index_files_task.delay(s3_index_path, recache_models=True)
 
-    else:
-        recache_models("on_rag_config_change")
+    # else:
+    #     recache_models("on_rag_config_change")
 
 
 @receiver(post_save, sender=TaskResult)

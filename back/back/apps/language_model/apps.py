@@ -5,7 +5,6 @@ from django.apps import AppConfig
 from back.utils import is_migrating, is_celery_worker
 
 from logging import getLogger
-from back.utils.celery import recache_models
 
 logger = getLogger(__name__)
 

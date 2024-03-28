@@ -31,6 +31,12 @@ from chat_rag.exceptions import (
     RequestException,
 )
 
+from back.apps.language_model.ray_deployments import (
+    launch_e5,
+    launch_colbert,
+    launch_rag
+)
+
 if is_celery_worker():
     setup()
 
@@ -48,12 +54,6 @@ if not ray.is_initialized() and os.environ.get('RUN_MAIN'): # only start ray on 
 @app.task()
 def launch_rag_deployment(rag_config_id):
 
-    from back.apps.language_model.ray_deployments import (
-        ColBERTDeployment,
-        E5Deployment,
-        RAGDeployment,
-    )
-
     RAGConfig = apps.get_model("language_model", "RAGConfig")
 
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
@@ -65,36 +65,17 @@ def launch_rag_deployment(rag_config_id):
         model_name = rag_config.retriever_config.model_name
         use_cpu = rag_config.retriever_config.device == "cpu"
         lang = rag_config.knowledge_base.lang
-        retriever_handle = E5Deployment.options(
-            name=retriever_deploy_name,
-            resources={
-                "rags": 1,
-                "num_cpus": 1,
-                }
-            ).bind(model_name, use_cpu, rag_config_id, lang)
+        retriever_handle = launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang)
     elif retriever_type == "colbert":
         index_path = os.path.join("/indexes/colbert/", rag_config.s3_index_path) # TODO: temporary for local development
-        retriever_handle = ColBERTDeployment.options(
-            name=retriever_deploy_name,
-            resources={
-                "rags": 1,
-                "num_cpus": 1,
-                }
-            ).bind(index_path)
+        retriever_handle = launch_colbert(retriever_deploy_name, index_path)
     else:
         raise ValueError(f"Retriever type: {retriever_type} not supported.")
     
     rag_deploy_name = f'rag_{rag_config.name}'
     llm_name = rag_config.llm_config.llm_name
     llm_type = rag_config.llm_config.llm_type
-    rag_handle = RAGDeployment.options(
-        name=rag_deploy_name,
-        resources={
-            "rags": 1,
-            "num_cpus": 1,
-            }
-        ).bind(retriever_handle, llm_name, llm_type)
-    serve.run(rag_handle, host="0.0.0.0", port=8000, route_prefix="/rag", name='rag_deployment')
+    launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
 
 
 def _send_message(
@@ -102,7 +83,7 @@ def _send_message(
     lm_msg_id,
     channel_layer,
     chanel_name,
-    msg={},
+    msg="",
     references={},
     final=False,
 ):
@@ -113,7 +94,7 @@ def _send_message(
             "message": {
                 "references": references,
                 "final": final,
-                "res": msg.get("res", ""),
+                "res": msg,
                 "bot_channel_name": bot_channel_name,
                 "lm_msg_id": lm_msg_id,
             },
@@ -130,7 +111,6 @@ def handle_error(error_type, exception, bot_channel_name, lm_msg_id, channel_lay
 
 @app.task()
 def rag_query_task(
-    self,
     chanel_name=None,
     rag_config_name=None,
     input_text=None,
@@ -183,8 +163,6 @@ def rag_query_task(
     ).distinct().order_by("updated_date")
     prev_contents = list(prev_kis.values_list("content", flat=True))
 
-    rag = self.CACHED_RAGS[rag_config_name]
-
     logger.info(f"Using RAG config: {rag_config_name}")
 
     streaming = True # TODO: make this a parameter
@@ -204,7 +182,8 @@ def rag_query_task(
             reference_kis = None
             for chunk in r.iter_content(chunk_size=None, decode_unicode=True):
                 response_dict = json.loads(chunk)
-                res = response_dict.get("res")
+                print(response_dict)
+                res = response_dict.get("res", "")
                 _send_message(
                     bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
                 )
@@ -528,8 +507,10 @@ def index_task(rag_config_id, recache_models: bool = False, logger_name: str = N
     rag_config.save()
 
     logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
-    if recache_models:
-        recache_models_utils(logger_name=logger_name)
+    # launch rag
+    launch_rag_deployment(rag_config_id)
+    # if recache_models:
+    #     recache_models_utils(logger_name=logger_name)
 
 
 @app.task()
@@ -555,8 +536,8 @@ def delete_index_files_task(s3_index_path, recache_models: bool = False):
 
         logger.info(f"Index files deleted from S3: {s3_index_path}")
 
-        if recache_models:
-            recache_models_utils()
+        # if recache_models:
+        #     recache_models_utils()
 
 
 @app.task()

@@ -59,3 +59,17 @@ class ColBERTDeployment:
 
     async def __call__(self, query: str, top_k: int):
         return await self.batch_handler(query, top_k)
+    
+
+def launch_colbert(retriever_deploy_name, index_path):
+    print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
+    retriever_handle = ColBERTDeployment.options(
+            name=retriever_deploy_name,
+            ray_actor_options={
+                "resources": {
+                    "rags": 1, 
+                }
+            }
+        ).remote(index_path)
+    print(f'Launched ColBERT deployment with name: {retriever_deploy_name}')
+    return retriever_handle

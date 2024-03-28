@@ -77,12 +77,12 @@ class RAGConfig(ChangesMixin):
 
         super().save(*args, **kwargs)
 
-        if load_new_llm:
-            def on_commit_callback():
-                recache_models("RAGConfig.save")
+        # if load_new_llm:
+        #     def on_commit_callback():
+        #         recache_models("RAGConfig.save")
 
-            # Schedule the recache_models function to be called
-            transaction.on_commit(on_commit_callback)
+        #     # Schedule the recache_models function to be called
+        #     transaction.on_commit(on_commit_callback)
 
     def trigger_reindex(self, recache_models: bool = False, logger_name: str = None):
         index_task.delay(self.id, recache_models=recache_models, logger_name=logger_name)  # Trigger the Celery task
@@ -142,12 +142,12 @@ class RetrieverConfig(ChangesMixin):
 
         super().save(*args, **kwargs)
 
-        if device_changed:
-            def on_commit_callback():
-                recache_models("RetrieverConfig.save")
+        # if device_changed:
+        #     def on_commit_callback():
+        #         recache_models("RetrieverConfig.save")
 
-            # Schedule the recache_models function to be called
-            transaction.on_commit(on_commit_callback)
+        #     # Schedule the recache_models function to be called
+        #     transaction.on_commit(on_commit_callback)
 
 
 

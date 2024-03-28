@@ -15,15 +15,6 @@ LLM_CLASSES = {
     "openai": AsyncOpenAIChatModel,
     "vllm": AsyncVLLMModel,
 }
-
-
-class RetrieverHandleClient:
-    """Wrapper around the retriever handle to make it compatible with the RAG interface."""
-    def __init__(self, handle: DeploymentHandle):
-        self.handle = handle
-    
-    async def retrieve(self, message: str, top_k: int):
-        return await self.handle.remote(message, top_k)
     
 
 @serve.deployment(
@@ -31,8 +22,17 @@ class RetrieverHandleClient:
     ray_actor_options={"resources": {"rags": 1}},
 )
 class RAGDeployment:
+
+    class RetrieverHandleClient:
+        """Wrapper around the retriever handle to make it compatible with the RAG interface."""
+        def __init__(self, handle: DeploymentHandle):
+            self.handle = handle
+
+        async def retrieve(self, message: str, top_k: int):
+            return await self.handle.remote(message, top_k)
+        
     def __init__(self, retriever_handle: DeploymentHandle, llm_name: str, llm_type: str):
-        retriever = RetrieverHandleClient(retriever_handle)
+        retriever = self.RetrieverHandleClient(retriever_handle)
         llm_model = LLM_CLASSES[llm_type](llm_name)
         self.rag = AsyncRAG(retriever=retriever, llm_model=llm_model)
 
@@ -60,3 +60,17 @@ class RAGDeployment:
             media_type="application/json",
             status_code=200,
         )
+    
+def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
+
+    # retriever_handle = serve.get_deployment_handle(retriever_deploy_name, app_name='retriever_deployment')
+    print(f'Got retriever handle: {retriever_handle}')
+    print(f'Launching RAG deployment with name: {rag_deploy_name}')
+    rag_handle = RAGDeployment.options(
+        name=rag_deploy_name,
+        ray_actor_options={"resources": {"rags": 1}},
+    ).bind(retriever_handle, llm_name, llm_type)
+    
+    print(f'Launched RAG deployment with name: {rag_deploy_name}')
+    serve.run(rag_handle, host="0.0.0.0", port=8000, route_prefix="/rag", name='rag_deployment')
+    print(f'Launched all deployments')

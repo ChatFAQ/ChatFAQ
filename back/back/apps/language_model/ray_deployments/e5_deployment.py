@@ -3,7 +3,6 @@ import asyncio
 from typing import List
 from aiohttp import ClientSession
 from ray import serve
-from fastapi import Request
 from chat_rag.inf_retrieval.embedding_models import E5Model
 from chat_rag.inf_retrieval.cross_encoder import ReRanker
 
@@ -17,6 +16,10 @@ class E5Deployment:
     Ray Serve Deployment class for serving the embedding and reranker retriever models in a Ray cluster.
     """
 
+    class TestClass:
+        def __init__(self):
+            print("TestClass initialized")
+
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
@@ -24,6 +27,7 @@ class E5Deployment:
 
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.reranker = ReRanker(lang=lang, device='cpu' if use_cpu else 'cuda')
+        self.test_class = self.TestClass()
 
         print(f"RetrieverDeployment initialized with model_name={model_name}, use_cpu={use_cpu}")
 
@@ -76,3 +80,25 @@ class E5Deployment:
 
     async def __call__(self, query: str, top_k: int):
         return await self.batch_handler(query, top_k)
+    
+
+def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='en'):
+    print('#'*100)
+    print(__file__)
+    print(__name__)
+    print('#'*100)
+    print(f"Launching E5 deployment with name: {retriever_deploy_name}")
+    retriever_handle = E5Deployment.options(
+            name=retriever_deploy_name,
+            ray_actor_options={
+                "resources": {
+                    "rags": 1, 
+                    # "num_cpus": 1,
+                    }
+                },
+            ).bind(model_name, use_cpu, rag_config_id, lang)
+
+    print("E5 deployment started")
+    # serve.run(retriever_handle, host="0.0.0.0", port=8000, route_prefix="/retrieve", name='retriever_deployment')
+    # print("E5 deployment finished")
+    return retriever_handle
