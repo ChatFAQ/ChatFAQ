@@ -54,6 +54,9 @@ class ColBERTDeployment:
             # Filter out results not relevant to the query
             query_results = clean_relevant_references(query_results)
 
+            # only keep k_item_id, content and similarity
+            query_results = [{"k_item_id": int(result["document_id"]), "similarity": result["similarity"], "content": result["content"]} for result in query_results]
+
             results.append(query_results[:top_k])
 
         return results

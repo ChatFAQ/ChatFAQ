@@ -279,6 +279,9 @@ class KnowledgeItem(ChangesMixin):
 
         super().save(*args, **kwargs)
 
+    def get_image_urls(self):
+        return {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
+
     def to_retrieve_context(self):
         return {
             "knowledge_item_id": self.id,
@@ -288,7 +291,7 @@ class KnowledgeItem(ChangesMixin):
             "section": self.section,
             "role": self.role,
             "page_number": str(self.page_number) if self.page_number else None,
-            "image_urls": {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
+            "image_urls": self.get_image_urls(),
         }
 
 

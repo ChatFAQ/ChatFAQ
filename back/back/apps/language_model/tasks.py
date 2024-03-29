@@ -244,7 +244,17 @@ def rag_query_task(
         return
 
     reference_kis = reference_kis[0] if reference_kis else []
-    logger.info(f"\nReferences: {reference_kis}")
+
+    # ColBERT only returns the k item id, similarity and content, so we need to get the full k item fields
+    # We also adapt the pgvector retriever to match colbert's output
+    for ndx, ki in enumerate(reference_kis):
+        ki_id = ki['k_item_id']
+        reference_kis[ndx] = {
+            **KnowledgeItem.objects.get(pk=ki_id).to_retrieve_context(),
+            "similarity": ki["similarity"],
+        }
+
+    logger.info(f"References:\n{reference_kis}")
 
     # All images of the conversation so far
     reference_ki_images = {}
