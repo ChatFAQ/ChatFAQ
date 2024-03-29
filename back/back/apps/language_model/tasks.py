@@ -8,6 +8,8 @@ import requests
 import json
 import ray
 from ray import serve
+from ray.serve.config import HTTPOptions
+from ray.serve.config import ProxyLocation
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from crochet import setup
@@ -58,6 +60,14 @@ def get_rag_deploy_name(rag_config):
 
 @app.task()
 def launch_rag_deployment(rag_config_id):
+
+    if not serve.status().applications:
+        http_options = HTTPOptions(
+            host="0.0.0.0", port=8000,
+        )
+        proxy_location = ProxyLocation(ProxyLocation.EveryNode)
+
+        serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
 

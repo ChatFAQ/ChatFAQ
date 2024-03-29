@@ -76,5 +76,5 @@ def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
     
     print(f'Launched RAG deployment with name: {rag_deploy_name}')
     route_prefix = f'/rag/{rag_deploy_name}'
-    serve.run(rag_handle, host="0.0.0.0", port=8000, route_prefix=route_prefix, name=rag_deploy_name)
+    serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name)
     print(f'Launched all deployments')
