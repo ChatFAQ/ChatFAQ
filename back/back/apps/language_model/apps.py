@@ -32,7 +32,7 @@ class DatasetConfig(AppConfig):
                 logger.info(f"Connecting to Ray at {RAY_ADRESS}")
                 ray.init(address=RAY_ADRESS, namespace="back-end")
                 
-            else:
+            else: # Very unstable, only for local development
                 logger.info("Starting Ray locally...")
                 # These are the resources for the ray cluster, 'rags' for launching RAGs and 'tasks' for launching tasks
                 # these resources are used to specify the nodes in the ray cluster where ray will run the tasks and rags
@@ -44,13 +44,19 @@ class DatasetConfig(AppConfig):
                     "tasks": 100,
                 }
                 # init a custom ray cluster
-                ray.init(
+                result = ray.init(
                     ignore_reinit_error=True,
                     resources=resources,
                     include_dashboard=True,
                     dashboard_port=8265,
                     namespace="back-end"
                 )
+                # check that the python package chat-rag is installed
+                try:
+                    import chat_rag
+                except ImportError:
+                    logger.error("chat-rag package not found, please install it to use a local ray cluster")
+                    return
             
             logger.info("Available resources:", ray.available_resources())
 
@@ -62,6 +68,4 @@ class DatasetConfig(AppConfig):
                 if rag_config.get_index_status() in [IndexStatusChoices.OUTDATED, IndexStatusChoices.UP_TO_DATE]:
                     logger.info(f"Launching RAG deployment for {rag_config.name}")
                     launch_rag_deployment_task.delay(rag_config.id)
-                
-
 

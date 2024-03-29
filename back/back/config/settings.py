@@ -258,6 +258,8 @@ with EnvManager(model_w_django) as env:
     # CELERY_QUEUES = (Broadcast('broadcast_tasks'),)
     # CELERY_ROUTES = {
     # }
+    CELERY_WORKER_REDIRECT_STDOUTS = False
+
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'
         MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local_storage")

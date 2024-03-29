@@ -83,10 +83,6 @@ class E5Deployment:
     
 
 def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='en'):
-    print('#'*100)
-    print(__file__)
-    print(__name__)
-    print('#'*100)
     print(f"Launching E5 deployment with name: {retriever_deploy_name}")
     retriever_handle = E5Deployment.options(
             name=retriever_deploy_name,

@@ -45,6 +45,16 @@ if is_celery_worker():
 logger = getLogger(__name__)
 
 
+def connect_to_ray_cluster():
+    "Connects the celery worker to the Ray cluster if it is not already connected."
+
+    if not ray.is_initialized():
+        ray.init(address="auto", ignore_reinit_error=True)
+        logger.info('Connected to Ray cluster')
+    else:
+        logger.info('Ray cluster already connected')
+
+
 def delete_rag_deployment(rag_deploy_name):
     """
     Delete the RAG deployment Ray Serve.
@@ -65,7 +75,8 @@ def delete_rag_deployment(rag_deploy_name):
 
 
 @app.task()
-def delete_rag_deployment_task(rag_deploy_name):    
+def delete_rag_deployment_task(rag_deploy_name):  
+    connect_to_ray_cluster()  
     delete_rag_deployment(rag_deploy_name)
 
 
@@ -74,6 +85,8 @@ def launch_rag_deployment_task(rag_config_id):
     """
     Launch the RAG deployment using Ray Serve.
     """
+
+    connect_to_ray_cluster()
 
     RAGConfig = apps.get_model("language_model", "RAGConfig")
 
@@ -85,7 +98,7 @@ def launch_rag_deployment_task(rag_config_id):
 
     if not serve.status().applications:
         http_options = HTTPOptions(
-            host="0.0.0.0", port=8000,
+            host="0.0.0.0", port=8001,
         )
         proxy_location = ProxyLocation(ProxyLocation.EveryNode)
 
@@ -110,7 +123,6 @@ def launch_rag_deployment_task(rag_config_id):
     llm_name = rag_config.llm_config.llm_name
     llm_type = rag_config.llm_config.get_llm_type().value
     launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
-
 
 
 def _send_message(
@@ -206,7 +218,7 @@ def rag_query_task(
         "generation_config_dict": g_conf,
     }
 
-    ray_serve_address = os.environ.get("RAY_SERVE_ADDRESS", "http://localhost:10002")
+    ray_serve_address = os.environ.get("RAY_SERVE_ADDRESS", "http://localhost:8001/rag")
     rag_url = f'{ray_serve_address}/{rag_conf.get_deploy_name()}'
 
     logger.info(f'Querying RAG {rag_conf.name} at {rag_url}')
@@ -218,7 +230,6 @@ def rag_query_task(
             reference_kis = None
             for chunk in r.iter_content(chunk_size=None, decode_unicode=True):
                 response_dict = json.loads(chunk)
-                print(response_dict)
                 res = response_dict.get("res", "")
                 _send_message(
                     bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg=res
@@ -544,6 +555,9 @@ def index_task(rag_config_id, launch_rag_deploy: bool = False):
     launch_rag_deploy : bool
         Whether to launch the RAG deployment after the index is built.
     """
+
+    connect_to_ray_cluster()
+    
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
