@@ -554,6 +554,9 @@ def index_task(rag_config_id, launch_rag_deploy: bool = False):
         Embedding = apps.get_model("language_model", "Embedding")
         Embedding.objects.filter(rag_config=rag_config).delete()
 
+        # remove the index files from S3
+        delete_index_files(rag_config.s3_index_path)
+
     if retriever_type == RetrieverTypeChoices.E5:
         index_e5(rag_config)
     elif retriever_type == RetrieverTypeChoices.COLBERT:
@@ -569,8 +572,7 @@ def index_task(rag_config_id, launch_rag_deploy: bool = False):
         launch_rag_deployment_task(rag_config_id)
 
 
-@app.task()
-def delete_index_files_task(s3_index_path):
+def delete_index_files(s3_index_path):
     """
     Delete the index files from S3.
     Parameters
@@ -591,6 +593,11 @@ def delete_index_files_task(s3_index_path):
             default_storage.delete(file_path)
 
         logger.info(f"Index files deleted from S3: {s3_index_path}")
+
+
+@app.task()
+def delete_index_files_task(s3_index_path):
+    delete_index_files(s3_index_path)
 
 
 @app.task()
