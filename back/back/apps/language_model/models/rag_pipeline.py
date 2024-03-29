@@ -13,8 +13,7 @@ from back.apps.language_model.models.enums import IndexStatusChoices, DeviceChoi
 from back.apps.language_model.models.data import KnowledgeBase
 from back.common.models import ChangesMixin
 
-from back.utils.celery import recache_models
-from back.apps.language_model.tasks import delete_index_files_task, index_task
+from back.apps.language_model.tasks import index_task, launch_rag_deployment_task
 
 from logging import getLogger
 
@@ -58,40 +57,47 @@ class RAGConfig(ChangesMixin):
 
     def get_index_status(self):
         return IndexStatusChoices(self.index_status)
+    
+    def get_deploy_name(self):
+        return f'rag_{self.name}'
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
 
     # When saving we want to check if the llm_config has changed and in that reload the RAG
     def save(self, *args, **kwargs):
-        load_new_llm = False
+        redeploy_rag = False
 
         if self.pk is not None:
             old = RAGConfig.objects.get(pk=self.pk)
+            if self.name != old.name:
+                redeploy_rag = True
+                logger.info(f"RAG config name changed...")
             if self.llm_config != old.llm_config:
-                load_new_llm = True
+                redeploy_rag = True
                 logger.info(f"RAG config {self.name} changed llm config...")
-            if self.disabled != old.disabled:
-                load_new_llm = True
+            if old.disabled and not self.disabled: # If the config was disabled and now is enabled
+                redeploy_rag = True
                 logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
             if self.knowledge_base != old.knowledge_base:
                 self.index_status = IndexStatusChoices.NO_INDEX
                 logger.info(f"RAG config {self.name} changed knowledge base. Index needs to be updated...")
-            if self.retriever_config.model_name != old.retriever_config.model_name:
+            if self.retriever_config.model_name != old.retriever_config.model_name or self.retriever_config.get_retriever_type() != old.retriever_config.get_retriever_type():
                 self.index_status = IndexStatusChoices.NO_INDEX
                 logger.info(f"RAG config {self.name} changed retriever model. Index needs to be updated...")
 
         super().save(*args, **kwargs)
 
-        # if load_new_llm:
-        #     def on_commit_callback():
-        #         recache_models("RAGConfig.save")
+        if redeploy_rag:
+            def on_commit_callback():
+                launch_rag_deployment_task.delay(self.id)
 
-        #     # Schedule the recache_models function to be called
-        #     transaction.on_commit(on_commit_callback)
+            # Schedule the task to run after the transaction is committed
+            transaction.on_commit(on_commit_callback)
 
-    def trigger_reindex(self, recache_models: bool = False, logger_name: str = None):
-        index_task.delay(self.id, recache_models=recache_models, logger_name=logger_name)  # Trigger the Celery task
+    def trigger_reindex(self):
+        launch_rag_deploy = not self.disabled # If the RAG is disabled we don't want to launch the deployment
+        index_task.delay(self.id, launch_rag_deploy=launch_rag_deploy)  # Trigger the Celery task
 
 
 class RetrieverConfig(ChangesMixin):
@@ -128,29 +134,33 @@ class RetrieverConfig(ChangesMixin):
     # knowledge bases that uses this retriever.
     def save(self, *args, **kwargs):
         logger.info('Checking if we need to generate embeddings because of a retriever config change')
-        device_changed = False
-
+        rags_to_redeploy = None
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
 
             if self.model_name != old_retriever.model_name or self.get_retriever_type() != old_retriever.get_retriever_type():
-                # change the rag config index status to NO_INDEX
+                # If the model or model type has changed we need to reindex and not redeploy the RAGs until the index is ready
                 rag_configs = RAGConfig.objects.filter(retriever_config=self)
                 for rag_config in rag_configs:
                     rag_config.index_status = IndexStatusChoices.NO_INDEX
                     rag_config.save()
 
             if self.get_device() != old_retriever.get_device():
-                device_changed = True
+                # if the device has changed we need to redeploy all the RAGs that use this retriever
+                rags_to_redeploy = RAGConfig.objects.filter(retriever_config=self)
+                
 
         super().save(*args, **kwargs)
 
-        # if device_changed:
-        #     def on_commit_callback():
-        #         recache_models("RetrieverConfig.save")
+        if rags_to_redeploy:
+            def on_commit_callback():
+                logger.info('Retriever device changed, launching rag redeploys')
+                for rag in rags_to_redeploy:
+                    if not rag.disabled:
+                        launch_rag_deployment_task.delay(rag.id)
 
-        #     # Schedule the recache_models function to be called
-        #     transaction.on_commit(on_commit_callback)
+            # Schedule the task to run after the transaction is committed
+            transaction.on_commit(on_commit_callback)
 
 
 
@@ -198,6 +208,30 @@ class LLMConfig(ChangesMixin):
     
     def get_llm_type(self):
         return LLMChoices(self.llm_type)
+    
+    def save(self, *args, **kwargs):
+        logger.info('Checking if we need to redeploy RAGs because of a LLM config change')
+        rags_to_redeploy = None
+        if self.pk is not None:
+            old_llm = LLMConfig.objects.get(pk=self.pk)
+
+            if self.llm_name != old_llm.llm_name or self.get_llm_type() != old_llm.get_llm_type():
+                # change the rag config index status to NO_INDEX
+                rags_to_redeploy = RAGConfig.objects.filter(llm_config=self)
+
+        super().save(*args, **kwargs)
+
+        if rags_to_redeploy:
+            def on_commit_callback():
+                logger.info('LLM changed, launching rag redeploys')
+                for rag in rags_to_redeploy:
+                    if not rag.disabled:
+                        launch_rag_deployment_task.delay(rag.id)
+
+            # Schedule the task to run after the transaction is committed
+            transaction.on_commit(on_commit_callback)
+
+
 
 
 class PromptConfig(ChangesMixin):

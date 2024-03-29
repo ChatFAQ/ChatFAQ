@@ -101,7 +101,7 @@ class IntentAdmin(admin.ModelAdmin):
 
 def run_index_task(modeladmin, request, queryset):
     for rag_config in queryset:
-        rag_config.trigger_reindex(True, 'RagConfig Django Admin')
+        rag_config.trigger_reindex()
         modeladmin.message_user(request, f"Index task started for {rag_config.name}", messages.SUCCESS)
 
 run_index_task.short_description = "Index selected RAG configs"

@@ -51,13 +51,13 @@ services:
       resources:
         limits:
           cpus: ${NUM_CPU_RAGS_WORKER}
-          memory: 4G
+          memory: 6G
     networks:
       - ray_net
     extra_hosts:
         - host.docker.internal:host-gateway
     volumes:
-      - ../back/indexes:/indexes # Adjust the path as needed
+      - ../back/back/local_storage/indexes:/indexes # Adjust the path as needed
 
 
 networks:

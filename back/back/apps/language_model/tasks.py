@@ -26,7 +26,6 @@ from back.apps.language_model.ray_tasks import (
 )
 from back.config.celery import app
 from back.utils import is_celery_worker
-from back.utils.celery import recache_models as recache_models_utils
 from back.apps.language_model.models.enums import DeviceChoices, RetrieverTypeChoices, IndexStatusChoices
 from chat_rag.exceptions import (
     ModelNotFoundException,
@@ -45,21 +44,44 @@ if is_celery_worker():
 
 logger = getLogger(__name__)
 
-if not ray.is_initialized() and os.environ.get('RUN_MAIN'): # only start ray on the main thread
-    # connect to ray
-    RAY_ADRESS= os.environ.get('RAY_ADDRESS')
-    logger.info(f"Connecting to Ray at {RAY_ADRESS}")
-    ray.init(address=RAY_ADRESS, namespace="back-end")
 
-    logger.info("Available resources:", ray.available_resources())
+def delete_rag_deployment(rag_deploy_name):
+    """
+    Delete the RAG deployment Ray Serve.
+    """
 
+    if serve.status().applications:
+        serve.delete(rag_deploy_name)
+        try:
+            app_handle = serve.get_app_handle(rag_deploy_name)
+            # if it doesn't return error it means the deployment is still running
+            print(f"{rag_deploy_name} could not be deleted, so it doesn't exist or it is still running.")
+        except:
+            print(f'{rag_deploy_name} was deleted successfully')
 
-def get_rag_deploy_name(rag_config):
-    return f'rag_{rag_config.name}'
+    # When all deployments are deleted, shutdown the serve instance
+    if not serve.status().applications:
+        serve.shutdown()
 
 
 @app.task()
-def launch_rag_deployment(rag_config_id):
+def delete_rag_deployment_task(rag_deploy_name):    
+    delete_rag_deployment(rag_deploy_name)
+
+
+@app.task()
+def launch_rag_deployment_task(rag_config_id):
+    """
+    Launch the RAG deployment using Ray Serve.
+    """
+
+    RAGConfig = apps.get_model("language_model", "RAGConfig")
+
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    rag_deploy_name = rag_config.get_deploy_name()
+
+    # delete the deployment if it already exists
+    delete_rag_deployment(rag_deploy_name)
 
     if not serve.status().applications:
         http_options = HTTPOptions(
@@ -68,10 +90,6 @@ def launch_rag_deployment(rag_config_id):
         proxy_location = ProxyLocation(ProxyLocation.EveryNode)
 
         serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)
-
-    RAGConfig = apps.get_model("language_model", "RAGConfig")
-
-    rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
@@ -83,16 +101,16 @@ def launch_rag_deployment(rag_config_id):
         retriever_handle = launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang)
 
     elif retriever_type == RetrieverTypeChoices.COLBERT:
-        index_path = os.path.join("/indexes/colbert/", rag_config.s3_index_path) # TODO: temporary for local development
+        index_path = os.path.join("/", rag_config.s3_index_path) # TODO: temporary for local development
         retriever_handle = launch_colbert(retriever_deploy_name, index_path)
 
     else:
         raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
     
-    rag_deploy_name = get_rag_deploy_name(rag_config)
     llm_name = rag_config.llm_config.llm_name
     llm_type = rag_config.llm_config.get_llm_type().value
     launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
+
 
 
 def _send_message(
@@ -133,10 +151,7 @@ def rag_query_task(
     input_text=None,
     conversation_id=None,
     bot_channel_name=None,
-    recache_models=False,
-    logger_name=None,
 ):
-    logger.info(f"Log caller: {logger_name}")
 
     channel_layer = get_channel_layer()
     lm_msg_id = str(uuid.uuid4())
@@ -192,7 +207,7 @@ def rag_query_task(
     }
 
     ray_serve_address = os.environ.get("RAY_SERVE_ADDRESS", "http://localhost:10002")
-    rag_url = f'{ray_serve_address}/{get_rag_deploy_name(rag_conf)}'
+    rag_url = f'{ray_serve_address}/{rag_conf.get_deploy_name()}'
 
     logger.info(f'Querying RAG {rag_conf.name} at {rag_url}')
 
@@ -210,7 +225,11 @@ def rag_query_task(
                 )
                 if reference_kis is None:
                     reference_kis = response_dict.get("context")
-    # TODO: handle error inside the RAG Deployment instead of here
+        else:
+            # TODO: implement non-streaming
+            pass
+
+    # TODO: handle errors inside the RAG Deployment instead of here
     except PromptTooLongException as e:
         handle_error("PromptTooLongException", e, bot_channel_name, lm_msg_id, channel_layer, chanel_name, message=e.message)
         return
@@ -342,7 +361,7 @@ def generate_embeddings(k_items, rag_config):
     )
 
 
-def index_e5(rag_config, logger_name: str = None):
+def index_e5(rag_config):
     """
     Generate the embeddings for a knowledge base for the E5 retriever.
     Parameters
@@ -455,7 +474,7 @@ def modify_index(rag_config):
             creates_index(rag_config=rag_config)
 
 
-def creates_index(rag_config, logger_name: str = None):
+def creates_index(rag_config):
     """
     Build the index for a knowledge base.
     Parameters
@@ -466,7 +485,6 @@ def creates_index(rag_config, logger_name: str = None):
 
     from back.apps.language_model.retriever_clients import ColBERTRetriever
 
-    logger.info(f"Log caller: {logger_name}")
 
     Embedding = apps.get_model("language_model", "Embedding")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
@@ -485,7 +503,7 @@ def creates_index(rag_config, logger_name: str = None):
     Embedding.objects.bulk_create(embeddings)
 
 
-def index_colbert(rag_config, logger_name: str = None):
+def index_colbert(rag_config):
     """
     Build the index for a knowledge base.
     Parameters
@@ -502,40 +520,47 @@ def index_colbert(rag_config, logger_name: str = None):
         modify_index(rag_config)
 
     else:
-        creates_index(rag_config=rag_config, logger_name=logger_name)
+        creates_index(rag_config=rag_config)
 
 
 @app.task()
-def index_task(rag_config_id, recache_models: bool = False, logger_name: str = None):
+def index_task(rag_config_id, launch_rag_deploy: bool = False):
     """
     Build the index for a knowledge base.
     Parameters
     ----------
     rag_config_id : int
         The primary key of the RAGConfig object.
+    launch_rag_deploy : bool
+        Whether to launch the RAG deployment after the index is built.
     """
     RAGConfig = apps.get_model("language_model", "RAGConfig")
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
 
+    # if no_index, remove all rag config embeddings for a clean start and no leftovers
+    if rag_config.get_index_status() == IndexStatusChoices.NO_INDEX:
+        Embedding = apps.get_model("language_model", "Embedding")
+        Embedding.objects.filter(rag_config=rag_config).delete()
+
     if retriever_type == RetrieverTypeChoices.E5:
-        index_e5(rag_config, logger_name=logger_name)
+        index_e5(rag_config)
     elif retriever_type == RetrieverTypeChoices.COLBERT:
-        index_colbert(rag_config, logger_name=logger_name)
+        index_colbert(rag_config)
 
     rag_config.index_status = IndexStatusChoices.UP_TO_DATE
     rag_config.save()
 
     logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
+    
     # launch rag
-    launch_rag_deployment(rag_config_id)
-    # if recache_models:
-    #     recache_models_utils(logger_name=logger_name)
+    if launch_rag_deploy:
+        launch_rag_deployment_task(rag_config_id)
 
 
 @app.task()
-def delete_index_files_task(s3_index_path, recache_models: bool = False):
+def delete_index_files_task(s3_index_path):
     """
     Delete the index files from S3.
     Parameters
@@ -556,9 +581,6 @@ def delete_index_files_task(s3_index_path, recache_models: bool = False):
             default_storage.delete(file_path)
 
         logger.info(f"Index files deleted from S3: {s3_index_path}")
-
-        # if recache_models:
-        #     recache_models_utils()
 
 
 @app.task()

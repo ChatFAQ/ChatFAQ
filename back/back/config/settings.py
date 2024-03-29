@@ -257,10 +257,6 @@ with EnvManager(model_w_django) as env:
     # from kombu.common import Broadcast
     # CELERY_QUEUES = (Broadcast('broadcast_tasks'),)
     # CELERY_ROUTES = {
-    #     'back.apps.language_model.tasks.recache_models': {
-    #         'queue': 'broadcast_tasks',
-    #         'exchange': 'broadcast_tasks'
-    #     },
     # }
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'

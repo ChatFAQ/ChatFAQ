@@ -115,6 +115,9 @@ class WSStatusCodes(Enum):
 def is_migrating():
     return "makemigrations" in sys.argv or "migrate" in sys.argv
 
+def is_scraping():
+    return "scrape" in sys.argv
+
 
 class PrettyJSONWidget(widgets.Textarea):
     def format_value(self, value):
