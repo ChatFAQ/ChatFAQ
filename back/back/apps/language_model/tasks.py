@@ -26,6 +26,7 @@ from back.apps.language_model.ray_tasks import (
 )
 from back.config.celery import app
 from back.utils import is_celery_worker
+from back.utils.ray_connection import connect_to_ray_cluster
 from back.apps.language_model.models.enums import DeviceChoices, RetrieverTypeChoices, IndexStatusChoices
 from chat_rag.exceptions import (
     ModelNotFoundException,
@@ -45,21 +46,11 @@ if is_celery_worker():
 logger = getLogger(__name__)
 
 
-def connect_to_ray_cluster():
-    "Connects the celery worker to the Ray cluster if it is not already connected."
-
-    if not ray.is_initialized():
-        ray.init(address="auto", ignore_reinit_error=True)
-        logger.info('Connected to Ray cluster')
-    else:
-        logger.info('Ray cluster already connected')
-
 
 def delete_rag_deployment(rag_deploy_name):
     """
     Delete the RAG deployment Ray Serve.
     """
-
     if serve.status().applications:
         serve.delete(rag_deploy_name)
         try:
@@ -76,30 +67,25 @@ def delete_rag_deployment(rag_deploy_name):
 
 @app.task()
 def delete_rag_deployment_task(rag_deploy_name):  
-    connect_to_ray_cluster()  
-    delete_rag_deployment(rag_deploy_name)
+    with connect_to_ray_cluster(close_serve=True):
+        delete_rag_deployment(rag_deploy_name)
 
 
-@app.task()
-def launch_rag_deployment_task(rag_config_id):
+def launch_rag_deployment(rag_config_id):
     """
     Launch the RAG deployment using Ray Serve.
     """
-
-    connect_to_ray_cluster()
-
     RAGConfig = apps.get_model("language_model", "RAGConfig")
 
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
     rag_deploy_name = rag_config.get_deploy_name()
-
-    # delete the deployment if it already exists
+        # delete the deployment if it already exists
     delete_rag_deployment(rag_deploy_name)
 
     if not serve.status().applications:
         http_options = HTTPOptions(
-            host="0.0.0.0", port=8001,
-        )
+                host="0.0.0.0", port=8001,
+            )
         proxy_location = ProxyLocation(ProxyLocation.EveryNode)
 
         serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)
@@ -119,10 +105,16 @@ def launch_rag_deployment_task(rag_config_id):
 
     else:
         raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
-    
+        
     llm_name = rag_config.llm_config.llm_name
     llm_type = rag_config.llm_config.get_llm_type().value
     launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
+
+
+@app.task()
+def launch_rag_deployment_task(rag_config_id):
+    with connect_to_ray_cluster(close_serve=True):
+        launch_rag_deployment(rag_config_id)
 
 
 def _send_message(
@@ -556,34 +548,34 @@ def index_task(rag_config_id, launch_rag_deploy: bool = False):
         Whether to launch the RAG deployment after the index is built.
     """
 
-    connect_to_ray_cluster()
+    with connect_to_ray_cluster(close_serve=launch_rag_deploy):
     
-    RAGConfig = apps.get_model("language_model", "RAGConfig")
-    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+        RAGConfig = apps.get_model("language_model", "RAGConfig")
+        rag_config = RAGConfig.objects.get(pk=rag_config_id)
 
-    retriever_type = rag_config.retriever_config.get_retriever_type()
+        retriever_type = rag_config.retriever_config.get_retriever_type()
 
-    # if no_index, remove all rag config embeddings for a clean start and no leftovers
-    if rag_config.get_index_status() == IndexStatusChoices.NO_INDEX:
-        Embedding = apps.get_model("language_model", "Embedding")
-        Embedding.objects.filter(rag_config=rag_config).delete()
+        # if no_index, remove all rag config embeddings for a clean start and no leftovers
+        if rag_config.get_index_status() == IndexStatusChoices.NO_INDEX:
+            Embedding = apps.get_model("language_model", "Embedding")
+            Embedding.objects.filter(rag_config=rag_config).delete()
 
-        # remove the index files from S3
-        delete_index_files(rag_config.s3_index_path)
+            # remove the index files from S3
+            delete_index_files(rag_config.s3_index_path)
 
-    if retriever_type == RetrieverTypeChoices.E5:
-        index_e5(rag_config)
-    elif retriever_type == RetrieverTypeChoices.COLBERT:
-        index_colbert(rag_config)
+        if retriever_type == RetrieverTypeChoices.E5:
+            index_e5(rag_config)
+        elif retriever_type == RetrieverTypeChoices.COLBERT:
+            index_colbert(rag_config)
 
-    rag_config.index_status = IndexStatusChoices.UP_TO_DATE
-    rag_config.save()
+        rag_config.index_status = IndexStatusChoices.UP_TO_DATE
+        rag_config.save()
 
-    logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
-    
-    # launch rag
-    if launch_rag_deploy:
-        launch_rag_deployment_task(rag_config_id)
+        logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
+        
+        # launch rag
+        if launch_rag_deploy:
+            launch_rag_deployment(rag_config_id)
 
 
 def delete_index_files(s3_index_path):
