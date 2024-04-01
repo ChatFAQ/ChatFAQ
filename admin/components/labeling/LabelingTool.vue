@@ -19,66 +19,68 @@
             </div>
         </div>
         <div class="labeling-tool" v-loading="loadingConversation" element-loading-background="rgba(255, 255, 255, 0.8)">
-            <div class="labeling-tool-left-side">
-                <div class="selected-conversation-info">
-                    <div>{{conversation.name}}</div>
-                    <div>{{formatDate(conversation.created_date)}}</div>
-                </div>
-                <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
-                     @click="msgLabeled = msgs[msgs.length - 1]"
-                     class="qa-group"
-                     :class="{
-                         'selected': (msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id),
-                         'reviewed': msgs[msgs.length - 1].reviewed
-                     }"
-                >
-                    <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
-                        <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
-                            <el-icon>
-                                <CircleCheck/>
-                            </el-icon>
-                        </span>
-                        <div class="message-content" :class="{[msg.sender.type]: true}">
-                            {{
-                                typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
-                            }}
+            <div class="labeling-tool-panels">
+                <div class="labeling-tool-left-side">
+                    <div class="selected-conversation-info">
+                        <div>{{conversation.name}}</div>
+                        <div>{{formatDate(conversation.created_date)}}</div>
+                    </div>
+                    <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
+                         @click="msgLabeled = msgs[msgs.length - 1]"
+                         class="qa-group"
+                         :class="{
+                             'selected': (msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id),
+                             'reviewed': msgs[msgs.length - 1].reviewed
+                         }"
+                    >
+                        <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
+                            <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
+                                <el-icon>
+                                    <CircleCheck/>
+                                </el-icon>
+                            </span>
+                            <div class="message-content" :class="{[msg.sender.type]: true}">
+                                {{
+                                    typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
+                                }}
+                            </div>
                         </div>
                     </div>
                 </div>
+                <div class="labeling-tool-right-side">
+                    <el-tabs model-value="knowledge-items" class="knowledge-items">
+                        <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
+                            <KnowledgeItemReview v-if="msgLabeled !== undefined"
+                                                 :message="msgLabeled"
+                                                 ref="kiReviewer"
+                            />
+                            <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
+                        </el-tab-pane>
+                        <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
+                            <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
+                            <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
+                        </el-tab-pane>
+                        <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
+                            <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
+                            <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </div>
             </div>
-            <div class="labeling-tool-right-side">
-                <el-tabs model-value="knowledge-items" class="knowledge-items">
-                    <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                        <KnowledgeItemReview v-if="msgLabeled !== undefined"
-                                             :message="msgLabeled"
-                                             ref="kiReviewer"
-                        />
-                        <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
-                    </el-tab-pane>
-                    <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
-                        <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
-                        <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
-                    </el-tab-pane>
-                    <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
-                        <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
-                        <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
-                    </el-tab-pane>
-                </el-tabs>
+            <div class="page-buttons">
+                <el-button @click="pageConversation(-1)" :disabled="!thereIsPrev">
+                    <el-icon>
+                        <ArrowLeft/>
+                    </el-icon>
+                    <span>{{ $t("previous") }}</span>
+                </el-button>
+                <el-button @click="pageConversation(1)" :disabled="!thereIsNext">
+                    <span>{{ $t("next") }}</span>
+                    <el-icon>
+                        <ArrowRight/>
+                    </el-icon>
+                </el-button>
             </div>
-        </div>
-        <div class="page-buttons">
-            <el-button @click="pageConversation(-1)" :disabled="!thereIsPrev">
-                <el-icon>
-                    <ArrowLeft/>
-                </el-icon>
-                <span>{{ $t("previous") }}</span>
-            </el-button>
-            <el-button @click="pageConversation(1)" :disabled="!thereIsNext">
-                <span>{{ $t("next") }}</span>
-                <el-icon>
-                    <ArrowRight/>
-                </el-icon>
-            </el-button>
         </div>
     </div>
 </template>
@@ -218,64 +220,67 @@ function selectFirstMessage() {
     padding-left: 60px;
     .labeling-tool {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         margin-right: 60px;
-
-        .labeling-tool-left-side, .labeling-tool-right-side {
-            border-radius: 10px;
-            background: white;
-            border: 1px solid $chatfaq-color-primary-200;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        .labeling-tool-left-side {
-            flex: 1.75;
-            margin-right: 12px;
-        }
-
-        .labeling-tool-right-side {
-            flex: 1.25;
-            margin-left: 12px;
+        .labeling-tool-panels {
             display: flex;
-            flex-direction: column;
-        }
-
-        .qa-group {
-            position: relative;
-            padding: 16px;
-
-            &:hover {
-                background: rgba(223, 218, 234, 0.49);
-                cursor: pointer;
+            flex-direction: row;
+            height: 70vh;
+            .labeling-tool-left-side, .labeling-tool-right-side {
+                border-radius: 10px;
+                background: white;
+                border: 1px solid $chatfaq-color-primary-200;
+                overflow-y: auto;
             }
 
-            &.selected {
-                background: $chatfaq-color-primary-200;
+            .labeling-tool-left-side {
+                flex: 1.75;
+                margin-right: 12px;
             }
 
-            .message {
-                width: 100%;
+            .labeling-tool-right-side {
+                flex: 1.25;
+                margin-left: 12px;
+                display: flex;
+                flex-direction: column;
+            }
 
-                display: block;
-                overflow: auto;
+            .qa-group {
+                position: relative;
+                padding: 16px;
 
-                .message-content {
-                    max-width: 90%;
-                    border-radius: 6px;
-                    padding: 8px 12px 8px 12px;
-                    margin-bottom: 8px;
-                    overflow-wrap: break-word;
+                &:hover {
+                    background: rgba(223, 218, 234, 0.49);
+                    cursor: pointer;
+                }
 
-                    &.bot {
-                        float: left;
-                        background: #46307524;
-                    }
+                &.selected {
+                    background: $chatfaq-color-primary-200;
+                }
 
-                    &.human {
-                        background: $chatfaq-color-primary-500;
-                        float: right;
-                        color: white;
+                .message {
+                    width: 100%;
+
+                    display: block;
+                    overflow: auto;
+
+                    .message-content {
+                        max-width: 90%;
+                        border-radius: 6px;
+                        padding: 8px 12px 8px 12px;
+                        margin-bottom: 8px;
+                        overflow-wrap: break-word;
+
+                        &.bot {
+                            float: left;
+                            background: #46307524;
+                        }
+
+                        &.human {
+                            background: $chatfaq-color-primary-500;
+                            float: right;
+                            color: white;
+                        }
                     }
                 }
             }
