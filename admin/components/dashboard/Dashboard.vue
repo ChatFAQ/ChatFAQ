@@ -28,6 +28,7 @@
                     <el-switch
                         v-model="item.disabled"
                         :before-change="() => switchDisabled(item)"
+                        @click.native.stop
                         :loading="loading[item.id]"
                         :active-value="false"
                         :inactive-value="true"
@@ -92,7 +93,7 @@ async function initData() {
 }
 
 async function initItems() {
-    rags.value = (await $axios.get(RAGAPIUrl.value, { headers: authHeaders() })).data.results;
+    rags.value = (await $axios.get(RAGAPIUrl.value + "?disabled=0", { headers: authHeaders() })).data.results;
     widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
     sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
 }
@@ -107,7 +108,7 @@ function goTo(route) {
 async function switchDisabled(item) {
     try {
         loading.value[item.id] = true;
-        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, t);
+        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, false, {}, t);
         item.disabled = res.disabled;
         loading.value[item.id] = false;
     } catch (e) {

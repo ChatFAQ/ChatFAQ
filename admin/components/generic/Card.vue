@@ -4,9 +4,9 @@
             <template #header>
                 <div class="card-header-title">{{ createTitle(item) }}</div>
             </template>
-            <div v-for="(prop, name) in resolvedCardProps" class="property">
-                <slot :name="prop" v-bind="{item, name, prop}">
-                    <span class="title">{{ name }}:</span>{{ prop.finalValue }}
+            <div v-for="(propInfo, name) in resolvedCardProps" class="property">
+                <slot :name="propInfo.prop" v-bind="{item, name, propInfo}">
+                    <span class="title">{{ name }}:</span>{{ propInfo.finalValue }}
                 </slot>
             </div>
             <div class="divider" v-if="editable || deletable">
