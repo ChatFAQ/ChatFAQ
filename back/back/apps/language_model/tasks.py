@@ -20,10 +20,6 @@ from django.db.models import F
 from django.forms.models import model_to_dict
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
-
-from back.apps.language_model.ray_tasks import (
-    generate_embeddings as ray_generate_embeddings,
-)
 from back.config.celery import app
 from back.utils import is_celery_worker
 from back.utils.ray_connection import connect_to_ray_cluster
@@ -32,6 +28,11 @@ from chat_rag.exceptions import (
     ModelNotFoundException,
     PromptTooLongException,
     RequestException,
+)
+
+from back.apps.language_model.ray_tasks import (
+    generate_embeddings as ray_generate_embeddings,
+    parse_pdf as ray_parse_pdf,
 )
 
 from back.apps.language_model.ray_deployments import (
@@ -640,8 +641,7 @@ def parse_pdf_task(ds_pk):
     k_items : list
         A list of KnowledgeItem objects.
     """
-    from chat_rag.data.parsers import parse_pdf
-    from chat_rag.data.splitters import get_splitter
+    
 
     logger.info("Parsing PDF file...")
     logger.info(f"PDF file pk: {ds_pk}")
@@ -656,16 +656,15 @@ def parse_pdf_task(ds_pk):
     chunk_size = ds.chunk_size
     chunk_overlap = ds.chunk_overlap
 
-    pdf_file = BytesIO(pdf_file)
+    with connect_to_ray_cluster():
+        # Submit the task to the Ray cluster
+        logger.info("Submitting the parse_pdf task to the Ray cluster...")
+        task_name = f"parse_pdf_{ds_pk}"
+        parsed_items_ref = ray_parse_pdf.options(name=task_name).remote(
+            pdf_file, strategy, splitter, chunk_size, chunk_overlap
+        )
 
-    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
-
-    logger.info(f"Splitter: {splitter}")
-    logger.info(f"Strategy: {strategy}")
-    logger.info(f"Chunk size: {chunk_size}")
-    logger.info(f"Chunk overlap: {chunk_overlap}")
-
-    parsed_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
+        parsed_items = ray.get(parsed_items_ref)
 
     with transaction.atomic():
         for item in parsed_items:

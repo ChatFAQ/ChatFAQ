@@ -2,8 +2,12 @@ import os
 
 import ray
 
+from logging import getLogger
 
-@ray.remote
+logger = getLogger(__name__)
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
 def generate_embeddings(data):
 
     from chat_rag.inf_retrieval.embedding_models import E5Model
@@ -22,3 +26,23 @@ def generate_embeddings(data):
     embeddings = [embedding.tolist() for embedding in embeddings]
 
     return embeddings
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
+    from io import BytesIO
+    from chat_rag.data.parsers import parse_pdf
+    from chat_rag.data.splitters import get_splitter
+
+    pdf_file = BytesIO(pdf_file)
+
+    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
+
+    logger.info(f"Splitter: {splitter}")
+    logger.info(f"Strategy: {strategy}")
+    logger.info(f"Chunk size: {chunk_size}")
+    logger.info(f"Chunk overlap: {chunk_overlap}")
+
+    parsed_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
+
+    return parsed_items

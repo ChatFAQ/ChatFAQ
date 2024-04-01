@@ -1,6 +1,5 @@
 from typing import List
 from ray import serve
-from fastapi import Request
 
 from ragatouille import RAGPretrainedModel
 

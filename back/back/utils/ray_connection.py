@@ -25,7 +25,8 @@ def connect_to_ray_cluster(close_serve=False):
     if not initialized:
         # Connect as a driver
         result = ray.init(address="auto", ignore_reinit_error=True)
-        logger.info(f'Connected to Ray cluster as a driver {n} {type(result)}')
+        initialized = ray.is_initialized()
+        logger.info(f'Connected to Ray cluster as a driver {n}')
     else:
         logger.info(f'Ray cluster already connected as a driver {n}')
     try:

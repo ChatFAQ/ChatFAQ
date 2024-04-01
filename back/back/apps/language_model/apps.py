@@ -18,14 +18,9 @@ class DatasetConfig(AppConfig):
         from .signals import on_rag_config_change
         from back.apps.language_model.models.enums import IndexStatusChoices
         from back.apps.language_model.tasks import launch_rag_deployment_task
-        # import ray
 
 
         if os.environ.get('RUN_MAIN'):  # only start ray on the main thread
-
-            # # run 'ray start' in the terminal to start the ray cluster
-            # command = 'ray start --address=172.63.0.2:6375'
-            # os.system(command)
             
             initialize_or_check_ray()
 

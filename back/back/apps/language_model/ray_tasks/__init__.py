@@ -1,1 +1,1 @@
-from .ray_tasks import generate_embeddings
+from .ray_tasks import generate_embeddings, parse_pdf
