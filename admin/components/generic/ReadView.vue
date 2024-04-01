@@ -129,6 +129,7 @@ const items = ref({results: []})
 const loading = ref(false)
 const total = ref(0)
 const filtersEl = ref(undefined)
+let lastFilters = undefined
 defineExpose({filtersEl})
 const emit = defineEmits(["editing", "adding"])
 
@@ -198,11 +199,11 @@ function initStoreWatchers() {
     })
 
     watch(() => itemsStore.currentPage, async () => {
-        await loadItems() // TODO: Fix: we lose the filters here...
+        await loadItems()
     })
 
     watch(() => itemsStore.ordering, async () => {
-        await loadItems() // TODO: Fix: we lose the filters here...
+        await loadItems()
     })
 }
 
@@ -214,8 +215,11 @@ async function initData() {
     initStoreWatchers()
 }
 
-async function loadItems(_filters = {}) {
-    console.trace("loadItems")
+async function loadItems(_filters) {
+    if (!_filters)
+        _filters = lastFilters
+    else
+        lastFilters = _filters
     loading.value = true
     if (!requiredFilterSatisfied.value) {
         loading.value = false
