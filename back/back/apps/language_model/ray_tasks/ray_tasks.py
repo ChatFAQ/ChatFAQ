@@ -46,3 +46,18 @@ def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
     parsed_items = parse_pdf(file=pdf_file, strategy=strategy, split_function=splitter)
 
     return parsed_items
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def generate_titles(contents, n_titles, lang):
+    from chat_rag.inf_retrieval.query_generator import QueryGenerator
+
+    api_key = os.environ.get("OPENAI_API_KEY", None)
+    query_generator = QueryGenerator(api_key, lang=lang)
+
+    new_titles = []
+    for content in contents:
+        titles = query_generator(content, n_queries=n_titles)
+        new_titles.append(titles)
+
+    return new_titles
