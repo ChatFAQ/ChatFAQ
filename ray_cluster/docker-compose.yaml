@@ -14,7 +14,7 @@ services:
 
   ray-tasks-worker:
     image: chatfaq-gpu
-    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 1}", "--num-gpus=${NUM_CPU_TASKS_WORKER}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 100}", "--num-cpus=${NUM_CPU_TASKS_WORKER}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
     env_file:
       - .env
     environment:
@@ -38,7 +38,7 @@ services:
     
   ray-rags-worker:
     image: chatfaq-cpu
-    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 10}", "--num-gpus=${NUM_CPU_RAGS_WORKER}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
+    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 100}", "--num-gpus=${NUM_CPU_RAGS_WORKER}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
     env_file:
       - .env
     ports:

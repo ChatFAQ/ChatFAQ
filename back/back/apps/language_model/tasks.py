@@ -105,7 +105,7 @@ def launch_rag_deployment(rag_config_id):
 
     elif retriever_type == RetrieverTypeChoices.COLBERT:
         index_path = os.path.join("/", rag_config.s3_index_path) # TODO: temporary for local development
-        retriever_handle = launch_colbert(retriever_deploy_name, index_path)
+        retriever_handle = launch_colbert(retriever_deploy_name, rag_config.s3_index_path)
 
     else:
         raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
