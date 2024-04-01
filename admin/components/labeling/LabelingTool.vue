@@ -23,6 +23,7 @@
                 <div class="labeling-tool-left-side">
                     <div class="selected-conversation-info">
                         <div>{{conversation.name}}</div>
+                        <div>{{ conversation?.rags ? conversation.rags.join(",") : "" }}</div>
                         <div>{{formatDate(conversation.created_date)}}</div>
                     </div>
                     <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"

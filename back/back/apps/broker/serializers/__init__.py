@@ -44,15 +44,31 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+def _get_rags(_, obj):
+    # return queryset.filter(message__stack__0__payload__rag_config_id=rag.id).distinct()
+    # Get all the messages from this conversation and aggregate all the rag_config_ids:
+    rag_ids = Message.objects.filter(
+        conversation=obj
+    ).filter(
+        stack__0__payload__rag_config_id__isnull=False
+    ).values_list(
+        "stack__0__payload__rag_config_id", flat=True
+    ).distinct()
+    # get the RAGConfign names from the ids:
+    rag_names = list(RAGConfig.objects.filter(id__in=list(rag_ids.all())).values_list("name", flat=True).all())
+    return rag_names
+
 class ConversationMessagesSerializer(serializers.ModelSerializer):
     mml_chain = serializers.SerializerMethodField()
-
+    rags = serializers.SerializerMethodField()
     class Meta:
         model = apps.get_model("broker", "Conversation")
         fields = "__all__"
 
     def get_mml_chain(self, obj):
         return obj.get_mml_chain()
+
+    get_rags = _get_rags
 
 
 class ConversationSerializer(serializers.ModelSerializer):
@@ -70,19 +86,7 @@ class ConversationSerializer(serializers.ModelSerializer):
             if msg.receiver and msg.receiver.get("type") == AgentType.human.value:
                 return msg.receiver.get("id")
 
-    def get_rags(self, obj):
-        # return queryset.filter(message__stack__0__payload__rag_config_id=rag.id).distinct()
-        # Get all the messages from this conversation and aggregate all the rag_config_ids:
-        rag_ids = Message.objects.filter(
-            conversation=obj
-        ).filter(
-            stack__0__payload__rag_config_id__isnull=False
-        ).values_list(
-            "stack__0__payload__rag_config_id", flat=True
-        ).distinct()
-        # get the RAGConfign names from the ids:
-        rag_names = list(RAGConfig.objects.filter(id__in=list(rag_ids.all())).values_list("name", flat=True).all())
-        return rag_names
+    get_rags = _get_rags
 
 
 class AdminReviewValue(serializers.Serializer):
