@@ -23,6 +23,7 @@
                 'choices': [{'value': 'completed', 'label': $t('completed')}, {'value': 'pending', 'label': $t('pending')}]
             },
         ]"
+        :textExplanation="$t('labelingexplanation')"
         read-only
     >
         <template v-slot:view="{row}">

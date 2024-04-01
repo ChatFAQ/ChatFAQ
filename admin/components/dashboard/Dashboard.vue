@@ -1,6 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t("welcome", { name: "" }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div class="text-explanation" v-html="$t('dashboardexplanation')"></div>
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
@@ -121,6 +122,7 @@ async function switchDisabled(item) {
 .dashboard-wrapper {
     margin-left: 146px;
     margin-right: 160px;
+    margin-top: 32px;
 
     .section-title {
         font-family: Open Sans;
@@ -152,5 +154,15 @@ async function switchDisabled(item) {
     .no-items {
         padding: 16px;
     }
+}
+.text-explanation {
+    margin-right: 16px;
+    margin-left: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    padding-left: 18px;
+    border-left: 2px solid $chatfaq-color-primary-500;
+
 }
 </style>
