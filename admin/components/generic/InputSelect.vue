@@ -125,8 +125,8 @@ onMounted(async () => {
             })
             filterChoices.value.results = items.results
             filterChoices.value.next = items.next
-            await initChoices()
         }
+        await initChoices()
     }
 })
 
