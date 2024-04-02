@@ -1,5 +1,5 @@
 <template>
-    <div class="dashboard-page-title">{{ $t("welcome", { name: "" }) }}</div>
+    <div class="dashboard-page-title">{{ $t("welcome", { name: userName }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div class="text-explanation" v-html="$t('dashboardexplanation')"></div>
         <div class="section-title">{{ $t("sdks") }}</div>
@@ -48,12 +48,14 @@
 <script setup>
 import { ref } from "vue";
 import { authHeaders, useItemsStore } from "~/store/items.js";
+import { useAuthStore } from "~/store/auth.js";
 import { useI18n } from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
 import { callRagReindex, upsertItem } from "~/utils/index.js";
 
 const { t } = useI18n();
 const itemsStore = useItemsStore();
+const authStore = useAuthStore();
 const { $axios } = useNuxtApp();
 const router = useRouter();
 
@@ -83,7 +85,7 @@ const itemSchemaSDK = ref({});
 const rags = ref([]);
 const widgets = ref([]);
 const sdks = ref([]);
-
+const userName = await authStore.getUserName()
 async function initData() {
     itemsStore.loading = true;
     itemSchemaRAG.value = await itemsStore.getSchemaDef(RAGAPIUrl.value);
@@ -116,6 +118,7 @@ async function switchDisabled(item) {
         console.error(e);
     }
 }
+
 </script>
 
 
