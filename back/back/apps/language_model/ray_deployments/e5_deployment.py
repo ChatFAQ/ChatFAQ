@@ -24,7 +24,7 @@ class E5Deployment:
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
-        self.retrieve_endpoint = f"{os.environ.get('BACKEND_URL')}/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        self.retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
 
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.reranker = ReRanker(lang=lang, device='cpu' if use_cpu else 'cuda')
@@ -80,7 +80,7 @@ class E5Deployment:
 
     async def __call__(self, query: str, top_k: int):
         return await self.batch_handler(query, top_k)
-    
+
 
 def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='en'):
     print(f"Launching E5 deployment with name: {retriever_deploy_name}")
