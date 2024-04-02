@@ -104,7 +104,6 @@ def launch_rag_deployment(rag_config_id):
         retriever_handle = launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang)
 
     elif retriever_type == RetrieverTypeChoices.COLBERT:
-        index_path = os.path.join("/", rag_config.s3_index_path) # TODO: temporary for local development
         retriever_handle = launch_colbert(retriever_deploy_name, rag_config.s3_index_path)
 
     else:
