@@ -21,7 +21,7 @@ class DatasetConfig(AppConfig):
 
 
         if os.environ.get('RUN_MAIN'):  # only start ray on the main thread
-            
+
             initialize_or_check_ray()
 
             RAGConfig = self.get_model("RAGConfig")
