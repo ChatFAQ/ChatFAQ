@@ -131,10 +131,13 @@ async function initConversation() {
 }
 
 await initConversation()
+watch(() => props.id, async () => {
+    itemId.value = props.id
+}, {immediate: true})
 watch(() => itemsStore.savingItem, async () => {
     await initConversation()
 }, {immediate: true})
-watch(() => props.id, async () => {
+watch(itemId, async () => {
     await initConversation()
     selectFirstMessage()
 }, {immediate: true})
@@ -163,7 +166,6 @@ async function pageConversation(direction) {
     if (nextItem !== undefined) {
         itemId.value = nextItem.id
     }
-    selectFirstMessage()
     loadingConversation.value = false
 }
 function selectFirstMessage() {
