@@ -19,8 +19,7 @@ class DatasetConfig(AppConfig):
         from back.apps.language_model.models.enums import IndexStatusChoices
         from back.apps.language_model.tasks import launch_rag_deployment_task
 
-
-        if os.environ.get('RUN_MAIN'):  # only start ray on the main thread
+        if not os.environ.get('DEBUG') or os.environ.get('RUN_MAIN'):  # only start ray on the main thread
 
             initialize_or_check_ray()
 
