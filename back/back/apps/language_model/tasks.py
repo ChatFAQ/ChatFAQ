@@ -328,6 +328,7 @@ def creates_index(rag_config):
     bsize = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.get_device().value
     num_gpus = 1 if device == "cuda" else 0
+    storages_mode = os.environ.get("STORAGES_MODE", "local")
 
 
     # TODO: Because these lists can be huge, partition them and use ray.put to store each partition in the object store
@@ -341,9 +342,11 @@ def creates_index(rag_config):
     
     task_name = f"create_colbert_index_{rag_config.name}"
 
-    index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
-        colbert_name, s3_index_path, contents, contents_pk, bsize
-    )
+    with connect_to_ray_cluster():
+
+        index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
+            colbert_name, bsize, device, s3_index_path, storages_mode, contents_pk, contents
+        )
 
     # Delete all the contents from memory because they are not needed anymore and can be very large
     del contents
