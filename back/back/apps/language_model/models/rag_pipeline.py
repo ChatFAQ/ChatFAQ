@@ -52,8 +52,7 @@ class RAGConfig(ChangesMixin):
 
     def generate_s3_index_path(self):
         unique_id = str(uuid.uuid4())[:8]
-        self.s3_index_path = f'indexes/{self.name}_index_{unique_id}'
-        self.save()
+        return f'indexes/{self.name}_index_{unique_id}'
 
     def get_index_status(self):
         return IndexStatusChoices(self.index_status)

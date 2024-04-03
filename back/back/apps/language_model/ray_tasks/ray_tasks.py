@@ -61,3 +61,65 @@ def generate_titles(contents, n_titles, lang):
         new_titles.append(titles)
 
     return new_titles
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def create_colbert_index(colbert_name, bsize, device, s3_index_path, contents_pk, contents):
+
+    def get_num_gpus():
+        try:
+            import torch
+
+            return torch.cuda.device_count()
+        except:
+            return -1
+    
+    try:
+
+        from ragatouille import RAGPretrainedModel
+
+        index_root, index_name = os.path.split(s3_index_path)
+        
+        if 's3://' in index_root:
+            # get the index root folder, we don't care about the bucket right now
+            _, index_root = os.path.split(index_root)
+
+        n_gpus = -1 if device == "cpu" else get_num_gpus()
+
+        retriever = RAGPretrainedModel.from_pretrained(
+            colbert_name, index_root=index_root, n_gpu=n_gpus
+        )
+
+        # Update the index path to use the unique index path
+        local_index_path = retriever.index(
+            index_name=index_name,
+            collection=contents,
+            document_ids=contents_pk,
+            split_documents=True,
+            max_document_length=512,
+            bsize=bsize,
+        )
+
+        # if cloud storage, then we write the index to the cloud storage
+        if 's3://' in index_root:
+            # We read the index as binary files into a table with the schema, where each file is a row:
+            # Column  Type
+            # ------  ----
+            # bytes   binary
+            # path    string,
+            index = ray.data.read_binary_files(local_index_path, include_paths=True)
+
+            # Then we can write the index to the cloud storage
+            index.write_parquet(s3_index_path)
+
+        # success
+        return True
+    
+    except Exception as e:
+        logger.error(f"Error creating index: {e}")
+        # failure
+        return False
+        
+        
+
+    

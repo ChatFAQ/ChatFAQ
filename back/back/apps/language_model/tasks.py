@@ -34,6 +34,7 @@ from back.apps.language_model.ray_tasks import (
     generate_embeddings as ray_generate_embeddings,
     generate_titles as ray_generate_titles,
     parse_pdf as ray_parse_pdf,
+    create_colbert_index as ray_create_colbert_index,
 )
 from back.config.celery import app
 from back.utils import is_celery_worker
@@ -492,31 +493,67 @@ def modify_index(rag_config):
 
 def creates_index(rag_config):
     """
-    Build the index for a knowledge base.
+    Build the index for a knowledge base using the ColBERT retriever.
     Parameters
     ----------
     rag_config_id : int
         The primary key of the RAGConfig object.
     """
 
-    from back.apps.language_model.retriever_clients import ColBERTRetriever
-
-
     Embedding = apps.get_model("language_model", "Embedding")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
 
     k_items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
 
-    index_path = ColBERTRetriever.index(rag_config=rag_config, k_items=k_items)
-    # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
-    embeddings = [
-        Embedding(
-            knowledge_item=item,
-            rag_config=rag_config,
+    s3_index_path = rag_config.generate_s3_index_path()
+
+    colbert_name = rag_config.retriever_config.model_name
+    bsize = rag_config.retriever_config.batch_size
+    device = rag_config.retriever_config.get_device().value
+    num_gpus = 1 if device == "cuda" else 0
+
+
+    # TODO: Because these lists can be huge, partition them and use ray.put to store each partition in the object store
+    # and then pass the object ids to the remote function
+    contents = [item.content for item in k_items]
+    contents_pk = [str(item.pk) for item in k_items]
+
+    logger.info(
+            f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
-        for item in k_items
-    ]
-    Embedding.objects.bulk_create(embeddings)
+    
+    task_name = f"create_colbert_index_{rag_config.name}"
+
+    index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
+        colbert_name, s3_index_path, contents, contents_pk, bsize
+    )
+
+    # Delete all the contents from memory because they are not needed anymore and can be very large
+    del contents
+    del contents_pk
+    gc.collect()
+
+    success = ray.get(index_ref)
+
+    if success:
+        # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+        embeddings = [
+            Embedding(
+                knowledge_item=item,
+                rag_config=rag_config,
+            )
+            for item in k_items
+        ]
+        Embedding.objects.bulk_create(embeddings)
+
+        # save s3 index path
+        rag_config.s3_index_path = s3_index_path
+        rag_config.save()
+
+    else:
+        logger.error(f"Error building index for knowledge base: {rag_config.knowledge_base.name}")
+
+
 
 
 def index_colbert(rag_config):
