@@ -14,6 +14,7 @@ from back.apps.broker.models.message import Conversation, StackPayloadType, Agen
 from back.apps.broker.serializers.rpc import RPCLLMRequestSerializer
 from back.apps.language_model.models import RAGConfig, KnowledgeItem, MessageKnowledgeItem
 from back.utils import WSStatusCodes
+from back.utils.custom_channels import CustomAsyncConsumer
 
 logger = getLogger(__name__)
 
@@ -136,7 +137,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
 
 
-class LLMConsumer(AsyncJsonWebsocketConsumer):
+class LLMConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
     """
     The consumer in responsible for
     """
