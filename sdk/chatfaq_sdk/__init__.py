@@ -254,9 +254,7 @@ class ChatFAQSDK:
             )
             self.rpc_llm_request_msg_buffer[bot_channel_name] = []
 
-            if _message_buffer[-1]["final"]:
-                return _message_buffer, False
-            return _message_buffer, True
+            return _message_buffer
 
         return _llm_result_streaming_generator
 
@@ -264,7 +262,7 @@ class ChatFAQSDK:
     async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
-    async def send_llm_request(self, rag_config_name, input_text, conversation_id, bot_channel_name, user_id=None):
+    async def send_llm_request(self, rag_config_name, input_text, use_conversation_context, conversation_id, bot_channel_name, user_id=None):
         logger.info(f"[LLM] Requesting LLM (model {rag_config_name})")
         self.rpc_llm_request_futures[
             bot_channel_name
@@ -272,14 +270,12 @@ class ChatFAQSDK:
         await getattr(self, f'ws_{WSType.llm.value}').send(
             json.dumps(
                 {
-                    "type": MessageType.llm_request.value,
-                    "data": {
-                        "rag_config_name": rag_config_name,
-                        "input_text": input_text,
-                        "conversation_id": conversation_id,
-                        "user_id": user_id,
-                        "bot_channel_name": bot_channel_name,
-                    },
+                    "rag_config_name": rag_config_name,
+                    "input_text": input_text,
+                    "use_conversation_context": use_conversation_context,
+                    "conversation_id": conversation_id,
+                    "user_id": user_id,
+                    "bot_channel_name": bot_channel_name,
                 }
             )
         )

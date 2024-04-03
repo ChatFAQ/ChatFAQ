@@ -24,13 +24,13 @@ logger = getLogger(__name__)
 class EnabledRAGConfigManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(disabled=False)
-    
+
 
 class RAGConfig(ChangesMixin):
     """
     It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline
     """
-    
+
     objects = models.Manager()  # The default manager.
     enabled_objects = EnabledRAGConfigManager()  # The Dahl-specific manager.
 
@@ -57,9 +57,12 @@ class RAGConfig(ChangesMixin):
 
     def get_index_status(self):
         return IndexStatusChoices(self.index_status)
-    
+
     def get_deploy_name(self):
         return f'rag_{self.name}'
+
+    def get_ray_endpoint(self):
+        return f'{os.environ.get("RAY_SERVE_ADDRESS", "http://localhost:8001")}/{self.get_deploy_name()}'
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
@@ -123,10 +126,10 @@ class RetrieverConfig(ChangesMixin):
 
     def __str__(self):
         return self.name
-    
+
     def get_retriever_type(self):
         return RetrieverTypeChoices(self.retriever_type)
-    
+
     def get_device(self):
         return DeviceChoices(self.device)
 
@@ -148,7 +151,7 @@ class RetrieverConfig(ChangesMixin):
             if self.get_device() != old_retriever.get_device():
                 # if the device has changed we need to redeploy all the RAGs that use this retriever
                 rags_to_redeploy = RAGConfig.objects.filter(retriever_config=self)
-                
+
 
         super().save(*args, **kwargs)
 
@@ -205,10 +208,10 @@ class LLMConfig(ChangesMixin):
 
     def __str__(self):
         return self.name
-    
+
     def get_llm_type(self):
         return LLMChoices(self.llm_type)
-    
+
     def save(self, *args, **kwargs):
         logger.info('Checking if we need to redeploy RAGs because of a LLM config change')
         rags_to_redeploy = None

@@ -59,33 +59,35 @@ class LMGeneratedText(Layer):
     _type = "lm_generated_text"
     loaded_model = {}
 
-    def __init__(self, input_text, rag_config_name, *args, **kwargs):
+    def __init__(self, rag_config_name, input_text=None, use_conversation_context=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.input_text = input_text
         self.rag_config_name = rag_config_name
+        self.use_conversation_context = use_conversation_context
 
     async def build_payloads(self, ctx, data):
         logger.debug(f"Waiting for LLM...")
         await ctx.send_llm_request(
-            self.rag_config_name, self.input_text, data["conversation_id"], data["bot_channel_name"]
+            self.rag_config_name, self.input_text, self.use_conversation_context, data["conversation_id"], data["bot_channel_name"]
         )
 
         logger.debug(f"...Receive LLM res")
-        more = True
-        while more:
-            results, more = (
+        final = False
+        while not final:
+            results = (
                 await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
             )()
+            final = results[-1]["final"]
             for result in results:
                 yield [
                     {
                         "payload": {
-                            "model_response": result["res"],
-                            "finish": not more,
+                            "model_response": result["model_response"],
                             "references": result["references"],
                             "rag_config_name": self.rag_config_name,
                             "lm_msg_id": result["lm_msg_id"],
                         }
                     }
-                ], not more
+                ], final
+
         logger.debug(f"LLM res Finished")

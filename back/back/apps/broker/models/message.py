@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
+from back.apps.language_model.models import KnowledgeItem
 from back.common.models import ChangesMixin
 
 logger = getLogger(__name__)
@@ -50,22 +51,22 @@ class Conversation(ChangesMixin):
             conversation=self,
         ).first()
 
-    def get_mml_chain(self, as_conv_format=False):
-        from back.apps.broker.serializers.messages import MessageSerializer  # TODO: CI
-        first_message = self.get_first_msg()
+    def get_msgs_chain(self):
+        return Message.objects.filter(conversation=self).order_by('created_date')
 
-        if not first_message:
-            return []
-        chain = first_message.get_chain()
+    def get_kis(self):
+        chain = self.get_msgs_chain()
+        msg_ids = chain.values_list('id', flat=True)
+        return KnowledgeItem.objects.filter(messageknowledgeitem__message_id__in=msg_ids).distinct().order_by("updated_date")
 
-        if as_conv_format:
-            return self.get_formatted_conversation(chain)
-
-        return [MessageSerializer(m).data for m in chain]
-
-    def get_last_mml(self):
+    def get_last_msg(self):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
+        )
+
+    def get_last_human_mml(self):
+        return (
+            Message.objects.filter(conversation=self, sender__type=AgentType.human.value).order_by("-created_date").first()
         )
 
     def get_formatted_conversation(self, chain):
@@ -142,10 +143,10 @@ class Conversation(ChangesMixin):
 
     def conversation_to_text(self):
         text = ""
-        msgs = self.get_mml_chain()
+        msgs = self.get_msgs_chain()
 
         for msg in msgs:
-            text = f"{text}{Message._to_text(msg['stack'], msg['send_time'], msg['sender'])}\n"
+            text = f"{text}{Message._to_text(msg.stack, msg.send_time, msg.sender)}\n"
 
         return text
 
@@ -241,12 +242,7 @@ class Message(ChangesMixin):
         pass
 
     def get_chain(self):
-        next_msg = self
-        chain = []
-        while next_msg and next_msg not in chain:
-            chain.append(next_msg)
-            next_msg = Message.objects.filter(prev=next_msg).first()
-        return chain
+        return Message.objects.filter(conversation=self.conversation, created_date__gte=self.created_date).order_by('created_date')
 
     def to_text(self):
         return self._to_text(self.stack, self.send_time.strftime('[%Y-%m-%d %H:%M:%S]'), self.sender)
@@ -267,7 +263,7 @@ class Message(ChangesMixin):
 
     def save(self, *args, **kwargs):
         if not self.prev: # avoid setting prev to itself if model is being updated
-            self.prev = self.conversation.get_last_mml()
+            self.prev = self.conversation.get_last_msg()
         super(Message, self).save(*args, **kwargs)
 
 

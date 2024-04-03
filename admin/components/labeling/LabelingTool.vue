@@ -24,7 +24,7 @@
                     <div>{{conversation.name}}</div>
                     <div>{{formatDate(conversation.created_date)}}</div>
                 </div>
-                <div v-for="msgs in getQAMessageGroups(conversation.mml_chain)"
+                <div v-for="msgs in getQAMessageGroups(conversation.msgs_chain)"
                      @click="msgLabeled = msgs[msgs.length - 1]"
                      class="qa-group"
                      :class="{
@@ -172,7 +172,7 @@ async function pageConversation(direction) {
     loadingConversation.value = false
 }
 function selectFirstMessage() {
-    const qas = getQAMessageGroups(conversation.value.mml_chain)
+    const qas = getQAMessageGroups(conversation.value.msgs_chain)
     for (let i = 0; i < qas.length; i++) {
         if (qas[i].length === 2) {
             msgLabeled.value = qas[i][qas[i].length - 1]

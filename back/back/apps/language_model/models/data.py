@@ -16,7 +16,6 @@ from back.apps.language_model.tasks import (
     parse_url_task,
 )
 from back.common.models import ChangesMixin
-from back.apps.broker.models.message import Message
 from pgvector.django import VectorField
 
 from asgiref.sync import async_to_sync
@@ -127,7 +126,7 @@ class DataSource(ChangesMixin):
 
     def get_strategy(self):
         return StrategyChoices(self.strategy)
-    
+
     def get_splitter(self):
         return SplittersChoices(self.splitter)
 
@@ -252,7 +251,7 @@ class KnowledgeItem(ChangesMixin):
     section = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
     page_number = models.IntegerField(blank=True, null=True)
-    message = models.ManyToManyField(Message, through="MessageKnowledgeItem", editable=False)
+    message = models.ManyToManyField("broker.Message", through="MessageKnowledgeItem", editable=False)
     metadata = models.JSONField(blank=True, null=True)
 
     def __str__(self):
@@ -428,7 +427,7 @@ class Intent(ChangesMixin):
     auto_generated = models.BooleanField(default=False, editable=False)
     valid = models.BooleanField(default=False)
     suggested_intent = models.BooleanField(default=False, editable=False)
-    message = models.ManyToManyField(Message, blank=True, editable=False)
+    message = models.ManyToManyField("broker.Message", blank=True, editable=False)
     knowledge_item = models.ManyToManyField(KnowledgeItem, blank=True, editable=False)
     # Maybe add a knowledge_base foreign key here for querying simplicity and performance
 
@@ -447,7 +446,7 @@ class MessageKnowledgeItem(ChangesMixin):
         If the relation is validated by the admin or not.
     """
 
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, editable=False)
+    message = models.ForeignKey("broker.Message", on_delete=models.CASCADE, editable=False)
     knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE, editable=False)
     similarity = models.FloatField(null=True, blank=True, editable=False)
     valid = models.BooleanField(default=False)

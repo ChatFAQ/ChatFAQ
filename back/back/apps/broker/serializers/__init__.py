@@ -31,14 +31,14 @@ class MessageSerializer(serializers.ModelSerializer):
 
 
 class ConversationMessagesSerializer(serializers.ModelSerializer):
-    mml_chain = serializers.SerializerMethodField()
+    msgs_chain = serializers.SerializerMethodField()
 
     class Meta:
         model = apps.get_model("broker", "Conversation")
         fields = "__all__"
 
-    def get_mml_chain(self, obj):
-        return obj.get_mml_chain()
+    def get_msgs_chain(self, obj):
+        return [MessageSerializer(m).data for m in obj.get_msgs_chain()]
 
 
 class ConversationSerializer(serializers.ModelSerializer):
