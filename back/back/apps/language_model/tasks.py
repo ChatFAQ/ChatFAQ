@@ -316,6 +316,7 @@ def creates_index(rag_config):
     rag_config_id : int
         The primary key of the RAGConfig object.
     """
+    from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
 
     Embedding = apps.get_model("language_model", "Embedding")
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
@@ -345,15 +346,15 @@ def creates_index(rag_config):
     with connect_to_ray_cluster():
 
         index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
-            colbert_name, bsize, device, s3_index_path, storages_mode, contents_pk, contents
+            colbert_name, bsize, device, construct_index_path(s3_index_path), storages_mode, contents_pk, contents
         )
 
-    # Delete all the contents from memory because they are not needed anymore and can be very large
-    del contents
-    del contents_pk
-    gc.collect()
+        # Delete all the contents from memory because they are not needed anymore and can be very large
+        del contents
+        del contents_pk
+        gc.collect()
 
-    success = ray.get(index_ref)
+        success = ray.get(index_ref)
 
     if success:
         # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
