@@ -68,19 +68,24 @@ def get_filesystem(storages_mode):
     """
     For Digital Ocean, we need to provide a custom filesystem object to write the index to the cloud storage
     """
-    from pyarrow.fs import S3FileSystem
+    from pyarrow import fs
+    from ray.data.datasource import _S3FileSystemWrapper
 
     if storages_mode == "do":
+        
         endpoint_url = f'https://{os.environ.get("DO_REGION")}.digitaloceanspaces.com'
-        fs = S3FileSystem(
+        s3fs = fs.S3FileSystem(
             access_key=os.environ.get("AWS_ACCESS_KEY_ID"),
             secret_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
             endpoint_override=endpoint_url,
         )
 
+        # This is a hack to make the S3FileSystem object serializable (https://github.com/ray-project/ray/pull/17103)
+        s3fs = _S3FileSystemWrapper(s3fs)
+
         print("Using Digital Ocean S3 filesystem")
 
-        fs_ref = ray.put(fs)
+        fs_ref = ray.put(s3fs)
         return fs_ref
 
     return None
@@ -103,13 +108,10 @@ def create_colbert_index(
 
         from ragatouille import RAGPretrainedModel
 
-        # get the file system
-        fs_ref = ray.get(get_filesystem.remote(storages_mode))
-        fs = ray.get(fs_ref)
-
-        print(f"Using filesystem: {fs}")
 
         index_root, index_name = os.path.split(s3_index_path)
+        print(f'S3 index path: {s3_index_path}')
+        print(f"Index root: {index_root}, Index name: {index_name}")
 
         if "s3://" in index_root:
             # get the index root folder, we don't care about the bucket right now
@@ -131,8 +133,10 @@ def create_colbert_index(
             bsize=bsize,
         )
 
+        print(f"Local index path: {local_index_path}")
+
         # if cloud storage, then we write the index to the cloud storage
-        if "s3://" in index_root:
+        if "s3://" in s3_index_path:
             # We read the index as binary files into a table with the schema, where each file is a row:
             # Column  Type
             # ------  ----
@@ -141,16 +145,23 @@ def create_colbert_index(
             fs_ref = ray.get(get_filesystem.remote(storages_mode))
             fs = ray.get(fs_ref)
 
+            # unwrap the filesystem object
+            fs = fs.unwrap()
+
+            print('Reading index from local storage')
+            local_index_path = 'local://' + os.path.join(os.getcwd(), local_index_path)
             index = ray.data.read_binary_files(local_index_path, include_paths=True)
 
+            print(f"Writing index to object storage {s3_index_path}")
             # Then we can write the index to the cloud storage
             index.write_parquet(s3_index_path, filesystem=fs)
+            print('Index written to object storage')
 
-        # success
-        return True
+            # success
+            return True
 
     except Exception as e:
-        logger.error(f"Error creating index: {e}")
+        print(f"Error creating index: {e}")
         # failure
         return False
 
