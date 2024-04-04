@@ -4,13 +4,31 @@ from contextlib import contextmanager
 from logging import getLogger
 from time import sleep
 from ray.util.state import api as ray_api
+from datetime import datetime
 
 
 import ray
 from django.core.exceptions import ImproperlyConfigured
 from ray import serve
 
+from back.utils.celery import get_worker_names
+
 logger = getLogger(__name__)
+
+map_ray_to_celery_status_task = { # SUCCESS, STARTED, WAITING, FAILURE
+    "NIL": "PENDING",
+    "PENDING_ARGS_AVAIL": "WAITING",
+    "PENDING_NODE_ASSIGNMENT": "WAITING",
+    "PENDING_OBJ_STORE_MEM_AVAIL": "WAITING",
+    "PENDING_ARGS_FETCH": "WAITING",
+    "SUBMITTED_TO_WORKER": "WAITING",
+    "RUNNING": "STARTED",
+    "RUNNING_IN_RAY_GET": "STARTED",
+    "RUNNING_IN_RAY_WAIT": "STARTED",
+    "FINISHED": "SUCCESS",
+    "FAILED": "FAILURE"
+}
+
 
 @contextmanager
 def connect_to_ray_cluster(close_serve=False):
@@ -105,10 +123,57 @@ def initialize_or_check_ray():
             initialize_ray_locally()
 
 
-def get_ray_tasks():
+def get_celery_tasks(current=True):
+    from django_celery_results.models import TaskResult
+    from back.apps.language_model.serializers.tasks import TaskResultSerializer
+
+    if current:
+        tasks = TaskResult.objects.filter(worker__in=get_worker_names()).all()
+    else:
+        tasks = TaskResult.objects.all()
+
+    return TaskResultSerializer(tasks, many=True).data
+
+
+def _ray_to_celery_task(ray_task):
+    """
+    Convert a Ray task to a Celery task.
+    """
+    return {
+        **ray_task,
+        "id": ray_task["task_id"],
+        "task_name": ray_task["name"],
+        "state": map_ray_to_celery_status_task[ray_task["state"]],
+        "worker": ray_task["worker_id"],
+        "task_args": ray_task["runtime_env_info"],
+        # traceback -> task_log_info + error_message
+        "traceback": (ray_task["task_log_info"] or "") + (ray_task["error_message"] or ""),
+        # "start_time_ms" -> func date_created
+        "date_created": datetime.utcfromtimestamp(ray_task["start_time_ms"] or 0 / 1000).strftime('%Y-%m-%d %H:%M:%S.%f'),
+        "date_done": datetime.utcfromtimestamp(ray_task["end_time_ms"] or 0 / 1000).strftime('%Y-%m-%d %H:%M:%S.%f'),
+        "periodic_task_name": None,
+        "task_kwargs": None,
+        "content_type": None,
+        "content_encoding": None,
+        "meta": {},
+    }
+
+
+def get_ray_tasks(add_celery_fields=False):
     """
     Get the number of Ray tasks that are currently running or has been run.
     """
-    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index"]
-    filters = [('func_or_class_name', '=', task_type) for task_type in task_types]
-    return [j.__dict__ for j in ray_api.list_tasks(filters=filters)]
+    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index", "test_task"]
+    tasks = []
+    for task_type in task_types:
+        tasks += [j.__dict__ for j in ray_api.list_tasks(filters=[("func_or_class_name", "=", task_type)])]
+    if add_celery_fields:
+        tasks = [_ray_to_celery_task(task) for task in tasks]
+    return tasks
+
+
+def ray_and_celery_tasks(current=False):
+    """
+    Get the number of Ray tasks and Celery tasks that are currently running or has been run.
+    """
+    return get_ray_tasks(True) + get_celery_tasks(current)

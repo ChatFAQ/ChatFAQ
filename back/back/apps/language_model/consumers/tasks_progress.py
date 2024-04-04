@@ -1,13 +1,11 @@
 import json
 from logging import getLogger
-from django_celery_results.models import TaskResult
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from back.apps.language_model.serializers.tasks import TaskResultSerializer
-from back.utils.celery import get_worker_names
+from back.utils.ray_connection import ray_and_celery_tasks
 
 logger = getLogger(__name__)
 
@@ -43,7 +41,6 @@ class TasksProgressConsumer(AsyncJsonWebsocketConsumer):
     async def send_data(self, event):
         @database_sync_to_async
         def get_all_tasks():
-            return list(TaskResult.objects.exclude(task_name__contains="llm_query_task").filter(worker__in=get_worker_names()).all())
+            return ray_and_celery_tasks(current=True)
         tasks = await get_all_tasks()
-        tasks = [TaskResultSerializer(task).data for task in tasks]
         await self.send(json.dumps(tasks))

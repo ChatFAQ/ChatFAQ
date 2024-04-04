@@ -153,3 +153,13 @@ def create_colbert_index(
         logger.error(f"Error creating index: {e}")
         # failure
         return False
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def test_task(argument_one):
+    import time
+    print("with arg: ", argument_one, "start")
+    time.sleep(5)
+    print("with arg: ", argument_one, "finished")
+
+    return 123456789
