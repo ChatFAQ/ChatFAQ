@@ -2,8 +2,10 @@ from django_celery_results.models import TaskResult
 from rest_framework import viewsets
 from django_filters.rest_framework.backends import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-
+from django.http import JsonResponse
+from rest_framework.decorators import action
 from back.apps.language_model.serializers.tasks import TaskResultSerializer
+from back.utils.ray_connection import get_ray_tasks
 
 
 class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
@@ -14,3 +16,7 @@ class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = TaskResultSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id"]
+
+    @action(detail=False, methods=["get"])
+    def get_ray_tasks(self, request):
+        return JsonResponse(get_ray_tasks(), safe=False)

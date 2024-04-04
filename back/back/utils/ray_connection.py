@@ -3,7 +3,7 @@ import random
 from contextlib import contextmanager
 from logging import getLogger
 from time import sleep
-import subprocess
+from ray.util.state import api as ray_api
 
 
 import ray
@@ -71,7 +71,7 @@ def initialize_ray_locally():
     except ImportError:
         logger.error("chat-rag package not found, please install it to use a local ray cluster")
         return
-    
+
     logger.info("Starting Ray locally...")
     resources = {"rags": 100, "tasks": 100}
     ray.init(
@@ -82,11 +82,11 @@ def initialize_ray_locally():
         namespace="back-end"
     )
     log_ray_resources()
-    
+
 def log_ray_resources():
     logger.info("Available resources:")
     logger.info(ray.available_resources())
-    
+
 def initialize_or_check_ray():
     """
     Initialize a Ray cluster locally or check if a remote Ray cluster is available.
@@ -104,3 +104,11 @@ def initialize_or_check_ray():
         else:
             initialize_ray_locally()
 
+
+def get_ray_tasks():
+    """
+    Get the number of Ray tasks that are currently running or has been run.
+    """
+    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index"]
+    filters = [('func_or_class_name', '=', task_type) for task_type in task_types]
+    return [j.__dict__ for j in ray_api.list_tasks(filters=filters)]

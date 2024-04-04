@@ -89,7 +89,7 @@ def launch_rag_deployment(rag_config_id):
 
     if not serve.status().applications:
         http_options = HTTPOptions(
-                host="0.0.0.0", port=8001,
+                host="0.0.0.0", port=settings.RAY_SERVE_PORT,
             )
         proxy_location = ProxyLocation(ProxyLocation.EveryNode)
 
@@ -340,7 +340,7 @@ def creates_index(rag_config):
     logger.info(
             f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
-    
+
     task_name = f"create_colbert_index_{rag_config.name}"
 
     with connect_to_ray_cluster():
