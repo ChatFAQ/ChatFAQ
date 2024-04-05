@@ -1,1 +1,1 @@
-from .ray_tasks import generate_embeddings, parse_pdf, generate_titles, create_colbert_index, get_filesystem
+from .ray_tasks import generate_embeddings, parse_pdf, generate_titles, create_colbert_index, get_filesystem, test_task

@@ -1,3 +1,4 @@
+import json
 import sys
 import tempfile
 from enum import Enum
@@ -6,6 +7,9 @@ from logging import getLogger
 import requests
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import widgets
+
+from back.utils.celery import get_celery_tasks
+from back.utils.ray_connection import get_ray_tasks
 
 logger = getLogger(__name__)
 
@@ -115,6 +119,7 @@ class WSStatusCodes(Enum):
 def is_migrating():
     return "makemigrations" in sys.argv or "migrate" in sys.argv
 
+
 def is_scraping():
     return "scrape" in sys.argv
 
@@ -133,22 +138,8 @@ class PrettyJSONWidget(widgets.Textarea):
             return super(PrettyJSONWidget, self).format_value(value)
 
 
-def is_celery_worker():
+def ray_and_celery_tasks(current=False):
     """
-    There is a more integrated solution although the signal doens't seems to work properly:
-    celery.py:
-
-    app.running = False
-
-    @worker_init.connect
-    def set_running(*args, **kwargs):
-        app.running = True
-
-    tasks.py:
-    if app.running:
-        # do something
+    Get the number of Ray tasks and Celery tasks that are currently running or has been run.
     """
-    # checks if the list sys.argv has any string element that contains "celery"
-    exists_celery = any("celery" in s for s in sys.argv)
-    worker_celery = any("worker" in s for s in sys.argv)
-    return exists_celery and worker_celery
+    return get_ray_tasks(True) + get_celery_tasks(current)
