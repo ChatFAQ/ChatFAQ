@@ -5,7 +5,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from back.utils.ray_connection import ray_and_celery_tasks
+from back.utils.celery import get_celery_tasks
 
 logger = getLogger(__name__)
 
@@ -41,6 +41,6 @@ class TasksProgressConsumer(AsyncJsonWebsocketConsumer):
     async def send_data(self, event):
         @database_sync_to_async
         def get_all_tasks():
-            return ray_and_celery_tasks(current=True)
+            return get_celery_tasks(current=True)
         tasks = await get_all_tasks()
         await self.send(json.dumps(tasks))

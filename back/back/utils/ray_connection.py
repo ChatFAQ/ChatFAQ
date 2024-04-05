@@ -11,7 +11,7 @@ import ray
 from django.core.exceptions import ImproperlyConfigured
 from ray import serve
 
-from back.utils.celery import get_worker_names
+from back.utils.celery import get_celery_tasks
 
 logger = getLogger(__name__)
 
@@ -123,18 +123,6 @@ def initialize_or_check_ray():
             initialize_ray_locally()
 
 
-def get_celery_tasks(current=True):
-    from django_celery_results.models import TaskResult
-    from back.apps.language_model.serializers.tasks import TaskResultSerializer
-
-    if current:
-        tasks = TaskResult.objects.filter(worker__in=get_worker_names()).all()
-    else:
-        tasks = TaskResult.objects.all()
-
-    return TaskResultSerializer(tasks, many=True).data
-
-
 def _ray_to_celery_task(ray_task):
     """
     Convert a Ray task to a Celery task.
@@ -170,10 +158,3 @@ def get_ray_tasks(add_celery_fields=False):
     if add_celery_fields:
         tasks = [_ray_to_celery_task(task) for task in tasks]
     return tasks
-
-
-def ray_and_celery_tasks(current=False):
-    """
-    Get the number of Ray tasks and Celery tasks that are currently running or has been run.
-    """
-    return get_ray_tasks(True) + get_celery_tasks(current)

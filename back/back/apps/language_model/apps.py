@@ -1,6 +1,7 @@
 import os
 from django.apps import AppConfig
-from back.utils import is_migrating, is_celery_worker, is_scraping
+from back.utils import is_migrating, is_scraping
+from back.utils.celery import is_celery_worker
 from back.utils.ray_connection import initialize_or_check_ray
 from logging import getLogger
 

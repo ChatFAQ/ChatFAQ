@@ -38,13 +38,8 @@ from back.apps.language_model.ray_tasks import (
     test_task as ray_test_task,
 )
 from back.config.celery import app
-from back.utils import is_celery_worker
+from back.utils.celery import is_celery_worker
 from back.utils.ray_connection import connect_to_ray_cluster
-from chat_rag.exceptions import (
-    ModelNotFoundException,
-    PromptTooLongException,
-    RequestException,
-)
 
 if is_celery_worker():
     setup()

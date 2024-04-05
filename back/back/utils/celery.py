@@ -1,4 +1,27 @@
+import sys
+
 from back.config.celery import app as celery_app
+
+
+def is_celery_worker():
+    """
+    There is a more integrated solution although the signal doens't seems to work properly:
+    celery.py:
+
+    app.running = False
+
+    @worker_init.connect
+    def set_running(*args, **kwargs):
+        app.running = True
+
+    tasks.py:
+    if app.running:
+        # do something
+    """
+    # checks if the list sys.argv has any string element that contains "celery"
+    exists_celery = any("celery" in s for s in sys.argv)
+    worker_celery = any("worker" in s for s in sys.argv)
+    return exists_celery and worker_celery
 
 
 def get_worker_names():
@@ -30,3 +53,14 @@ def ensure_worker_queues():
         worker_queues.append(q_name)
     return worker_queues
 
+
+def get_celery_tasks(current=True):
+    from django_celery_results.models import TaskResult
+    from back.apps.language_model.serializers.tasks import TaskResultSerializer
+
+    if current:
+        tasks = TaskResult.objects.filter(worker__in=get_worker_names()).all()
+    else:
+        tasks = TaskResult.objects.all()
+
+    return TaskResultSerializer(tasks, many=True).data

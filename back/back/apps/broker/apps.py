@@ -3,7 +3,8 @@ from logging import getLogger
 
 from django.apps import AppConfig
 
-from back.utils import is_migrating, is_celery_worker
+from back.utils import is_migrating
+from back.utils.celery import is_celery_worker
 
 logger = getLogger(__name__)
 
