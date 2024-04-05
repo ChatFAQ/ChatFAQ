@@ -344,9 +344,11 @@ def creates_index(rag_config):
     task_name = f"create_colbert_index_{rag_config.name}"
 
     with connect_to_ray_cluster():
-
+        storages_mode = os.environ.get("STORAGES_MODE", "local")
+        remote_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
+        index_path = construct_index_path(s3_index_path, storages_mode, remote_ray_cluster)
         index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
-            colbert_name, bsize, device, construct_index_path(s3_index_path), storages_mode, contents_pk, contents
+            colbert_name, bsize, device, index_path, storages_mode, contents_pk, contents
         )
 
         # Delete all the contents from memory because they are not needed anymore and can be very large
@@ -447,17 +449,18 @@ def delete_index_files(s3_index_path):
     s3_index_path : str
         The unique index path.
     """
-    from django.core.files.storage import default_storage
+    from back.config.storage_backends import select_private_storage
 
     if s3_index_path:
+        private_storage = select_private_storage()
         logger.info(f"Deleting index files from S3: {s3_index_path}")
         # List all files in the unique index path
-        _, files = default_storage.listdir(s3_index_path)
+        _, files = private_storage.listdir(s3_index_path)
         for file in files:
             # Construct the full path for each file
             file_path = os.path.join(s3_index_path, file)
             # Delete the file from S3
-            default_storage.delete(file_path)
+            private_storage.delete(file_path)
 
         logger.info(f"Index files deleted from S3: {s3_index_path}")
 

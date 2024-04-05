@@ -85,9 +85,9 @@ def get_filesystem(storages_mode):
 
         print("Using Digital Ocean S3 filesystem")
 
-        fs_ref = ray.put(s3fs)
-        return fs_ref
+        return s3fs
 
+    # If None ray data autoinfers the filesystem
     return None
 
 
@@ -142,17 +142,19 @@ def create_colbert_index(
             # ------  ----
             # bytes   binary
             # path    string,
-            fs_ref = ray.get(get_filesystem.remote(storages_mode))
-            fs = ray.get(fs_ref)
-
-            # unwrap the filesystem object
-            fs = fs.unwrap()
+            fs_ref = get_filesystem.remote(storages_mode)
 
             print('Reading index from local storage')
             local_index_path = 'local://' + os.path.join(os.getcwd(), local_index_path)
             index = ray.data.read_binary_files(local_index_path, include_paths=True)
 
             print(f"Writing index to object storage {s3_index_path}")
+
+            fs = ray.get(fs_ref)
+            if fs is not None:
+                # unwrap the filesystem object
+                fs = fs.unwrap()
+            
             # Then we can write the index to the cloud storage
             index.write_parquet(s3_index_path, filesystem=fs)
             print('Index written to object storage')

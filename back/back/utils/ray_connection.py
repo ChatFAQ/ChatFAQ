@@ -92,9 +92,9 @@ def initialize_or_check_ray():
     Initialize a Ray cluster locally or check if a remote Ray cluster is available.
     """
     if not ray.is_initialized():
-        exists_ray_cluster = (os.getenv('RAY_CLUSTER', 'False') == 'True')
-        print(f"exists_ray_cluster: {exists_ray_cluster} {os.getenv('RAY_CLUSTER')}")
-        if exists_ray_cluster:
+        remote_ray_cluster = (os.getenv('RAY_CLUSTER', 'False') == 'True')
+        print(f"remote_ray_cluster: {remote_ray_cluster} {os.getenv('RAY_CLUSTER')}")
+        if remote_ray_cluster:
             if not check_remote_ray_cluster():
                 logger.error(f"You provided a remote Ray Cluster address but the connection failed, these could be because of three reasons: ")
                 # logger.error(f"1. The provided address is incorrect: {RAY_ADDRESS}")

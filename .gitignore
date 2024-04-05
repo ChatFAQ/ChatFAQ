@@ -245,7 +245,7 @@ sw.*
 .out
 
 back/models/
-back/indexes/
+*indexes/
 *.ipynb
 chat_rag/data/
 chat_rag/examples/
