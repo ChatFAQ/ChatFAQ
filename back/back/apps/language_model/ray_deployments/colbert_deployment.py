@@ -4,7 +4,7 @@ import ray
 from ray import serve
 
 from ragatouille import RAGPretrainedModel
-
+from back.apps.language_model.ray_tasks import get_filesystem
 from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
 
@@ -22,10 +22,10 @@ class ColBERTDeployment:
     ColBERTDeployment class for serving the a ColBERT retriever in a Ray Serve deployment in a Ray cluster.
     """
 
-    def __init__(self, index_path):
+    def __init__(self, index_path, remote_ray_cluster, storages_mode):
         print(f"Initializing ColBERTDeployment")
 
-        index_path = self._read_index(index_path)
+        index_path = self._read_index(index_path, remote_ray_cluster, storages_mode)
 
         self.retriever = RAGPretrainedModel.from_index(index_path)
 
@@ -33,10 +33,11 @@ class ColBERTDeployment:
         self.retriever.search("test query", k=1)
         print(f"ColBERTDeployment initialized with index_path={index_path}")
 
-    def _read_index(self, index_path):
+    def _read_index(self, index_path, remote_ray_cluster, storages_mode):
         """
         If the index_path is an S3 path, read the index from object storage and write it to the local storage.
         """
+        fs_ref = get_filesystem.remote(storages_mode)
 
         from tqdm import tqdm
 
@@ -61,11 +62,37 @@ class ColBERTDeployment:
         print(f"Reading index from {index_path}")
 
         if "s3://" in index_path:
-            index = ray.data.read_binary_files(index_path, include_paths=True)
-            print(f"Read {index.count()} files from S3")
+
+            from pyarrow.fs import FileSelector
+
+            fs = ray.get(fs_ref)
+
+            if fs is not None:
+                # unwrap the filesystem object
+                fs = fs.unwrap()
+
+            files = fs.get_file_info(FileSelector(index_path.split('s3://')[1]))
+
+            file_paths = [file.path for file in files]
+
+            # print total index size in MB
+            print(f"Downloading index with size: {sum(file.size for file in files) / 1024 / 1024:.2f} MB")
+
+            index = ray.data.read_parquet_bulk(file_paths, filesystem=fs)
+            print(f"Downloaded {index.count()} files from S3")
 
             index_name = os.path.basename(index_path)
-            index_path = os.path.join("/", "indexes", index_name)
+            index_path = os.path.join("indexes", index_name)
+
+            # If remote Ray cluster running on containers
+            if remote_ray_cluster:
+                index_path = os.path.join("/", index_path)
+
+            # if the directory exists, delete it
+            if os.path.exists(index_path):
+                print(f"Deleting existing index at {index_path}")
+                import shutil
+                shutil.rmtree(index_path)
 
             print(f"Writing index to {index_path}")
             for row in tqdm(index.iter_rows()):
@@ -117,30 +144,32 @@ class ColBERTDeployment:
         return await self.batch_handler(query, top_k)
 
 
-def construct_index_path(index_path: str):
+def construct_index_path(index_path: str, storages_mode, remote_ray_cluster: bool):
     """
     Construct the index path based on the STORAGES_MODE environment variable.
     """
 
-    STORAGES_MODE = os.environ.get("STORAGES_MODE", "local")
-    if STORAGES_MODE == "local":
-        exists_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
-        if exists_ray_cluster:
+    if storages_mode == "local":
+        if remote_ray_cluster:
             return os.path.join(
                 "/", index_path
             )  # In the ray containers we mount local_storage/indexes/ as /indexes/
         else:
             return os.path.join("back", "back", "local_storage", index_path)
-    elif STORAGES_MODE in ["s3", "do"]:
+    elif storages_mode in ["s3", "do"]:
         bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         return f"s3://{bucket_name}/{index_path}"
 
 
 def launch_colbert(retriever_deploy_name, index_path):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
-    index_path = construct_index_path(index_path)
+
+    storages_mode = os.environ.get("STORAGES_MODE", "local")
+    remote_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
+
+    index_path = construct_index_path(index_path, storages_mode, remote_ray_cluster)
     retriever_handle = ColBERTDeployment.options(
         name=retriever_deploy_name,
-    ).bind(index_path)
+    ).bind(index_path, remote_ray_cluster, storages_mode)
     print(f"Launched ColBERT deployment with name: {retriever_deploy_name}")
     return retriever_handle

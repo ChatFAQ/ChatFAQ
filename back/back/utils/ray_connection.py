@@ -110,9 +110,9 @@ def initialize_or_check_ray():
     Initialize a Ray cluster locally or check if a remote Ray cluster is available.
     """
     if not ray.is_initialized():
-        exists_ray_cluster = (os.getenv('RAY_CLUSTER', 'False') == 'True')
-        print(f"exists_ray_cluster: {exists_ray_cluster} {os.getenv('RAY_CLUSTER')}")
-        if exists_ray_cluster:
+        remote_ray_cluster = (os.getenv('RAY_CLUSTER', 'False') == 'True')
+        print(f"remote_ray_cluster: {remote_ray_cluster} {os.getenv('RAY_CLUSTER')}")
+        if remote_ray_cluster:
             if not check_remote_ray_cluster():
                 logger.error(f"You provided a remote Ray Cluster address but the connection failed, these could be because of three reasons: ")
                 # logger.error(f"1. The provided address is incorrect: {RAY_ADDRESS}")
@@ -151,7 +151,7 @@ def get_ray_tasks(add_celery_fields=False):
     """
     Get the number of Ray tasks that are currently running or has been run.
     """
-    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index", "test_task"]
+    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index", "test_task", "get_filesystem"]
     tasks = []
     for task_type in task_types:
         tasks += [j.__dict__ for j in ray_api.list_tasks(filters=[("func_or_class_name", "=", task_type)])]
