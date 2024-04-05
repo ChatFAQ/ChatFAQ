@@ -35,6 +35,7 @@ from back.apps.language_model.ray_tasks import (
     generate_titles as ray_generate_titles,
     parse_pdf as ray_parse_pdf,
     create_colbert_index as ray_create_colbert_index,
+    test_task as ray_test_task,
 )
 from back.config.celery import app
 from back.utils import is_celery_worker
@@ -1045,4 +1046,8 @@ def calculate_usage_stats_task(rag_config_id=None, dates_ranges=[(None, None)]):
         all_usage_stats.append(usage_stats)
 
 
-    # TODO: Return the stats to the frontend
+@app.task()
+def test_task():
+    test_task_ref = ray_test_task.options(name="test_task").remote(str(uuid.uuid4()))
+    res_test_task = ray.get(test_task_ref)
+    return res_test_task

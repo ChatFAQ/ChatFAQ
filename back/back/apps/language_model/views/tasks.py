@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from rest_framework.decorators import action
 from back.apps.language_model.serializers.tasks import TaskResultSerializer
 from back.utils.ray_connection import ray_and_celery_tasks, get_ray_tasks
-from back.apps.language_model.ray_tasks.ray_tasks import test_task
+from back.apps.language_model.tasks import test_task
 
 
 class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
@@ -25,6 +25,5 @@ class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"])
     def launch_test_task(self, request):
-        import uuid
-        test_task.options(name="test_task").remote(str(uuid.uuid4()))
+        test_task.delay()
         return JsonResponse({"res": "ok"}, safe=False)
