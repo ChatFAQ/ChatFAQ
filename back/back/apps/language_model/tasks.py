@@ -1046,7 +1046,7 @@ def calculate_usage_stats_task(rag_config_id=None, dates_ranges=[(None, None)]):
 
 @app.task()
 def test_task():
-    with connect_to_ray_cluster(close_serve=True):
+    with connect_to_ray_cluster():
         test_task_ref = ray_test_task.options(name="test_task").remote(str(uuid.uuid4()))
         res_test_task = ray.get(test_task_ref)
         return res_test_task
