@@ -44,6 +44,16 @@ def format_msgs_chain_to_llm_context(msgs_chain):
 
 
 async def query_ray(rag_config_name, conversation_id, input_text=None, use_conversation_context=True, streaming=True):
+    """
+    # for debuggin purposes send 100 messages waiting 0.1 seconds between each one
+    import asyncio
+    for i in range(100):
+        await asyncio.sleep(0.1)
+        yield {"model_response": f"Message {i}", "references": {}, "final": False}
+    yield {"model_response": "End of messages", "references": {}, "final": True}
+
+    return
+    """
     try:
         rag_conf = await database_sync_to_async(RAGConfig.enabled_objects.prefetch_related("prompt_config", "generation_config", "knowledge_base").get)(name=rag_config_name)
     except RAGConfig.DoesNotExist:
