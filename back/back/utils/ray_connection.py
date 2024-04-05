@@ -151,7 +151,7 @@ def get_ray_tasks(add_celery_fields=False):
     """
     Get the number of Ray tasks that are currently running or has been run.
     """
-    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index", "test_task"]
+    task_types = ["generate_embeddings", "parse_pdf", "generate_titles", "get_filesystem", "create_colbert_index", "test_task", "get_filesystem"]
     tasks = []
     for task_type in task_types:
         tasks += [j.__dict__ for j in ray_api.list_tasks(filters=[("func_or_class_name", "=", task_type)])]
