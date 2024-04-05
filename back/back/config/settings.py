@@ -259,6 +259,7 @@ with EnvManager(model_w_django) as env:
     # CELERY_ROUTES = {
     # }
     CELERY_WORKER_REDIRECT_STDOUTS = False
+    CELERY_IMPORTS = ("back.apps.language_model.signals", )
 
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'
@@ -274,6 +275,7 @@ with EnvManager(model_w_django) as env:
         AWS_QUERYSTRING_EXPIRE = "3600"
         AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
         AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+
 
 # --------------------------- RAY ---------------------------
 RAY_SERVE_PORT = os.environ.get("RAY_SERVE_PORT", 8001)
