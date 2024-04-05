@@ -33,7 +33,7 @@ pgvector = "^0.2.3"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chat-rag = {version = "0.1.56"}
+chat-rag = {version = "0.1.65"}
 gevent = "23.9.0"
 torch = [
     { version = "^2.0.1", source = "torch" },
@@ -46,8 +46,8 @@ undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 twisted = "^23.10.0rc1"
-ragatouille = { git = "https://github.com/Diegi97/RAGatouille.git", branch = "main" }  # Temporary until a new version with baching is released
 ray = {version = "2.10.0", extras = ["data", "serve"]}
+llama-index = "0.9.48"
 
 
 [tool.poetry.group.dev.dependencies]
