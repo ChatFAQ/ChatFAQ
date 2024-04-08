@@ -219,28 +219,42 @@ def get_indexed_k_items_ids(rag_config):
 
     from back.config.storage_backends import select_private_storage
 
-    private_storage = select_private_storage()
-
     s3_index_path = rag_config.s3_index_path
 
-    files = private_storage.listdir(s3_index_path)[1]
-    local_index_path = f"/tmp/{s3_index_path}"
+    if settings.LOCAL_STORAGE:
+        index_root, index_name = os.path.split(s3_index_path)
+        index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
 
-    filename = [file for file in files if file.startswith('pid_docid_map')][0]
+        # get the filename of the pid_docid_map file
+        files = os.listdir(index_path)
+        filename = [file for file in files if file.startswith('pid_docid_map')][0]
+        local_file_path = os.path.join(index_path, filename)
 
-    if not os.path.exists(local_index_path):
-        os.makedirs(local_index_path)
+        # As it is a local storage, we store the files as saved by ColBERT
+        with open(local_file_path, "rb") as local_file:
+            pid_docid_map = json.loads(local_file.read())
+        
+    else:
+        private_storage = select_private_storage()
 
-    s3_file_path = os.path.join(s3_index_path, filename)
-    local_file_path = os.path.join(local_index_path, filename)
-    with open(local_file_path, "wb") as local_file:
-        local_file.write(private_storage.open(s3_file_path).read())
+        files = private_storage.listdir(s3_index_path)[1]
+        local_index_path = f"/tmp/{s3_index_path}"
 
-    print(f"Downloaded {filename} to {local_file_path}")
+        filename = [file for file in files if file.startswith('pid_docid_map')][0]
 
-    df = pd.read_parquet(local_file_path)
+        if not os.path.exists(local_index_path):
+            os.makedirs(local_index_path)
 
-    pid_docid_map = json.loads(df['bytes'][0])
+        s3_file_path = os.path.join(s3_index_path, filename)
+        local_file_path = os.path.join(local_index_path, filename)
+        with open(local_file_path, "wb") as local_file:
+            local_file.write(private_storage.open(s3_file_path).read())
+
+        print(f"Downloaded {filename} to {local_file_path}")
+
+        df = pd.read_parquet(local_file_path)
+
+        pid_docid_map = json.loads(df['bytes'][0])
 
     indexed_k_item_ids = [int(id) for id in set(pid_docid_map.values())]
 
@@ -280,6 +294,42 @@ def modify_index(rag_config):
 
     # ids to string
     k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
+
+    # remove the embeddings with the given ids
+    Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
+
+    # get the k items that have no associated embeddings
+    k_items = KnowledgeItem.objects.filter(
+        knowledge_base=rag_config.knowledge_base
+    ).exclude(embedding__rag_config=rag_config)
+
+    logger.info(f"Number of k items to add: {len(k_items)}")
+
+    if k_items.count() > 0:
+        # add the k items to the ColBERT index
+        try:
+            
+
+            # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+            embeddings = [
+                Embedding(
+                    knowledge_item=item,
+                    rag_config=rag_config,
+                )
+                for item in k_items
+            ]
+            Embedding.objects.bulk_create(embeddings)
+
+        except Exception as e:
+            logger.error(f"Error adding k items to index: {e}")
+            logger.info(
+                "This error is probably due to too few knowledge items to add to the index."
+            )
+            logger.info("Rebuilding index from scratch...")
+            # remove all embeddings for the given rag config
+            Embedding.objects.filter(rag_config=rag_config).delete()
+            # indexing starting from scratch
+            creates_index(rag_config=rag_config)
 
     
 def modify_index_deprecated(rag_config):
@@ -403,9 +453,7 @@ def creates_index(rag_config):
     task_name = f"create_colbert_index_{rag_config.name}"
 
     with connect_to_ray_cluster():
-        storages_mode = os.environ.get("STORAGES_MODE", "local")
-        remote_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
-        index_path = construct_index_path(s3_index_path, storages_mode, remote_ray_cluster)
+        index_path = construct_index_path(s3_index_path)
         index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
             colbert_name, bsize, device, index_path, storages_mode, contents_pk, contents
         )
@@ -511,7 +559,7 @@ def delete_index_files(s3_index_path):
 
     if s3_index_path:
 
-        if os.environ.get("STORAGES_MODE", "local") == "local":
+        if settings.LOCAL_STORAGE:
             index_root, index_name = os.path.split(index_path)
             index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
             print(f'Deleting local index files from {index_path}')

@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from typing import List
 
 import ray
 
@@ -203,6 +204,12 @@ def create_colbert_index(
         print(f"Error creating index: {e}")
         # failure
         return False
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def modify_colbert_index(s3_index_path, k_item_ids_to_remove: List[int], contents_to_add: List[str], contents_pk_to_add: List[str], storages_mode):
+
+    k_item_ids_to_remove
 
 
 @ray.remote(num_cpus=1)

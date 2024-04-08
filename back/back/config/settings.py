@@ -9,6 +9,7 @@ MIDDLEWARE = []
 INSTALLED_APPS = []
 LOGGING = {}
 LOCAL_STORAGE = os.getenv("STORAGES_MODE") == "local"
+REMOTE_RAY_CLUSTER = os.getenv("RAY_CLUSTER", "False") == "True"
 
 
 def get_package_version() -> str:

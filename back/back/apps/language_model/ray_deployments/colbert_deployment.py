@@ -3,6 +3,8 @@ import os
 import ray
 from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 from ray import serve
+from django.conf import settings
+
 
 from ragatouille import RAGPretrainedModel
 from back.apps.language_model.ray_tasks import read_s3_index
@@ -92,14 +94,14 @@ class ColBERTDeployment:
         return await self.batch_handler(query, top_k)
 
 
-def construct_index_path(index_path: str, storages_mode, remote_ray_cluster: bool):
+def construct_index_path(index_path: str):
     """
     Construct the index path based on the STORAGES_MODE environment variable.
     """
 
-    if storages_mode == "local":
+    if settings.LOCAL_STORAGE:
             return os.path.join("back", index_path)
-    elif storages_mode in ["s3", "do"]:
+    else:
         bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         return f"s3://{bucket_name}/{index_path}"
 
@@ -108,9 +110,9 @@ def launch_colbert(retriever_deploy_name, index_path):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
 
     storages_mode = os.environ.get("STORAGES_MODE", "local")
-    remote_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
+    remote_ray_cluster = settings.REMOTE_RAY_CLUSTER
 
-    index_path = construct_index_path(index_path, storages_mode, remote_ray_cluster)
+    index_path = construct_index_path(index_path)
     retriever_handle = ColBERTDeployment.options(
         name=retriever_deploy_name,
     ).bind(index_path, remote_ray_cluster, storages_mode)
