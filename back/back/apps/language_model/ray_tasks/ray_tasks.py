@@ -95,6 +95,12 @@ def get_filesystem(storages_mode):
 def create_colbert_index(
     colbert_name, bsize, device, s3_index_path, storages_mode, contents_pk, contents
 ):
+    
+    from typing import Dict
+
+    from ray.data.datasource import FilenameProvider
+
+
 
     def get_num_gpus():
         try:
@@ -103,6 +109,31 @@ def create_colbert_index(
             return torch.cuda.device_count()
         except:
             return -1
+
+
+    class PidDocIdFilenameProvider(FilenameProvider):
+
+        def get_filename_for_row(self, row, task_index, block_index, row_index):
+            path = row['path']
+
+            filename = os.path.basename(path)
+            filename = os.path.splitext(filename)[0] + f"_{self._dataset_uuid}_"
+            file_id = f"{task_index:06}_{block_index:06}_{row_index:06}.parquet"
+            filename += file_id
+
+            return filename
+        
+        def get_filename_for_block(self, block: Dict, task_index: int, block_index: int) -> str:
+
+            path = str(block['path'][0])
+
+            filename = os.path.basename(path)
+            filename = os.path.splitext(filename)[0] + "_"
+            file_id = f"{task_index:06}_{block_index:06}.parquet"
+            filename += file_id
+            
+            return filename
+
 
     try:
 
@@ -149,6 +180,7 @@ def create_colbert_index(
             index = ray.data.read_binary_files(local_index_path, include_paths=True)
 
             print(f"Writing index to object storage {s3_index_path}")
+            print(f'Size of index: {index.size_bytes()/1e9:.2f} GB')
 
             fs = ray.get(fs_ref)
             if fs is not None:
@@ -156,8 +188,13 @@ def create_colbert_index(
                 fs = fs.unwrap()
             
             # Then we can write the index to the cloud storage
-            index.write_parquet(s3_index_path, filesystem=fs)
+            index.write_parquet(s3_index_path, filesystem=fs, filename_provider=PidDocIdFilenameProvider())
             print('Index written to object storage')
+
+            index_f = index.filter(lambda x: x["path"].endswith('pid_docid_map.json'))
+
+            # remove path column
+            index_f = index_f.drop_columns(["path"])
 
             # success
             return True
@@ -166,6 +203,77 @@ def create_colbert_index(
         print(f"Error creating index: {e}")
         # failure
         return False
+
+
+@ray.remote(num_cpus=1)
+def read_s3_index(index_path, remote_ray_cluster, storages_mode):
+    """
+    If the index_path is an S3 path, read the index from object storage and write it to the local storage.
+    """
+    fs_ref = get_filesystem.remote(storages_mode)
+
+    from tqdm import tqdm
+
+    def write_file(row, base_path):
+        # Extract bytes and path from the row
+        content, file_path = row["bytes"], row["path"]
+
+        file_name = os.path.basename(file_path)
+
+        # Combine the base path with the original file path
+        full_path = os.path.join(base_path, file_name)
+
+        print(f"Writing file to {full_path}")
+
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+        # Write the file
+        with open(full_path, "wb") as file:
+            file.write(content)
+
+    print(f"Reading index from {index_path}")
+
+    if "s3://" in index_path:
+
+        from pyarrow.fs import FileSelector
+
+        fs = ray.get(fs_ref)
+
+        if fs is not None:
+            # unwrap the filesystem object
+            fs = fs.unwrap()
+
+        files = fs.get_file_info(FileSelector(index_path.split('s3://')[1]))
+
+        file_paths = [file.path for file in files]
+
+        # print total index size in MB
+        print(f"Downloading index with size: {sum(file.size for file in files) / 1e9:.3f} GB")
+
+        # TODO: Maybe pass the Memory resource requirement with the index size so if you have not enough memory it will not download the index
+        # If the index is too large, issue an error asking the user to increase the memory resources
+        index = ray.data.read_parquet_bulk(file_paths, filesystem=fs)
+        print(f"Downloaded {index.count()} files from S3")
+
+        index_name = os.path.basename(index_path)
+        index_path = os.path.join("indexes", index_name)
+
+        # If remote Ray cluster running on containers
+        if remote_ray_cluster:
+            index_path = os.path.join("/", index_path)
+
+        # if the directory exists, delete it
+        if os.path.exists(index_path):
+            print(f"Deleting existing index at {index_path}")
+            import shutil
+            shutil.rmtree(index_path)
+
+        print(f"Writing index to {index_path}")
+        for row in tqdm(index.iter_rows()):
+            write_file(row, index_path)
+    return index_path
+
 
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})

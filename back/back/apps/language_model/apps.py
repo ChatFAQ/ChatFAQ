@@ -22,6 +22,14 @@ class DatasetConfig(AppConfig):
 
         if not os.environ.get('DEBUG') or os.environ.get('RUN_MAIN'):  # only start ray on the main thread
 
+            storages_mode = os.environ.get("STORAGES_MODE", "local")
+            remote_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
+
+            # raise error if we are in local storage mode and we are trying to use a remote ray cluster
+            if storages_mode == "local" and remote_ray_cluster:
+                raise ValueError("Cannot use a remote ray cluster with local storage mode, please set STORAGES_MODE to s3 or do")
+
+
             initialize_or_check_ray()
 
             RAGConfig = self.get_model("RAGConfig")

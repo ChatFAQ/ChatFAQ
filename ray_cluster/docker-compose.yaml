@@ -56,8 +56,8 @@ services:
       - ray_net
     extra_hosts:
         - host.docker.internal:host-gateway
-    volumes:
-      - ../back/back/local_storage/indexes:/indexes # Adjust the path as needed
+    # volumes:
+    #   - ../back/back/local_storage/indexes:/indexes # Adjust the path as needed
 
 
 networks:

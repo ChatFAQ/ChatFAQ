@@ -1,10 +1,11 @@
 from typing import List
 import os
 import ray
+from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 from ray import serve
 
 from ragatouille import RAGPretrainedModel
-from back.apps.language_model.ray_tasks import get_filesystem
+from back.apps.language_model.ray_tasks import read_s3_index
 from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
 
@@ -25,79 +26,21 @@ class ColBERTDeployment:
     def __init__(self, index_path, remote_ray_cluster, storages_mode):
         print(f"Initializing ColBERTDeployment")
 
-        index_path = self._read_index(index_path, remote_ray_cluster, storages_mode)
+        # Schedule the reading of the index on the same node as the deployment
+        node_id = ray.get_runtime_context().get_node_id()
+        print(f"Node ID: {node_id}")
+        node_scheduling_strategy = NodeAffinitySchedulingStrategy(
+            node_id=node_id, soft=False
+        )
+        index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, remote_ray_cluster, storages_mode)
+
+        index_path = ray.get(index_path_ref)
 
         self.retriever = RAGPretrainedModel.from_index(index_path)
 
         # Test query for loading the searcher for the first time
         self.retriever.search("test query", k=1)
         print(f"ColBERTDeployment initialized with index_path={index_path}")
-
-    def _read_index(self, index_path, remote_ray_cluster, storages_mode):
-        """
-        If the index_path is an S3 path, read the index from object storage and write it to the local storage.
-        """
-        fs_ref = get_filesystem.remote(storages_mode)
-
-        from tqdm import tqdm
-
-        def write_file(row, base_path):
-            # Extract bytes and path from the row
-            content, file_path = row["bytes"], row["path"]
-
-            file_name = os.path.basename(file_path)
-
-            # Combine the base path with the original file path
-            full_path = os.path.join(base_path, file_name)
-
-            print(f"Writing file to {full_path}")
-
-            # Ensure the directory exists
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-            # Write the file
-            with open(full_path, "wb") as file:
-                file.write(content)
-
-        print(f"Reading index from {index_path}")
-
-        if "s3://" in index_path:
-
-            from pyarrow.fs import FileSelector
-
-            fs = ray.get(fs_ref)
-
-            if fs is not None:
-                # unwrap the filesystem object
-                fs = fs.unwrap()
-
-            files = fs.get_file_info(FileSelector(index_path.split('s3://')[1]))
-
-            file_paths = [file.path for file in files]
-
-            # print total index size in MB
-            print(f"Downloading index with size: {sum(file.size for file in files) / 1024 / 1024:.2f} MB")
-
-            index = ray.data.read_parquet_bulk(file_paths, filesystem=fs)
-            print(f"Downloaded {index.count()} files from S3")
-
-            index_name = os.path.basename(index_path)
-            index_path = os.path.join("indexes", index_name)
-
-            # If remote Ray cluster running on containers
-            if remote_ray_cluster:
-                index_path = os.path.join("/", index_path)
-
-            # if the directory exists, delete it
-            if os.path.exists(index_path):
-                print(f"Deleting existing index at {index_path}")
-                import shutil
-                shutil.rmtree(index_path)
-
-            print(f"Writing index to {index_path}")
-            for row in tqdm(index.iter_rows()):
-                write_file(row, index_path)
-        return index_path
 
     @serve.batch(max_batch_size=5, batch_wait_timeout_s=0.2)
     async def batch_handler(self, queries: List[str], top_ks: List[int]):

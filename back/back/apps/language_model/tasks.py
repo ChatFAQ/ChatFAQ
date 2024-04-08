@@ -2,19 +2,15 @@ import gc
 import json
 import os
 import uuid
-from io import BytesIO
 from logging import getLogger
 
+import pandas as pd
 import ray
-import requests
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from crochet import setup
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import F
-from django.forms.models import model_to_dict
 from ray import serve
 from ray.serve.config import HTTPOptions, ProxyLocation
 from scrapy.crawler import CrawlerRunner
@@ -219,7 +215,74 @@ def index_e5(rag_config):
     generate_embeddings(k_items=k_items, rag_config=rag_config)
 
 
+def get_indexed_k_items_ids(rag_config):
+
+    from back.config.storage_backends import select_private_storage
+
+    private_storage = select_private_storage()
+
+    s3_index_path = rag_config.s3_index_path
+
+    files = private_storage.listdir(s3_index_path)[1]
+    local_index_path = f"/tmp/{s3_index_path}"
+
+    filename = [file for file in files if file.startswith('pid_docid_map')][0]
+
+    if not os.path.exists(local_index_path):
+        os.makedirs(local_index_path)
+
+    s3_file_path = os.path.join(s3_index_path, filename)
+    local_file_path = os.path.join(local_index_path, filename)
+    with open(local_file_path, "wb") as local_file:
+        local_file.write(private_storage.open(s3_file_path).read())
+
+    print(f"Downloaded {filename} to {local_file_path}")
+
+    df = pd.read_parquet(local_file_path)
+
+    pid_docid_map = json.loads(df['bytes'][0])
+
+    indexed_k_item_ids = [int(id) for id in set(pid_docid_map.values())]
+
+    return indexed_k_item_ids
+
+
 def modify_index(rag_config):
+    """
+    Modify the index for a knowledge base. It removes, modifies and adds the k items to an existing index.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    """
+
+    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+    Embedding = apps.get_model("language_model", "Embedding")
+    # k items to remove
+    current_k_item_ids = KnowledgeItem.objects.filter(
+        knowledge_base=rag_config.knowledge_base
+    ).values_list("pk", flat=True)
+
+    indexed_k_item_ids = get_indexed_k_items_ids(rag_config)
+
+    # Current indexed k items - k items in the database = k items to remove
+    k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
+
+    logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
+
+    # modified k items need to be removed from the index also, to detect which k items are modified we check if the k_item embedding updated_date is lower than the k_item updated_date
+    modified_k_item_ids = get_modified_k_items_ids(rag_config)
+
+    logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
+
+    # add the modified k items to the k items to remove
+    k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
+
+    # ids to string
+    k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
+
+    
+def modify_index_deprecated(rag_config):
     """
     Modify the index for a knowledge base. It removes, modifies and adds the k items to an existing index.
     Parameters
@@ -371,8 +434,6 @@ def creates_index(rag_config):
 
     else:
         logger.error(f"Error building index for knowledge base: {rag_config.knowledge_base.name}")
-
-
 
 
 def index_colbert(rag_config):
