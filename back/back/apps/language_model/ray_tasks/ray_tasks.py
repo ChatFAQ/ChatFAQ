@@ -196,8 +196,8 @@ def create_colbert_index(
             # remove path column
             index_f = index_f.drop_columns(["path"])
 
-            # success
-            return True
+        # success
+        return True
 
     except Exception as e:
         print(f"Error creating index: {e}")
@@ -206,7 +206,7 @@ def create_colbert_index(
 
 
 @ray.remote(num_cpus=1)
-def read_s3_index(index_path, remote_ray_cluster, storages_mode):
+def read_s3_index(index_path, storages_mode):
     """
     If the index_path is an S3 path, read the index from object storage and write it to the local storage.
     """
@@ -234,44 +234,38 @@ def read_s3_index(index_path, remote_ray_cluster, storages_mode):
 
     print(f"Reading index from {index_path}")
 
-    if "s3://" in index_path:
+    from pyarrow.fs import FileSelector
 
-        from pyarrow.fs import FileSelector
+    fs = ray.get(fs_ref)
 
-        fs = ray.get(fs_ref)
+    if fs is not None:
+        # unwrap the filesystem object
+        fs = fs.unwrap()
 
-        if fs is not None:
-            # unwrap the filesystem object
-            fs = fs.unwrap()
+    files = fs.get_file_info(FileSelector(index_path.split('s3://')[1]))
 
-        files = fs.get_file_info(FileSelector(index_path.split('s3://')[1]))
+    file_paths = [file.path for file in files]
 
-        file_paths = [file.path for file in files]
+    # print total index size in MB
+    print(f"Downloading index with size: {sum(file.size for file in files) / 1e9:.3f} GB")
 
-        # print total index size in MB
-        print(f"Downloading index with size: {sum(file.size for file in files) / 1e9:.3f} GB")
+    # TODO: Maybe pass the Memory resource requirement with the index size so if you have not enough memory it will not download the index
+    # If the index is too large, issue an error asking the user to increase the memory resources
+    index = ray.data.read_parquet_bulk(file_paths, filesystem=fs)
+    print(f"Downloaded {index.count()} files from S3")
 
-        # TODO: Maybe pass the Memory resource requirement with the index size so if you have not enough memory it will not download the index
-        # If the index is too large, issue an error asking the user to increase the memory resources
-        index = ray.data.read_parquet_bulk(file_paths, filesystem=fs)
-        print(f"Downloaded {index.count()} files from S3")
+    index_name = os.path.basename(index_path)
+    index_path = os.path.join("back", "indexes", "colbert", "indexes", index_name)
 
-        index_name = os.path.basename(index_path)
-        index_path = os.path.join("indexes", index_name)
+    # if the directory exists, delete it
+    if os.path.exists(index_path):
+        print(f"Deleting existing index at {index_path}")
+        import shutil
+        shutil.rmtree(index_path)
 
-        # If remote Ray cluster running on containers
-        if remote_ray_cluster:
-            index_path = os.path.join("/", index_path)
-
-        # if the directory exists, delete it
-        if os.path.exists(index_path):
-            print(f"Deleting existing index at {index_path}")
-            import shutil
-            shutil.rmtree(index_path)
-
-        print(f"Writing index to {index_path}")
-        for row in tqdm(index.iter_rows()):
-            write_file(row, index_path)
+    print(f"Writing index to {index_path}")
+    for row in tqdm(index.iter_rows()):
+        write_file(row, index_path)
     return index_path
 
 

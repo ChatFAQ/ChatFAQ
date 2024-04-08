@@ -32,9 +32,14 @@ class ColBERTDeployment:
         node_scheduling_strategy = NodeAffinitySchedulingStrategy(
             node_id=node_id, soft=False
         )
-        index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, remote_ray_cluster, storages_mode)
 
-        index_path = ray.get(index_path_ref)
+        if 's3://' in index_path:
+            index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, storages_mode)
+            index_path = ray.get(index_path_ref)
+        else:
+            index_root, index_name = os.path.split(index_path)
+            index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
+            print(f'Reading index locally from {index_path}')
 
         self.retriever = RAGPretrainedModel.from_index(index_path)
 
@@ -93,12 +98,7 @@ def construct_index_path(index_path: str, storages_mode, remote_ray_cluster: boo
     """
 
     if storages_mode == "local":
-        if remote_ray_cluster:
-            return os.path.join(
-                "/", index_path
-            )  # In the ray containers we mount local_storage/indexes/ as /indexes/
-        else:
-            return os.path.join("back", "back", "local_storage", index_path)
+            return os.path.join("back", index_path)
     elif storages_mode in ["s3", "do"]:
         bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         return f"s3://{bucket_name}/{index_path}"

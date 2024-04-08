@@ -507,19 +507,29 @@ def delete_index_files(s3_index_path):
         The unique index path.
     """
     from back.config.storage_backends import select_private_storage
+    import shutil
 
     if s3_index_path:
-        private_storage = select_private_storage()
-        logger.info(f"Deleting index files from S3: {s3_index_path}")
-        # List all files in the unique index path
-        _, files = private_storage.listdir(s3_index_path)
-        for file in files:
-            # Construct the full path for each file
-            file_path = os.path.join(s3_index_path, file)
-            # Delete the file from S3
-            private_storage.delete(file_path)
 
-        logger.info(f"Index files deleted from S3: {s3_index_path}")
+        if os.environ.get("STORAGES_MODE", "local") == "local":
+            index_root, index_name = os.path.split(index_path)
+            index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
+            print(f'Deleting local index files from {index_path}')
+            if os.path.exists(index_path):
+                shutil.rmtree(index_path)
+        
+        else: # for s3 and do
+            private_storage = select_private_storage()
+            logger.info(f"Deleting index files from S3: {s3_index_path}")
+            # List all files in the unique index path
+            _, files = private_storage.listdir(s3_index_path)
+            for file in files:
+                # Construct the full path for each file
+                file_path = os.path.join(s3_index_path, file)
+                # Delete the file from S3
+                private_storage.delete(file_path)
+
+            logger.info(f"Index files deleted from S3: {s3_index_path}")
 
 
 @app.task()
