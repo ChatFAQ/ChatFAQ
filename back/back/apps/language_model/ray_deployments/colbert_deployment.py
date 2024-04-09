@@ -28,14 +28,14 @@ class ColBERTDeployment:
     def __init__(self, index_path, remote_ray_cluster, storages_mode):
         print(f"Initializing ColBERTDeployment")
 
-        # Schedule the reading of the index on the same node as the deployment
-        node_id = ray.get_runtime_context().get_node_id()
-        print(f"Node ID: {node_id}")
-        node_scheduling_strategy = NodeAffinitySchedulingStrategy(
-            node_id=node_id, soft=False
-        )
 
         if 's3://' in index_path:
+            # Schedule the reading of the index on the same node as the deployment
+            node_id = ray.get_runtime_context().get_node_id()
+            print(f"Node ID: {node_id}")
+            node_scheduling_strategy = NodeAffinitySchedulingStrategy(
+                node_id=node_id, soft=False
+            )
             index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, storages_mode)
             index_path = ray.get(index_path_ref)
         else:

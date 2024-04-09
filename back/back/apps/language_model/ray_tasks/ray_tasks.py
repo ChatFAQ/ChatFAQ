@@ -1,8 +1,10 @@
 import os
 from logging import getLogger
-from typing import List
+from typing import List, Optional
 
 import ray
+from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
+
 
 logger = getLogger(__name__)
 
@@ -92,6 +94,63 @@ def get_filesystem(storages_mode):
     return None
 
 
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+class ColBERT:
+    def __init__(self, index_path: str, colbert_name: Optional[str] = None, bsize: Optional[int] = None, device: Optional[str] = None, storages_mode: Optional[str] = None):
+
+        self.index_path = index_path
+        self.colbert_name = colbert_name
+        self.bsize = bsize
+        self.device = device
+        self.storages_mode = storages_mode
+
+        self.index_root, self.index_name = os.path.split(index_path)
+
+        if colbert_name is not None:
+            self.load_pretrained()
+        else:
+            self.load_index(index_path)
+
+    def load_pretrained(self):
+        """
+        Load a pretrained ColBERT model without an index.
+        """
+        from ragatouille import RAGPretrainedModel
+
+        n_gpus = -1 if self.device == "cpu" else self.get_num_gpus()
+
+        self.retriever = RAGPretrainedModel.from_pretrained(
+            self.colbert_name, index_root=self.index_root, n_gpu=n_gpus
+        )
+    
+    def load_index(self):
+        """
+        Load a ColBERT model from an existing index.
+        """
+        from ragatouille import RAGPretrainedModel
+
+        if 's3://' in self.index_path:    
+            node_id = ray.get_runtime_context().get_node_id()
+            print(f"Node ID: {node_id}")
+            node_scheduling_strategy = NodeAffinitySchedulingStrategy(
+                node_id=node_id, soft=False
+            )
+            index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(self.index_path, self.storages_mode)
+            self.index_path = ray.get(index_path_ref)  
+
+        self.retriever = RAGPretrainedModel.from_index(self.index_path)
+
+    def get_num_gpus(self):
+        try:
+            import torch
+
+            return torch.cuda.device_count()
+        except:
+            return -1
+        
+
+
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def create_colbert_index(
     colbert_name, bsize, device, s3_index_path, storages_mode, contents_pk, contents
@@ -100,16 +159,6 @@ def create_colbert_index(
     from typing import Dict
 
     from ray.data.datasource import FilenameProvider
-
-
-
-    def get_num_gpus():
-        try:
-            import torch
-
-            return torch.cuda.device_count()
-        except:
-            return -1
 
 
     class PidDocIdFilenameProvider(FilenameProvider):
@@ -135,6 +184,13 @@ def create_colbert_index(
             
             return filename
 
+    def get_num_gpus():
+        try:
+            import torch
+
+            return torch.cuda.device_count()
+        except:
+            return -1
 
     try:
 
@@ -207,9 +263,50 @@ def create_colbert_index(
 
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
-def modify_colbert_index(s3_index_path, k_item_ids_to_remove: List[int], contents_to_add: List[str], contents_pk_to_add: List[str], storages_mode):
+def modify_colbert_index(index_path: str, k_item_ids_to_remove: List[str], contents_to_add: List[str], contents_pk_to_add: List[str], storages_mode: str, bsize: int):
 
-    k_item_ids_to_remove
+    from ragatouille import RAGPretrainedModel
+
+    # Schedule the reading of the index on the same node as the deployment
+    node_id = ray.get_runtime_context().get_node_id()
+    print(f"Node ID: {node_id}")
+    node_scheduling_strategy = NodeAffinitySchedulingStrategy(
+            node_id=node_id, soft=False
+    )
+
+    if 's3://' in index_path:
+        index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, storages_mode)
+        index_path = ray.get(index_path_ref)
+        index_name = os.path.basename(index_path)
+    else:
+        index_root, index_name = os.path.split(index_path)
+        index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
+        print(f'Reading index locally from {index_path}')
+
+    print(f"Loading index from {index_path}")
+    retriever = RAGPretrainedModel.from_index(index_path)
+
+    print("Deleting items from the index")
+    # remove the items from the index
+    retriever.delete_from_index(
+            document_ids=k_item_ids_to_remove,
+            index_name=index_name,
+    )
+    
+    print("Adding new items to the index")
+
+    retriever.add_to_index(
+            new_collection=contents_to_add,
+            new_document_ids=contents_pk_to_add,
+            index_name=index_name,
+            split_documents=True,
+            max_document_length=512,
+            bsize=bsize,
+        )
+    
+    print("Done!")
+    
+    return False
 
 
 @ray.remote(num_cpus=1)
