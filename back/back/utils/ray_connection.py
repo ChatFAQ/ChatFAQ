@@ -1,5 +1,6 @@
 import os
 import random
+from django.conf import settings
 from contextlib import contextmanager
 from logging import getLogger
 from time import sleep
@@ -110,8 +111,8 @@ def initialize_or_check_ray():
     Initialize a Ray cluster locally or check if a remote Ray cluster is available.
     """
     if not ray.is_initialized():
-        remote_ray_cluster = (os.getenv('RAY_CLUSTER', 'False') == 'True')
-        print(f"remote_ray_cluster: {remote_ray_cluster} {os.getenv('RAY_CLUSTER')}")
+        remote_ray_cluster = settings.REMOTE_RAY_CLUSTER_ADDRESS_HEAD
+        print(f"remote_ray_cluster: {remote_ray_cluster}")
         if remote_ray_cluster:
             if not check_remote_ray_cluster():
                 logger.error(f"You provided a remote Ray Cluster address but the connection failed, these could be because of three reasons: ")

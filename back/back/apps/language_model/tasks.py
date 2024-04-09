@@ -81,9 +81,7 @@ def launch_rag_deployment(rag_config_id):
     delete_rag_deployment(rag_deploy_name)
 
     if not serve.status().applications:
-        http_options = HTTPOptions(
-                host="0.0.0.0", port=settings.RAY_SERVE_PORT,
-            )
+        http_options = HTTPOptions(host="0.0.0.0", port=settings.RAY_SERVE_PORT)  # Connect to local cluster or to local Ray driver (both by default run in the same addresses)
         proxy_location = ProxyLocation(ProxyLocation.EveryNode)
 
         serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)

@@ -110,11 +110,10 @@ def launch_colbert(retriever_deploy_name, index_path):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
 
     storages_mode = os.environ.get("STORAGES_MODE", "local")
-    remote_ray_cluster = settings.REMOTE_RAY_CLUSTER
 
     index_path = construct_index_path(index_path)
     retriever_handle = ColBERTDeployment.options(
         name=retriever_deploy_name,
-    ).bind(index_path, remote_ray_cluster, storages_mode)
+    ).bind(index_path, settings.REMOTE_RAY_CLUSTER_ADDRESS_HEAD, storages_mode)
     print(f"Launched ColBERT deployment with name: {retriever_deploy_name}")
     return retriever_handle

@@ -11,8 +11,16 @@ load_dotenv()
 MIDDLEWARE = []
 INSTALLED_APPS = []
 LOGGING = {}
-LOCAL_STORAGE = os.getenv("STORAGES_MODE") == "local"
-REMOTE_RAY_CLUSTER = os.getenv("RAY_CLUSTER", "False") == "True"
+STORAGES_MODE = os.getenv("STORAGES_MODE")
+LOCAL_STORAGE = STORAGES_MODE == "local"
+
+# --------------------------- RAY ---------------------------
+REMOTE_RAY_CLUSTER_ADDRESS_HEAD = os.getenv("REMOTE_RAY_CLUSTER_ADDRESS_HEAD")
+# If no REMOTE_RAY_CLUSTER_ADDRESS_HEAD is provided then
+# REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
+# that ray luster runs locally from Django process (http://localhost:8001)
+RAY_SERVE_PORT = os.getenv("RAY_SERVE_PORT", 8001)
+RAY_CLUSTER_HOST = os.getenv("REMOTE_RAY_CLUSTER_HOST", "http://localhost")
 
 
 def get_package_version() -> str:
@@ -282,7 +290,3 @@ with EnvManager(model_w_django) as env:
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-
-
-# --------------------------- RAY ---------------------------
-RAY_SERVE_PORT = os.environ.get("RAY_SERVE_PORT", 8001)
