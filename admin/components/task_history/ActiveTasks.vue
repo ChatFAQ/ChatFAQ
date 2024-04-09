@@ -101,7 +101,7 @@ function removeItem(id) {
 }
 
 function goToTaskToDetail(id) {
-    itemsStore.editing = id
+    itemsStore.taskID = id
     router.push('/task_history');
 }
 

@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title">{{ $t('usermanagement') }}</div>
-    <el-tabs class="main-page-tabs" @tab-change="itemsStore.stateToRead" v-model="itemType">
-        <el-tab-pane :label="$t('user')" name="user">
+    <el-tabs class="main-page-tabs" v-model="itemType">
+        <el-tab-pane :lazy="true" :label="$t('user')" name="user">
             <ReadWriteView
                 :readableName="$t('user')"
                 apiUrl="/back/api/people/users/"
@@ -13,7 +13,7 @@
                     'email': {'name': $t('email')},
                 }"
                 :excludeFields="['date_joined', 'last_login', 'rpc_group']"
-                @submitForm="submitPassword"
+                @submitFormStart="submitPassword"
                 :sections="{
                     [$t('userinformation')]: [
                         'first_name',
@@ -35,7 +35,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('grouppermissions')" name="group-permissions">
+        <el-tab-pane :lazy="true" :label="$t('grouppermissions')" name="group-permissions">
             <ReadWriteView :readableName="$t('group')" apiUrl="/back/api/people/groups/"
                            :cardProps="{
                 }"
@@ -59,7 +59,7 @@ const { $axios } = useNuxtApp();
 const itemsStore = useItemsStore()
 
 const itemType = ref("user")
-await itemsStore.loadSchema($axios)
+await itemsStore.loadSchema()
 
 
 function submitPassword() {

@@ -2,12 +2,16 @@
     <div class="user-feedback-wrapper">
         <div v-if="userFeedback.value === 'positive'" class="vote-icon thumb-up"></div>
         <div v-else-if="userFeedback.value === 'negative'" class="vote-icon thumb-down"></div>
-        <div class="user-feedback">{{ userFeedback.feedback }}</div>
+        <div class="user-feedback" v-if="userFeedback.feedback_comment">{{$t("comment:")}} {{ userFeedback.feedback_comment }}</div>
+        <div class="user-feedback" v-if="userFeedback.feedback_selection && userFeedback.feedback_selection.length">
+            {{$t(". selections:")}} {{ userFeedback.feedback_selection.join(", ") }}
+        </div>
     </div>
 </template>
 
 <script setup>
 import {useI18n} from "vue-i18n";
+import {authHeaders} from "~/store/items.js";
 
 const {$axios} = useNuxtApp()
 
@@ -24,11 +28,7 @@ watch(() => props.messageId, async (_) => {
 }, {immediate: true})
 
 async function initUserFeedback() {
-    const {data} = await useAsyncData(
-        "userFeedback" + props.messageId,
-        async () => await $axios.get("/back/api/broker/user-feedback/?message=" + props.messageId)
-    )
-    userFeedback.value = data.value.data
+    userFeedback.value = (await $axios.get("/back/api/broker/user-feedback/?message=" + props.messageId, {headers: authHeaders()})).data.results
     if (userFeedback.value.length > 0) {
         userFeedback.value = userFeedback.value[0]
     } else {
@@ -43,6 +43,8 @@ async function initUserFeedback() {
     display: flex;
     flex-direction: row;
     margin-bottom: 10px;
+    align-items: center;
+
     .user-feedback {
         font-style: italic;
         font-size: 14px;

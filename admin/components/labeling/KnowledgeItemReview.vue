@@ -1,6 +1,7 @@
 <template>
     <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)"
          class="labeling-kis-wrapper">
+        <div class="rate-all-kis-info">{{$t("pleaserateallthekis")}}</div>
         <div class="ki-title">{{$t("knowledgeitems")}}</div>
         <div class="no-knowledge-items" v-if="!reviewedKIs.kis.length">{{$t("noknowledgeitems")}}</div>
         <div v-for="ki in reviewedKIs.kis" class="labeling-ki-wrapper">
@@ -39,14 +40,19 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import { upsertItem } from "~/utils/index.js";
+import {useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 
 const itemsStore = useItemsStore()
-
-const {$axios} = useNuxtApp()
 
 const ki_choices = ref([])
 const reviewedKIs = ref({})
 const review = ref({})
+
+const emit = defineEmits(["change"])
+
 
 const props = defineProps({
     message: {
@@ -67,12 +73,12 @@ async function initKIReview() {
         return
     }
     for (const ki_ref of references.knowledge_items) {
-        const ki = await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, false, true)
+        const ki = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, true)
         if (ki)
             reviewedKIs.value.kis.push(ki)
     }
-    review.value = await itemsStore.retrieveItems($axios, "/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
-    ki_choices.value = (await itemsStore.retrieveItems($axios, "/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined}, false)).results
+    review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, true) || {}
+    ki_choices.value = (await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {knowledge_base: references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})).results
     itemsStore.loading = false
 }
 
@@ -122,11 +128,12 @@ async function save() {
     delete _review.gen_review_msg
     delete _review.gen_review_val
     delete _review.gen_review_type
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
+    review.value = await upsertItem("/back/api/broker/admin-review/", _review, itemsStore,true, {limit: 0, offset: 0, ordering: undefined}, t)
+    emit("change")
 }
 
 function getVoteKI(kiId) {
-    if (review.value.id === undefined) {
+    if (review.value === undefined || review.value.id === undefined) {
         return undefined
     } else {
         return review.value.ki_review_data.find((d) => d?.knowledge_item_id && d.knowledge_item_id.toString() === kiId.toString())
@@ -221,7 +228,13 @@ defineExpose({
             margin-right: 24px;
         }
     }
-
+    .rate-all-kis-info {
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 20px;
+        margin-bottom: 16px;
+        color: #8E959F;
+    }
     .ki-title {
         color: $chatfaq-color-primary-500;
         font-size: 16px;

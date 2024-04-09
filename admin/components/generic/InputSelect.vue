@@ -26,15 +26,18 @@
     </client-only>
 </template>
 <script setup>
-import { ref, computed, defineProps, onMounted } from 'vue'
-import { useIntersectionObserver } from '@vueuse/core'
-import { useItemsStore } from "~/store/items.js";
-const { $axios } = useNuxtApp();
+import {ref, computed, defineProps, onMounted} from 'vue'
+import {useIntersectionObserver} from '@vueuse/core'
+import {useItemsStore} from "~/store/items.js";
+
+const {$axios} = useNuxtApp();
 
 const loading = ref(false)
 const lastElement = ref(undefined)
 const itemsStore = useItemsStore()
-const filterChoices = ref({})
+const filterChoices = ref({results: [], next: undefined})
+import {solveRefPropValue} from "~/utils/index.js";
+
 const props = defineProps({
     fieldName: {
         type: String,
@@ -59,6 +62,35 @@ const props = defineProps({
         default: "",
     },
 })
+watch(() => props.form, async () => {
+    await initChoices()
+}, {deep: true})
+const choices = ref([])
+
+async function initChoices() {
+    if (props.filterSchema && props.filterSchema.type === "enum") {
+        choices.value = props.filterSchema.choices
+    } else if (props.filterSchema && props.filterSchema.type === "ref") {
+        choices.value = filterChoices.value.results || []
+
+        if (props.form && props.form[props.fieldName] !== undefined) {
+            const found = choices.value.some(choice => choice.value === props.form[props.fieldName])
+            if (!found) {
+                const item = await itemsStore.retrieveItems(props.filterSchema.endpoint, {id: props.form[props.fieldName]}, true)
+                choices.value.push({
+                    value: item.id,
+                    label: item.name,
+                })
+            }
+        }
+    }
+    if (!props.schema.properties)
+        return
+    if (props.schema?.properties[props.fieldName]?.$ref && props.form && props.form[props.fieldName] !== undefined) {
+        await solveRefPropValue(props.form, props.fieldName, props.schema)
+    }
+    choices.value = props.schema.properties[props.fieldName].choices.results ? props.schema.properties[props.fieldName].choices.results : props.schema.properties[props.fieldName].choices
+}
 
 const isMulti = computed(() => {
     if (props.filterSchema) {
@@ -83,7 +115,7 @@ const isRef = computed(() => {
 onMounted(async () => {
     if (props.filterSchema) {
         if (props.filterSchema.type === "ref") {
-            let items = await itemsStore.retrieveItems($axios, props.filterSchema.endpoint)
+            let items = await itemsStore.retrieveItems(props.filterSchema.endpoint, {})
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
@@ -94,20 +126,12 @@ onMounted(async () => {
             filterChoices.value.results = items.results
             filterChoices.value.next = items.next
         }
+        await initChoices()
     }
-})
-const choices = computed(() => {
-    if (props.filterSchema && props.filterSchema.type === "enum") {
-        return props.filterSchema.choices
-    }
-    else if (props.filterSchema && props.filterSchema.type === "ref") {
-        return filterChoices.value.results || []
-    }
-    return props.schema.properties[props.fieldName].choices.results ? props.schema.properties[props.fieldName].choices.results : props.schema.properties[props.fieldName].choices
 })
 
 
-function remoteSearch(query) {
+async function remoteSearch(query) {
     loading.value = true
     let url
     let ref = false
@@ -123,8 +147,12 @@ function remoteSearch(query) {
         resultHolder = props.schema.properties[props.fieldName].choices
         ref = true
     }
+    if (!url) {
+        loading.value = false
+        return
+    }
     if (ref) {
-        itemsStore.retrieveItems($axios, url, {search: query, limit: 0, offset: 0, ordering: undefined}, false).then((items) => {
+        itemsStore.retrieveItems(url, {search: query, limit: 0, offset: 0, ordering: undefined}).then((items) => {
             items = JSON.parse(JSON.stringify(items))
             items.results = items.results.map((item) => {
                 return {
@@ -139,35 +167,37 @@ function remoteSearch(query) {
                 resultHolder.next = items.next
         })
     }
+    await initChoices()
     loading.value = false
 }
 
-useIntersectionObserver(lastElement, async ([{ isIntersecting }], observerElement) => {
-      if (isIntersecting) {
-          let resultHolder
-          if (props.filterSchema) {
-              resultHolder = filterChoices.value
-          } else {
-              resultHolder = props.schema.properties[props.fieldName].choices
-          }
-          const next = resultHolder.next
-          if (!next)
-              return
-          let url = next.split('?')[0]
-          let params = next.split('?')[1]
-          params = Object.fromEntries(new URLSearchParams(params))
-          let items = await itemsStore.retrieveItems($axios, url, params)
-          items = JSON.parse(JSON.stringify(items))
-          items.results = items.results.map((item) => {
-              return {
-                  value: item.id,
-                  label: item.name,
-              }
-          })
-          resultHolder.results.push(...items.results)
-          resultHolder.next = items.next
-      }
-  },
+useIntersectionObserver(lastElement, async ([{isIntersecting}], observerElement) => {
+        if (isIntersecting) {
+            let resultHolder
+            if (props.filterSchema) {
+                resultHolder = filterChoices.value
+            } else {
+                resultHolder = props.schema.properties[props.fieldName].choices
+            }
+            const next = resultHolder.next
+            if (!next)
+                return
+            let url = next.split('?')[0]
+            let params = next.split('?')[1]
+            params = Object.fromEntries(new URLSearchParams(params))
+            let items = await itemsStore.retrieveItems(url, params)
+            items = JSON.parse(JSON.stringify(items))
+            items.results = items.results.map((item) => {
+                return {
+                    value: item.id,
+                    label: item.name,
+                }
+            })
+            resultHolder.results.push(...items.results)
+            resultHolder.next = items.next
+            choices.value = resultHolder.results
+        }
+    },
 )
 
 </script>

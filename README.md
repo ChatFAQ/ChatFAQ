@@ -27,5 +27,5 @@ Or chat with us on [Discord](https://discord.gg/MTWF4SRc3M) for any requests or 
 
 
 <div align="center">
-  <img src="https://uploads-ssl.webflow.com/649164df52b043f1d5307b14/64a2c8b1643f13e58e9c0fd0_redes-p-500.webp" alt="logo_redes">
+  <img src="https://assets-global.website-files.com/649164df52b043f1d5307b14/660d2f3981e7b29eba28b6e0_CONBANDERA_KITDIGITAL%20(1)-p-1600.png" alt="logo_redes">
 </div>

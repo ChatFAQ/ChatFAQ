@@ -98,6 +98,9 @@ class IntentAdmin(admin.ModelAdmin):
     list_display = ["intent_name", "suggested_intent", "auto_generated"]
     list_filter = ["suggested_intent", KnowledgeBaseFilter]
 
+    def get_readonly_fields(self, request, obj=None):
+        return ["auto_generated", "suggested_intent", "message", "knowledge_item"]
+
 
 def run_index_task(modeladmin, request, queryset):
     for rag_config in queryset:
@@ -115,7 +118,7 @@ class RagConfigAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         # This makes 'index_status' readonly in all cases
         return self.readonly_fields + ('index_status', 's3_index_path',)
-    
+
 
 class MessageKnowledgeItemAdmin(admin.ModelAdmin):
     list_display = ["message_id", "knowledge_item_id", "similarity", "valid"]

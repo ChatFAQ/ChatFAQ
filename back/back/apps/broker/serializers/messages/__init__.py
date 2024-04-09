@@ -209,6 +209,7 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()
+    reviewed = serializers.SerializerMethodField()
 
     class Meta:
         from back.apps.broker.models.message import Message  # TODO: CI
@@ -233,3 +234,6 @@ class MessageSerializer(serializers.ModelSerializer):
             )
         if prev and prev.conversation != str(self.initial_data["conversation"]):
             raise ValidationError(f"prev should belong to the same conversation")
+
+    def get_reviewed(self, obj):
+        return obj.completed_review

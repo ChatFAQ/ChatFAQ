@@ -15,6 +15,10 @@ router.register(
 router.register(
     r"admin-review", views.AdminReviewAPIViewSet, basename="admin-review"
 )
+router.register(
+    r"sdks", views.ConsumerRoundRobinQueueViewSet, basename="admin-review"
+)
+
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [

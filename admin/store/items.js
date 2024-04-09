@@ -1,11 +1,6 @@
 import {defineStore} from 'pinia';
 
-function apiCacheName(apiUrl, params) {
-    return apiUrl
-    return apiUrl + new URLSearchParams(params).toString()
-}
-
-function authHeaders() {
+export function authHeaders() {
     const token = useCookie('token').value
     return {
         'Authorization': `Token ${token}`
@@ -14,11 +9,9 @@ function authHeaders() {
 
 export const useItemsStore = defineStore('items', {
     state: () => ({
-        items: {},
         paths: {},
-        filters: {},
         schema: undefined,
-        editing: undefined,
+        taskID: undefined,
         adding: false,
         tableMode: false,
         loading: false,
@@ -26,10 +19,13 @@ export const useItemsStore = defineStore('items', {
         pageSize: 50,
         currentPage: 1,
         ordering: undefined,
+        itemsChanged: 0,
+        total: 0
     }),
     actions: {
-        async retrieveItems($axios, apiUrl = undefined, params = {}, cache= true, one= false) {
-            const cacheName = apiCacheName(apiUrl, params)
+        async retrieveItems(apiUrl = undefined, params = {}, one= false) {
+            const {$axios} = useNuxtApp();
+
             // Would be nice to amke ordering dynamic as a parameter, perhaps one day
             if (!("limit" in params))
                 params.limit = this.pageSize
@@ -38,78 +34,58 @@ export const useItemsStore = defineStore('items', {
             if (!("ordering" in params)) {
                 params.ordering = this.ordering
             }
-            // add this.filter into params:
-            for (const [key, val] of Object.entries(this.filters)) {
-                if (params[key] === undefined)
-                    params[key] = val
-            }
             apiUrl += "?" + new URLSearchParams(params).toString()
 
             let res = (await $axios.get(apiUrl, {'headers': authHeaders()})).data
             if (Array.isArray(res)) { // When the endpoint is not paginated
                 res = {results: res}
             }
-            if (!cache) {
-                if (one) {
-                    return res.results[0]
-                }
-                return res
-            }
-
-            this.items[cacheName] = res
             if (one) {
-                return this.items[cacheName][0]
+                return res.results[0]
             }
-            return this.items[cacheName]
+            return res
         },
-        async deleteItem($axios, apiUrl, id) {
+        async deleteItem(apiUrl, id, refresh = true) {
+            const {$axios} = useNuxtApp();
+
             await $axios.delete(`${apiUrl}${id}`, {'headers': authHeaders()})
-            await this.retrieveItems($axios, apiUrl)
+            if (refresh)
+                await this.retrieveItems(apiUrl)
         },
-        async loadSchema($axios) {
+        async loadSchema() {
+            const {$axios} = useNuxtApp();
+
             if (!this.schema) {
                 const openAPI = (await $axios.get('/back/api/schema/?format=json', {'headers': authHeaders()})).data
                 this.schema = openAPI.components.schemas
                 this.paths = openAPI.paths
             }
         },
-        async getSchemaDef($axios, apiUrl, resolveRefs = true, _schemaName = undefined) {
-            await this.loadSchema($axios)
+        async getSchemaDef(apiUrl, resolveRefs = true, _schemaName = undefined) {
+            await this.loadSchema()
             let schemaName = _schemaName
             if (!schemaName)
                 schemaName = this.getSchemaNameFromPath(apiUrl)
             if (resolveRefs)
-                return await this.resolveRefs($axios, this.schema[schemaName])
+                return await this._resolveRefs(this.schema[schemaName])
             return this.schema[schemaName]
         },
-        async getNextItem($axios, apiUrl, itemId, direction = 1, params = {}, force= false) {
-            const cacheName = apiCacheName(apiUrl, params)
-
-            if (force || !this.items[cacheName]) {
-                await this.retrieveItems($axios, apiUrl)
+        async getNextItem(items, apiUrl, itemId, direction = 1, params = {}, force= false) {
+            if (force || !items) {
+                items = await this.retrieveItems(apiUrl)
             }
             // It takes the next item after currentItem
-            let index = this.items[cacheName].results.findIndex(item => item.id === itemId)
+            let index = items.results.findIndex(item => item.id === itemId)
             if (index === -1)
                 return undefined
             index += direction
-            if (index < 0 || index >= this.items[cacheName].results.length)
+            if (index < 0 || index >= items.results.length)
                 return undefined
-            return this.items[cacheName].results[index]
+            return items.results[index]
         },
-        async upsertItem($axios, apiUrl, item, params = {}) {
-            this.savingItem = true
-            if (item.id) {
-                await $axios.patch(`${apiUrl}${item.id}/`, item, {'headers': authHeaders()})
-            } else {
-                await $axios.post(apiUrl, item, {'headers': authHeaders()})
-            }
-            await this.retrieveItems($axios, apiUrl, params)
-            this.savingItem = false
-        },
-        async resolveRefs($axios, schema) {
+        async _resolveRefs(schema) {
             if (!schema.properties && schema.oneOf) {
-                const oneOf = await this.getSchemaDef($axios, undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])
+                const oneOf = await this.getSchemaDef(undefined, false, schema.oneOf[0].$ref.split("/").slice(-1)[0])
                 schema.properties = oneOf.properties
                 schema.required = oneOf.required
             }
@@ -117,11 +93,11 @@ export const useItemsStore = defineStore('items', {
                 let ref = propInfo.$ref || propInfo.items?.$ref
                 if (ref) {
                     const refName = ref.split("/").slice(-1)[0]
-                    let obj = await this.getSchemaDef($axios, undefined, false, refName)
+                    let obj = await this.getSchemaDef(undefined, false, refName)
                     if (obj.enum)  {
                         propInfo.choices = obj.enum.map((choice) => ({label: choice, value: choice}))
                     } else if (obj.type === 'object') {
-                        let items = await this.retrieveItems($axios, this.getPathFromSchemaName(refName))
+                        let items = await this.retrieveItems(this.getPathFromSchemaName(refName))
                         items = JSON.parse(JSON.stringify(items))  // Deep copy
                         items.results = items.results.map((item) => ({label: item.name, value: item.id}))  // Paginated choices
                         propInfo.choices = items
@@ -131,9 +107,10 @@ export const useItemsStore = defineStore('items', {
             return schema
         },
         stateToRead(){
-            this.editing = undefined
-            this.adding = undefined
+            if (this.currentPage === 1 && Object.keys(this.filters).length === 0)
+                return
             this.currentPage = 1
+            this.filters = {}
         }
     },
     getters: {

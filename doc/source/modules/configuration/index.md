@@ -248,7 +248,7 @@ OPENAI_API_KEY=XXXXXX
 
 #### Claude
 
-This uses the [Claude models by Anthropic](https://docs.anthropic.com/claude/reference/selecting-a-model), example:
+This uses the [Claude models by Anthropic](https://docs.anthropic.com/claude/docs/models-overview#model-recommendations), example:
 
 ```json
 {

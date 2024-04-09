@@ -17,7 +17,7 @@ class RAGConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = RAGConfig.objects.all()
     serializer_class = RAGConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["id"]
+    filterset_fields = ["id", "disabled"]
     search_fields = ['name']
 
 

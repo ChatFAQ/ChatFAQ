@@ -1,5 +1,5 @@
 <template>
-    <div class="chatfaq-menu-item" @click="goToPage">
+    <div class="chatfaq-menu-item" :class="{selected: router.currentRoute.value.path == page }" @click="goToPage">
         <el-icon class="icon">
             <Component :is="iconComponent" />
         </el-icon>
@@ -32,7 +32,6 @@ const iconComponent = shallowRef(resolveComponent(props.icon))
 
 function goToPage() {
     if (props.page) {
-        itemsStore.stateToRead()
         router.push(props.page)
     }
 }
@@ -44,7 +43,7 @@ function goToPage() {
     color: white;
     padding: 12px 24px 12px 24px;
     align-items: center;
-    &:hover {
+    &:hover, &.selected {
         background-color: $chatfaq-color-primary-500;
     }
     .icon {

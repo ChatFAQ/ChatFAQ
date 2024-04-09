@@ -32,6 +32,10 @@
 
 <script setup>
 import {useItemsStore} from "~/store/items.js";
+import { upsertItem } from "~/utils/index.js";
+import {useI18n} from "vue-i18n";
+
+const { t } = useI18n();
 
 const itemsStore = useItemsStore()
 
@@ -54,7 +58,7 @@ watch(() => props.messageId, async (_) => {
 
 async function initGenReview() {
     itemsStore.loading = true
-    review.value = await itemsStore.retrieveItems($axios, "/back/api/broker/admin-review/", {message: props.messageId, limit: 0, offset: 0, ordering: undefined}, false, true) || {}
+    review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.messageId, limit: 0, offset: 0, ordering: undefined}, true) || {}
     reviewType.value = review.value.gen_review_type
     itemsStore.loading = false
 }
@@ -73,10 +77,10 @@ async function save() {
     const _review = JSON.parse(JSON.stringify(review.value))
     delete _review.ki_review_data
     _review.message = props.messageId
-    await itemsStore.upsertItem($axios, "/back/api/broker/admin-review/", _review, {limit: 0, offset: 0, ordering: undefined})
+    await upsertItem("/back/api/broker/admin-review/", _review, itemsStore, true, {limit: 0, offset: 0, ordering: undefined}, t)
+
 }
 async function submitReviewMsg(val) {
-    itemsStore.savingItem = true
     review.value.gen_review_msg = val
     // Because this is an input field and might trigger too many saves, we save only when the user stops typing:
     if (reviewMsgSaveTimeout) {

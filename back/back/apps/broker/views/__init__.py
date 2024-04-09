@@ -3,29 +3,31 @@ from io import BytesIO
 from zipfile import ZipFile
 
 from django.db.models.functions import Trunc
-from django.db.models import Count
+from django.db.models import Count, Avg
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny
 
+from ..models import ConsumerRoundRobinQueue
 from ..models.message import AdminReview, AgentType, Conversation, Message, UserFeedback
 from ..serializers import (
     AdminReviewSerializer,
     ConversationMessagesSerializer,
-    UserFeedbackSerializer, ConversationSerializer, StatsSerializer,
+    UserFeedbackSerializer, ConversationSerializer, StatsSerializer, ConsumerRoundRobinQueueSerializer
 )
 from ..serializers.messages import MessageSerializer
 import django_filters
 
 from ...language_model.models import RAGConfig, Intent
 from ...language_model.stats import calculate_response_stats, calculate_general_rag_stats
+from django.db.models import Q
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -71,7 +73,7 @@ class ConversationAPIViewSet(
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action == 'retrieve' or self.action == 'destroy' or 'update' in self.action:
+        if self.action is not None and (self.action == 'retrieve' or self.action == 'destroy' or 'update' in self.action):
             return [AllowAny(), ]
         return super(ConversationAPIViewSet, self).get_permissions()
 
@@ -85,6 +87,14 @@ class ConversationAPIViewSet(
         results = [ConversationSerializer(c).data for c in Conversation.conversations_from_sender(request.query_params.get("sender"))]
         return JsonResponse(
             results,
+            safe=False,
+        )
+
+    @action(methods=("get",), detail=True)
+    def review_progress(self, request, pk=None):
+        conv = Conversation.objects.get(pk=pk)
+        return JsonResponse(
+            conv.get_review_progress(),
             safe=False,
         )
 
@@ -125,7 +135,7 @@ class MessageView(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     serializer_class = MessageSerializer
-    filterset_fields = ["id"]
+    filterset_fields = ["id", "intent__id"]
 
 
 class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
@@ -158,17 +168,23 @@ class SenderAPIView(CreateAPIView, UpdateAPIView):
         )
 
 
+class ConsumerRoundRobinQueueViewSet(mixins.RetrieveModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    serializer_class = ConsumerRoundRobinQueueSerializer
+    queryset = ConsumerRoundRobinQueue.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ["id"]
+
+
 class Stats(APIView):
     def get(self, request):
         serializer = StatsSerializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        if not RAGConfig.objects.filter(pk=data["rag"]).exists():
-            return JsonResponse(
-                {"error": "RAG config not found"},
-                status=400,
-            )
-        rag = RAGConfig.objects.get(pk=data["rag"])
+        rag = None
+        if data.get("rag") is not None:
+            rag = RAGConfig.objects.get(pk=data["rag"])
         min_date = data.get("min_date", None)
         max_date = data.get("max_date", None)
         granularity = data.get("granularity", None)
@@ -180,15 +196,22 @@ class Stats(APIView):
         if max_date:
             conversations = conversations.filter(created_date__lte=max_date)
 
-        conversations_rag_filtered = conversations.filter(
-            message__stack__0__payload__rag_config_id=rag.id
-        ).distinct()
+        if rag:
+            conversations_rag_filtered = conversations.filter(
+                message__stack__0__payload__rag_config_id=str(rag.id)
+            ).distinct()
+        else:
+            conversations_rag_filtered = conversations.all()
         # --- Total conversations
         total_conversations = conversations_rag_filtered.count()
         # --- Message count per conversation
         conversations_message_count = conversations_rag_filtered.annotate(
-            messages_count=Count("message")
-        ).values("messages_count", "name")
+            count=Count("message")
+        ).values("count", "name")
+        # average of conversations_message_count
+        conversations_message_avg = conversations_rag_filtered.annotate(
+            count=Count("message")
+        ).aggregate(avg=Avg("count"))
         # --- Conversations by date
         conversations_by_date = conversations_rag_filtered.annotate(
             date=Trunc("created_date", granularity)
@@ -207,31 +230,51 @@ class Stats(APIView):
             messages = messages.filter(created_date__gte=min_date)
         if max_date:
             messages = messages.filter(created_date__lte=max_date)
-        messages_rag_filtered = messages.filter(
-            stack__0__payload__rag_config_id=rag.id
-        ).distinct()
+
+        if rag:
+            messages_rag_filtered = messages.filter(
+                stack__0__payload__rag_config_id=str(rag.id)
+            ).distinct()
+        else:
+            messages_rag_filtered = messages.all()
+
         # --- Messages per RAG Config
         messages_per_rag = Message.objects.filter(
             stack__0__payload__rag_config_id__isnull=False
         ).annotate(
             rag_id=Count("stack__0__payload__rag_config_id")
         ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
-        messages_per_rag_with_prev = messages_per_rag.filter(prev__isnull=False)
-        general_stats = calculate_general_rag_stats(messages_per_rag_with_prev, messages_per_rag_with_prev.count())
+        messages_with_prev = messages.filter(prev__isnull=False)
+        general_stats = calculate_general_rag_stats(messages_with_prev, messages_with_prev.count())
         # ----------- Reviews and Feedbacks -----------
         admin_reviews = AdminReview.objects.filter(message__in=messages_rag_filtered)
         user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)
         reviews_and_feedbacks = calculate_response_stats(admin_reviews, user_feedbacks)
+
+        positive_admin_reviews = admin_reviews.filter(ki_review_data__contains=[{"value": "positive"}]).count()
+        total_admin_reviews = admin_reviews.filter(
+            Q(ki_review_data__contains=[{"value": "positive"}]) | Q(ki_review_data__contains=[{"value": "negative"}])
+        ).count()
+        total_admin_relevant_reviews = admin_reviews.filter(
+            Q(ki_review_data__contains=[{"value": "positive"}]) | Q(ki_review_data__contains=[{"value": "alternative"}])
+        ).count()
+        precision = positive_admin_reviews / total_admin_reviews if total_admin_reviews > 0 else 0
+        recall = positive_admin_reviews / total_admin_relevant_reviews if total_admin_relevant_reviews > 0 else 0
+        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
 
         return JsonResponse(
             {
                 "total_conversations": total_conversations,
                 # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
+                "conversations_message_avg": round(conversations_message_avg.get('avg'), 2) if conversations_message_avg is not None else None,
                 "messages_per_rag": list(messages_per_rag.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
-                **reviews_and_feedbacks
+                **reviews_and_feedbacks,
+                "precision": round(precision, 2) if precision is not None else None,
+                "recall": round(recall, 2) if recall is not None else None,
+                "f1": round(f1, 2) if f1 is not None else None,
             },
             safe=False,
         )

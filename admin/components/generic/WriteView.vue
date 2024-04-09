@@ -1,7 +1,8 @@
 <template>
-    <div class="write-view-wrapper"  v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
-        <div class="navigation-header">
-            <BackButton/>
+    <div class="write-view-wrapper" v-loading="itemsStore.loading"
+         element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div v-if="backButton" class="navigation-header">
+            <BackButton @click="emit('exit')"/>
         </div>
         <el-form
             class="form-content"
@@ -11,17 +12,17 @@
             status-icon
             label-position="top"
             require-asterisk-position="right"
-            @keydown.enter.native="submitForm(formRef)"
+            @keydown.enter.native="submitForm()"
             :scroll-to-error="true"
             :scroll-into-view-options="{ behavior: 'smooth', block: 'center' }"
         >
             <div v-if="!Object.keys(sections).length" class="form-section">
                 <div class="edit-title">{{ createTitle(form) }}</div>
-                <div v-for="(fieldInfo, fieldName) in filterInSection(true, schema.properties)">
+                <div v-for="(fieldInfo, fieldName) in filterInSection(true, itemSchema.properties)">
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly && !fieldInfo.readOnly"
                         :fieldName="fieldName"
-                        :schema="schema"
+                        :schema="itemSchema"
                         :form="form"
                         :formServerErrors="formServerErrors"
                         :ref="el => fieldsRef[fieldName] = el"
@@ -30,10 +31,11 @@
                             <slot :name="name" v-bind="data"></slot>
                         </template>
                     </FormField>
-                    <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && (props.readOnly ||  fieldInfo.readOnly)"
-                                   :fieldName="fieldName"
-                                   :schema="schema"
-                                   :value="form[fieldName]"
+                    <ReadOnlyField
+                        v-else-if="allExcludeFields.indexOf(fieldName) === -1 && (props.readOnly ||  fieldInfo.readOnly)"
+                        :fieldName="fieldName"
+                        :schema="itemSchema"
+                        :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
                             <slot :name="name" v-bind="data"></slot>
@@ -47,7 +49,7 @@
                     <FormField
                         v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                         :fieldName="fieldName"
-                        :schema="schema"
+                        :schema="itemSchema"
                         :form="form"
                         :formServerErrors="formServerErrors"
                         :ref="el => fieldsRef[fieldName] = el"
@@ -58,7 +60,7 @@
                     </FormField>
                     <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
                                    :fieldName="fieldName"
-                                   :schema="schema"
+                                   :schema="itemSchema"
                                    :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -67,11 +69,11 @@
                     </ReadOnlyField>
                 </div>
             </div>
-            <div v-for="(_, fieldName) in filterInSection(false, schema.properties)">
+            <div v-for="(_, fieldName) in filterInSection(false, itemSchema.properties)">
                 <FormField
                     v-if="allExcludeFields.indexOf(fieldName) === -1 && !props.readOnly"
                     :fieldName="fieldName"
-                    :schema="schema"
+                    :schema="itemSchema"
                     :form="form"
                     :formServerErrors="formServerErrors"
                     :noLabel="true"
@@ -83,7 +85,7 @@
                 </FormField>
                 <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
                                :fieldName="fieldName"
-                               :schema="schema"
+                               :schema="itemSchema"
                                :value="form[fieldName]"
                 >
                     <template v-for="(_, name) in $slots" v-slot:[name]="data">
@@ -92,17 +94,18 @@
                 </ReadOnlyField>
             </div>
         </el-form>
-        <slot name="extra-write-bottom"></slot>
-        <div class="commands">
-            <el-button v-if="!itemsStore.adding" type="danger" @click="deleteDialogVisible = true" class="delete-button">
+        <slot name="extra-write-bottom" :id="itemId"></slot>
+        <div v-if="commandButtons" class="commands">
+            <el-button v-if="itemId !== undefined" type="danger" @click="deleteDialogVisible = true"
+                       class="delete-button">
                 <span>{{ $t("delete") }}</span>
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button @click="itemsStore.stateToRead">
+                <el-button @click="emit('exit')">
                     Cancel
                 </el-button>
-                <el-button type="primary" @click="submitForm(formRef)">
+                <el-button type="primary" @click="submitForm()">
                     Save changes
                 </el-button>
             </div>
@@ -123,25 +126,36 @@
     </el-dialog>
 </template>
 <script setup>
-import {ref} from "vue";
-import {useItemsStore} from "~/store/items.js";
+import {ref, defineExpose} from "vue";
+import {authHeaders, useItemsStore} from "~/store/items.js";
 import FormField from "~/components/generic/FormField.vue";
 import ReadOnlyField from "~/components/generic/ReadOnlyField.vue";
 import BackButton from "~/components/generic/BackButton.vue";
 import {ElNotification} from 'element-plus'
 import {useI18n} from "vue-i18n";
+import {storeToRefs} from "pinia";
 
-const { t } = useI18n();
+const {t} = useI18n();
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const router = useRouter()
-const schema = ref({})
+const deleteDialogVisible = ref(false)
+const form = ref({})
+const formServerErrors = ref({})
+const formRules = ref({})
 const formRef = ref()
 const fieldsRef = ref({})
-const deleteDialogVisible = ref(false)
-const emit = defineEmits(['submitForm'])
+const {schema} = storeToRefs(itemsStore)
+const itemSchema = ref({})
+
+const emit = defineEmits(['submitFormStart', 'submitFormEnd', 'exit'])
+defineExpose({submitForm, form})
 
 const props = defineProps({
+    itemId: {
+        type: String,
+        required: false,
+    },
     apiUrl: {
         type: String,
         required: false,
@@ -155,6 +169,11 @@ const props = defineProps({
         type: Array,
         required: false,
         default: [],
+    },
+    conditionalIncludedFields: { // the values are the only fields that are conditionally included if the keys (fields names) are present in the form
+        type: Object,
+        required: false,
+        default: undefined,
     },
     sections: {
         type: Object,
@@ -171,28 +190,74 @@ const props = defineProps({
         required: false,
         default: false,
     },
+    order: {
+        type: Array,
+        required: false,
+        default: undefined,
+    },
+    backButton: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    commandButtons: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+    leaveAfterSave: {
+        type: Boolean,
+        required: false,
+        default: true,
+    },
+})
+
+const allExcludeFields = computed(() => {
+    let excludes = []
+
+    if (props.conditionalIncludedFields) {
+
+        const onlyFieldsIfEmpty = Object.keys(props.conditionalIncludedFields)
+        if (onlyFieldsIfEmpty.length) {
+            let areOnlyFieldsIfEmptyEmpty = true
+            for (const field of onlyFieldsIfEmpty) {
+                if (form.value[field] !== undefined && form.value[field] !== "") {
+                    areOnlyFieldsIfEmptyEmpty = false
+                    break
+                }
+            }
+            if (areOnlyFieldsIfEmptyEmpty) {
+                const allFields = Object.keys(form.value)
+                excludes = allFields.filter(field => !onlyFieldsIfEmpty.includes(field))
+            }
+        }
+
+        const allFields = Object.keys(form.value)
+        for (const [fieldCondition, includedFields] of Object.entries(props.conditionalIncludedFields)) {
+            if (form.value[fieldCondition]) {
+                excludes = allFields.filter(field => field !== fieldCondition && !includedFields.includes(field))
+                break
+            }
+        }
+    }
+    return [...props.excludeFields, ...excludes, "id", "created_date", "updated_date"]
 })
 async function initData() {
     itemsStore.loading = true
-    schema.value = await itemsStore.getSchemaDef($axios, props.apiUrl)
+    itemSchema.value = await itemsStore.getSchemaDef(props.apiUrl)
     itemsStore.loading = false
 }
+
 await initData()
 
-const form = ref({})
-const formServerErrors = ref({})
-const formRules = ref({})
-const allExcludeFields = computed(() => {
-    return [...props.excludeFields, "id", "created_date", "updated_date"]
-})
 
 // Initialize form
-for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
+for (const [fieldName, fieldInfo] of Object.entries(itemSchema.value.properties)) {
     if (allExcludeFields.value.indexOf(fieldName) === -1) {
         form.value[fieldName] = undefined
         formServerErrors.value[fieldName] = undefined
         formRules.value[fieldName] = []
-        if (schema.value.required.indexOf(fieldName) !== -1) {
+        if (itemSchema.value.required.indexOf(fieldName) !== -1) {
             formRules.value[fieldName].push({required: true, message: `Please enter ${fieldName}`, trigger: 'blur'})
         }
     }
@@ -201,19 +266,18 @@ for (const [fieldName, fieldInfo] of Object.entries(schema.value.properties)) {
 
 // Initialize form values
 initializeFormValues()
-watch(() => itemsStore.editing, initializeFormValues, {immediate: true})
+
 async function initializeFormValues() {
-    if (itemsStore.editing) {
+    if (props.itemId !== undefined) {
         itemsStore.loading = true
-        const {data} = await useAsyncData(
-            props.apiUrl + "_" + itemsStore.editing,
-            async () => await itemsStore.retrieveItems($axios, props.apiUrl, {id: itemsStore.editing}, false, true)
-        )
-        if (data.value) {
-            for (const [fieldName, fieldValue] of Object.entries(data.value)) {
-                if (allExcludeFields.value.indexOf(fieldName) === -1) {
-                    form.value[fieldName] = fieldValue
-                }
+        const data = await itemsStore.retrieveItems(props.apiUrl, {
+            id: props.itemId,
+            limit: 0,
+            offset: 0
+        }, true) || {}
+        for (const [fieldName, fieldValue] of Object.entries(data)) {
+            if (allExcludeFields.value.indexOf(fieldName) === -1) {
+                form.value[fieldName] = fieldValue
             }
         }
         itemsStore.loading = false
@@ -224,20 +288,36 @@ function createTitle(form) {
     return props.titleProps.map(prop => form[prop]).join(" ")
 }
 
-const submitForm = async (formEl) => {
-
-    if (!formEl) return
-    await formEl.validate(async (valid) => {
-        if (!valid)
+async function submitForm(extraVals = {}, callback = undefined) {
+    if (!formRef.value) return true
+    await formRef.value.validate(async (valid) => {
+        if (!valid) {
             return
+        }
         itemsStore.loading = true
-        // emit event "submitForm":
-        emit("submitForm", form.value)
+        let _itemId = props.itemId
+        emit("submitFormStart", props.itemId, form.value)
+
+        form.value = {...form.value, ...extraVals}
+
+        for (const [fieldName, fieldValue] of Object.entries(form.value)) {
+            if (fieldValue && fieldValue.unmodifiedFile) {
+                delete form.value[fieldName]
+            }
+        }
+
         try {
-            if (itemsStore.editing)
-                await $axios.put(`${props.apiUrl}${itemsStore.editing}/`, form.value)
-            else
-                await $axios.post(props.apiUrl, form.value)
+            const headers = {
+                'Content-Type': 'multipart/form-data',
+                ...authHeaders()
+            }
+
+            if (props.itemId !== undefined) {
+                await $axios.put(`${props.apiUrl}${props.itemId}/`, form.value,  {headers})
+            } else {
+                const res = await $axios.post(props.apiUrl, form.value,  {headers})
+                _itemId = res.data.id
+            }
         } catch (e) {
             ElNotification({
                 title: 'Error',
@@ -248,23 +328,40 @@ const submitForm = async (formEl) => {
             if (e.response && e.response.data) {
                 for (const [fieldName, errorMessages] of Object.entries(e.response.data)) {
                     formServerErrors.value[fieldName] = errorMessages.join(", ")
+                    if (fieldName === "non_field_errors") {
+                        ElNotification({
+                            title: 'Error',
+                            message: errorMessages,
+                            type: 'error',
+                            position: 'top-right',
+                        })
+                    }
                 }
                 const ref = fieldsRef.value[Object.keys(e.response.data)[0]]
                 ref.$el.parentElement.scrollIntoView({behavior: "smooth", block: "center"})
+                itemsStore.loading = false
+                if (callback)
+                    callback(false)
                 return
             } else {
                 itemsStore.loading = false
+                if (callback)
+                    callback(false)
                 throw e
             }
         }
-        itemsStore.stateToRead()
+        emit("submitFormEnd", _itemId, form.value)
+        if (props.leaveAfterSave)
+            emit('exit')
 
         ElNotification({
             title: 'Success',
             message: t('successsavingitem'),
             type: 'success',
-                position: 'top-right',
+            position: 'top-right',
         })
+        if (callback)
+            callback(true)
         itemsStore.loading = false
     })
 }
@@ -272,9 +369,9 @@ const submitForm = async (formEl) => {
 function deleteItem() {
     try {
         itemsStore.loading = true
-        itemsStore.deleteItem($axios, props.apiUrl, itemsStore.editing)
+        itemsStore.deleteItem(props.apiUrl, props.itemId)
         deleteDialogVisible.value = undefined
-        itemsStore.stateToRead()
+        emit('exit')
         itemsStore.loading = false
     } catch (e) {
         itemsStore.loading = false
@@ -289,17 +386,28 @@ function deleteItem() {
         title: 'Success',
         message: t('successdeletingitem'),
         type: 'success',
-            position: 'top-right',
+        position: 'top-right',
     })
 }
 
 function filterInSection(inSection, _obj) {
-    const res = Object.keys(_obj)
+    let res = Object.keys(_obj)
         .filter(key => inSection ? !props.outsideSection.includes(key) : props.outsideSection.includes(key))
         .reduce((obj, key) => {
             obj[key] = _obj[key];
             return obj;
         }, {});
+    // reorder fields if order is defined
+    if (props.order) {
+        const ordered = {}
+        for (const key of props.order) {
+            if (res[key]) {
+                ordered[key] = res[key]
+                delete res[key]
+            }
+        }
+        res = {...ordered, ...res}
+    }
     return res
 }
 
@@ -326,6 +434,12 @@ function filterInSection(inSection, _obj) {
     label::after {
         color: $chatfaq-color-primary-500 !important;
     }
+}
+
+.el-form-item__label {
+    color: var(--chatfaq-color-primary-500);
+    font-size: 14px;
+    font-weight: 600;
 }
 </style>
 
