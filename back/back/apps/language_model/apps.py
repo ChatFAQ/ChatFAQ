@@ -1,5 +1,6 @@
 import os
 from django.apps import AppConfig
+from django.conf import settings
 from back.utils import is_migrating, is_scraping
 from back.utils.celery import is_celery_worker
 from back.utils.ray_connection import initialize_or_check_ray
@@ -21,14 +22,9 @@ class DatasetConfig(AppConfig):
         from back.apps.language_model.tasks import launch_rag_deployment_task
 
         if not os.environ.get('DEBUG') or os.environ.get('RUN_MAIN'):  # only start ray on the main thread
-
-            storages_mode = os.environ.get("STORAGES_MODE", "local")
-            remote_ray_cluster = os.getenv("RAY_CLUSTER", "False") == "True"
-
             # raise error if we are in local storage mode and we are trying to use a remote ray cluster
-            if storages_mode == "local" and remote_ray_cluster:
+            if settings.LOCAL_STORAGE == "local" and settings.REMOTE_RAY_CLUSTER_ADDRESS_HEAD:
                 raise ValueError("Cannot use a remote ray cluster with local storage mode, please set STORAGES_MODE to s3 or do")
-
 
             initialize_or_check_ray()
 

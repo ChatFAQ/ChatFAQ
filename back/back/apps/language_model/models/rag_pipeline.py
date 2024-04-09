@@ -1,10 +1,9 @@
 import os
 import uuid
-
+from urllib.parse import urljoin
 
 from django.db import models, transaction
-from django.core.files.storage import default_storage
-from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 
 
 from simple_history.models import HistoricalRecords
@@ -61,7 +60,7 @@ class RAGConfig(ChangesMixin):
         return f'rag_{self.name}'
 
     def get_ray_endpoint(self):
-        return f'{os.environ.get("RAY_SERVE_ADDRESS", "http://localhost:8001")}/{self.get_deploy_name()}'
+        return urljoin(f"{settings.RAY_CLUSTER_HOST}:{settings.RAY_SERVE_PORT}", self.get_deploy_name())
 
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
