@@ -24,6 +24,7 @@ First of all we recommend to add to your hosts file (usually under `/etc/hosts`)
 
     127.0.0.1  postgres
     127.0.0.1  back
+    127.0.0.1  ray
     127.0.0.1  redis
 
 Then you need to create the corresponding `.env` files for each service. You can see an example of those on:
@@ -44,7 +45,7 @@ Create a superuser on the backend (making sure you answer 'yes' to the question 
 
 Generate a ChatFAQ Token with the user and password you just created:
 
-    docker compose -f docker-compose.yaml -f docker-compose.vars.yaml run back curl -X POST -u <USER>:<PASSWORD> http://back:8000/back/api/login/
+    docker compose exec back curl -X POST -u <USER>:<PASSWORD> http://localhost:8000/back/api/login/
 
 Which will respond something as such:
 
