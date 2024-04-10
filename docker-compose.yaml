@@ -83,6 +83,16 @@ services:
       - default
       - chatfaq_back_net
 
+  # vllm:
+  #   image: vllm/vllm-openai:latest
+  #   container_name: chatfaq_vllm
+  #   command: ["python", "-m", "vllm.entrypoints.openai.api_server", "--model", "Qwen/Qwen1.5-0.5B-Chat", "--port", "5000", "--max-model-len", "8192", "--swap-space", "1"]
+  #   ports:
+  #     - 5000:5000
+  #   networks:
+  #     - default
+  #     - chatfaq_back_net
+
   state-machine:
     build:
       context: sdk
