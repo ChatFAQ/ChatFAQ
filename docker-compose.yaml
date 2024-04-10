@@ -69,6 +69,17 @@ services:
         - --pool
         - threads
 
+  ray:
+    image: chatfaq/chatfaq-cpu:2024.04
+    command: ["ray", "start", "--head", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
+    ports:
+      - 8265:8265
+      - 8265:8265
+      - 10001:10001
+      - 10002:8001
+    networks:
+      - chatfaq_back_net
+
   state-machine:
     build:
       context: sdk
