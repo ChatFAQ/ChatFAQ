@@ -96,14 +96,14 @@ def get_filesystem(storages_mode):
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 class ColBERTActor:
-    def __init__(self, index_path: str, colbert_name: Optional[str] = None, bsize: Optional[int] = None, device: Optional[str] = None, storages_mode: Optional[str] = None):
+    def __init__(self, index_path: str, device: str = 'cpu', colbert_name: Optional[str] = None, storages_mode: str = None):
 
         import os
         
         self.index_path = index_path
         self.colbert_name = colbert_name
-        self.bsize = bsize
         self.device = device
+        self.n_gpus = -1 if self.device == "cpu" else self.get_num_gpus()
         self.storages_mode = storages_mode
 
         self.index_root, self.index_name = os.path.split(index_path)
@@ -111,7 +111,7 @@ class ColBERTActor:
         if colbert_name is not None:
             self.load_pretrained()
         else:
-            self.load_index(index_path)
+            self.load_index()
 
     def load_pretrained(self):
         """
@@ -119,10 +119,8 @@ class ColBERTActor:
         """
         from ragatouille import RAGPretrainedModel
 
-        n_gpus = -1 if self.device == "cpu" else self.get_num_gpus()
-
         self.retriever = RAGPretrainedModel.from_pretrained(
-            self.colbert_name, index_root=self.index_root, n_gpu=n_gpus
+            self.colbert_name, index_root=self.index_root, n_gpu=self.n_gpus
         )
     
     def load_index(self):
@@ -138,9 +136,9 @@ class ColBERTActor:
                 node_id=node_id, soft=False
             )
             index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(self.index_path, self.storages_mode)
-            self.index_path = ray.get(index_path_ref)  
+            self.index_path = ray.get(index_path_ref)
 
-        self.retriever = RAGPretrainedModel.from_index(self.index_path)
+        self.retriever = RAGPretrainedModel.from_index(self.index_path, n_gpu=self.n_gpus)
 
     def get_num_gpus(self):
         try:
@@ -150,7 +148,7 @@ class ColBERTActor:
         except:
             return -1
         
-    def index(self, contents, contents_pk):
+    def index(self, contents, contents_pk, bsize=32):
         """
         Index a collection of documents.
         """
@@ -160,7 +158,7 @@ class ColBERTActor:
             document_ids=contents_pk,
             split_documents=True,
             max_document_length=512,
-            bsize=self.bsize,
+            bsize=bsize,
         )
 
         return local_index_path
@@ -169,25 +167,29 @@ class ColBERTActor:
         """
         Delete items from the index.
         """
+
+        print("Deleting items from the index")
         self.retriever.delete_from_index(
             document_ids=k_item_ids_to_remove,
             index_name=self.index_name,
         )
+        print("Done!")
 
-    def add_to_index(self, contents_to_add, contents_pk_to_add):
+    def add_to_index(self, contents_to_add, contents_pk_to_add, bsize=32):
         """
         Add new items to the index.
         """
+        print("Adding new items to the index")
         self.retriever.add_to_index(
             new_collection=contents_to_add,
             new_document_ids=contents_pk_to_add,
             index_name=self.index_name,
             split_documents=True,
-            max_document_length=512,
-            bsize=self.bsize,
+            bsize=bsize,
         )
+        print("Done!")
 
-    def save_index(self, local_index_path):
+    def save_index(self):
         """
         Save the index to the cloud storage.
         """
@@ -220,12 +222,14 @@ class ColBERTActor:
                 return filename
 
         try:
+            print("Saving index...")
+
             if "s3://" in self.index_path:
                 fs_ref = get_filesystem.remote(self.storages_mode)
 
                 print('Reading index from local storage')
                 # Update the index path to use the unique index path
-                local_index_path = 'local://' + os.path.join(os.getcwd(), local_index_path)
+                local_index_path = 'local://' + os.path.join(os.getcwd(), self.retriever.model.index_path)
                 index = ray.data.read_binary_files(local_index_path, include_paths=True)
 
                 print(f"Writing index to object storage {self.index_path}")
