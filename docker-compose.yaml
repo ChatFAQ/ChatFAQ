@@ -35,6 +35,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - ray
     ports:
       - 8000:8000
     networks:
@@ -71,6 +72,7 @@ services:
 
   ray:
     image: chatfaq/chatfaq-cpu:2024.04
+    container_name: chatfaq_ray
     command: ["ray", "start", "--head", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
     ports:
       - 8265:8265
@@ -78,6 +80,7 @@ services:
       - 10001:10001
       - 10002:8001
     networks:
+      - default
       - chatfaq_back_net
 
   state-machine:
@@ -99,6 +102,19 @@ services:
       dockerfile: Dockerfile
     image: chatfaq_widget
     container_name: chatfaq_widget
+    depends_on:
+      - back
+    ports:
+      - 3003:3000
+    networks:
+      - default
+      - chatfaq_back_net
+  admin:
+    build:
+      context: admin
+      dockerfile: Dockerfile
+    image: chatfaq_admin
+    container_name: chatfaq_admin
     depends_on:
       - back
     ports:

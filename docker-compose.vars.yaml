@@ -16,6 +16,10 @@ services:
     env_file:
       - "back/.env"
 
+  state-machine:
+    env_file:
+      - "sdk/.env"
+
   ray:
     env_file:
       - "ray_cluster/.env"
@@ -24,6 +28,6 @@ services:
     env_file:
       - "widget/.env"
 
-  state-machine:
+  admin:
     env_file:
-      - "sdk/.env"
+      - "admin/.env"
