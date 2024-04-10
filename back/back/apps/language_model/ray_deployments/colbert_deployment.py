@@ -109,7 +109,7 @@ def construct_index_path(index_path: str):
 def launch_colbert(retriever_deploy_name, index_path):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
 
-    storages_mode = os.environ.get("STORAGES_MODE", "local")
+    storages_mode = settings.STORAGES_MODE
 
     index_path = construct_index_path(index_path)
     retriever_handle = ColBERTDeployment.options(

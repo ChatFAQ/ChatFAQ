@@ -18,7 +18,7 @@ LOCAL_STORAGE = STORAGES_MODE == "local"
 REMOTE_RAY_CLUSTER_ADDRESS_HEAD = os.getenv("REMOTE_RAY_CLUSTER_ADDRESS_HEAD")
 # If no REMOTE_RAY_CLUSTER_ADDRESS_HEAD is provided then
 # REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
-# that ray luster runs locally from Django process (http://localhost:8001)
+# that ray cluster runs locally from Django process (http://localhost:8001)
 RAY_SERVE_PORT = os.getenv("RAY_SERVE_PORT", 8001)
 RAY_CLUSTER_HOST = os.getenv("REMOTE_RAY_CLUSTER_HOST", "http://localhost")
 

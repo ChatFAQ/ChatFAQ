@@ -94,11 +94,12 @@ def get_filesystem(storages_mode):
     return None
 
 
-
 @ray.remote(num_cpus=1, resources={"tasks": 1})
-class ColBERT:
+class ColBERTActor:
     def __init__(self, index_path: str, colbert_name: Optional[str] = None, bsize: Optional[int] = None, device: Optional[str] = None, storages_mode: Optional[str] = None):
 
+        import os
+        
         self.index_path = index_path
         self.colbert_name = colbert_name
         self.bsize = bsize
@@ -149,6 +150,103 @@ class ColBERT:
         except:
             return -1
         
+    def index(self, contents, contents_pk):
+        """
+        Index a collection of documents.
+        """
+        local_index_path = self.retriever.index(
+            index_name=self.index_name,
+            collection=contents,
+            document_ids=contents_pk,
+            split_documents=True,
+            max_document_length=512,
+            bsize=self.bsize,
+        )
+
+        return local_index_path
+    
+    def delete_from_index(self, k_item_ids_to_remove):
+        """
+        Delete items from the index.
+        """
+        self.retriever.delete_from_index(
+            document_ids=k_item_ids_to_remove,
+            index_name=self.index_name,
+        )
+
+    def add_to_index(self, contents_to_add, contents_pk_to_add):
+        """
+        Add new items to the index.
+        """
+        self.retriever.add_to_index(
+            new_collection=contents_to_add,
+            new_document_ids=contents_pk_to_add,
+            index_name=self.index_name,
+            split_documents=True,
+            max_document_length=512,
+            bsize=self.bsize,
+        )
+
+    def save_index(self, local_index_path):
+        """
+        Save the index to the cloud storage.
+        """
+
+        from ray.data.datasource import FilenameProvider
+
+        class PidDocIdFilenameProvider(FilenameProvider):
+            """
+            Custom filename provider for the index to keep the original filenames, instead of the ray.data generated filenames.
+            """
+            def get_filename_for_row(self, row, task_index, block_index, row_index):
+                path = row['path']
+
+                filename = os.path.basename(path)
+                filename = os.path.splitext(filename)[0] + f"_{self._dataset_uuid}_"
+                file_id = f"{task_index:06}_{block_index:06}_{row_index:06}.parquet"
+                filename += file_id
+
+                return filename
+            
+            def get_filename_for_block(self, block, task_index: int, block_index: int) -> str:
+
+                path = str(block['path'][0])
+
+                filename = os.path.basename(path)
+                filename = os.path.splitext(filename)[0] + "_"
+                file_id = f"{task_index:06}_{block_index:06}.parquet"
+                filename += file_id
+                
+                return filename
+
+        try:
+            if "s3://" in self.index_path:
+                fs_ref = get_filesystem.remote(self.storages_mode)
+
+                print('Reading index from local storage')
+                # Update the index path to use the unique index path
+                local_index_path = 'local://' + os.path.join(os.getcwd(), local_index_path)
+                index = ray.data.read_binary_files(local_index_path, include_paths=True)
+
+                print(f"Writing index to object storage {self.index_path}")
+                print(f'Size of index: {index.size_bytes()/1e9:.2f} GB')
+
+                fs = ray.get(fs_ref)
+                if fs is not None:
+                    # unwrap the filesystem object
+                    fs = fs.unwrap()
+                # Then we can write the index to the cloud storage
+                index.write_parquet(self.index_path, filesystem=fs, filename_provider=PidDocIdFilenameProvider())
+                print('Index written to object storage')
+
+            return True
+        
+        except Exception as e:
+            print(f"Error saving index: {e}")
+            return False
+        
+    def exit(self):
+        ray.actor.exit_actor()
 
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})

@@ -30,8 +30,7 @@ from back.apps.language_model.ray_tasks import (
     generate_embeddings as ray_generate_embeddings,
     generate_titles as ray_generate_titles,
     parse_pdf as ray_parse_pdf,
-    create_colbert_index as ray_create_colbert_index,
-    modify_colbert_index as ray_modify_colbert_index,
+    ColBERTActor,
     test_task as ray_test_task,
 )
 from back.config.celery import app
@@ -341,7 +340,7 @@ def modify_index(rag_config):
 
     contents_to_add = [item.content for item in k_items]
     contents_pk_to_add = [str(item.pk) for item in k_items]
-    storages_mode = os.environ.get("STORAGES_MODE", "local")
+    storages_mode = settings.STORAGES_MODE
     task_name = f"modify_colbert_index_{rag_config.name}"
 
     logger.info(f"Index path: {index_path}")
@@ -466,8 +465,7 @@ def creates_index(rag_config):
     colbert_name = rag_config.retriever_config.model_name
     bsize = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.get_device().value
-    num_gpus = 1 if device == "cuda" else 0
-    storages_mode = os.environ.get("STORAGES_MODE", "local")
+    storages_mode = settings.STORAGES_MODE
 
 
     # TODO: Because these lists can be huge, partition them and use ray.put to store each partition in the object store
@@ -479,22 +477,24 @@ def creates_index(rag_config):
             f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
 
-    task_name = f"create_colbert_index_{rag_config.name}"
+    actor_name = f"create_colbert_index_{rag_config.name}"
 
     with connect_to_ray_cluster():
         index_path = construct_index_path(s3_index_path)
-        index_ref = ray_create_colbert_index.options(num_gpus=num_gpus, name=task_name).remote(
-            colbert_name, bsize, device, index_path, storages_mode, contents_pk, contents
-        )
+        colbert = ColBERTActor.remote(index_path, colbert_name, bsize, device, storages_mode)
+        task_ref = colbert.index.remote(contents, contents_pk)
 
         # Delete all the contents from memory because they are not needed anymore and can be very large
         del contents
         del contents_pk
         gc.collect()
 
-        success = ray.get(index_ref)
+        local_index_path = ray.get(task_ref)
+        index_saved = ray.get(colbert.save_index.remote(local_index_path))
+        colbert.exit.remote()
 
-    if success:
+
+    if index_saved:
         # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
         embeddings = [
             Embedding(
@@ -589,7 +589,7 @@ def delete_index_files(s3_index_path):
     if s3_index_path:
 
         if settings.LOCAL_STORAGE:
-            index_root, index_name = os.path.split(index_path)
+            index_root, index_name = os.path.split(s3_index_path)
             index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
             print(f'Deleting local index files from {index_path}')
             if os.path.exists(index_path):
