@@ -30,7 +30,7 @@ from back.apps.language_model.ray_tasks import (
     generate_embeddings as ray_generate_embeddings,
     generate_titles as ray_generate_titles,
     parse_pdf as ray_parse_pdf,
-    create_colbert_index as ray_create_colbert_index,
+    ColBERTActor,
     test_task as ray_test_task,
 )
 from back.config.celery import app
@@ -213,20 +213,29 @@ def index_e5(rag_config):
     generate_embeddings(k_items=k_items, rag_config=rag_config)
 
 
-def get_indexed_k_items_ids(rag_config):
+def get_indexed_k_items_ids(s3_index_path):
 
     from back.config.storage_backends import select_private_storage
 
-    s3_index_path = rag_config.s3_index_path
 
     if settings.LOCAL_STORAGE:
+
+        print(f"Reading index from local storage: {s3_index_path}")
+
         index_root, index_name = os.path.split(s3_index_path)
+
+        print(f"Index root: {index_root}, Index name: {index_name}")
+
         index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
+
+        print(f"Final index path: {index_path}")
 
         # get the filename of the pid_docid_map file
         files = os.listdir(index_path)
         filename = [file for file in files if file.startswith('pid_docid_map')][0]
         local_file_path = os.path.join(index_path, filename)
+
+        print(f"Local file path: {local_file_path}")
 
         # As it is a local storage, we store the files as saved by ColBERT
         with open(local_file_path, "rb") as local_file:
@@ -235,8 +244,12 @@ def get_indexed_k_items_ids(rag_config):
     else:
         private_storage = select_private_storage()
 
+        print(f"Reading index from S3: {s3_index_path}")
+
         files = private_storage.listdir(s3_index_path)[1]
         local_index_path = f"/tmp/{s3_index_path}"
+
+        print(f"We will download the pid docid map to {local_index_path}")
 
         filename = [file for file in files if file.startswith('pid_docid_map')][0]
 
@@ -244,6 +257,9 @@ def get_indexed_k_items_ids(rag_config):
             os.makedirs(local_index_path)
 
         s3_file_path = os.path.join(s3_index_path, filename)
+
+        print(f"Downloading {filename} from {s3_file_path}")
+
         local_file_path = os.path.join(local_index_path, filename)
         with open(local_file_path, "wb") as local_file:
             local_file.write(private_storage.open(s3_file_path).read())
@@ -268,14 +284,25 @@ def modify_index(rag_config):
         The primary key of the RAGConfig object.
     """
 
+    from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
+
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
     Embedding = apps.get_model("language_model", "Embedding")
+
+    s3_index_path = rag_config.s3_index_path
+
+    logger.info(f"Index path: {s3_index_path}")
+
     # k items to remove
     current_k_item_ids = KnowledgeItem.objects.filter(
         knowledge_base=rag_config.knowledge_base
     ).values_list("pk", flat=True)
 
-    indexed_k_item_ids = get_indexed_k_items_ids(rag_config)
+    logger.info(f"Length Current k items: {len(current_k_item_ids)}")
+
+    indexed_k_item_ids = get_indexed_k_items_ids(s3_index_path)
+
+    logger.info(f"Length Indexed k items: {len(indexed_k_item_ids)}")
 
     # Current indexed k items - k items in the database = k items to remove
     k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
@@ -290,6 +317,8 @@ def modify_index(rag_config):
     # add the modified k items to the k items to remove
     k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
 
+    logger.info(f"Number of k items to remove after adding modified k items: {len(k_item_ids_to_remove)}")
+
     # ids to string
     k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
 
@@ -303,31 +332,32 @@ def modify_index(rag_config):
 
     logger.info(f"Number of k items to add: {len(k_items)}")
 
-    if k_items.count() > 0:
-        # add the k items to the ColBERT index
-        try:
+
+    index_path = construct_index_path(rag_config.s3_index_path)
+    bsize = rag_config.retriever_config.batch_size
+    device = rag_config.retriever_config.get_device().value
+    num_gpus = 1 if device == "cuda" else 0
+
+    contents_to_add = [item.content for item in k_items]
+    contents_pk_to_add = [str(item.pk) for item in k_items]
+    storages_mode = settings.STORAGES_MODE
+    task_name = f"modify_colbert_index_{rag_config.name}"
+
+    logger.info(f"Index path: {index_path}")
+    logger.info(f"Bsize: {bsize}, Device: {device}, Num GPUs: {num_gpus}, Storages Mode: {storages_mode}")
+    logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
+    logger.info(f"Contents to add: {len(contents_to_add)}")
+    logger.info(f"Contents PK to add: {len(contents_pk_to_add)}")
+    logger.info(f"Task name: {task_name}")
 
 
-            # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
-            embeddings = [
-                Embedding(
-                    knowledge_item=item,
-                    rag_config=rag_config,
-                )
-                for item in k_items
-            ]
-            Embedding.objects.bulk_create(embeddings)
+    with connect_to_ray_cluster():
+        logger.info("Calling modify_colbert_index...")
+        index_ref = ray_modify_colbert_index.options(num_gpus=num_gpus, name=task_name).remote(index_path, k_item_ids_to_remove, contents_to_add, contents_pk_to_add, storages_mode, bsize)
 
-        except Exception as e:
-            logger.error(f"Error adding k items to index: {e}")
-            logger.info(
-                "This error is probably due to too few knowledge items to add to the index."
-            )
-            logger.info("Rebuilding index from scratch...")
-            # remove all embeddings for the given rag config
-            Embedding.objects.filter(rag_config=rag_config).delete()
-            # indexing starting from scratch
-            creates_index(rag_config=rag_config)
+        logger.info("Waiting for modify_colbert_index to finish...")
+        success = ray.get(index_ref)
+        logger.info(f"Modify_colbert_index finished with success: {success}")
 
 
 def modify_index_deprecated(rag_config):
@@ -435,8 +465,7 @@ def creates_index(rag_config):
     colbert_name = rag_config.retriever_config.model_name
     bsize = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.get_device().value
-    num_gpus = 1 if device == "cuda" else 0
-    storages_mode = os.environ.get("STORAGES_MODE", "local")
+    storages_mode = settings.STORAGES_MODE
 
 
     # TODO: Because these lists can be huge, partition them and use ray.put to store each partition in the object store
@@ -448,22 +477,24 @@ def creates_index(rag_config):
             f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
 
-    task_name = f"create_colbert_index_{rag_config.name}"
+    actor_name = f"create_colbert_index_{rag_config.name}"
 
     with connect_to_ray_cluster():
         index_path = construct_index_path(s3_index_path)
-        index_ref = ray_create_colbert_index.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(
-            colbert_name, bsize, device, index_path, storages_mode, contents_pk, contents
-        )
+        colbert = ColBERTActor.remote(index_path, colbert_name, bsize, device, storages_mode)
+        task_ref = colbert.index.remote(contents, contents_pk)
 
         # Delete all the contents from memory because they are not needed anymore and can be very large
         del contents
         del contents_pk
         gc.collect()
 
-        success = ray.get(index_ref)
+        local_index_path = ray.get(task_ref)
+        index_saved = ray.get(colbert.save_index.remote(local_index_path))
+        colbert.exit.remote()
 
-    if success:
+
+    if index_saved:
         # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
         embeddings = [
             Embedding(
@@ -558,7 +589,7 @@ def delete_index_files(s3_index_path):
     if s3_index_path:
 
         if settings.LOCAL_STORAGE:
-            index_root, index_name = os.path.split(index_path)
+            index_root, index_name = os.path.split(s3_index_path)
             index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
             print(f'Deleting local index files from {index_path}')
             if os.path.exists(index_path):

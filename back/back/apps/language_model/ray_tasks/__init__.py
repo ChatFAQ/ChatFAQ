@@ -1,5 +1,5 @@
 from .ray_tasks import (
-    create_colbert_index,
+    ColBERTActor,
     generate_embeddings,
     generate_titles,
     get_filesystem,
