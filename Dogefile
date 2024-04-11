@@ -108,9 +108,9 @@ services:
 
   - name: ray
     image:
-      host: 'DOCKERHUB'
-      registry: 'chatfaq'
-      repository: 'chatfaq-cpu'
+      host: DOCKERHUB
+      registry: chatfaq
+      repository: chatfaq-cpu
       tag: '2024.04'
     envs: [ ray ]
     port: 8265
