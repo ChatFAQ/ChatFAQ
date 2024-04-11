@@ -290,8 +290,20 @@ def modify_index(rag_config):
     Embedding = apps.get_model("language_model", "Embedding")
 
     s3_index_path = rag_config.s3_index_path
+    index_path = construct_index_path(rag_config.s3_index_path)
+    bsize = rag_config.retriever_config.batch_size
+    device = rag_config.retriever_config.get_device().value
+    num_gpus = 1 if device == "cuda" else 0
+    storages_mode = settings.STORAGES_MODE
+    actor_name = f"modify_colbert_index_{rag_config.name}"
 
-    logger.info(f"Index path: {s3_index_path}")
+
+    logger.info(f"Index path: {index_path}")
+    logger.info(f"Bsize: {bsize}, Device: {device}, Num GPUs: {num_gpus}, Storages Mode: {storages_mode}")
+
+    colbert = ColBERTActor.options(num_gpus=num_gpus, name=actor_name).remote(index_path, device=device, storages_mode=storages_mode)
+
+    logger.info(f"Index path: {index_path}")
 
     # k items to remove
     current_k_item_ids = KnowledgeItem.objects.filter(
@@ -322,8 +334,14 @@ def modify_index(rag_config):
     # ids to string
     k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
 
-    # remove the embeddings with the given ids
-    Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
+    if len(k_item_ids_to_remove) > 0:
+        # remove the k items from the ColBERT index
+        colbert.delete_from_index.remote(k_item_ids_to_remove)
+        index_saved = ray.get(colbert.save_index.remote())
+
+    if index_saved:
+        # remove the embeddings with the given ids
+        Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
 
     # get the k items that have no associated embeddings
     k_items = KnowledgeItem.objects.filter(
@@ -332,32 +350,46 @@ def modify_index(rag_config):
 
     logger.info(f"Number of k items to add: {len(k_items)}")
 
-
-    index_path = construct_index_path(rag_config.s3_index_path)
-    bsize = rag_config.retriever_config.batch_size
-    device = rag_config.retriever_config.get_device().value
-    num_gpus = 1 if device == "cuda" else 0
-
     contents_to_add = [item.content for item in k_items]
     contents_pk_to_add = [str(item.pk) for item in k_items]
-    storages_mode = settings.STORAGES_MODE
-    task_name = f"modify_colbert_index_{rag_config.name}"
 
-    logger.info(f"Index path: {index_path}")
-    logger.info(f"Bsize: {bsize}, Device: {device}, Num GPUs: {num_gpus}, Storages Mode: {storages_mode}")
-    logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
     logger.info(f"Contents to add: {len(contents_to_add)}")
     logger.info(f"Contents PK to add: {len(contents_pk_to_add)}")
-    logger.info(f"Task name: {task_name}")
 
+    if k_items.count() > 0:
+        # add the k items to the ColBERT index
+        try:
+            colbert.add_to_index.remote(contents_to_add, contents_pk_to_add, bsize)
 
-    with connect_to_ray_cluster():
-        logger.info("Calling modify_colbert_index...")
-        index_ref = ray_modify_colbert_index.options(num_gpus=num_gpus, name=task_name).remote(index_path, k_item_ids_to_remove, contents_to_add, contents_pk_to_add, storages_mode, bsize)
+            del contents_to_add, contents_pk_to_add
+            gc.collect()
 
-        logger.info("Waiting for modify_colbert_index to finish...")
-        success = ray.get(index_ref)
-        logger.info(f"Modify_colbert_index finished with success: {success}")
+            index_saved = ray.get(colbert.save_index.remote())
+
+            
+            if index_saved:
+
+                # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+                embeddings = [
+                    Embedding(
+                        knowledge_item=item,
+                        rag_config=rag_config,
+                    )
+                    for item in k_items
+                ]
+                Embedding.objects.bulk_create(embeddings)
+
+        except Exception as e:
+            logger.error(f"Error adding k items to index: {e}")
+            logger.info(
+                "This error is probably due to too few knowledge items to add to the index."
+            )
+            logger.info("Rebuilding index from scratch...")
+            # remove all embeddings for the given rag config
+            Embedding.objects.filter(rag_config=rag_config).delete()
+            # indexing starting from scratch
+            creates_index(rag_config=rag_config)
+
 
 
 def modify_index_deprecated(rag_config):
@@ -479,19 +511,17 @@ def creates_index(rag_config):
 
     actor_name = f"create_colbert_index_{rag_config.name}"
 
-    with connect_to_ray_cluster():
-        index_path = construct_index_path(s3_index_path)
-        colbert = ColBERTActor.remote(index_path, colbert_name, bsize, device, storages_mode)
-        task_ref = colbert.index.remote(contents, contents_pk)
+    index_path = construct_index_path(s3_index_path)
+    colbert = ColBERTActor.options(name=actor_name).remote(index_path, device=device, colbert_name=colbert_name, storages_mode=storages_mode)
+    colbert.index.remote(contents, contents_pk, bsize)
 
-        # Delete all the contents from memory because they are not needed anymore and can be very large
-        del contents
-        del contents_pk
-        gc.collect()
+    # Delete all the contents from memory because they are not needed anymore and can be very large
+    del contents
+    del contents_pk
+    gc.collect()
 
-        local_index_path = ray.get(task_ref)
-        index_saved = ray.get(colbert.save_index.remote(local_index_path))
-        colbert.exit.remote()
+    index_saved = ray.get(colbert.save_index.remote())
+    colbert.exit.remote()
 
 
     if index_saved:
