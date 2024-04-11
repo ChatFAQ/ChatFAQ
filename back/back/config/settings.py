@@ -20,7 +20,7 @@ REMOTE_RAY_CLUSTER_ADDRESS_HEAD = os.getenv("REMOTE_RAY_CLUSTER_ADDRESS_HEAD")
 # REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
 # that ray cluster runs locally from Django process (http://localhost:8001)
 RAY_SERVE_PORT = os.getenv("RAY_SERVE_PORT", 8001)
-RAY_CLUSTER_HOST = os.getenv("REMOTE_RAY_CLUSTER_HOST", "http://localhost")
+RAY_CLUSTER_HOST = os.getenv("RAY_CLUSTER_HOST", "http://localhost")
 
 
 def get_package_version() -> str:
