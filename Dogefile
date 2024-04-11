@@ -108,9 +108,9 @@ services:
 
   - name: ray
     image:
-      host: DOCKERHUB
-      repository: chatfaq/chatfaq-cpu
-      tag: 2024.04
+      host: 'DOCKERHUB'
+      repository: 'chatfaq/chatfaq-cpu'
+      tag: '2024.04'
     envs: [ ray ]
     port: 8265
     internal_ports: [6379, 6375, 10001, 10002, 8001]
