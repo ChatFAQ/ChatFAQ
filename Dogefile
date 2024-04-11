@@ -82,6 +82,10 @@ images:
     build_context: back
   - name: sdk
     build_context: sdk
+  - name: chatfaq-cpu
+      host: DOCKERHUB
+      repository: chatfaq/chatfaq-cpu
+      tag: 2024.04
 
 services:
   - name: widget
@@ -107,10 +111,7 @@ services:
       - "/back"
 
   - name: ray
-    image:
-      host: DOCKERHUB
-      repository: chatfaq/chatfaq-cpu
-      tag: 2024.04
+    image: chatfaq-cpu
     envs: [ ray ]
     port: 8265
     internal_ports: [6379, 6375, 10001, 10002, 8001]
