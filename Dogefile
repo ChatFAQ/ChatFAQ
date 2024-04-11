@@ -83,9 +83,9 @@ images:
   - name: sdk
     build_context: sdk
   - name: chatfaq-cpu
-      host: DOCKERHUB
-      repository: chatfaq/chatfaq-cpu
-      tag: 2024.04
+    host: DOCKERHUB
+    repository: chatfaq/chatfaq-cpu
+    tag: 2024.04
 
 services:
   - name: widget
