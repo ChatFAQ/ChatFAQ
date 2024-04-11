@@ -297,163 +297,63 @@ def modify_index(rag_config):
     storages_mode = settings.STORAGES_MODE
     actor_name = f"modify_colbert_index_{rag_config.name}"
 
-
     logger.info(f"Index path: {index_path}")
     logger.info(f"Bsize: {bsize}, Device: {device}, Num GPUs: {num_gpus}, Storages Mode: {storages_mode}")
 
     colbert = ColBERTActor.options(num_gpus=num_gpus, name=actor_name).remote(index_path, device=device, storages_mode=storages_mode)
 
-    logger.info(f"Index path: {index_path}")
+    try:
+        save_index = False
 
-    # k items to remove
-    current_k_item_ids = KnowledgeItem.objects.filter(
-        knowledge_base=rag_config.knowledge_base
-    ).values_list("pk", flat=True)
+        # k items to remove
+        current_k_item_ids = KnowledgeItem.objects.filter(
+            knowledge_base=rag_config.knowledge_base
+        ).values_list("pk", flat=True)
 
-    logger.info(f"Length Current k items: {len(current_k_item_ids)}")
+        indexed_k_item_ids = get_indexed_k_items_ids(s3_index_path)
 
-    indexed_k_item_ids = get_indexed_k_items_ids(s3_index_path)
+        logger.info(f"Number of current k items: {len(current_k_item_ids)}")
 
-    logger.info(f"Length Indexed k items: {len(indexed_k_item_ids)}")
+        # Current indexed k items - k items in the database = k items to remove
+        k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
 
-    # Current indexed k items - k items in the database = k items to remove
-    k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
+        logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
 
-    logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
+        # modified k items need to be removed from the index also
+        modified_k_item_ids = get_modified_k_items_ids(rag_config)
 
-    # modified k items need to be removed from the index also, to detect which k items are modified we check if the k_item embedding updated_date is lower than the k_item updated_date
-    modified_k_item_ids = get_modified_k_items_ids(rag_config)
+        logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
 
-    logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
+        # add the modified k items to the k items to remove
+        k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
 
-    # add the modified k items to the k items to remove
-    k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
+        logger.info(f"Number of k items to remove after adding modified k items: {len(k_item_ids_to_remove)}")
 
-    logger.info(f"Number of k items to remove after adding modified k items: {len(k_item_ids_to_remove)}")
+        # ids to string
+        k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
 
-    # ids to string
-    k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
+        if k_item_ids_to_remove:
+            logger.info("Removing from the index...")
+            delete_task_ref = colbert.delete_from_index.remote(k_item_ids_to_remove)
+            logger.info("Deleted from the index.")
 
-    if len(k_item_ids_to_remove) > 0:
-        # remove the k items from the ColBERT index
-        colbert.delete_from_index.remote(k_item_ids_to_remove)
-        index_saved = ray.get(colbert.save_index.remote())
+            save_index = True
 
-    if index_saved:
-        # remove the embeddings with the given ids
-        Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
+            # remove the embeddings with the given ids
+            Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
 
-    # get the k items that have no associated embeddings
-    k_items = KnowledgeItem.objects.filter(
-        knowledge_base=rag_config.knowledge_base
-    ).exclude(embedding__rag_config=rag_config)
+        # get the k items that have no associated embeddings
+        k_items = KnowledgeItem.objects.filter(
+            knowledge_base=rag_config.knowledge_base
+        ).exclude(embedding__rag_config=rag_config)
 
-    logger.info(f"Number of k items to add: {len(k_items)}")
+        logger.info(f"Number of k items to add: {len(k_items)}")
 
-    contents_to_add = [item.content for item in k_items]
-    contents_pk_to_add = [str(item.pk) for item in k_items]
+        contents_to_add = [item.content for item in k_items]
+        contents_pk_to_add = [str(item.pk) for item in k_items]
 
-    logger.info(f"Contents to add: {len(contents_to_add)}")
-    logger.info(f"Contents PK to add: {len(contents_pk_to_add)}")
-
-    if k_items.count() > 0:
-        # add the k items to the ColBERT index
-        try:
-            colbert.add_to_index.remote(contents_to_add, contents_pk_to_add, bsize)
-
-            del contents_to_add, contents_pk_to_add
-            gc.collect()
-
-            index_saved = ray.get(colbert.save_index.remote())
-
-            
-            if index_saved:
-
-                # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
-                embeddings = [
-                    Embedding(
-                        knowledge_item=item,
-                        rag_config=rag_config,
-                    )
-                    for item in k_items
-                ]
-                Embedding.objects.bulk_create(embeddings)
-
-        except Exception as e:
-            logger.error(f"Error adding k items to index: {e}")
-            logger.info(
-                "This error is probably due to too few knowledge items to add to the index."
-            )
-            logger.info("Rebuilding index from scratch...")
-            # remove all embeddings for the given rag config
-            Embedding.objects.filter(rag_config=rag_config).delete()
-            # indexing starting from scratch
-            creates_index(rag_config=rag_config)
-
-
-
-def modify_index_deprecated(rag_config):
-    """
-    Modify the index for a knowledge base. It removes, modifies and adds the k items to an existing index.
-    Parameters
-    ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
-    """
-
-    from back.apps.language_model.retriever_clients import ColBERTRetriever
-
-
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
-    Embedding = apps.get_model("language_model", "Embedding")
-
-    retriever = ColBERTRetriever.from_index(rag_config=rag_config)
-
-    # k items to remove
-    current_k_item_ids = KnowledgeItem.objects.filter(
-        knowledge_base=rag_config.knowledge_base
-    ).values_list("pk", flat=True)
-
-    indexed_k_item_ids = [
-        int(id) for id in retriever.retriever.model.docid_pid_map.keys()
-    ]
-
-    # Current indexed k items - k items in the database = k items to remove
-    k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
-
-    logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
-
-    # modified k items need to be removed from the index also, to detect which k items are modified we check if the k_item embedding updated_date is lower than the k_item updated_date
-    modified_k_item_ids = get_modified_k_items_ids(rag_config)
-
-    logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
-
-    # add the modified k items to the k items to remove
-    k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
-
-    # ids to string
-    k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
-
-    if len(k_item_ids_to_remove) > 0:
-        # remove the k items from the ColBERT index
-        retriever.delete_from_index(
-            rag_config=rag_config, k_item_ids=k_item_ids_to_remove
-        )
-
-    # remove the embeddings with the given ids
-    Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
-
-    # get the k items that have no associated embeddings
-    k_items = KnowledgeItem.objects.filter(
-        knowledge_base=rag_config.knowledge_base
-    ).exclude(embedding__rag_config=rag_config)
-
-    logger.info(f"Number of k items to add: {len(k_items)}")
-
-    if k_items.count() > 0:
-        # add the k items to the ColBERT index
-        try:
-            retriever.add_to_index(rag_config=rag_config, k_items=k_items)
+        if k_items:
+            add_task_ref = colbert.add_to_index.remote(contents_to_add, contents_pk_to_add, bsize)
 
             # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
             embeddings = [
@@ -465,16 +365,33 @@ def modify_index_deprecated(rag_config):
             ]
             Embedding.objects.bulk_create(embeddings)
 
-        except Exception as e:
-            logger.error(f"Error adding k items to index: {e}")
-            logger.info(
-                "This error is probably due to too few knowledge items to add to the index."
-            )
-            logger.info("Rebuilding index from scratch...")
-            # remove all embeddings for the given rag config
-            Embedding.objects.filter(rag_config=rag_config).delete()
-            # indexing starting from scratch
-            creates_index(rag_config=rag_config)
+        # wait for the tasks to finish to catch any exceptions
+        ray.get([delete_task_ref, add_task_ref])
+
+        if save_index:
+
+            new_s3_index_path = rag_config.generate_s3_index_path()
+            logger.info(f"New index path: {new_s3_index_path}")
+
+            # Now we save the index only once after all modifications
+            index_saved = ray.get(colbert.save_index.remote(
+                construct_index_path(new_s3_index_path)
+            ))
+            rag_config.s3_index_path = new_s3_index_path
+            rag_config.save()
+
+            # delete the old index files
+            delete_index_files(s3_index_path)
+
+        if not index_saved:
+            raise Exception("Failed to save index.")
+
+    except Exception as e:
+        logger.error(f"Error modifying index: {e}")
+        # remove all embeddings for the given rag config
+        Embedding.objects.filter(rag_config=rag_config).delete()
+        # indexing starting from scratch
+        creates_index(rag_config=rag_config)
 
 
 def creates_index(rag_config):

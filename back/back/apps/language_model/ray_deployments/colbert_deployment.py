@@ -26,7 +26,7 @@ class ColBERTDeployment:
     """
 
     def __init__(self, index_path, remote_ray_cluster, storages_mode):
-        print(f"Initializing ColBERTDeployment")
+        print(f"Initializing ColBERTDeployment with index_path={index_path} and remote_ray_cluster={remote_ray_cluster} and storages_mode={storages_mode}")
 
 
         if 's3://' in index_path:
@@ -38,10 +38,18 @@ class ColBERTDeployment:
             )
             index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, storages_mode)
             index_path = ray.get(index_path_ref)
+            print(f"Downloaded index from S3 to {index_path}")
         else:
             index_root, index_name = os.path.split(index_path)
             index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
             print(f'Reading index locally from {index_path}')
+
+        print('#'*50)
+        print(index_path)
+        print('#'*50)
+
+        import time
+        time.sleep(2)
 
         self.retriever = RAGPretrainedModel.from_index(index_path)
 
@@ -107,11 +115,12 @@ def construct_index_path(index_path: str):
 
 
 def launch_colbert(retriever_deploy_name, index_path):
-    print(f"Launching ColBERT deployment with name: {retriever_deploy_name}")
+    print(f"Launching ColBERT deployment with name: {retriever_deploy_name} and index_path: {index_path}")
 
     storages_mode = settings.STORAGES_MODE
 
     index_path = construct_index_path(index_path)
+    print(f"Index path: {index_path}")
     retriever_handle = ColBERTDeployment.options(
         name=retriever_deploy_name,
     ).bind(index_path, settings.REMOTE_RAY_CLUSTER_ADDRESS_HEAD, storages_mode)
