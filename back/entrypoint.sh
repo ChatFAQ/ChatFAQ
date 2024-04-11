@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Start the first process
+echo "Starting driver pointing to: ${REMOTE_RAY_CLUSTER_ADDRESS_HEAD}..."
+
 /code/.venv/bin/ray start --address=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD} --num-cpus 0 --num-gpus 0
 
 # Start the second process
