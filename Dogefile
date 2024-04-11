@@ -82,8 +82,6 @@ images:
     build_context: back
   - name: sdk
     build_context: sdk
-  - name: ray
-    build_context: ray_cluster
 
 services:
   - name: widget
