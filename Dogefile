@@ -39,20 +39,20 @@ env:
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: '{{ ray.PRIVATE_URL }}:6379'
   - name: ray
     variables:
-      RAY_DASHBOARD_PORT='8265'
-      RAY_CLIENT_PORT='10001'
-      RAY_HEAD_PORT='6375'
-      TASKS_WORKERS='1'
-      NUM_CPU_TASKS_WORKER='4'
-      NUM_GPUS_TASKS_WORKER='1'
-      RAGS_WORKERS='1'
-      NUM_CPU_RAGS_WORKER='4'
-      NUM_GPUS_RAGS_WORKER='0'
-      RAGS_SERVING_PORT='10002'
-      OPENAI_API_KEY='{{ secret("OPENAI_API_KEY") }}'
-      ANTHROPIC_API_KEY='{{ secret("ANTHROPIC_API_KEY") }}'
-      BACKEND_URL="{{ back.PRIVATE_URL }}/back"
-      BACKEND_TOKEN='{{ secret("CHATFAQ_TOKEN") }}'
+      RAY_DASHBOARD_PORT: '8265'
+      RAY_CLIENT_PORT: '10001'
+      RAY_HEAD_PORT: '6375'
+      TASKS_WORKERS: '1'
+      NUM_CPU_TASKS_WORKER: '4'
+      NUM_GPUS_TASKS_WORKER: '1'
+      RAGS_WORKERS: '1'
+      NUM_CPU_RAGS_WORKER: '4'
+      NUM_GPUS_RAGS_WORKER: '0'
+      RAGS_SERVING_PORT: '10002'
+      OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
+      ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
+      BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
+      BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
   - name: widget
     variables:
       BASE_URL: "/demo"
