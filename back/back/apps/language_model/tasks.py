@@ -366,8 +366,7 @@ def modify_index(rag_config):
 
             index_saved = ray.get(colbert.save_index.remote())
 
-            colbert.exit.remote()
-
+            
             if index_saved:
 
                 # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
@@ -513,15 +512,14 @@ def creates_index(rag_config):
     actor_name = f"create_colbert_index_{rag_config.name}"
 
     index_path = construct_index_path(s3_index_path)
-    colbert = ColBERTActor.options(name=actor_name).remote(index_path, colbert_name, bsize, device, storages_mode)
-    task_ref = colbert.index.remote(contents, contents_pk)
+    colbert = ColBERTActor.options(name=actor_name).remote(index_path, device=device, colbert_name=colbert_name, storages_mode=storages_mode)
+    colbert.index.remote(contents, contents_pk, bsize)
 
     # Delete all the contents from memory because they are not needed anymore and can be very large
     del contents
     del contents_pk
     gc.collect()
 
-    ray.get(task_ref)
     index_saved = ray.get(colbert.save_index.remote())
     colbert.exit.remote()
 

@@ -135,10 +135,12 @@ class ColBERTActor:
             node_scheduling_strategy = NodeAffinitySchedulingStrategy(
                 node_id=node_id, soft=False
             )
-            index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(self.index_path, self.storages_mode)
-            self.index_path = ray.get(index_path_ref)
+            local_index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(self.index_path, self.storages_mode)
+            self.local_index_path = ray.get(local_index_path_ref)
+        else:
+            self.local_index_path = self.index_path
 
-        self.retriever = RAGPretrainedModel.from_index(self.index_path, n_gpu=self.n_gpus)
+        self.retriever = RAGPretrainedModel.from_index(self.local_index_path, n_gpu=self.n_gpus)
 
     def get_num_gpus(self):
         try:
@@ -152,7 +154,7 @@ class ColBERTActor:
         """
         Index a collection of documents.
         """
-        local_index_path = self.retriever.index(
+        self.local_index_path = self.retriever.index(
             index_name=self.index_name,
             collection=contents,
             document_ids=contents_pk,
@@ -160,8 +162,6 @@ class ColBERTActor:
             max_document_length=512,
             bsize=bsize,
         )
-
-        return local_index_path
     
     def delete_from_index(self, k_item_ids_to_remove):
         """
@@ -229,8 +229,8 @@ class ColBERTActor:
 
                 print('Reading index from local storage')
                 # Update the index path to use the unique index path
-                local_index_path = 'local://' + os.path.join(os.getcwd(), self.retriever.model.index_path)
-                index = ray.data.read_binary_files(local_index_path, include_paths=True)
+                ray_local_index_path = 'local://' + os.path.join(os.getcwd(), self.retriever.model.index_path)
+                index = ray.data.read_binary_files(ray_local_index_path, include_paths=True)
 
                 print(f"Writing index to object storage {self.index_path}")
                 print(f'Size of index: {index.size_bytes()/1e9:.2f} GB')
