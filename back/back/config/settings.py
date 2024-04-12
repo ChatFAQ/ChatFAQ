@@ -14,14 +14,6 @@ LOGGING = {}
 STORAGES_MODE = os.getenv("STORAGES_MODE")
 LOCAL_STORAGE = STORAGES_MODE == "local"
 
-# --------------------------- RAY ---------------------------
-REMOTE_RAY_CLUSTER_ADDRESS_HEAD = os.getenv("REMOTE_RAY_CLUSTER_ADDRESS_HEAD")
-# If no REMOTE_RAY_CLUSTER_ADDRESS_HEAD is provided then
-# REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
-# that ray cluster runs locally from Django process (http://localhost:8001)
-RAY_SERVE_PORT = os.getenv("RAY_SERVE_PORT", 8001)
-RAY_CLUSTER_HOST = os.getenv("RAY_CLUSTER_HOST", "http://localhost")
-
 
 def get_package_version() -> str:
     """
@@ -288,5 +280,18 @@ with EnvManager(model_w_django) as env:
         AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
         AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
 
+    # --------------------------- LLM APIs ---------------------------
+    VLLM_ENDPOINT_URL = os.getenv("VLLM_ENDPOINT_URL")
+
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+    HUGGINGFACE_KEY = os.getenv("HUGGINGFACE_KEY")
+    MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+
+    # --------------------------- RAY ---------------------------
+    REMOTE_RAY_CLUSTER_ADDRESS_HEAD = os.getenv("REMOTE_RAY_CLUSTER_ADDRESS_HEAD")
+    # If no REMOTE_RAY_CLUSTER_ADDRESS_HEAD is provided then
+    # REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
+    # that ray cluster runs locally from Django process (http://localhost:8001)
+    RAY_SERVE_PORT = os.getenv("RAY_SERVE_PORT", 8001)
+    RAY_CLUSTER_HOST = os.getenv("RAY_CLUSTER_HOST", "http://localhost")
