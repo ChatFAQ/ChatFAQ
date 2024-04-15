@@ -29,6 +29,7 @@
 import ColorField from "~/components/widget_config/fields/ColorField.vue";
 import GradientField from "~/components/widget_config/fields/GradientField.vue";
 import FontField from "~/components/widget_config/fields/FontField.vue";
+import {authHeaders} from "~/store/items.js";
 
 defineExpose({
     submit,
@@ -49,7 +50,7 @@ const props = defineProps({
 
 const {data} = await useAsyncData(
     "theme-defaults",
-    async () => await $axios.get('/back/api/widget/theme-defaults/')
+    async () => await $axios.get('/back/api/widget/theme-defaults/', {headers: authHeaders()})
 )
 const defaults = ref(data.value.data)
 
