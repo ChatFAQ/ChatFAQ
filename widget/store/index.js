@@ -44,6 +44,9 @@ export const useGlobalStore = defineStore('globalStore', {
             downloading: false,
             disconnected: true,
             isPhone: false,
+            displayGeneration: true,
+            displaySources: true,
+            sourcesFirst: false
         }
     },
     actions: {
