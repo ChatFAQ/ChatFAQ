@@ -57,7 +57,7 @@ class RAGConfig(ChangesMixin):
         return IndexStatusChoices(self.index_status)
 
     def get_deploy_name(self):
-        return f'rag_{self.name}'
+        return f'rag/rag_{self.name}'
 
     def get_ray_endpoint(self):
         return urljoin(f"{settings.RAY_CLUSTER_HOST}:{settings.RAY_SERVE_PORT}", self.get_deploy_name())
