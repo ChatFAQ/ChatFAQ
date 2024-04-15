@@ -26,3 +26,6 @@ class Widget(models.Model):
     history_opened = models.BooleanField(default=False)
     theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True)
     manage_user_id = models.BooleanField(default=True)
+    display_generation = models.BooleanField(default=True)
+    display_sources = models.BooleanField(default=True)
+    sources_first = models.BooleanField(default=False)

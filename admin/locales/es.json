@@ -295,5 +295,13 @@
     "dashboardexplanation": "Visualiza los SDKs existentes, los RAGs activos y los widgets.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>",
     "labelingexplanation": "Etiqueta las interacciones para entrenar y mejorar el rendimiento del chatbot en precisión de respuestas y comprensión de consultas. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>",
     "pleaserateallthekis": "Por favor califica todos los elementos de conocimiento, de lo contrario las respuestas no serán tomadas en cuenta.",
-    "savewidgettoseeexample": "Guarda el widget para ver el script de ejemplo"
+    "savewidgettoseeexample": "Guarda el widget para ver el script de ejemplo",
+    "elementsshown": "Elementos mostrados",
+    "both": "Ambos",
+    "generation": "Generación",
+    "sources": "Fuentes",
+    "displayorder": "Orden de visualización",
+    "generationfirst": "Generación Primero",
+    "sourcesfirst": "Fuentes Primero",
+    "messagelayout": "Diseño de Mensaje"
 }

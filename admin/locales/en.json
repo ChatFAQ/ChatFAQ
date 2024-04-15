@@ -295,5 +295,13 @@
     "dashboardexplanation": "This is a centralized hub to visualize existing SDKs, monitor active RAGs, and track widget usage.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>",
     "labelingexplanation": "Label interactions to train and enhance the chatbot's performance in response accuracy and query comprehension.  <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Read more</a>",
     "pleaserateallthekis": "Please rate all the knowledge items, otherwise the answers will not be taken into account.",
-    "savewidgettoseeexample": "Save the widget to see the example script"
+    "savewidgettoseeexample": "Save the widget to see the example script",
+    "elementsshown": "Elements shown",
+    "both": "Both",
+    "generation": "Generation",
+    "sources": "Sources",
+    "displayorder": "Display Order",
+    "generationfirst": "Generation First",
+    "sourcesfirst": "Sources First",
+    "messagelayout": "Message Layout"
 }

@@ -148,7 +148,7 @@ const fieldsRef = ref({})
 const {schema} = storeToRefs(itemsStore)
 const itemSchema = ref({})
 
-const emit = defineEmits(['submitFormStart', 'submitFormEnd', 'exit'])
+const emit = defineEmits(['submitFormStart', 'submitFormEnd', 'exit', 'initializedFormValues'])
 defineExpose({submitForm, form})
 
 const props = defineProps({
@@ -282,6 +282,7 @@ async function initializeFormValues() {
         }
         itemsStore.loading = false
     }
+    emit("initializedFormValues", form.value)
 }
 
 function createTitle(form) {
