@@ -81,6 +81,7 @@ def check_remote_ray_cluster(retries=3, backoff_factor=2):
             sleep(backoff_factor ** attempt)  # Exponential backoff
     return False
 
+
 def initialize_ray_locally():
     """
     Initialize a Ray cluster locally for development purposes.
@@ -94,6 +95,7 @@ def initialize_ray_locally():
     logger.info("Starting Ray locally...")
     resources = {"rags": 100, "tasks": 100}
     ray.init(
+        "local",
         ignore_reinit_error=True,
         resources=resources,
         include_dashboard=True,
@@ -102,9 +104,11 @@ def initialize_ray_locally():
     )
     log_ray_resources()
 
+
 def log_ray_resources():
     logger.info("Available resources:")
     logger.info(ray.available_resources())
+
 
 def initialize_or_check_ray():
     """
