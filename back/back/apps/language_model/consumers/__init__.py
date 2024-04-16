@@ -82,7 +82,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     }
 
     rag_url = rag_conf.get_ray_endpoint()
-    reference_kis = []
+    reference_kis = None
 
     logger.info(f"{'>' * 80}\n"
                 f"Input query: {input_text if input_text else messages[-1]['content']}\n"
@@ -113,8 +113,9 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     # ColBERT only returns the k item id, similarity and content, so we need to get the full k item fields
     # We also adapt the pgvector retriever to match colbert's output
     for index, ki in enumerate(reference_kis):
+        ki_item = await database_sync_to_async(KnowledgeItem.objects.prefetch_related('knowledgeitemimage_set').get)(pk=ki['k_item_id'])
         reference_kis[index] = {
-            **KnowledgeItem.objects.get(pk=ki['k_item_id']).to_retrieve_context(),
+            **ki_item.to_retrieve_context(),
             "similarity": ki["similarity"],
         }
 
