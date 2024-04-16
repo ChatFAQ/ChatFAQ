@@ -110,7 +110,7 @@ export async function callRagReindex(ragId, $t) {
     const {$axios} = useNuxtApp();
 
     try {
-        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`);
+        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`, { "headers": authHeaders() });
     } catch (e) {
         ElNotification({
             title: "Error",
