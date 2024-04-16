@@ -75,7 +75,7 @@ class ColBERTDeployment:
         results = []
         for query_results, top_k in zip(queries_results, top_ks):
             for result in query_results:
-                result["similarity"] = result["score"] / query_maxlen
+                result["score"] = result["score"] / query_maxlen
 
             # Filter out results not relevant to the query
             query_results = clean_relevant_references(query_results)
@@ -84,7 +84,7 @@ class ColBERTDeployment:
             query_results = [
                 {
                     "k_item_id": int(result["document_id"]),
-                    "similarity": result["similarity"],
+                    "similarity": result["score"],
                     "content": result["content"],
                 }
                 for result in query_results
