@@ -18,7 +18,7 @@ LLM_CLASSES = {
     
 
 @serve.deployment(
-    name="RAG Orchestrator",
+    name="rag_orchestrator",
     ray_actor_options={
             "num_cpus": 0.2,
             "resources": {
