@@ -189,9 +189,13 @@ class ColBERTActor:
         )
         print("Done!")
 
-    def save_index(self):
+    def save_index(self, new_index_path: Optional[str] = None):
         """
         Save the index to the cloud storage.
+        Parameters
+        ----------
+        new_index_path : str
+            If provided, save the index to this new path, otherwise save it to the original path.
         """
 
         from ray.data.datasource import FilenameProvider
@@ -224,7 +228,9 @@ class ColBERTActor:
         try:
             print("Saving index...")
 
-            if "s3://" in self.index_path:
+            remote_index_path = self.index_path if new_index_path is None else new_index_path
+
+            if "s3://" in remote_index_path:
                 fs_ref = get_filesystem.remote(self.storages_mode)
 
                 print('Reading index from local storage')
@@ -232,7 +238,7 @@ class ColBERTActor:
                 ray_local_index_path = 'local://' + os.path.join(os.getcwd(), self.retriever.model.index_path)
                 index = ray.data.read_binary_files(ray_local_index_path, include_paths=True)
 
-                print(f"Writing index to object storage {self.index_path}")
+                print(f"Writing index to object storage {remote_index_path}")
                 print(f'Size of index: {index.size_bytes()/1e9:.2f} GB')
 
                 fs = ray.get(fs_ref)
@@ -240,7 +246,7 @@ class ColBERTActor:
                     # unwrap the filesystem object
                     fs = fs.unwrap()
                 # Then we can write the index to the cloud storage
-                index.write_parquet(self.index_path, filesystem=fs, filename_provider=PidDocIdFilenameProvider())
+                index.write_parquet(remote_index_path, filesystem=fs, filename_provider=PidDocIdFilenameProvider())
                 print('Index written to object storage')
 
             return True
@@ -251,164 +257,6 @@ class ColBERTActor:
         
     def exit(self):
         ray.actor.exit_actor()
-
-
-@ray.remote(num_cpus=1, resources={"tasks": 1})
-def create_colbert_index(
-    colbert_name, bsize, device, s3_index_path, storages_mode, contents_pk, contents
-):
-    
-    from typing import Dict
-
-    from ray.data.datasource import FilenameProvider
-
-
-    class PidDocIdFilenameProvider(FilenameProvider):
-
-        def get_filename_for_row(self, row, task_index, block_index, row_index):
-            path = row['path']
-
-            filename = os.path.basename(path)
-            filename = os.path.splitext(filename)[0] + f"_{self._dataset_uuid}_"
-            file_id = f"{task_index:06}_{block_index:06}_{row_index:06}.parquet"
-            filename += file_id
-
-            return filename
-        
-        def get_filename_for_block(self, block: Dict, task_index: int, block_index: int) -> str:
-
-            path = str(block['path'][0])
-
-            filename = os.path.basename(path)
-            filename = os.path.splitext(filename)[0] + "_"
-            file_id = f"{task_index:06}_{block_index:06}.parquet"
-            filename += file_id
-            
-            return filename
-
-    def get_num_gpus():
-        try:
-            import torch
-
-            return torch.cuda.device_count()
-        except:
-            return -1
-
-    try:
-
-        from ragatouille import RAGPretrainedModel
-
-
-        index_root, index_name = os.path.split(s3_index_path)
-        print(f'S3 index path: {s3_index_path}')
-        print(f"Index root: {index_root}, Index name: {index_name}")
-
-        if "s3://" in index_root:
-            # get the index root folder, we don't care about the bucket right now
-            _, index_root = os.path.split(index_root)
-
-        n_gpus = -1 if device == "cpu" else get_num_gpus()
-
-        retriever = RAGPretrainedModel.from_pretrained(
-            colbert_name, index_root=index_root, n_gpu=n_gpus
-        )
-
-        # Update the index path to use the unique index path
-        local_index_path = retriever.index(
-            index_name=index_name,
-            collection=contents,
-            document_ids=contents_pk,
-            split_documents=True,
-            max_document_length=512,
-            bsize=bsize,
-        )
-
-        print(f"Local index path: {local_index_path}")
-
-        # if cloud storage, then we write the index to the cloud storage
-        if "s3://" in s3_index_path:
-            # We read the index as binary files into a table with the schema, where each file is a row:
-            # Column  Type
-            # ------  ----
-            # bytes   binary
-            # path    string,
-            fs_ref = get_filesystem.remote(storages_mode)
-
-            print('Reading index from local storage')
-            local_index_path = 'local://' + os.path.join(os.getcwd(), local_index_path)
-            index = ray.data.read_binary_files(local_index_path, include_paths=True)
-
-            print(f"Writing index to object storage {s3_index_path}")
-            print(f'Size of index: {index.size_bytes()/1e9:.2f} GB')
-
-            fs = ray.get(fs_ref)
-            if fs is not None:
-                # unwrap the filesystem object
-                fs = fs.unwrap()
-            
-            # Then we can write the index to the cloud storage
-            index.write_parquet(s3_index_path, filesystem=fs, filename_provider=PidDocIdFilenameProvider())
-            print('Index written to object storage')
-
-            index_f = index.filter(lambda x: x["path"].endswith('pid_docid_map.json'))
-
-            # remove path column
-            index_f = index_f.drop_columns(["path"])
-
-        # success
-        return True
-
-    except Exception as e:
-        print(f"Error creating index: {e}")
-        # failure
-        return False
-
-
-@ray.remote(num_cpus=1, resources={"tasks": 1})
-def modify_colbert_index(index_path: str, k_item_ids_to_remove: List[str], contents_to_add: List[str], contents_pk_to_add: List[str], storages_mode: str, bsize: int):
-
-    from ragatouille import RAGPretrainedModel
-
-    # Schedule the reading of the index on the same node as the deployment
-    node_id = ray.get_runtime_context().get_node_id()
-    print(f"Node ID: {node_id}")
-    node_scheduling_strategy = NodeAffinitySchedulingStrategy(
-            node_id=node_id, soft=False
-    )
-
-    if 's3://' in index_path:
-        index_path_ref = read_s3_index.options(scheduling_strategy=node_scheduling_strategy).remote(index_path, storages_mode)
-        index_path = ray.get(index_path_ref)
-        index_name = os.path.basename(index_path)
-    else:
-        index_root, index_name = os.path.split(index_path)
-        index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
-        print(f'Reading index locally from {index_path}')
-
-    print(f"Loading index from {index_path}")
-    retriever = RAGPretrainedModel.from_index(index_path)
-
-    print("Deleting items from the index")
-    # remove the items from the index
-    retriever.delete_from_index(
-            document_ids=k_item_ids_to_remove,
-            index_name=index_name,
-    )
-    
-    print("Adding new items to the index")
-
-    retriever.add_to_index(
-            new_collection=contents_to_add,
-            new_document_ids=contents_pk_to_add,
-            index_name=index_name,
-            split_documents=True,
-            max_document_length=512,
-            bsize=bsize,
-        )
-    
-    print("Done!")
-    
-    return False
 
 
 @ray.remote(num_cpus=1)
