@@ -21,13 +21,14 @@
                         [props.message.sender.type]: true,
                         'dark-mode': store.darkMode,
                         'maximized': store.maximized,
+                        'sources-first': store.sourcesFirst,
                         'feedbacking': feedbacking
                     }">
                     <div class="layer" v-for="layer in props.message.stack">
-                        <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
+                        <TextMsg v-if="store.displayGeneration && layer.type === MSG_TYPES.text" :data="layer"/>
                         <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer" :is-last="isLastOfType && layersFinished"/>
                     </div>
-                    <References v-if="props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && layersFinished" :references="props.message.stack[0].payload.references"></References>
+                    <References v-if="store.displaySources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && layersFinished" :references="props.message.stack[0].payload.references"></References>
                 </div>
                 <UserFeedback
                     v-if="
@@ -122,6 +123,10 @@ $phone-breakpoint: 600px;
         &.feedbacking {
             border-radius: 6px 6px 0 0 !important;
             min-width: 100%;
+        }
+        &.sources-first {
+            display: flex;
+            flex-direction: column-reverse;
         }
     }
 
