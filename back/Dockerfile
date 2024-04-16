@@ -23,9 +23,9 @@ COPY --chown=user model-w.toml pyproject.toml poetry.lock README.md ./
 # RUN apt-get install -y tesseract-ocr tesseract-ocr-spa tesseract-ocr-fra
 
 RUN modelw-docker install \
-    && modelw-docker run poetry run playwright install firefox
-
-RUN poetry run pip uninstall -y effdet
+    && modelw-docker run poetry run playwright install-deps \
+    && modelw-docker run poetry run playwright install firefox \
+    && poetry run pip uninstall -y effdet
 
 COPY --chown=user . .
 
