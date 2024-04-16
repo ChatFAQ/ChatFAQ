@@ -31,4 +31,7 @@ COPY --chown=user . .
 
 RUN modelw-docker build
 
-CMD ./entrypoint.sh
+ARG REMOTE_RAY_CLUSTER_ADDRESS_HEAD
+ENV REMOTE_RAY_CLUSTER_ADDRESS_HEAD=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD:-"ray:6379"}
+
+CMD ./starter_script.sh

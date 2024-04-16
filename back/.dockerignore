@@ -9,5 +9,5 @@
 !Makefile
 !pmanage
 !model-w.toml
-!entrypoint.sh
+!starter_script.sh
 !install_python.sh

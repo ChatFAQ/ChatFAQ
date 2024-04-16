@@ -36,27 +36,23 @@ env:
       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
       REDIS_URL: '{{ redis.REDIS_URL }}'
-      REMOTE_RAY_CLUSTER_ADDRESS_HEAD: '{{ ray.PRIVATE_URL }}:6379'
+      REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'ray:6379'
   - name: ray
     variables:
-      RAY_DASHBOARD_PORT=8265
-      RAY_CLIENT_PORT=10001 # port for the client to connect to the Ray cluster
-      RAY_HEAD_PORT=6375
-      # Number of workers for offline tasks
-      TASKS_WORKERS=1
-      NUM_CPU_TASKS_WORKER=4
-      NUM_GPUS_TASKS_WORKER=1
-      # Number of workers for RAGs deployment
-      RAGS_WORKERS=1
-      NUM_CPU_RAGS_WORKER=4
-      NUM_GPUS_RAGS_WORKER=0
-      RAGS_SERVING_PORT=10002
-      # API keys
-      OPENAI_API_KEY='{{ secret("OPENAI_API_KEY") }}'
-      ANTHROPIC_API_KEY='{{ secret("ANTHROPIC_API_KEY") }}'
-      # VLLM_ENDPOINT_URL=http://localhost:5000/v1
-      BACKEND_URL="{{ back.PRIVATE_URL }}/back"
-      BACKEND_TOKEN='{{ secret("CHATFAQ_TOKEN") }}'
+      RAY_DASHBOARD_PORT: '8265'
+      RAY_CLIENT_PORT: '10001'
+      RAY_HEAD_PORT: '6375'
+      TASKS_WORKERS: '1'
+      NUM_CPU_TASKS_WORKER: '4'
+      NUM_GPUS_TASKS_WORKER: '1'
+      RAGS_WORKERS: '1'
+      NUM_CPU_RAGS_WORKER: '4'
+      NUM_GPUS_RAGS_WORKER: '0'
+      RAGS_SERVING_PORT: '10002'
+      OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
+      ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
+      BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
+      BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
   - name: widget
     variables:
       BASE_URL: "/demo"
@@ -112,13 +108,17 @@ services:
 
   - name: ray
     image:
-      host: DOCKERHUB
-      repository: chatfaq/chatfaq-cpu
-      tag: 2024.04
+      host: docker.io
+      registry: chatfaq
+      repository: chatfaq-cpu
+      tag: "2024.04"
     envs: [ ray ]
     port: 8265
     internal_ports: [6379, 6375, 10001, 10002, 8001]
     instance_size: XL
+    command: 'ray start --head --resources={"tasks": 100, "rags": 100} --block'
+    route_prefixes:
+      - "/ray"
 
 workers:
   - name: fsm_llm
