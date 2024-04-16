@@ -91,9 +91,9 @@ RUN curl -sSL https://install.python-poetry.org | env POETRY_HOME=/opt/poetry py
     && ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
 
 RUN modelw-docker install \
-    && modelw-docker run poetry run playwright install firefox
-
-RUN poetry run pip uninstall -y effdet
+    && modelw-docker run poetry run playwright install-deps \
+    && modelw-docker run poetry run playwright install firefox \
+    && poetry run pip uninstall -y effdet
 
 COPY --chown=user . .
 
