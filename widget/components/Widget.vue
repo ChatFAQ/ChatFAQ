@@ -98,11 +98,11 @@ if (data.maximized !== undefined)
 if (data.historyOpened !== undefined)
     store.historyOpened = data.historyOpened;
 if (data.displayGeneration !== undefined)
-    store.historyOpened = data.displayGeneration;
+    store.displayGeneration = data.displayGeneration;
 if (data.displaySources !== undefined)
-    store.historyOpened = data.displaySources;
+    store.displaySources = data.displaySources;
 if (data.sourcesFirst !== undefined)
-    store.historyOpened = data.sourcesFirst;
+    store.sourcesFirst = data.sourcesFirst;
 
 if (store.fullScreen) {
     store.opened = true
