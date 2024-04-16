@@ -95,7 +95,6 @@ def initialize_ray_locally():
     logger.info("Starting Ray locally...")
     resources = {"rags": 100, "tasks": 100}
     ray.init(
-        "local",
         ignore_reinit_error=True,
         resources=resources,
         include_dashboard=True,
