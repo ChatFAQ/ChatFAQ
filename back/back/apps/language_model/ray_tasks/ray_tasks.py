@@ -323,6 +323,65 @@ def read_s3_index(index_path, storages_mode):
     return index_path
 
 
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def clusterize_queries(queries, e5_model_args, batch_size):
+
+    from chat_rag.inf_retrieval.embedding_models import E5Model
+    from chat_rag.intent_detection import clusterize_text
+
+    e5_model = E5Model(**e5_model_args, huggingface_key=os.environ.get("HUGGINGFACE_API_KEY", None))
+
+    print("Clusterizing queries...")
+    labels = clusterize_text(
+        queries,
+        e5_model,
+        batch_size=batch_size,
+        prefix="query: ",
+    )
+    print("Done!")
+
+    return labels
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def generate_intents(clusters):
+    from chat_rag.intent_detection import generate_intents
+
+    logger.info("Generating intents...")
+    intents = generate_intents(clusters)
+    return intents
+
+
+@ray.remote(num_cpus=1, resources={"tasks": 1}, num_returns=2)
+def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
+    def retrieve(queries, rag_config_id, e5_model_args, batch_size, top_k=1):
+        import requests
+        import os
+        from chat_rag.inf_retrieval.embedding_models import E5Model
+
+        e5_model = E5Model(**e5_model_args, huggingface_key=os.environ.get("HUGGINGFACE_API_KEY", None))
+
+        embeddings = e5_model.build_embeddings(queries, prefix='query: ', batch_size=batch_size)
+
+        token = os.getenv('BACKEND_TOKEN')
+        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+
+        headers = {'Authorization': f'Token {token}'}
+
+        response = requests.post(retrieve_endpoint, json={'query_embeddings': embeddings.tolist(), 'top_k': 1}, headers=headers)
+
+        return response.json()    
+
+    import numpy as np
+
+    results = retrieve(titles, rag_config_id, e5_model_args, batch_size)
+    similarities = [item["similarity"] for item in results]
+    mean_similarity = np.mean(similarities)
+    std_similarity = np.std(similarities)
+
+    return mean_similarity, std_similarity
+
+
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def test_task(argument_one):
