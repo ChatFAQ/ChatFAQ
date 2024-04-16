@@ -117,7 +117,7 @@ services:
     image: back
     envs: [ sentry, django ]
     port: 8000
-    instance_size: XS
+    instance_size: XL
     route_prefixes:
       - "/back"
 
