@@ -54,12 +54,13 @@ def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def generate_titles(contents, n_titles, lang):
     from chat_rag.inf_retrieval.query_generator import QueryGenerator
+    from tqdm import tqdm
 
     api_key = os.environ.get("OPENAI_API_KEY", None)
     query_generator = QueryGenerator(api_key, lang=lang)
 
     new_titles = []
-    for content in contents:
+    for content in tqdm(contents):
         titles = query_generator(content, n_queries=n_titles)
         new_titles.append(titles)
 
@@ -364,7 +365,7 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
         embeddings = e5_model.build_embeddings(queries, prefix='query: ', batch_size=batch_size)
 
         token = os.getenv('BACKEND_TOKEN')
-        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/api/language-model/rag-configs/{rag_config_id}/retrieve/"
 
         headers = {'Authorization': f'Token {token}'}
 
