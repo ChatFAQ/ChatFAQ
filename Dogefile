@@ -22,7 +22,7 @@ env:
     variables:
       BASE_URL: '{{ APP_URL }}'
       SECRET_KEY: '{{ secret("SECRET_KEY") }}'
-      SENTRY_ENVIRONMENT: "{{ back.component_key }}"
+      # SENTRY_ENVIRONMENT: "{{ back.component_key }}"
       ENVIRONMENT: "{{ deployment_key }}"
       DATABASE_URL: "{{ psql.DATABASE_URL }}"
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
@@ -52,7 +52,7 @@ env:
       RAGS_SERVING_PORT: '10002'
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
-      BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
+      # BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
   - name: widget
     variables:
@@ -64,8 +64,8 @@ env:
   - name: admin
     variables:
       SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
-      NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
-      NUXT_API_URL: "{{ back.PRIVATE_URL }}"
+      # NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
+      # NUXT_API_URL: "{{ back.PRIVATE_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
   - name: sdk
     variables:
@@ -127,11 +127,11 @@ workers:
     envs: [ sentry, sdk ]
     instance_size: XS
 
-  - name: celery_worker
-    image: back
-    envs: [ sentry, django ]
-    instance_size: XS
-    command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
+  # - name: celery_worker
+  #   image: back
+  #   envs: [ sentry, django ]
+  #   instance_size: XS
+  #   command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
 
 jobs:
   - name: migrate
