@@ -18,25 +18,26 @@ env:
   - name: sentry
     variables:
       SENTRY_DSN: '{{ secret("SENTRY_DSN") }}'
-  - name: django
-    variables:
-      BASE_URL: '{{ APP_URL }}'
-      SECRET_KEY: '{{ secret("SECRET_KEY") }}'
-      SENTRY_ENVIRONMENT: "{{ back.component_key }}"
-      ENVIRONMENT: "{{ deployment_key }}"
-      DATABASE_URL: "{{ psql.DATABASE_URL }}"
-      AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
-      AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
-      AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
-      DO_REGION: 'ams3'
-      STORAGES_MODE: do
-      STORAGE_MAKE_FILES_PUBLIC: no
-      OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
-      ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
-      HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
-      MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
-      REDIS_URL: '{{ redis.REDIS_URL }}'
-      REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'ray:6379'
+#   - name: django
+#     variables:
+#       BASE_URL: '{{ APP_URL }}'
+#       SECRET_KEY: '{{ secret("SECRET_KEY") }}'
+#       SENTRY_ENVIRONMENT: "{{ back.component_key }}"
+#       ENVIRONMENT: "{{ deployment_key }}"
+#       DATABASE_URL: "{{ psql.DATABASE_URL }}"
+#       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
+#       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
+#       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
+#       AWS_S3_SIGNATURE_VERSION: 's3v4'
+#       DO_REGION: 'ams3'
+#       STORAGES_MODE: do
+#       STORAGE_MAKE_FILES_PUBLIC: no
+#       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
+#       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
+#       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
+#       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
+#       REDIS_URL: '{{ redis.REDIS_URL }}'
+#       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'localhost:6379'
   - name: ray
     variables:
       RAY_DASHBOARD_PORT: '8265'
@@ -51,61 +52,39 @@ env:
       RAGS_SERVING_PORT: '10002'
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
-      BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
+      # BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
-  - name: widget
-    variables:
-      BASE_URL: "/demo"
-      NUXT_PUBLIC_BASE_URL: "/demo"
-      SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
-      NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
-      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-  - name: admin
-    variables:
-      SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
-      NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
-      NUXT_API_URL: "{{ back.PRIVATE_URL }}"
-      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-  - name: sdk
-    variables:
-      SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
-      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-      CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
-      CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
+#   - name: widget
+#     variables:
+#       BASE_URL: "/demo"
+#       NUXT_PUBLIC_BASE_URL: "/demo"
+#       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
+#       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
+#       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+#   - name: admin
+#     variables:
+#       SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
+#       NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
+#       NUXT_API_URL: "{{ back.PRIVATE_URL }}"
+#       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+#   - name: sdk
+#     variables:
+#       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
+#       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+#       CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
+#       CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
-images:
-  - name: widget
-    build_context: widget
-  - name: admin
-    build_context: admin
-  - name: back
-    build_context: back
-  - name: sdk
-    build_context: sdk
+# images:
+#   - name: widget
+#     build_context: widget
+#   - name: admin
+#     build_context: admin
+#   - name: back
+#     build_context: back
+#   - name: sdk
+#     build_context: sdk
 
 services:
-  - name: widget
-    image: widget
-    envs: [ sentry, widget ]
-    port: 3000
-    instance_size: XS
-    route_prefixes:
-      - "/demo"
-
-  - name: admin
-    image: admin
-    envs: [ sentry, admin ]
-    port: 3000
-    instance_size: XS
-
-  - name: back
-    image: back
-    envs: [ sentry, django ]
-    port: 8000
-    instance_size: XS
-    route_prefixes:
-      - "/back"
-
   - name: ray
     image:
       host: docker.io
@@ -116,26 +95,48 @@ services:
     port: 8265
     internal_ports: [6379, 6375, 10001, 10002, 8001]
     instance_size: XL
-    command: 'ray start --head --resources={"tasks": 100, "rags": 100} --block'
+    command: ray start --head --resources='{"tasks":100,"rags":100}' --dashboard-host 0.0.0.0 --block
     route_prefixes:
       - "/ray"
 
-workers:
-  - name: fsm_llm
-    image: sdk
-    envs: [ sentry, sdk ]
-    instance_size: XS
+  # - name: widget
+  #   image: widget
+  #   envs: [ sentry, widget ]
+  #   port: 3000
+  #   instance_size: XS
+  #   route_prefixes:
+  #     - "/demo"
 
-  - name: celery_worker
-    image: back
-    envs: [ sentry, django ]
-    instance_size: XS
-    command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
+  # - name: admin
+  #   image: admin
+  #   envs: [ sentry, admin ]
+  #   port: 3000
+  #   instance_size: XS
 
-jobs:
-  - name: migrate
-    when: PRE_DEPLOY
-    image: back
-    instance_size: XS
-    envs: [ sentry, django ]
-    command: modelw-docker run python manage.py migrate
+  # - name: back
+  #   image: back
+  #   envs: [ sentry, django ]
+  #   port: 8000
+  #   instance_size: XS
+  #   route_prefixes:
+  #     - "/back"
+
+# workers:
+#   - name: fsm_llm
+#     image: sdk
+#     envs: [ sentry, sdk ]
+#     instance_size: XS
+#
+#   - name: celery_worker
+#     image: back
+#     envs: [ sentry, django ]
+#     instance_size: XS
+#     command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
+
+# jobs:
+#   - name: migrate
+#     when: PRE_DEPLOY
+#     image: back
+#     instance_size: XS
+#     envs: [ sentry, django ]
+#     command: modelw-docker run python manage.py migrate
