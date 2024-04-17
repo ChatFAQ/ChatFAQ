@@ -18,26 +18,26 @@ env:
   - name: sentry
     variables:
       SENTRY_DSN: '{{ secret("SENTRY_DSN") }}'
-  - name: django
-    variables:
-      BASE_URL: '{{ APP_URL }}'
-      SECRET_KEY: '{{ secret("SECRET_KEY") }}'
-      # SENTRY_ENVIRONMENT: "{{ back.component_key }}"
-      ENVIRONMENT: "{{ deployment_key }}"
-      DATABASE_URL: "{{ psql.DATABASE_URL }}"
-      AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
-      AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
-      AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
-      AWS_S3_SIGNATURE_VERSION: 's3v4'
-      DO_REGION: 'ams3'
-      STORAGES_MODE: do
-      STORAGE_MAKE_FILES_PUBLIC: no
-      OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
-      ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
-      HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
-      MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
-      REDIS_URL: '{{ redis.REDIS_URL }}'
-      REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'localhost:6379'
+#   - name: django
+#     variables:
+#       BASE_URL: '{{ APP_URL }}'
+#       SECRET_KEY: '{{ secret("SECRET_KEY") }}'
+#       SENTRY_ENVIRONMENT: "{{ back.component_key }}"
+#       ENVIRONMENT: "{{ deployment_key }}"
+#       DATABASE_URL: "{{ psql.DATABASE_URL }}"
+#       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
+#       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
+#       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
+#       AWS_S3_SIGNATURE_VERSION: 's3v4'
+#       DO_REGION: 'ams3'
+#       STORAGES_MODE: do
+#       STORAGE_MAKE_FILES_PUBLIC: no
+#       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
+#       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
+#       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
+#       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
+#       REDIS_URL: '{{ redis.REDIS_URL }}'
+#       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'localhost:6379'
   - name: ray
     variables:
       RAY_DASHBOARD_PORT: '8265'
@@ -54,25 +54,25 @@ env:
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
       # BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
-  - name: widget
-    variables:
-      BASE_URL: "/demo"
-      NUXT_PUBLIC_BASE_URL: "/demo"
-      SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
-      NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
-      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-  - name: admin
-    variables:
-      SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
-      # NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
-      # NUXT_API_URL: "{{ back.PRIVATE_URL }}"
-      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-  - name: sdk
-    variables:
-      SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
-      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-      CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
-      CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
+#   - name: widget
+#     variables:
+#       BASE_URL: "/demo"
+#       NUXT_PUBLIC_BASE_URL: "/demo"
+#       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
+#       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
+#       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+#   - name: admin
+#     variables:
+#       SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
+#       NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
+#       NUXT_API_URL: "{{ back.PRIVATE_URL }}"
+#       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+#   - name: sdk
+#     variables:
+#       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
+#       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+#       CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
+#       CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
 # images:
 #   - name: widget
