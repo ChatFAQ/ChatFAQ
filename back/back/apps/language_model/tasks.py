@@ -745,8 +745,6 @@ def generate_suggested_intents_task(knowledge_base_pk, _generate_titles=False):
     from django.db.models import Max
 
     from back.apps.language_model.prompt_templates import get_queries_out_of_domain
-    from back.apps.language_model.retriever_clients import PGVectorRetriever
-    from chat_rag.inf_retrieval.embedding_models import E5Model
 
     logger.info("generate_new_intents_task called")
 
