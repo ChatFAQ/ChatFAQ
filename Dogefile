@@ -79,8 +79,8 @@ images:
     build_context: widget
   - name: admin
     build_context: admin
-  - name: back
-    build_context: back
+  # - name: back
+  #   build_context: back
   - name: sdk
     build_context: sdk
 
