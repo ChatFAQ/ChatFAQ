@@ -97,7 +97,7 @@ services:
     instance_size: XL
     command: ray start --head --resources='{"tasks":100,"rags":100}' --dashboard-host 0.0.0.0 --block
     route_prefixes:
-      - "//ray"
+      - "//ray/"
 
   - name: widget
     image: widget
