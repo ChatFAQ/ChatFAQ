@@ -4,12 +4,12 @@ from urllib.parse import urljoin
 
 from django.db import models, transaction
 from django.conf import settings
-
+from pgvector.django import MaxInnerProduct
 
 from simple_history.models import HistoricalRecords
 
 from back.apps.language_model.models.enums import IndexStatusChoices, DeviceChoices, RetrieverTypeChoices, LLMChoices
-from back.apps.language_model.models.data import KnowledgeBase
+from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from back.common.models import ChangesMixin
 
 from back.apps.language_model.tasks import index_task, launch_rag_deployment_task
@@ -100,6 +100,41 @@ class RAGConfig(ChangesMixin):
         launch_rag_deploy = not self.disabled # If the RAG is disabled we don't want to launch the deployment
         index_task.delay(self.id, launch_rag_deploy=launch_rag_deploy)  # Trigger the Celery task
 
+    def retrieve_kitems(self, query_embedding, threshold, top_k):
+        """
+        Returns the context for the given query_embedding.
+        Parameters
+        ----------
+        query_embedding : torch.Tensor, np.ndarray or list
+            Query embedding to be used for retrieval.
+        threshold : float
+            Threshold for filtering the context.
+        top_k : int
+            Number of context to be returned. If -1, all context are returned.
+        rag_config : RAGConfig
+            RAGConfig to be used for filtering the KnowledgeItems.
+        """
+        items_for_query = (
+                KnowledgeItem.objects.filter(embedding__rag_config=self)
+                .annotate(
+                    similarity=-MaxInnerProduct("embedding__embedding", query_embedding)
+                )
+                .filter(similarity__gt=threshold)
+                .order_by("-similarity")
+            )
+
+        if top_k != -1:
+            items_for_query = items_for_query[:top_k]
+
+        query_results = [
+            {
+                "k_item_id": item.id,
+                "content": item.content,
+                "similarity": item.similarity,
+            }
+            for item in items_for_query
+        ]
+        return query_results
 
 class RetrieverConfig(ChangesMixin):
     """

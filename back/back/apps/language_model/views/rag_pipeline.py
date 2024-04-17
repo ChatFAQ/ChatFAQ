@@ -10,7 +10,6 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.response import Response
-from back.apps.language_model.retriever_clients.pgvector_retriever import retrieve_kitems
 
 
 class RAGConfigAPIViewSet(viewsets.ModelViewSet):
@@ -54,7 +53,7 @@ class RAGConfigAPIViewSet(viewsets.ModelViewSet):
 
         all_items = []
         for query_embedding in query_embeddings_data:
-            items = retrieve_kitems(query_embedding, threshold, top_k, rag_config)
+            items = rag_config.retrieve_kitems(query_embedding, threshold, top_k)
             all_items.extend(items)
 
         # Return serialized data
