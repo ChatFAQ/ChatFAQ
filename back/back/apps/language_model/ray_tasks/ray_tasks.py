@@ -376,7 +376,7 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
         embeddings = e5_model.build_embeddings(queries, prefix='query: ', batch_size=batch_size)
 
         token = os.getenv('BACKEND_TOKEN')
-        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
 
         headers = {'Authorization': f'Token {token}'}
 
