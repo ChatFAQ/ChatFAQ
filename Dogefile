@@ -133,10 +133,10 @@ workers:
   #   instance_size: XS
   #   command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
 
-jobs:
-  - name: migrate
-    when: PRE_DEPLOY
-    image: back
-    instance_size: XS
-    envs: [ sentry, django ]
-    command: modelw-docker run python manage.py migrate
+# jobs:
+#   - name: migrate
+#     when: PRE_DEPLOY
+#     image: back
+#     instance_size: XS
+#     envs: [ sentry, django ]
+#     command: modelw-docker run python manage.py migrate
