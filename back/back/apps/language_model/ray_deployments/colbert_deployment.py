@@ -8,7 +8,6 @@ from django.conf import settings
 
 from ragatouille import RAGPretrainedModel
 from back.apps.language_model.ray_tasks import read_s3_index
-from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
 
 @serve.deployment(
@@ -26,8 +25,11 @@ class ColBERTDeployment:
     """
 
     def __init__(self, index_path, remote_ray_cluster, storages_mode):
-        print(f"Initializing ColBERTDeployment with index_path={index_path} and remote_ray_cluster={remote_ray_cluster} and storages_mode={storages_mode}")
+        from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
+        self.clean_relevant_references = clean_relevant_references
+
+        print(f"Initializing ColBERTDeployment with index_path={index_path} and remote_ray_cluster={remote_ray_cluster} and storages_mode={storages_mode}")
 
         if 's3://' in index_path:
             # Schedule the reading of the index on the same node as the deployment
@@ -78,7 +80,7 @@ class ColBERTDeployment:
                 result["score"] = result["score"] / query_maxlen
 
             # Filter out results not relevant to the query
-            query_results = clean_relevant_references(query_results)
+            query_results = self.clean_relevant_references(query_results)
 
             # only keep k_item_id, content and similarity
             query_results = [

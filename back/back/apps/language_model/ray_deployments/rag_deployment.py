@@ -5,16 +5,6 @@ from ray.serve.handle import DeploymentHandle
 from starlette.responses import StreamingResponse
 from starlette.requests import Request
 
-from chat_rag.llms import AsyncClaudeChatModel, AsyncMistralChatModel, AsyncOpenAIChatModel, AsyncVLLMModel
-from chat_rag import AsyncRAG
-
-
-LLM_CLASSES = {
-    "claude": AsyncClaudeChatModel,
-    "mistral": AsyncMistralChatModel,
-    "openai": AsyncOpenAIChatModel,
-    "vllm": AsyncVLLMModel,
-}
     
 
 @serve.deployment(
@@ -37,6 +27,17 @@ class RAGDeployment:
             return await self.handle.remote(message, top_k)
         
     def __init__(self, retriever_handle: DeploymentHandle, llm_name: str, llm_type: str):
+
+        from chat_rag.llms import AsyncClaudeChatModel, AsyncMistralChatModel, AsyncOpenAIChatModel, AsyncVLLMModel
+        from chat_rag import AsyncRAG
+
+        LLM_CLASSES = {
+            "claude": AsyncClaudeChatModel,
+            "mistral": AsyncMistralChatModel,
+            "openai": AsyncOpenAIChatModel,
+            "vllm": AsyncVLLMModel,
+        }
+
         retriever = self.RetrieverHandleClient(retriever_handle)
         llm_model = LLM_CLASSES[llm_type](llm_name)
         self.rag = AsyncRAG(retriever=retriever, llm_model=llm_model)

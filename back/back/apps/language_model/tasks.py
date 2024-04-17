@@ -30,8 +30,11 @@ from back.apps.language_model.ray_tasks import (
     generate_embeddings as ray_generate_embeddings,
     generate_titles as ray_generate_titles,
     parse_pdf as ray_parse_pdf,
-    ColBERTActor,
+    clusterize_queries as ray_clusterize_queries,
+    generate_intents as ray_generate_intents,
+    get_similarity_scores as ray_get_similarity_scores,
     test_task as ray_test_task,
+    ColBERTActor,
 )
 from back.config.celery import app
 from back.utils.celery import is_celery_worker
@@ -742,9 +745,6 @@ def generate_suggested_intents_task(knowledge_base_pk, _generate_titles=False):
     from django.db.models import Max
 
     from back.apps.language_model.prompt_templates import get_queries_out_of_domain
-    from back.apps.language_model.retriever_clients import PGVectorRetriever
-    from chat_rag.inf_retrieval.embedding_models import E5Model
-    from chat_rag.intent_detection import clusterize_text, generate_intents
 
     logger.info("generate_new_intents_task called")
 
@@ -773,116 +773,109 @@ def generate_suggested_intents_task(knowledge_base_pk, _generate_titles=False):
         logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.get_retriever_type().value} right now")
         return
 
-    e5_model = E5Model(
-        model_name=rag_conf.retriever_config.model_name,
-        use_cpu=rag_conf.retriever_config.get_device() == DeviceChoices.CPU,
-        huggingface_key=hugginface_key,
-    )
-
-    retriever = PGVectorRetriever(
-        embedding_model=e5_model,
-        rag_config=rag_conf,
-    )
-
-    # Get similarity scores for the in domain titles and the out of domain queries
-    mean_sim_in_domain, std_sim_in_domain = get_similarity_scores(
-        [title.title for title in titles_in_domain], retriever
-    )
-
-    mean_sim_out_domain, std_sim_out_domain = get_similarity_scores(
-        get_queries_out_of_domain(lang), retriever
-    )
-
-    logger.info(
-        f"Mean similarity in domain: {mean_sim_in_domain}, std: {std_sim_in_domain}"
-    )
-    logger.info(
-        f"Mean similarity out domain: {mean_sim_out_domain}, std: {std_sim_out_domain}"
-    )
-
-    # The suggested new intents will have a similarity score between the in domain queries and the out of domain queries
-    new_intents_thresholds = {
-        "max": mean_sim_in_domain - std_sim_in_domain,
-        "min": mean_sim_out_domain + std_sim_out_domain,
+    e5_model_args = {
+        "model_name": rag_conf.retriever_config.model_name,
+        "use_cpu": rag_conf.retriever_config.get_device() == DeviceChoices.CPU,
     }
 
-    logger.info(f"Suggested intents thresholds: {new_intents_thresholds}")
 
-    # check that the max is greater than the min
-    if new_intents_thresholds["max"] < new_intents_thresholds["min"]:
+    with connect_to_ray_cluster():
+
+        titles_in_domain_str = [title.title for title in titles_in_domain]
+        in_domain_task_ref = ray_get_similarity_scores.remote(titles_in_domain_str, rag_conf.pk, e5_model_args, rag_conf.retriever_config.batch_size)
+
+        title_out_domain = get_queries_out_of_domain(lang)
+        out_domain_task_ref = ray_get_similarity_scores.remote(title_out_domain, rag_conf.pk, e5_model_args, rag_conf.retriever_config.batch_size)
+
+        mean_sim_in_domain, std_sim_in_domain = ray.get(in_domain_task_ref)
+        mean_sim_out_domain, std_sim_out_domain = ray.get(out_domain_task_ref)
+
         logger.info(
-            "Max threshold is lower than min threshold, no new intents will be generated"
+            f"Mean similarity in domain: {mean_sim_in_domain}, std: {std_sim_in_domain}"
         )
-        return
-
-    messages = MessageKnowledgeItem.objects.filter(
-        knowledge_item__knowledge_base_id=knowledge_base_pk  # Filter by knowledge base
-    ).values("message_id").annotate(
-        max_similarity=Max("similarity")
-    ) #
-
-    logger.info(f"Number of messages: {messages.count()}")
-
-    # filter the results if the max similarity is between the thresholds
-    messages = messages.filter(
-        max_similarity__lte=new_intents_thresholds["max"],
-        max_similarity__gte=new_intents_thresholds["min"],
-    )
-
-    logger.info(f"Number of messages after filtering: {messages.count()}")
-
-    if messages.count() == 0:
-        logger.info("There are no suggested intents to generate")
-        return
-
-    messages_text = [
-        Message.objects.get(id=item["message_id"]).stack[0]["payload"]
-        for item in messages
-    ]
-
-    # get the cluster labels
-    labels = clusterize_text(
-        messages_text,
-        e5_model,
-        batch_size=rag_conf.retriever_config.batch_size,
-        prefix="query: ",
-    )
-    k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-    logger.info(f"Number of clusters: {k_clusters}")
-
-    # list of lists of queries associated to each cluster
-    clusters = [[] for _ in range(k_clusters)]
-    cluster_instances = [[] for _ in range(k_clusters)]
-    for label, query, message_instace in zip(labels, messages_text, messages):
-        if label != -1:  # -1 is the label for outliers
-            clusters[label].append(query)
-            cluster_instances[label].append(message_instace)
-
-    # generate the intents
-    intents = generate_intents(clusters)
-
-    # save the intents
-    new_intents = [
-        Intent(
-            intent_name=intent,
-            auto_generated=True,
-            valid=False,
-            suggested_intent=True,
+        logger.info(
+            f"Mean similarity out domain: {mean_sim_out_domain}, std: {std_sim_out_domain}"
         )
-        for intent in intents
-    ]
 
-    Intent.objects.bulk_create(new_intents)
+        # The suggested new intents will have a similarity score between the in domain queries and the out of domain queries
+        new_intents_thresholds = {
+            "max": mean_sim_in_domain - std_sim_in_domain,
+            "min": mean_sim_out_domain + std_sim_out_domain,
+        }
 
-    logger.info(f"Number of new intents: {len(new_intents)}")
+        logger.info(f"Suggested intents thresholds: {new_intents_thresholds}")
 
-    # add the messages to each intent
-    for intent_cluster, intent in zip(cluster_instances, new_intents):
-        # get the value of key 'message_id' from each message
-        intent_cluster = [item["message_id"] for item in intent_cluster]
-        intent.message.add(*intent_cluster)
+        # check that the max is greater than the min
+        if new_intents_thresholds["max"] < new_intents_thresholds["min"]:
+            logger.info(
+                "Max threshold is lower than min threshold, no new intents will be generated"
+            )
+            return
 
-    logger.info("New intents generated successfully")
+        messages = MessageKnowledgeItem.objects.filter(
+            knowledge_item__knowledge_base_id=knowledge_base_pk  # Filter by knowledge base
+        ).values("message_id").annotate(
+            max_similarity=Max("similarity")
+        ) #
+
+        logger.info(f"Number of messages: {messages.count()}")
+
+        # filter the results if the max similarity is between the thresholds
+        messages = messages.filter(
+            max_similarity__lte=new_intents_thresholds["max"],
+            max_similarity__gte=new_intents_thresholds["min"],
+        )
+
+        logger.info(f"Number of messages after filtering: {messages.count()}")
+
+        if messages.count() == 0:
+            logger.info("There are no suggested intents to generate")
+            return
+
+        messages_text = [
+            Message.objects.get(id=item["message_id"]).stack[0]["payload"]
+            for item in messages
+        ]
+
+    
+        labels = ray.get(ray_clusterize_queries.remote(messages_text, e5_model_args, rag_conf.retriever_config.batch_size))
+
+        k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+        logger.info(f"Number of clusters: {k_clusters}")
+
+        # list of lists of queries associated to each cluster
+        clusters = [[] for _ in range(k_clusters)]
+        cluster_instances = [[] for _ in range(k_clusters)]
+        for label, query, message_instace in zip(labels, messages_text, messages):
+            if label != -1:  # -1 is the label for outliers
+                clusters[label].append(query)
+                cluster_instances[label].append(message_instace)
+
+        # generate the intents
+        intents = ray.get(ray_generate_intents.remote(clusters))
+
+        # save the intents
+        new_intents = [
+            Intent(
+                intent_name=intent,
+                auto_generated=True,
+                valid=False,
+                suggested_intent=True,
+            )
+            for intent in intents
+        ]
+
+        Intent.objects.bulk_create(new_intents)
+
+        logger.info(f"Number of new intents: {len(new_intents)}")
+
+        # add the messages to each intent
+        for intent_cluster, intent in zip(cluster_instances, new_intents):
+            # get the value of key 'message_id' from each message
+            intent_cluster = [item["message_id"] for item in intent_cluster]
+            intent.message.add(*intent_cluster)
+
+        logger.info("New intents generated successfully")
 
 
 @app.task()
@@ -898,8 +891,6 @@ def generate_intents_task(knowledge_base_pk, _generate_titles=False):
         generate_titles_task(knowledge_base_pk)
 
     from back.apps.language_model.models import AutoGeneratedTitle
-    from chat_rag.inf_retrieval.embedding_models import E5Model
-    from chat_rag.intent_detection import clusterize_text, generate_intents
     KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
 
     Intent = apps.get_model("language_model", "Intent")
@@ -914,14 +905,6 @@ def generate_intents_task(knowledge_base_pk, _generate_titles=False):
         logger.info(f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.get_retriever_type().value} right now")
         return
 
-    hugginface_key = os.environ.get("HUGGINGFACE_KEY", None)
-
-    e5_model = E5Model(
-        model_name=rag_conf.retriever_config.model_name,
-        use_cpu=rag_conf.retriever_config.get_device() == DeviceChoices.CPU,
-        huggingface_key=hugginface_key,
-    )
-    # AutoGeneratedTitle = apps.get_model("language_model", "AutoGeneratedTitle")
 
     k_items = KnowledgeItem.objects.filter(knowledge_base=knowledge_base_pk)
 
@@ -943,54 +926,56 @@ def generate_intents_task(knowledge_base_pk, _generate_titles=False):
     # get the queries
     queries = [title.title for title in final_autogen_titles]
 
-    # clusterize the queries
-    logger.info("Clusterizing queries...")
-    labels = clusterize_text(
-        queries,
-        e5_model,
-        batch_size=rag_conf.retriever_config.batch_size,
-        prefix="query: ",
-    )
-    k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-    logger.info(f"Number of clusters: {k_clusters}")
+    e5_model_args = {
+        "model_name": rag_conf.retriever_config.model_name,
+        "use_cpu": rag_conf.retriever_config.get_device() == DeviceChoices.CPU,
+    }
 
-    # list of lists of queries associated to each cluster
-    clusters = [[] for _ in range(k_clusters)]
-    cluster_instances = [[] for _ in range(k_clusters)]
-    for label, query, title_instance in zip(labels, queries, final_autogen_titles):
-        if label != -1:  # -1 is the label for outliers
-            clusters[label].append(query)
-            cluster_instances[label].append(title_instance)
+    with connect_to_ray_cluster():
 
-    # generate the intents
-    intents = generate_intents(clusters)
+        # clusterize the queries
+        logger.info("Clusterizing queries...")
+        labels = ray.get(ray_clusterize_queries.remote(queries, e5_model_args, rag_conf.retriever_config.batch_size))
+        k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+        logger.info(f"Number of clusters: {k_clusters}")
 
-    logger.info(f"Number of new intents: {len(intents)} generated")
+        # list of lists of queries associated to each cluster
+        clusters = [[] for _ in range(k_clusters)]
+        cluster_instances = [[] for _ in range(k_clusters)]
+        for label, query, title_instance in zip(labels, queries, final_autogen_titles):
+            if label != -1:  # -1 is the label for outliers
+                clusters[label].append(query)
+                cluster_instances[label].append(title_instance)
 
-    # save the intents
-    new_intents = [
-        Intent(
-            intent_name=intent,
-            auto_generated=True,
-            valid=False,
-            suggested_intent=False,
-        )
-        for intent in intents
-    ]
+        # generate the intents
+        intents = ray.get(ray_generate_intents.remote(clusters))
 
-    Intent.objects.bulk_create(new_intents)
+        logger.info(f"Number of new intents: {len(intents)} generated")
 
-    logger.info("Suggested intents saved successfully")
+        # save the intents
+        new_intents = [
+            Intent(
+                intent_name=intent,
+                auto_generated=True,
+                valid=False,
+                suggested_intent=False,
+            )
+            for intent in intents
+        ]
 
-    # add the knowledge items to each intent
-    for intent_cluster, intent in zip(cluster_instances, new_intents):
-        # get the knowledge items from each title
-        intent_cluster = [item.knowledge_item for item in intent_cluster]
-        # remove duplicated knowledge items
-        intent_cluster = list(set(intent_cluster))
-        intent.knowledge_item.add(*intent_cluster)
+        Intent.objects.bulk_create(new_intents)
 
-    logger.info("Knowledge items added to the intents successfully")
+        logger.info("Suggested intents saved successfully")
+
+        # add the knowledge items to each intent
+        for intent_cluster, intent in zip(cluster_instances, new_intents):
+            # get the knowledge items from each title
+            intent_cluster = [item.knowledge_item for item in intent_cluster]
+            # remove duplicated knowledge items
+            intent_cluster = list(set(intent_cluster))
+            intent.knowledge_item.add(*intent_cluster)
+
+        logger.info("Knowledge items added to the intents successfully")
 
 
 @app.task()

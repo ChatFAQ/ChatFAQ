@@ -3,8 +3,6 @@ import asyncio
 from typing import List
 from aiohttp import ClientSession
 from ray import serve
-from chat_rag.inf_retrieval.embedding_models import E5Model
-from chat_rag.inf_retrieval.cross_encoder import ReRanker
 
 
 @serve.deployment(
@@ -22,6 +20,9 @@ class E5Deployment:
     """
 
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
+        from chat_rag.inf_retrieval.embedding_models import E5Model
+        from chat_rag.inf_retrieval.cross_encoder import ReRanker
+
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
         self.retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
