@@ -578,11 +578,9 @@ def parse_url_task(ds_id, url):
     from back.apps.language_model.scraping.scraping.spiders.generic import (  # CI
         GenericSpider,
     )
-
-    runner = CrawlerRunner(get_project_settings())
-    runner.crawl(GenericSpider, start_urls=url, data_source_id=ds_id)
-    KnowledgeBase = apps.get_model("language_model", "KnowledgeBase")
-    kb = KnowledgeBase.objects.get(pk=ds_id)
+    with connect_to_ray_cluster():
+        runner = CrawlerRunner(get_project_settings())
+        runner.crawl(GenericSpider, start_urls=url, data_source_id=ds_id)
 
 
 @app.task()
