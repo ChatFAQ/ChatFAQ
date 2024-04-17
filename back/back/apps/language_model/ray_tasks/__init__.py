@@ -4,6 +4,7 @@ from .ray_tasks import (
     generate_titles,
     get_filesystem,
     parse_pdf,
+    parse_html,
     read_s3_index,
     clusterize_queries,
     generate_intents,

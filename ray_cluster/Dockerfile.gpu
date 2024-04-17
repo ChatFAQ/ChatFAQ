@@ -3,7 +3,7 @@ FROM rayproject/ray:latest-py310-cu121
 USER root
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends g++ curl && \
+    apt-get install -y --no-install-recommends g++ curl ffmpeg libsm6 libxext6 && \
     rm -rf /var/lib/apt/lists/*
 
 USER ray
