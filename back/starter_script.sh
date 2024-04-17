@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Start the first process
-echo "Starting driver pointing to: ray:6375..."
+echo "Starting driver pointing to: ray:6379..."
 
-/.venv/bin/ray start --address=ray:6375 --num-cpus 0 --num-gpus 0
+/.venv/bin/ray start --address=ray:6379 --num-cpus 0 --num-gpus 0
 
 echo "...driver started, address: ${REMOTE_RAY_CLUSTER_ADDRESS_HEAD}"
 
