@@ -43,7 +43,7 @@ def format_msgs_chain_to_llm_context(msgs_chain):
     return messages
 
 
-async def query_ray(rag_config_name, conversation_id, input_text=None, use_conversation_context=True, streaming=True):
+async def query_ray(rag_config_name, conversation_id, input_text=None, use_conversation_context=True, only_context=False, streaming=True):
     """
     # for debuggin purposes send 100 messages waiting 0.1 seconds between each one
     import asyncio
@@ -79,6 +79,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         "prev_contents": await database_sync_to_async(list)(prev_kis.values_list("content", flat=True)),
         "prompt_structure_dict": p_conf,
         "generation_config_dict": g_conf,
+        "only_context": only_context
     }
 
     rag_url = rag_conf.get_ray_endpoint()
@@ -101,7 +102,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
                         yield {"model_response": ray_res.get("res", ""), "references": {}, "final": False}
 
                         if reference_kis is None:
-                            reference_kis = ray_res.get("context", [[]])[0]
+                            reference_kis = (ray_res.get("context", [[]]) or [[]])[0]
         else:
             pass  # TODO: implement non-streaming version
     except Exception as e:
@@ -184,7 +185,7 @@ class LLMConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
 
         lm_msg_id = str(uuid.uuid4())
         data = serializer.validated_data
-        async for chunk in query_ray(data["rag_config_name"], data["conversation_id"], data.get("input_text"), data["use_conversation_context"], data["streaming"]):
+        async for chunk in query_ray(data["rag_config_name"], data["conversation_id"], data.get("input_text"), data["use_conversation_context"], data.get("only_context"), data["streaming"]):
             await self.send(
                 json.dumps(
                     {

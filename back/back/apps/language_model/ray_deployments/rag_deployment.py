@@ -5,7 +5,7 @@ from ray.serve.handle import DeploymentHandle
 from starlette.responses import StreamingResponse
 from starlette.requests import Request
 
-    
+
 
 @serve.deployment(
     name="rag_orchestrator",
@@ -25,7 +25,7 @@ class RAGDeployment:
 
         async def retrieve(self, message: str, top_k: int):
             return await self.handle.remote(message, top_k)
-        
+
     def __init__(self, retriever_handle: DeploymentHandle, llm_name: str, llm_type: str):
 
         from chat_rag.llms import AsyncClaudeChatModel, AsyncMistralChatModel, AsyncOpenAIChatModel, AsyncVLLMModel
@@ -42,9 +42,9 @@ class RAGDeployment:
         llm_model = LLM_CLASSES[llm_type](llm_name)
         self.rag = AsyncRAG(retriever=retriever, llm_model=llm_model)
 
-    async def gen_response(self, messages, prev_contents, prompt_structure_dict, generation_config_dict):
+    async def gen_response(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=False):
         context_sent = False
-        async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict):
+        async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=only_context):
             # Send the context only once
             if not context_sent:
                 yield_dict = response_dict
@@ -60,13 +60,14 @@ class RAGDeployment:
         prev_contents = data["prev_contents"]
         prompt_structure_dict = data["prompt_structure_dict"]
         generation_config_dict = data["generation_config_dict"]
+        only_context = data.get("only_context", False)
 
         return StreamingResponse(
-            self.gen_response(messages, prev_contents, prompt_structure_dict, generation_config_dict),
+            self.gen_response(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context),
             media_type="application/json",
             status_code=200,
         )
-    
+
 def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
 
     print(f'Got retriever handle: {retriever_handle}')
@@ -74,7 +75,7 @@ def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
     rag_handle = RAGDeployment.options(
         num_replicas=2,
     ).bind(retriever_handle, llm_name, llm_type)
-    
+
     print(f'Launched RAG deployment with name: {rag_deploy_name}')
     route_prefix = f'/rag/{rag_deploy_name}'
     serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name)

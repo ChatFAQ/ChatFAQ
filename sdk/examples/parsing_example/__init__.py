@@ -3,7 +3,7 @@ from typing import Iterator
 from chatfaq_sdk import DataSourceParser
 from chatfaq_sdk.types import KnowledgeItem, KnowledgeItemImage
 from examples import make_chatfaq_sdk
-from examples.model_example.fsm_definition import fsm_definition
+from examples.parsing_example.fsm_definition import fsm_definition
 
 
 class CustomDataSourceParser(DataSourceParser):

@@ -92,6 +92,8 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         If True the LLM will use the previous messages as a context to generate the text (if the input_text is None this should be always True)
     streaming: bool
         Whether the LLM response should be streamed or not
+    only_context: bool
+        If True the LLM will only return the sources and no generation will be done
     """
 
     rag_config_name = serializers.CharField()
@@ -100,6 +102,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     input_text = serializers.CharField(allow_null=True, allow_blank=True, required=False)
     use_conversation_context = serializers.BooleanField(default=True)
     streaming = serializers.BooleanField(default=True)
+    only_context = serializers.BooleanField(default=False)
 
     # If the input_text is None then use_conversation_context should always be True, check for that:
     def validate(self, attrs):
