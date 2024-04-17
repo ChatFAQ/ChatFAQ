@@ -52,7 +52,7 @@ env:
       RAGS_SERVING_PORT: '10002'
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
-      # BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
+      BACKEND_HOST: "{{ back.PRIVATE_URL }}/back"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
   - name: widget
     variables:
