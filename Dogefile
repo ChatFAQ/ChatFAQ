@@ -54,35 +54,35 @@ env:
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
       # BACKEND_URL: "{{ back.PRIVATE_URL }}/back"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
-#   - name: widget
-#     variables:
-#       BASE_URL: "/demo"
-#       NUXT_PUBLIC_BASE_URL: "/demo"
-#       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
-#       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
-#       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-#   - name: admin
-#     variables:
-#       SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
-#       NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
-#       NUXT_API_URL: "{{ back.PRIVATE_URL }}"
-#       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-#   - name: sdk
-#     variables:
-#       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
-#       CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
-#       CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
-#       CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
+  - name: widget
+    variables:
+      BASE_URL: "/demo"
+      NUXT_PUBLIC_BASE_URL: "/demo"
+      SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
+      NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
+      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+  - name: admin
+    variables:
+      SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
+      NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
+      NUXT_API_URL: "{{ back.PRIVATE_URL }}"
+      NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+  - name: sdk
+    variables:
+      SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
+      CHATFAQ_BACKEND_WS: "wss://{{ APP_DOMAIN }}"
+      CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
+      CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
 images:
-#   - name: widget
-#     build_context: widget
-#   - name: admin
-#     build_context: admin
+  - name: widget
+    build_context: widget
+  - name: admin
+    build_context: admin
   - name: back
     build_context: back
-#   - name: sdk
-#     build_context: sdk
+  - name: sdk
+    build_context: sdk
 
 services:
   - name: ray
@@ -99,19 +99,19 @@ services:
     route_prefixes:
       - "/ray"
 
-  # - name: widget
-  #   image: widget
-  #   envs: [ sentry, widget ]
-  #   port: 3000
-  #   instance_size: XS
-  #   route_prefixes:
-  #     - "/demo"
+  - name: widget
+    image: widget
+    envs: [ sentry, widget ]
+    port: 3000
+    instance_size: XS
+    route_prefixes:
+      - "/demo"
 
-  # - name: admin
-  #   image: admin
-  #   envs: [ sentry, admin ]
-  #   port: 3000
-  #   instance_size: XS
+  - name: admin
+    image: admin
+    envs: [ sentry, admin ]
+    port: 3000
+    instance_size: XS
 
   - name: back
     image: back
@@ -121,17 +121,17 @@ services:
     route_prefixes:
       - "/back"
 
-# workers:
-#   - name: fsm_llm
-#     image: sdk
-#     envs: [ sentry, sdk ]
-#     instance_size: XS
-#
-#   - name: celery_worker
-#     image: back
-#     envs: [ sentry, django ]
-#     instance_size: XS
-#     command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
+workers:
+  - name: fsm_llm
+    image: sdk
+    envs: [ sentry, sdk ]
+    instance_size: XS
+
+  - name: celery_worker
+    image: back
+    envs: [ sentry, django ]
+    instance_size: XS
+    command: modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2
 
 jobs:
   - name: migrate
