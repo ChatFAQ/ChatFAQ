@@ -74,7 +74,7 @@ env:
 #       CHATFAQ_BACKEND_HTTP: "https://{{ APP_DOMAIN }}"
 #       CHATFAQ_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
 
-# images:
+images:
 #   - name: widget
 #     build_context: widget
 #   - name: admin
