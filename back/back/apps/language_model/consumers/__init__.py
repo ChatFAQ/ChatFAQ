@@ -30,7 +30,8 @@ def format_msgs_chain_to_llm_context(msgs_chain):
                 else:
                     logger.warning(f"Stack type {stack['type']} for sender {msg['sender']['type']} is not supported for LLM contextualization.")
 
-            messages.append({"role": "user", "content": text})
+            if text:
+                messages.append({"role": "user", "content": text})
         elif msg.sender["type"] == AgentType.bot.value:
             text = ""
             for stack in msg.stack:
@@ -38,7 +39,8 @@ def format_msgs_chain_to_llm_context(msgs_chain):
                     text += stack['payload']['model_response']
                 else:
                     logger.warning(f"Stack type {stack['type']} for sender {msg.sender['type']} is not supported for LLM contextualization.")
-            messages.append({"role": "assistant", "content": text})
+            if text:
+                messages.append({"role": "assistant", "content": text})
 
     return messages
 
@@ -80,6 +82,10 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         "prompt_structure_dict": p_conf,
         "generation_config_dict": g_conf,
     }
+
+    print('#' * 80)
+    print(request_data)
+    print('#' * 80)
 
     rag_url = rag_conf.get_ray_endpoint()
     reference_kis = None
