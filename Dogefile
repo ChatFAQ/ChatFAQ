@@ -29,7 +29,6 @@ env:
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
       AWS_S3_SIGNATURE_VERSION: 's3v4'
-      DO_REGION: 'ams3'
       STORAGES_MODE: do
       STORAGE_MAKE_FILES_PUBLIC: no
       REDIS_URL: '{{ redis.REDIS_URL }}'
@@ -58,6 +57,7 @@ env:
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
       AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
       AWS_S3_SIGNATURE_VERSION: 's3v4'
+      DO_REGION: 'ams3'
   - name: widget
     variables:
       BASE_URL: "/demo"
