@@ -154,7 +154,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
 
 
-class LLMConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
+class LLMConsumer(AsyncJsonWebsocketConsumer, CustomAsyncConsumer):
     """
     The consumer in responsible for
     """
