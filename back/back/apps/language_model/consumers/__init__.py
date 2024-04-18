@@ -107,7 +107,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
                         yield {"model_response": ray_res.get("res", ""), "references": {}, "final": False}
 
                         if reference_kis is None:
-                            reference_kis = ray_res.get("context", [[]])[0]
+                            reference_kis = (ray_res.get("context", [[]]) or [[]])[0]
         else:
             pass  # TODO: implement non-streaming version
     except Exception as e:
