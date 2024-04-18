@@ -68,7 +68,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     g_conf.pop("id")
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-    prev_kis = conv.get_kis()
+    prev_kis = await database_sync_to_async(conv.get_kis)()
 
     messages = ""
     if use_conversation_context:
