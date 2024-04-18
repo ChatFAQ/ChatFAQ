@@ -14,3 +14,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 - [ ] The admin should make use of the directory routing so back button works better and links actually bring you to edit pages.
 - [ ] Admin: Add the composables (as such useNuxtApp ($axios), useItemsStore, etc...) inside the utility functions on the admin (itemstore, utls, etc...) so we won't pass them as parameters.
 - [ ] Admin: Axios should implement authetication with a middleware.
+- [ ] Migrate fully from celery to ray by giving the ray workers access to the backend. 
