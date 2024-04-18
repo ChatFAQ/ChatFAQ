@@ -23,7 +23,7 @@ from back.utils.custom_channels import CustomAsyncConsumer
 logger = getLogger(__name__)
 
 
-class RPCConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
+class RPCConsumer(AsyncJsonWebsocketConsumer, CustomAsyncConsumer):
     """
     The consumer in responsible for keeping the connection of the Remote Procedure Calls servers and associate it to a
     FSM definition. Any state/transition declared on the FSM unknown to the system will be considered a RCP and piped it

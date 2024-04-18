@@ -11,7 +11,7 @@ from back.common.abs.bot_consumers import BotConsumer
 logger = getLogger(__name__)
 
 
-class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
+class HTTPBotConsumer(AsyncHttpConsumer, BotConsumer):
     """
     Abstract class all HTTP bot consumers should inherit from,
     it takes care of the initialization and management of the fsm and

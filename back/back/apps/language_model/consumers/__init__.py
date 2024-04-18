@@ -68,7 +68,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     g_conf.pop("id")
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-    prev_kis = conv.get_kis()
+    prev_kis = await database_sync_to_async(conv.get_kis)()
 
     messages = ""
     if use_conversation_context:
@@ -107,7 +107,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
                         yield {"model_response": ray_res.get("res", ""), "references": {}, "final": False}
 
                         if reference_kis is None:
-                            reference_kis = ray_res.get("context", [[]])[0]
+                            reference_kis = (ray_res.get("context", [[]]) or [[]])[0]
         else:
             pass  # TODO: implement non-streaming version
     except Exception as e:
@@ -154,7 +154,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
 
 
-class LLMConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
+class LLMConsumer(AsyncJsonWebsocketConsumer, CustomAsyncConsumer):
     """
     The consumer in responsible for
     """
