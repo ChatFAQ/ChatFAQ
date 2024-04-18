@@ -33,7 +33,7 @@ env:
       STORAGE_MAKE_FILES_PUBLIC: no
       REDIS_URL: '{{ redis.REDIS_URL }}'
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
-      RAY_CLUSTER_HOST: 'ray'
+      RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
   - name: ray
     variables:
