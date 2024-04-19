@@ -35,6 +35,9 @@ env:
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
       RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
+  - name: celery
+    variables:
+      IS_CELERY: '1'
   - name: ray
     variables:
       RAY_DASHBOARD_PORT: '8265'
@@ -133,10 +136,8 @@ workers:
 
   - name: celery_worker
     image: back
-    envs: [ sentry, django ]
+    envs: [ sentry, django, celery ]
     instance_size: M
-    # command: bash -c "/.venv/bin/ray start --runtime-env-agent-port=8888 --address=ray:6379 --num-cpus 0 --num-gpus 0 --block"
-    command: bash -c "/.venv/bin/ray start --runtime-env-agent-port=8888 --address=ray:6379 --num-cpus 0 --num-gpus 0 --block & modelw-docker run python -m celery -A back.config worker -l INFO -E --pool threads --concurrency 2"
 
 jobs:
   - name: migrate
