@@ -11,6 +11,7 @@ from datetime import datetime
 import ray
 from django.core.exceptions import ImproperlyConfigured
 from ray import serve
+from ray.runtime_env import RuntimeEnv
 
 from back.utils.celery import get_celery_tasks
 
@@ -39,11 +40,21 @@ def connect_to_ray_cluster(close_serve=False):
     Otherwise, connect as a driver.
     It's important to disconnect from the cluster after using it, to avoid connection leaks.
     """
+    def django_setup():
+        """
+        Setup Django environment for Ray workers.
+        """
+        import django
+        import os
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+        django.setup()
+        print("Django setup complete")
+
     initialized = ray.is_initialized()
     n = random.randint(0, 10000)
     if not initialized:
         # Connect as a driver
-        result = ray.init(address="auto", ignore_reinit_error=True, namespace="back-end")
+        result = ray.init(address="auto", ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
         initialized = ray.is_initialized()
         logger.info(f'Connected to Ray cluster as a driver {n}')
     else:
@@ -59,8 +70,6 @@ def connect_to_ray_cluster(close_serve=False):
                 logger.info(f'Serve shutdown {n}')
         else:
             logger.info(f'Driver still connected to the Ray cluster {n}')
-
-
 
 
 def check_remote_ray_cluster(retries=3, backoff_factor=2):
@@ -99,7 +108,8 @@ def initialize_ray_locally():
         resources=resources,
         include_dashboard=True,
         dashboard_port=8265,
-        namespace="back-end"
+        namespace="back-end",
+        runtime_env={"worker_process_setup_hook": django_setup}
     )
     log_ray_resources()
 

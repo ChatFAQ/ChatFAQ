@@ -125,6 +125,9 @@ class ColBERTActor:
         else:
             self.load_index()
 
+    def __repr__(self) -> str:
+        return f"ColBERTActor(index_path={self.index_path}, colbert_name={self.colbert_name})"
+
     def load_pretrained(self):
         """
         Load a pretrained ColBERT model without an index.
@@ -399,7 +402,9 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
 def test_task(argument_one):
     import time
     print("with arg: ", argument_one, "start")
-    time.sleep(5)
+    time.sleep(0.1)
     print("with arg: ", argument_one, "finished")
 
-    return 123456789
+    from back.apps.language_model.models import RAGConfig
+    print("Number of RAGConfigs: ", RAGConfig.objects.all().count())        
+    return RAGConfig.objects.all().count()

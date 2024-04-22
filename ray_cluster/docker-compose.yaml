@@ -1,8 +1,8 @@
 version: '3'
 services:
   ray-head:
-    image: rayproject/ray:latest-py310-cpu
-    command: /bin/bash -c "ray start --head --num-cpus=0 --num-gpus=0 --port ${RAY_HEAD_PORT} --dashboard-host 0.0.0.0 --block"
+    image: chatfaq/back:latest
+    command: /bin/bash -c "/.venv/bin/ray start --head --num-cpus=0 --num-gpus=0 --port ${RAY_HEAD_PORT} --dashboard-host 0.0.0.0 --block"
     env_file:
       - .env
     ports:
@@ -13,8 +13,9 @@ services:
       - ray_net
 
   ray-tasks-worker:
-    image: chatfaq/chatfaq-cpu:2024.04
-    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 100}", "--num-cpus=${NUM_CPU_TASKS_WORKER}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
+    # image: chatfaq/chatfaq-cpu:2024.04
+    image: chatfaq/back-rag:latest
+    command: ["/.venv/bin/ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"tasks\": 100}", "--num-cpus=${NUM_CPU_TASKS_WORKER}", "--num-gpus=${NUM_GPUS_TASKS_WORKER}", "--block"]
     env_file:
       - .env
     environment:
@@ -39,8 +40,8 @@ services:
         - host.docker.internal:host-gateway
 
   ray-rags-worker:
-    image: chatfaq/chatfaq-cpu:2024.04
-    command: ["ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 100}", "--num-gpus=${NUM_CPU_RAGS_WORKER}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
+    image: chatfaq/back-rag:latest
+    command: ["/.venv/bin/ray", "start", "--address=ray-head:${RAY_HEAD_PORT}", "--resources={\"rags\": 100}", "--num-gpus=${NUM_CPU_RAGS_WORKER}", "--num-gpus=${NUM_GPUS_RAGS_WORKER}", "--block"]
     env_file:
       - .env
     ports:

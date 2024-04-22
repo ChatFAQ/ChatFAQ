@@ -106,4 +106,10 @@ ARG IS_CELERY
 ENV IS_CELERY=${IS_CELERY}
 # ENV REMOTE_RAY_CLUSTER_ADDRESS_HEAD=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD}
 
+# For installing chat-rag
+ARG INSTALL_CHAT_RAG=false
+
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag; fi
+
+
 CMD ./starter_script.sh
