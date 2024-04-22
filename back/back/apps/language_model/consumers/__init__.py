@@ -91,10 +91,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     reference_kis = None
 
     logger.info(f"{'>' * 80}\n"
-                f"Input query: {input_text if input_text else messages[-1]['content']}\n"
-                f"Prompt config: {p_conf}\n"
-                f"Generation config: {g_conf}\n"
-                f"Querying RAG {rag_conf.name} at {rag_url}\n"
+                f"Request data: {request_data}"
                 f"{'<' * 80}")
 
     try:
