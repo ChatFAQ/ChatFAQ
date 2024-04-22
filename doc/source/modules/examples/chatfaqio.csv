@@ -177,7 +177,7 @@ Create a superuser
 When creating the superuser notice that we are passing the `--rpc_group 1` flag. This is critical to be able to create an RPC Server with this same user later on.
 
 Now you can access the Django admin panel at http://localhost:8000/back/admin/ and login with the superuser credentials, from there you can CRUD all the relevant models.",https://chatfaq.readthedocs.io/en/latest/modules/installations/index.html#set-up
-modules > installations > back-installation > installation > local-build > run,"modules > installations > back-installation > installation > local-build > run: First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+modules > installations > back-installation > installation > local-build > run,"modules > installations > back-installation > installation > local-build > run: First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env-template](.env-template) file. Next you can see the explanation of each variable:
 
 `DEBUG`: Set to ""yes"" to enable debug mode
 
@@ -215,7 +215,7 @@ modules > installations > sdk-installation > pypi,modules > installations > sdk-
 modules > installations > sdk-installation > local-build > set-up,"modules > installations > sdk-installation > local-build > set-up: Install project dependencies:
 
     poetry install",https://chatfaq.readthedocs.io/en/latest/modules/installations/index.html#id5
-modules > installations > sdk-installation > local-build > run,"modules > installations > sdk-installation > local-build > run: First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+modules > installations > sdk-installation > local-build > run,"modules > installations > sdk-installation > local-build > run: First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env-template](.env-template) file. Next you can see the explanation of each variable:
 
 `CHATFAQ_RETRIEVAL_HTTP`: The address for the HTTP of the back-end server.
 
@@ -243,7 +243,7 @@ modules > installations > widget-installation > instalaltion > unpkg,"modules > 
 modules > installations > widget-installation > instalation > local-build > set up,"modules > installations > widget-installation > instalation > local-build > set up: Install project dependencies:
 
     npm i",https://chatfaq.readthedocs.io/en/latest/modules/installations/index.html#id13
-modules > installations > widget-installation > run,"modules > installations > widget-installation > run: First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+modules > installations > widget-installation > run,"modules > installations > widget-installation > run: First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env-template](.env-template) file. Next you can see the explanation of each variable:
 
 `CHATFAQ_BACKEND_API`: The address for the HTTP of the back-end server.
 
@@ -404,7 +404,7 @@ For the sake of completeness, here is the diagram of this FSM:
 ",https://chatfaq.readthedocs.io/en/latest/modules/sdk/index.html#model-example
 modules > widget,"modules > widget: We built for you a custom front-end solution just so you can talk with your chatbot from the browser using an app you own. Although you can also connect any other message platform as such WhatsApp, Telegram, Signal, Facebook messenger, etc... It supports them all and if it doesn't it can easily be extended to do so.
 ",https://chatfaq.readthedocs.io/en/latest/modules/widget/index.html
-modules > widget > usage > js-library,"modules > widget > usage > js-library: 
+modules > widget > usage > js-library,"modules > widget > usage > js-library:
 ```html
 <div id=""chatfaq-widget""></div>
 
@@ -614,7 +614,7 @@ The LLM is configured with the following properties:
 - **model_max_length**: The maximum length of the model. Default: None.
 
 
-Our preferred option is to use an open-source LLM like [Llama-2](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) for English and [Qwen-Chat](https://huggingface.co/Qwen/Qwen-7B-Chat) for other languages. 
+Our preferred option is to use an open-source LLM like [Llama-2](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) for English and [Qwen-Chat](https://huggingface.co/Qwen/Qwen-7B-Chat) for other languages.
 
 To access Llama-2 models you need to set a environment variable in the back `.env` file with your HuggingFace API key:
 ```
@@ -676,7 +676,7 @@ The OpenAI models are specified [here](https://platform.openai.com/docs/models/)
 ```
 OPENAI_API_KEY=XXXXXX
 ```",https://chatfaq.readthedocs.io/en/latest/modules/configuration/index.html#openai
-modules > ia-configuration > the-rag-pipeline > llm-config > vllm-client,"modules > ia-configuration > the-rag-pipeline > llm-config > vllm-client: This uses a client to connect to a [vLLM server](https://github.com/vllm-project/vllm). The vLLM server is a server that runs a LLM model and exposes an API to generate answers, it has the best latency and throughput performance. 
+modules > ia-configuration > the-rag-pipeline > llm-config > vllm-client,"modules > ia-configuration > the-rag-pipeline > llm-config > vllm-client: This uses a client to connect to a [vLLM server](https://github.com/vllm-project/vllm). The vLLM server is a server that runs a LLM model and exposes an API to generate answers, it has the best latency and throughput performance.
 
 To configure this server you need to:
 
