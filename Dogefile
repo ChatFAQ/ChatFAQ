@@ -124,7 +124,7 @@ services:
     image: back
     envs: [ sentry, django ]
     port: 8000
-    instance_size: M
+    instance_size: XS
     route_prefixes:
       - "/back"
 
@@ -137,7 +137,7 @@ workers:
   - name: celery_worker
     image: back
     envs: [ sentry, django, celery ]
-    instance_size: M
+    instance_size: XS
 
 jobs:
   - name: migrate
