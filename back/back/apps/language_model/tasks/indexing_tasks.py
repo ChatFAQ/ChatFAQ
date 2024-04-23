@@ -25,6 +25,28 @@ from back.utils.ray_connection import connect_to_ray_cluster
 logger = getLogger(__name__)
 
 
+@ray.remote(num_cpus=1, resources={"tasks": 1})
+def generate_embeddings(data):
+
+    from chat_rag.inf_retrieval.embedding_models import E5Model
+
+    embedding_model = E5Model(
+        model_name=data["model_name"],
+        use_cpu=data["device"] == "cpu",
+        huggingface_key=os.environ.get("HUGGINGFACE_API_KEY", None),
+    )
+
+    embeddings = embedding_model.build_embeddings(
+        contents=data["contents"], batch_size=data["batch_size"]
+    )
+
+    # from tensor to list
+    embeddings = [embedding.tolist() for embedding in embeddings]
+
+    return embeddings
+
+
+
 def get_modified_k_items_ids(rag_config):
     """
     Get the ids of the k items that have been modified.
@@ -394,7 +416,7 @@ def index_colbert(rag_config):
         creates_index(rag_config=rag_config)
 
 
-@app.task()
+@ray.remote(num_cpus=0.5, resources={"tasks": 1})
 def index_task(rag_config_id, launch_rag_deploy: bool = False):
     """
     Build the index for a knowledge base.
