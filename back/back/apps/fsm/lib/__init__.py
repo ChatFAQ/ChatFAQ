@@ -188,7 +188,7 @@ class FSM:
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
-            database_sync_to_async(serializer.save)()
+            await database_sync_to_async(serializer.save)()
 
     def get_initial_state(self):
         for state in self.states:

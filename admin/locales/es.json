@@ -257,6 +257,8 @@
     "page_number_index_col": "Índice de la columna del número de página",
     "recursive": "Recursivo",
     "rags": "RAGs",
+    "sdks": "SDKs",
+    "widgets": "Widgets",
     "statsexplanation": "Visión general integral que evalúa la efectividad de las respuestas, la interacción y la satisfacción del usuario en el sistema RAG. <a class='read-more-link' target='_blank' href='https://chatfaq.readthedocs.io/en/latest/modules/interfaces/chatfaq-admin/'>Leer más</a>",
     "totalconversations": "Total de Conversaciones",
     "conversationsmessagecount": "Mensajes por Conversacion",
