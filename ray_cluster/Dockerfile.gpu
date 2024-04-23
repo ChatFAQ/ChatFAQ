@@ -8,4 +8,4 @@ RUN apt-get update && \
 
 USER ray
 
-RUN pip install chat-rag==0.1.66 --no-cache-dir
+RUN pip install chat-rag==0.1.68 --no-cache-dir
