@@ -11,3 +11,5 @@ from .ray_tasks import (
     get_similarity_scores,
     test_task,
 )
+
+from .parsing_tasks import parse_pdf_task, parse_url_task

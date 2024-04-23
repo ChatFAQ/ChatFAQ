@@ -5,18 +5,29 @@ from django.apps import apps
 from django.db import transaction
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
-from back.apps.language_model.tasks import (
-    parse_pdf as ray_parse_pdf,
-)
-from back.config.celery import app
-from back.utils.ray_connection import connect_to_ray_cluster
-
 
 logger = getLogger(__name__)
 
 
+@ray.remote(num_cpus=0.2, resources={"tasks": 1})
+def parse_url_task(ds_id, url):
+    """
+    Get the html from the url and parse it.
+    Parameters
+    ----------
+    ds_id : int
+        The primary key of the data source to which the crawled items will be added.
+    url : str
+        The url to crawl.
+    """
+    from back.apps.language_model.scraping.scraping.spiders.generic import (  # CI
+        GenericSpider,
+    )
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+    runner = CrawlerRunner(get_project_settings())
+    runner.crawl(GenericSpider, start_urls=url, data_source_id=ds_id)
+
+
 def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
     from io import BytesIO
 
@@ -32,43 +43,14 @@ def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
     logger.info(f"Chunk size: {chunk_size}")
     logger.info(f"Chunk overlap: {chunk_overlap}")
 
-    parsed_items = parse_pdf_method(file=pdf_file, strategy=strategy, split_function=splitter)
+    parsed_items = parse_pdf_method(
+        file=pdf_file, strategy=strategy, split_function=splitter
+    )
 
     return parsed_items
 
 
-@app.task()
-def parse_url_task(ds_id, url):
-    """
-    Get the html from the url and parse it.
-    Parameters
-    ----------
-    ds_id : int
-        The primary key of the data source to which the crawled items will be added.
-    url : str
-        The url to crawl.
-    """
-    from back.apps.language_model.scraping.scraping.spiders.generic import (  # CI
-        GenericSpider,
-    )
-    with connect_to_ray_cluster():
-        runner = CrawlerRunner(get_project_settings())
-        runner.crawl(GenericSpider, start_urls=url, data_source_id=ds_id)
-
-
-@ray.remote(num_cpus=0.2, resources={"tasks": 1})
-def parse_html(html_text, splitter, chunk_size, chunk_overlap):
-    from chat_rag.data.parsers import parse_html as parse_html_method
-    from chat_rag.data.splitters import get_splitter
-
-    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
-
-    k_items = parse_html_method(text=html_text, split_function=splitter)
-
-    return k_items
-
-
-@app.task()
+@ray.remote(num_cpus=1, resources={"tasks": 1})
 def parse_pdf_task(ds_pk):
     """
     Parse a pdf file and return a list of KnowledgeItem objects.
@@ -81,7 +63,6 @@ def parse_pdf_task(ds_pk):
     k_items : list
         A list of KnowledgeItem objects.
     """
-
 
     logger.info("Parsing PDF file...")
     logger.info(f"PDF file pk: {ds_pk}")
@@ -96,15 +77,7 @@ def parse_pdf_task(ds_pk):
     chunk_size = ds.chunk_size
     chunk_overlap = ds.chunk_overlap
 
-    with connect_to_ray_cluster():
-        # Submit the task to the Ray cluster
-        logger.info("Submitting the parse_pdf task to the Ray cluster...")
-        task_name = f"parse_pdf_{ds_pk}"
-        parsed_items_ref = ray_parse_pdf.options(name=task_name).remote(
-            pdf_file, strategy, splitter, chunk_size, chunk_overlap
-        )
-
-        parsed_items = ray.get(parsed_items_ref)
+    parsed_items = parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap)
 
     with transaction.atomic():
         for item in parsed_items:
