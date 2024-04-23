@@ -10,9 +10,12 @@ class OpenAIChatModel(RAGLLM):
     def __init__(
         self,
         llm_name: str,
+        base_url: str = None,
         **kwargs,
-    ):
-        self.client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    ):  
+        # If provided a base_url, then use the Together API key
+        api_key = os.environ.get("TOGETHER_API_KEY") if base_url else os.environ.get("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.llm_name = llm_name
 
     def format_prompt(
@@ -168,9 +171,12 @@ class AsyncOpenAIChatModel(RAGLLM):
     def __init__(
         self,
         llm_name: str,
+        base_url: str = None,
         **kwargs,
     ):
-        self.client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        # If provided a base_url, then use the Together API key
+        api_key = os.environ.get("TOGETHER_API_KEY") if base_url else os.environ.get("OPENAI_API_KEY")
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.llm_name = llm_name
 
     def format_prompt(
