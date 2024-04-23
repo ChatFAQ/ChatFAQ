@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 logger = getLogger(__name__)
 
 
-class WSBotConsumer(AsyncJsonWebsocketConsumer, BotConsumer):
+class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
     Abstract class all views representing an WS bot should inherit from,
     it takes care of the initialization and management of the fsm and

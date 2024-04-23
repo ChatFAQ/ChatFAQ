@@ -49,8 +49,8 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     """
     # for debuggin purposes send 100 messages waiting 0.1 seconds between each one
     import asyncio
-    for i in range(100):
-        await asyncio.sleep(0.1)
+    for i in range(30):
+        await asyncio.sleep(1)
         yield {"model_response": f"Message {i}", "references": {}, "final": False}
     yield {"model_response": "End of messages", "references": {}, "final": True}
 
@@ -151,7 +151,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
 
 
-class LLMConsumer(AsyncJsonWebsocketConsumer, CustomAsyncConsumer):
+class LLMConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
     """
     The consumer in responsible for
     """

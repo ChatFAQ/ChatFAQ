@@ -66,6 +66,25 @@ class LMGeneratedText(Layer):
         self.use_conversation_context = use_conversation_context
 
     async def build_payloads(self, ctx, data):
+        """
+        # testing fake results loop with async sleep every second:
+        import uuid
+        import asyncio
+        lm_msg_id = str(uuid.uuid4())
+        for i in range(50):
+            yield [
+                {
+                    "payload": {
+                        "model_response": f"SDK fame message {i}",
+                        "references": {},
+                        "rag_config_name": self.rag_config_name,
+                        "lm_msg_id": lm_msg_id,
+                    }
+                }
+            ], False if i < 49 else True
+            await asyncio.sleep(1)
+        return
+        """
         logger.debug(f"Waiting for LLM...")
         await ctx.send_llm_request(
             self.rag_config_name, self.input_text, self.use_conversation_context, data["conversation_id"], data["bot_channel_name"]
