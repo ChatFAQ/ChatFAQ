@@ -627,12 +627,12 @@ def parse_pdf_task(ds_pk):
             knowledge_item = KnowledgeItem(
                 knowledge_base=ds.knowledge_base,
                 data_source=ds,
-                title=item.title,
-                content=item.content,  # alnaf [[Image 0]] a;mda [[Image 2]]
-                url=item.url,
-                section=item.section,
-                page_number=item.page_number,
-                metadata=item.metadata,
+                title=item['title'],
+                content=item['content'],  # alnaf [[Image 0]] a;mda [[Image 2]]
+                url=item['url'],
+                section=item['section'],
+                page_number=item['page_number'],
+                metadata=item['metadata'],
             )
             knowledge_item.save()
 
