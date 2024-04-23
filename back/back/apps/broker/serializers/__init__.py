@@ -1,9 +1,7 @@
 from django.apps import apps
 from rest_framework import serializers
 
-from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.broker.models.message import Message, AdminReviewValue, AgentType
-from back.apps.fsm.models import FSMDefinition
 from back.apps.language_model.models import RAGConfig
 
 
@@ -25,6 +23,7 @@ class ConsumerRoundRobinQueueSerializer(serializers.ModelSerializer):
     fsm_name = serializers.SerializerMethodField()
 
     def get_fsm_name(self, obj):
+        from back.apps.fsm.models import FSMDefinition
         return FSMDefinition.objects.get(id=obj.rr_group_key).name
 
     class Meta:

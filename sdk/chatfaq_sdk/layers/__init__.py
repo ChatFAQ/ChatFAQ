@@ -71,18 +71,18 @@ class LMGeneratedText(Layer):
         import uuid
         import asyncio
         lm_msg_id = str(uuid.uuid4())
-        for i in range(50):
+        for i in range(200):
             yield [
                 {
                     "payload": {
-                        "model_response": f"SDK fame message {i}",
+                        "model_response": f"{i}-",
                         "references": {},
                         "rag_config_name": self.rag_config_name,
                         "lm_msg_id": lm_msg_id,
                     }
                 }
-            ], False if i < 49 else True
-            await asyncio.sleep(1)
+            ], False if i < 200 else True
+            await asyncio.sleep(0.01)
         return
         """
         logger.debug(f"Waiting for LLM...")

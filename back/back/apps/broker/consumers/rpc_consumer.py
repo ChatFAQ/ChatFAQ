@@ -146,9 +146,6 @@ class RPCConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             "status": WSStatusCodes.ok.value,
             **serializer.validated_data,
         }
-        if serializer.validated_data["node_type"] == RPCNodeType.action.value:
-            mml = await database_sync_to_async(serializer.save_as_mml)()
-            res["mml_id"] = mml.pk
         await self.channel_layer.group_send(
             WSBotConsumer.create_group_name(serializer.validated_data["ctx"]["conversation_id"]), res
         )

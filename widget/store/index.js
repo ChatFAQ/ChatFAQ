@@ -77,7 +77,7 @@ export const useGlobalStore = defineStore('globalStore', {
             this.selectedPlConversationId = Math.floor(Math.random() * 1000000000);
         },
         addMessage(message) {
-            const index = this.messages.findIndex(m => m.id === message.id)
+            const index = this.messages.findIndex(m => m.stack_id === message.stack_id)
             if (index !== -1)
                 this.messages[index] = message
             else
