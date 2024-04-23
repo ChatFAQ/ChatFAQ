@@ -9,10 +9,6 @@ from back.apps.language_model.models.enums import (
     RetrieverTypeChoices,
 )
 
-from back.config.celery import app
-from back.utils.ray_connection import connect_to_ray_cluster
-
-
 logger = getLogger(__name__)
 
 
