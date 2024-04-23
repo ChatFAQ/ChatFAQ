@@ -13,3 +13,4 @@ from .ray_tasks import (
 )
 
 from .parsing_tasks import parse_pdf_task, parse_url_task
+from .intent_tasks import generate_intents_task, generate_suggested_intents_task, generate_titles_task

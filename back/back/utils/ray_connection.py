@@ -31,6 +31,15 @@ map_ray_to_celery_status_task = { # SUCCESS, STARTED, WAITING, FAILURE
     "FAILED": "FAILURE"
 }
 
+def django_setup():
+    """
+    Setup Django environment for Ray workers.
+    """
+    import django
+    import os
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+    django.setup()
+    print("Django setup complete")
 
 @contextmanager
 def connect_to_ray_cluster(close_serve=False):
@@ -40,15 +49,6 @@ def connect_to_ray_cluster(close_serve=False):
     Otherwise, connect as a driver.
     It's important to disconnect from the cluster after using it, to avoid connection leaks.
     """
-    def django_setup():
-        """
-        Setup Django environment for Ray workers.
-        """
-        import django
-        import os
-        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
-        django.setup()
-        print("Django setup complete")
 
     initialized = ray.is_initialized()
     n = random.randint(0, 10000)
@@ -165,7 +165,7 @@ def get_ray_tasks(add_celery_fields=False):
     """
     Get the number of Ray tasks that are currently running or has been run.
     """
-    task_types = ["generate_embeddings", "parse_pdf_task", "parse_url_task", "generate_titles", "get_filesystem", "create_colbert_index", "test_task", "get_filesystem"]
+    task_types = ["generate_embeddings", "parse_pdf_task", "parse_url_task", "generate_titles_task", "get_filesystem", "create_colbert_index", "test_task", "get_filesystem", "generate_intents", "get_similarity_scores", "clusterize_queries", "generate_intents_task", "generate_suggested_intents_task", ]
     tasks = []
     for task_type in task_types:
         tasks += [j.__dict__ for j in ray_api.list_tasks(filters=[("func_or_class_name", "=", task_type)])]
