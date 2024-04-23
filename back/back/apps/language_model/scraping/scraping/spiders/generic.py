@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
 from back.apps.language_model.models.data import DataSource
-from back.apps.language_model.ray_tasks import parse_html
+from back.apps.language_model.tasks import parse_html
 import ray
 
 

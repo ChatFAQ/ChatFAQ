@@ -29,39 +29,6 @@ def generate_embeddings(data):
 
     return embeddings
 
-
-@ray.remote(num_cpus=1, resources={"tasks": 1})
-def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
-    from io import BytesIO
-
-    from chat_rag.data.parsers import parse_pdf as parse_pdf_method
-    from chat_rag.data.splitters import get_splitter
-
-    pdf_file = BytesIO(pdf_file)
-
-    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
-
-    logger.info(f"Splitter: {splitter}")
-    logger.info(f"Strategy: {strategy}")
-    logger.info(f"Chunk size: {chunk_size}")
-    logger.info(f"Chunk overlap: {chunk_overlap}")
-
-    parsed_items = parse_pdf_method(file=pdf_file, strategy=strategy, split_function=splitter)
-
-    return parsed_items
-
-
-@ray.remote(num_cpus=0.2, resources={"tasks": 1})
-def parse_html(html_text, splitter, chunk_size, chunk_overlap):
-    from chat_rag.data.parsers import parse_html as parse_html_method
-    from chat_rag.data.splitters import get_splitter
-
-    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
-
-    k_items = parse_html_method(text=html_text, split_function=splitter)
-
-    return k_items
-
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def generate_titles(contents, n_titles, lang):
     from chat_rag.inf_retrieval.query_generator import QueryGenerator

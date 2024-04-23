@@ -6,7 +6,7 @@ from ray import serve
 from django.conf import settings
 
 
-from back.apps.language_model.ray_tasks import read_s3_index
+from back.apps.language_model.tasks import read_s3_index
 
 
 @serve.deployment(
