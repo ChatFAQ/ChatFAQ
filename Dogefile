@@ -22,7 +22,7 @@ env:
     variables:
       BASE_URL: '{{ APP_URL }}'
       SECRET_KEY: '{{ secret("SECRET_KEY") }}'
-      # SENTRY_ENVIRONMENT: "{{ back.component_key }}"
+      SENTRY_ENVIRONMENT: "{{ back.component_key }}"
       ENVIRONMENT: "{{ deployment_key }}"
       DATABASE_URL: "{{ psql.DATABASE_URL }}"
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
@@ -54,7 +54,7 @@ env:
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
-      # BACKEND_HOST: "{{ back.PRIVATE_URL }}/back"
+      BACKEND_HOST: "{{ back.PRIVATE_URL }}/back"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
@@ -65,14 +65,14 @@ env:
     variables:
       BASE_URL: "/demo"
       NUXT_PUBLIC_BASE_URL: "/demo"
-      # SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
+      SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
   - name: admin
     variables:
-      # SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
-      # NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
-      # NUXT_API_URL: "{{ back.PRIVATE_URL }}"
+      SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
+      NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
+      NUXT_API_URL: "{{ back.PRIVATE_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
   - name: sdk
     variables:
@@ -106,27 +106,27 @@ services:
     route_prefixes:
       - "//ray/"
 
-  # - name: widget
-  #   image: widget
-  #   envs: [ sentry, widget ]
-  #   port: 3000
-  #   instance_size: XS
-  #   route_prefixes:
-  #     - "/demo"
+  - name: widget
+    image: widget
+    envs: [ sentry, widget ]
+    port: 3000
+    instance_size: XS
+    route_prefixes:
+      - "/demo"
 
-  # - name: admin
-  #   image: admin
-  #   envs: [ sentry, admin ]
-  #   port: 3000
-  #   instance_size: XS
+  - name: admin
+    image: admin
+    envs: [ sentry, admin ]
+    port: 3000
+    instance_size: XS
 
-  # - name: back
-  #   image: back
-  #   envs: [ sentry, django ]
-  #   port: 8000
-  #   instance_size: XS
-  #   route_prefixes:
-  #     - "/back"
+  - name: back
+    image: back
+    envs: [ sentry, django ]
+    port: 8000
+    instance_size: XS
+    route_prefixes:
+      - "/back"
 
 workers:
   - name: fsm_llm
@@ -134,15 +134,15 @@ workers:
     envs: [ sentry, sdk ]
     instance_size: XS
 
-  # - name: celery_worker
-  #   image: back
-  #   envs: [ sentry, django, celery ]
-  #   instance_size: XS
+  - name: celery_worker
+    image: back
+    envs: [ sentry, django, celery ]
+    instance_size: XS
 
-# jobs:
-#   - name: migrate
-#     when: PRE_DEPLOY
-#     image: back
-#     instance_size: XS
-#     envs: [ sentry, django ]
-#     command: modelw-docker run python manage.py migrate
+jobs:
+  - name: migrate
+    when: PRE_DEPLOY
+    image: back
+    instance_size: XS
+    envs: [ sentry, django ]
+    command: modelw-docker run python manage.py migrate
