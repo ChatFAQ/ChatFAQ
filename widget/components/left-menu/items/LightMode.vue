@@ -1,7 +1,7 @@
 <template>
     <MenuItem @click="store.darkMode = !store.darkMode">
         <i class="light-mode-icon" :class="{'dark-mode': store.darkMode}"/>
-        <span v-if="!store.darkMode">Show dark mode</span>
+        <span v-if="!store.darkMode">{{ $t("showdarkmode") }}</span>
         <span v-else>{{ $t("showlightmode") }}</span>
     </MenuItem>
 </template>
