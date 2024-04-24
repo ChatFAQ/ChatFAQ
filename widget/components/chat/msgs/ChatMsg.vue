@@ -124,10 +124,6 @@ $phone-breakpoint: 600px;
             border-radius: 6px 6px 0 0 !important;
             min-width: 100%;
         }
-        &.sources-first {
-            display: flex;
-            flex-direction: column-reverse;
-        }
     }
 
     .message {
@@ -190,6 +186,10 @@ $phone-breakpoint: 600px;
         &.feedbacking {
             border-radius: 6px 6px 0 0 !important;
             min-width: 100%;
+        }
+        &.sources-first {
+            display: flex;
+            flex-direction: column-reverse;
         }
         .layer:not(:last-child) {
             margin-bottom: 5px;
