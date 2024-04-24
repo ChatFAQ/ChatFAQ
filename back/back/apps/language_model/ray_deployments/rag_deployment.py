@@ -51,7 +51,8 @@ class RAGDeployment:
 
     async def gen_response(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=False):
         context_sent = False
-        async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=only_context):
+        # async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=only_context):
+        async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict):
             # Send the context only once
             if not context_sent:
                 yield_dict = response_dict
