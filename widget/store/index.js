@@ -69,7 +69,7 @@ export const useGlobalStore = defineStore('globalStore', {
                 headers: { 'Content-Type': 'application/json' }
             });
             response = await response.json();
-            this.messages = response.mml_chain
+            this.messages = response.msgs_chain
             this.selectedPlConversationId = _selectedPlConversationId;
         },
         createNewConversation() {
@@ -89,7 +89,7 @@ export const useGlobalStore = defineStore('globalStore', {
             return this.conversations.reduce((acc, current) => acc.concat([current.id]), [])
         },
         waitingForResponse() {
-            const msgs = this.messages
+            const msgs = this.messages || [];
             return !msgs.length ||
             (msgs[msgs.length - 1].sender.type === 'human') ||
             (msgs[msgs.length - 1].sender.type === 'bot' &&
