@@ -30,7 +30,7 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
-            <Card v-for="item in items.results" @edit="(id) => emit('editing', id)" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
+            <Card v-for="item in items.results" @edit="(id) => emit('editing', id)" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema" @deleted="_updateListFromDel">
                 <template v-slot:extra-card-bottom="{item}">
                     <slot name="extra-card-bottom" :item="item"></slot>
                 </template>
@@ -262,10 +262,18 @@ function sortChange({column, prop, order}) {
 
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
+    const deleted = await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
+    if (deleted) {
+        await _updateListFromDel(deleting.value)
+    }
     deleting.value = undefined;
     deleteDialogVisible.value = false
 }
+async function _updateListFromDel(id) {
+    items.value.results = items.value.results.filter(item => item.id.toString() !== id.toString())
+    await resolveTableRowProps(items.value.results)
+}
+
 </script>
 
 <style lang="scss">

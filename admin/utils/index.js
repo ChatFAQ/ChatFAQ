@@ -85,7 +85,7 @@ export async function solveRefPropValue(item, propName, itemSchema) {
 export async function deleteItem(id, itemsStore, apiUrl, $t) {
     try {
         itemsStore.loading = true;
-        await itemsStore.deleteItem(apiUrl, id);
+        await itemsStore.deleteItem(apiUrl, id, false);
         itemsStore.loading = false;
     } catch (e) {
         itemsStore.loading = false;
@@ -95,7 +95,7 @@ export async function deleteItem(id, itemsStore, apiUrl, $t) {
             type: "error",
             position: "top-right",
         });
-        return;
+        return false;
     }
     ElNotification({
         title: "Success",
@@ -103,6 +103,7 @@ export async function deleteItem(id, itemsStore, apiUrl, $t) {
         type: "success",
         position: "top-right",
     });
+    return true;
 }
 
 
