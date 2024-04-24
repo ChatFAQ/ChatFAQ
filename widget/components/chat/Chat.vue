@@ -135,13 +135,13 @@ function createConnection() {
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
+        deleteHeartbeat();
         if (plConversationId !== store.selectedPlConversationId)
             return;
         store.disconnected = true;
         setTimeout(function () {
             createConnection();
         }, 1000);
-        deleteHeartbeat()
     };
 }
 
