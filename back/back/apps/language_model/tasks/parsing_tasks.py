@@ -1,7 +1,6 @@
 from logging import getLogger
 
 import ray
-from django.apps import apps
 from django.db import transaction
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
@@ -63,13 +62,12 @@ def parse_pdf_task(ds_pk):
     k_items : list
         A list of KnowledgeItem objects.
     """
+    from back.apps.language_model.models import DataSource, KnowledgeItem, KnowledgeItemImage
 
     logger.info("Parsing PDF file...")
     logger.info(f"PDF file pk: {ds_pk}")
 
-    DataSource = apps.get_model("language_model", "DataSource")
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
-    KnowledgeItemImage = apps.get_model("language_model", "KnowledgeItemImage")
+   
     ds = DataSource.objects.get(pk=ds_pk)
     pdf_file = ds.original_pdf.read()
     strategy = ds.get_strategy().value

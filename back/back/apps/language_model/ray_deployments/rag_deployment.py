@@ -1,11 +1,23 @@
 import json
 
+import ray
 from ray import serve
 from ray.serve.handle import DeploymentHandle
+from ray.serve.config import HTTPOptions, ProxyLocation
+
 from starlette.responses import StreamingResponse
 from starlette.requests import Request
 
-    
+from back.apps.language_model.models.enums import (
+    DeviceChoices,
+    RetrieverTypeChoices,
+)
+from .e5_deployment import launch_e5
+from .colbert_deployment import launch_colbert
+from logging import getLogger
+
+logger = getLogger(__name__)
+  
 
 @serve.deployment(
     name="rag_orchestrator",
@@ -66,7 +78,8 @@ class RAGDeployment:
             media_type="application/json",
             status_code=200,
         )
-    
+
+
 def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
 
     print(f'Got retriever handle: {retriever_handle}')
@@ -79,3 +92,73 @@ def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
     route_prefix = f'/rag/{rag_deploy_name}'
     serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name)
     print(f'Launched all deployments')
+
+
+@ray.remote(num_cpus=0.2, resources={"tasks": 1})
+def delete_rag_deployment(rag_deploy_name):
+    """
+    Delete the RAG deployment Ray Serve.
+    """
+    if serve.status().applications:
+        serve.delete(rag_deploy_name)
+        try:
+            app_handle = serve.get_app_handle(rag_deploy_name)
+            # if it doesn't return error it means the deployment is still running
+            print(f"{rag_deploy_name} could not be deleted, so it doesn't exist or it is still running.")
+        except:
+            print(f'{rag_deploy_name} was deleted successfully')
+
+    # If all deployments are deleted, shutdown the serve instance
+    if not serve.status().applications:
+        serve.shutdown()
+
+
+@ray.remote(num_cpus=0.5, resources={"tasks": 1})
+def launch_rag_deployment(rag_config_id):
+    """
+    Launch the RAG deployment using Ray Serve.
+    """
+    from django.conf import settings
+    from back.apps.language_model.models import RAGConfig
+    from logging import getLogger
+
+    logger2 = getLogger(__name__)
+
+
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    rag_deploy_name = rag_config.get_deploy_name()
+
+    # delete the deployment if it already exists
+    task_name = f'delete_rag_deployment_{rag_deploy_name}'
+    print(f"Submitting the {task_name} task to the Ray cluster...")
+    logger.info('#'*50)
+    logger.warning('>'*50)
+    logger2.info('*'*50)
+    logger2.warning('$'*50)
+    # Need to wait for the task to finish before launching the new deployment
+    ray.get(delete_rag_deployment.options(name=task_name).remote(rag_deploy_name))
+
+    if not serve.status().applications:
+        http_options = HTTPOptions(host="0.0.0.0", port=settings.RAY_SERVE_PORT)  # Connect to local cluster or to local Ray driver (both by default run in the same addresses)
+        proxy_location = ProxyLocation(ProxyLocation.EveryNode)
+
+        serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)
+
+    retriever_type = rag_config.retriever_config.get_retriever_type()
+    retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
+
+    if retriever_type == RetrieverTypeChoices.E5:
+        model_name = rag_config.retriever_config.model_name
+        use_cpu = rag_config.retriever_config.get_device() == DeviceChoices.CPU
+        lang = rag_config.knowledge_base.get_lang().value
+        retriever_handle = launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang)
+
+    elif retriever_type == RetrieverTypeChoices.COLBERT:
+        retriever_handle = launch_colbert(retriever_deploy_name, rag_config.s3_index_path)
+
+    else:
+        raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
+
+    llm_name = rag_config.llm_config.llm_name
+    llm_type = rag_config.llm_config.get_llm_type().value
+    launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)

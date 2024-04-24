@@ -5,6 +5,7 @@ from urllib.parse import quote as urlquote
 from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
 from dotenv import load_dotenv
+import ray
 
 load_dotenv()
 
@@ -13,6 +14,10 @@ INSTALLED_APPS = []
 LOGGING = {}
 STORAGES_MODE = os.getenv("STORAGES_MODE")
 LOCAL_STORAGE = STORAGES_MODE == "local"
+
+if not ray.is_initialized() and os.getenv('RUN_MAIN'):
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end")
 
 
 def get_package_version() -> str:

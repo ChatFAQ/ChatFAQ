@@ -1,3 +1,4 @@
+import uuid
 from django_celery_results.models import TaskResult
 from rest_framework import viewsets
 from django_filters.rest_framework.backends import DjangoFilterBackend
@@ -6,6 +7,7 @@ from django.http import JsonResponse
 from rest_framework.decorators import action
 from back.apps.language_model.serializers.tasks import TaskResultSerializer
 from back.apps.language_model.tasks import test_task
+from back.utils.ray_connection import connect_to_ray_cluster
 
 
 class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
@@ -26,5 +28,6 @@ class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"])
     def launch_test_task(self, request):
-        test_task.delay()
+        with connect_to_ray_cluster():
+            test_task.options(name="test_task").remote(uuid.uuid4())
         return JsonResponse({"res": "ok"}, safe=False)

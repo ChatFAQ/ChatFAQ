@@ -2,6 +2,10 @@ import os
 
 import ray
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 @ray.remote(num_cpus=0.001)
 def get_filesystem(storages_mode):
     """
@@ -96,11 +100,28 @@ def read_s3_index(index_path, storages_mode):
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def test_task(argument_one):
-    import time
+    from logging import getLogger
+    import django
+    import os
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+    django.setup()
+    print("Django setup complete")
+
     print("with arg: ", argument_one, "start")
-    time.sleep(0.1)
     print("with arg: ", argument_one, "finished")
 
+    logger2 = getLogger(__name__)
+
+    logger.info('#'*50)
+    logger.warning('>'*50)
+    logger2.info('*'*50)
+    logger2.warning('$'*50)
+
     from back.apps.language_model.models import RAGConfig
-    print("Number of RAGConfigs: ", RAGConfig.objects.all().count())        
+    print("Number of RAGConfigs: ", RAGConfig.objects.all().count())     
+
+    import time
+
+    time.sleep(10)
+
     return RAGConfig.objects.all().count()

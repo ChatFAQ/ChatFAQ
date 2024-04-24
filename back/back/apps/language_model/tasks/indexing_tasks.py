@@ -5,8 +5,6 @@ from logging import getLogger
 
 import pandas as pd
 import ray
-from django.apps import apps
-from django.conf import settings
 from django.db.models import F
 
 from back.apps.language_model.models.enums import (
@@ -14,13 +12,8 @@ from back.apps.language_model.models.enums import (
     RetrieverTypeChoices,
 )
 
-
-from back.apps.language_model.tasks import (
-    generate_embeddings as ray_generate_embeddings,
-    ColBERTActor,
-)
-from back.config.celery import app
-from back.utils.ray_connection import connect_to_ray_cluster
+from back.apps.language_model.ray_deployments import launch_rag_deployment
+from .colbert_actor import ColBERTActor
 
 logger = getLogger(__name__)
 
@@ -46,7 +39,6 @@ def generate_embeddings(data):
     return embeddings
 
 
-
 def get_modified_k_items_ids(rag_config):
     """
     Get the ids of the k items that have been modified.
@@ -59,7 +51,7 @@ def get_modified_k_items_ids(rag_config):
     modified_k_item_ids : list
         A list of primary keys of the KnowledgeItem objects.
     """
-    Embedding = apps.get_model("language_model", "Embedding")
+    from back.apps.language_model.models import Embedding
 
     modified_k_item_ids = list(
         Embedding.objects.filter(
@@ -81,7 +73,7 @@ def generate_embeddings(k_items, rag_config):
     ragconfig_id : int
         The primary key of the RAGConfig object.
     """
-    Embedding = apps.get_model("language_model", "Embedding")
+    from back.apps.language_model.models import Embedding
 
     model_name = rag_config.retriever_config.model_name
     batch_size = rag_config.retriever_config.batch_size
@@ -104,7 +96,7 @@ def generate_embeddings(k_items, rag_config):
     # Submit the task to the Ray cluster
     num_gpus = 1 if device == "cuda" else 0
     task_name = f"generate_embeddings_{rag_config.name}"
-    embeddings_ref = ray_generate_embeddings.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(data)
+    embeddings_ref = generate_embeddings.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(data)
     embeddings = ray.get(embeddings_ref)
 
     new_embeddings = [
@@ -129,8 +121,7 @@ def index_e5(rag_config):
     rag_config_id : int
         The primary key of the RAGConfig object.
     """
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
-    Embedding = apps.get_model("language_model", "Embedding")
+    from back.apps.language_model.models import Embedding, KnowledgeItem
 
     # When a k item is deleted, its embedding is also deleted in cascade, so we need to remove the embeddings of only the modified k items
     # get the modified k items ids
@@ -151,6 +142,7 @@ def index_e5(rag_config):
 
 def get_indexed_k_items_ids(s3_index_path):
 
+    from django.conf import settings
     from back.config.storage_backends import select_private_storage
 
 
@@ -219,11 +211,9 @@ def modify_index(rag_config):
     rag_config_id : int
         The primary key of the RAGConfig object.
     """
-
+    from django.conf import settings
     from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
-
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
-    Embedding = apps.get_model("language_model", "Embedding")
+    from back.apps.language_model.models import Embedding, KnowledgeItem
 
     s3_index_path = rag_config.s3_index_path
     index_path = construct_index_path(rag_config.s3_index_path)
@@ -317,7 +307,9 @@ def modify_index(rag_config):
             rag_config.save()
 
             # delete the old index files
-            delete_index_files(s3_index_path)
+            task_name = f"delete_index_files_{rag_config.name}"
+            print(f"Submitting the {task_name} task to the Ray cluster...")
+            delete_index_files.options(name=task_name).remote(s3_index_path)
 
         if not index_saved:
             raise Exception("Failed to save index.")
@@ -338,10 +330,9 @@ def creates_index(rag_config):
     rag_config_id : int
         The primary key of the RAGConfig object.
     """
+    from django.conf import settings
     from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
-
-    Embedding = apps.get_model("language_model", "Embedding")
-    KnowledgeItem = apps.get_model("language_model", "KnowledgeItem")
+    from back.apps.language_model.models import Embedding, KnowledgeItem
 
     k_items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
 
@@ -405,7 +396,7 @@ def index_colbert(rag_config):
         The primary key of the RAGConfig object.
     """
 
-    Embedding = apps.get_model("language_model", "Embedding")
+    from back.apps.language_model.models import Embedding
 
     if Embedding.objects.filter(
         rag_config=rag_config
@@ -416,48 +407,7 @@ def index_colbert(rag_config):
         creates_index(rag_config=rag_config)
 
 
-@ray.remote(num_cpus=0.5, resources={"tasks": 1})
-def index_task(rag_config_id, launch_rag_deploy: bool = False):
-    """
-    Build the index for a knowledge base.
-    Parameters
-    ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
-    launch_rag_deploy : bool
-        Whether to launch the RAG deployment after the index is built.
-    """
-
-    with connect_to_ray_cluster(close_serve=launch_rag_deploy):
-
-        RAGConfig = apps.get_model("language_model", "RAGConfig")
-        rag_config = RAGConfig.objects.get(pk=rag_config_id)
-
-        retriever_type = rag_config.retriever_config.get_retriever_type()
-
-        # if no_index, remove all rag config embeddings for a clean start and no leftovers
-        if rag_config.get_index_status() == IndexStatusChoices.NO_INDEX:
-            Embedding = apps.get_model("language_model", "Embedding")
-            Embedding.objects.filter(rag_config=rag_config).delete()
-
-            # remove the index files from S3
-            delete_index_files(rag_config.s3_index_path)
-
-        if retriever_type == RetrieverTypeChoices.E5:
-            index_e5(rag_config)
-        elif retriever_type == RetrieverTypeChoices.COLBERT:
-            index_colbert(rag_config)
-
-        rag_config.index_status = IndexStatusChoices.UP_TO_DATE
-        rag_config.save()
-
-        logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
-
-        # launch rag
-        if launch_rag_deploy:
-            launch_rag_deployment(rag_config_id)
-
-
+@ray.remote(num_cpus=0.2, resources={"tasks": 1})
 def delete_index_files(s3_index_path):
     """
     Delete the index files from S3.
@@ -466,6 +416,7 @@ def delete_index_files(s3_index_path):
     s3_index_path : str
         The unique index path.
     """
+    from django.conf import settings
     from back.config.storage_backends import select_private_storage
     import shutil
 
@@ -492,7 +443,45 @@ def delete_index_files(s3_index_path):
             logger.info(f"Index files deleted from S3: {s3_index_path}")
 
 
-@app.task()
-def delete_index_files_task(s3_index_path):
-    delete_index_files(s3_index_path)
+@ray.remote(num_cpus=0.5, resources={"tasks": 1})
+def index_task(rag_config_id, launch_rag_deploy: bool = False):
+    """
+    Build the index for a knowledge base.
+    Parameters
+    ----------
+    rag_config_id : int
+        The primary key of the RAGConfig object.
+    launch_rag_deploy : bool
+        Whether to launch the RAG deployment after the index is built.
+    """
+    from back.apps.language_model.models import RAGConfig, Embedding
 
+
+    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+
+    retriever_type = rag_config.retriever_config.get_retriever_type()
+
+    # if no_index, remove all rag config embeddings for a clean start and no leftovers
+    if rag_config.get_index_status() == IndexStatusChoices.NO_INDEX:
+        Embedding.objects.filter(rag_config=rag_config).delete()
+
+        # remove the index files from S3
+        task_name = f"delete_index_files_{rag_config.name}"
+        print(f"Submitting the {task_name} task to the Ray cluster...")
+        delete_index_files.options(name=task_name).remote(rag_config.s3_index_path)
+
+    if retriever_type == RetrieverTypeChoices.E5:
+        index_e5(rag_config)
+    elif retriever_type == RetrieverTypeChoices.COLBERT:
+        index_colbert(rag_config)
+
+    rag_config.index_status = IndexStatusChoices.UP_TO_DATE
+    rag_config.save()
+
+    logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
+
+    # launch rag
+    if launch_rag_deploy:
+        task_name = f"launch_rag_deployment_{rag_config.name}"
+        print(f"Submitting the {task_name} task to the Ray cluster...")
+        launch_rag_deployment.options(name=task_name).remote(rag_config_id)

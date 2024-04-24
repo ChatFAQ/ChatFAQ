@@ -1,8 +1,8 @@
 from typing import Optional
 import os
 
-from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 import ray
+from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 
 from back.apps.language_model.tasks import read_s3_index, get_filesystem
 

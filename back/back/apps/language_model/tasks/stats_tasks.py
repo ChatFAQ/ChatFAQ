@@ -1,6 +1,5 @@
 from logging import getLogger
 
-from django.apps import apps
 from django.db.models import F
 import ray
 
@@ -30,10 +29,7 @@ def calculate_rag_stats_task(rag_config_id, dates_ranges=[(None, None)]):
         calculate_retriever_stats,
     )
 
-    Message = apps.get_model("broker", "Message")
-    AdminReview = apps.get_model("broker", "AdminReview")
-    UserFeedback = apps.get_model("broker", "UserFeedback")
-
+    from back.apps.broker.models.message import Message, AdminReview, UserFeedback
 
     all_retriever_stats = []
     all_quality_stats = []
@@ -132,7 +128,7 @@ def calculate_usage_stats_task(rag_config_id=None, dates_ranges=[(None, None)]):
 
     from back.apps.language_model.stats import calculate_usage_stats
 
-    Message = apps.get_model("broker", "Message")
+    from back.apps.broker.models.message import Message
 
     all_usage_stats = []
 

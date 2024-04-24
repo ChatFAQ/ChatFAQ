@@ -31,24 +31,24 @@ map_ray_to_celery_status_task = { # SUCCESS, STARTED, WAITING, FAILURE
     "FAILED": "FAILURE"
 }
 
-def django_setup():
-    """
-    Setup Django environment for Ray workers.
-    """
-    import django
-    import os
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
-    django.setup()
-    print("Django setup complete")
-
 @contextmanager
-def connect_to_ray_cluster(close_serve=False):
+def connect_to_ray_cluster():
     """
     Connect to a Ray cluster as a client or as a driver.
     If the RAY_ADDRESS environment variable is set, connect as a client.
     Otherwise, connect as a driver.
     It's important to disconnect from the cluster after using it, to avoid connection leaks.
     """
+
+    def django_setup():
+        """
+        Setup Django environment for Ray workers.
+        """
+        import django
+        import os
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+        django.setup()
+        print("Django setup complete")
 
     initialized = ray.is_initialized()
     n = random.randint(0, 10000)
@@ -65,9 +65,6 @@ def connect_to_ray_cluster(close_serve=False):
         if initialized:
             ray.shutdown()
             logger.info(f'Driver disconnected from the Ray cluster {n}')
-            if close_serve:
-                serve.shutdown()
-                logger.info(f'Serve shutdown {n}')
         else:
             logger.info(f'Driver still connected to the Ray cluster {n}')
 

@@ -12,7 +12,9 @@ from back.apps.language_model.models.enums import IndexStatusChoices, DeviceChoi
 from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from back.common.models import ChangesMixin
 
-from back.apps.language_model.tasks import index_task, launch_rag_deployment_task
+from back.utils.ray_connection import connect_to_ray_cluster
+from back.apps.language_model.tasks import index_task
+from back.apps.language_model.ray_deployments import launch_rag_deployment
 
 from logging import getLogger
 
@@ -91,14 +93,20 @@ class RAGConfig(ChangesMixin):
 
         if redeploy_rag:
             def on_commit_callback():
-                launch_rag_deployment_task.delay(self.id)
+                with connect_to_ray_cluster():
+                    task_name = f"launch_rag_deployment_{self.name}"
+                    print(f"Submitting the {task_name} task to the Ray cluster...")
+                    launch_rag_deployment.options(name=task_name).remote(self.id)
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
 
     def trigger_reindex(self):
         launch_rag_deploy = not self.disabled # If the RAG is disabled we don't want to launch the deployment
-        index_task.delay(self.id, launch_rag_deploy=launch_rag_deploy)  # Trigger the Celery task
+        with connect_to_ray_cluster():
+            task_name = f"index_task_{self.name}"
+            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+            index_task.options(name=task_name).remote(self.id, launch_rag_deploy)  # Trigger the Celery task
 
     def retrieve_kitems(self, query_embedding, threshold, top_k):
         """
@@ -191,9 +199,12 @@ class RetrieverConfig(ChangesMixin):
         if rags_to_redeploy:
             def on_commit_callback():
                 logger.info('Retriever device changed, launching rag redeploys')
-                for rag in rags_to_redeploy:
-                    if not rag.disabled:
-                        launch_rag_deployment_task.delay(rag.id)
+                with connect_to_ray_cluster():
+                    for rag in rags_to_redeploy:
+                        if not rag.disabled:
+                            task_name = f"launch_rag_deployment_{rag.name}"
+                            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+                            launch_rag_deployment.options(name=task_name).remote(rag.id)
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
@@ -260,9 +271,12 @@ class LLMConfig(ChangesMixin):
         if rags_to_redeploy:
             def on_commit_callback():
                 logger.info('LLM changed, launching rag redeploys')
-                for rag in rags_to_redeploy:
-                    if not rag.disabled:
-                        launch_rag_deployment_task.delay(rag.id)
+                with connect_to_ray_cluster():
+                    for rag in rags_to_redeploy:
+                        if not rag.disabled:
+                            task_name = f"launch_rag_deployment_{rag.name}"
+                            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+                            launch_rag_deployment.options(name=task_name).remote(rag.id)
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
