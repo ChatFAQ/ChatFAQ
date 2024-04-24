@@ -49,7 +49,7 @@ const itemsStore = useItemsStore();
 const deleting = ref(undefined);
 const deleteDialogVisible = ref(false);
 const { $axios } = useNuxtApp();
-const emit = defineEmits(["delete", "edit"]);
+const emit = defineEmits(["deleted", "edit"]);
 
 const props = defineProps({
     item: {
@@ -91,10 +91,11 @@ function createTitle(item) {
 }
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
+    const deleted = await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
     deleting.value = undefined;
     deleteDialogVisible.value = false;
-    emit("delete", props.item.id);
+    if (deleted)
+        emit("deleted", props.item.id);
 }
 
 async function resolveCardProps() {

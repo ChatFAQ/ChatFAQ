@@ -1,4 +1,4 @@
-sdk_env_example
+sdk_env-template
 ======================
 
-.. literalinclude:: ../../../../sdk/examples/.env_example
+.. literalinclude:: ../../../../sdk/examples/.env-template

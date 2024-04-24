@@ -42,6 +42,5 @@ class ExampleWSSerializer(BotMessageSerializer):
         return s.save()
 
     @staticmethod
-    def to_platform(mml: "Message", ctx: BotConsumer) -> dict:
-        s = MessageSerializer(mml)
-        yield s.data
+    def to_platform(data: dict, ctx: BotConsumer) -> dict:
+        yield data

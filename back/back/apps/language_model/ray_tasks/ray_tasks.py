@@ -48,6 +48,9 @@ def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
 
     parsed_items = parse_pdf_method(file=pdf_file, strategy=strategy, split_function=splitter)
 
+    # from knowledge item to dict
+    parsed_items = [item.model_dump() for item in parsed_items]
+
     return parsed_items
 
 
@@ -59,6 +62,9 @@ def parse_html(html_text, splitter, chunk_size, chunk_overlap):
     splitter = get_splitter(splitter, chunk_size, chunk_overlap)
 
     k_items = parse_html_method(text=html_text, split_function=splitter)
+
+    # from knowledge item to dict
+    k_items = [item.model_dump() for item in k_items]
 
     return k_items
 
@@ -376,7 +382,7 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
         embeddings = e5_model.build_embeddings(queries, prefix='query: ', batch_size=batch_size)
 
         token = os.getenv('BACKEND_TOKEN')
-        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
 
         headers = {'Authorization': f'Token {token}'}
 

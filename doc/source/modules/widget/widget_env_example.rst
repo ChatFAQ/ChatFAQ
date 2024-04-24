@@ -1,4 +1,4 @@
-widget_env_example
+widget_env-template
 ======================
 
-.. literalinclude:: ../../../../widget/.env_example
+.. literalinclude:: ../../../../widget/.env-template

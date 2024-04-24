@@ -36,10 +36,17 @@ class RAGDeployment:
             "mistral": AsyncMistralChatModel,
             "openai": AsyncOpenAIChatModel,
             "vllm": AsyncVLLMModel,
+            "together": AsyncOpenAIChatModel,
         }
 
         retriever = self.RetrieverHandleClient(retriever_handle)
-        llm_model = LLM_CLASSES[llm_type](llm_name)
+
+        # For Together model, we need to set the base_url
+        base_url = None
+        if llm_type == "together":
+            base_url="https://api.together.xyz/v1"
+
+        llm_model = LLM_CLASSES[llm_type](llm_name, base_url=base_url)
         self.rag = AsyncRAG(retriever=retriever, llm_model=llm_model)
 
     async def gen_response(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=False):

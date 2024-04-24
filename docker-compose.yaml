@@ -43,7 +43,8 @@ services:
       - chatfaq_db_net
       - chatfaq_back_net
       - chatfaq_state_machine_net
-
+    # volumes:
+    #   - ./back/back:/back
   celery:
     build:
       context: back
@@ -54,34 +55,38 @@ services:
     depends_on:
       - back
     networks:
-      - chatfaq_back_net
+      - default
+      - chatfaq_celery_net
       - chatfaq_db_net
-    command:
-        - modelw-docker
-        - run
-        - python
-        - -m
-        - celery
-        - -A
-        - back.config
-        - worker
-        - -l
-        - INFO
-        - --pool
-        - threads
+
+    environment:
+        - IS_CELERY=1
+    # volumes:
+    #   - ./back/back:/back
 
   ray:
     image: chatfaq/chatfaq-cpu:2024.04
     container_name: chatfaq_ray
-    command: ["ray", "start", "--head", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
+    command: ["ray", "start", "--head", "--dashboard-host", "0.0.0.0", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
     ports:
       - 8265:8265
-      - 8265:8265
+      - 6375:6375
       - 10001:10001
-      - 10002:8001
+      - 10002:10002
+      - 8001:8001
     networks:
       - default
-      - chatfaq_back_net
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: 4
+          memory: 4G
+    # extra_hosts:
+    #     - host.docker.internal:host-gateway
 
   # vllm:
   #   image: vllm/vllm-openai:latest
@@ -104,7 +109,9 @@ services:
       - back
     networks:
       - chatfaq_state_machine_net
-      - chatfaq_back_net
+    volumes:
+      - ./sdk/chatfaq_sdk:/chatfaq_sdk
+      - ./sdk/examples:/examples
 
   widget:
     build:
@@ -118,7 +125,7 @@ services:
       - 3003:3000
     networks:
       - default
-      - chatfaq_back_net
+
   admin:
     build:
       context: admin
@@ -131,13 +138,12 @@ services:
       - 3000:3000
     networks:
       - default
-      - chatfaq_back_net
 
 volumes:
   chatfaq_db_data:
 
 networks:
-  chatfaq_db_net:  # postgres, back
-  chatfaq_back_net:  # back, widget
-  chatfaq_state_machine_net:  # back, state-machine
-
+  chatfaq_db_net:
+  chatfaq_back_net:
+  chatfaq_state_machine_net:
+  chatfaq_celery_net:

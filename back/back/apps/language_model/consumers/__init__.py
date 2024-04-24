@@ -30,7 +30,8 @@ def format_msgs_chain_to_llm_context(msgs_chain):
                 else:
                     logger.warning(f"Stack type {stack['type']} for sender {msg['sender']['type']} is not supported for LLM contextualization.")
 
-            messages.append({"role": "user", "content": text})
+            if text:
+                messages.append({"role": "user", "content": text})
         elif msg.sender["type"] == AgentType.bot.value:
             text = ""
             for stack in msg.stack:
@@ -38,7 +39,8 @@ def format_msgs_chain_to_llm_context(msgs_chain):
                     text += stack['payload']['model_response']
                 else:
                     logger.warning(f"Stack type {stack['type']} for sender {msg.sender['type']} is not supported for LLM contextualization.")
-            messages.append({"role": "assistant", "content": text})
+            if text:
+                messages.append({"role": "assistant", "content": text})
 
     return messages
 
@@ -47,8 +49,8 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     """
     # for debuggin purposes send 100 messages waiting 0.1 seconds between each one
     import asyncio
-    for i in range(100):
-        await asyncio.sleep(0.1)
+    for i in range(200):
+        await asyncio.sleep(0.01)
         yield {"model_response": f"Message {i}", "references": {}, "final": False}
     yield {"model_response": "End of messages", "references": {}, "final": True}
 
@@ -66,7 +68,7 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     g_conf.pop("id")
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-    prev_kis = conv.get_kis()
+    prev_kis = await database_sync_to_async(conv.get_kis)()
 
     messages = ""
     if use_conversation_context:
@@ -82,14 +84,15 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         "only_context": only_context
     }
 
+    print('#' * 80)
+    print(request_data)
+    print('#' * 80)
+
     rag_url = rag_conf.get_ray_endpoint()
     reference_kis = None
 
     logger.info(f"{'>' * 80}\n"
-                f"Input query: {input_text if input_text else messages[-1]['content']}\n"
-                f"Prompt config: {p_conf}\n"
-                f"Generation config: {g_conf}\n"
-                f"Querying RAG {rag_conf.name} at {rag_url}\n"
+                f"Request data: {request_data}"
                 f"{'<' * 80}")
 
     try:

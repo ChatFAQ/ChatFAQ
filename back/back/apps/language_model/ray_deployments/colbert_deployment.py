@@ -6,7 +6,6 @@ from ray import serve
 from django.conf import settings
 
 
-from ragatouille import RAGPretrainedModel
 from back.apps.language_model.ray_tasks import read_s3_index
 
 
@@ -26,6 +25,8 @@ class ColBERTDeployment:
 
     def __init__(self, index_path, remote_ray_cluster, storages_mode):
         from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
+        from ragatouille import RAGPretrainedModel
+
 
         self.clean_relevant_references = clean_relevant_references
 

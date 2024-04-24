@@ -627,28 +627,28 @@ def parse_pdf_task(ds_pk):
             knowledge_item = KnowledgeItem(
                 knowledge_base=ds.knowledge_base,
                 data_source=ds,
-                title=item.title,
-                content=item.content,  # alnaf [[Image 0]] a;mda [[Image 2]]
-                url=item.url,
-                section=item.section,
-                page_number=item.page_number,
-                metadata=item.metadata,
+                title=item['title'],
+                content=item['content'],  # alnaf [[Image 0]] a;mda [[Image 2]]
+                url=item['url'],
+                section=item['section'],
+                page_number=item['page_number'],
+                metadata=item['metadata'],
             )
             knowledge_item.save()
 
             # For each image in the item, create and save a KnowledgeItemImage instance
-            if item.images:
-                for index, image in item.images.items():
+            if item['images']:
+                for index, image in item['images'].items():
                     image_instance = KnowledgeItemImage(
-                        image_base64=image.image_base64,
+                        image_base64=image['image_base64'],
                         knowledge_item=knowledge_item,
-                        image_caption=image.image_caption,
+                        image_caption=image['image_caption'],
                     )
                     image_instance.save()
 
                     # If the image does not have a caption, use a default caption
                     image_caption = (
-                        image.image_caption if image.image_caption else f"Image {index}"
+                        image['image_caption'] if image['image_caption'] else f"Image {index}"
                     )
 
                     # Replace the placeholder image with the actual image markdown

@@ -67,6 +67,25 @@ class LMGeneratedText(Layer):
         self.only_context = only_context
 
     async def build_payloads(self, ctx, data):
+        """
+        # testing fake results loop with async sleep every second:
+        import uuid
+        import asyncio
+        lm_msg_id = str(uuid.uuid4())
+        for i in range(200):
+            yield [
+                {
+                    "payload": {
+                        "model_response": f"{i}-",
+                        "references": {},
+                        "rag_config_name": self.rag_config_name,
+                        "lm_msg_id": lm_msg_id,
+                    }
+                }
+            ], False if i < 200 else True
+            await asyncio.sleep(0.01)
+        return
+        """
         logger.debug(f"Waiting for LLM...")
 
         await ctx.send_llm_request(

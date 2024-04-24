@@ -36,43 +36,13 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last = serializers.BooleanField(default=False)
 
-    def save_as_mml(self, **kwargs):
-        if not self.is_valid():
-            raise serializers.ValidationError("RPCResultSerializer is not valid")
-        if self.validated_data["node_type"] != RPCNodeType.action.value:
-            raise serializers.ValidationError("RPCResultSerializer is not an action")
-
-        # Check if extists already a message with the same stack_id, if so we append the new stack to the existing one
-        message = Message.objects.filter(stack_id=self.validated_data["stack_id"]).first()
-        if message is not None and self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
-            more_model_response = self.validated_data["stack"][0]['payload']['model_response']
-            old_payload = message.stack[0]['payload']
-            self.validated_data["stack"][0]['payload']['rag_config_id'] = old_payload['rag_config_id']
-            self.validated_data["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
-            message.stack = self.validated_data["stack"]
-            message.last = self.validated_data["last"]
-            message.save()
-            return message
-        else:
-            data = {
-                "sender": {
-                    "type": AgentType.bot.value,
-                },
-                "confidence": 1,
-                "stack": self.validated_data["stack"],
-                "stack_id": self.validated_data["stack_id"],
-                "last": self.validated_data["last"],
-                "conversation": self.validated_data["ctx"]["conversation_id"],
-                "send_time": int(time.time() * 1000),
-            }
-            if self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
-                rag_config_id = RAGConfig.objects.get(name=self.validated_data['stack'][0]['payload']['rag_config_name']).id
-                data['stack'][0]['payload']["rag_config_id"] = rag_config_id
-            if self.validated_data["ctx"]["user_id"] is not None:
-                data["receiver"] = {"type": AgentType.human.value, "id": self.validated_data["ctx"]["user_id"]}
-            serializer = MessageSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            return serializer.save(**kwargs)
+    def validate(self, attrs):
+        attrs['sender'] = {"type": AgentType.bot.value}
+        attrs['confidence'] = 1
+        attrs['send_time'] = int(time.time() * 1000)
+        if attrs.get("ctx", {}).get("user_id") is not None:
+            attrs["receiver"] = {"type": AgentType.human.value, "id": attrs["ctx"]["user_id"]}
+        return super().validate(attrs)
 
 
 class RPCLLMRequestSerializer(serializers.Serializer):

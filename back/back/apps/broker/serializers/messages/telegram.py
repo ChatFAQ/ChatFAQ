@@ -75,8 +75,8 @@ class TelegramMessageSerializer(BotMessageSerializer):
         return s.save()
 
     @staticmethod
-    def to_platform(mml: "Message", ctx: BotConsumer):
-        for layer in mml.stack:
+    def to_platform(data: "Message", ctx: BotConsumer):
+        for layer in data.stack:
             if layer.get("type") == "text":
                 data = {
                     "chat_id": ctx.conversation.platform_conversation_id,

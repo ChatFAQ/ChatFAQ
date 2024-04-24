@@ -85,11 +85,10 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
 
         await self.fsm.next_state()
 
-    async def send_response(self, mml: "Message"):
-        res = await database_sync_to_async(list)(self.serializer_class.to_platform(mml, self))
-        for data in res:
-            data["type"] = "response"
-            await self.channel_layer.group_send(self.get_group_name(), data)
+    async def send_response(self, data):
+        for _res in self.serializer_class.to_platform(data, self):
+            _res["type"] = "response"
+            await self.channel_layer.group_send(self.get_group_name(), _res)
 
     async def response(self, data: dict):
         await self.send(json.dumps(data))

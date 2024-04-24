@@ -59,7 +59,7 @@ class Conversation(ChangesMixin):
     def get_kis(self):
         chain = self.get_msgs_chain()
         msg_ids = chain.values_list('id', flat=True)
-        return KnowledgeItem.objects.filter(messageknowledgeitem__message_id__in=msg_ids).distinct().order_by("updated_date")
+        return KnowledgeItem.objects.prefetch_related('knowledgeitemimage_set').filter(messageknowledgeitem__message_id__in=msg_ids).distinct().order_by("updated_date")
 
     def get_last_msg(self):
         return (

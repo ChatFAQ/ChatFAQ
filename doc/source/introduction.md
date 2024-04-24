@@ -29,9 +29,9 @@ First of all we recommend to add to your hosts file (usually under `/etc/hosts`)
 
 Then you need to create the corresponding `.env` files for each service. You can see an example of those on:
 
-- [back/.env_example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/back/.env_example)
-- [sdk/.env_example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/sdk/.env_example)
-- [widget/.env_example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/widget/.env_example)
+- [back/.env-template](https://github.com/ChatFAQ/ChatFAQ/blob/develop/back/.env-template)
+- [sdk/.env-template](https://github.com/ChatFAQ/ChatFAQ/blob/develop/sdk/.env-template)
+- [widget/.env-template](https://github.com/ChatFAQ/ChatFAQ/blob/develop/widget/.env-template)
 
 
 Now you can run the migrations and the fixtures for the initial database data:
