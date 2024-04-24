@@ -3,10 +3,8 @@ from urllib.parse import urlparse
 
 from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
 from back.apps.language_model.models.data import DataSource
-from chat_rag.data.parsers import parse_html
-from chat_rag.data.splitters import get_splitter
-
-from back.utils.celery import recache_models
+from back.apps.language_model.ray_tasks import parse_html
+import ray
 
 
 class GenericSpider(scrapy.Spider):
@@ -22,7 +20,9 @@ class GenericSpider(scrapy.Spider):
             self.allowed_domains = list(set(self.allowed_domains))
 
         ds = DataSource.objects.get(id=data_source_id)
-        self.splitter = get_splitter(ds.splitter, ds.chunk_size, ds.chunk_overlap)
+        self.splitter = ds.splitter
+        self.chunk_size = ds.chunk_size
+        self.chunk_overlap = ds.chunk_overlap
         self.recursive = ds.recursive
 
         super().__init__(*a, **kw)
@@ -32,20 +32,19 @@ class GenericSpider(scrapy.Spider):
             yield scrapy.Request(url, meta={"playwright": True})
 
     def parse(self, response):
-        k_items = parse_html(text=response.text, split_function=self.splitter)
+        # Not the most efficient way
+        # TODO: try to launch multiple scrapy parse functions in parallel so that we can parse multiple pages at the same time
+        k_items = ray.get(parse_html.remote(response.text, self.splitter, self.chunk_size, self.chunk_overlap))
 
         for k_item in k_items:
             item_loader = CustomItemLoader(item=GenericItem())
-            item_loader.add_value("content", k_item.content)
-            item_loader.add_value("title", k_item.title)
+            item_loader.add_value("content", k_item['content'])
+            item_loader.add_value("title", k_item['title'])
             # item_loader.add_value("section", k_item.section) Current parser does not extract the section
-            item_loader.add_value("url", response.url.replace("http://localhost:8008/", "https://www.notion.so/withnotion/"))
-            item_loader.add_value("page_number", k_item.page_number)
+            item_loader.add_value("url", response['url'])
+            item_loader.add_value("page_number", k_item['page_number'])
             yield item_loader.load_item()
 
         if self.recursive:
             for link in response.xpath("//a"):
                 yield response.follow(link, callback=self.parse, meta={"playwright": True})
-
-    def spider_closed(self, spider):
-        recache_models("GenericSpider.spider_closed")

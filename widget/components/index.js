@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -21,6 +21,9 @@ class ChatfaqWidget {
         props['historyOpened'] = historyOpened
         props['widgetConfigId'] = widgetConfigId
         props['manageUserId'] = manageUserId
+        props['displayGeneration'] = displayGeneration
+        props['displaySources'] = displaySources
+        props['sourcesFirst'] = sourcesFirst
 
         if (userId)
             props['userId'] = userId;
@@ -50,6 +53,12 @@ class ChatfaqWidgetCustomElement extends HTMLElement {
             delete this.dataset.historyOpened
         if(this.dataset.manageUserId === "false")
             delete this.dataset.manageUserId
+        if(this.dataset.displayGeneration === "false")
+            delete this.dataset.displayGeneration
+        if(this.dataset.displaySources === "false")
+            delete this.dataset.displaySources
+        if(this.dataset.sourcesFirst === "false")
+            delete this.dataset.sourcesFirst
 
         const app = _buildApp(this.dataset);
         app.mount(this)

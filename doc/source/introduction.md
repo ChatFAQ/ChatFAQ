@@ -24,13 +24,14 @@ First of all we recommend to add to your hosts file (usually under `/etc/hosts`)
 
     127.0.0.1  postgres
     127.0.0.1  back
+    127.0.0.1  ray
     127.0.0.1  redis
 
 Then you need to create the corresponding `.env` files for each service. You can see an example of those on:
 
-- [back/.env_example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/back/.env_example)
-- [sdk/.env_example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/sdk/.env_example)
-- [widget/.env_example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/widget/.env_example)
+- [back/.env-template](https://github.com/ChatFAQ/ChatFAQ/blob/develop/back/.env-template)
+- [sdk/.env-template](https://github.com/ChatFAQ/ChatFAQ/blob/develop/sdk/.env-template)
+- [widget/.env-template](https://github.com/ChatFAQ/ChatFAQ/blob/develop/widget/.env-template)
 
 
 Now you can run the migrations and the fixtures for the initial database data:
@@ -44,7 +45,7 @@ Create a superuser on the backend (making sure you answer 'yes' to the question 
 
 Generate a ChatFAQ Token with the user and password you just created:
 
-    docker compose -f docker-compose.yaml -f docker-compose.vars.yaml run back curl -X POST -u <USER>:<PASSWORD> http://back:8000/back/api/login/
+    docker compose exec back curl -X POST -u <USER>:<PASSWORD> http://localhost:8000/back/api/login/
 
 Which will respond something as such:
 

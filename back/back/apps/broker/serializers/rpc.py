@@ -36,51 +36,49 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last = serializers.BooleanField(default=False)
 
-    def save_as_mml(self, **kwargs):
-        if not self.is_valid():
-            raise serializers.ValidationError("RPCResultSerializer is not valid")
-        if self.validated_data["node_type"] != RPCNodeType.action.value:
-            raise serializers.ValidationError("RPCResultSerializer is not an action")
-
-        # Check if extists already a message with the same stack_id, if so we append the new stack to the existing one
-        message = Message.objects.filter(stack_id=self.validated_data["stack_id"]).first()
-        if message is not None and self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
-            more_model_response = self.validated_data["stack"][0]['payload']['model_response']
-            old_payload = message.stack[0]['payload']
-            self.validated_data["stack"][0]['payload']['rag_config_id'] = old_payload['rag_config_id']
-            self.validated_data["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
-            message.stack = self.validated_data["stack"]
-            message.last = self.validated_data["last"]
-            message.save()
-            return message
-        else:
-            data = {
-                "sender": {
-                    "type": AgentType.bot.value,
-                },
-                "confidence": 1,
-                "stack": self.validated_data["stack"],
-                "stack_id": self.validated_data["stack_id"],
-                "last": self.validated_data["last"],
-                "conversation": self.validated_data["ctx"]["conversation_id"],
-                "send_time": int(time.time() * 1000),
-            }
-            if self.validated_data['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
-                rag_config_id = RAGConfig.objects.get(name=self.validated_data['stack'][0]['payload']['rag_config_name']).id
-                data['stack'][0]['payload']["rag_config_id"] = rag_config_id
-            if self.validated_data["ctx"]["user_id"] is not None:
-                data["receiver"] = {"type": AgentType.human.value, "id": self.validated_data["ctx"]["user_id"]}
-            serializer = MessageSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            return serializer.save(**kwargs)
+    def validate(self, attrs):
+        attrs['sender'] = {"type": AgentType.bot.value}
+        attrs['confidence'] = 1
+        attrs['send_time'] = int(time.time() * 1000)
+        if attrs.get("ctx", {}).get("user_id") is not None:
+            attrs["receiver"] = {"type": AgentType.human.value, "id": attrs["ctx"]["user_id"]}
+        return super().validate(attrs)
 
 
-class LLMRequestSerializer(serializers.Serializer):
+class RPCLLMRequestSerializer(serializers.Serializer):
+    """
+    Represents the LLM requests coming from the RPC server
+    Attributes
+    ----------
+    rag_config_name: str
+        The name of the RAG Config to use in the LLM to generate the text from
+    conversation_id: str
+        The conversation id to which the LLM response belongs
+    bot_channel_name: str
+        The bot channel name to which the LLM response should be sent back
+    input_text: str
+        The input text to generate the text from, it could be None in which case the LLM will generate a text from the previous messages passed as a context
+    use_conversation_context: bool
+        If True the LLM will use the previous messages as a context to generate the text (if the input_text is None this should be always True)
+    streaming: bool
+        Whether the LLM response should be streamed or not
+    only_context: bool
+        If True the LLM will only return the sources and no generation will be done
+    """
+
     rag_config_name = serializers.CharField()
-    input_text = serializers.CharField()
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
-    user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    input_text = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    use_conversation_context = serializers.BooleanField(default=True)
+    streaming = serializers.BooleanField(default=True)
+    only_context = serializers.BooleanField(default=False)
+
+    # If the input_text is None then use_conversation_context should always be True, check for that:
+    def validate(self, attrs):
+        if not attrs.get('input_text') and not attrs.get('use_conversation_context'):
+            raise serializers.ValidationError("If the input_text is None then use_conversation_context should be always True")
+        return attrs
 
 
 class RegisterParsersSerializer(serializers.Serializer):
@@ -107,7 +105,7 @@ class RPCFSMDefSerializer(serializers.Serializer):
 
 class RPCResponseSerializer(serializers.Serializer):
     """
-    Represents any message coming from the RPC server
+    Represents any result coming from the RPC server
     Attributes
     ----------
     type: str
@@ -118,7 +116,7 @@ class RPCResponseSerializer(serializers.Serializer):
     """
 
     type = serializers.ChoiceField(choices=[n.value for n in RPCMessageType])
-    data = serializers.JSONField(default=dict)
+    data = serializers.JSONField(default=dict)  # data = {rag_config_name, input_text, use_conversation_context, conversation_id, bot_channel_name}
 
 
 class ParseResponseSerializer(serializers.Serializer):

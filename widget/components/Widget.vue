@@ -55,7 +55,10 @@ const props = defineProps([
     "maximized",
     "fullScreen",
     "historyOpened",
-    "widgetConfigId"
+    "widgetConfigId",
+    "displayGeneration",
+    "displaySources",
+    "sourcesFirst"
 ]);
 let data = props
 
@@ -94,6 +97,12 @@ if (data.maximized !== undefined)
     store.maximized = data.maximized;
 if (data.historyOpened !== undefined)
     store.historyOpened = data.historyOpened;
+if (data.displayGeneration !== undefined)
+    store.displayGeneration = data.displayGeneration;
+if (data.displaySources !== undefined)
+    store.displaySources = data.displaySources;
+if (data.sourcesFirst !== undefined)
+    store.sourcesFirst = data.sourcesFirst;
 
 if (store.fullScreen) {
     store.opened = true

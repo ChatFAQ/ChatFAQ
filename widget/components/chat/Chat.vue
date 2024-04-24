@@ -4,7 +4,7 @@
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
                     :message="message"
-                    :key="message.id"
+                    :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
@@ -135,13 +135,13 @@ function createConnection() {
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
+        deleteHeartbeat();
         if (plConversationId !== store.selectedPlConversationId)
             return;
         store.disconnected = true;
         setTimeout(function () {
             createConnection();
         }, 1000);
-        deleteHeartbeat()
     };
 }
 

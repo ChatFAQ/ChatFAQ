@@ -29,8 +29,8 @@ const store = useGlobalStore();
 const copied = ref(false);
 
 async function copy() {
-    const stacks = store.getStacks(props.msgId)
-    const text = stacks.map(stack => stack.map(item => item.payload).join("\n")).join("\n")
+    const msg = store.getMessageById(props.msgId)
+    const text = msg.stack[0].payload.model_response
     navigator.clipboard.writeText(text);
     copied.value = true;
     setTimeout(() => {

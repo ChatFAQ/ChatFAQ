@@ -1,7 +1,7 @@
 <template>
     <div class="read-view-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
-        <Filters v-if="filtersSchema" :filtersSchema="filtersSchema" :key="readableName" ref="filtersEl"/>
+        <Filters @change="loadItems" v-if="filtersSchema" :initialFiltersValues="initialFiltersValues" :filtersSchema="filtersSchema" :key="readableName" ref="filtersEl"/>
         <div class="section-header">
             <slot name="legend" :total="items.results?.length">
                 <div class="item-count"> {{
@@ -15,7 +15,7 @@
             <div class="section-header-right">
                 <slot name="extra-actions"></slot>
                 <el-button v-if="!readOnly" class="add-button" :class="{'not-only-command': cardProps && tableProps}"
-                           type="primary" round plain @click="stateToAdd">+
+                           type="primary" round plain @click="emit('adding')">+
                     {{ $t("additem", {"readablename": readableName}).toUpperCase() }}
                 </el-button>
                 <div v-if="cardProps && tableProps" class="selected-icon card-view"
@@ -30,13 +30,13 @@
             </div>
         </div>
         <div class="cards-view" v-if="!itemsStore.tableMode && cardProps && requiredFilterSatisfied">
-            <Card v-for="item in items.results" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema">
+            <Card v-for="item in items.results" @edit="(id) => emit('editing', id)" :item="item" :cardProps="cardProps" :titleProps="titleProps" :apiUrl="apiUrl" :itemSchema="itemSchema" @deleted="_updateListFromDel">
                 <template v-slot:extra-card-bottom="{item}">
                     <slot name="extra-card-bottom" :item="item"></slot>
                 </template>
             </Card>
             <div class="box-card-add" :class="{'no-items': !items.results.length}"
-                 @click="stateToAdd">
+                 @click="emit('adding')">
                 <div class="box-card-add-content">
                     <el-icon>
                         <Plus/>
@@ -69,7 +69,7 @@
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" :width="$t('edit').length * 13">
                 <template #default="{ row }">
-                    <span class="command-edit" @click="itemsStore.editing = row.id">{{ $t("edit") }}</span>
+                    <span class="command-edit" @click="emit('editing', row.id)">{{ $t("edit") }}</span>
                 </template>
             </el-table-column>
             <el-table-column v-if="!readOnly" align="center" width="100">
@@ -82,7 +82,7 @@
         </el-table>
         <div v-if="itemsStore.tableMode && !readOnly" class="table-row-add"
              :class="{'no-items': !items.results.length}"
-             @click="stateToAdd">
+             @click="emit('adding')">
             <span>
                 <el-icon>
                     <Plus/>
@@ -129,7 +129,9 @@ const items = ref({results: []})
 const loading = ref(false)
 const total = ref(0)
 const filtersEl = ref(undefined)
+let lastFilters = undefined
 defineExpose({filtersEl})
+const emit = defineEmits(["editing", "adding"])
 
 const props = defineProps({
     readableName: {
@@ -157,6 +159,11 @@ const props = defineProps({
         type: Object,
         required: false,
         default: undefined,
+    },
+    initialFiltersValues: {
+        type: Object,
+        required: false,
+        default: {},
     },
     titleProps: {
         type: Array,
@@ -191,14 +198,6 @@ function initStoreWatchers() {
         itemsStore.currentPage = 1
     })
 
-    watch(() => filtersEl.value, async () => {
-        if (filtersEl?.value?.filters) {
-            watch(() => filtersEl?.value?.filters, async () => {
-                await loadItems(filtersEl?.value?.filters ? filtersEl?.value?.filters : {})
-            }, {deep: true})
-        }
-    }, {deep: true})
-
     watch(() => itemsStore.currentPage, async () => {
         await loadItems()
     })
@@ -216,7 +215,11 @@ async function initData() {
     initStoreWatchers()
 }
 
-async function loadItems(_filters = {}) {
+async function loadItems(_filters) {
+    if (!_filters)
+        _filters = lastFilters
+    else
+        lastFilters = _filters
     loading.value = true
     if (!requiredFilterSatisfied.value) {
         loading.value = false
@@ -248,10 +251,6 @@ async function resolveTableRowProps(results) {
     resolvedTableRowProps.value = res
 }
 
-function stateToAdd() {
-    itemsStore.adding = true
-}
-
 function sortChange({column, prop, order}) {
     if (!order)
         itemsStore.ordering = undefined
@@ -263,10 +262,18 @@ function sortChange({column, prop, order}) {
 
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
+    const deleted = await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
+    if (deleted) {
+        await _updateListFromDel(deleting.value)
+    }
     deleting.value = undefined;
     deleteDialogVisible.value = false
 }
+async function _updateListFromDel(id) {
+    items.value.results = items.value.results.filter(item => item.id.toString() !== id.toString())
+    await resolveTableRowProps(items.value.results)
+}
+
 </script>
 
 <style lang="scss">

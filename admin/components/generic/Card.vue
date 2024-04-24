@@ -1,12 +1,12 @@
 <template>
     <div class="card-wrapper">
-        <el-card class="box-card" @click="itemsStore.editing = item.id">
+        <el-card class="box-card" @click="emit('edit', item.id)">
             <template #header>
                 <div class="card-header-title">{{ createTitle(item) }}</div>
             </template>
-            <div v-for="(prop, name) in resolvedCardProps" class="property">
-                <slot :name="prop" v-bind="{item, name, prop}">
-                    <span class="title">{{ name }}:</span>{{ prop.finalValue }}
+            <div v-for="(propInfo, name) in resolvedCardProps" class="property">
+                <slot :name="propInfo.prop" v-bind="{item, name, propInfo}">
+                    <span class="title">{{ name }}:</span>{{ propInfo.finalValue }}
                 </slot>
             </div>
             <div class="divider" v-if="editable || deletable">
@@ -16,7 +16,7 @@
                     <Delete @click.stop @click="() => {deleting = item.id; deleteDialogVisible = true}" />
                 </el-icon>
                 <span v-if="editable" class="command-edit"
-                      @click='itemsStore.editing = item.id; emit("click-edit", item.id)'>{{ $t("edit") }}</span>
+                      @click='emit("edit", item.id)'>{{ $t("edit") }}</span>
             </div>
         </el-card>
         <slot name="extra-card-bottom" :item="item"></slot>
@@ -49,7 +49,7 @@ const itemsStore = useItemsStore();
 const deleting = ref(undefined);
 const deleteDialogVisible = ref(false);
 const { $axios } = useNuxtApp();
-const emit = defineEmits(["click-edit", "click-delete"]);
+const emit = defineEmits(["deleted", "edit"]);
 
 const props = defineProps({
     item: {
@@ -91,10 +91,11 @@ function createTitle(item) {
 }
 
 async function delItem() {
-    await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
+    const deleted = await deleteItem(deleting.value, itemsStore, props.apiUrl, t);
     deleting.value = undefined;
     deleteDialogVisible.value = false;
-    emit("click-delete", props.item.id);
+    if (deleted)
+        emit("deleted", props.item.id);
 }
 
 async function resolveCardProps() {

@@ -1,8 +1,10 @@
 <template>
     <div class="dashboard-page-title">{{ $t('data') }}</div>
-    <el-tabs class="main-page-tabs" @tab-click="itemsStore.stateToRead" v-model="itemType">
-        <el-tab-pane :label="$t('knowledgebase')" name="knowledge-base">
+    <el-tabs class="main-page-tabs" v-model="itemType">
+        <el-tab-pane :lazy="true" :label="$t('knowledgebase')" name="knowledge-base">
             <ReadWriteView
+                ref="readWriteViewKB"
+                @submitFormEnd="submitKnowledgeBase"
                 :readableName="$t('knowledgebase')"
                 apiUrl="/back/api/language-model/knowledge-bases/"
                 :cardProps="{
@@ -22,7 +24,6 @@
                    {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                ]"
                 :leaveAfterSave="false"
-                @submitFormEnd="submitKnowledgeBase"
             >
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="goToKIs(item.id)">{{
@@ -30,13 +31,14 @@
                         }}
                     </el-button>
                 </template>
-                <template v-slot:extra-write-bottom>
-                    <WriteViewDataSources :itemType="itemType" ref="dataSources"/>
+                <template v-slot:extra-write-bottom="{id}">
+                    <WriteViewDataSources @exit="readWriteViewKB.toReadView" :itemType="itemType" :id="id" ref="dataSources"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('knowledgeitem')" name="knowledge-item">
+        <el-tab-pane :lazy="true" :label="$t('knowledgeitem')" name="knowledge-item">
             <ReadWriteView :readableName="$t('knowledgeitem')"
+                           ref="readWriteViewKIs"
                            apiUrl="/back/api/language-model/knowledge-items/"
                            :tableProps="{
                                 'title': {'name': $t('title')},
@@ -49,6 +51,7 @@
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
                            ]"
                            :textExplanation="$t('knowledgeitemexplanation')"
+                           :initialFiltersValues="initialFiltersForKIsView"
             >
                 <template v-slot:write-content="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
@@ -65,7 +68,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('existingintents')" name="existing_intents">
+        <el-tab-pane :lazy="true" :label="$t('existingintents')" name="existing_intents">
             <ReadWriteView :readableName="$t('intents')"
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
@@ -94,7 +97,7 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :label="$t('suggestedintents')" name="suggested_intents">
+        <el-tab-pane :lazy="true" :label="$t('suggestedintents')" name="suggested_intents">
             <ReadWriteView :readableName="$t('intents')"
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
@@ -172,13 +175,13 @@ const { t } = useI18n();
 const { $axios } = useNuxtApp();
 const generatedIntentsView = ref(undefined)
 const suggestedIntentsView = ref(undefined)
-
+const readWriteViewKB = ref(undefined)
+const initialFiltersForKIsView = ref({})
 await itemsStore.loadSchema()
 
 
 function goToKIs(kb_id) {
-    itemsStore.stateToRead()
-    itemsStore.filters = {"knowledge_base__id": kb_id}
+    initialFiltersForKIsView.value = {knowledge_base__id: kb_id}
     itemType.value = "knowledge-item"
 }
 

@@ -11,7 +11,8 @@ load_dotenv()
 MIDDLEWARE = []
 INSTALLED_APPS = []
 LOGGING = {}
-LOCAL_STORAGE = os.getenv("STORAGES_MODE") == "local"
+STORAGES_MODE = os.getenv("STORAGES_MODE")
+LOCAL_STORAGE = STORAGES_MODE == "local"
 
 
 def get_package_version() -> str:
@@ -36,13 +37,13 @@ class CustomPreset(ModelWDjango):
     to handle this.
     """
     def _redis_url(self, env: EnvManager):
-        if (_redis_url := env.get("REDIS_URL", None)) is None:
-            proto = env.get("REDIS_PROTO", "redis")
-            user = env.get("REDIS_USER", "")
-            password = env.get("REDIS_PASSWORD", "")
-            host = env.get("REDIS_HOST", "localhost")
-            port = int(env.get("REDIS_PORT", 6379))
-            db = env.get("REDIS_DATABASE", 0)
+        if (_redis_url := env.get("REDIS_URL", default=None)) is None:
+            proto = env.get("REDIS_PROTO", default="redis")
+            user = env.get("REDIS_USER", default="")
+            password = env.get("REDIS_PASSWORD", default="")
+            host = env.get("REDIS_HOST", default="localhost")
+            port = int(env.get("REDIS_PORT", default=6379))
+            db = env.get("REDIS_DATABASE", default=0)
 
             if password:
                 password = f":{urlquote(password)}"
@@ -55,14 +56,14 @@ class CustomPreset(ModelWDjango):
 
     def pre_database(self, env: EnvManager):
         if all([
-            (user := env.get("DATABASE_USER", None)),
-            (password := env.get("DATABASE_PASSWORD", None)),
-            (host := env.get("DATABASE_HOST", None)),
-            (db := env.get("DATABASE_NAME", None)),
+            (user := env.get("DATABASE_USER", default=None)),
+            (password := env.get("DATABASE_PASSWORD", default=None)),
+            (host := env.get("DATABASE_HOST", default=None)),
+            (db := env.get("DATABASE_NAME", default=None)),
         ]):
-            proto = env.get("DATABASE_PROTO", "postgis" if self.enable_postgis else "postgres")
-            port = int(env.get("DATABASE_PORT", 5432))
-            args = env.get("DATABASE_ARGS", None)
+            proto = env.get("DATABASE_PROTO", default="postgis" if self.enable_postgis else "postgres")
+            port = int(env.get("DATABASE_PORT", default=5432))
+            args = env.get("DATABASE_ARGS", default=None)
 
             password = urlquote(password)
             _url = f"{proto}://{user}:{password}@{host}:{port}/{db}"
@@ -113,10 +114,11 @@ with EnvManager(model_w_django) as env:
         "back.apps.language_model",
         "back.apps.widget",
     ]
-    if not os.getenv("REDIS_URL"):
-        INSTALLED_APPS += [
-            "channels_postgres",
-        ]
+    # if not env.get("REDIS_URL"):
+    #     INSTALLED_APPS += [
+    #         "channels_postgres",
+    #     ]
+
     MIDDLEWARE += [
         "corsheaders.middleware.CorsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -202,7 +204,7 @@ with EnvManager(model_w_django) as env:
     # ---
     # For the moment postgres as channel layer is not supported
     """
-    if not os.getenv("REDIS_URL"):
+    if not env.get("REDIS_URL"):
         CHANNEL_LAYERS = {
             "default": {
                 "BACKEND": "back.utils.custom_channel_layer.CustomPostgresChannelLayer",
@@ -245,7 +247,7 @@ with EnvManager(model_w_django) as env:
     # Telegram
     # ---
 
-    TG_TOKEN = os.getenv("TG_TOKEN")
+    TG_TOKEN = env.get("TG_TOKEN", default=None)
     # SPECTACULAR_SETTINGS = {
     #     "POSTPROCESSING_HOOKS": [
     #         "back.apps.broker.serializers.messages.custom_postprocessing_hook"
@@ -256,15 +258,14 @@ with EnvManager(model_w_django) as env:
         "TOKEN_TTL": None,
     }
     # Celery
-    # CELERY_BROKER_URL = f"sqla+{os.getenv('DATABASE_URL')}"
+    # CELERY_BROKER_URL = f"sqla+{env.get('DATABASE_URL')}"
     # from kombu.common import Broadcast
     # CELERY_QUEUES = (Broadcast('broadcast_tasks'),)
     # CELERY_ROUTES = {
-    #     'back.apps.language_model.tasks.recache_models': {
-    #         'queue': 'broadcast_tasks',
-    #         'exchange': 'broadcast_tasks'
-    #     },
     # }
+    CELERY_WORKER_REDIRECT_STDOUTS = False
+    CELERY_IMPORTS = ("back.apps.language_model.signals", )
+
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'
         MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local_storage")
@@ -277,8 +278,22 @@ with EnvManager(model_w_django) as env:
         PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateS3MediaStorage"
         # Link expiration time in seconds
         AWS_QUERYSTRING_EXPIRE = "3600"
-        AWS_S3_SIGNATURE_VERSION = os.getenv("AWS_S3_SIGNATURE_VERSION")
-        AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+        AWS_S3_SIGNATURE_VERSION = env.get("AWS_S3_SIGNATURE_VERSION", default=None)
+        AWS_S3_REGION_NAME = env.get("AWS_S3_REGION_NAME", default=None)
 
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+    # --------------------------- LLM APIs ---------------------------
+    VLLM_ENDPOINT_URL = env.get("VLLM_ENDPOINT_URL", default=None)
+
+    OPENAI_API_KEY = env.get("OPENAI_API_KEY", default=None)
+    ANTHROPIC_API_KEY = env.get("ANTHROPIC_API_KEY", default=None)
+    HUGGINGFACE_KEY = env.get("HUGGINGFACE_KEY", default=None)
+    MISTRAL_API_KEY = env.get("MISTRAL_API_KEY", default=None)
+    TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
+
+    # --------------------------- RAY ---------------------------
+    REMOTE_RAY_CLUSTER_ADDRESS_HEAD = env.get("REMOTE_RAY_CLUSTER_ADDRESS_HEAD", default=None)
+    # If no REMOTE_RAY_CLUSTER_ADDRESS_HEAD is provided then
+    # REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
+    # that ray cluster runs locally from Django process (http://localhost:8001)
+    RAY_SERVE_PORT = env.get("RAY_SERVE_PORT", default=8001)
+    RAY_CLUSTER_HOST = env.get("RAY_CLUSTER_HOST", default="http://localhost")

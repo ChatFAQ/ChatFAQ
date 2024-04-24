@@ -1,20 +1,21 @@
 <template>
-    <div class="dashboard-page-title">{{ $t("welcome", { name: "" }) }}</div>
+    <div class="dashboard-page-title">{{ $t("welcome", { name: userName }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div class="text-explanation" v-html="$t('dashboardexplanation')"></div>
         <div class="section-title">{{ $t("sdks") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
-            <Card v-for="sdk in sdks" :editable="false" :deletable="false" @click-delete="initItems" :item="sdk"
+            <Card v-for="sdk in sdks" :editable="false" :deletable="false" @delete="initItems" :item="sdk"
                   :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
                   :titleProps="['fsm_name']" />
         </div>
         <div class="section-title">{{ $t("rags") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!rags || !rags.length">{{ $t('norags') }}</div>
-            <Card v-for="rag in rags" @click-delete="initItems" @click-edit="() => goTo('ai_config')" :item="rag"
+            <Card v-for="rag in rags" @delete="initItems" @edit="() => goTo('ai_config')" :item="rag"
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex($axios, item.id, $t)"
+                    <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
                                :disabled="item.disabled || item.index_up_to_date">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
@@ -27,6 +28,7 @@
                     <el-switch
                         v-model="item.disabled"
                         :before-change="() => switchDisabled(item)"
+                        @click.native.stop
                         :loading="loading[item.id]"
                         :active-value="false"
                         :inactive-value="true"
@@ -37,7 +39,7 @@
         <div class="section-title">{{ $t("widgets") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!widgets || !widgets.length">{{ $t('nowidgets') }}</div>
-            <Card v-for="widget in widgets" @click-delete="initItems" @click-edit="() => goTo('widget_config')"
+            <Card v-for="widget in widgets" @delete="initItems" @edit="() => goTo('widget_config')"
                   :item="widget" :cardProps="cardPropsWidget" :itemSchema="itemSchemaWidget" :apiUrl="WidgetAPIUrl" />
         </div>
     </div>
@@ -46,12 +48,14 @@
 <script setup>
 import { ref } from "vue";
 import { authHeaders, useItemsStore } from "~/store/items.js";
+import { useAuthStore } from "~/store/auth.js";
 import { useI18n } from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
 import { callRagReindex, upsertItem } from "~/utils/index.js";
 
 const { t } = useI18n();
 const itemsStore = useItemsStore();
+const authStore = useAuthStore();
 const { $axios } = useNuxtApp();
 const router = useRouter();
 
@@ -81,7 +85,7 @@ const itemSchemaSDK = ref({});
 const rags = ref([]);
 const widgets = ref([]);
 const sdks = ref([]);
-
+const userName = await authStore.getUserName()
 async function initData() {
     itemsStore.loading = true;
     itemSchemaRAG.value = await itemsStore.getSchemaDef(RAGAPIUrl.value);
@@ -91,7 +95,7 @@ async function initData() {
 }
 
 async function initItems() {
-    rags.value = (await $axios.get(RAGAPIUrl.value, { headers: authHeaders() })).data.results;
+    rags.value = (await $axios.get(RAGAPIUrl.value + "?disabled=0", { headers: authHeaders() })).data.results;
     widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
     sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
 }
@@ -106,7 +110,7 @@ function goTo(route) {
 async function switchDisabled(item) {
     try {
         loading.value[item.id] = true;
-        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, t);
+        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, false, {}, t);
         item.disabled = res.disabled;
         loading.value[item.id] = false;
     } catch (e) {
@@ -114,6 +118,7 @@ async function switchDisabled(item) {
         console.error(e);
     }
 }
+
 </script>
 
 
@@ -121,6 +126,7 @@ async function switchDisabled(item) {
 .dashboard-wrapper {
     margin-left: 146px;
     margin-right: 160px;
+    margin-top: 32px;
 
     .section-title {
         font-family: Open Sans;
@@ -152,5 +158,15 @@ async function switchDisabled(item) {
     .no-items {
         padding: 16px;
     }
+}
+.text-explanation {
+    margin-right: 16px;
+    margin-left: 16px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    padding-left: 18px;
+    border-left: 2px solid $chatfaq-color-primary-500;
+
 }
 </style>

@@ -1,0 +1,24 @@
+# ---
+# Debian's own official stuff
+# ---
+
+# Base packages
+deb http://deb.debian.org/debian bullseye main contrib non-free
+
+# Security updates
+deb http://deb.debian.org/debian-security/ bullseye-security main contrib non-free
+
+# Updates of things like time zones and stuff
+deb http://deb.debian.org/debian bullseye-updates main contrib non-free
+
+# ---
+# PostgreSQL things
+# ---
+
+deb [signed-by=/etc/apt/trusted.gpg.d/apt.postgresql.org.gpg] http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main
+
+# ---
+# Node
+# ---
+
+deb [signed-by=/etc/apt/trusted.gpg.d/nodesource.gpg] https://deb.nodesource.com/node_20.x bullseye main

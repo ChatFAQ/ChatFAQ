@@ -9,13 +9,13 @@ from django.db import models
 from django.apps import apps
 from django.core.files.base import ContentFile
 
+from back.apps.language_model.models.enums import LanguageChoices, StrategyChoices, SplittersChoices, IndexStatusChoices
 from back.apps.broker.models import RemoteSDKParsers
 from back.apps.language_model.tasks import (
     parse_pdf_task,
     parse_url_task,
 )
 from back.common.models import ChangesMixin
-from back.apps.broker.models.message import Message
 from pgvector.django import VectorField
 
 from asgiref.sync import async_to_sync
@@ -44,14 +44,12 @@ class KnowledgeBase(ChangesMixin):
         The language of the knowledge base.
     """
 
-    LANGUAGE_CHOICES = (
-        ("en", "English"),
-        ("es", "Spanish"),
-        ("fr", "French"),
-    )
     name = models.CharField(max_length=255, unique=True)
 
-    lang = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default="en")
+    lang = models.CharField(max_length=2, choices=LanguageChoices.choices, default=LanguageChoices.EN)
+
+    def get_lang(self):
+        return LanguageChoices(self.lang)
 
     def to_csv(self):
         items = KnowledgeItem.objects.filter(knowledge_base=self)
@@ -98,19 +96,6 @@ class KnowledgeBase(ChangesMixin):
 
 
 class DataSource(ChangesMixin):
-    STRATEGY_CHOICES = (
-        ("auto", "Auto"),
-        ("fast", "Fast"),
-        ("ocr_only", "OCR Only"),
-        ("hi_res", "Hi Res"),
-    )
-
-    SPLITTERS_CHOICES = (
-        ("sentences", "Sentences"),
-        ("words", "Words"),
-        ("tokens", "Tokens"),
-        ("smart", "Smart"),
-    )
 
     knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
 
@@ -123,12 +108,12 @@ class DataSource(ChangesMixin):
     role_index_col = models.IntegerField(default=4)
     page_number_index_col = models.IntegerField(default=5)
     # PDF parsing options
-    strategy = models.CharField(max_length=10, default="fast", choices=STRATEGY_CHOICES)
+    strategy = models.CharField(max_length=10, choices=StrategyChoices.choices, default=StrategyChoices.FAST)
     # URL parsing options
     recursive = models.BooleanField(default=True)
     # PDF & URL parsing options
     splitter = models.CharField(
-        max_length=10, default="sentences", choices=SPLITTERS_CHOICES
+        max_length=10, choices=SplittersChoices.choices, default=SplittersChoices.SENTENCES
     )
     chunk_size = models.IntegerField(default=128)
     chunk_overlap = models.IntegerField(default=16)
@@ -138,6 +123,12 @@ class DataSource(ChangesMixin):
     original_url = models.URLField(blank=True, null=True)
 
     parser = models.CharField(max_length=255, null=True, blank=True)
+
+    def get_strategy(self):
+        return StrategyChoices(self.strategy)
+
+    def get_splitter(self):
+        return SplittersChoices(self.splitter)
 
     def update_items_with_remote_parser(self):
         KnowledgeItem.objects.filter(
@@ -260,7 +251,7 @@ class KnowledgeItem(ChangesMixin):
     section = models.TextField(blank=True, null=True)
     role = models.CharField(max_length=255, blank=True, null=True)
     page_number = models.IntegerField(blank=True, null=True)
-    message = models.ManyToManyField(Message, through="MessageKnowledgeItem", editable=False)
+    message = models.ManyToManyField("broker.Message", through="MessageKnowledgeItem", editable=False)
     metadata = models.JSONField(blank=True, null=True)
 
     def __str__(self):
@@ -273,19 +264,22 @@ class KnowledgeItem(ChangesMixin):
             knowledge_base=self.knowledge_base
         )
 
-        # set the rag config index_up_to_date to False
+        # set the rag config index status to outdated
         if self.pk is None: # new item
             for rag_config in rag_configs:
-                rag_config.index_up_to_date = False
+                rag_config.index_status = IndexStatusChoices.OUTDATED
                 rag_config.save()
         else: # modified item
             old_item = KnowledgeItem.objects.get(pk=self.pk)
             if self.content != old_item.content:
                 for rag_config in rag_configs:
-                    rag_config.index_up_to_date = False
+                    rag_config.index_status = IndexStatusChoices.OUTDATED
                     rag_config.save()
 
         super().save(*args, **kwargs)
+
+    def get_image_urls(self):
+        return {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
 
     def to_retrieve_context(self):
         return {
@@ -296,7 +290,7 @@ class KnowledgeItem(ChangesMixin):
             "section": self.section,
             "role": self.role,
             "page_number": str(self.page_number) if self.page_number else None,
-            "image_urls": {img.image_file.name: img.image_file.url for img in self.knowledgeitemimage_set.all()}
+            "image_urls": self.get_image_urls(),
         }
 
 
@@ -433,7 +427,7 @@ class Intent(ChangesMixin):
     auto_generated = models.BooleanField(default=False, editable=False)
     valid = models.BooleanField(default=False)
     suggested_intent = models.BooleanField(default=False, editable=False)
-    message = models.ManyToManyField(Message, blank=True, editable=False)
+    message = models.ManyToManyField("broker.Message", blank=True, editable=False)
     knowledge_item = models.ManyToManyField(KnowledgeItem, blank=True, editable=False)
     # Maybe add a knowledge_base foreign key here for querying simplicity and performance
 
@@ -452,7 +446,7 @@ class MessageKnowledgeItem(ChangesMixin):
         If the relation is validated by the admin or not.
     """
 
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, editable=False)
+    message = models.ForeignKey("broker.Message", on_delete=models.CASCADE, editable=False)
     knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE, editable=False)
     similarity = models.FloatField(null=True, blank=True, editable=False)
     valid = models.BooleanField(default=False)

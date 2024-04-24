@@ -18,11 +18,12 @@ from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.fsm.serializers import FSMSerializer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
 from back.utils import WSStatusCodes
+from back.utils.custom_channels import CustomAsyncConsumer
 
 logger = getLogger(__name__)
 
 
-class RPCConsumer(AsyncJsonWebsocketConsumer):
+class RPCConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
     """
     The consumer in responsible for keeping the connection of the Remote Procedure Calls servers and associate it to a
     FSM definition. Any state/transition declared on the FSM unknown to the system will be considered a RCP and piped it
@@ -145,9 +146,6 @@ class RPCConsumer(AsyncJsonWebsocketConsumer):
             "status": WSStatusCodes.ok.value,
             **serializer.validated_data,
         }
-        if serializer.validated_data["node_type"] == RPCNodeType.action.value:
-            mml = await database_sync_to_async(serializer.save_as_mml)()
-            res["mml_id"] = mml.pk
         await self.channel_layer.group_send(
             WSBotConsumer.create_group_name(serializer.validated_data["ctx"]["conversation_id"]), res
         )

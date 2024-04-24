@@ -3,7 +3,6 @@ from django.db.models import Q
 from django.contrib import messages
 
 from .forms import PromptConfigForm
-from .tasks import index_task
 from simple_history.admin import SimpleHistoryAdmin
 
 from .models.data import (
@@ -105,20 +104,20 @@ class IntentAdmin(admin.ModelAdmin):
 
 def run_index_task(modeladmin, request, queryset):
     for rag_config in queryset:
-        rag_config.trigger_reindex(True, 'RagConfig Django Admin')
+        rag_config.trigger_reindex()
         modeladmin.message_user(request, f"Index task started for {rag_config.name}", messages.SUCCESS)
 
 run_index_task.short_description = "Index selected RAG configs"
 
 
 class RagConfigAdmin(admin.ModelAdmin):
-    list_display = ["name", "disabled", "index_up_to_date"]
-    list_filter = ["disabled", "index_up_to_date"]
+    list_display = ["name", "disabled", "index_status"]
+    list_filter = ["disabled", "index_status"]
     actions = [run_index_task]
 
     def get_readonly_fields(self, request, obj=None):
-        # This makes 'index_up_to_date' readonly in all cases
-        return self.readonly_fields + ('index_up_to_date', 's3_index_path',)
+        # This makes 'index_status' readonly in all cases
+        return self.readonly_fields + ('index_status', 's3_index_path',)
 
 
 class MessageKnowledgeItemAdmin(admin.ModelAdmin):

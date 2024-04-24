@@ -25,10 +25,10 @@ export default defineNuxtConfig({
         // use the prefix NUXT_ to override defaults, and _ to split capitalization:
         //  - for private runtime variables (server only), just NUXT_VARNAME
         //  - for public runtime variables (both), use NUXT_PUBLIC_VARNAME
-        // these 2 can be set at runtime by defining the vars NUXT_PUBLIC_CHATFAQ_API and NUXT_PUBLIC_CHATFAQ_WS
+        // these 2 can be set at runtime by defining the vars NUXT_PUBLIC_CHATFAQ_BACKEND_API and NUXT_PUBLIC_CHATFAQ_BACKEND_WS
         public: {
-            chatfaqAPI: process.env.CHATFAQ_BACKEND_API ?? "",
-            chatfaqWS: process.env.CHATFAQ_BACKEND_WS ?? "",
+            chatfaqAPI: (process.env.NUXT_PUBLIC_CHATFAQ_API || process.env.CHATFAQ_API) ?? "",
+            chatfaqWS: (process.env.NUXT_PUBLIC_CHATFAQ_WS || process.env.CHATFAQ_WS) ?? "",
         }
     },
     app: {

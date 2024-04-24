@@ -30,6 +30,7 @@
                 'traceback',
             ]
         }"
+        :itemId="itemsStore.taskID"
     >
         <template #legend>
             <div class="legend"><span>Status:</span>
@@ -52,7 +53,7 @@
             <div width="10" class="status" :class="{[row.status]: true}">-</div>
         </template>
         <template v-slot:view="{row}">
-            <span class="command-edit" @click="stateToDetail(row.id)">{{ $t("view") }}</span>
+            <span class="command-edit" @click="itemsStore.taskID = row.id">{{ $t("view") }}</span>
         </template>
         <template v-slot:write-traceback="value">
             <div class="traceback">{{ value["value"] }}</div>
@@ -106,10 +107,6 @@ function formatTaskName(name) {
         return null
     }
     return name.split(".")[name.split(".").length - 1]
-}
-
-function stateToDetail(id) {
-    itemsStore.editing = id
 }
 
 function sortDates(a, b) {

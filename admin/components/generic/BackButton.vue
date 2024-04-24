@@ -1,5 +1,5 @@
 <template>
-    <div class="back-button" @click="itemsStore.stateToRead">
+    <div class="back-button">
         <el-icon>
             <ArrowLeft/>
         </el-icon>
@@ -10,10 +10,6 @@
 </template>
 
 <script setup>
-import {useItemsStore} from "~/store/items.js";
-const itemsStore = useItemsStore()
-
-
 </script>
 <style lang="scss" scoped>
 .back-button {

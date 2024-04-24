@@ -33,11 +33,7 @@ pgvector = "^0.2.3"
 django-filter = "^23.2"
 django-storages = "*"
 sqlalchemy = "^2.0.16"
-chat-rag = {version = "0.1.56"}
 gevent = "23.9.0"
-torch = [
-    { version = "^2.0.1", source = "torch" },
-]
 boto3 = "^1.26.161"
 djfernet = "^0.8.1"
 scrapy = "^2.10.0"
@@ -46,7 +42,9 @@ undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 twisted = "^23.10.0rc1"
-ragatouille = { git = "https://github.com/Diegi97/RAGatouille.git", branch = "main" }  # Temporary until a new version with baching is released
+ray = {version = "2.10.0", extras = ["data", "serve"]}
+pillow = "^10.3.0"
+
 
 [tool.poetry.group.dev.dependencies]
 black = "*"
@@ -68,9 +66,4 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "test"
 url = "https://test.pypi.org/simple/"
-priority = "explicit"
-
-[[tool.poetry.source]]
-name = "torch"
-url = "https://download.pytorch.org/whl/cpu"
 priority = "explicit"

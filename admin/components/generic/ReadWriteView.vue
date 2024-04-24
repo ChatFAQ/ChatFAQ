@@ -3,6 +3,8 @@
         <div class="rw-wrapper" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)">
             <ReadView
                 v-if="editing === undefined && !adding"
+                @editing="(id) => editing = id"
+                @adding="adding = true"
                 :apiUrl="apiUrl"
                 :readableName="readableName"
                 :cardProps="cardProps"
@@ -11,6 +13,7 @@
                 :readOnly="readOnly"
                 :defaultSort="defaultSort"
                 :defaultFilters="defaultFilters"
+                :initialFiltersValues="initialFiltersValues"
                 :filtersSchema="filtersSchema"
                 :requiredFilter="requiredFilter"
                 :textExplanation="textExplanation"
@@ -22,6 +25,7 @@
             </ReadView>
             <WriteView
                 v-else
+                @exit="toReadView"
                 :readableName="readableName"
                 :apiUrl="apiUrl"
                 :itemId="editing"
@@ -49,16 +53,13 @@
 import ReadView from "~/components/generic/ReadView.vue";
 import {defineProps} from 'vue';
 import WriteView from "~/components/generic/WriteView.vue";
-import {storeToRefs} from 'pinia'
 import {useItemsStore} from "~/store/items.js";
 
 const itemsStore = useItemsStore()
 const readView = ref(undefined)
-
-defineExpose({readView})
-
-
-const {editing, adding} = storeToRefs(itemsStore)
+const editing = ref(undefined)
+const adding = ref(false)
+defineExpose({readView, toReadView, editing})
 
 const props = defineProps({
     readableName: {
@@ -107,6 +108,11 @@ const props = defineProps({
         required: false,
         default: undefined,
     },
+    initialFiltersValues: {
+        type: Object,
+        required: false,
+        default: {},
+    },
     outsideSection: {
         type: Array,
         required: false,
@@ -149,7 +155,23 @@ const props = defineProps({
         required: false,
         default: true,
     },
+    itemId: {
+        type: [String, Number],
+        required: false,
+        default: undefined,
+    },
 })
+if (props.itemId)
+    editing.value = props.itemId
+watch(() => props.itemId, (newVal) => {
+    editing.value = newVal
+})
+
+function toReadView() {
+    adding.value = false
+    editing.value = undefined
+}
+
 </script>
 <style lang="scss">
 .el-loading-mask {

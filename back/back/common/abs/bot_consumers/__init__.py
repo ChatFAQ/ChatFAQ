@@ -146,7 +146,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         from back.apps.broker.models.message import Conversation  # TODO: CI
 
         conv = await database_sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
-        last_mml = await database_sync_to_async(conv.get_last_mml)()
+        last_mml = await database_sync_to_async(conv.get_last_msg)()
 
         last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
         return {

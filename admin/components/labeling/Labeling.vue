@@ -1,7 +1,7 @@
 <template>
     <div class="dashboard-page-title alone">{{ $t('labeling') }}</div>
-    <ReadWriteView
-        v-if="itemsStore.editing === undefined"
+    <ReadView
+        v-if="editing === undefined"
         :readableName="$t('conversation')"
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
@@ -23,6 +23,7 @@
                 'choices': [{'value': 'completed', 'label': $t('completed')}, {'value': 'pending', 'label': $t('pending')}]
             },
         ]"
+        :textExplanation="$t('labelingexplanation')"
         read-only
     >
         <template v-slot:view="{row}">
@@ -31,19 +32,22 @@
         <template v-slot:rags="{row}">
             {{ row?.rags ? row.rags.join(",") : "" }}
         </template>
-    </ReadWriteView>
-    <LabelingTool v-else :id="itemsStore.editing"></LabelingTool>
+    </ReadView>
+
+    <LabelingTool v-else :id="editing" @exit="editing = undefined"></LabelingTool>
 </template>
 
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
+import ReadView from "~/components/generic/ReadView.vue";
 
 const itemsStore = useItemsStore()
+const editing = ref(undefined)
 
 const router = useRouter()
 function goToLabelingConversation(id) {
-    itemsStore.editing = id
+    editing.value = id
 }
 
 </script>

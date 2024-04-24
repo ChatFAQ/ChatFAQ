@@ -2,7 +2,8 @@
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :manageUserId="manageUserId" :title="title"
                 :subtitle="subtitle" :historyOpened="historyOpened"  :historyOpenedMobile="historyOpenedMobile"
-                :fullScreen="fullScreen"/>
+                :fullScreen="fullScreen" :displayGeneration="displayGeneration" :displaySources="displaySources" :sourcesFirst="sourcesFirst"
+        />
     </client-only>
 </template>
 <script setup>
@@ -16,5 +17,8 @@ const subtitle = ref("How can we help you?")
 const fsmDef = ref("model_fsm")
 const historyOpened = ref(true);
 const fullScreen = ref(false);
+const displayGeneration = ref(true);
+const displaySources = ref(true);
+const sourcesFirst = ref(false);
 
 </script>

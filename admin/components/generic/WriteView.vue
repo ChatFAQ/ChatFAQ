@@ -2,7 +2,7 @@
     <div class="write-view-wrapper" v-loading="itemsStore.loading"
          element-loading-background="rgba(255, 255, 255, 0.8)">
         <div v-if="backButton" class="navigation-header">
-            <BackButton/>
+            <BackButton @click="emit('exit')"/>
         </div>
         <el-form
             class="form-content"
@@ -94,7 +94,7 @@
                 </ReadOnlyField>
             </div>
         </el-form>
-        <slot name="extra-write-bottom"></slot>
+        <slot name="extra-write-bottom" :id="itemId"></slot>
         <div v-if="commandButtons" class="commands">
             <el-button v-if="itemId !== undefined" type="danger" @click="deleteDialogVisible = true"
                        class="delete-button">
@@ -102,7 +102,7 @@
             </el-button>
             <div v-else></div>
             <div class="flex-right">
-                <el-button @click="itemsStore.stateToRead">
+                <el-button @click="emit('exit')">
                     Cancel
                 </el-button>
                 <el-button type="primary" @click="submitForm()">
@@ -148,7 +148,7 @@ const fieldsRef = ref({})
 const {schema} = storeToRefs(itemsStore)
 const itemSchema = ref({})
 
-const emit = defineEmits(['submitFormStart', 'submitFormEnd'])
+const emit = defineEmits(['submitFormStart', 'submitFormEnd', 'exit', 'initializedFormValues'])
 defineExpose({submitForm, form})
 
 const props = defineProps({
@@ -282,6 +282,7 @@ async function initializeFormValues() {
         }
         itemsStore.loading = false
     }
+    emit("initializedFormValues", form.value)
 }
 
 function createTitle(form) {
@@ -352,7 +353,7 @@ async function submitForm(extraVals = {}, callback = undefined) {
         }
         emit("submitFormEnd", _itemId, form.value)
         if (props.leaveAfterSave)
-            itemsStore.stateToRead()
+            emit('exit')
 
         ElNotification({
             title: 'Success',
@@ -371,7 +372,7 @@ function deleteItem() {
         itemsStore.loading = true
         itemsStore.deleteItem(props.apiUrl, props.itemId)
         deleteDialogVisible.value = undefined
-        itemsStore.stateToRead()
+        emit('exit')
         itemsStore.loading = false
     } catch (e) {
         itemsStore.loading = false

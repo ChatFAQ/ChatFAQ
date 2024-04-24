@@ -1,4 +1,4 @@
-back_env_example
+back_env-template
 ======================
 
-.. literalinclude:: ../../../../back/.env_example
+.. literalinclude:: ../../../../back/.env-template
