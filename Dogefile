@@ -101,7 +101,7 @@ services:
     envs: [ ray ]
     port: 8265
     internal_ports: [6379, 6375, 10001, 10002, 8001]
-    instance_size: XL
+    instance_size: XXL
     command: ray start --head --resources='{"tasks":100,"rags":100}' --dashboard-host 0.0.0.0 --block
     route_prefixes:
       - "//ray/"
