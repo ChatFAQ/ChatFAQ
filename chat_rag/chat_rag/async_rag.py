@@ -45,7 +45,7 @@ class AsyncRAG:
         Tuple[List[str], List[Dict[str, str]]]
             List of all conversation contexts and list of the retrieved contexts for the current user message.
         """
-        logger.info("Retrieving new contexts")
+        logger.info(f"Retrieving contexts for message: {message}")
         contexts = await self.retriever.retrieve(
             message,
             top_k=prompt_structure_dict["n_contexts_to_use"]
