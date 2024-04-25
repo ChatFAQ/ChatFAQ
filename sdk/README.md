@@ -207,6 +207,10 @@ or
 
     poetry version patch
 
+#### Poetry Build
+
+    poetry build
+
 #### Poetry Publish
 
 To TestPyPi

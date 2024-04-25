@@ -59,11 +59,12 @@ class LMGeneratedText(Layer):
     _type = "lm_generated_text"
     loaded_model = {}
 
-    def __init__(self, rag_config_name, input_text=None, use_conversation_context=True, *args, **kwargs):
+    def __init__(self, rag_config_name, input_text=None, use_conversation_context=True, only_context=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.input_text = input_text
         self.rag_config_name = rag_config_name
         self.use_conversation_context = use_conversation_context
+        self.only_context = only_context
 
     async def build_payloads(self, ctx, data):
         """
@@ -86,8 +87,9 @@ class LMGeneratedText(Layer):
         return
         """
         logger.debug(f"Waiting for LLM...")
+
         await ctx.send_llm_request(
-            self.rag_config_name, self.input_text, self.use_conversation_context, data["conversation_id"], data["bot_channel_name"]
+            self.rag_config_name, self.input_text, self.use_conversation_context, self.only_context, data["conversation_id"], data["bot_channel_name"]
         )
 
         logger.debug(f"...Receive LLM res")

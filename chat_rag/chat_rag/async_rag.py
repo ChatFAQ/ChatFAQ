@@ -62,9 +62,12 @@ class AsyncRAG:
         contents = [x for x in prev_contents + contents if not (x in seen or seen.add(x))]
         return contents, returned_contexts
 
-    async def stream(self, messages: List[Dict[str, str]], prev_contents: List[str], prompt_structure_dict: dict, generation_config_dict: dict, stop_words: List[str] = None):
+    async def stream(self, messages: List[Dict[str, str]], prev_contents: List[str], prompt_structure_dict: dict, generation_config_dict: dict, stop_words: List[str] = None, only_context: bool = False):
         # Retrieve
         contents, returned_contexts = await self.retrieve(messages[-1]['content'], prev_contents, prompt_structure_dict)
+        if only_context:
+            yield {"res": "", "context": returned_contexts}
+            return
 
         # Generate
         async for new_text in self.model.stream(
