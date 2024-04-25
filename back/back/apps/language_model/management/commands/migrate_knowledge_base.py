@@ -13,7 +13,7 @@ class Command(BaseCommand):
         parser.add_argument('source_back_url', type=str, help='Base URL of the source back deployment')
         parser.add_argument('source_kb_name', type=str, help='Name of the source knowledge base')
         parser.add_argument('destination_kb_name', type=str, help='Name of the destination knowledge base')
-        parser.add_argument('--token', type=str, help='Token for header authentication')
+        parser.add_argument('--token', type=str, help='Token for header authentication of the source deployment', default='')
         parser.add_argument('--batch-size', type=int, help='Batch size for pagination', default=100)
         parser.add_argument('--offset', type=int, help='Offset for pagination', default=0)
 

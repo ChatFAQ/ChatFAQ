@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst, lang }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -24,6 +24,7 @@ class ChatfaqWidget {
         props['displayGeneration'] = displayGeneration
         props['displaySources'] = displaySources
         props['sourcesFirst'] = sourcesFirst
+        props['lang'] = lang
 
         if (userId)
             props['userId'] = userId;

@@ -179,6 +179,7 @@ class ColBERTActor:
             split_documents=True,
             max_document_length=512,
             bsize=bsize,
+            use_faiss=True,
         )
     
     def delete_from_index(self, k_item_ids_to_remove):

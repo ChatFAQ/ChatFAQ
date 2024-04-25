@@ -89,7 +89,7 @@ class RAGConfig(ChangesMixin):
 
         super().save(*args, **kwargs)
 
-        if redeploy_rag:
+        if redeploy_rag and not self.disabled:
             def on_commit_callback():
                 launch_rag_deployment_task.delay(self.id)
 

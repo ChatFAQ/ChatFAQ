@@ -132,7 +132,8 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     references = None
 
     logger.info(f"{'>' * 80}\n"
-                f"Request data: {request_data}"
+                f"Request data: {request_data}\n"
+                f"RAG URL: {rag_url}\n"
                 f"{'<' * 80}")
 
     try:
