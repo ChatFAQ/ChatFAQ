@@ -110,10 +110,18 @@ def run_index_task(modeladmin, request, queryset):
 run_index_task.short_description = "Index selected RAG configs"
 
 
+def run_deploy_task(modeladmin, request, queryset):
+    for rag_config in queryset:
+        rag_config.trigger_deploy()
+        modeladmin.message_user(request, f"Deploy task started for {rag_config.name}", messages.SUCCESS)
+
+run_deploy_task.short_description = "Deploy selected RAG configs"
+
+
 class RagConfigAdmin(admin.ModelAdmin):
     list_display = ["name", "disabled", "index_status"]
     list_filter = ["disabled", "index_status"]
-    actions = [run_index_task]
+    actions = [run_index_task, run_deploy_task]
 
     def get_readonly_fields(self, request, obj=None):
         # This makes 'index_status' readonly in all cases

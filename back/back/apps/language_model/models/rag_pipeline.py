@@ -100,6 +100,10 @@ class RAGConfig(ChangesMixin):
         launch_rag_deploy = not self.disabled # If the RAG is disabled we don't want to launch the deployment
         index_task.delay(self.id, launch_rag_deploy=launch_rag_deploy)  # Trigger the Celery task
 
+    def trigger_deploy(self):
+        """Deploys should be automatically triggered when the RAG is saved, but this method is here for manual triggering if needed."""
+        launch_rag_deployment_task.delay(self.id)
+
     def retrieve_kitems(self, query_embedding, threshold, top_k):
         """
         Returns the context for the given query_embedding.
