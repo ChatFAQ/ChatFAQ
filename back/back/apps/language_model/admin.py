@@ -119,8 +119,8 @@ run_deploy_task.short_description = "Deploy selected RAG configs"
 
 
 class RagConfigAdmin(admin.ModelAdmin):
-    list_display = ["name", "disabled", "index_status"]
-    list_filter = ["disabled", "index_status"]
+    list_display = ["name", "enabled", "index_status"]
+    list_filter = ["enabled", "index_status"]
     actions = [run_index_task, run_deploy_task]
 
     def get_readonly_fields(self, request, obj=None):
