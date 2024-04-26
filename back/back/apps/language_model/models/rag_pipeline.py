@@ -102,7 +102,10 @@ class RAGConfig(ChangesMixin):
     def trigger_deploy(self):
         """Deploys should be automatically triggered when the RAG is saved, but this method is here for manual triggering if needed."""
         if self.enabled and self.get_index_status() in [IndexStatusChoices.OUTDATED, IndexStatusChoices.UP_TO_DATE]:
+            logger.info(f"Launching RAG deploy for {self.name}")
             launch_rag_deployment_task.delay(self.id)
+        else:
+            logger.info(f"RAG {self.name} is not enabled or index is not up to date, skipping deploy")
 
     def retrieve_kitems(self, query_embedding, threshold, top_k):
         """
