@@ -2,9 +2,8 @@ import json
 
 from ray import serve
 from ray.serve.handle import DeploymentHandle
-from starlette.responses import StreamingResponse
 from starlette.requests import Request
-
+from starlette.responses import StreamingResponse
 
 
 @serve.deployment(
@@ -28,8 +27,13 @@ class RAGDeployment:
 
     def __init__(self, retriever_handle: DeploymentHandle, llm_name: str, llm_type: str):
 
-        from chat_rag.llms import AsyncClaudeChatModel, AsyncMistralChatModel, AsyncOpenAIChatModel, AsyncVLLMModel
         from chat_rag import AsyncRAG
+        from chat_rag.llms import (
+            AsyncClaudeChatModel,
+            AsyncMistralChatModel,
+            AsyncOpenAIChatModel,
+            AsyncVLLMModel,
+        )
 
         LLM_CLASSES = {
             "claude": AsyncClaudeChatModel,
@@ -76,12 +80,12 @@ class RAGDeployment:
             status_code=200,
         )
 
-def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
+def launch_rag(rag_deploy_name: str, retriever_handle, llm_name: str, llm_type, num_replicas: int=2):
 
     print(f'Got retriever handle: {retriever_handle}')
     print(f'Launching RAG deployment with name: {rag_deploy_name}')
     rag_handle = RAGDeployment.options(
-        num_replicas=2,
+        num_replicas=num_replicas,
     ).bind(retriever_handle, llm_name, llm_type)
 
     print(f'Launched RAG deployment with name: {rag_deploy_name}')

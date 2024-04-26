@@ -41,6 +41,7 @@ class RAGConfig(ChangesMixin):
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
     enabled = models.BooleanField(default=True)
     s3_index_path = models.CharField(max_length=255, blank=True, null=True, editable=False)
+    num_replicas = models.IntegerField(default=1)
 
     index_status = models.CharField(
         max_length=20,
