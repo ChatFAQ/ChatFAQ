@@ -52,7 +52,7 @@ When creating the superuser notice that we are passing the `--rpc_group 1` flag.
 
 #### Run
 
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env-template) file. Next you can see the explanation of each variable:
 
 `DEBUG`: Set to "yes" to enable debug mode
 

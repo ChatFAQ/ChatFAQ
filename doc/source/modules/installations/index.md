@@ -62,7 +62,7 @@ Now you can access the Django admin panel at http://localhost:8000/back/admin/ a
 
 ##### Run
 
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env-template](.env-template) file. Next you can see the explanation of each variable:
 
 `DEBUG`: Set to "yes" to enable debug mode
 
@@ -136,7 +136,7 @@ Install project dependencies:
 
 ##### Run
 
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env-template](.env-template) file. Next you can see the explanation of each variable:
 
 `CHATFAQ_RETRIEVAL_HTTP`: The address for the HTTP of the back-end server.
 
@@ -227,7 +227,7 @@ Install project dependencies:
 
 #### To run the widget's source code example
 
-First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env_example](.env_example) file. Next you can see the explanation of each variable:
+First of all, create a `.env` file with the needed variables set. You can see an example of those on [.env-template](.env-template) file. Next you can see the explanation of each variable:
 
 `CHATFAQ_BACKEND_API`: The address for the HTTP of the back-end server.
 

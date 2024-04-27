@@ -34,6 +34,8 @@ import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
 import {getUserId} from "~/utils";
+import { useI18n } from "vue-i18n";
+const i18n = useI18n();
 
 const store = useGlobalStore();
 const isPhoneLandscape = ref(false);
@@ -58,7 +60,8 @@ const props = defineProps([
     "widgetConfigId",
     "displayGeneration",
     "displaySources",
-    "sourcesFirst"
+    "sourcesFirst",
+    "lang",
 ]);
 let data = props
 
@@ -108,6 +111,7 @@ if (store.fullScreen) {
     store.opened = true
     store.maximized = false
 }
+i18n.locale.value = data.lang || "en";
 
 function isPhone() {
     let check = false;

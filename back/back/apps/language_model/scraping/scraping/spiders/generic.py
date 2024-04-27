@@ -47,11 +47,11 @@ class GenericSpider(scrapy.Spider):
 
         for k_item in k_items:
             item_loader = CustomItemLoader(item=GenericItem())
-            item_loader.add_value("content", k_item.content)
-            item_loader.add_value("title", k_item.title)
+            item_loader.add_value("content", k_item['content'])
+            item_loader.add_value("title", k_item['title'])
             # item_loader.add_value("section", k_item.section) Current parser does not extract the section
-            item_loader.add_value("url", response.url)
-            item_loader.add_value("page_number", k_item.page_number)
+            item_loader.add_value("url", response['url'])
+            item_loader.add_value("page_number", k_item['page_number'])
             yield item_loader.load_item()
 
         if self.recursive:

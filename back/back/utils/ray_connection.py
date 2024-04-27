@@ -13,7 +13,6 @@ from django.core.exceptions import ImproperlyConfigured
 from ray import serve
 from ray.runtime_env import RuntimeEnv
 
-from back.utils.celery import get_celery_tasks
 
 logger = getLogger(__name__)
 

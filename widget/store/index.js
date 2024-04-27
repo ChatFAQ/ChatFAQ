@@ -1,22 +1,5 @@
 import { defineStore } from 'pinia'
-function _indexLayerRefs(groupedStack) {
-    for (let i = 0; i < groupedStack.length; i++) {
-        // first remove the duplicates from the references (same title and url)
-        if (!groupedStack[i].references || !groupedStack[i].references.knowledge_items)
-            continue
-        groupedStack[i].references.knowledge_items = groupedStack[i].references.knowledge_items.filter((v, i, a) => a.findIndex(t => (t.url === v.url && t.title === v.title)) === i)
-        // add the reference index to the layer index inside layerToReferences
-        let refs = groupedStack[i].references.knowledge_items;
-        for (let j = 0; j < groupedStack[i].layers.length; j++) {
-            const layer = groupedStack[i].layers[j]
-            if (layer.payload.references) {
-                layer.referenceIndexes = layer.payload.references.knowledge_items.map(ref => refs.findIndex(r => r.url === ref.url && r.title === ref.title)).filter(i => i !== -1)
-                // layer.referenceIndexes is a list of integer, no integer should repeat:
-                layer.referenceIndexes = layer.referenceIndexes.filter((v, i, a) => a.findIndex(t => (t === v)) === i)
-            }
-        }
-    }
-}
+
 export const useGlobalStore = defineStore('globalStore', {
     state: () => {
         return {
@@ -69,7 +52,7 @@ export const useGlobalStore = defineStore('globalStore', {
                 headers: { 'Content-Type': 'application/json' }
             });
             response = await response.json();
-            this.messages = response.mml_chain
+            this.messages = response.msgs_chain
             this.selectedPlConversationId = _selectedPlConversationId;
         },
         createNewConversation() {
@@ -77,7 +60,7 @@ export const useGlobalStore = defineStore('globalStore', {
             this.selectedPlConversationId = Math.floor(Math.random() * 1000000000);
         },
         addMessage(message) {
-            const index = this.messages.findIndex(m => m.id === message.id)
+            const index = this.messages.findIndex(m => m.stack_id === message.stack_id)
             if (index !== -1)
                 this.messages[index] = message
             else
@@ -89,7 +72,7 @@ export const useGlobalStore = defineStore('globalStore', {
             return this.conversations.reduce((acc, current) => acc.concat([current.id]), [])
         },
         waitingForResponse() {
-            const msgs = this.messages
+            const msgs = this.messages || [];
             return !msgs.length ||
             (msgs[msgs.length - 1].sender.type === 'human') ||
             (msgs[msgs.length - 1].sender.type === 'bot' &&
@@ -100,6 +83,9 @@ export const useGlobalStore = defineStore('globalStore', {
             if (!msgs.length)
                 return undefined
             return msgs[msgs.length - 1]
+        },
+        getMessageById: (state) => (id) => {
+            return state.messages.find(m => m.id === id)
         }
     }
 })

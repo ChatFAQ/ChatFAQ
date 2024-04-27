@@ -293,6 +293,7 @@ with EnvManager(model_w_django) as env:
     ANTHROPIC_API_KEY = env.get("ANTHROPIC_API_KEY", default=None)
     HUGGINGFACE_KEY = env.get("HUGGINGFACE_KEY", default=None)
     MISTRAL_API_KEY = env.get("MISTRAL_API_KEY", default=None)
+    TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
     # --------------------------- RAY ---------------------------
     REMOTE_RAY_CLUSTER_ADDRESS_HEAD = env.get("REMOTE_RAY_CLUSTER_ADDRESS_HEAD", default=None)

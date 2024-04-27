@@ -113,21 +113,19 @@ const isRef = computed(() => {
     return props.schema.properties[props.fieldName].choices.results !== undefined
 })
 onMounted(async () => {
-    if (props.filterSchema) {
-        if (props.filterSchema.type === "ref") {
-            let items = await itemsStore.retrieveItems(props.filterSchema.endpoint, {})
-            items = JSON.parse(JSON.stringify(items))
-            items.results = items.results.map((item) => {
-                return {
-                    value: item.id,
-                    label: item.name,
-                }
-            })
-            filterChoices.value.results = items.results
-            filterChoices.value.next = items.next
-        }
-        await initChoices()
+    if (props.filterSchema && props.filterSchema.type === "ref") {
+        let items = await itemsStore.retrieveItems(props.filterSchema.endpoint, {})
+        items = JSON.parse(JSON.stringify(items))
+        items.results = items.results.map((item) => {
+            return {
+                value: item.id,
+                label: item.name,
+            }
+        })
+        filterChoices.value.results = items.results
+        filterChoices.value.next = items.next
     }
+    await initChoices()
 })
 
 

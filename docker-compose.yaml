@@ -43,7 +43,8 @@ services:
       - chatfaq_db_net
       - chatfaq_back_net
       - chatfaq_state_machine_net
-
+    # volumes:
+    #   - ./back/back:/back
   celery:
     build:
       context: back
@@ -60,6 +61,8 @@ services:
 
     environment:
         - IS_CELERY=1
+    # volumes:
+    #   - ./back/back:/back
 
   ray:
     image: chatfaq/chatfaq-cpu:2024.04
@@ -73,8 +76,17 @@ services:
       - 8001:8001
     networks:
       - default
-    extra_hosts:
-        - host.docker.internal:host-gateway
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: 4
+          memory: 4G
+    # extra_hosts:
+    #     - host.docker.internal:host-gateway
 
   # vllm:
   #   image: vllm/vllm-openai:latest
@@ -97,6 +109,9 @@ services:
       - back
     networks:
       - chatfaq_state_machine_net
+    volumes:
+      - ./sdk/chatfaq_sdk:/chatfaq_sdk
+      - ./sdk/examples:/examples
 
   widget:
     build:

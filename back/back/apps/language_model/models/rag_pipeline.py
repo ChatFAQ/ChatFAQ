@@ -24,7 +24,7 @@ logger = getLogger(__name__)
 # First, define the Manager subclass.
 class EnabledRAGConfigManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(disabled=False)
+        return super().get_queryset().filter(enabled=True)
 
 
 class RAGConfig(ChangesMixin):
@@ -41,8 +41,9 @@ class RAGConfig(ChangesMixin):
     prompt_config = models.ForeignKey("PromptConfig", on_delete=models.PROTECT)
     generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
     retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
-    disabled = models.BooleanField(default=False)
+    enabled = models.BooleanField(default=True)
     s3_index_path = models.CharField(max_length=255, blank=True, null=True, editable=False)
+    num_replicas = models.IntegerField(default=1)
 
     index_status = models.CharField(
         max_length=20,
@@ -79,9 +80,9 @@ class RAGConfig(ChangesMixin):
             if self.llm_config != old.llm_config:
                 redeploy_rag = True
                 logger.info(f"RAG config {self.name} changed llm config...")
-            if old.disabled and not self.disabled: # If the config was disabled and now is enabled
+            if not old.enabled and self.enabled: # If the config was disabled and now is enabled
                 redeploy_rag = True
-                logger.info(f"RAG config {self.name} {'disabled' if self.disabled else 'enabled'} changed llm config...")
+                logger.info(f"RAG config {self.name} {'enabled' if self.enabled else 'disabled'} changed llm config...")
             if self.knowledge_base != old.knowledge_base:
                 self.index_status = IndexStatusChoices.NO_INDEX
                 logger.info(f"RAG config {self.name} changed knowledge base. Index needs to be updated...")
@@ -91,7 +92,7 @@ class RAGConfig(ChangesMixin):
 
         super().save(*args, **kwargs)
 
-        if redeploy_rag:
+        if redeploy_rag and self.enabled:
             def on_commit_callback():
                 with connect_to_ray_cluster():
                     task_name = f"launch_rag_deployment_{self.name}"
@@ -102,11 +103,15 @@ class RAGConfig(ChangesMixin):
             transaction.on_commit(on_commit_callback)
 
     def trigger_reindex(self):
-        launch_rag_deploy = not self.disabled # If the RAG is disabled we don't want to launch the deployment
-        with connect_to_ray_cluster():
-            task_name = f"index_task_{self.name}"
-            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-            index_task.options(name=task_name).remote(self.id, launch_rag_deploy)  # Trigger the Celery task
+        index_task.delay(self.id, launch_rag_deploy=self.enabled)  # Trigger the Celery task
+
+    def trigger_deploy(self):
+        """Deploys should be automatically triggered when the RAG is saved, but this method is here for manual triggering if needed."""
+        if self.enabled and self.get_index_status() in [IndexStatusChoices.OUTDATED, IndexStatusChoices.UP_TO_DATE]:
+            logger.info(f"Launching RAG deploy for {self.name}")
+            launch_rag_deployment_task.delay(self.id)
+        else:
+            logger.info(f"RAG {self.name} is not enabled or index is not up to date, skipping deploy")
 
     def retrieve_kitems(self, query_embedding, threshold, top_k):
         """
@@ -143,6 +148,7 @@ class RAGConfig(ChangesMixin):
             for item in items_for_query
         ]
         return query_results
+
 
 class RetrieverConfig(ChangesMixin):
     """
@@ -208,7 +214,6 @@ class RetrieverConfig(ChangesMixin):
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
-
 
 
 class LLMConfig(ChangesMixin):
@@ -280,8 +285,6 @@ class LLMConfig(ChangesMixin):
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
-
-
 
 
 class PromptConfig(ChangesMixin):

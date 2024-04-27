@@ -7,7 +7,7 @@
             <div
                 class="collapsed-references-button purple-background"
                 @click="collapsed = !collapsed"
-                :class="{ 'dark-mode': store.darkMode }"
+                :class="{ 'dark-mode': store.darkMode, 'sources-first': store.sourcesFirst }"
             >
                 <span v-if="collapsed">{{ (references?.knowledge_items || []).length }} <span v-if="(references?.knowledge_items || []).length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span></span>
                 <span v-else>Show Less</span>
@@ -43,7 +43,7 @@ import {ref} from "vue";
 
 const props = defineProps(["references"]);
 const store = useGlobalStore();
-const collapsed = ref(true);
+const collapsed = ref(!store.sourcesFirst);
 
 
 </script>
@@ -76,6 +76,9 @@ const collapsed = ref(true);
         }
         svg {
             margin-left: 4px;
+        }
+        &.sources-first {
+            display: none;
         }
 
     }

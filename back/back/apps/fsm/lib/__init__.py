@@ -8,7 +8,8 @@ from back.apps.broker.models import ConsumerRoundRobinQueue
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
-from back.apps.broker.models.message import Message
+from back.apps.broker.models.message import StackPayloadType
+from back.apps.language_model.models import RAGConfig
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -83,6 +84,10 @@ class FSM:
             It will usually be None when a new conversation a thus a new FSM starts. If the FSM come from a CachedFSM
             then it is when current_state is set to the cached current_state
         """
+        from back.apps.broker.serializers.messages import MessageSerializer
+        self.MessageSerializer = MessageSerializer
+
+        self.last_aggregated_msg = {}
         self.ctx = ctx
         self.states = states
         self.transitions = transitions
@@ -157,10 +162,32 @@ class FSM:
         It will be called by the RPC Consumer when it receives a response from the RPC worker
         """
         if data["node_type"] == RPCNodeType.action.value:
-            mml = await database_sync_to_async(Message.objects.get)(pk=data["mml_id"])
-            await self.ctx.send_response(mml)
+            self.manage_last_llm_msg(data)
+            id = await self.save_if_last_llm_msg(data)
+            data["id"] = id
+            await self.ctx.send_response(data)
         else:
             self.rpc_result_future.set_result(data)
+
+    def manage_last_llm_msg(self, _new):
+        _old = self.last_aggregated_msg
+        if _new['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
+            if _new["stack_id"] == _old.get("stack_id"):
+                more_model_response = _new["stack"][0]['payload']['model_response']
+                old_payload = _old["stack"][0]['payload']
+                _new["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
+        self.last_aggregated_msg = _new
+
+    async def save_if_last_llm_msg(self, _new):
+        if self.last_aggregated_msg.get("last"):
+            if self.last_aggregated_msg['stack'][0]["type"] == StackPayloadType.lm_generated_text.value:
+                rag_config_id = (await database_sync_to_async(RAGConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['rag_config_name'])).id
+                self.last_aggregated_msg['stack'][0]['payload']["rag_config_id"] = rag_config_id
+
+            self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
+            serializer = self.MessageSerializer(data=self.last_aggregated_msg)
+            await database_sync_to_async(serializer.is_valid)(raise_exception=True)
+            return (await database_sync_to_async(serializer.save)()).id
 
     def get_initial_state(self):
         for state in self.states:
