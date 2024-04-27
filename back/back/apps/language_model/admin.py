@@ -24,6 +24,9 @@ from .models.rag_pipeline import (
 from .forms import DataSourceForm
 
 
+from back.apps.language_model.tasks import test_task
+
+
 class PromptConfigAdmin(SimpleHistoryAdmin):
     form = PromptConfigForm
 
@@ -118,10 +121,17 @@ def run_deploy_task(modeladmin, request, queryset):
 run_deploy_task.short_description = "Deploy selected RAG configs"
 
 
+def run_test_task(modeladmin, request, queryset):
+    test_task.remote("test argument")
+    modeladmin.message_user(request, "Test task started", messages.SUCCESS)
+
+run_test_task.short_description = "Run test task"
+
+
 class RagConfigAdmin(admin.ModelAdmin):
     list_display = ["name", "enabled", "index_status"]
     list_filter = ["enabled", "index_status"]
-    actions = [run_index_task, run_deploy_task]
+    actions = [run_index_task, run_deploy_task, run_test_task]
 
     def get_readonly_fields(self, request, obj=None):
         # This makes 'index_status' readonly in all cases

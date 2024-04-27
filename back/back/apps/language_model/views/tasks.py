@@ -28,6 +28,5 @@ class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"])
     def launch_test_task(self, request):
-        with connect_to_ray_cluster():
-            test_task.options(name="test_task").remote(uuid.uuid4())
+        test_task.options(name="test_task").remote(uuid.uuid4())
         return JsonResponse({"res": "ok"}, safe=False)

@@ -94,7 +94,7 @@ class RAGDeployment:
         )
 
 
-def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type):
+def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replicas=1):
 
     print(f'Got retriever handle: {retriever_handle}')
     print(f'Launching RAG deployment with name: {rag_deploy_name}')
@@ -141,6 +141,7 @@ def launch_rag_deployment(rag_config_id):
 
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
     rag_deploy_name = rag_config.get_deploy_name()
+    num_replicas = rag_config.num_replicas
 
     # delete the deployment if it already exists
     task_name = f'delete_rag_deployment_{rag_deploy_name}'
@@ -175,4 +176,4 @@ def launch_rag_deployment(rag_config_id):
 
     llm_name = rag_config.llm_config.llm_name
     llm_type = rag_config.llm_config.get_llm_type().value
-    launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
+    launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replicas)

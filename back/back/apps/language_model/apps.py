@@ -36,7 +36,6 @@ class DatasetConfig(AppConfig):
 
             RAGConfig = self.get_model("RAGConfig")
 
-            # with connect_to_ray_cluster():
             # Now we launch the deployment of the RAGs
             for rag_config in RAGConfig.enabled_objects.all():
                 if rag_config.get_index_status() in [IndexStatusChoices.OUTDATED, IndexStatusChoices.UP_TO_DATE]:

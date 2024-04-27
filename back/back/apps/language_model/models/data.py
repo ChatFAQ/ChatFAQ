@@ -219,14 +219,12 @@ class DataSource(ChangesMixin):
             logger.info("Updating items from PDF")
             task_name = f"parse_pdf__{self.original_pdf.name}"
             logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-            with connect_to_ray_cluster():
-                parse_pdf_task.options(name=task_name).remote(self.pk)
+            parse_pdf_task.options(name=task_name).remote(self.pk)
         elif self.original_url:
             logger.info("Updating items from URL")
             task_name = f"parse_url__{self.original_url}"
             logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-            with connect_to_ray_cluster():
-                parse_url_task.options(name=task_name).remote(self.pk, self.original_url)
+            parse_url_task.options(name=task_name).remote(self.pk, self.original_url)
 
 
 class KnowledgeItem(ChangesMixin):

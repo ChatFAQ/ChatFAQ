@@ -103,9 +103,12 @@ def test_task(argument_one):
     from logging import getLogger
     import django
     import os
+    import time
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+
+    t1 = time.perf_counter()
     django.setup()
-    print("Django setup complete")
+    print(f"Django setup complete in {time.perf_counter() - t1:.2f}s.")
 
     print("with arg: ", argument_one, "start")
     print("with arg: ", argument_one, "finished")

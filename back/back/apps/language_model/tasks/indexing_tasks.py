@@ -19,7 +19,7 @@ logger = getLogger(__name__)
 
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
-def generate_embeddings(data):
+def generate_embeddings_task(data):
 
     from chat_rag.inf_retrieval.embedding_models import E5Model
 
@@ -96,7 +96,7 @@ def generate_embeddings(k_items, rag_config):
     # Submit the task to the Ray cluster
     num_gpus = 1 if device == "cuda" else 0
     task_name = f"generate_embeddings_{rag_config.name}"
-    embeddings_ref = generate_embeddings.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(data)
+    embeddings_ref = generate_embeddings_task.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(data)
     embeddings = ray.get(embeddings_ref)
 
     new_embeddings = [

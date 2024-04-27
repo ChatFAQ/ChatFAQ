@@ -109,7 +109,7 @@ ENV IS_CELERY=${IS_CELERY}
 # For installing chat-rag for back based images with all the AI functionality
 ARG INSTALL_CHAT_RAG=false
 
-RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.67; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.68; fi
 
 
 CMD ./starter_script.sh

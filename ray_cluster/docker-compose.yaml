@@ -1,7 +1,7 @@
 version: '3'
 services:
   ray-head:
-    image: chatfaq/back:latest
+    image: chatfaq/back-rag:latest
     command: /bin/bash -c "/.venv/bin/ray start --head --num-cpus=0 --num-gpus=0 --port ${RAY_HEAD_PORT} --dashboard-host 0.0.0.0 --block"
     env_file:
       - .env
@@ -11,6 +11,8 @@ services:
       - ${RAY_CLIENT_PORT}:${RAY_CLIENT_PORT}
     networks:
       - ray_net
+    extra_hosts:
+        - host.docker.internal:host-gateway
 
   ray-tasks-worker:
     # image: chatfaq/chatfaq-cpu:2024.04

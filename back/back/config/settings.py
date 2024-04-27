@@ -6,6 +6,8 @@ from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
 from dotenv import load_dotenv
 import ray
+from ray.runtime_env import RuntimeEnv
+
 
 load_dotenv()
 
@@ -15,9 +17,23 @@ LOGGING = {}
 STORAGES_MODE = os.getenv("STORAGES_MODE")
 LOCAL_STORAGE = STORAGES_MODE == "local"
 
+
+def django_setup():
+    """
+    Setup Django environment for Ray workers.
+    """
+    import django
+    import os
+    import time
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
+
+    t1 = time.perf_counter()
+    django.setup()
+    print(f"Django setup complete in {time.perf_counter() - t1:.2f}s.")
+
 if not ray.is_initialized() and os.getenv('RUN_MAIN'):
     print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end")
+    ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 
 
 def get_package_version() -> str:
