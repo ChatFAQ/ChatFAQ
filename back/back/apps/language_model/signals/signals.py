@@ -11,7 +11,6 @@ from celery.signals import (
     task_internal_error, task_received, task_revoked, task_unknown, task_rejected
 )
 from back.apps.language_model.models.rag_pipeline import RAGConfig
-from back.utils.ray_connection import connect_to_ray_cluster
 from back.apps.language_model.tasks import delete_index_files
 from back.apps.language_model.ray_deployments import delete_rag_deployment
 

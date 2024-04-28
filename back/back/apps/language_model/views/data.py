@@ -26,7 +26,6 @@ from back.apps.language_model.tasks import (
     generate_suggested_intents_task,
     generate_titles_task,
 )
-from back.utils.ray_connection import connect_to_ray_cluster
 
 from logging import getLogger
 

@@ -12,7 +12,6 @@ from back.apps.language_model.models.enums import IndexStatusChoices, DeviceChoi
 from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from back.common.models import ChangesMixin
 
-from back.utils.ray_connection import connect_to_ray_cluster
 from back.apps.language_model.tasks import index_task
 from back.apps.language_model.ray_deployments import launch_rag_deployment
 

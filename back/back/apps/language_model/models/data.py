@@ -23,7 +23,6 @@ from channels.layers import get_channel_layer
 from django_celery_results.models import TaskResult
 
 from back.config.storage_backends import select_private_storage
-from back.utils.ray_connection import connect_to_ray_cluster
 
 
 

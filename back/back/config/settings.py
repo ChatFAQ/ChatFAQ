@@ -31,10 +31,6 @@ def django_setup():
     django.setup()
     print(f"Django setup complete in {time.perf_counter() - t1:.2f}s.")
 
-if not ray.is_initialized() and os.getenv('RUN_MAIN'):
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
-
 
 def get_package_version() -> str:
     """
@@ -312,9 +308,9 @@ with EnvManager(model_w_django) as env:
     TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
     # --------------------------- RAY ---------------------------
-    REMOTE_RAY_CLUSTER_ADDRESS_HEAD = env.get("REMOTE_RAY_CLUSTER_ADDRESS_HEAD", default=None)
-    # If no REMOTE_RAY_CLUSTER_ADDRESS_HEAD is provided then
-    # REMOTE_RAY_CLUSTER_ADDRESS_SERVE neither and we assume
-    # that ray cluster runs locally from Django process (http://localhost:8001)
     RAY_SERVE_PORT = env.get("RAY_SERVE_PORT", default=8001)
     RAY_CLUSTER_HOST = env.get("RAY_CLUSTER_HOST", default="http://localhost")
+    
+    if not ray.is_initialized() and os.getenv('RUN_MAIN'):
+        ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
+

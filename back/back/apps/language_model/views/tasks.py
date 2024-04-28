@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from rest_framework.decorators import action
 from back.apps.language_model.serializers.tasks import TaskResultSerializer
 from back.apps.language_model.tasks import test_task
-from back.utils.ray_connection import connect_to_ray_cluster
 
 
 class TaskResultAPIViewSet(viewsets.ReadOnlyModelViewSet):

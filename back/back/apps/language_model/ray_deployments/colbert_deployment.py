@@ -23,14 +23,14 @@ class ColBERTDeployment:
     ColBERTDeployment class for serving the a ColBERT retriever in a Ray Serve deployment in a Ray cluster.
     """
 
-    def __init__(self, index_path, remote_ray_cluster, storages_mode):
+    def __init__(self, index_path, storages_mode):
         from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
         from ragatouille import RAGPretrainedModel
 
 
         self.clean_relevant_references = clean_relevant_references
 
-        print(f"Initializing ColBERTDeployment with index_path={index_path} and remote_ray_cluster={remote_ray_cluster} and storages_mode={storages_mode}")
+        print(f"Initializing ColBERTDeployment with index_path={index_path} and storages_mode={storages_mode}")
 
         if 's3://' in index_path:
             # Schedule the reading of the index on the same node as the deployment
@@ -126,6 +126,6 @@ def launch_colbert(retriever_deploy_name, index_path):
     print(f"Index path: {index_path}")
     retriever_handle = ColBERTDeployment.options(
         name=retriever_deploy_name,
-    ).bind(index_path, settings.REMOTE_RAY_CLUSTER_ADDRESS_HEAD, storages_mode)
+    ).bind(index_path, storages_mode)
     print(f"Launched ColBERT deployment with name: {retriever_deploy_name}")
     return retriever_handle

@@ -9,7 +9,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import widgets
 
 from back.utils.celery import get_celery_tasks
-from back.utils.ray_connection import get_ray_tasks
+from back.utils.ray_utils import get_ray_tasks
 
 logger = getLogger(__name__)
 
