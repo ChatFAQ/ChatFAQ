@@ -16,7 +16,7 @@
                   :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
-                               :disabled="item.disabled || item.index_up_to_date">
+                               :disabled="item.index_status === 'up_to_date'">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
                             <Refresh />
@@ -26,12 +26,12 @@
                 <template v-slot:enabled="{item, name}">
                     <span class="title">{{ name }}:</span>
                     <el-switch
-                        v-model="item.disabled"
-                        :before-change="() => switchDisabled(item)"
+                        v-model="item.enabled"
+                        :before-change="() => switchEnabled(item)"
                         @click.native.stop
                         :loading="loading[item.id]"
-                        :active-value="false"
-                        :inactive-value="true"
+                        :active-value="true"
+                        :inactive-value="false"
                     />
                 </template>
             </Card>
@@ -95,7 +95,7 @@ async function initData() {
 }
 
 async function initItems() {
-    rags.value = (await $axios.get(RAGAPIUrl.value + "?disabled=0", { headers: authHeaders() })).data.results;
+    rags.value = (await $axios.get(RAGAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
     widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
     sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
 }
@@ -107,11 +107,11 @@ function goTo(route) {
     router.push({ name: route });
 }
 
-async function switchDisabled(item) {
+async function switchEnabled(item) {
     try {
         loading.value[item.id] = true;
-        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, disabled: !item.disabled }, itemsStore, false, {}, t);
-        item.disabled = res.disabled;
+        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, enabled: !item.enabled }, itemsStore, false, {}, t);
+        item.enabled = res.enabled;  // Assuming the backend responds with the updated state
         loading.value[item.id] = false;
     } catch (e) {
         loading.value[item.id] = false;
