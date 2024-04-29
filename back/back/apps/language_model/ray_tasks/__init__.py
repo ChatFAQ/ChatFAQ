@@ -9,5 +9,6 @@ from .ray_tasks import (
     clusterize_queries,
     generate_intents,
     get_similarity_scores,
+    clean_lock,
     test_task,
 )

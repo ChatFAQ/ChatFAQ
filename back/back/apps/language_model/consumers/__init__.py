@@ -146,6 +146,10 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
                         if references is None:
                             references = await resolve_references((ray_res.get("context", [[]]) or [[]])[0], conv, rag_conf, relate_kis_to_msgs=not input_text)
 
+                            logger.info(f"{'#' * 80}\n"
+                                        f"References: {references}\n"
+                                        f"{'#' * 80}")
+
                         yield {"model_response": ray_res.get("res", ""), "references": references, "final": False}
         else:
             pass  # TODO: implement non-streaming version

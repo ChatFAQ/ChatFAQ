@@ -410,3 +410,19 @@ def test_task(argument_one):
     print("with arg: ", argument_one, "finished")
 
     return 123456789
+
+
+@ray.remote(num_cpus=0.01, resources={'tasks': 1})
+def clean_lock():
+    """
+    ColBERT uses a lock file to compile C++ and CUDA extensions. When ColBERT fails this lock may not be cleaned properly so next ColBERT tasks will stay locked.
+    This task cleans the lock file to allow for succesful recompilation.
+    """
+    # WARNING: Not sure if this will not cause any issues with colbert concurrent tasks
+    import shutil
+    import os
+
+    locks_dir = os.path.expanduser('~/.cache/torch_extensions/')
+    shutil.rmtree(locks_dir, ignore_errors=True)
+    print("Lock cleaned")
+    return True

@@ -12,6 +12,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from ray import serve
+import ray.exceptions
 from ray.serve.config import HTTPOptions, ProxyLocation
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
@@ -35,6 +36,7 @@ from back.apps.language_model.ray_tasks import (
     get_similarity_scores as ray_get_similarity_scores,
     test_task as ray_test_task,
     ColBERTActor,
+    clean_lock
 )
 from back.config.celery import app
 from back.utils.celery import is_celery_worker
@@ -105,7 +107,9 @@ def launch_rag_deployment(rag_config_id):
 
     llm_name = rag_config.llm_config.llm_name
     llm_type = rag_config.llm_config.get_llm_type().value
-    launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type)
+    num_replicas = rag_config.num_replicas
+
+    launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replicas)
 
 
 @app.task()
@@ -417,6 +421,7 @@ def creates_index(rag_config):
     colbert_name = rag_config.retriever_config.model_name
     bsize = rag_config.retriever_config.batch_size
     device = rag_config.retriever_config.get_device().value
+    num_gpus = 1 if device == "cuda" else 0
     storages_mode = settings.STORAGES_MODE
 
 
@@ -432,7 +437,7 @@ def creates_index(rag_config):
     actor_name = f"create_colbert_index_{rag_config.name}"
 
     index_path = construct_index_path(s3_index_path)
-    colbert = ColBERTActor.options(name=actor_name).remote(index_path, device=device, colbert_name=colbert_name, storages_mode=storages_mode)
+    colbert = ColBERTActor.options(name=actor_name, num_gpus=num_gpus).remote(index_path, device=device, colbert_name=colbert_name, storages_mode=storages_mode)
     colbert.index.remote(contents, contents_pk, bsize)
 
     # Delete all the contents from memory because they are not needed anymore and can be very large
@@ -510,19 +515,31 @@ def index_task(rag_config_id, launch_rag_deploy: bool = False):
             # remove the index files from S3
             delete_index_files(rag_config.s3_index_path)
 
-        if retriever_type == RetrieverTypeChoices.E5:
-            index_e5(rag_config)
-        elif retriever_type == RetrieverTypeChoices.COLBERT:
-            index_colbert(rag_config)
+        try:
+            if retriever_type == RetrieverTypeChoices.E5:
+                index_e5(rag_config)
+            elif retriever_type == RetrieverTypeChoices.COLBERT:
+                index_colbert(rag_config)
 
-        rag_config.index_status = IndexStatusChoices.UP_TO_DATE
-        rag_config.save()
+            rag_config.index_status = IndexStatusChoices.UP_TO_DATE
+            rag_config.save()
 
-        logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
+            logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
 
-        # launch rag
-        if launch_rag_deploy:
-            launch_rag_deployment(rag_config_id)
+            # launch rag
+            if launch_rag_deploy:
+                launch_rag_deployment(rag_config_id)
+        except ray.exceptions.OutOfMemoryError as e:
+            logger.error(f"Out of memory error: {e}")
+            if retriever_type == RetrieverTypeChoices.COLBERT:
+                # clean the lock file
+                clean_lock.remote()
+        except Exception as e:
+            logger.error(f"Error building index: {e}")
+            if retriever_type == RetrieverTypeChoices.COLBERT:
+                # clean the lock file
+                clean_lock.remote()
+
 
 
 def delete_index_files(s3_index_path):

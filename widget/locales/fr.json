@@ -18,7 +18,7 @@
     "reason1": "La réponse est dangereuse",
     "reason2": "La réponse n'est pas vrai",
     "reason3": "La réponse n'est pas utile",
-    "summarygeneratedfrom": "Résumé généré à partir de :",
+    "summarygeneratedfrom": "Sujet abordé dans les sources suivantes :",
     "sources": "sources",
     "source": "source",
     "connectingtoserver": "Connexion au serveur en cours..."
