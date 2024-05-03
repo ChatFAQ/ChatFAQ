@@ -2,7 +2,7 @@ import os
 from django.apps import AppConfig
 from django.conf import settings
 from back.utils import is_migrating, is_scraping
-from back.utils.celery import is_celery_worker
+from back.utils.ray_utils import is_ray_worker
 from logging import getLogger
 import ray
 
@@ -16,7 +16,7 @@ class DatasetConfig(AppConfig):
     ray_context = None
 
     def ready(self):
-        if is_migrating() or is_scraping() or os.getenv("BUILD_MODE") in ["yes", "true"] or is_celery_worker():
+        if is_migrating() or is_scraping() or os.getenv("BUILD_MODE") in ["yes", "true"] or is_ray_worker():
             return
         from back.apps.language_model.signals import on_rag_config_change, on_celery_task_signal  # noqa
         from back.apps.language_model.models.enums import IndexStatusChoices

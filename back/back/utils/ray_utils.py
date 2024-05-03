@@ -1,3 +1,4 @@
+import sys
 from logging import getLogger
 from ray.util.state import api as ray_api
 from datetime import datetime
@@ -19,6 +20,14 @@ map_ray_to_celery_status_task = { # SUCCESS, STARTED, WAITING, FAILURE
     "FINISHED": "SUCCESS",
     "FAILED": "FAILURE"
 }
+
+
+def is_ray_worker():
+    """
+    Check if the current process is a Ray worker.
+    """
+    return any("ray" in s for s in sys.argv)
+
 
 
 def _ray_to_celery_task(ray_task):

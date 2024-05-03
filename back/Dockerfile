@@ -99,12 +99,6 @@ COPY --chown=user . .
 
 RUN modelw-docker build
 
-ARG REMOTE_RAY_CLUSTER_ADDRESS_HEAD
-ENV REMOTE_RAY_CLUSTER_ADDRESS_HEAD=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD:-"localhost:6375"}
-
-ARG IS_CELERY
-ENV IS_CELERY=${IS_CELERY}
-# ENV REMOTE_RAY_CLUSTER_ADDRESS_HEAD=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD}
 
 # For installing chat-rag for back based images with all the AI functionality
 ARG INSTALL_CHAT_RAG=false
