@@ -96,7 +96,7 @@ class LMGeneratedText(Layer):
         final = False
         while not final:
             results = (
-                await ctx.rpc_llm_request_futures[data["bot_channel_name"]]
+                await ctx.llm_request_futures[data["bot_channel_name"]]
             )()
             final = results[-1]["final"]
             for result in results:
