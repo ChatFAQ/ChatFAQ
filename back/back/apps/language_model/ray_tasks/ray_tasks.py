@@ -1,6 +1,7 @@
 import os
 from logging import getLogger
 from typing import List, Optional
+from urllib.parse import urljoin
 
 import ray
 from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
@@ -93,7 +94,7 @@ def get_filesystem(storages_mode):
     from ray.data.datasource import _S3FileSystemWrapper
 
     if storages_mode == "do":
-        
+
         endpoint_url = f'https://{os.environ.get("DO_REGION")}.digitaloceanspaces.com'
         s3fs = fs.S3FileSystem(
             access_key=os.environ.get("AWS_ACCESS_KEY_ID"),
@@ -117,7 +118,7 @@ class ColBERTActor:
     def __init__(self, index_path: str, device: str = 'cpu', colbert_name: Optional[str] = None, storages_mode: str = None):
 
         import os
-        
+
         self.index_path = index_path
         self.colbert_name = colbert_name
         self.device = device
@@ -140,14 +141,14 @@ class ColBERTActor:
         self.retriever = RAGPretrainedModel.from_pretrained(
             self.colbert_name, index_root=self.index_root, n_gpu=self.n_gpus
         )
-    
+
     def load_index(self):
         """
         Load a ColBERT model from an existing index.
         """
         from ragatouille import RAGPretrainedModel
 
-        if 's3://' in self.index_path:    
+        if 's3://' in self.index_path:
             node_id = ray.get_runtime_context().get_node_id()
             print(f"Node ID: {node_id}")
             node_scheduling_strategy = NodeAffinitySchedulingStrategy(
@@ -167,7 +168,7 @@ class ColBERTActor:
             return torch.cuda.device_count()
         except:
             return -1
-        
+
     def index(self, contents, contents_pk, bsize=32):
         """
         Index a collection of documents.
@@ -181,7 +182,7 @@ class ColBERTActor:
             bsize=bsize,
             use_faiss=True,
         )
-    
+
     def delete_from_index(self, k_item_ids_to_remove):
         """
         Delete items from the index.
@@ -232,7 +233,7 @@ class ColBERTActor:
                 filename += file_id
 
                 return filename
-            
+
             def get_filename_for_block(self, block, task_index: int, block_index: int) -> str:
 
                 path = str(block['path'][0])
@@ -241,7 +242,7 @@ class ColBERTActor:
                 filename = os.path.splitext(filename)[0] + "_"
                 file_id = f"{task_index:06}_{block_index:06}.parquet"
                 filename += file_id
-                
+
                 return filename
 
         try:
@@ -269,11 +270,11 @@ class ColBERTActor:
                 print('Index written to object storage')
 
             return True
-        
+
         except Exception as e:
             print(f"Error saving index: {e}")
             return False
-        
+
     def exit(self):
         ray.actor.exit_actor()
 
@@ -383,13 +384,13 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
         embeddings = e5_model.build_embeddings(queries, prefix='query: ', batch_size=batch_size)
 
         token = os.getenv('BACKEND_TOKEN')
-        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        retrieve_endpoint = urljoin(os.environ.get('BACKEND_HOST'), f"/back/api/language-model/rag-configs/{rag_config_id}/retrieve/")
 
         headers = {'Authorization': f'Token {token}'}
 
         response = requests.post(retrieve_endpoint, json={'query_embeddings': embeddings.tolist(), 'top_k': 1}, headers=headers)
 
-        return response.json()    
+        return response.json()
 
     import numpy as np
 
