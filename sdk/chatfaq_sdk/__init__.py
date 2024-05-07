@@ -128,7 +128,7 @@ class ChatFAQSDK:
             try:
                 logger.info(f"[{consumer_route.upper()}] Connecting to {uri}")
                 async with websockets.connect(uri) as ws:
-                    logger.info(f"{consumer_route.upper()} Connected")
+                    logger.info(f"[{consumer_route.upper()}] Connected")
                     setattr(self, f"ws_{consumer_route}", ws)
                     if on_connect is not None:
                         await on_connect()
@@ -176,7 +176,7 @@ class ChatFAQSDK:
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"Setting FSM by Definition {self.fsm_name}")
+            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}")
             await getattr(self, f'ws_{WSType.rpc.value}').send(
                 json.dumps(
                     {
@@ -192,7 +192,7 @@ class ChatFAQSDK:
     async def on_connect_parsing(self):
         if self.data_source_parsers is not None:
             parsers = list(self.data_source_parsers.keys())
-            logger.info(f"Registering Data Source Parsers {parsers}")
+            logger.info(f"[PARSE] Registering Data Source Parsers {parsers}")
             await getattr(self, f'ws_{WSType.parse.value}').send(
                 json.dumps(
                     {
