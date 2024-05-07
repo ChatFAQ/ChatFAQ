@@ -98,8 +98,8 @@ class LMGeneratedText(Layer):
             results = (
                 await ctx.llm_request_futures[data["bot_channel_name"]]
             )()
-            final = results[-1]["final"]
             for result in results:
+                final = result.get("final", False)
                 yield [
                     {
                         "payload": {
