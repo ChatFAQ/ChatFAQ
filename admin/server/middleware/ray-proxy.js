@@ -13,6 +13,7 @@ const rayProxyMiddleware = createProxyMiddleware('/ray/', {
 })
 
 function extractTokenFromRawHeaders(rawHeaders) {
+    console.log(rawHeaders)
     let cookieIndex = rawHeaders.indexOf('cookie')  // dev server
     if (cookieIndex === -1)
         cookieIndex = rawHeaders.indexOf('Cookie')  // prod server
@@ -43,6 +44,7 @@ async function isAuthorized(event) {
 }
 
 export default defineEventHandler(async (event) => {
+    console.log(1)
     if (!event.node.req.url.startsWith('/ray/'))
         return
     if (!await isAuthorized(event))
