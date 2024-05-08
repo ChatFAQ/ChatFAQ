@@ -3,6 +3,7 @@ import asyncio
 from typing import List
 from aiohttp import ClientSession
 from ray import serve
+from urllib.parse import urljoin
 
 
 @serve.deployment(
@@ -25,7 +26,7 @@ class E5Deployment:
 
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
-        self.retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        self.retrieve_endpoint = urljoin(os.environ.get('BACKEND_HOST'), f"/back/api/language-model/rag-configs/{rag_config_id}/retrieve/")
 
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.reranker = ReRanker(lang=lang, device='cpu' if use_cpu else 'cuda')

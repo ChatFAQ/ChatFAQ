@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from urllib.parse import urljoin
 
 import ray
 
@@ -82,13 +83,13 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
         embeddings = e5_model.build_embeddings(queries, prefix='query: ', batch_size=batch_size)
 
         token = os.getenv('BACKEND_TOKEN')
-        retrieve_endpoint = f"{os.environ.get('BACKEND_HOST')}/back/api/language-model/rag-configs/{rag_config_id}/retrieve/"
+        retrieve_endpoint = urljoin(os.environ.get('BACKEND_HOST'), f"/back/api/language-model/rag-configs/{rag_config_id}/retrieve/")
 
         headers = {'Authorization': f'Token {token}'}
 
         response = requests.post(retrieve_endpoint, json={'query_embeddings': embeddings.tolist(), 'top_k': 1}, headers=headers)
 
-        return response.json()    
+        return response.json()
 
     import numpy as np
 

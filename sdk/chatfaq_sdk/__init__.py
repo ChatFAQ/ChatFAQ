@@ -9,6 +9,7 @@ import queue
 import urllib.parse
 from logging import getLogger
 from typing import Callable, Optional, Union
+from functools import wraps
 
 import websockets
 from chatfaq_sdk import settings
@@ -71,8 +72,8 @@ class ChatFAQSDK:
         # already registered that rpc under that name and avoid duplicates
         self._rpcs = {}
 
-        self.rpc_llm_request_futures = {}
-        self.rpc_llm_request_msg_buffer = {}
+        self.llm_request_futures = {}
+        self.llm_request_msg_buffer = {}
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -127,7 +128,7 @@ class ChatFAQSDK:
             try:
                 logger.info(f"[{consumer_route.upper()}] Connecting to {uri}")
                 async with websockets.connect(uri) as ws:
-                    logger.info(f"{consumer_route.upper()} Connected")
+                    logger.info(f"[{consumer_route.upper()}] Connected")
                     setattr(self, f"ws_{consumer_route}", ws)
                     if on_connect is not None:
                         await on_connect()
@@ -175,7 +176,7 @@ class ChatFAQSDK:
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"Setting FSM by Definition {self.fsm_name}")
+            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}")
             await getattr(self, f'ws_{WSType.rpc.value}').send(
                 json.dumps(
                     {
@@ -191,7 +192,7 @@ class ChatFAQSDK:
     async def on_connect_parsing(self):
         if self.data_source_parsers is not None:
             parsers = list(self.data_source_parsers.keys())
-            logger.info(f"Registering Data Source Parsers {parsers}")
+            logger.info(f"[PARSE] Registering Data Source Parsers {parsers}")
             await getattr(self, f'ws_{WSType.parse.value}').send(
                 json.dumps(
                     {
@@ -218,6 +219,8 @@ class ChatFAQSDK:
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         for handler_index, handler in enumerate(self.rpcs[payload["name"]]):
             stack_id = str(uuid.uuid4())
+            logger.info(f"[RPC]     |---> ::: {handler}")
+
             async for res, last_from_handler, node_type in self._run_handler(handler, payload["ctx"]):
                 await getattr(self, f'ws_{WSType.rpc.value}').send(
                     json.dumps(
@@ -235,24 +238,28 @@ class ChatFAQSDK:
                 )
 
     async def llm_request_result_callback(self, payload):
-        if self.rpc_llm_request_msg_buffer.get(payload["bot_channel_name"]) is None:
-            self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]] = []
+        # mesages could come at a faster rate than the handler can process them, so we need to buffer them
+        if self.llm_request_msg_buffer.get(payload["bot_channel_name"]) is None:
+            self.llm_request_msg_buffer[payload["bot_channel_name"]] = []
+        self.llm_request_msg_buffer[payload["bot_channel_name"]].append(payload)
 
-        self.rpc_llm_request_msg_buffer[payload["bot_channel_name"]].append(payload)
-        if not self.rpc_llm_request_futures[payload["bot_channel_name"]].done():
-            self.rpc_llm_request_futures[payload["bot_channel_name"]].set_result(
+        # then we set future result to the generator as an indicator to the handler that it can start processing the
+        # messages. The generator will be consumed by the handler once awaited, and it will take care of resetting the
+        # buffer and setting the future again, in the meanwhile messages can still arrive and we keep buffering
+        if not self.llm_request_futures[payload["bot_channel_name"]].done():
+            self.llm_request_futures[payload["bot_channel_name"]].set_result(
                 self.llm_result_streaming_generator(payload["bot_channel_name"])
             )
 
     def llm_result_streaming_generator(self, bot_channel_name):
+        # The generator will be consumed by the handler once awaited, and it will take care of resetting the buffer and
+        # setting the future again
         def _llm_result_streaming_generator():
-            self.rpc_llm_request_futures[
-                bot_channel_name
-            ] = asyncio.get_event_loop().create_future()
-            _message_buffer = copy.deepcopy(
-                self.rpc_llm_request_msg_buffer[bot_channel_name]
-            )
-            self.rpc_llm_request_msg_buffer[bot_channel_name] = []
+            self.llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
+
+            _message_buffer = copy.deepcopy(self.llm_request_msg_buffer[bot_channel_name])
+
+            self.llm_request_msg_buffer[bot_channel_name] = []
 
             return _message_buffer
 
@@ -264,7 +271,7 @@ class ChatFAQSDK:
 
     async def send_llm_request(self, rag_config_name, input_text, use_conversation_context, only_context, conversation_id, bot_channel_name, user_id=None):
         logger.info(f"[LLM] Requesting LLM (model {rag_config_name})")
-        self.rpc_llm_request_futures[
+        self.llm_request_futures[
             bot_channel_name
         ] = asyncio.get_event_loop().create_future()
         await getattr(self, f'ws_{WSType.llm.value}').send(
@@ -291,6 +298,7 @@ class ChatFAQSDK:
         """
 
         def outer(func):
+            @wraps(func)
             def inner(ctx: dict):
                 return func(ctx)
 

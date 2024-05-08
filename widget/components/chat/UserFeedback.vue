@@ -91,7 +91,7 @@ import {useGlobalStore} from "~/store";
 import Checkbox from "~/components/generic/Checkbox.vue";
 import {useI18n} from 'vue-i18n'
 import CopyToClipboard from "~/components/chat/CopyToClipboard.vue";
-import {ref} from "vue";
+import {ref, defineProps, onMounted} from "vue";
 
 const props = defineProps(["msgId"]);
 

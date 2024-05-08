@@ -54,7 +54,8 @@ env:
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
-      BACKEND_HOST: "{{ back.PRIVATE_URL }}/back"
+      TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
+      BACKEND_HOST: "{{ back.PRIVATE_URL }}"
       BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
       AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
       AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
@@ -92,6 +93,12 @@ images:
     build_context: sdk
 
 services:
+  - name: admin
+    image: admin
+    envs: [ sentry, admin ]
+    port: 3000
+    instance_size: XS
+
   - name: ray
     image:
       host: docker.io
@@ -104,7 +111,7 @@ services:
     instance_size: XL
     command: ray start --head --resources='{"tasks":100,"rags":100}' --dashboard-host 0.0.0.0 --block
     route_prefixes:
-      - "//ray/"
+      - "/dummy/"
 
   - name: widget
     image: widget
@@ -113,12 +120,6 @@ services:
     instance_size: XS
     route_prefixes:
       - "/demo"
-
-  - name: admin
-    image: admin
-    envs: [ sentry, admin ]
-    port: 3000
-    instance_size: XS
 
   - name: back
     image: back
