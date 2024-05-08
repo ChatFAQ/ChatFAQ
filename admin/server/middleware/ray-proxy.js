@@ -1,5 +1,6 @@
 import {defineEventHandler} from 'h3'
-import {createProxyMiddleware} from 'http-proxy-middleware'; // npm install http-proxy-middleware@beta
+import {createProxyMiddleware} from 'http-proxy-middleware';
+import * as path from "path"; // npm install http-proxy-middleware@beta
 
 const rayProxyMiddleware = createProxyMiddleware('/ray/', {
     target: 'http://ray:8265',
@@ -13,11 +14,6 @@ const rayProxyMiddleware = createProxyMiddleware('/ray/', {
 })
 
 function extractTokenFromRawHeaders(rawHeaders) {
-    console.log(11111)
-    console.log(rawHeaders)
-    console.log(process.env.NUXT_API_URL)
-    console.log(process.env.NUXT_API_URL + 'back/api/people/people/')
-    console.log(2222)
     let cookieIndex = rawHeaders.indexOf('cookie')  // dev server
     if (cookieIndex === -1)
         cookieIndex = rawHeaders.indexOf('Cookie')  // prod server
@@ -40,7 +36,7 @@ async function isAuthorized(event) {
         }
     };
     try {
-        await $fetch(process.env.NUXT_API_URL + 'back/api/people/people/', options)
+        await $fetch(path.posix.join(process.env.NUXT_API_URL, 'back/api/people/people/'), options)
     } catch (e) {
         return false
     }
@@ -48,7 +44,6 @@ async function isAuthorized(event) {
 }
 
 export default defineEventHandler(async (event) => {
-    console.log(1)
     if (!event.node.req.url.startsWith('/ray/'))
         return
     if (!await isAuthorized(event))
