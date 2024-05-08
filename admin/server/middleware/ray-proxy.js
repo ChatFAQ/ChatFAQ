@@ -13,7 +13,11 @@ const rayProxyMiddleware = createProxyMiddleware('/ray/', {
 })
 
 function extractTokenFromRawHeaders(rawHeaders) {
+    console.log(11111)
     console.log(rawHeaders)
+    console.log(process.env.NUXT_API_URL)
+    console.log(process.env.NUXT_API_URL + 'back/api/people/people/')
+    console.log(2222)
     let cookieIndex = rawHeaders.indexOf('cookie')  // dev server
     if (cookieIndex === -1)
         cookieIndex = rawHeaders.indexOf('Cookie')  // prod server
