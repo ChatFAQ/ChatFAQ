@@ -13,7 +13,9 @@ const rayProxyMiddleware = createProxyMiddleware('/ray/', {
 })
 
 function extractTokenFromRawHeaders(rawHeaders) {
-    const cookieIndex = rawHeaders.indexOf('cookie');
+    let cookieIndex = rawHeaders.indexOf('cookie')  // dev server
+    if (cookieIndex === -1)
+        cookieIndex = rawHeaders.indexOf('Cookie')  // prod server
     const cookieValue = rawHeaders[cookieIndex + 1];
     if (cookieValue.indexOf(' token=') === -1)
         return null;
