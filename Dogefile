@@ -93,6 +93,12 @@ images:
     build_context: sdk
 
 services:
+  - name: admin
+    image: admin
+    envs: [ sentry, admin ]
+    port: 3000
+    instance_size: XS
+
   - name: ray
     image:
       host: docker.io
@@ -104,8 +110,8 @@ services:
     internal_ports: [6379, 6375, 10001, 10002, 8001]
     instance_size: XL
     command: ray start --head --resources='{"tasks":100,"rags":100}' --dashboard-host 0.0.0.0 --block
-    # route_prefixes:
-    #   - "//ray/"
+    route_prefixes:
+      - "/"
 
   - name: widget
     image: widget
@@ -114,12 +120,6 @@ services:
     instance_size: XS
     route_prefixes:
       - "/demo"
-
-  - name: admin
-    image: admin
-    envs: [ sentry, admin ]
-    port: 3000
-    instance_size: XS
 
   - name: back
     image: back
