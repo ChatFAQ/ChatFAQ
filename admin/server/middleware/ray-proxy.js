@@ -43,7 +43,9 @@ async function isAuthorized(event) {
 }
 
 export default defineEventHandler(async (event) => {
-    if (/* event.node.req.url.indexOf('/ray') > -1 && */!await isAuthorized(event))
+    if (!event.node.req.url.startsWith('/ray/'))
+        return
+    if (!await isAuthorized(event))
         return
 
     await new Promise((resolve, reject) => {
