@@ -1,11 +1,11 @@
-import json
+import asyncio
 from logging import getLogger
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from back.utils.celery import get_celery_tasks
+from ray.util.state import api as ray_api
 
 logger = getLogger(__name__)
 
@@ -32,15 +32,24 @@ class TasksProgressConsumer(AsyncJsonWebsocketConsumer):
         )
         await self.channel_layer.group_add("tasks", self.channel_name)
         await self.accept()
-        await self.send_data(None)
+        self.loop_task = asyncio.create_task(self.send_tasks())
 
     async def disconnect(self, close_code):
         logger.debug(f"Disconnecting from Progress Tasks consumer {close_code}")
         await self.channel_layer.group_discard("tasks", self.channel_name)
 
-    async def send_data(self, event):
-        @database_sync_to_async
-        def get_all_tasks():
-            return get_celery_tasks(current=True)
-        tasks = await get_all_tasks()
-        await self.send(json.dumps(tasks))
+        if hasattr(self, 'loop_task') and not self.loop_task.done():
+            self.loop_task.cancel()
+            try:
+                await self.loop_task
+            except asyncio.CancelledError:
+                print("Task was cancelled")
+            except Exception as e:
+                print(f"Unexpected error: {e}")
+
+        await super().disconnect(close_code)
+
+    async def send_tasks(self):
+        while True:
+            await asyncio.sleep(1)
+            await self.send_json([j.__dict__ for j in ray_api.list_tasks()])

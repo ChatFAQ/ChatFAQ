@@ -18,7 +18,7 @@ class DatasetConfig(AppConfig):
     def ready(self):
         if is_migrating() or is_scraping() or os.getenv("BUILD_MODE") in ["yes", "true"] or is_ray_worker():
             return
-        from back.apps.language_model.signals import on_rag_config_change, on_celery_task_signal  # noqa
+        from back.apps.language_model.signals import on_rag_config_change  # noqa
         from back.apps.language_model.models.enums import IndexStatusChoices
         from back.apps.language_model.ray_deployments import launch_rag_deployment
 

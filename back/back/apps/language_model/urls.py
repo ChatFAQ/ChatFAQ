@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
 # from django_celery_results.urls import urlpatterns as celery_results_urlpatterns
+from django.urls import path
 
 import back.apps.language_model.views.data
 import back.apps.language_model.views.rag_pipeline
@@ -17,7 +18,9 @@ router.register(r"retriever-configs", back.apps.language_model.views.rag_pipelin
 router.register(r"generation-configs", back.apps.language_model.views.rag_pipeline.GenerationConfigAPIViewSet, basename="generation-config")
 router.register(r"prompt-configs", back.apps.language_model.views.rag_pipeline.PromptConfigAPIViewSet, basename="prompt-config")
 router.register(r"intents", back.apps.language_model.views.data.IntentAPIViewSet, basename="intent")
-router.register(r"tasks", back.apps.language_model.views.tasks.TaskResultAPIViewSet, basename="tasks")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("tasks/", back.apps.language_model.views.tasks.ListTasksAPI.as_view()),
+]
+
 # urlpatterns += celery_results_urlpatterns
