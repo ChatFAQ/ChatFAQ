@@ -305,5 +305,6 @@
     "displayorder": "Orden de visualización",
     "generationfirst": "Generación Primero",
     "sourcesfirst": "Fuentes Primero",
-    "messagelayout": "Diseño de Mensaje"
+    "messagelayout": "Diseño de Mensaje",
+    "close": "Cerrar"
 }
