@@ -52,15 +52,3 @@ def ensure_worker_queues():
             c.add_consumer(q_name, reply=True, destination=[worker])
         worker_queues.append(q_name)
     return worker_queues
-
-
-def get_celery_tasks(current=True):
-    from django_celery_results.models import TaskResult
-    from back.apps.language_model.serializers.tasks import TaskResultSerializer
-
-    if current:
-        tasks = TaskResult.objects.filter(worker__in=get_worker_names()).all()
-    else:
-        tasks = TaskResult.objects.all()
-
-    return TaskResultSerializer(tasks, many=True).data
