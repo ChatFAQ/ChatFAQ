@@ -100,7 +100,7 @@ class CustomPreset(ModelWDjango):
         yield channel_layers_config
 
 
-model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=True)
+model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=False)
 
 with EnvManager(model_w_django) as env:
     # ---
@@ -274,14 +274,6 @@ with EnvManager(model_w_django) as env:
     REST_KNOX = {
         "TOKEN_TTL": None,
     }
-    # Celery
-    # CELERY_BROKER_URL = f"sqla+{env.get('DATABASE_URL')}"
-    # from kombu.common import Broadcast
-    # CELERY_QUEUES = (Broadcast('broadcast_tasks'),)
-    # CELERY_ROUTES = {
-    # }
-    CELERY_WORKER_REDIRECT_STDOUTS = False
-    CELERY_IMPORTS = ("back.apps.language_model.signals", )
 
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'
@@ -310,7 +302,7 @@ with EnvManager(model_w_django) as env:
     # --------------------------- RAY ---------------------------
     RAY_SERVE_PORT = env.get("RAY_SERVE_PORT", default=8001)
     RAY_CLUSTER_HOST = env.get("RAY_CLUSTER_HOST", default="http://localhost")
-    
+
     if not ray.is_initialized() and os.getenv('RUN_MAIN'):
         ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 

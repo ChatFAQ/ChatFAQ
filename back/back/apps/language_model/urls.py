@@ -1,5 +1,4 @@
 from rest_framework.routers import DefaultRouter
-# from django_celery_results.urls import urlpatterns as celery_results_urlpatterns
 from django.urls import path
 
 import back.apps.language_model.views.data
@@ -24,5 +23,3 @@ urlpatterns = router.urls
 urlpatterns += [
     path("tasks/", back.apps.language_model.views.tasks.ListTasksAPI.as_view()),
 ]
-
-# urlpatterns += celery_results_urlpatterns
