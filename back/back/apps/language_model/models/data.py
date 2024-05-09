@@ -11,6 +11,7 @@ from django.core.files.base import ContentFile
 
 from back.apps.language_model.models.enums import LanguageChoices, StrategyChoices, SplittersChoices, IndexStatusChoices
 from back.apps.broker.models import RemoteSDKParsers
+from back.apps.language_model.models.tasks import RayTaskState
 from back.apps.language_model.tasks import (
     parse_pdf_task,
     parse_url_task,
@@ -20,7 +21,6 @@ from pgvector.django import VectorField
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django_celery_results.models import TaskResult
 
 from back.config.storage_backends import select_private_storage
 
@@ -138,9 +138,10 @@ class DataSource(ChangesMixin):
         channel_layer = get_channel_layer()
         layer_name = RemoteSDKParsers.get_next_consumer_group_name(self.parser)
         if layer_name:
-            task = TaskResult(
+            task = RayTaskState(
                 task_id=str(uuid4()),
-                task_name=f"{self.parser}_parser",
+                name=f"{self.parser}_parser",
+                func_or_class_name=self.parser,
             )
             task.save()
             async_to_sync(channel_layer.send)(

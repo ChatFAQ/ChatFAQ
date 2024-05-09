@@ -4,8 +4,7 @@ from logging import getLogger
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
-
-from ray.util.state import api as ray_api
+from back.apps.language_model.models import RayTaskState
 
 logger = getLogger(__name__)
 
@@ -52,4 +51,4 @@ class TasksProgressConsumer(AsyncJsonWebsocketConsumer):
     async def send_tasks(self):
         while True:
             await asyncio.sleep(1)
-            await self.send_json([j.__dict__ for j in ray_api.list_tasks()])
+            await self.send_json(await database_sync_to_async(RayTaskState.get_all_ray_and_parse_tasks_serialized)())

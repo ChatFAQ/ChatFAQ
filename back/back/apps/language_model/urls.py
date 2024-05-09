@@ -19,7 +19,9 @@ router.register(r"generation-configs", back.apps.language_model.views.rag_pipeli
 router.register(r"prompt-configs", back.apps.language_model.views.rag_pipeline.PromptConfigAPIViewSet, basename="prompt-config")
 router.register(r"intents", back.apps.language_model.views.data.IntentAPIViewSet, basename="intent")
 
-urlpatterns = [
+urlpatterns = router.urls
+
+urlpatterns += [
     path("tasks/", back.apps.language_model.views.tasks.ListTasksAPI.as_view()),
 ]
 
