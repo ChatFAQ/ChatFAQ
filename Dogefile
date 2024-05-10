@@ -35,6 +35,8 @@ env:
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
       RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
+  - name: django_ray
+    variables:
       RUN_MAIN: 'true'
   - name: ray_build
     variables:
@@ -86,7 +88,7 @@ services:
 
   - name: back
     image: back
-    envs: [ sentry, django ]
+    envs: [ sentry, django, django_ray ]
     port: 8000
     internal_ports: [8265, 6375]
     instance_size: XS
