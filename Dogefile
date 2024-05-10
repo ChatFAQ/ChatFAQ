@@ -35,9 +35,6 @@ env:
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
       RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
-  - name: celery
-    variables:
-      IS_CELERY: '1'
   - name: ray
     variables:
       RAY_DASHBOARD_PORT: '8265'
@@ -133,11 +130,6 @@ workers:
   - name: fsm_llm
     image: sdk
     envs: [ sentry, sdk ]
-    instance_size: XS
-
-  - name: celery_worker
-    image: back
-    envs: [ sentry, django, celery ]
     instance_size: XS
 
 jobs:
