@@ -35,6 +35,7 @@ env:
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
       RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
+      DO_REGION: 'chatfaq-backend.ams3'
   - name: django_ray
     variables:
       RUN_MAIN: 'true'
