@@ -101,7 +101,8 @@ RUN modelw-docker build
 
 
 # For installing chat-rag for back based images with all the AI functionality
-ARG INSTALL_CHAT_RAG=false
+ARG INSTALL_CHAT_RAG
+ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.68; fi
 

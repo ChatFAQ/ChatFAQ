@@ -18,7 +18,7 @@ services:
 
   ray:
     env_file:
-      - "ray_cluster/.env"
+      - "back/.env"
 
   widget:
     env_file:

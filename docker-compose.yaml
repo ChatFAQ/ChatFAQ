@@ -37,6 +37,7 @@ services:
       - redis
       - ray
     ports:
+      - 8265:8265
       - 8000:8000
     networks:
       - default
@@ -46,17 +47,18 @@ services:
     # volumes:
     #   - ./back/back:/back
   ray:
-    image: chatfaq/chatfaq-cpu:2024.04
+    build:
+      context: back
+      dockerfile: Dockerfile
+      args:
+        - INSTALL_CHAT_RAG=true
     container_name: chatfaq_ray
-    command: ["ray", "start", "--head", "--dashboard-host", "0.0.0.0", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
-    ports:
-      - 8265:8265
-      - 6375:6375
-      - 10001:10001
-      - 10002:10002
-      - 8001:8001
+    command: ["/.venv/bin/ray", "start", "--address=back:6375", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
     networks:
       - default
+      - chatfaq_db_net
+      - chatfaq_back_net
+      - chatfaq_state_machine_net
     environment:
       - CUDA_VISIBLE_DEVICES=0
     deploy:
