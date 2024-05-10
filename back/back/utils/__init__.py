@@ -8,9 +8,6 @@ import requests
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import widgets
 
-from back.utils.celery import get_celery_tasks
-from back.utils.ray_connection import get_ray_tasks
-
 logger = getLogger(__name__)
 
 
@@ -136,10 +133,3 @@ class PrettyJSONWidget(widgets.Textarea):
         except Exception as e:
             logger.warning("Error while formatting JSON: {}".format(e))
             return super(PrettyJSONWidget, self).format_value(value)
-
-
-def ray_and_celery_tasks(current=False):
-    """
-    Get the number of Ray tasks and Celery tasks that are currently running or has been run.
-    """
-    return get_ray_tasks(True) + get_celery_tasks(current)

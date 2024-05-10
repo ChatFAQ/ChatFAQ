@@ -35,33 +35,9 @@ env:
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
       RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
-  - name: celery
+  - name: ray_build
     variables:
-      IS_CELERY: '1'
-  - name: ray
-    variables:
-      RAY_DASHBOARD_PORT: '8265'
-      RAY_CLIENT_PORT: '10001'
-      RAY_HEAD_PORT: '6375'
-      TASKS_WORKERS: '1'
-      NUM_CPU_TASKS_WORKER: '4'
-      NUM_GPUS_TASKS_WORKER: '1'
-      RAGS_WORKERS: '1'
-      NUM_CPU_RAGS_WORKER: '4'
-      NUM_GPUS_RAGS_WORKER: '0'
-      RAGS_SERVING_PORT: '10002'
-      OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
-      ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
-      HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
-      MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
-      TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
-      BACKEND_HOST: "{{ back.PRIVATE_URL }}"
-      BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
-      AWS_ACCESS_KEY_ID: '{{ secret("AWS_ACCESS_KEY_ID") }}'
-      AWS_SECRET_ACCESS_KEY: '{{ secret("AWS_SECRET_ACCESS_KEY") }}'
-      AWS_STORAGE_BUCKET_NAME: '{{ get("AWS_STORAGE_BUCKET_NAME") }}'
-      AWS_S3_SIGNATURE_VERSION: 's3v4'
-      DO_REGION: 'ams3'
+      INSTALL_CHAT_RAG: 'true'
   - name: widget
     variables:
       BASE_URL: "/demo"
@@ -99,20 +75,6 @@ services:
     port: 3000
     instance_size: XS
 
-  - name: ray
-    image:
-      host: docker.io
-      registry: chatfaq
-      repository: chatfaq-cpu
-      tag: "2024.04"
-    envs: [ ray ]
-    port: 8265
-    internal_ports: [6379, 6375, 10001, 10002, 8001]
-    instance_size: XL
-    command: ray start --head --resources='{"tasks":100,"rags":100}' --dashboard-host 0.0.0.0 --block
-    route_prefixes:
-      - "/dummy/"
-
   - name: widget
     image: widget
     envs: [ sentry, widget ]
@@ -125,6 +87,7 @@ services:
     image: back
     envs: [ sentry, django ]
     port: 8000
+    internal_ports: [8265, 6375]
     instance_size: XS
     route_prefixes:
       - "/back"
@@ -135,10 +98,15 @@ workers:
     envs: [ sentry, sdk ]
     instance_size: XS
 
-  - name: celery_worker
-    image: back
-    envs: [ sentry, django, celery ]
-    instance_size: XS
+  - name: ray
+    image:
+      host: docker.io
+      registry: chatfaq
+      repository: back-chatrag
+      tag: "latest"
+    envs: [ django ]
+    instance_size: XL
+    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"rags":100}' --block
 
 jobs:
   - name: migrate

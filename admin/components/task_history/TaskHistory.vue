@@ -5,55 +5,60 @@
         :readOnly="true"
         :readable-name='$t("asynctasks")'
         :tableProps="{
-            'status': {'name': '', 'width': 50},
-            'task_name': {'name': $t('task_name')},
-            'date_created': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates},
-            'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration},
+            'state': {'name': '', 'width': 50},
+            'name': {'name': $t('task_name')},
+            'creation_time_ms': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates, 'formatter': timeMSFormatter},
+            'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration, 'formatter': durationMSFormatter},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
         :sections="{
             [$t('generalinfo')]: [
-                'status',
-                'task_name',
-                'periodic_task_name',
-                'task_args',
-                'task_kwargs',
-                'worker',
-                'content_type',
-                'content_encoding',
-                'result',
-                'date_created',
-                'date_done',
-                'meta',
+                'task_id',
+                'attempt_number',
+                'name',
+                'state',
+                'job_id',
+                'actor_id',
+                'type',
+                'func_or_class_name',
+                'parent_task_id',
+                'node_id',
+                'worker_id',
+                'worker_pid',
+                'error_type',
+                'language',
+                'required_resources',
+                'runtime_env_info',
+                'placement_group_id',
+                'events',
+                'profiling_data',
+                'creation_time_ms',
+                'start_time_ms',
+                'end_time_ms',
             ],
             [$t('logs')]: [
-                'traceback',
+                'task_log_info',
+                'error_message',
             ]
         }"
         :itemId="itemsStore.taskID"
     >
         <template #legend>
             <div class="legend"><span>Status:</span>
-                <span><span class="status SUCCESS"></span>{{ $t("success") }}</span>
-                <span><span class="status STARTED"></span>{{ $t("started") }}</span>
+                <span><span class="status FINISHED"></span>{{ $t("success") }}</span>
+                <span><span class="status RUNNING"></span>{{ $t("started") }}</span>
                 <span><span class="status WAITING"></span>{{ $t("waiting") }}</span>
-                <span><span class="status FAILURE"></span>{{ $t("failure") }}</span>
+                <span><span class="status FAILED"></span>{{ $t("failure") }}</span>
             </div>
         </template>
         <template v-slot:duration="{row}">
             <div>{{ calculateDuration(row) }}</div>
         </template>
-        <template v-slot:date_created="{row}">
-            <div>{{ formatDate(row.date_created) }}</div>
-        </template>
-        <template v-slot:task_name="{row}">
-            <div>{{ formatTaskName(row.task_name) }}</div>
-        </template>
-        <template v-slot:status="{row}">
-            <div width="10" class="status" :class="{[row.status]: true}">-</div>
+        <template v-slot:state="{row}">
+            <div width="10" class="status" :class="{[row.state]: true}">-</div>
         </template>
         <template v-slot:view="{row}">
-            <span class="command-edit" @click="itemsStore.taskID = row.id">{{ $t("view") }}</span>
+            <span class="command-edit" @click="itemsStore.taskID = row.task_id">{{ $t("view") }}</span>
         </template>
         <template v-slot:write-traceback="value">
             <div class="traceback">{{ value["value"] }}</div>
@@ -73,11 +78,11 @@ const itemType = ref("tasks")
 await itemsStore.loadSchema()
 
 
-function calculateDuration({date_created, date_done}) {
+function calculateDuration({start_time_ms, end_time_ms}) {
     // Calculate duration in mili, secs, minutes or hours depending on the diration itself, format of imput dates are: 2023-12-11T16:08:44.661922
-    if (date_done) {
-        const dateCreated = new Date(date_created)
-        const dateFinished = new Date(date_done)
+    if (start_time_ms && end_time_ms) {
+        const dateCreated = new Date(start_time_ms)
+        const dateFinished = new Date(end_time_ms)
         let diff = dateFinished - dateCreated
         if (diff < 1000) {
             return `${diff.toFixed(1)} ms`
@@ -93,25 +98,19 @@ function calculateDuration({date_created, date_done}) {
     }
 }
 
-function formatDate(date) {
-    if (date) {
-        const dateObj = new Date(date)
+function formatDate(creation_time_ms) {
+    if (creation_time_ms) {
+        const dateObj = new Date(creation_time_ms)
         return `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()} ${dateObj.getHours()}:${dateObj.getMinutes()}:${dateObj.getSeconds()}`
     } else {
         return null
     }
 }
 
-function formatTaskName(name) {
-    if (!name) {
-        return null
-    }
-    return name.split(".")[name.split(".").length - 1]
-}
 
 function sortDates(a, b) {
-    const dateA = new Date(a.date_created)
-    const dateB = new Date(b.date_created)
+    const dateA = new Date(a.creation_time_ms)
+    const dateB = new Date(b.creation_time_ms)
     return dateA - dateB
 }
 function sortDuration(a, b) {
@@ -142,6 +141,13 @@ function sortDuration(a, b) {
         return 1
     }
 }
+function timeMSFormatter(row, propName) {
+    return formatDate(row[propName])
+}
+function durationMSFormatter(row, propName) {
+    return calculateDuration(row)
+}
+
 </script>
 <style lang="scss" scoped>
 .status {
@@ -149,17 +155,18 @@ function sortDuration(a, b) {
     height: 6px;
     border-radius: 50%;
     margin: 0 auto;
+    // &.NIL, &.PENDING_ARGS_AVAIL, &.PENDING_NODE_ASSIGNMENT, &.PENDING_OBJ_STORE_MEM_AVAIL, &.PENDING_ARGS_FETCH, &.SUBMITTED_TO_WORKER
     background-color: #F2C94C; // waiting
 
-    &.SUCCESS {
+    &.FINISHED {
         background-color: #27AE60;
     }
 
-    &.FAILURE {
+    &.FAILED {
         background-color: #EB5757;
     }
 
-    &.STARTED {
+    &.RUNNING, &.RUNNING_IN_RAY_GET, &.RUNNING_IN_RAY_WAIT {
         background-color: #2D9CDB;
     }
 }

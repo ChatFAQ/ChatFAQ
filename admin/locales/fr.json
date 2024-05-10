@@ -305,5 +305,6 @@
     "displayorder": "Ordre d'affichage",
     "generationfirst": "Génération en premier",
     "sourcesfirst": "Sources en premier",
-    "messagelayout": "Mise en page du message"
+    "messagelayout": "Mise en page du message",
+    "close": "Fermer"
 }

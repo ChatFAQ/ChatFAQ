@@ -3,8 +3,17 @@ from urllib.parse import urlparse
 
 from back.apps.language_model.scraping.scraping.items import CustomItemLoader, GenericItem
 from back.apps.language_model.models.data import DataSource
-from back.apps.language_model.ray_tasks import parse_html
-import ray
+
+
+def parse_html(html_text, splitter, chunk_size, chunk_overlap):
+    from chat_rag.data.parsers import parse_html as parse_html_method
+    from chat_rag.data.splitters import get_splitter
+
+    splitter = get_splitter(splitter, chunk_size, chunk_overlap)
+
+    k_items = parse_html_method(text=html_text, split_function=splitter)
+
+    return k_items
 
 
 class GenericSpider(scrapy.Spider):
@@ -34,7 +43,7 @@ class GenericSpider(scrapy.Spider):
     def parse(self, response):
         # Not the most efficient way
         # TODO: try to launch multiple scrapy parse functions in parallel so that we can parse multiple pages at the same time
-        k_items = ray.get(parse_html.remote(response.text, self.splitter, self.chunk_size, self.chunk_overlap))
+        k_items = parse_html(response.text, self.splitter, self.chunk_size, self.chunk_overlap)
 
         for k_item in k_items:
             item_loader = CustomItemLoader(item=GenericItem())

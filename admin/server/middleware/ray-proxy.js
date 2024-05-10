@@ -3,7 +3,7 @@ import {createProxyMiddleware} from 'http-proxy-middleware';
 import * as path from "path"; // npm install http-proxy-middleware@beta
 
 const rayProxyMiddleware = createProxyMiddleware('/ray/', {
-    target: 'http://ray:8265',
+    target: 'http://back:8265',
     changeOrigin: true,
     ws: true,
     pathRewrite: {'^/ray/': ''},
