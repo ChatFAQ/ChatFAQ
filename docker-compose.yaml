@@ -45,25 +45,6 @@ services:
       - chatfaq_state_machine_net
     # volumes:
     #   - ./back/back:/back
-  celery:
-    build:
-      context: back
-      dockerfile: Dockerfile
-    image: chatfaq_celery
-    container_name: chatfaq_celery
-    hostname: celery
-    depends_on:
-      - back
-    networks:
-      - default
-      - chatfaq_celery_net
-      - chatfaq_db_net
-
-    environment:
-        - IS_CELERY=1
-    # volumes:
-    #   - ./back/back:/back
-
   ray:
     image: chatfaq/chatfaq-cpu:2024.04
     container_name: chatfaq_ray
@@ -146,4 +127,3 @@ networks:
   chatfaq_db_net:
   chatfaq_back_net:
   chatfaq_state_machine_net:
-  chatfaq_celery_net:

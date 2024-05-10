@@ -12,10 +12,6 @@ services:
     env_file:
       - "back/.env"
 
-  celery:
-    env_file:
-      - "back/.env"
-
   state-machine:
     env_file:
       - "sdk/.env"
