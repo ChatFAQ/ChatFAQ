@@ -105,6 +105,7 @@ ARG INSTALL_CHAT_RAG
 ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.68; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
 
 
 CMD ./starter_script.sh
