@@ -102,7 +102,7 @@ services:
       registry: chatfaq
       repository: back-chatrag
       tag: "latest"
-    envs: [ sentry, django ]
+    envs: [ django ]
     port: 8877
     internal_ports: [8001]
     instance_size: XL
