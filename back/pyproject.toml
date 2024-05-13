@@ -45,6 +45,7 @@ twisted = "^23.10.0rc1"
 ray = {version = "2.10.0", extras = ["data", "serve"]}
 pillow = "^10.3.0"
 redis = "5.0.4"
+fastapi = "0.111"
 
 
 [tool.poetry.group.dev.dependencies]
