@@ -92,7 +92,7 @@ services:
     envs: [ sentry, django, django_ray ]
     port: 8000
     internal_ports: [8265, 6375]
-    instance_size: S
+    instance_size: M
     route_prefixes:
       - "/back"
 
