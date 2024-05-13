@@ -106,7 +106,7 @@ services:
     port: 8877
     internal_ports: [8001]
     instance_size: XL
-    command: /.venv/bin/ray start --address=back:6375 --node-manager-port=8877 --resources='{"tasks":100,"rags":100}' --block
+    command: /.venv/bin/ray start --address=back:6375 --object-manager-port=8877 --resources='{"tasks":100,"rags":100}' --block
     route_prefixes:
       - "/dummy/"
 
