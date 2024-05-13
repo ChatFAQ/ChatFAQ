@@ -33,7 +33,7 @@ env:
       STORAGE_MAKE_FILES_PUBLIC: no
       REDIS_URL: '{{ redis.REDIS_URL }}'
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
-      RAY_CLUSTER_HOST: 'http://back'
+      RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
       DO_REGION: 'ams3'
   - name: django_ray
@@ -96,12 +96,6 @@ services:
     route_prefixes:
       - "/back"
 
-workers:
-  - name: fsm_llm
-    image: sdk
-    envs: [ sentry, sdk ]
-    instance_size: XS
-
   - name: ray
     image:
       host: docker.io
@@ -109,8 +103,18 @@ workers:
       repository: back-chatrag
       tag: "latest"
     envs: [ sentry, django ]
+    port: 8877
+    internal_ports: [8001]
     instance_size: XL
-    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"rags":100}' --block
+    command: /.venv/bin/ray start --address=back:6375, --node-manager-port=8877 --resources='{"tasks":100,"rags":100}' --block
+    route_prefixes:
+      - "/dummy/"
+
+workers:
+  - name: fsm_llm
+    image: sdk
+    envs: [ sentry, sdk ]
+    instance_size: XS
 
 jobs:
   - name: migrate
