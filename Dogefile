@@ -36,6 +36,7 @@ env:
       RAY_CLUSTER_HOST: 'http://ray'
       RAY_SERVE_PORT: '8001'
       DO_REGION: 'ams3'
+      RAY_BACKEND_LOG_LEVEL: 'debug'
   - name: django_ray
     variables:
       RUN_MAIN: 'true'
