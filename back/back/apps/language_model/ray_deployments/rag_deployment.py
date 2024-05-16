@@ -83,6 +83,7 @@ class RAGDeployment:
             else:
                 yield_dict = {"res": response_dict["res"]}
             response_str = json.dumps(yield_dict)
+            print(f"Generated response: {yield_dict}")
             yield response_str
 
     async def __call__(self, request: Request) -> StreamingResponse:
