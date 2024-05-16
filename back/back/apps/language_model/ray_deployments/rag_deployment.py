@@ -34,6 +34,7 @@ class RAGDeployment:
         """Wrapper around the retriever handle to make it compatible with the RAG interface."""
         def __init__(self, handle: DeploymentHandle):
             self.handle = handle
+            print("RetrieverHandleClient created")
 
         async def retrieve(self, message: str, top_k: int):
             print(f"Retrieving for message: {message}")
@@ -68,8 +69,10 @@ class RAGDeployment:
 
         llm_model = LLM_CLASSES[llm_type](llm_name, base_url=base_url)
         self.rag = AsyncRAG(retriever=retriever, llm_model=llm_model)
+        print("RAGDeployment created")
 
     async def gen_response(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=False):
+        print(f"Generating response for messages: {messages}")
         context_sent = False
         # async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=only_context):
         async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict):

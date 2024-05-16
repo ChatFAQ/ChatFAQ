@@ -78,13 +78,13 @@ services:
     image: admin
     envs: [ sentry, admin ]
     port: 3000
-    instance_size: XS
+    instance_size: XXS
 
   - name: widget
     image: widget
     envs: [ sentry, widget ]
     port: 3000
-    instance_size: XS
+    instance_size: XXS
     route_prefixes:
       - "/demo"
 
@@ -93,7 +93,7 @@ services:
     envs: [ sentry, django, django_ray ]
     port: 8000
     internal_ports: [8265, 6375]
-    instance_size: M
+    instance_size: S
     route_prefixes:
       - "/back"
 
