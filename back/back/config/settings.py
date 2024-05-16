@@ -304,5 +304,5 @@ with EnvManager(model_w_django) as env:
     RAY_CLUSTER_HOST = env.get("RAY_CLUSTER_HOST", default="http://localhost")
 
     if not ray.is_initialized() and os.getenv('RUN_MAIN'):
-        ray_context = ray.init(address='auto', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
+        ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 

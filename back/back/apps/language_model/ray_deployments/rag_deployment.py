@@ -134,10 +134,6 @@ def launch_rag_deployment(rag_config_id):
     """
     from django.conf import settings
     from back.apps.language_model.models import RAGConfig
-    from logging import getLogger
-
-    logger2 = getLogger(__name__)
-
 
     rag_config = RAGConfig.objects.get(pk=rag_config_id)
     rag_deploy_name = rag_config.get_deploy_name()
@@ -146,10 +142,6 @@ def launch_rag_deployment(rag_config_id):
     # delete the deployment if it already exists
     task_name = f'delete_rag_deployment_{rag_deploy_name}'
     print(f"Submitting the {task_name} task to the Ray cluster...")
-    logger.info('#'*50)
-    logger.warning('>'*50)
-    logger2.info('*'*50)
-    logger2.warning('$'*50)
     # Need to wait for the task to finish before launching the new deployment
     ray.get(delete_rag_deployment.options(name=task_name).remote(rag_deploy_name))
 
