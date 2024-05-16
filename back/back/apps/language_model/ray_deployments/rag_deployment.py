@@ -36,7 +36,10 @@ class RAGDeployment:
             self.handle = handle
 
         async def retrieve(self, message: str, top_k: int):
-            return await self.handle.remote(message, top_k)
+            print(f"Retrieving for message: {message}")
+            result = await self.handle.remote(message, top_k)
+            print(f"Results retrieved: {result}")
+            return result
 
     def __init__(self, retriever_handle: DeploymentHandle, llm_name: str, llm_type: str):
 
