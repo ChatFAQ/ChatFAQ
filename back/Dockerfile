@@ -95,6 +95,8 @@ RUN modelw-docker install \
     && modelw-docker run poetry run playwright install firefox \
     && poetry run pip uninstall -y effdet
 
+COPY --chown=user . .
+
 RUN modelw-docker build
 
 
@@ -105,6 +107,5 @@ ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.68; fi
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
 
-COPY --chown=user . .
 
 CMD ./starter_script.sh
