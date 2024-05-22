@@ -79,6 +79,23 @@ class CustomPreset(ModelWDjango):
         channel_layers_config[1]["default"]["BACKEND"] = "channels_redis.pubsub.RedisPubSubChannelLayer"
         channel_layers_config[1]["default"]["CONFIG"]["capacity"] = 1500
         channel_layers_config[1]["default"]["CONFIG"]["expiry"] = 5
+        if channel_layers_config[1]["default"]["CONFIG"].get("hosts"):
+            address = channel_layers_config[1]["default"]["CONFIG"]["hosts"][0]
+            channel_layers_config[1]["default"]["CONFIG"]["hosts"] = [
+                {
+                    "address": address,
+                    "health_check_interval": 10,
+                    "retry_on_timeout": True,
+                    "socket_keepalive": True,
+                    "socket_connect_timeout": 5,
+                    # "socket_timeout": 3,
+                    # "socket_keepalive_options": {
+                    #     "tcp_keepidle": 60,
+                    #     "tcp_keepintvl": 10,
+                    #     "tcp_keepcnt": 9,
+                    # },
+                }
+            ]
 
         yield channel_layers_config
 
