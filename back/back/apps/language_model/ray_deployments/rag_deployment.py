@@ -17,7 +17,7 @@ from .colbert_deployment import launch_colbert
 from logging import getLogger
 
 logger = getLogger(__name__)
-  
+
 
 @serve.deployment(
     name="rag_orchestrator",
@@ -86,19 +86,8 @@ class RAGDeployment:
             print(f"Generated response: {yield_dict}")
             yield response_str
 
-    async def __call__(self, request: Request) -> StreamingResponse:
-        data = await request.json()
-        messages = data["messages"]
-        prev_contents = data["prev_contents"]
-        prompt_structure_dict = data["prompt_structure_dict"]
-        generation_config_dict = data["generation_config_dict"]
-        only_context = data.get("only_context", False)
-
-        return StreamingResponse(
-            self.gen_response(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context),
-            media_type="application/json",
-            status_code=200,
-        )
+    def __call__(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context):
+        return self.gen_response(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context)
 
 
 def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replicas=1):
@@ -111,7 +100,7 @@ def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replic
 
     print(f'Launched RAG deployment with name: {rag_deploy_name}')
     route_prefix = f'/rag/{rag_deploy_name}'
-    serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name)
+    serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name).options(stream=True)
     print(f'Launched all deployments')
 
 
