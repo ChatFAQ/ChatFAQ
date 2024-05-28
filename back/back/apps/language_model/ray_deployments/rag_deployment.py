@@ -83,7 +83,6 @@ class RAGDeployment:
             else:
                 yield_dict = {"res": response_dict["res"]}
             response_str = json.dumps(yield_dict)
-            print(f"Generated response: {yield_dict}")
             yield response_str
 
     def __call__(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context):
@@ -142,10 +141,7 @@ def launch_rag_deployment(rag_config_id):
     ray.get(delete_rag_deployment.options(name=task_name).remote(rag_deploy_name))
 
     if not serve.status().applications:
-        http_options = HTTPOptions(host="0.0.0.0", port=settings.RAY_SERVE_PORT)  # Connect to local cluster or to local Ray driver (both by default run in the same addresses)
-        proxy_location = ProxyLocation(ProxyLocation.EveryNode)
-
-        serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)
+        serve.start(detached=True)
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
