@@ -141,7 +141,7 @@ def launch_rag_deployment(rag_config_id):
     ray.get(delete_rag_deployment.options(name=task_name).remote(rag_deploy_name))
 
     if not serve.status().applications:
-        serve.start(detached=True)
+        serve.start(detached=True, proxy_location=ProxyLocation(ProxyLocation.Disabled))
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
