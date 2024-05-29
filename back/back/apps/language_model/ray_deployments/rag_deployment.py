@@ -17,7 +17,7 @@ from .colbert_deployment import launch_colbert
 from logging import getLogger
 
 logger = getLogger(__name__)
-  
+
 
 @serve.deployment(
     name="rag_orchestrator",
@@ -83,22 +83,10 @@ class RAGDeployment:
             else:
                 yield_dict = {"res": response_dict["res"]}
             response_str = json.dumps(yield_dict)
-            print(f"Generated response: {yield_dict}")
             yield response_str
 
-    async def __call__(self, request: Request) -> StreamingResponse:
-        data = await request.json()
-        messages = data["messages"]
-        prev_contents = data["prev_contents"]
-        prompt_structure_dict = data["prompt_structure_dict"]
-        generation_config_dict = data["generation_config_dict"]
-        only_context = data.get("only_context", False)
-
-        return StreamingResponse(
-            self.gen_response(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context),
-            media_type="application/json",
-            status_code=200,
-        )
+    def __call__(self, messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context):
+        return self.gen_response(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context)
 
 
 def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replicas=1):
@@ -111,7 +99,7 @@ def launch_rag(rag_deploy_name, retriever_handle, llm_name, llm_type, num_replic
 
     print(f'Launched RAG deployment with name: {rag_deploy_name}')
     route_prefix = f'/rag/{rag_deploy_name}'
-    serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name)
+    serve.run(rag_handle, route_prefix=route_prefix, name=rag_deploy_name).options(stream=True)
     print(f'Launched all deployments')
 
 
@@ -153,10 +141,7 @@ def launch_rag_deployment(rag_config_id):
     ray.get(delete_rag_deployment.options(name=task_name).remote(rag_deploy_name))
 
     if not serve.status().applications:
-        http_options = HTTPOptions(host="0.0.0.0", port=settings.RAY_SERVE_PORT)  # Connect to local cluster or to local Ray driver (both by default run in the same addresses)
-        proxy_location = ProxyLocation(ProxyLocation.EveryNode)
-
-        serve.start(detached=True, http_options=http_options, proxy_location=proxy_location)
+        serve.start(detached=True, proxy_location=ProxyLocation(ProxyLocation.Disabled))
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'
