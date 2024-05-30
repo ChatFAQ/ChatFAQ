@@ -4,7 +4,7 @@ from logging import getLogger
 from django.apps import AppConfig
 
 from back.utils import is_migrating
-from back.utils.ray_utils import is_ray_worker
+from back.utils.ray_utils import is_ray_worker, is_shell
 import ray
 logger = getLogger(__name__)
 
@@ -22,8 +22,7 @@ class BrokerConfig(AppConfig):
 
         for pc in BrokerMetaClass.registry:
             pc.register()
-
-        if not (os.getenv("BUILD_MODE") in ["yes", "true"]) and not is_ray_worker():
+        if not (os.getenv("BUILD_MODE") in ["yes", "true"]) and not is_ray_worker() and not is_shell():
             try:
                 ConsumerRoundRobinQueue.clear()
             except Exception as e:
