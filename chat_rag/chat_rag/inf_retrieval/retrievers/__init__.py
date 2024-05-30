@@ -1,3 +1,4 @@
 from chat_rag.inf_retrieval.retrievers.semantic_retriever import SemanticRetriever
 from chat_rag.inf_retrieval.retrievers.rerank_retriever import ReRankRetriever
 from chat_rag.inf_retrieval.retrievers.retriever_client import RetrieverClient
+from chat_rag.inf_retrieval.retrievers.colbert_retriever import ColBERTRetriever

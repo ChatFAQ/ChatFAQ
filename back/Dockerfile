@@ -70,6 +70,8 @@ RUN apt-get update  \
         # Things required to use Weasyprint
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
+        # Stuff for unstructured pdf parsing
+        poppler-utils \
         # Stuff to allow configuration afterwards
         sudo \
     && apt-get upgrade -y \

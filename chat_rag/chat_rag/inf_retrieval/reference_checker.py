@@ -46,7 +46,7 @@ class ReferenceChecker:
         return False # if not question or instruction, then don't retrieve
     
 
-def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09, min_score=0.3) -> List[Dict[str, Any]]:
+def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09, min_score=0.3, score_key: str = 'score') -> List[Dict[str, Any]]:
     """
     Find the relevant sources from a list of sources. We use the similarity scores to find the relevant sources. We calculate the standard deviation of the gaps between consecutive sources and return all sources up to the first significant gap.
     Parameters
@@ -65,7 +65,7 @@ def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09
 
     # Calculate gaps between consecutive sources
     # print the similarity scores
-    gaps = [sources[i]['score'] - sources[i + 1]['score'] for i in range(len(sources) - 1)]
+    gaps = [sources[i][score_key] - sources[i + 1][score_key] for i in range(len(sources) - 1)]
 
     # Compute standard deviation of the gaps if there are enough gaps
     if len(gaps) > 1:
@@ -81,7 +81,7 @@ def clean_relevant_references(sources: List[Dict[str, Any]], min_difference=0.09
         
     final_sources = []
     for source in sources:
-        if source['score'] > min_score:
+        if source[score_key] > min_score:
             final_sources.append(source)
 
     # If no significant gap found, return all sources
