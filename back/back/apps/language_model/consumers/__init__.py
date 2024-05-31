@@ -1,13 +1,13 @@
 import json
 import uuid
 
-import httpx
 from logging import getLogger
 from django.forms.models import model_to_dict
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
+from ray.serve import get_deployment_handle
 
 from back.apps.broker.consumers.message_types import RPCMessageType
 from back.apps.broker.models.message import Conversation, StackPayloadType, AgentType, Message
@@ -116,41 +116,28 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     if input_text:
         messages.append({"role": "user", "content": input_text})
 
-    request_data = {
-        "messages": messages,
-        "prev_contents": await database_sync_to_async(list)(prev_kis.values_list("content", flat=True)),
-        "prompt_structure_dict": p_conf,
-        "generation_config_dict": g_conf,
-        "only_context": only_context
-    }
-
-    print('#' * 80)
-    print(request_data)
-    print('#' * 80)
-
-    rag_url = rag_conf.get_ray_endpoint()
     references = None
-
-    logger.info(f"{'>' * 80}\n"
-                f"Request data: {request_data}\n"
-                f"RAG URL: {rag_url}\n"
-                f"{'<' * 80}")
 
     try:
         if streaming:
-            async with httpx.AsyncClient() as client:
-                async with client.stream('POST', rag_url, json=request_data) as r:
-                    r.raise_for_status()
-                    async for chunk in r.aiter_bytes():
-                        ray_res = json.loads(chunk)
-                        if references is None:
-                            references = await resolve_references((ray_res.get("context", [[]]) or [[]])[0], conv, rag_conf, relate_kis_to_msgs=not input_text)
+            handle = get_deployment_handle('rag_orchestrator', app_name=rag_conf.get_deploy_name()).options(stream=True)
+            response = handle.remote(
+                messages,
+                await database_sync_to_async(list)(prev_kis.values_list("content", flat=True)),
+                p_conf,
+                g_conf,
+                only_context
+            )
+            async for ray_res in response:
+                ray_res = json.loads(ray_res)
+                if references is None:
+                    references = await resolve_references((ray_res.get("context", [[]]) or [[]])[0], conv, rag_conf, relate_kis_to_msgs=not input_text)
 
-                            logger.info(f"{'#' * 80}\n"
-                                        f"References: {references}\n"
-                                        f"{'#' * 80}")
+                    logger.info(f"{'#' * 80}\n"
+                                f"References: {references}\n"
+                                f"{'#' * 80}")
 
-                        yield {"model_response": ray_res.get("res", ""), "references": references, "final": False}
+                yield {"model_response": ray_res.get("res", ""), "references": references, "final": False}
         else:
             pass  # TODO: implement non-streaming version
     except Exception as e:

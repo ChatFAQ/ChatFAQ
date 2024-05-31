@@ -12,7 +12,8 @@ from back.apps.language_model.models.enums import IndexStatusChoices, DeviceChoi
 from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from back.common.models import ChangesMixin
 
-from back.apps.language_model.tasks import index_task, launch_rag_deployment_task
+from back.apps.language_model.tasks import index_task
+from back.apps.language_model.ray_deployments import launch_rag_deployment
 
 from logging import getLogger
 
@@ -60,9 +61,6 @@ class RAGConfig(ChangesMixin):
     def get_deploy_name(self):
         return f'rag_{self.name}'
 
-    def get_ray_endpoint(self):
-        return urljoin(f"{settings.RAY_CLUSTER_HOST}:{settings.RAY_SERVE_PORT}", f"/rag/{self.get_deploy_name()}")
-
     def __str__(self):
         return self.name if self.name is not None else f"{self.llm_config.name} - {self.knowledge_base.name}"
 
@@ -92,19 +90,24 @@ class RAGConfig(ChangesMixin):
 
         if redeploy_rag and self.enabled:
             def on_commit_callback():
-                launch_rag_deployment_task.delay(self.id)
+                task_name = f"launch_rag_deployment_{self.name}"
+                print(f"Submitting the {task_name} task to the Ray cluster...")
+                launch_rag_deployment.options(name=task_name).remote(self.id)
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
 
     def trigger_reindex(self):
-        index_task.delay(self.id, launch_rag_deploy=self.enabled)  # Trigger the Celery task
+        logger.info(f"Launching RAG reindex for {self.name}")
+        index_task.remote(self.id, launch_rag_deploy=self.enabled)
 
     def trigger_deploy(self):
         """Deploys should be automatically triggered when the RAG is saved, but this method is here for manual triggering if needed."""
         if self.enabled and self.get_index_status() in [IndexStatusChoices.OUTDATED, IndexStatusChoices.UP_TO_DATE]:
             logger.info(f"Launching RAG deploy for {self.name}")
-            launch_rag_deployment_task.delay(self.id)
+            task_name = f"launch_rag_deployment_{self.name}"
+            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+            launch_rag_deployment.options(name=task_name).remote(self.id)
         else:
             logger.info(f"RAG {self.name} is not enabled or index is not up to date, skipping deploy")
 
@@ -202,7 +205,9 @@ class RetrieverConfig(ChangesMixin):
                 logger.info('Retriever device changed, launching rag redeploys')
                 for rag in rags_to_redeploy:
                     if rag.enabled:
-                        launch_rag_deployment_task.delay(rag.id)
+                        task_name = f"launch_rag_deployment_{rag.name}"
+                        logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+                        launch_rag_deployment.options(name=task_name).remote(rag.id)
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
@@ -270,7 +275,9 @@ class LLMConfig(ChangesMixin):
                 logger.info('LLM changed, launching rag redeploys')
                 for rag in rags_to_redeploy:
                     if rag.enabled:
-                        launch_rag_deployment_task.delay(rag.id)
+                        task_name = f"launch_rag_deployment_{rag.name}"
+                        logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+                        launch_rag_deployment.options(name=task_name).remote(rag.id)
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)

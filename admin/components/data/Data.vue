@@ -73,9 +73,9 @@
                            apiUrl="/back/api/language-model/intents/"
                            :tableProps="{
                                 'intent_name': {'name': $t('intentname')},
-                                'num_of_knowledge_items': {'name': $t('knowledgeitems')},
+                                'num_of_knowledge_items': {'name': $t('num_of_knowledge_items')},
                                 'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
-                                'intents': {'name': $t('intents')},
+                                'intents': {'name': $t('knowledgeitems')},
                            }"
                            :filtersSchema="[
                                {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},

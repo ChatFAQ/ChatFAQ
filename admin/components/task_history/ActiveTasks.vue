@@ -8,18 +8,18 @@
             </el-icon>
         </div>
         <div class="active-tasks-body" v-if="opened">
-            <div v-for="item in items" :key="item.id" class="active-task" @click="goToTaskToDetail(item.id)">
+            <div v-for="item in items" :key="item.task_id" class="active-task" @click="goToTaskToDetail(item.task_id)">
                 <div class="active-task-name">
-                    <span class="name">{{ formatTaskName(item.task_name) }}</span>
-                    <span v-if="item.status !== 'WAITING'" class="action" @click.stop @click="removeItem(item.id)">{{ $t("close") }}</span>
+                    <span class="name">{{ formatTaskName(item.name) }}</span>
+                    <span v-if="item.state !== 'WAITING'" class="action" @click.stop @click="removeItem(item.task_id)">{{ $t("close") }}</span>
                 </div>
-                <div class="active-task-status" v-if="item.status !== 'STARTED'">{{ formatState(item.status) }}</div>
-                <div class="active-task-status" v-else-if="item.status">{{ $t("inprogress") }}</div>
+                <div class="active-task-state" v-if="item.state !== 'STARTED'">{{ formatState(item.state) }}</div>
+                <div class="active-task-state" v-else-if="item.state">{{ $t("inprogress") }}</div>
                 <div class="active-task-progress">
-                    <el-progress v-if="item.status === 'STARTED'" :percentage="50" :show-text="false" :stroke-width="6"
-                                 :color="getColor(item.status)"><span>{{ $t("inprogress") }}</span></el-progress>
+                    <el-progress v-if="RUNNING_STATUSES.indexOf(item.state) > -1" :percentage="50" :show-text="false" :stroke-width="6"
+                                 :color="getColor(item.state)"><span>{{ $t("inprogress") }}</span></el-progress>
                     <el-progress v-else :percentage="100" :show-text="false" :stroke-width="6"
-                                 :color="getColor(item.status)"></el-progress>
+                                 :color="getColor(item.state)"></el-progress>
                 </div>
             </div>
         </div>
@@ -41,6 +41,9 @@ const router = useRouter();
 const conf = useRuntimeConfig()
 const { t } = useI18n();
 
+const WAITING_STATUSES = ["NIL", "PENDING_ARGS_AVAIL", "PENDING_NODE_ASSIGNMENT", "PENDING_OBJ_STORE_MEM_AVAIL", "PENDING_ARGS_FETCH", "SUBMITTED_TO_WORKER"]
+const RUNNING_STATUSES = ["RUNNING", "RUNNING_IN_RAY_GET", "RUNNING_IN_RAY_WAIT"]
+
 
 if (process.client)
     createConnection()
@@ -56,7 +59,7 @@ function createConnection() {
     );
     ws.onmessage = async function (e) {
         const msg = JSON.parse(e.data);
-        if (msg.status === 400) {
+        if (msg.state === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
             return
         }
@@ -78,15 +81,15 @@ function setItems(newItems) {
     // If lastItemDate.value is null the only add items that are WAITING or STARTED
     // If lastItemDate.value is not null add all new items that are newer than lastItemDate.value
     // Update lastItemDate.value
-    const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || item.status === "WAITING" || item.status === "STARTED")
+    const filteredItems = newItems.filter(item => new Date(item.date_created) >= lastItemDate.value - 1000 || WAITING_STATUSES.indexOf(item.state) > -1 || RUNNING_STATUSES.indexOf(item.state) > -1)
     // add pendingNewItems if they dont exists yet
     filteredItems.forEach(filteredItem => {
-        if (!items.value.find(item => item.id === filteredItem.id))
+        if (!items.value.find(item => item.task_id === filteredItem.task_id))
             items.value.push(filteredItem)
     })
     // Update the exisitng items with the new items by id
     items.value = items.value.map(item => {
-        const newItem = newItems.find(newItem => newItem.id === item.id)
+        const newItem = newItems.find(newItem => newItem.task_id === item.task_id)
         if (newItem)
             return newItem
         else
@@ -97,7 +100,7 @@ function setItems(newItems) {
 }
 
 function removeItem(id) {
-    items.value = items.value.filter(item => item.id !== id)
+    items.value = items.value.filter(item => item.task_id !== id)
 }
 
 function goToTaskToDetail(id) {
@@ -111,14 +114,14 @@ function formatTaskName(taskName) {
     return taskName.split(".")[taskName.split(".").length - 1]
 }
 
-function getColor(status) {
-    if (status === "SUCCESS")
+function getColor(state) {
+    if (state === "FINISHED")
         return "#27AE60"
-    else if (status === "FAILURE")
+    else if (state === "FAILED")
         return "#EB5757"
-    else if (status === "STARTED")
+    else if (RUNNING_STATUSES.indexOf(state) > -1)
         return "#2D9CDB"
-    else if (status === "WAITING")
+    else if (WAITING_STATUSES.indexOf(state) > -1)
         return "#F2C94C"
     else
         return "#F2C94C"

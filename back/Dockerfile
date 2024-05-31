@@ -70,6 +70,8 @@ RUN apt-get update  \
         # Things required to use Weasyprint
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
+        # Stuff for unstructured pdf parsing
+        poppler-utils \
         # Stuff to allow configuration afterwards
         sudo \
     && apt-get upgrade -y \
@@ -99,11 +101,13 @@ COPY --chown=user . .
 
 RUN modelw-docker build
 
-ARG REMOTE_RAY_CLUSTER_ADDRESS_HEAD
-ENV REMOTE_RAY_CLUSTER_ADDRESS_HEAD=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD:-"localhost:6375"}
 
-ARG IS_CELERY
-ENV IS_CELERY=${IS_CELERY}
-# ENV REMOTE_RAY_CLUSTER_ADDRESS_HEAD=${REMOTE_RAY_CLUSTER_ADDRESS_HEAD}
+# For installing chat-rag for back based images with all the AI functionality
+ARG INSTALL_CHAT_RAG
+ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
+
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.68; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
+
 
 CMD ./starter_script.sh

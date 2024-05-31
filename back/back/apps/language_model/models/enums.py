@@ -43,4 +43,4 @@ class SplittersChoices(models.TextChoices):
     SENTENCES = "sentences", _("Sentences")
     WORDS = "words", _("Words")
     TOKENS = "tokens", _("Tokens")
-    SMART = "smart", _("Smart")
+    # SMART = "smart", _("Smart") # Disable for now

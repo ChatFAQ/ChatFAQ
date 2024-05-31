@@ -12,17 +12,13 @@ services:
     env_file:
       - "back/.env"
 
-  celery:
-    env_file:
-      - "back/.env"
-
   state-machine:
     env_file:
       - "sdk/.env"
 
   ray:
     env_file:
-      - "ray_cluster/.env"
+      - "back/.env"
 
   widget:
     env_file:

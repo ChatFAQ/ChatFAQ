@@ -305,5 +305,6 @@
     "displayorder": "Display Order",
     "generationfirst": "Generation First",
     "sourcesfirst": "Sources First",
-    "messagelayout": "Message Layout"
+    "messagelayout": "Message Layout",
+    "close": "Close"
 }

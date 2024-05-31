@@ -8,10 +8,9 @@ from django.contrib.auth.models import AnonymousUser
 from back.apps.broker.consumers.message_types import ParseMessageType
 from back.apps.broker.models import RemoteSDKParsers
 from back.apps.broker.serializers.rpc import ParseResponseSerializer, RegisterParsersSerializer, ParsersFinishSerializer
+from back.apps.language_model.models.tasks import RayTaskState
 from back.apps.language_model.serializers.data import KnowledgeItemSerializer
 from back.utils import WSStatusCodes
-from django_celery_results.models import TaskResult
-from celery import states
 
 logger = getLogger(__name__)
 
@@ -48,11 +47,11 @@ class ParseConsumer(AsyncJsonWebsocketConsumer):
 
         # Fail pending tasks:
         for task_id in self.parse_tasks:
-            task = await database_sync_to_async(TaskResult.objects.filter(task_id=task_id).first)()
+            task = await database_sync_to_async(RayTaskState.objects.filter(task_id=task_id).first)()
             if task is None:
                 continue
-            if task.status != states.SUCCESS:
-                task.status = states.FAILURE
+            if task.state != RayTaskState.STATE_CHOICES_DICT["FINISHED"]:
+                task.state = RayTaskState.STATE_CHOICES_DICT["FAILED"]
                 await database_sync_to_async(task.save)()
 
         # Remove from round robin queue
@@ -96,11 +95,11 @@ class ParseConsumer(AsyncJsonWebsocketConsumer):
         if not await database_sync_to_async(serializer.is_valid)():
             await self.error_response({"payload": serializer.errors})
             return
-        task = await database_sync_to_async(TaskResult.objects.filter(task_id=serializer.validated_data["task_id"]).first)()
+        task = await database_sync_to_async(RayTaskState.objects.filter(task_id=serializer.validated_data["task_id"]).first)()
         if task is None:
             await self.error_response({"payload": {"errors": "Task not found"}})
             return
-        task.status = states.SUCCESS
+        task.state = RayTaskState.STATE_CHOICES_DICT["FINISHED"]
         await database_sync_to_async(task.save)()
 
     async def error_response(self, data: dict):
