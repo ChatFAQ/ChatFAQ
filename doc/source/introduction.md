@@ -85,14 +85,14 @@ Finally now you can run all the services:
 
 Congratulations! You have a running ChatFAQ instance.
 
-Now you can navigate to the widget to interact with the chatbot http://localhost:3000/demo/
+Now you can navigate to the widget to interact with the chatbot http://localhost:3003/demo/
 
 Or to the admin to manage the chatbot and see how we have configured it for you the model http://localhost:3000/
 
 ## Deeper into ChatFAQ
 
-If you want to upload your own dataset, you can check the [Dataset Configuration](./modules/dataset/index.md) documentation.
+If you want to use your own dataset, you can check the [Dataset Configuration](./modules/dataset/index.md) documentation.
 
 If you want to learn how to configure your own RAG (LLM model, retriever model, prompt configuration, etc...) you can check the [RAG Configuration](./modules/rag/index.md) documentation.
 
-If you want to learn how to use the SDK so you can create your own chatbot behavior, you can check the [SDK](./modules/sdk/index.md) documentation.
+If you want to learn how to use the SDK, so you can create your own chatbot behavior, you can check the [SDK](./modules/sdk/index.md) documentation.

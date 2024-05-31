@@ -3,8 +3,7 @@ from logging import getLogger
 
 from django.apps import AppConfig
 
-from back.utils import is_migrating
-from back.utils.ray_utils import is_ray_worker, is_shell
+from back.utils import is_server_process
 import ray
 logger = getLogger(__name__)
 
@@ -14,7 +13,7 @@ class BrokerConfig(AppConfig):
     name = "back.apps.broker"
 
     def ready(self):
-        if is_migrating():
+        if not is_server_process():
             return
         from back.apps.broker.consumers import bots  # noqa  ## This is needed to self register the bots in the BrokerMetaClass
         from back.common.abs.bot_consumers import BrokerMetaClass
@@ -22,12 +21,12 @@ class BrokerConfig(AppConfig):
 
         for pc in BrokerMetaClass.registry:
             pc.register()
-        if not (os.getenv("BUILD_MODE") in ["yes", "true"]) and not is_ray_worker() and not is_shell():
-            try:
-                ConsumerRoundRobinQueue.clear()
-            except Exception as e:
-                logger.warning(f"Could not clear the round robin queue: {e}")
-            try:
-                RemoteSDKParsers.clear()
-            except Exception as e:
-                logger.warning(f"Could not clear the remote SDK parsers: {e}")
+
+        try:
+            ConsumerRoundRobinQueue.clear()
+        except Exception as e:
+            logger.warning(f"Could not clear the round robin queue: {e}")
+        try:
+            RemoteSDKParsers.clear()
+        except Exception as e:
+            logger.warning(f"Could not clear the remote SDK parsers: {e}")

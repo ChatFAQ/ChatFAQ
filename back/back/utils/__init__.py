@@ -1,9 +1,9 @@
 import json
 import sys
+import os
 import tempfile
 from enum import Enum
 from logging import getLogger
-
 import requests
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import widgets
@@ -113,14 +113,6 @@ class WSStatusCodes(Enum):
         return status < 400
 
 
-def is_migrating():
-    return "makemigrations" in sys.argv or "migrate" in sys.argv
-
-
-def is_scraping():
-    return "scrape" in sys.argv
-
-
 class PrettyJSONWidget(widgets.Textarea):
     def format_value(self, value):
         try:
@@ -133,3 +125,33 @@ class PrettyJSONWidget(widgets.Textarea):
         except Exception as e:
             logger.warning("Error while formatting JSON: {}".format(e))
             return super(PrettyJSONWidget, self).format_value(value)
+
+
+def is_server_process():
+    extra_commands = ["ray", "collectstatic", "createsuperuser", "createtoken"]
+    if any(command in sys.argv for command in extra_commands):  # If is any management command other than runserver
+        return False
+
+    for arg in sys.argv:
+        if arg.endswith("ray"):
+            return False
+
+    from django.core.management import get_commands
+    commands = list(get_commands().keys())
+
+    if "runserver" in commands:
+        commands.remove("runserver")
+
+    if os.getenv("BUILD_MODE") in ["yes", "true"]:  # If is a build process
+        return False
+
+    if any(command in sys.argv for command in commands):  # If is any management command other than runserver
+        return False
+
+    if any("runserver" in s for s in sys.argv) and not os.getenv('RUN_MAIN'):  # If is runserver and is the reloader process
+        return False
+
+    if any("runserver" in s for s in sys.argv) or any("daphne" in s for s in sys.argv):
+        return True
+
+    return False  # If is not a management command, then it is probably an asgi or wsgi server

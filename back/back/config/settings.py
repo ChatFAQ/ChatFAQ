@@ -7,7 +7,7 @@ from model_w.preset.django import ModelWDjango
 from dotenv import load_dotenv
 import ray
 from ray.runtime_env import RuntimeEnv
-
+from back.utils import is_server_process
 
 load_dotenv()
 
@@ -300,6 +300,6 @@ with EnvManager(model_w_django) as env:
     TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
     # --------------------------- RAY ---------------------------
-    if not ray.is_initialized() and os.getenv('RUN_MAIN'):
+    if not ray.is_initialized() and is_server_process():
         ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 

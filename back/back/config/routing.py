@@ -7,7 +7,8 @@ from back.apps.language_model.consumers.tasks_progress import TasksProgressConsu
 from back.common.abs.bot_consumers import BrokerMetaClass
 from back.common.abs.bot_consumers.http import HTTPBotConsumer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
-from back.utils import is_migrating
+from back.utils import is_server_process
+
 
 websocket_urlpatterns = [
     re_path(
@@ -36,7 +37,7 @@ http_urlpatterns = []
 
 
 def set_up_platform_urls(_http_urlpatterns, _ws_urlpatterns):
-    if is_migrating():
+    if not is_server_process():
         return
 
     for pc in BrokerMetaClass.registry:
