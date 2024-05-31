@@ -40,9 +40,6 @@ env:
       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
-  - name: django_ray
-    variables:
-      RUN_MAIN: 'true'
   - name: ray_build
     variables:
       INSTALL_CHAT_RAG: 'true'
@@ -93,7 +90,7 @@ services:
 
   - name: back
     image: back
-    envs: [ sentry, django, django_ray ]
+    envs: [ sentry, django ]
     port: 8000
     internal_ports: [8265, 6375, 9090]
     instance_size: M
