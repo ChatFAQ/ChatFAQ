@@ -1,6 +1,6 @@
 import tracemalloc
 
-tracemalloc.start()
+tracemalloc.start(10)
 
 _initial_snapshot = None
 
