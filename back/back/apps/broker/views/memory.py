@@ -46,16 +46,17 @@ class MemoryAPIViewSet(APIView):
         # for stat in top_stats[:10]:
         #     diff_output += f"<div>{stat}</div>\n"
         # print(f"took {time.time() - start} seconds to compare")
-        start = time.time()
         # Get the traceback of a memory block
+        start = time.time()
         top_stats = current.statistics('traceback')
+        print(f"took {time.time() - start} seconds to get statistics")
         # pick the biggest memory block
-        stat = top_stats[0]
-        diff_output += f"<div>[ Biggest Memory Block ]</div>\n"
-        diff_output += f"<div>{stat.count} memory blocks: {stat.size / 1024} KiB</div>\n"
-        for line in stat.traceback.format():
-            diff_output += f"<div>{line}</div>\n"
-        print(f"took {time.time() - start} seconds to get traceback")
+        for stat in top_stats[:10]:
+            diff_output += f"<br/><div>[Memory Block ]</div>\n"
+            diff_output += f"<div>{stat.count} memory blocks: {int(stat.size / 1024)} KiB</div>\n"
+            for line in stat.traceback.format():
+                diff_output += f"<div>{line}</div>\n"
+
         # start = time.time()
         # # Pretty top
         # diff_output += display_top(current, 'lineno', 10)
