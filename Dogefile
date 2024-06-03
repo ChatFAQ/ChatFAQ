@@ -110,7 +110,7 @@ workers:
       repository: back-chatrag
       tag: "production"
     envs: [ django ]
-    instance_size: XL
+    instance_size: XXL
     command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"rags":100}' --block
 
 jobs:
