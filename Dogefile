@@ -90,7 +90,7 @@ services:
 
   - name: back
     image: back
-    envs: [ sentry, django ]
+    envs: [ django ]
     port: 8000
     internal_ports: [8265, 6375, 9090]
     instance_size: M
@@ -118,5 +118,5 @@ jobs:
     when: PRE_DEPLOY
     image: back
     instance_size: XS
-    envs: [ sentry, django ]
+    envs: [ django ]
     command: modelw-docker run python manage.py migrate

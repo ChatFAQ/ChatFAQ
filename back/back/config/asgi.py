@@ -5,6 +5,9 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 from django.urls import re_path
+from back.utils.initial_snapshot import get_initial_snapshot
+
+get_initial_snapshot()
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
 

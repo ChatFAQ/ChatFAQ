@@ -17,7 +17,6 @@ LOGGING = {}
 STORAGES_MODE = os.getenv("STORAGES_MODE")
 LOCAL_STORAGE = STORAGES_MODE == "local"
 
-
 def django_setup():
     """
     Setup Django environment for Ray workers.
@@ -53,6 +52,7 @@ class CustomPreset(ModelWDjango):
     (postgreSQL and Redis) in a different way, so we need to add some logic
     to handle this.
     """
+
     def _redis_url(self, env: EnvManager):
         if (_redis_url := env.get("REDIS_URL", default=None)) is None:
             proto = env.get("REDIS_PROTO", default="redis")
@@ -283,8 +283,8 @@ with EnvManager(model_w_django) as env:
         AWS_S3_OBJECT_PARAMETERS = {
             "CacheControl": "max-age=86400",
         }
-        DEFAULT_FILE_STORAGE = "back.config.storage_backends.PublicS3MediaStorage"
-        PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateS3MediaStorage"
+        DEFAULT_FILE_STORAGE = "back.config.storage_backends.PublicMediaS3Storage"
+        PRIVATE_FILE_STORAGE = "back.config.storage_backends.PrivateMediaS3Storage"
         # Link expiration time in seconds
         AWS_QUERYSTRING_EXPIRE = "3600"
         AWS_S3_SIGNATURE_VERSION = env.get("AWS_S3_SIGNATURE_VERSION", default=None)

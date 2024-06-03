@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from knox import views as knox_views
 from rest_framework.routers import DefaultRouter, SimpleRouter
 from django.conf.urls.static import static
-
+from back.apps.broker.views.memory import MemoryAPIViewSet
 from drf_spectacular.views import SpectacularAPIView
 from back.apps.people.views import LoginView
 
@@ -31,6 +31,10 @@ urlpatterns = [
         SpectacularAPIView.as_view(),
         name="schema",
     ),
+]
+
+urlpatterns += [
+    path("back/api/memory/", MemoryAPIViewSet.as_view()),
 ]
 
 if settings.DEBUG:
