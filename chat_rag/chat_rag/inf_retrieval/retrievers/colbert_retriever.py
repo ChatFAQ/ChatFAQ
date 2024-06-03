@@ -1,7 +1,11 @@
 from typing import Optional, List, TypeVar, Union, Dict
+import os
+import json
+import torch
+import srsly
 from ragatouille import RAGPretrainedModel
-from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 from ragatouille.data.preprocessors import llama_index_sentence_splitter
+from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
 
 
 
@@ -83,15 +87,34 @@ class ColBERTRetriever:
 
         self.use_plaid = use_plaid
 
+        # This logic is done inside the RAGPretrainedModel index() method but I prefer to do it here
+        if document_ids is None:
+            # in string format
+            document_ids = [str(i) for i in range(len(collection))]
+
+        self.collection = {pid: doc for pid, doc in zip(document_ids, collection)}
+
+        collection, pid_docid_map, docid_metadata_map = self.retriever._process_corpus(
+            collection,
+            document_ids,
+            document_metadatas,
+            document_splitter_fn=llama_index_sentence_splitter,
+            preprocessing_fn=None,
+            max_document_length=max_document_length,
+        )
+
+        document_metadatas = [docid_metadata_map[pid] for pid in pid_docid_map.values()]
+
+        self.pid_docid_map = pid_docid_map
+
         if use_plaid:
             self.retriever.index(
                 collection,
-                document_ids,
+                [str(pid) for pid in pid_docid_map.keys()],
                 document_metadatas,
-                split_documents=True,
+                split_documents=False, # I already do the splitting
                 bsize=bsize,
                 use_faiss=use_faiss,
-                max_document_length=max_document_length,
                 overwrite_index='force_silent_overwrite',
             )
         else:
@@ -102,6 +125,46 @@ class ColBERTRetriever:
                 max_document_length=max_document_length,
             )
 
+    def save_encodings(self, path: str = '.ragatouille/encodings/'):
+        """
+        Save the encoded documents to disk.
+        
+        Parameters:
+            path: The path to save the encodings.
+        """
+        # Create the directory if it does not exist
+        os.makedirs(path, exist_ok=True)
+        srsly.write_json(os.path.join(path, 'collection.json'), self.collection)
+        srsly.write_json(os.path.join(path, 'pid_docid_map.json'), self.pid_docid_map)
+            
+            
+        torch.save(self.retriever.model.in_memory_embed_docs, os.path.join(path, 'in_memory_embed_docs.pt'))
+        torch.save(self.retriever.model.doc_masks, os.path.join(path, 'doc_masks.pt'))
+
+    def load_encodings(self, path: str = '.ragatouille/encodings/'):
+        """
+        Load the encoded documents from disk.
+        
+        Parameters:
+            path: The path to load the encodings.
+        """
+        device = next(self.retriever.model.inference_ckpt.parameters()).device
+
+        self.collection = srsly.read_json(os.path.join(path, 'collection.json'))
+        self.pid_docid_map = srsly.read_json(os.path.join(path, 'pid_docid_map.json'))
+
+        # the keys in self.pid_docid_map are strings, we convert them to integers
+        self.pid_docid_map = {int(k): v for k, v in self.pid_docid_map.items()}
+            
+        self.retriever.model.in_memory_embed_docs = torch.load(os.path.join(path, 'in_memory_embed_docs.pt'), map_location=device)
+        self.retriever.model.doc_masks = torch.load(os.path.join(path, 'doc_masks.pt'), map_location=device)
+
+        self.retriever.model.in_memory_collection = ['' for _ in range(self.retriever.model.in_memory_embed_docs.size(0))] # Don't care about the RAGatouille internal collection
+        self.retriever.model.in_memory_metadata = None # Don't care about the RAGatouille internal metadata
+
+        self.retriever.model.inference_ckpt_len_set = True
+        self.use_plaid = False
+
     def _normalize_scores(self, queries_results, top_k, query_maxlen, threshold):
         """
         Normalize the scores of the retrieved documents by the query length and filter out irrelevant results.
@@ -110,6 +173,8 @@ class ColBERTRetriever:
         for query_results in queries_results:
             for result in query_results:
                 result["similarity"] = result["score"] / query_maxlen
+                pid = result["passage_id"] if self.use_plaid else result['result_index']
+                result["content"] = self.collection[self.pid_docid_map[pid]]
 
             # Filter out results not relevant to the query
             query_results = clean_relevant_references(
