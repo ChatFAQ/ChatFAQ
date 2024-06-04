@@ -8,31 +8,33 @@ The system comprises seven main components, here are their relationships and the
 ![ChatFAQ Components](./_static/images/chatfaq_components.png)
 
 
-- Back-end (<a href="/en/latest/modules/installations/index.html#back-installation">local install</a>) manages the communication between all the components. It also houses the database for storing all the data related to the chatbots, datasets, models, etc...
+- **Back-end** <!-- (<a href="/en/latest/modules/installations/index.html#back-installation">local install</a>) --> manages the communication between all the components. It also houses the database for storing all the data related to the chatbots, datasets, models, etc...
 
 
-- SDK (<a href="/en/latest/modules/installations/index.html#sdk-installation">local install</a>) launches a Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
+- **SDK** <!-- (<a href="/en/latest/modules/installations/index.html#sdk-installation">local install</a>) --> launches a Remote Procedure Call (RPC) server to execute transitions and events from the posted FSM definitions.
 
 
-- Widget (<a href="/en/latest/modules/installations/index.html#widget-installation">local install</a>) is a JS browser client application from which the user interacts with the bot.
+- **Widget** <!-- (<a href="/en/latest/modules/installations/index.html#widget-installation">local install</a>) --> is a JS browser client application from which the user interacts with the bot.
 
 
-- Admin is a JS browser client application to manage the chatbots, datasets, retriever, models, RAG configs, etc...
+- **Admin** is a JS browser client application to manage the chatbots, datasets, retriever, models, RAG configs, etc...
 
 
-- Ray workers (Ray) are used to run distributed inference on the models.
-
--
-- Channel layer (Redis) is used to communicate through WebSockets between the back-end and the SDK, admin and widget.
+- **Ray workers** are used to run distributed inference on the models.
 
 
-- Relational Database (PostgreSQL) is used to store all the data related to the chatbots, datasets, retriever, models, RAG configs, etc...
+- **Channel layer** (Redis) is used to communicate through WebSockets between the back-end and the SDK, admin and widget.
 
 
-### Docker Compose
+- **Relational Database** (PostgreSQL) is used to store all the data related to the chatbots, datasets, retriever, models, RAG configs, etc...
+
+### Docker
+
+Before running the services, ensure you have <a href="https://docs.docker.com/engine/install/" target="_blank">Docker</a> and  <a href="https://docs.docker.com/compose/" target="_blank">Docker Compose</a> installed on your system. You can install them using the following instructions:
 
 We prepared you a `docker-compose.yaml` that set up all the services for you. You can find it on the root of the repository.
 
+#### Configuration Instructions
 
 But first you add to your hosts file (usually under `/etc/hosts`) the following lines in order to share the `.env` files values between a local deployment and a docker deployment:
 
@@ -73,21 +75,29 @@ and the `back/.env` file:
 
     BACKEND_TOKEN=<TOKEN>
 
-One last thing, the configuration we provided in the fixture for the configuration of the LLM is an OpenAI model, so you need to add your OpenAI API key to the `back/.env` file:
+The configuration we provided for the LLM uses an OpenAI model. To use it, you need to add your OpenAI API key to the `back/.env` file:
 
     OPENAI_API_KEY=<API_KEY>
 
-Do not worry, our solution supports any other LLM model, it also supports deploying your own local model over a VLLM server but for the sake of simplicity and because OpenAI models are the most popular, we are using it as the default.
+Don't worry, our solution supports any other LLM model. It also supports deploying your own local model on a VLLM server. However, for simplicity and because OpenAI models are the most popular, we are using an OpenAI model as the default.
 
-Finally now you can run all the services:
+#### Running the Services
+
+To start all the services, run the following command:
 
     docker compose -f docker-compose.yaml -f docker-compose.vars.yaml up
 
-Congratulations! You have a running ChatFAQ instance.
+Congratulations! You now have a running ChatFAQ instance.
 
-Now you can navigate to the widget to interact with the chatbot http://localhost:3003/demo/
+#### Accessing the Chatbot
 
-Or to the admin to manage the chatbot and see how we have configured it for you the model http://localhost:3000/
+You can interact with the chatbot by navigating to:
+
+<a href="http://localhost:3003/demo/" target="_blank">http://localhost:3003/demo/</a>
+
+To manage the chatbot and view the model configuration we provided, go to:
+
+<a href="http://localhost:3000" target="_blank">http://localhost:3000</a>
 
 ## Deeper into ChatFAQ
 
