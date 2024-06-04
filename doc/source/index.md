@@ -2,7 +2,7 @@
 
 Welcome to the official documentation of ChatFAQ, a comprehensive open-source community-driven platform for creating AI chatbots.
 
-If you are new to this documentation, we recommend that you read the [introduction](introduction.md) page to get an overview of what this documentation has to offer.
+<!-- If you are new to this documentation, we recommend that you read the [introduction](introduction.md) page to get an overview of what this documentation has to offer. -->
 
 The table of contents in the sidebar should let you easily access the documentation for your topic of interest. You can also use the search function in the top-left corner.
 
