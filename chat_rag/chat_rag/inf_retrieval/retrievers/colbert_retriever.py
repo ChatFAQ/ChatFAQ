@@ -130,7 +130,8 @@ class ColBERTRetriever:
             max_document_length=max_document_length,
         )
 
-        document_metadatas = [docid_metadata_map[pid] for pid in pid_docid_map.values()]
+        if document_metadatas:
+            document_metadatas = [docid_metadata_map[pid] for pid in pid_docid_map.values()]
 
         self.document_id_mapping = pid_docid_map
 
@@ -158,7 +159,7 @@ class ColBERTRetriever:
             self._save(
                 os.path.join(self.retriever.model.index_root, 'encodings', index_name)
             )
-
+    
     def _save(self, path: str = '.ragatouille/encodings', is_encodings: bool = True):
         """
         Save the necessary data for the retriever and the encodings if needed.
