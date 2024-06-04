@@ -1,6 +1,5 @@
 from typing import Optional, List, TypeVar, Union, Dict
 import os
-import json
 import torch
 import srsly
 from ragatouille import RAGPretrainedModel
@@ -16,7 +15,7 @@ class ColBERTRetriever:
         cls,
         model_name,
         n_gpu: int = -1,
-        index_root: Optional[str] = None,
+        index_root: Optional[str] = '.ragatouille/',
     ):
         """
         Loads the ColBERT retriever from a pretrained model WITHOUT an index.
@@ -52,6 +51,31 @@ class ColBERTRetriever:
         """
         instance = cls()
         instance.retriever = RAGPretrainedModel.from_index(index_path, n_gpu=n_gpu)
+        instance._load(index_path, is_encodings=False)
+        instance.use_plaid = True
+        return instance
+    
+    @classmethod
+    def from_encodings(
+        cls,
+        model_name: str,
+        encodings_path: str,
+        n_gpu: int = -1,
+    ):
+        """
+        Loads the ColBERT retriever from existing encodings.
+        Parameters
+        ----------
+        encodings_path : str
+            Path to the encodings.
+        n_gpu : int, optional
+            Number of GPUs to use. By default, value is -1, which means use all available GPUs or none if no GPU is available.
+        """
+        instance = cls()
+        instance.retriever = RAGPretrainedModel.from_pretrained(
+            model_name, n_gpu=n_gpu
+        )
+        instance._load(encodings_path, is_encodings=True)
         instance.use_plaid = False
         return instance
 
@@ -60,6 +84,7 @@ class ColBERTRetriever:
         collection: List[str],
         document_ids: Union[TypeVar("T"), List[TypeVar("T")]] = None,
         document_metadatas: Optional[list[dict]] = None,
+        index_name: str = None,
         use_plaid: bool = False,
         bsize: int = 32,
         use_faiss: bool = True,
@@ -75,6 +100,8 @@ class ColBERTRetriever:
             List of document ids, by default None.
         document_metadatas : Optional[list[dict]], optional
             List of document metadatas, by default None.
+        index_name : str, optional
+            Name of the index, by default None.
         use_plaid : bool, optional
             Whether to use the PLAID index, by default False. Using PLAID is recommended for large collections, without it the documents are encoded in memory and the retrieval is slower.
         bsize : int, optional
@@ -92,7 +119,7 @@ class ColBERTRetriever:
             # in string format
             document_ids = [str(i) for i in range(len(collection))]
 
-        self.collection = {pid: doc for pid, doc in zip(document_ids, collection)}
+        self.documents = {pid: doc for pid, doc in zip(document_ids, collection)}
 
         collection, pid_docid_map, docid_metadata_map = self.retriever._process_corpus(
             collection,
@@ -105,18 +132,20 @@ class ColBERTRetriever:
 
         document_metadatas = [docid_metadata_map[pid] for pid in pid_docid_map.values()]
 
-        self.pid_docid_map = pid_docid_map
+        self.document_id_mapping = pid_docid_map
 
         if use_plaid:
-            self.retriever.index(
+            index_path = self.retriever.index(
                 collection,
-                [str(pid) for pid in pid_docid_map.keys()],
+                [str(pid) for pid in pid_docid_map.keys()], # I need to convert the keys to strings
                 document_metadatas,
+                index_name=index_name,
                 split_documents=False, # I already do the splitting
                 bsize=bsize,
                 use_faiss=use_faiss,
                 overwrite_index='force_silent_overwrite',
             )
+            self._save(index_path, is_encodings=False)
         else:
             self.retriever.encode(
                 collection,
@@ -124,46 +153,47 @@ class ColBERTRetriever:
                 bsize=bsize,
                 max_document_length=max_document_length,
             )
+            
+            index_name = index_name or 'new_encodings'
+            self._save(
+                os.path.join(self.retriever.model.index_root, 'encodings', index_name)
+            )
 
-    def save_encodings(self, path: str = '.ragatouille/encodings/'):
+    def _save(self, path: str = '.ragatouille/encodings', is_encodings: bool = True):
         """
-        Save the encoded documents to disk.
-        
-        Parameters:
-            path: The path to save the encodings.
+        Save the necessary data for the retriever and the encodings if needed.
         """
+
         # Create the directory if it does not exist
         os.makedirs(path, exist_ok=True)
-        srsly.write_json(os.path.join(path, 'collection.json'), self.collection)
-        srsly.write_json(os.path.join(path, 'pid_docid_map.json'), self.pid_docid_map)
-            
-            
-        torch.save(self.retriever.model.in_memory_embed_docs, os.path.join(path, 'in_memory_embed_docs.pt'))
-        torch.save(self.retriever.model.doc_masks, os.path.join(path, 'doc_masks.pt'))
-
-    def load_encodings(self, path: str = '.ragatouille/encodings/'):
-        """
-        Load the encoded documents from disk.
+        srsly.write_json(os.path.join(path, 'documents.json'), self.documents)
+        srsly.write_json(os.path.join(path, 'document_id_mapping.json'), self.document_id_mapping)  
         
-        Parameters:
-            path: The path to load the encodings.
+        if is_encodings:
+            torch.save(self.retriever.model.in_memory_embed_docs, os.path.join(path, 'in_memory_embed_docs.pt'))
+            torch.save(self.retriever.model.doc_masks, os.path.join(path, 'doc_masks.pt'))
+
+    def _load(self, path: str = '.ragatouille/encodings/', is_encodings: bool = True):
+        """
+        Load the necessary data for the retriever and the encodings if needed.
         """
         device = next(self.retriever.model.inference_ckpt.parameters()).device
 
-        self.collection = srsly.read_json(os.path.join(path, 'collection.json'))
-        self.pid_docid_map = srsly.read_json(os.path.join(path, 'pid_docid_map.json'))
+        self.documents = srsly.read_json(os.path.join(path, 'documents.json'))
+        self.document_id_mapping = srsly.read_json(os.path.join(path, 'document_id_mapping.json'))
 
-        # the keys in self.pid_docid_map are strings, we convert them to integers
-        self.pid_docid_map = {int(k): v for k, v in self.pid_docid_map.items()}
-            
-        self.retriever.model.in_memory_embed_docs = torch.load(os.path.join(path, 'in_memory_embed_docs.pt'), map_location=device)
-        self.retriever.model.doc_masks = torch.load(os.path.join(path, 'doc_masks.pt'), map_location=device)
+        # the keys in self.document_id_mapping are strings, we convert them to integers
+        self.document_id_mapping = {int(k): v for k, v in self.document_id_mapping.items()}
 
-        self.retriever.model.in_memory_collection = ['' for _ in range(self.retriever.model.in_memory_embed_docs.size(0))] # Don't care about the RAGatouille internal collection
-        self.retriever.model.in_memory_metadata = None # Don't care about the RAGatouille internal metadata
+        if is_encodings: 
+                
+            self.retriever.model.in_memory_embed_docs = torch.load(os.path.join(path, 'in_memory_embed_docs.pt'), map_location=device)
+            self.retriever.model.doc_masks = torch.load(os.path.join(path, 'doc_masks.pt'), map_location=device)
 
-        self.retriever.model.inference_ckpt_len_set = True
-        self.use_plaid = False
+            self.retriever.model.in_memory_collection = ['' for _ in range(self.retriever.model.in_memory_embed_docs.size(0))] # Don't care about the RAGatouille internal collection
+            self.retriever.model.in_memory_metadata = None # Don't care about the RAGatouille internal metadata
+
+            self.retriever.model.inference_ckpt_len_set = True
 
     def _normalize_scores(self, queries_results, top_k, query_maxlen, threshold):
         """
@@ -172,9 +202,12 @@ class ColBERTRetriever:
         results = []
         for query_results in queries_results:
             for result in query_results:
+                # Normalize the score by the query length
                 result["similarity"] = result["score"] / query_maxlen
-                pid = result["passage_id"] if self.use_plaid else result['result_index']
-                result["content"] = self.collection[self.pid_docid_map[pid]]
+
+                # Add the whole document to the result because colbert returns the splitted document
+                pid = result["passage_id"] if self.use_plaid else result['result_index'] 
+                result["content"] = self.documents[self.document_id_mapping[pid]]
 
             # Filter out results not relevant to the query
             query_results = clean_relevant_references(
@@ -254,3 +287,4 @@ class ColBERTRetriever:
             return self._search_index(queries, top_k, threshold)
         else:
             return self._search_encodings(queries, top_k, threshold)
+        
