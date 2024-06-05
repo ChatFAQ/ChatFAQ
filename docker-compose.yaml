@@ -66,7 +66,7 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: 4
+          cpus: 4.0
           memory: 4G
     # extra_hosts:
     #     - host.docker.internal:host-gateway
