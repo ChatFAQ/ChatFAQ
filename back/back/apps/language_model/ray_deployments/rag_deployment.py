@@ -117,10 +117,6 @@ def delete_rag_deployment(rag_deploy_name):
         except:
             print(f'{rag_deploy_name} was deleted successfully')
 
-    # If all deployments are deleted, shutdown the serve instance
-    if not serve.status().applications:
-        serve.shutdown()
-
 
 @ray.remote(num_cpus=0.5, resources={"tasks": 1})
 def launch_rag_deployment(rag_config_id):
