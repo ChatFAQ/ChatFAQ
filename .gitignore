@@ -250,3 +250,4 @@ back/models/
 *.ipynb
 chat_rag/data/
 chat_rag/examples/
+*/.ragatouille/*
