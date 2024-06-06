@@ -2,8 +2,6 @@
 
     About <index.rst>
     Installation <installation.md>
-
-..
     Examples <modules/examples/index.md>
     Backend <modules/back/index.md>
     SDK <modules/sdk/index.md>

@@ -101,8 +101,8 @@ To manage the chatbot and view the model configuration we provided, go to:
 
 ## Deeper into ChatFAQ
 
-If you want to use your own dataset, you can check the [Dataset Configuration](./modules/dataset/index.md) documentation.
+If you want to use your own dataset, you can check the [Dataset Configuration](./modules/configuration/index.html#knowledge-base) documentation.
 
-If you want to learn how to configure your own RAG (LLM model, retriever model, prompt configuration, etc...) you can check the [RAG Configuration](./modules/rag/index.md) documentation.
+If you want to learn how to configure your own RAG (LLM model, retriever model, prompt configuration, etc...) you can check the [RAG Configuration](./modules/configuration/index.html#rag-config) documentation.
 
 If you want to learn how to use the SDK, so you can create your own chatbot behavior, you can check the [SDK](./modules/sdk/index.md) documentation.
