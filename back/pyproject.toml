@@ -10,8 +10,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "~3.10"
-modelw-preset-django = {version = "~2023.4.0b2", extras = ["channels", "celery"], allow-prereleases = true}
+python = "~3.11"
 drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
 channels = "*"
 daphne = "*"
@@ -26,7 +25,6 @@ psycopg2 = "*"
 whitenoise = "*"
 python-dotenv = "^0.21.0"
 httpx = "0.25.2"
-channels-postgres = "^0.0.5"
 myst-parser = "^0.18.1"
 django-rest-knox = "^4.2.0"
 pgvector = "^0.2.3"
@@ -47,6 +45,8 @@ pillow = "^10.3.0"
 redis = "5.0.4"
 fastapi = "0.111"
 memray = "^1.12.0"
+modelw-preset-django = "~2024.4.0"
+channels-redis = "^4.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
