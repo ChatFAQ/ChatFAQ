@@ -151,7 +151,7 @@ def is_server_process():
     if any("runserver" in s for s in sys.argv) and not os.getenv('RUN_MAIN'):  # If is runserver and is the reloader process
         return False
 
-    if any("runserver" in s for s in sys.argv) or any("daphne" in s for s in sys.argv):
+    if any("runserver" in s for s in sys.argv) or any("daphne" in s for s in sys.argv) or any("uvicorn" in s for s in sys.argv):
         return True
 
     return False  # If is not a management command, then it is probably an asgi or wsgi server
