@@ -74,7 +74,6 @@ RUN apt-get update  \
         poppler-utils \
         # Stuff to allow configuration afterwards
         sudo \
-        python3-dev \
     && apt-get upgrade -y \
     && rm -fr \
         /var/log/alternatives.log \
