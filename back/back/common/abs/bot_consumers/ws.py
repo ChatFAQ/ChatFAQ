@@ -48,7 +48,6 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content, **kwargs):
         if content.get("heartbeat", False):
-            """
             for _shard in self.channel_layer._shards:
                 try:
                     await _shard._redis.ping()
@@ -56,7 +55,6 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
                     # Since the Redis connection error on DO happens in any call to redis, is very common it happens
                     # here, since this is trigger quite often, lets see if this try catch solves de reconnection
                     logger.error(f" --------------------- Error on ping: {e}")
-            """
             return
         serializer = self.serializer_class(data=content)
         mml = await database_sync_to_async(serializer.to_mml)(self)

@@ -93,7 +93,7 @@ class CustomPreset(ModelWDjango):
         if not (channel_layers_config := next(super().pre_channels(env))):
             return channel_layers_config
 
-        # channel_layers_config[1]["default"]["BACKEND"] = "channels_redis.pubsub.RedisPubSubChannelLayer"
+        channel_layers_config[1]["default"]["BACKEND"] = "channels_redis.pubsub.RedisPubSubChannelLayer"
         channel_layers_config[1]["default"]["CONFIG"]["capacity"] = 1500
         channel_layers_config[1]["default"]["CONFIG"]["expiry"] = 5
         if channel_layers_config[1]["default"]["CONFIG"].get("hosts"):
