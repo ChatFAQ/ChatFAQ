@@ -21,7 +21,6 @@ class BrokerConfig(AppConfig):
 
         for pc in BrokerMetaClass.registry:
             pc.register()
-        return
 
         try:
             ConsumerRoundRobinQueue.clear()
