@@ -22,7 +22,7 @@ class DatasetConfig(AppConfig):
         from back.apps.language_model.ray_deployments import launch_rag_deployment
 
         RAGConfig = self.get_model("RAGConfig")
-
+        return
         # Now we launch the deployment of the RAGs
         for rag_config in RAGConfig.enabled_objects.all():
             if rag_config.get_index_status() in [IndexStatusChoices.OUTDATED, IndexStatusChoices.UP_TO_DATE]:
