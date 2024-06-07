@@ -4,13 +4,14 @@ The ChatFAQ admin will be a node application that allows you to manage your chat
 
 ## Dashboard
 
-The Quality Monitoring Dashboard is  designed to provide a comprehensive overview of the current status and quality of the chatbots. For example: 
+The ChatFAQ Admin Panel provides a comprehensive interface for accessing various aspects of the platform. Within the panel, administrators have access to a variety of tools and essential information for maintaining and optimizing the system. Key features include:
 
-- **Active RAG List**: You will see all the RAGs that are currently active. 
+- **SDK Repository**: The panel offers a centralized repository where administrators can see information about existing System Domain Knowledges (SDKs). 
 
-- **Execution Status**: Monitor the processes that are currently running. 
+- **Active RAG Monitoring**: Administrators can conveniently monitor the status of Retrieval Augmented Information (RAG) indicators within the panel. These indicators provide valuable insights into the performance of various aspects of the RAG.
 
-- **Performance Metrics**: These metrics could include response accuracy, user satisfaction scores, response time, and other relevant data.
+- **Widgets**: The panel facilitates tracking and analysis of widgets currently in use across the platform. Administrators can visualize which widgets are being utilized.
+
 
 
 ## Labeling
