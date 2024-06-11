@@ -50,6 +50,7 @@ def vectorize_text(texts: List[str], lang: str = "en"):
     """
     stop_words = "english" if lang == "en" else None
     vectorizer = TfidfVectorizer(stop_words=stop_words)
+    logger.info("Vectorizing text using TF-IDF")
     vectors = vectorizer.fit_transform(texts)
     return vectors
 
