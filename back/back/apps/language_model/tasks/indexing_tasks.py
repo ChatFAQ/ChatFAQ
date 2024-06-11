@@ -30,7 +30,7 @@ def generate_embeddings_task(data):
     )
 
     embeddings = embedding_model.build_embeddings(
-        contents=data["contents"], batch_size=data["batch_size"]
+        contents=data["contents"], batch_size=data["batch_size"], prefix="passage: "
     )
 
     # from tensor to list
