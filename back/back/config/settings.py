@@ -308,7 +308,6 @@ with EnvManager(model_w_django) as env:
         AWS_S3_REGION_NAME = env.get("AWS_S3_REGION_NAME", default=None)
 
     # --------------------------- LLM APIs ---------------------------
-    VLLM_ENDPOINT_URL = env.get("VLLM_ENDPOINT_URL", default=None)
 
     OPENAI_API_KEY = env.get("OPENAI_API_KEY", default=None)
     ANTHROPIC_API_KEY = env.get("ANTHROPIC_API_KEY", default=None)

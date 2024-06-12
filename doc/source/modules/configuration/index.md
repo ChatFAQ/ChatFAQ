@@ -265,7 +265,6 @@ This uses a client to connect to a [vLLM server](https://github.com/vllm-project
 To configure this server you need to:
 
 - You need to specify the model that you want to use inside this [`Dockerfile`](https://github.com/ChatFAQ/ChatFAQ/tree/develop/model_engines/llm), and then follow [this instructions](https://github.com/ChatFAQ/ChatFAQ/tree/develop/model_engines/llm).
-- - You need to specify the URL of the vLLM server in the `.env`. Usually it will be `VLLM_ENDPOINT_URL=http://localhost:5000/generate`.
 - Start the back, go to the admin and from it you only need to specify that you want to use the `vLLM Client`.
 
 ### Prompt Config

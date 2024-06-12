@@ -64,11 +64,7 @@ docker run --runtime nvidia --gpus all \
     vllm/vllm-openai:v0.3.3 --model TheBloke/zephyr-7B-beta-AWQ --port 5000 --quantization awq --gpu-memory-utilization 0.75 --max-model-len 4096
 ```
 
-After running the command, the vLLM server will be running on port 5000. Now we need to add to the `back/.env` file the following environment variable:
-
-```plaintext
-VLLM_ENDPOINT_URL=http://localhost:5000/v1/
-```
+After running the command, the vLLM server will be running on port 5000.
 
 Now we can start creating the components for the RAG:
 

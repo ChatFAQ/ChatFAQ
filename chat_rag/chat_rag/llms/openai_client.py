@@ -12,6 +12,7 @@ class OpenAIChatModel(LLM):
         self,
         llm_name: str = "gpt-4o",
         base_url: str = None,
+        api_key: str = None,
         **kwargs,
     ):
         # If provided a base_url, then use the Together API key
@@ -19,7 +20,8 @@ class OpenAIChatModel(LLM):
             os.environ.get("TOGETHER_API_KEY")
             if base_url
             else os.environ.get("OPENAI_API_KEY")
-        )
+        ) if api_key is None else api_key
+        
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.aclient = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.llm_name = llm_name

@@ -1,751 +1,203 @@
-import json
 import logging
 import os
-from typing import AsyncIterable, Dict, Iterable, List
+from typing import Dict, List
 
-import aiohttp
-import requests
-from openai import AsyncOpenAI, OpenAI
+from transformers import AutoConfig, AutoTokenizer
 
 from chat_rag.exceptions import (
     ModelNotFoundException,
     PromptTooLongException,
     RequestException,
 )
-from chat_rag.llms import LLM
+from chat_rag.llms import OpenAIChatModel
 
 logger = logging.getLogger(__name__)
 
 
-class VLLMModel(LLM):
+class VLLMModel(OpenAIChatModel):
     """
     A client that sends requests to the VLLM server.
     """
 
     def __init__(
-        self, llm_name: str, base_url: str = None, use_openai_api: bool = True, **kwargs
+        self,
+        llm_name: str,
+        base_url: str = None,
+        model_max_length: int = None,
+        **kwargs,
     ):
-        super().__init__(llm_name=llm_name, **kwargs)
-        if base_url is None:
-            self.endpoint_url = os.environ["VLLM_ENDPOINT_URL"]
+        super().__init__(
+            llm_name=llm_name, base_url=base_url, api_key="api_key",
+        )  # vllm does not require an API key
+
+        self._load_tokenizer(llm_name, model_max_length)
+
+    def _load_tokenizer(self, llm_name, model_max_length):
+        """
+        We load the tokenizer of the model to be able to format the prompt to fit in the context length constraints.
+        """
+        hf_token = os.environ["HUGGINGFACE_KEY"]
+
+        self.tokenizer = AutoTokenizer.from_pretrained(llm_name, token=hf_token)
+
+        if model_max_length is not None:
+            self.model_max_length = model_max_length
         else:
-            self.endpoint_url = base_url
+            self.config = AutoConfig.from_pretrained(llm_name, token=hf_token)
+            self.model_max_length = (
+                self.config.max_position_embeddings
+                if self.config.max_position_embeddings is not None
+                else self.tokenizer.model_max_length
+            )
 
-        self.llm_name = llm_name
+        self.has_chat_template = self.tokenizer.chat_template is not None
+        print(f"Model max length: {self.model_max_length}")
 
-        # I could use the already OpenAI implementation, but I prefer to implement the OpenAI API here also
-        # because I need to do checks on the prompt length before sending it to the API
-        # and I cannot do that on the OpenAI implementation
-        if use_openai_api:
-            self.client = OpenAI(
-                base_url=self.endpoint_url
-            )  # for VLLM OpenAI compatible API
-        self.use_openai_api = use_openai_api
-        print(f"Using vLLM OpenAI compatible API server: {self.use_openai_api}")
-
-    def _format_prompt_openai(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        system_prompt: str,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
-        """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : list
-            The context to use.
-        lang : str, optional
-            The language of the prompt, by default 'en'
-        """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prompt=system_prompt,
-            lang=lang,
+    def _get_prompt_len(self, messages):
+        prompt = self.tokenizer.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            tokenize=False,
         )
+        return len(self.tokenizer.tokenize(prompt))
 
-        final_messages = [{"role": "system", "content": system_prompt}] + messages
-
-        return final_messages
-
-    def _generate_vllm(
+    def format_prompt(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> List[str]:
-        """
-        Generate text from a prompt using the vLLM API server.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        stop_words : List[str]
-            The stop words to use to stop generation.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        prompt, _ = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
-
-        pload = {
-            "prompt": prompt,
-            "n": 1,
-            "use_beam_search": False,
-            "top_k": generation_config_dict["top_k"],
-            "top_p": generation_config_dict["top_p"],
-            "temperature": generation_config_dict["temperature"],
-            "max_tokens": generation_config_dict["max_new_tokens"],
-            "frequency_penalty": generation_config_dict["repetition_penalty"],
-            "stop": stop_words,
-            "stream": False,
-        }
-
-        response = requests.post(self.endpoint_url, json=pload, stream=False)
-
-        if response.status_code != 200:
-            logger.error(f"Error with the request to the vLLM server: {response.content}")
-            raise RequestException()
-
-
-        data = json.loads(response.content)
-
-        # return the difference between the prompt and the output
-        output = data["text"][0][len(prompt) :]
-
-        if not output: # if there is an error vllm returns an empty string
-            logger.error(f"Error with the request to the vLLM server.")
-            raise RequestException()
-
-        return output
-
-    def _generate_openai(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
     ) -> str:
         """
-        Generate text from a prompt using the vLLM OpenAI API.
+        Formats the prompt to fit in the model's context length constraints.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. List of pairs (role, content).
+        """
+
+        n_messages_to_keep = len(messages)
+        num_tokens = self._get_prompt_len(messages)
+        margin = int(self.model_max_length * 0.1)
+
+        system_prompt = None
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)
+            n_messages_to_keep -= 1  # don't count the system prompt
+
+        while num_tokens > (self.model_max_length - margin):
+            # When we reach the minimum number of contexts and messages and the prompt is still too long, we return None
+            if n_messages_to_keep == 1:
+                raise PromptTooLongException()
+
+            n_messages_to_keep -= 1
+
+            num_tokens = self._get_prompt_len(
+                [system_prompt] + messages[-n_messages_to_keep:]
+            )
+
+        messages = messages[-n_messages_to_keep:]
+        if system_prompt:
+            messages = [system_prompt] + messages
+
+        return messages
+
+    def stream(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ):
+        """
+        Generate text from a prompt using the model.
         Parameters
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
             The generated text.
         """
+        messages = self.format_prompt(messages)
 
-        # Check how many messages and contexts we can fit in the model context length constraints
-        _, (n_contexts, n_messages_to_keep) = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
+        for chunk in super().stream(messages, temperature, max_tokens, seed):
+            yield chunk
 
-        messages = self._format_prompt_openai(
-            messages=messages[:n_messages_to_keep],  # keep only the last n_messages_to_keep
-            contexts=contexts[:n_contexts],  # keep only the last n_contexts
-            **prompt_structure_dict,
-            lang=lang,
-        )
+    async def astream(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ):
+        """
+        Generate text from a prompt using the model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+        messages = self.format_prompt(messages)
 
-        try:
-            print(f'LLM name: {self.llm_name}')
-            response = self.client.chat.completions.create(
-                model=self.llm_name,
-                messages=messages,
-                max_tokens=generation_config_dict["max_new_tokens"],
-                temperature=generation_config_dict["temperature"],
-                top_p=generation_config_dict["top_p"],
-                presence_penalty=generation_config_dict["repetition_penalty"],
-                seed=generation_config_dict["seed"],
-                n=1,
-                stream=False,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            return return_openai_error(e)
+        async for chunk in super().astream(messages, temperature, max_tokens, seed):
+            yield chunk
 
     def generate(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> str | List[str] | None:
-        """
-        Generate text from a prompt using the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        stop_words : List[str]
-            The stop words to use to stop generation.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        if self.use_openai_api:
-            return self._generate_openai(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                **kwargs,
-            )
-        else:
-            return self._generate_vllm(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                stop_words=stop_words,
-                **kwargs,
-            )
-
-    def _stream_vllm(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> Iterable[str]:
-        """
-        Generate text from a prompt using the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        stop_words : List[str]
-            The stop words to use to stop generation.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        prompt, _ = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
-
-        pload = {
-            "prompt": prompt,
-            "n": 1,
-            "use_beam_search": False,
-            "top_k": generation_config_dict["top_k"],
-            "top_p": generation_config_dict["top_p"],
-            "temperature": generation_config_dict["temperature"],
-            "max_tokens": generation_config_dict["max_new_tokens"],
-            "frequency_penalty": generation_config_dict["repetition_penalty"],
-            "stop": stop_words,
-            "stream": True,
-        }
-
-        response = requests.post(self.endpoint_url, json=pload, stream=True)
-
-        prev_output = pload["prompt"]
-        for n_token, chunk in enumerate(response.iter_lines(
-            chunk_size=8192, decode_unicode=False, delimiter=b"\0"
-        )):
-            if n_token == 1 and not output: # if there is an error vllm returns an empty string as the second chunk (the first one is the prompt)
-                raise RequestException()
-            if chunk:
-                data = json.loads(chunk.decode("utf-8"))
-                if 'detail' in data:
-                    logger.error(f"Error with the request to the vLLM server: {data['detail']}")
-                    raise RequestException()
-                output = data["text"]
-                # yield the difference between the previous output and the current output
-                output = output[0][len(prev_output) :]
-                prev_output += output
-                yield output
-
-    def _stream_openai(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> Iterable[str]:
-        """
-        Generate text from a prompt using the model in streaming mode.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        # Check how many messages and contexts we can fit in the model context length constraints
-        _, (n_contexts, n_messages_to_keep) = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
-
-        messages = self._format_prompt_openai(
-            messages=messages[:n_messages_to_keep],  # keep only the last n_messages_to_keep
-            contexts=contexts[:n_contexts],  # keep only the last n_contexts
-            **prompt_structure_dict,
-            lang=lang,
-        )
-
-        try:
-
-            response = self.client.chat.completions.create(
-                model=self.llm_name,
-                messages=messages,
-                max_tokens=generation_config_dict["max_new_tokens"],
-                temperature=generation_config_dict["temperature"],
-                top_p=generation_config_dict["top_p"],
-                presence_penalty=generation_config_dict["repetition_penalty"],
-                seed=generation_config_dict["seed"],
-                n=1,
-                stream=True,
-            )
-            for chunk in response:
-                if chunk.choices[0].finish_reason == "stop":
-                    return
-                if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[
-                        0
-                    ].delta.content  # return the delta text message
-
-        except Exception as e:
-            yield return_openai_error(e)
-            return
-            
-    def stream(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> str | Iterable[str] | None:
-        """
-        Generate text from a prompt using the model in streaming mode.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. List of pairs (role, content)
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        stop_words : List[str]
-            The stop words to use to stop generation.
-        Returns
-        str
-            The generated text.
-        """
-
-        if self.use_openai_api:
-            for chunk in self._stream_openai(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                **kwargs,
-            ):
-                yield chunk
-        else:
-            for chunk in self._stream_vllm(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                stop_words=stop_words,
-                **kwargs,
-            ):
-                yield chunk
-
-
-class AsyncVLLMModel(LLM):
-    """
-    A client that sends asynchronous requests to the VLLM server.
-    """
-
-    def __init__(
-        self, llm_name: str, base_url: str = None, use_openai_api: bool = True, **kwargs
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
     ):
-        super().__init__(llm_name=llm_name, **kwargs)
-        if base_url is None:
-            self.endpoint_url = os.environ["VLLM_ENDPOINT_URL"]
-        else:
-            self.endpoint_url = base_url
-
-        self.llm_name = llm_name
-
-        if use_openai_api:
-            self.client = AsyncOpenAI(base_url=self.endpoint_url)  # for VLLM OpenAI compatible API
-        self.use_openai_api = use_openai_api
-        print(f"Using vLLM OpenAI compatible API server: {self.use_openai_api}")
-
-    def _format_prompt_openai(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        system_prompt: str,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
         """
-        Formats the prompt to be used by the model.
+        Generate text from a prompt using the model.
         Parameters
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : list
-            The context to use.
-        lang : str, optional
-            The language of the prompt, by default 'en'
+        Returns
+        -------
+        str
+            The generated text.
         """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prompt=system_prompt,
-            lang=lang,
-        )
+        messages = self.format_prompt(messages)
 
-        final_messages = [{"role": "system", "content": system_prompt}] + messages
+        return super().generate(messages, temperature, max_tokens, seed)
 
-        return final_messages
-
-
-    async def _generate_vllm(
+    async def agenerate(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> str:
-        """
-        Generate text from a prompt using the vLLM API server.
-        """
-        prompt, _ = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
-
-        pload = {
-            "prompt": prompt,
-            "n": 1,
-            "use_beam_search": False,
-            "top_k": generation_config_dict["top_k"],
-            "top_p": generation_config_dict["top_p"],
-            "temperature": generation_config_dict["temperature"],
-            "max_tokens": generation_config_dict["max_new_tokens"],
-            "frequency_penalty": generation_config_dict["repetition_penalty"],
-            "stop": stop_words,
-            "stream": False,
-        }
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.endpoint_url, json=pload) as response:
-                if response.status != 200:
-                    logger.error(
-                        f"Error with the request to the vLLM server: {await response.text()}"
-                    )
-                    raise RequestException()
-
-                data = await response.json()
-                output = data["text"][0][len(prompt) :]
-
-                if not output:  # if there is an error vllm returns an empty string
-                    logger.error(f"Error with the request to the vLLM server.")
-                    raise RequestException()
-
-                return output
-
-    async def _generate_openai(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
-        """
-        Generate text from a prompt using the vLLM OpenAI API.
-        """
-        _, (n_contexts, n_messages_to_keep) = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
-
-        messages = self._format_prompt_openai(
-            messages=messages[:n_messages_to_keep],
-            contexts=contexts[:n_contexts],
-            **prompt_structure_dict,
-            lang=lang,
-        )
-
-        try:
-            print(f'LLM name: {self.llm_name}')
-            response = await self.client.chat.completions.create(
-                model=self.llm_name,
-                messages=messages,
-                max_tokens=generation_config_dict["max_new_tokens"],
-                temperature=generation_config_dict["temperature"],
-                top_p=generation_config_dict["top_p"],
-                presence_penalty=generation_config_dict["repetition_penalty"],
-                seed=generation_config_dict["seed"],
-                n=1,
-                stream=False,
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            return return_openai_error(e)
-
-    async def generate(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> str | None:
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ):
         """
         Generate text from a prompt using the model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
         """
-        if self.use_openai_api:
-            return await self._generate_openai(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                **kwargs,
-            )
-        else:
-            return await self._generate_vllm(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                stop_words=stop_words,
-                **kwargs,
-            )
+        messages = self.format_prompt(messages)
 
-    async def _stream_vllm(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> AsyncIterable[str]:
-        """
-        Generate text from a prompt using the model.
-        """
-        prompt, _ = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
+        return await super().agenerate(messages, temperature, max_tokens, seed)
 
-        pload = {
-            "prompt": prompt,
-            "n": 1,
-            "use_beam_search": False,
-            "top_k": generation_config_dict["top_k"],
-            "top_p": generation_config_dict["top_p"],
-            "temperature": generation_config_dict["temperature"],
-            "max_tokens": generation_config_dict["max_new_tokens"],
-            "frequency_penalty": generation_config_dict["repetition_penalty"],
-            "stop": stop_words,
-            "stream": True,
-        }
-
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.endpoint_url, json=pload, stream=True) as response:
-                prev_output = pload["prompt"]
-                async for n_token, chunk in enumerate(response.content.iter_chunks()):
-                    if n_token == 1 and not output:  # if there is an error vllm returns an empty string as the second chunk (the first one is the prompt)
-                        raise RequestException()
-                    if chunk:
-                        data = json.loads(chunk.decode("utf-8"))
-                        if 'detail' in data:
-                            logger.error(
-                                f"Error with the request to the vLLM server: {data['detail']}"
-                            )
-                            raise RequestException()
-                        output = data["text"]
-                        output = output[0][len(prev_output) :]
-                        prev_output += output
-                        yield output
-
-    async def _stream_openai(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> AsyncIterable[str]:
-        """
-        Generate text from a prompt using the model in streaming mode.
-        """
-        _, (n_contexts, n_messages_to_keep) = self.format_prompt(
-            messages, contexts, **prompt_structure_dict, lang=lang
-        )
-
-        messages = self._format_prompt_openai(
-            messages=messages[:n_messages_to_keep],
-            contexts=contexts[:n_contexts],
-            **prompt_structure_dict,
-            lang=lang,
-        )
-
-        try:
-            response = await self.client.chat.completions.create(
-                model=self.llm_name,
-                messages=messages,
-                max_tokens=generation_config_dict["max_new_tokens"],
-                temperature=generation_config_dict["temperature"],
-                top_p=generation_config_dict["top_p"],
-                presence_penalty=generation_config_dict["repetition_penalty"],
-                seed=generation_config_dict["seed"],
-                n=1,
-                stream=True,
-            )
-            async for chunk in response:
-                if chunk.choices[0].finish_reason == "stop":
-                    return
-                if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
-
-        except Exception as e:
-            yield return_openai_error(e)
-            return
-
-    async def stream(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
-        **kwargs,
-    ) -> AsyncIterable[str] | None:
-        """
-        Generate text from a prompt using the model in streaming mode.
-        """
-        if self.use_openai_api:
-            async for chunk in self._stream_openai(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                **kwargs,
-            ):
-                yield chunk
-        else:
-            async for chunk in self._stream_vllm(
-                messages=messages,
-                contexts=contexts,
-                prompt_structure_dict=prompt_structure_dict,
-                generation_config_dict=generation_config_dict,
-                lang=lang,
-                stop_words=stop_words,
-                **kwargs,
-            ):
-                yield chunk
-
-
-
-    
 
 def return_openai_error(e):
     logger.error(f"Error with the request to the vLLM OpenAI server: {e}")
-    if e.code == 400: # BadRequestError
+    if e.code == 400:  # BadRequestError
         raise PromptTooLongException()
-    elif e.code == 404: # NotFoundError
+    elif e.code == 404:  # NotFoundError
         raise ModelNotFoundException()
     else:
-        logger.error(f"Error with the request to the vLLM OpenAI server: {e.body['message']}")
+        logger.error(
+            f"Error with the request to the vLLM OpenAI server: {e.body['message']}"
+        )
         raise RequestException()

@@ -222,34 +222,16 @@ class LLMConfig(ChangesMixin):
         The type of LLM to use.
     llm_name: str
         The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc.
-    ggml_model_filename: str
-        The GGML filename of the model, if it is a GGML model.
-    model_config: str
-        The huggingface model config of the model, needed for GGML models.
-    load_in_8bit: bool
-        Whether to load the model in 8bit or not.
-    use_fast_tokenizer: bool
-        Whether to use the fast tokenizer or not.
-    trust_remote_code_tokenizer: bool
-        Whether to trust the remote code for the tokenizer or not.
-    trust_remote_code_model: bool
-        Whether to trust the remote code for the model or not.
-    revision: str
-        The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models
-    model_max_length: int
+    base_url: str
+        The base url where the model is hosted. It is used for vLLM deployments and Together LLM Endpoints.
+   model_max_length: int
         The maximum length of the model.
     """
 
     name = models.CharField(max_length=255, unique=True)
     llm_type = models.CharField(max_length=10, choices=LLMChoices.choices, default=LLMChoices.OPENAI)
-    llm_name = models.CharField(max_length=100, default="gpt2")
-    ggml_llm_filename = models.CharField(max_length=255, blank=True, null=True)
-    model_config = models.CharField(max_length=255, blank=True, null=True)
-    load_in_8bit = models.BooleanField(default=False)
-    use_fast_tokenizer = models.BooleanField(default=True)
-    trust_remote_code_tokenizer = models.BooleanField(default=False)
-    trust_remote_code_model = models.BooleanField(default=False)
-    revision = models.CharField(max_length=255, blank=True, null=True, default="main")
+    llm_name = models.CharField(max_length=100, default="gpt-4o")
+    base_url = models.CharField(max_length=255, blank=True, null=True)
     model_max_length = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
