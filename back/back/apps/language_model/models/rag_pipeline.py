@@ -286,31 +286,13 @@ class LLMConfig(ChangesMixin):
 class PromptConfig(ChangesMixin):
     """
     Defines the structure of the prompt for a model.
-    system_prefix : str
-        The prefix to indicate instructions for the LLM.
-    system_tag : str
-        The tag to indicate the start of the system prefix for the LLM.
-    system_end : str
-        The tag to indicate the end of the system prefix for the LLM.
-    user_tag : str
-        The tag to indicate the start of the user input.
-    user_end : str
-        The tag to indicate the end of the user input.
-    assistant_tag : str
-        The tag to indicate the start of the assistant output.
-    assistant_end : str
-        The tag to indicate the end of the assistant output.
+    system_prompt : str
+        The prompt to indicate instructions for the LLM.
     n_contexts_to_use : int, optional
         The number of contexts to use, by default 3
     """
     name = models.CharField(max_length=255, unique=True)
-    system_prefix = models.TextField(blank=True, default="")
-    system_tag = models.CharField(max_length=255, blank=True, default="")
-    system_end = models.CharField(max_length=255, blank=True, default="")
-    user_tag = models.CharField(max_length=255, blank=True, default="<|prompt|>")
-    user_end = models.CharField(max_length=255, blank=True, default="")
-    assistant_tag = models.CharField(max_length=255, blank=True, default="<|answer|>")
-    assistant_end = models.CharField(max_length=255, blank=True, default="")
+    system_prompt = models.TextField(blank=True, default="")
     n_contexts_to_use = models.IntegerField(default=5)
     history = HistoricalRecords()
 

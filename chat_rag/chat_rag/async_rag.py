@@ -1,6 +1,7 @@
 from logging import getLogger
-from typing import List, Dict
-from chat_rag.llms import RAGLLM
+from typing import Dict, List
+
+from chat_rag.llms import LLM
 
 logger = getLogger(__name__)
 
@@ -9,7 +10,7 @@ class AsyncRAG:
     def __init__(
         self,
         retriever,
-        llm_model: RAGLLM,
+        llm_model: LLM,
         lang: str = "en",
     ):
         """

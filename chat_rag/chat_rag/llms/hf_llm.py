@@ -1,21 +1,21 @@
-from threading import Thread
-from logging import getLogger
-from typing import List, Dict
-import regex
-from collections.abc import Sequence
 import os
+from collections.abc import Sequence
+from logging import getLogger
+from threading import Thread
+from typing import Dict, List
 
+import regex
 import torch
 from torch import Tensor
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TextIteratorStreamer,
     StoppingCriteria,
     StoppingCriteriaList,
+    TextIteratorStreamer,
 )
 
-from chat_rag.llms import RAGLLM
+from chat_rag.llms import LLM
 
 logger = getLogger(__name__)
 
@@ -59,7 +59,7 @@ class StopPatternCriteria(StoppingCriteria):
         return all_done
 
 
-class HFModel(RAGLLM):
+class HFModel(LLM):
     MAX_GPU_MEM = "18GiB"  # Why this
     MAX_CPU_MEM = "12GiB"
 

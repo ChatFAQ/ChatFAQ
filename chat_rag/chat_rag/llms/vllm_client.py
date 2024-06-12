@@ -1,20 +1,23 @@
 import json
+import logging
 import os
-from typing import Dict, Iterable, List, AsyncIterable
+from typing import AsyncIterable, Dict, Iterable, List
 
 import aiohttp
 import requests
-from openai import OpenAI, AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
 
-from chat_rag.llms import RAGLLM
-from chat_rag.exceptions import ModelNotFoundException, RequestException, PromptTooLongException
-
-import logging
+from chat_rag.exceptions import (
+    ModelNotFoundException,
+    PromptTooLongException,
+    RequestException,
+)
+from chat_rag.llms import LLM
 
 logger = logging.getLogger(__name__)
 
 
-class VLLMModel(RAGLLM):
+class VLLMModel(LLM):
     """
     A client that sends requests to the VLLM server.
     """
@@ -44,7 +47,7 @@ class VLLMModel(RAGLLM):
         self,
         messages: List[Dict[str, str]],
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         lang: str = "en",
         **kwargs,
     ) -> List[Dict[str, str]]:
@@ -61,7 +64,7 @@ class VLLMModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             lang=lang,
         )
 
@@ -434,7 +437,7 @@ class VLLMModel(RAGLLM):
                 yield chunk
 
 
-class AsyncVLLMModel(RAGLLM):
+class AsyncVLLMModel(LLM):
     """
     A client that sends asynchronous requests to the VLLM server.
     """
@@ -459,7 +462,7 @@ class AsyncVLLMModel(RAGLLM):
         self,
         messages: List[Dict[str, str]],
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         lang: str = "en",
         **kwargs,
     ) -> List[Dict[str, str]]:
@@ -476,7 +479,7 @@ class AsyncVLLMModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             lang=lang,
         )
 

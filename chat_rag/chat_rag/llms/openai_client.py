@@ -2,14 +2,15 @@ import os
 from typing import Dict, List
 
 from openai import AsyncOpenAI, OpenAI
+from pydantic import BaseModel
 
-from chat_rag.llms import RAGLLM
+from chat_rag.llms import LLM
 
 
-class OpenAIChatModel(RAGLLM):
+class OpenAIChatModel(LLM):
     def __init__(
         self,
-        llm_name: str,
+        llm_name: str= "gpt-4o",
         base_url: str = None,
         **kwargs,
     ):  
@@ -21,8 +22,8 @@ class OpenAIChatModel(RAGLLM):
     def format_prompt(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
+        contexts: List[str] = None,
         n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
@@ -35,21 +36,8 @@ class OpenAIChatModel(RAGLLM):
             The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
-        system_prefix : str
+        system_prompt : str
             The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
         n_contexts_to_use : int, optional
             The number of contexts to use, by default 3
         lang : str, optional
@@ -57,7 +45,7 @@ class OpenAIChatModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
@@ -166,8 +154,30 @@ class OpenAIChatModel(RAGLLM):
             if chunk.choices[0].delta.content is not None:
                 yield chunk.choices[0].delta.content # return the delta text message
 
+    def use_tools(messages: List[Dict], tools: List[BaseModel], tool_choice: str = 'any'):
+        """
+        Use the tools to process the messages.
+        Parameters
+        ----------
+        messages : List[Dict]
+            The messages to send to the model.
+        tools : List[BaseModel]
+            The tools to use.
+        tool_choice : str
+            The choice of the tool to use. If 'any', then any tool can be used, if you specify a tool name, then only that tool will be used.
+        Returns
+        -------
+        List[Dict]
+            The processed messages.
+        """
+        # check that if tool_choice is not any, then the tool_choice is in the tools
+        if tool_choice != 'any':
+            tools_names = [tool.__repr_name__() for tool in tools]
+            assert tool_choice in tools_names, f"The tool choice {tool_choice} is not in the tools provided. You chose {tool_choice} and the tools are {tools_names}."
 
-class AsyncOpenAIChatModel(RAGLLM):
+        
+
+class AsyncOpenAIChatModel(LLM):
     def __init__(
         self,
         llm_name: str,
@@ -183,7 +193,7 @@ class AsyncOpenAIChatModel(RAGLLM):
         self,
         messages: List[Dict[str, str]],
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
@@ -196,21 +206,8 @@ class AsyncOpenAIChatModel(RAGLLM):
             The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
-        system_prefix : str
+        system_prompt : str
             The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
         n_contexts_to_use : int, optional
             The number of contexts to use, by default 3
         lang : str, optional
@@ -218,7 +215,7 @@ class AsyncOpenAIChatModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )

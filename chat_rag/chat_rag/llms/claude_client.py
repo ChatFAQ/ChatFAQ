@@ -3,10 +3,10 @@ from typing import Dict, List
 
 from anthropic import Anthropic, AsyncAnthropic
 
-from chat_rag.llms import CONTEXT_PREFIX, RAGLLM
+from chat_rag.llms import CONTEXT_PREFIX, LLM
 
 
-class ClaudeChatModel(RAGLLM):
+class ClaudeChatModel(LLM):
     def __init__(self, llm_name, **kwargs) -> None:
         self.llm_name = llm_name
         self.client = Anthropic(
@@ -16,7 +16,7 @@ class ClaudeChatModel(RAGLLM):
     def format_prompt(
         self,
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
@@ -27,20 +27,8 @@ class ClaudeChatModel(RAGLLM):
         ----------
         contexts : list
             The context to use.
-        system_prefix : str
+        system_prompt : str
             The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
         Returns
         -------
         list
@@ -48,7 +36,7 @@ class ClaudeChatModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
@@ -145,7 +133,7 @@ class ClaudeChatModel(RAGLLM):
                 yield event.delta.text
 
         
-class AsyncClaudeChatModel(RAGLLM):
+class AsyncClaudeChatModel(LLM):
     def __init__(self, llm_name, **kwargs) -> None:
         self.llm_name = llm_name
         self.client = AsyncAnthropic(
@@ -155,7 +143,7 @@ class AsyncClaudeChatModel(RAGLLM):
     def format_prompt(
         self,
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
@@ -166,20 +154,8 @@ class AsyncClaudeChatModel(RAGLLM):
         ----------
         contexts : list
             The context to use.
-        system_prefix : str
+        system_prompt : str
             The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
         Returns
         -------
         list
@@ -187,7 +163,7 @@ class AsyncClaudeChatModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )

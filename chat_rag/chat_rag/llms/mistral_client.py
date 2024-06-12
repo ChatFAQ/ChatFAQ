@@ -5,10 +5,10 @@ from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
-from chat_rag.llms import RAGLLM
+from chat_rag.llms import LLM
 
 
-class MistralChatModel(RAGLLM):
+class MistralChatModel(LLM):
     def __init__(
         self,
         llm_name: str,
@@ -22,7 +22,7 @@ class MistralChatModel(RAGLLM):
         self,
         messages: List[Dict[str, str]],
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
@@ -35,21 +35,8 @@ class MistralChatModel(RAGLLM):
             The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
-        system_prefix : str
+        system_prompt : str
             The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
         n_contexts_to_use : int, optional
             The number of contexts to use, by default 3
         lang : str, optional
@@ -57,7 +44,7 @@ class MistralChatModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
@@ -165,7 +152,7 @@ class MistralChatModel(RAGLLM):
         return
 
 
-class AsyncMistralChatModel(RAGLLM):
+class AsyncMistralChatModel(LLM):
     def __init__(
         self,
         llm_name: str,
@@ -178,7 +165,7 @@ class AsyncMistralChatModel(RAGLLM):
         self,
         messages: List[Dict[str, str]],
         contexts: List[str],
-        system_prefix: str,
+        system_prompt: str,
         n_contexts_to_use: int = 3,
         lang: str = "en",
         **kwargs,
@@ -191,21 +178,8 @@ class AsyncMistralChatModel(RAGLLM):
             The messages to use for the prompt. Pair of (role, message).
         contexts : list
             The context to use.
-        system_prefix : str
+        system_prompt : str
             The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
         n_contexts_to_use : int, optional
             The number of contexts to use, by default 3
         lang : str, optional
@@ -213,7 +187,7 @@ class AsyncMistralChatModel(RAGLLM):
         """
         system_prompt = self.format_system_prompt(
             contexts=contexts,
-            system_prefix=system_prefix,
+            system_prompt=system_prompt,
             n_contexts_to_use=n_contexts_to_use,
             lang=lang,
         )
