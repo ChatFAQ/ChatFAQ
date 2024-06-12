@@ -320,3 +320,4 @@ with EnvManager(model_w_django) as env:
     # if not ray.is_initialized() and is_server_process():
     #     ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 
+    #
