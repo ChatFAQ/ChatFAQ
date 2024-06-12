@@ -11,13 +11,18 @@
             'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration, 'formatter': durationMSFormatter},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
+        itemIdProp="task_id"
         :sections="{
+            [$t('logs')]: [
+                'logs_link',
+            ],
             [$t('generalinfo')]: [
-                'task_id',
-                'attempt_number',
                 'name',
                 'state',
+                'error_type',
+                'task_id',
                 'job_id',
+                'attempt_number',
                 'actor_id',
                 'type',
                 'func_or_class_name',
@@ -25,7 +30,6 @@
                 'node_id',
                 'worker_id',
                 'worker_pid',
-                'error_type',
                 'language',
                 'required_resources',
                 'runtime_env_info',
@@ -35,10 +39,6 @@
                 'creation_time_ms',
                 'start_time_ms',
                 'end_time_ms',
-            ],
-            [$t('logs')]: [
-                'task_log_info',
-                'error_message',
             ]
         }"
         :itemId="itemsStore.taskID"
@@ -63,6 +63,11 @@
         <template v-slot:write-traceback="value">
             <div class="traceback">{{ value["value"] }}</div>
         </template>
+        <template v-slot:write-logs_link="{form}">
+            <el-link :href="`/ray/#/jobs/${form.job_id}/tasks/${form.task_id}`" target="_blank">Ray logs</el-link>
+        </template>
+
+
     </ReadWriteView>
 </template>
 

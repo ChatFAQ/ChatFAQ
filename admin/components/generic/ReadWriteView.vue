@@ -40,6 +40,7 @@
                 :backButton="backButton"
                 :commandButtons="commandButtons"
                 :leaveAfterSave="leaveAfterSave"
+                :itemIdProp="itemIdProp"
             >
                 <template v-for="(_, name) in $slots" v-slot:[name]="data">
                     <slot :name="name" v-bind="data"></slot>
@@ -159,6 +160,11 @@ const props = defineProps({
         type: [String, Number],
         required: false,
         default: undefined,
+    },
+    itemIdProp: {
+        type: String,
+        required: false,
+        default: "id",
     },
 })
 if (props.itemId)

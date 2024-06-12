@@ -29,6 +29,7 @@ class ListTasksAPI(APIView):
         # Sorting
         sort_key = request.query_params.get('sort', 'id')  # Default sort key
         sort_order = request.query_params.get('order', 'asc')  # Default sort order
+        task_id = request.query_params.get('task_id')  # Default sort order
 
         try:
             # Convert limit and offset to integers
@@ -38,14 +39,16 @@ class ListTasksAPI(APIView):
             return Response({'error': 'Invalid limit or offset.'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = RayTaskState.get_all_ray_and_parse_tasks_serialized()
-
         if sort_key and hasattr(data[0], sort_key):
             data = sorted(data, key=lambda x: x[sort_key], reverse=sort_order == 'desc')
 
         # Apply the pagination
-        if limit is not None and offset is not None:
+        if limit and offset is not None:
             page = data[offset: offset + limit]
         else:
             page = data  # return all if limit or offset not provided
+        # filter
+        if task_id:
+            page = [task for task in page if task.get('task_id') == task_id]
 
         return get_paginated_response(page, limit, offset, len(data))
