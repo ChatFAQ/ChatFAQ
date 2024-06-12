@@ -143,10 +143,10 @@ with EnvManager(model_w_django) as env:
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "back.apps.people",
-        # "back.apps.broker",
-        # "back.apps.fsm",
-        # "back.apps.language_model",
-        # "back.apps.widget",
+        "back.apps.broker",
+        "back.apps.fsm",
+        "back.apps.language_model",
+        "back.apps.widget",
     ]
     # if not env.get("REDIS_URL"):
     #     INSTALLED_APPS += [
