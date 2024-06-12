@@ -303,28 +303,17 @@ class PromptConfig(ChangesMixin):
 class GenerationConfig(ChangesMixin):
     """
     Defines the generation configuration for a model.
-    top_k : int, optional
-        The number of tokens to consider for the top-k sampling, by default 50
-    top_p : float, optional
-        The cumulative probability for the top-p sampling, by default 1.0
     temperature : float, optional
         The temperature for the sampling, by default 0.2
-    repetition_penalty : float, optional
-        The repetition penalty for the sampling, by default 1.0
-    seed : int, optional
-        The seed for the sampling, by default 42
     max_new_tokens : int, optional
         The maximum number of new tokens to generate, by default 256
-    model : Model
-        The model this generation configuration belongs to.
+    seed : int, optional
+        The seed for the sampling, by default 42
     """
     name = models.CharField(max_length=255, unique=True)
-    top_k = models.IntegerField(default=50)
-    top_p = models.FloatField(default=1.0)
     temperature = models.FloatField(default=0.2)
-    repetition_penalty = models.FloatField(default=1.0)
-    seed = models.IntegerField(default=42)
-    max_new_tokens = models.IntegerField(default=512)
+    max_tokens = models.IntegerField(default=1024)
+    seed = models.IntegerField(default=42)    
 
     def __str__(self):
         return self.name

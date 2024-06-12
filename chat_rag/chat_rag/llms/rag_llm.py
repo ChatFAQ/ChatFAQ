@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from chat_rag.exceptions import PromptTooLongException
 from chat_rag.llms import LLM
@@ -113,3 +113,26 @@ class RAGLLM:
             num_tokens = len(self.tokenizer.tokenize(prompt))
 
         return prompt, (n_contexts, n_messages_to_keep)
+
+
+    def generate(
+        self,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
+        generation_config_dict: Dict = None,
+        lang: str = "en",
+        stop_words: List[str] = None,
+        **kwargs,
+    ) -> Optional[str | List[str]]:
+        pass
+
+    def stream(
+        self,
+        messages: List[Dict[str, str]],
+        contexts: List[str],
+        generation_config_dict: Dict = None,
+        lang: str = "en",
+        stop_words: List[str] = None,
+        **kwargs,
+    ) -> Optional[str | List[str]]:
+        pass

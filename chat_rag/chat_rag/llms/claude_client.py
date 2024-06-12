@@ -3,7 +3,7 @@ from typing import Dict, List
 
 from anthropic import Anthropic, AsyncAnthropic
 
-from chat_rag.llms import CONTEXT_PREFIX, LLM
+from chat_rag.llms import LLM
 
 
 class ClaudeChatModel(LLM):

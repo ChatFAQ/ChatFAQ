@@ -17,8 +17,6 @@ NO_CONTEXT_SUFFIX = {
 }
 
 
-
-
 class LLM:
     def __init__(
         self,
@@ -28,7 +26,6 @@ class LLM:
         trust_remote_code_model: bool = False,
         **kwargs,
     ) -> None:
-
         auth_token = os.environ["HUGGINGFACE_KEY"]
 
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -50,26 +47,40 @@ class LLM:
         self.has_chat_template = self.tokenizer.chat_template is not None
         print(f"Model max length: {self.model_max_length}")
 
-    def generate(
+    def stream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: Dict,
-        generation_config_dict: Dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
         **kwargs,
     ) -> Optional[str | List[str]]:
         pass
 
-    def stream(
+    async def astream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: Dict,
-        generation_config_dict: Dict = None,
-        lang: str = "en",
-        stop_words: List[str] = None,
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
         **kwargs,
+    ) -> Optional[str | List[str]]:
+        pass
+
+    def generate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ) -> Optional[str | List[str]]:
+        pass
+
+    async def agenerate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
     ) -> Optional[str | List[str]]:
         pass
