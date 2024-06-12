@@ -6,7 +6,6 @@ from typing import Dict, List
 
 import regex
 import torch
-from torch import Tensor
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -18,6 +17,8 @@ from transformers import (
 from chat_rag.llms import LLM
 
 logger = getLogger(__name__)
+
+# TODO: Refactor this class
 
 
 class StopPatternCriteria(StoppingCriteria):
