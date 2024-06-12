@@ -7,93 +7,21 @@ from chat_rag.llms import LLM
 
 
 class ClaudeChatModel(LLM):
-    def __init__(self, llm_name, **kwargs) -> None:
+    def __init__(self, llm_name: str = "claude-3-opus-20240229", **kwargs) -> None:
         self.llm_name = llm_name
         self.client = Anthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
-
-    def format_prompt(
-        self,
-        contexts: List[str],
-        system_prompt: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
-        """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        contexts : list
-            The context to use.
-        system_prompt : str
-            The prefix to indicate instructions for the LLM.
-        Returns
-        -------
-        list
-            The formatted prompt.
-        """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prompt=system_prompt,
-            n_contexts_to_use=n_contexts_to_use,
-            lang=lang,
+        self.aclient = AsyncAnthropic(
+            api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
-        return system_prompt
-
-    def generate(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
-        """
-        Generate text from a prompt using the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
-
-        message = self.client.messages.create(
-            model=self.llm_name,
-            system=system_prompt,
-            messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
-        )
-
-        return message.content[0].text
-    
     def stream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -101,30 +29,19 @@ class ClaudeChatModel(LLM):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
             The generated text.
         """
-
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
+        system_prompt = messages.pop(0)['content']
 
         stream = self.client.messages.create(
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
+            temperature=temperature,
+            max_tokens=max_tokens,
             stream=True,
         )
 
@@ -132,95 +49,12 @@ class ClaudeChatModel(LLM):
             if event.type == "content_block_delta":
                 yield event.delta.text
 
-        
-class AsyncClaudeChatModel(LLM):
-    def __init__(self, llm_name, **kwargs) -> None:
-        self.llm_name = llm_name
-        self.client = AsyncAnthropic(
-            api_key=os.environ.get("ANTHROPIC_API_KEY")
-        )
-
-    def format_prompt(
-        self,
-        contexts: List[str],
-        system_prompt: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
-        """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        contexts : list
-            The context to use.
-        system_prompt : str
-            The prefix to indicate instructions for the LLM.
-        Returns
-        -------
-        list
-            The formatted prompt.
-        """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prompt=system_prompt,
-            n_contexts_to_use=n_contexts_to_use,
-            lang=lang,
-        )
-
-        return system_prompt
-    
-    async def generate(
+    async def astream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
-        """
-        Generate text from a prompt using the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
-
-        message = await self.client.messages.create(
-            model=self.llm_name,
-            system=system_prompt,
-            messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
-        )
-
-        return message.content[0].text
-    
-    async def stream(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -228,33 +62,82 @@ class AsyncClaudeChatModel(LLM):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
             The generated text.
         """
+        system_prompt = messages.pop(0)['content']
 
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
-
-        stream = await self.client.messages.create(
+        stream = await self.aclient.messages.create(
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
+            temperature=temperature,
+            max_tokens=max_tokens,
             stream=True,
         )
 
         async for event in stream:
             if event.type == "content_block_delta":
                 yield event.delta.text
+
+    def generate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ) -> str:
+        """
+        Generate text from a prompt using the model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+        system_prompt = messages.pop(0)['content']
+
+        message = self.client.messages.create(
+            model=self.llm_name,
+            system=system_prompt,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+        return message.content[0].text
+
+    async def agenerate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ) -> str:
+        """
+        Generate text from a prompt using the model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+        system_prompt = messages.pop(0)['content']
+
+        message = await self.aclient.messages.create(
+            model=self.llm_name,
+            system=system_prompt,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+
+        return message.content[0].text
