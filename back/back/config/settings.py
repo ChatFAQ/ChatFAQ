@@ -143,10 +143,10 @@ with EnvManager(model_w_django) as env:
         "drf_spectacular",
         "drf_spectacular_sidecar",
         "back.apps.people",
-        "back.apps.broker",
-        "back.apps.fsm",
-        "back.apps.language_model",
-        "back.apps.widget",
+        # "back.apps.broker",
+        # "back.apps.fsm",
+        # "back.apps.language_model",
+        # "back.apps.widget",
     ]
     # if not env.get("REDIS_URL"):
     #     INSTALLED_APPS += [
@@ -317,6 +317,6 @@ with EnvManager(model_w_django) as env:
     TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
     # --------------------------- RAY ---------------------------
-    if not ray.is_initialized() and is_server_process():
-        ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
+    # if not ray.is_initialized() and is_server_process():
+    #     ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 
