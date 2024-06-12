@@ -113,10 +113,10 @@ workers:
     instance_size: XL
     command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"rags":100}' --block
 
-# jobs:
-#   - name: migrate
-#     when: PRE_DEPLOY
-#     image: back
-#     instance_size: XS
-#     envs: [ django ]
-#     command: modelw-docker run python manage.py migrate
+jobs:
+  - name: migrate
+    when: PRE_DEPLOY
+    image: back
+    instance_size: XS
+    envs: [ django ]
+    command: modelw-docker run python manage.py migrate
