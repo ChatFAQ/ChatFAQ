@@ -14,6 +14,7 @@ on:
       - "develop"
       - "feature/**caps**"
       - "feature/**withmadrid**"
+      - "feature/**chatf**"
   workflow_dispatch:
 
 jobs:
