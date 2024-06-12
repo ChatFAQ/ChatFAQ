@@ -64,7 +64,6 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        **kwargs,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -99,7 +98,6 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -130,7 +128,6 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.

@@ -53,7 +53,6 @@ class LLM:
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        **kwargs,
     ) -> Optional[str | List[str]]:
         pass
 
@@ -63,7 +62,6 @@ class LLM:
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        **kwargs,
     ) -> Optional[str | List[str]]:
         pass
 
