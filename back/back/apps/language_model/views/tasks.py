@@ -27,8 +27,7 @@ class ListTasksAPI(APIView):
         limit = request.query_params.get('limit')
         offset = request.query_params.get('offset')
         # Sorting
-        sort_key = request.query_params.get('sort', 'id')  # Default sort key
-        sort_order = request.query_params.get('order', 'asc')  # Default sort order
+        sort_key = request.query_params.get('ordering', 'id')  # Default sort key
         task_id = request.query_params.get('task_id')  # Default sort order
 
         try:
@@ -39,8 +38,13 @@ class ListTasksAPI(APIView):
             return Response({'error': 'Invalid limit or offset.'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = RayTaskState.get_all_ray_and_parse_tasks_serialized()
-        if sort_key and hasattr(data[0], sort_key):
-            data = sorted(data, key=lambda x: x[sort_key], reverse=sort_order == 'desc')
+        if sort_key:
+            # if starts with "-" then sort in descending order
+            sort_order = 'desc' if sort_key.startswith('-') else 'asc'
+            if sort_order == 'desc':
+                sort_key = sort_key[1:]
+            if data and sort_key in data[0].keys():
+                data = sorted(data, key=lambda x: x.get(sort_key), reverse=sort_order == 'desc')
 
         # Apply the pagination
         if limit and offset is not None:

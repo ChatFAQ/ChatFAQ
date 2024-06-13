@@ -8,7 +8,7 @@
             'state': {'name': '', 'width': 50},
             'name': {'name': $t('task_name')},
             'creation_time_ms': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates, 'formatter': timeMSFormatter},
-            'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration, 'formatter': durationMSFormatter},
+            'duration': {'name': $t('duration'), 'sortable': false, 'sortMethod': sortDuration, 'formatter': durationMSFormatter},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
         itemIdProp="task_id"
