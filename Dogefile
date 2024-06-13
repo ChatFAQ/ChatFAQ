@@ -103,16 +103,6 @@ workers:
     envs: [ sentry, sdk ]
     instance_size: XS
 
-  - name: ray
-    image:
-      host: docker.io
-      registry: chatfaq
-      repository: back-chatrag
-      tag: "develop"
-    envs: [ django ]
-    instance_size: XL
-    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"rags":100}' --block
-
 jobs:
   - name: migrate
     when: PRE_DEPLOY
