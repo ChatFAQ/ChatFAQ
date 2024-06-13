@@ -2,6 +2,8 @@ import os
 from typing import Dict, List
 
 from anthropic import Anthropic, AsyncAnthropic
+from instructor import Mode, handle_response_model
+from pydantic import BaseModel
 
 from chat_rag.llms import LLM
 
@@ -15,6 +17,24 @@ class ClaudeChatModel(LLM):
         self.aclient = AsyncAnthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
+
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str):
+        """
+        Format the tools from a generic BaseModel to the OpenAI format.
+        """
+        tools_formatted = []
+        for tool in tools:
+            _, tool_formatted = handle_response_model(
+                tool, mode=Mode.ANTHROPIC_TOOLS, messages=[]
+            )
+            tools_formatted.append(tool_formatted["tools"][0])
+
+        if tool_choice:
+            tool_choice = (
+                {"type": "any"} if tool_choice == "required" else {"type": tool_choice}
+            )  # map "required" to "any"
+
+        return tools_formatted, tool_choice
 
     def stream(
         self,
@@ -34,7 +54,7 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = messages.pop(0)['content']
+        system_prompt = messages.pop(0)["content"]
 
         stream = self.client.messages.create(
             model=self.llm_name,
@@ -67,7 +87,7 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = messages.pop(0)['content']
+        system_prompt = messages.pop(0)["content"]
 
         stream = await self.aclient.messages.create(
             model=self.llm_name,
@@ -88,6 +108,8 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[BaseModel] = None,
+        tool_choice: str = None,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -100,7 +122,9 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = messages.pop(0)['content']
+        tools, tool_choice = self._format_tools(tools, tool_choice)
+
+        system_prompt = messages.pop(0)["content"]
 
         message = self.client.messages.create(
             model=self.llm_name,
@@ -108,8 +132,12 @@ class ClaudeChatModel(LLM):
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            tools=tools,
+            tool_choice=tool_choice,
         )
 
+        if tools:
+            return message.content[0]
         return message.content[0].text
 
     async def agenerate(
@@ -118,6 +146,8 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[BaseModel] = None,
+        tool_choice: str = None,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -130,7 +160,9 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = messages.pop(0)['content']
+        tools, tool_choice = self._format_tools(tools, tool_choice)
+
+        system_prompt = messages.pop(0)["content"]
 
         message = await self.aclient.messages.create(
             model=self.llm_name,
@@ -138,6 +170,10 @@ class ClaudeChatModel(LLM):
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            tools=tools,
+            tool_choice=tool_choice,
         )
 
+        if tools:
+            return message.content[0]
         return message.content[0].text

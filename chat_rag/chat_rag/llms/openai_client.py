@@ -1,6 +1,7 @@
 import os
 from typing import Dict, List
 
+from instructor import Mode, handle_response_model
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
@@ -17,14 +18,30 @@ class OpenAIChatModel(LLM):
     ):
         # If provided a base_url, then use the Together API key
         api_key = (
-            os.environ.get("TOGETHER_API_KEY")
-            if base_url
-            else os.environ.get("OPENAI_API_KEY")
-        ) if api_key is None else api_key
-        
+            (
+                os.environ.get("TOGETHER_API_KEY")
+                if base_url
+                else os.environ.get("OPENAI_API_KEY")
+            )
+            if api_key is None
+            else api_key
+        )
+
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.aclient = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.llm_name = llm_name
+
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
+        """
+        Format the tools from a generic BaseModel to the OpenAI format.
+        """
+        self._check_tools(tools, tool_choice)
+
+        tools_formatted = []
+        for tool in tools:
+            _, tool_formatted = handle_response_model(tool, mode=Mode.TOOLS)
+            tools_formatted.append(tool_formatted["tools"][0])
+        return tools_formatted
 
     def stream(
         self,
@@ -100,7 +117,9 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-    ) -> str:
+        tools: List[Dict] = None,
+        tool_choice: str = None,
+    ) -> str | List:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -109,9 +128,10 @@ class OpenAIChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str
-            The generated text.
+        str | List
+            The generated text or a list of tool calls.
         """
+        tools = self._format_tools(tools, tool_choice)
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -120,8 +140,13 @@ class OpenAIChatModel(LLM):
             max_tokens=max_tokens,
             seed=seed,
             n=1,
+            tools=tools,
+            tool_choice=tool_choice,
             stream=False,
         )
+        if tool_choice:
+            return response.choices[0].message.tool_calls
+
         return response.choices[0].message.content
 
     async def agenerate(
@@ -130,6 +155,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Dict] = None,
+        tool_choice: str = None,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -139,9 +166,10 @@ class OpenAIChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str
-            The generated text.
+        str | List
+            The generated text or a list of tool calls.
         """
+        tools = self._format_tools(tools, tool_choice)
 
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
@@ -150,31 +178,12 @@ class OpenAIChatModel(LLM):
             max_tokens=max_tokens,
             seed=seed,
             n=1,
+            tools=tools,
+            tool_choice=tool_choice,
             stream=False,
         )
-        return response.choices[0].message.content
 
-    def use_tools(
-        messages: List[Dict], tools: List[BaseModel], tool_choice: str = "any"
-    ):
-        """
-        Use the tools to process the messages.
-        Parameters
-        ----------
-        messages : List[Dict]
-            The messages to send to the model.
-        tools : List[BaseModel]
-            The tools to use.
-        tool_choice : str
-            The choice of the tool to use. If 'any', then any tool can be used, if you specify a tool name, then only that tool will be used.
-        Returns
-        -------
-        List[Dict]
-            The processed messages.
-        """
-        # check that if tool_choice is not any, then the tool_choice is in the tools
-        if tool_choice != "any":
-            tools_names = [tool.__repr_name__() for tool in tools]
-            assert (
-                tool_choice in tools_names
-            ), f"The tool choice {tool_choice} is not in the tools provided. You chose {tool_choice} and the tools are {tools_names}."
+        if tool_choice:
+            return response.choices[0].message.tool_calls
+
+        return response.choices[0].message.content
