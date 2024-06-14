@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Dict, List
 
+from pydantic import BaseModel
 from transformers import AutoConfig, AutoTokenizer
 
 from chat_rag.exceptions import (
@@ -151,7 +152,9 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-    ):
+        tools: List[BaseModel] = None,
+        tool_choice: str = None,
+        ):
         """
         Generate text from a prompt using the model.
         Parameters
@@ -163,9 +166,34 @@ class VLLMModel(OpenAIChatModel):
         str
             The generated text.
         """
+
+        if tool_choice and tool_choice in ['required', 'auto']:
+            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
+
         messages = self.format_prompt(messages)
 
-        return super().generate(messages, temperature, max_tokens, seed)
+        # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything
+        tool_kwargs = {}
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+
+        response = self.client.chat.completions.create(
+            model=self.llm_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            n=1,
+            stream=False,
+            **tool_kwargs,
+        )
+
+        message = response.choices[0].message
+        if message.tool_calls:
+            return self._extract_tool_info(message)
+
+        return message.content
 
     async def agenerate(
         self,
@@ -173,6 +201,8 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[BaseModel] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -187,8 +217,28 @@ class VLLMModel(OpenAIChatModel):
         """
         messages = self.format_prompt(messages)
 
-        return await super().agenerate(messages, temperature, max_tokens, seed)
+        # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything
+        tool_kwargs = {}
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
+        response = await self.aclient.chat.completions.create(
+            model=self.llm_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            n=1,
+            stream=False,
+            **tool_kwargs,
+        )
+
+        message = response.choices[0].message
+        if message.tool_calls:
+            return self._extract_tool_info(message)
+        
+        return message.content
 
 def return_openai_error(e):
     logger.error(f"Error with the request to the vLLM OpenAI server: {e}")

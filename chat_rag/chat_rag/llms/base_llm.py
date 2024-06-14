@@ -5,12 +5,13 @@ from pydantic import BaseModel
 
 class LLM:
 
-    def _check_tool_choice(self, tool_choice: str) -> bool:
+    def _check_tool_choice(self, tools: List[BaseModel], tool_choice: str) -> bool:
         """
         Adhere to the tool_choice parameter requirements.
         """
         if tool_choice:
-            assert tool_choice in ["required", "auto"], "tool_choice must be 'required' or 'auto'"
+            tool_choices = ["required", "auto"] + [tool.model_json_schema()['title'] for tool in tools]
+            assert tool_choice in tool_choices, f"tool_choice must be one of {tool_choices}"
             
 
     def stream(

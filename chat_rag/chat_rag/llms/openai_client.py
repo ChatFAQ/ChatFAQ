@@ -35,13 +35,22 @@ class OpenAIChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tool_choice(tool_choice)
+        self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = []
         for tool in tools:
             _, tool_formatted = handle_response_model(tool, mode=Mode.TOOLS)
             tools_formatted.append(tool_formatted["tools"][0])
-        return tools_formatted
+
+        # If the tool_choice is a named tool, then apply correct formatting
+        if tool_choice in [tool.model_json_schema()['title'] for tool in tools]:
+            tool_choice = {
+                "type": "function",
+                "function": {
+                    "name": tool_choice,
+                },
+            }
+        return tools_formatted, tool_choice
 
     def _extract_tool_info(self, message) -> List[Dict]:
         """
@@ -133,7 +142,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Dict] = None,
+        tools: List[BaseModel] = None,
         tool_choice: str = None,
     ) -> str | List:
         """
@@ -148,7 +157,7 @@ class OpenAIChatModel(LLM):
             The generated text or a list of tool calls.
         """
         if tools:
-            tools = self._format_tools(tools, tool_choice)
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -173,8 +182,8 @@ class OpenAIChatModel(LLM):
         messages: List[Dict[str, str]],
         temperature: float = 1.0,
         max_tokens: int = 1024,
-        seed: int = None,
-        tools: List[Dict] = None,
+        seed: int = BaseModel,
+        tools: List[BaseModel] = None,
         tool_choice: str = None,
     ) -> str:
         """
@@ -189,7 +198,7 @@ class OpenAIChatModel(LLM):
             The generated text or a list of tool calls.
         """
         if tools:
-            tools = self._format_tools(tools, tool_choice)
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
