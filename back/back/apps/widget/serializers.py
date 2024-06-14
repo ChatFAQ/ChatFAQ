@@ -14,11 +14,11 @@ class WidgetSerializer(serializers.ModelSerializer):
         css = ":root {"
         if obj.theme:
             for css_var in obj.theme.data:
-                if type(obj.theme.data[css_var]) is dict:
-                    css += f"--{css_var}-light: {obj.theme.data[css_var]['light']};"
-                    css += f"--{css_var}-dark: {obj.theme.data[css_var]['dark']};"
+                if type(obj.theme.data[css_var]["value"]) is dict:
+                    css += f"--{css_var}-light: {obj.theme.data[css_var]['value']['light']};"
+                    css += f"--{css_var}-dark: {obj.theme.data[css_var]['value']['dark']};"
                 else:
-                    css += f"--{css_var}: {obj.theme.data[css_var]};"
+                    css += f"--{css_var}: {obj.theme.data[css_var]['value']};"
         css += "}"
 
         return css
