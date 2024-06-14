@@ -76,10 +76,11 @@
                     'name': {'name': $t('name')},
                 }"
                 :outsideSection="['data']"
+                contentType="application/json"
                 @submitFormStart="submitFieldData"
             >
                 <template v-slot:write-data="props">
-                    <FieldData :form="props.form" :fieldName="props.fieldName" ref="fieldData">123</FieldData>
+                    <FieldData :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>

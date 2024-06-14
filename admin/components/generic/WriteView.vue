@@ -215,6 +215,11 @@ const props = defineProps({
         required: false,
         default: "id",
     },
+    contentType: {
+        type: String,
+        required: false,
+        default: "multipart/form-data",
+    },
 })
 
 const allExcludeFields = computed(() => {
@@ -314,7 +319,7 @@ async function submitForm(extraVals = {}, callback = undefined) {
 
         try {
             const headers = {
-                'Content-Type': 'multipart/form-data',
+                'Content-Type': props.contentType,
                 ...authHeaders()
             }
 
