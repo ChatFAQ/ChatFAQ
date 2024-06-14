@@ -62,7 +62,7 @@ const valuesBySection = computed(() => {
         }
         _valuesBySection[value.section][key] = value
         if (props.form[props.fieldName] && props.form[props.fieldName][key] !== undefined) {
-            _valuesBySection[value.section][key].value = props.form[props.fieldName][key]
+            _valuesBySection[value.section][key] = props.form[props.fieldName][key]
         }
     }
     return _valuesBySection
