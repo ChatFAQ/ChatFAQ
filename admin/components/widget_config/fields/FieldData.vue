@@ -12,12 +12,12 @@
             <div class="edit-title">{{ $t(sectionName) }}</div>
             <div v-for="(field, key) in fields" class="field-wrapper">
                 <el-form-item :label="$t(key)" :prop="key">
-                    <ColorField v-if="field.type === 'color'" :field="field" :ref="el => subFields[key] = el" :dark="lightDark[sectionName]"/>
-                    <GradientField v-else-if="field.type === 'gradient'" :field="field"
+                    <ColorField v-if="field.type === 'color'" :field="field" @change="emit('css-change')"  :ref="el => subFields[key] = el" :dark="lightDark[sectionName]"/>
+                    <GradientField v-else-if="field.type === 'gradient'" @change="emit('css-change')" :field="field"
                                    :ref="el => subFields[key] = el"/>
-                    <FontField v-else-if="field.type === 'font'" :field="field"
+                    <FontField v-else-if="field.type === 'font'" @change="emit('css-change')" :field="field"
                                :ref="el => subFields[key] = el"/>
-                    <el-input v-else v-model="field.value" :ref="el => subFields[key] = el"/>
+                    <el-input v-else @change="emit('css-change')" v-model="field.value" :ref="el => subFields[key] = el"/>
                 </el-form-item>
 
             </div>
@@ -31,9 +31,6 @@ import GradientField from "~/components/widget_config/fields/GradientField.vue";
 import FontField from "~/components/widget_config/fields/FontField.vue";
 import {authHeaders} from "~/store/items.js";
 
-defineExpose({
-    submit,
-})
 const {$axios} = useNuxtApp();
 const subFields = ref({})
 
@@ -46,6 +43,12 @@ const props = defineProps({
         type: String,
         mandatory: true
     }
+})
+const emit = defineEmits(["css-change"])
+
+defineExpose({
+    submit,
+    props
 })
 
 const {data} = await useAsyncData(
@@ -62,7 +65,7 @@ const valuesBySection = computed(() => {
         }
         _valuesBySection[value.section][key] = value
         if (props.form[props.fieldName] && props.form[props.fieldName][key] !== undefined) {
-            _valuesBySection[value.section][key] = props.form[props.fieldName][key]
+            _valuesBySection[value.section][key]["value"] = props.form[props.fieldName][key]
         }
     }
     return _valuesBySection
@@ -83,6 +86,10 @@ function submit() {
     }
     props.form[props.fieldName] = res
 }
+onMounted(() => {
+    emit("css-change")
+})
+
 </script>
 
 <style lang="scss" scoped>

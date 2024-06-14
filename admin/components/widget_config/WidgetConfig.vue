@@ -76,10 +76,22 @@
                     'name': {'name': $t('name')},
                 }"
                 :outsideSection="['data']"
+                contentType="application/json"
                 @submitFormStart="submitFieldData"
             >
                 <template v-slot:write-data="props">
-                    <FieldData :form="props.form" :fieldName="props.fieldName" ref="fieldData">123</FieldData>
+                    <FieldData @css-change="updatePreview" :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
+                </template>
+
+                <template v-slot:bottom-write>
+                    <teleport to=".active-tasks-wrapper">
+                        <chatfaq-widget
+                            :data-title="title"
+                            :data-subtitle="subtitle"
+                            :data-preview-mode="true"
+                            :data-maximized="false"
+                        ></chatfaq-widget>
+                    </teleport>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -92,6 +104,7 @@ import {useItemsStore} from "~/store/items.js";
 import FieldData from "~/components/widget_config/fields/FieldData.vue";
 import ExampleScript from "~/components/widget_config/fields/ExampleScript.vue";
 import {useI18n} from "vue-i18n";
+const conf = useRuntimeConfig()
 
 const { t } = useI18n();
 
@@ -112,6 +125,7 @@ const displayingOrderOptions = ref([{
     value: true,
     label: t('sourcesfirst'),
 }])
+const customCss = ref("")
 await itemsStore.loadSchema()
 
 function submitFieldData() {
@@ -126,4 +140,46 @@ function submitMessageLayout(_, form) {
     form.display_sources = elementsShown.value[1] === 't'
     form.sources_first = displayingOrder.value
 }
+
+function getCss(formObj) {
+    let css = ":root {";
+    for (let cssVar in formObj) {
+        let value = formObj[cssVar];
+        if (typeof value === 'object') {
+            css += `--${cssVar}-light: ${value.light};`;
+            css += `--${cssVar}-dark: ${value.dark};`;
+        } else {
+            css += `--${cssVar}: ${value};`;
+        }
+    }
+    css += "}";
+
+    return css;
+}
+
+function updatePreview() {
+    if(!fieldData.value)
+        return
+    fieldData.value.submit()
+    const p = fieldData.value.props
+    customCss.value = getCss(p.form[p.fieldName])
+
+    const cssElement = document.getElementById("custom-css");
+    if (cssElement)
+        cssElement.remove();
+    const style = document.createElement('style');
+    style.id = "custom-css";
+    style.innerHTML = customCss.value;
+    document.head.appendChild(style);
+}
+
+const title = ref("Hello there 👋")
+const subtitle = ref("How can we help you?")
 </script>
+
+<style >
+.chatfaq-widget {
+    display: block !important;
+    position: relative !important;
+}
+</style>
