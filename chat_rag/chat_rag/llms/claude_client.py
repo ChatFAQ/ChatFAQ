@@ -18,11 +18,11 @@ class ClaudeChatModel(LLM):
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
-    def _format_tools(self, tools: List[Dict], tool_choice: str):
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tool_choice(tool_choice)
+        self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = []
         for tool in tools:
@@ -32,9 +32,13 @@ class ClaudeChatModel(LLM):
             tools_formatted.append(tool_formatted["tools"][0])
 
         if tool_choice:
-            tool_choice = (
-                {"type": "any"} if tool_choice == "required" else {"type": tool_choice}
-            )  # map "required" to "any"
+            # If the tool_choice is a named tool, then apply correct formatting
+            if tool_choice in [tool.model_json_schema()['title'] for tool in tools]:
+                tool_choice = {"type": "tool", "name": tool_choice}
+            else: # if it's required or auto, then apply the correct formatting
+                tool_choice = (
+                    {"type": "any"} if tool_choice == "required" else {"type": tool_choice}
+                )  # map "required" to "any"
 
         return tools_formatted, tool_choice
 
@@ -125,7 +129,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Dict] = None,
+        tools: List[BaseModel] = None,
         tool_choice: str = None,
     ) -> str:
         """
@@ -140,8 +144,10 @@ class ClaudeChatModel(LLM):
             The generated text.
         """
 
+        tool_kwargs = {}
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
         system_prompt = messages.pop(0)["content"]
 
@@ -151,8 +157,7 @@ class ClaudeChatModel(LLM):
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            tools=tools,
-            tool_choice=tool_choice,
+            **tool_kwargs,
         )
 
         content = message.content
@@ -167,7 +172,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Dict] = None,
+        tools: List[BaseModel] = None,
         tool_choice: str = None,
     ) -> str:
         """
@@ -181,8 +186,11 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
+        
+        tool_kwargs = {}
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
         system_prompt = messages.pop(0)["content"]
 
@@ -192,8 +200,7 @@ class ClaudeChatModel(LLM):
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            tools=tools,
-            tool_choice=tool_choice,
+            **tool_kwargs,
         )
 
         content = message.content

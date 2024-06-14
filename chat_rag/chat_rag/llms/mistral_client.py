@@ -38,7 +38,7 @@ class MistralChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tool_choice(tool_choice)
+        self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = []
         for tool in tools:
@@ -46,6 +46,11 @@ class MistralChatModel(LLM):
             tools_formatted.append(tool_formatted["tools"][0])
 
         if tool_choice:
+            if tool_choice not in ["required", "auto"]:
+                raise ValueError(
+                    "Named tool choice is not supported for Mistral, only 'required' or 'auto' is supported."
+                )
+
             tool_choice = (
                 "any" if tool_choice == "required" else tool_choice
             )  # map "required" to "any"
