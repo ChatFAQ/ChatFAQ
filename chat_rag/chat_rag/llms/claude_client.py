@@ -139,7 +139,9 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        tools, tool_choice = self._format_tools(tools, tool_choice)
+
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         system_prompt = messages.pop(0)["content"]
 
@@ -179,7 +181,8 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        tools, tool_choice = self._format_tools(tools, tool_choice)
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         system_prompt = messages.pop(0)["content"]
 

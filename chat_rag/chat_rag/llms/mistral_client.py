@@ -163,7 +163,8 @@ class MistralChatModel(LLM):
             messages=messages,
         )
 
-        tools, tool_choice = self._format_tools(tools, tool_choice)
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         chat_response = self.client.chat(
             model=self.llm_name,
@@ -205,8 +206,9 @@ class MistralChatModel(LLM):
         messages = self.format_prompt(
             messages=messages,
         )
-
-        tools, tool_choice = self._format_tools(tools, tool_choice)
+        
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         chat_response = await self.aclient.chat(
             model=self.llm_name,

@@ -147,7 +147,8 @@ class OpenAIChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
-        tools = self._format_tools(tools, tool_choice)
+        if tools:
+            tools = self._format_tools(tools, tool_choice)
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -187,7 +188,8 @@ class OpenAIChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
-        tools = self._format_tools(tools, tool_choice)
+        if tools:
+            tools = self._format_tools(tools, tool_choice)
 
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
