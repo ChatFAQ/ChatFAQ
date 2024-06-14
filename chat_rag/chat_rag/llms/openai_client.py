@@ -35,13 +35,29 @@ class OpenAIChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tools(tools, tool_choice)
+        self._check_tool_choice(tool_choice)
 
         tools_formatted = []
         for tool in tools:
             _, tool_formatted = handle_response_model(tool, mode=Mode.TOOLS)
             tools_formatted.append(tool_formatted["tools"][0])
         return tools_formatted
+
+    def _extract_tool_info(self, message) -> List[Dict]:
+        """
+        Format the tool information from the anthropic response to a standard format.
+        """
+        tools = []
+        for tool in message.tool_calls:
+            tools.append(
+                {
+                    "id": tool.id,
+                    "name": tool.function.name,
+                    "args": tool.function.arguments,
+                }
+            )
+
+        return tools
 
     def stream(
         self,
@@ -144,10 +160,12 @@ class OpenAIChatModel(LLM):
             tool_choice=tool_choice,
             stream=False,
         )
-        if tool_choice:
-            return response.choices[0].message.tool_calls
 
-        return response.choices[0].message.content
+        message = response.choices[0].message
+        if response.choices[0].finish_reason == "tool_calls":
+            return self._extract_tool_info(message)
+
+        return message.content
 
     async def agenerate(
         self,
@@ -183,7 +201,8 @@ class OpenAIChatModel(LLM):
             stream=False,
         )
 
-        if tool_choice:
-            return response.choices[0].message.tool_calls
+        message = response.choices[0].message
+        if response.choices[0].finish_reason == "tool_calls":
+            return self._extract_tool_info(message)
 
-        return response.choices[0].message.content
+        return message.content

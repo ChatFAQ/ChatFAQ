@@ -18,10 +18,12 @@ class ClaudeChatModel(LLM):
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str):
+    def _format_tools(self, tools: List[Dict], tool_choice: str):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
+        self._check_tool_choice(tool_choice)
+
         tools_formatted = []
         for tool in tools:
             _, tool_formatted = handle_response_model(
@@ -35,6 +37,21 @@ class ClaudeChatModel(LLM):
             )  # map "required" to "any"
 
         return tools_formatted, tool_choice
+
+    def _extract_tool_info(self, content: List) -> List[Dict]:
+        """
+        Format the tool information from the anthropic response to a standard format.
+        Claude only calls one tool at a time but we return a list for consistency.
+        """
+        tool = {}
+        for block in content:
+            if block.type == "tool_use":
+                tool["id"] = block.id
+                tool["name"] = block.name
+                tool["args"] = block.input
+            elif block.type == "text":
+                tool["text"] = block.text
+        return [tool]
 
     def stream(
         self,
@@ -108,7 +125,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Dict] = None,
         tool_choice: str = None,
     ) -> str:
         """
@@ -136,9 +153,11 @@ class ClaudeChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        if tools:
-            return message.content[0]
-        return message.content[0].text
+        content = message.content
+        if any([x.type == "tool_use" for x in content]):
+            return self._extract_tool_info(content)
+
+        return content[0].text
 
     async def agenerate(
         self,
@@ -146,7 +165,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Dict] = None,
         tool_choice: str = None,
     ) -> str:
         """
@@ -174,6 +193,7 @@ class ClaudeChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        if tools:
-            return message.content[0]
+        content = message.content
+        if any([x.type == "tool_use" for x in content]):
+            return self._extract_tool_info(content)
         return message.content[0].text

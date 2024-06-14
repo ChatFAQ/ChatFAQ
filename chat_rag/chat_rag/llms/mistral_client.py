@@ -1,9 +1,11 @@
 import os
 from typing import Dict, List
 
+from instructor import Mode, handle_response_model
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
+from pydantic import BaseModel
 
 from chat_rag.llms import LLM
 
@@ -31,6 +33,40 @@ class MistralChatModel(LLM):
         ]
 
         return final_messages
+
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
+        """
+        Format the tools from a generic BaseModel to the OpenAI format.
+        """
+        self._check_tool_choice(tool_choice)
+
+        tools_formatted = []
+        for tool in tools:
+            _, tool_formatted = handle_response_model(tool, mode=Mode.MISTRAL_TOOLS)
+            tools_formatted.append(tool_formatted["tools"][0])
+
+        if tool_choice:
+            tool_choice = (
+                "any" if tool_choice == "required" else tool_choice
+            )  # map "required" to "any"
+
+        return tools_formatted, tool_choice
+
+    def _extract_tool_info(self, message) -> List[Dict]:
+        """
+        Format the tool information from the anthropic response to a standard format.
+        """
+        tools = []
+        for tool in message.tool_calls:
+            tools.append(
+                {
+                    "id": tool.id,
+                    "name": tool.function.name,
+                    "args": tool.function.arguments,
+                }
+            )
+
+        return tools
 
     def stream(
         self,
@@ -108,6 +144,8 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Dict] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using a model.
@@ -124,6 +162,8 @@ class MistralChatModel(LLM):
         messages = self.format_prompt(
             messages=messages,
         )
+
+        tools, tool_choice = self._format_tools(tools, tool_choice)
 
         chat_response = self.client.chat(
             model=self.llm_name,
@@ -131,9 +171,15 @@ class MistralChatModel(LLM):
             temperature=temperature,
             max_tokens=max_tokens,
             random_seed=seed,
+            tools=tools,
+            tool_choice=tool_choice,
         )
 
-        return chat_response.choices[0].message.content
+        message = chat_response.choices[0].message
+        if chat_response.choices[0].finish_reason == "tool_calls":
+            return self._extract_tool_info(message)
+
+        return message.content
 
     async def agenerate(
         self,
@@ -141,6 +187,8 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Dict] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using a model.
@@ -158,12 +206,20 @@ class MistralChatModel(LLM):
             messages=messages,
         )
 
+        tools, tool_choice = self._format_tools(tools, tool_choice)
+
         chat_response = await self.aclient.chat(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
             random_seed=seed,
+            tools=tools,
+            tool_choice=tool_choice,
         )
 
-        return chat_response.choices[0].message.content
+        message = chat_response.choices[0].message
+        if chat_response.choices[0].finish_reason == "tool_calls":
+            return self._extract_tool_info(message)
+
+        return message.content
