@@ -6,6 +6,10 @@ from django.contrib.auth import authenticate
 from knox.auth import TokenAuthentication
 from rest_framework import exceptions
 
+from rest_framework.permissions import BasePermission
+
+from back.apps.widget.models import Widget
+
 logger = getLogger(__name__)
 
 
@@ -68,3 +72,19 @@ class PassAuthMiddleWare:
         user = await return_user_from_passw(email, passw)
         scope["user"] = user
         return await self.app(scope, receive, send)
+
+
+class IsAuthenticatedOrWidgetOriginHostPermission(BasePermission):
+    def has_permission(self, request, view):
+        if request.user and request.user.is_authenticated:
+            return True
+
+        origin = request.META.get('HTTP_REFERER')
+        widget_id = request.META.get('HTTP_WIDGET_ID')
+        try:
+            widget = Widget.objects.get(id=widget_id)
+        except Widget.DoesNotExist:
+            return False
+        if widget.domain == origin:
+            return True
+        return False

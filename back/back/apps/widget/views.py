@@ -10,14 +10,15 @@ from django_filters.rest_framework.backends import DjangoFilterBackend
 
 from rest_framework.filters import OrderingFilter, SearchFilter
 
+from back.config.middelware import IsAuthenticatedOrWidgetOriginHostPermission
+
 
 class WidgetAPIViewSet(viewsets.ModelViewSet):
     queryset = Widget.objects.all()
     serializer_class = WidgetSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id"]
-    authentication_classes = []
-    permission_classes = []
+    permission_classes = [IsAuthenticatedOrWidgetOriginHostPermission]
 
 
 class ThemeAPIViewSet(viewsets.ModelViewSet):

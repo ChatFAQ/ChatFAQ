@@ -67,7 +67,9 @@ let data = props
 
 async function init() {
     if (props.widgetConfigId !== undefined) {
-        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`)
+        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, {headers: {
+            'widget-id': props.widgetConfigId
+          }});
         data = await response.json();
         // sneak case data keys to lowerCamelCase:
         data = Object.keys(data).reduce((acc, key) => {
