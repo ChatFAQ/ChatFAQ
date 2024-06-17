@@ -1,9 +1,6 @@
-import os
 import uuid
-from urllib.parse import urljoin
 
 from django.db import models, transaction
-from django.conf import settings
 from pgvector.django import MaxInnerProduct
 
 from simple_history.models import HistoricalRecords
@@ -15,9 +12,27 @@ from back.common.models import ChangesMixin
 from back.apps.language_model.tasks import index_task
 from back.apps.language_model.ray_deployments import launch_rag_deployment
 
+from chat_rag.llms import (
+            LLM,
+            ClaudeChatModel,
+            MistralChatModel,
+            OpenAIChatModel,
+            VLLMModel,
+            
+        )
+
 from logging import getLogger
 
 logger = getLogger(__name__)
+
+
+LLM_CLASSES = {
+            "claude": ClaudeChatModel,
+            "mistral": MistralChatModel,
+            "openai": OpenAIChatModel,
+            "vllm": VLLMModel,
+            "together": OpenAIChatModel,
+        }
 
 
 # First, define the Manager subclass.
@@ -264,6 +279,19 @@ class LLMConfig(ChangesMixin):
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
 
+    def load_llm(self) -> LLM:
+        
+        base_url = self.base_url
+        llm_type = self.get_llm_type()
+
+        # For Together model, set the fixed TOGETHER url
+        if llm_type == LLMChoices.TOGETHER:
+            base_url = "https://api.together.xyz/v1"
+
+        llm = LLM_CLASSES[llm_type](
+            self.llm_name, base_url=base_url, model_max_length=self.model_max_length
+        )
+        return llm
 
 class PromptConfig(ChangesMixin):
     """

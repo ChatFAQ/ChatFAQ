@@ -42,38 +42,18 @@ class RAGDeployment:
     def __init__(
         self,
         retriever_handle: DeploymentHandle,
-        llm_name: str,
-        llm_type: str,
-        base_url: str = None,
-        model_max_length: int = None,
+        llm_config_id: int,
         lang: str = "en",
     ):
+        from back.apps.language_model.models import LLMConfig
         from chat_rag import RAG
-        from chat_rag.llms import (
-            ClaudeChatModel,
-            MistralChatModel,
-            OpenAIChatModel,
-            VLLMModel,
-        )
-
-        LLM_CLASSES = {
-            "claude": ClaudeChatModel,
-            "mistral": MistralChatModel,
-            "openai": OpenAIChatModel,
-            "vllm": VLLMModel,
-            "together": OpenAIChatModel,
-        }
 
         retriever = self.RetrieverHandleClient(retriever_handle)
 
-        # For Together model, we need to set the base_url
-        if llm_type == "together":
-            base_url = "https://api.together.xyz/v1"
+        llm_config = LLMConfig.objects.get(pk=llm_config_id)
+        llm = llm_config.load_llm()
 
-        llm_model = LLM_CLASSES[llm_type](
-            llm_name, base_url=base_url, model_max_length=model_max_length
-        )
-        self.rag = RAG(retriever=retriever, llm=llm_model, lang=lang)
+        self.rag = RAG(retriever=retriever, llm=llm, lang=lang)
         print("RAGDeployment created")
 
     async def gen_response(
@@ -125,11 +105,8 @@ class RAGDeployment:
 def launch_rag(
     rag_deploy_name,
     retriever_handle,
-    llm_name,
-    llm_type,
-    base_url,
+    llm_config_id,
     lang,
-    model_max_length,
     num_replicas=1,
 ):
     """
@@ -139,7 +116,7 @@ def launch_rag(
     print(f"Launching RAG deployment with name: {rag_deploy_name}")
     rag_handle = RAGDeployment.options(
         num_replicas=num_replicas,
-    ).bind(retriever_handle, llm_name, llm_type, base_url, model_max_length, lang)
+    ).bind(retriever_handle, llm_config_id, lang)
 
     print(f"Launched RAG deployment with name: {rag_deploy_name}")
     route_prefix = f"/rag/{rag_deploy_name}"
@@ -208,18 +185,12 @@ def launch_rag_deployment(rag_config_id):
         raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
 
     # LLM Info
-    llm_name = rag_config.llm_config.llm_name
-    llm_type = rag_config.llm_config.get_llm_type().value
-    base_url = rag_config.llm_config.base_url
-    model_max_length = rag_config.llm_config.model_max_length
+    llm_config_id = rag_config.llm_config.pk
 
     launch_rag(
         rag_deploy_name,
         retriever_handle,
-        llm_name,
-        llm_type,
-        base_url,
+        llm_config_id,
         lang,
-        model_max_length,
         num_replicas,
     )

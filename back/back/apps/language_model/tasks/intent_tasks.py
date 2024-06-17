@@ -1,6 +1,7 @@
 import os
 from logging import getLogger
 from urllib.parse import urljoin
+import asyncio
 
 import ray
 from ray.util.placement_group import (
@@ -70,11 +71,15 @@ def generate_titles_task(knowledge_base_pk, n_titles=10):
 
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
-def generate_intents(clusters):
-    from chat_rag.intent_detection import generate_intents
+def generate_intents(clusters_texts, llm_config_id):
+    from chat_rag.intent_detection import agenerate_intents
+    from back.apps.language_model.models import LLMConfig
+
+    llm_config = LLMConfig.objects.get(pk=llm_config_id)
+    llm = llm_config.load_llm()
 
     print("Generating intents...")
-    intents = generate_intents(clusters)
+    intents = asyncio.run(agenerate_intents(clusters_texts, llm))
     return intents
 
 
