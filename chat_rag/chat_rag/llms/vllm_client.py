@@ -37,7 +37,7 @@ class VLLMModel(OpenAIChatModel):
         """
         We load the tokenizer of the model to be able to format the prompt to fit in the context length constraints.
         """
-        hf_token = os.environ["HUGGINGFACE_KEY"]
+        hf_token = os.getenv("HUGGINGFACE_KEY", None)
 
         self.tokenizer = AutoTokenizer.from_pretrained(llm_name, token=hf_token)
 
