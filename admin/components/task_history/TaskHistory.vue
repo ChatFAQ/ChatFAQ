@@ -8,7 +8,7 @@
             'state': {'name': '', 'width': 50},
             'name': {'name': $t('task_name')},
             'creation_time_ms': {'name': $t('date_created'), 'sortable': true, 'sortMethod': sortDates, 'formatter': timeMSFormatter},
-            'duration': {'name': $t('duration'), 'sortable': true, 'sortMethod': sortDuration, 'formatter': durationMSFormatter},
+            'duration': {'name': $t('duration'), 'sortable': false, 'sortMethod': sortDuration, 'formatter': durationMSFormatter},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
         itemIdProp="task_id"
@@ -19,6 +19,9 @@
             [$t('generalinfo')]: [
                 'name',
                 'state',
+                'creation_time_ms',
+                'start_time_ms',
+                'end_time_ms',
                 'error_type',
                 'task_id',
                 'job_id',
@@ -32,13 +35,10 @@
                 'worker_pid',
                 'language',
                 'required_resources',
-                'runtime_env_info',
                 'placement_group_id',
+                'runtime_env_info',
                 'events',
                 'profiling_data',
-                'creation_time_ms',
-                'start_time_ms',
-                'end_time_ms',
             ]
         }"
         :itemId="itemsStore.taskID"
@@ -65,6 +65,53 @@
         </template>
         <template v-slot:write-logs_link="{form}">
             <el-link :href="`/ray/#/jobs/${form.job_id}/tasks/${form.task_id}`" target="_blank">Ray logs</el-link>
+        </template>
+        <template v-slot:write-creation_time_ms="value">
+            <span class="field-name">{{ $t("creation_time_ms") }}</span>{{
+                formatDate(value["value"])
+            }}
+        </template>
+        <template v-slot:write-start_time_ms="value">
+            <span class="field-name">{{ $t("start_time_ms") }}</span>{{ formatDate(value["value"]) }}
+        </template>
+        <template v-slot:write-end_time_ms="value">
+            <span class="field-name">{{ $t("end_time_ms") }}</span>{{ formatDate(value["value"]) }}
+        </template>
+        <template v-slot:write-events="value">
+            <el-collapse accordion @click="(ev) => ev.preventDefault()">
+                <el-collapse-item>
+                    <template #title>
+                        <span class="field-name">{{ $t('events') }}</span>
+                    </template>
+                    <div class="json-field">
+                        {{ JSON.stringify(value["value"], null, 4) }}
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+        </template>
+        <template v-slot:write-profiling_data="value">
+            <el-collapse accordion @click="(ev) => ev.preventDefault()">
+                <el-collapse-item>
+                    <template #title>
+                        <span class="field-name">{{ $t('profiling_data') }}</span>
+                    </template>
+                    <div class="json-field">
+                        {{ JSON.stringify(value["value"], null, 4) }}
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
+        </template>
+        <template v-slot:write-runtime_env_info="value">
+            <el-collapse accordion @click="(ev) => ev.preventDefault()">
+                <el-collapse-item>
+                    <template #title>
+                        <span class="field-name">{{ $t('runtime_env_info') }}</span>
+                    </template>
+                    <div class="json-field">
+                        {{ JSON.stringify(value["value"], null, 4) }}
+                    </div>
+                </el-collapse-item>
+            </el-collapse>
         </template>
 
 
@@ -118,6 +165,7 @@ function sortDates(a, b) {
     const dateB = new Date(b.creation_time_ms)
     return dateA - dateB
 }
+
 function sortDuration(a, b) {
     a = calculateDuration(a)
     b = calculateDuration(b)
@@ -146,9 +194,11 @@ function sortDuration(a, b) {
         return 1
     }
 }
+
 function timeMSFormatter(row, propName) {
     return formatDate(row[propName])
 }
+
 function durationMSFormatter(row, propName) {
     return calculateDuration(row)
 }
@@ -183,11 +233,14 @@ function durationMSFormatter(row, propName) {
     letter-spacing: 0px;
     text-align: left;
     color: $chatfaq-color-greyscale-800;
+
     .status {
         display: inline-block;
     }
+
     > span {
         margin-right: 32px;
+
         > span {
             margin-right: 6px;
         }
@@ -199,7 +252,30 @@ function durationMSFormatter(row, propName) {
     cursor: pointer;
     text-decoration: underline;
 }
+
 .traceback {
     white-space: pre-wrap;
+}
+.json-field {
+    white-space: pre-wrap;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #333;
+    overflow: auto;
+    max-height: 500px;
+}
+.field-name {
+    color: var(--chatfaq-color-primary-500);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    letter-spacing: 0em;
+    text-align: left;
+    margin-right: 8px;
 }
 </style>
