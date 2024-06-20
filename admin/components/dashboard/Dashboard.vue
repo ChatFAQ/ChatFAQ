@@ -95,9 +95,11 @@ async function initData() {
 }
 
 async function initItems() {
+    itemsStore.loading = true;
     rags.value = (await $axios.get(RAGAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
     widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
     sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
+    itemsStore.loading = false;
 }
 
 await initData();
