@@ -47,13 +47,6 @@ class ColBERTDeployment:
             index_path = os.path.join(index_root, 'colbert', 'indexes', index_name)
             print(f'Reading index locally from {index_path}')
 
-        print('#'*50)
-        print(index_path)
-        print('#'*50)
-
-        import time
-        time.sleep(2)
-
         self.retriever = RAGPretrainedModel.from_index(index_path)
 
         # Test query for loading the searcher for the first time
