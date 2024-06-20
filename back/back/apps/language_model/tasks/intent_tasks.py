@@ -124,7 +124,7 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
     return mean_similarity, std_similarity
 
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+@ray.remote(num_cpus=1.0, resources={"tasks": 1.0})
 def clusterize_texts_task(texts, batch_size, lang, device, low_resource):
     from chat_rag.intent_detection import clusterize_text
 
@@ -305,7 +305,7 @@ def generate_suggested_intents_task(knowledge_base_pk, _generate_titles=False):
 
 @ray.remote(num_cpus=0.5, resources={"tasks": 1})
 def generate_intents_task(
-    knowledge_base_pk, batch_size: int = 32, low_resource: bool = False
+    knowledge_base_pk, batch_size: int = 32, low_resource: bool = True
 ):
     """
     Generate existing intents from a knowledge base. Orchestrator task that calls the other tasks.
@@ -353,7 +353,7 @@ def generate_intents_task(
     print("Clusterizing texts...")
     task_name = f"clusterize_texts_{knowledge_base_pk}"
     # We try to place the task on a GPU if available
-    pg = placement_group([{"CPU": 1}, {"GPU": 1}, {"tasks": 1}], strategy="STRICT_PACK", name="clusterize_texts")
+    pg = placement_group([{"CPU": 1.0}, {"GPU": 1.0}, {"tasks": 1.0}], strategy="STRICT_PACK", name="clusterize_texts")
     device = 'cpu'
     try:
         ray.get(pg.ready(), timeout=10)
@@ -392,7 +392,7 @@ def generate_intents_task(
     # generate the intents
     print("Generating intents...")
     task_name = f"generate_intents_{knowledge_base_pk}"
-    intents = ray.get(generate_intents.options(name=task_name).remote(clusters))
+    intents = ray.get(generate_intents.options(name=task_name).remote(clusters, rag_conf.llm_config.pk))
 
     print(f"Number of new intents: {len(intents)} generated")
 

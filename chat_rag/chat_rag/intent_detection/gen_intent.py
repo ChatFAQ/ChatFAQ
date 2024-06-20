@@ -95,5 +95,6 @@ async def agenerate_intents(clusters_texts: List[List[Dict]], llm: LLM) -> List[
     List[str]
         The generated intents.
     """
-    tasks = [agenerate_intent(cluster_texts, llm) for cluster_texts in clusters_texts]
-    return await asyncio.gather(*tasks)
+    tasks = [agenerate_intent(cluster_texts, llm) for cluster_texts in list(clusters_texts.values())]
+    intents =  await asyncio.gather(*tasks)
+    return intents

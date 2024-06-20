@@ -182,7 +182,7 @@ class OpenAIChatModel(LLM):
         messages: List[Dict[str, str]],
         temperature: float = 1.0,
         max_tokens: int = 1024,
-        seed: int = BaseModel,
+        seed: int = None,
         tools: List[BaseModel] = None,
         tool_choice: str = None,
     ) -> str:
@@ -213,7 +213,7 @@ class OpenAIChatModel(LLM):
         )
 
         message = response.choices[0].message
-        if response.choices[0].finish_reason == "tool_calls":
+        if message.tool_calls:
             return self._extract_tool_info(message)
 
         return message.content

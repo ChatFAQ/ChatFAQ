@@ -104,7 +104,7 @@ def clusterize_text(
     batch_size: int = 32,
     lang: str = "en",
     device: str = "cpu",
-    low_resource: bool = False,
+    low_resource: bool = True,
 ):
     """
     Returns the clusters for the queries.
@@ -119,7 +119,7 @@ def clusterize_text(
     device : str, optional
         Device to use for the embedding model, by default "cpu".
     low_resource : bool, optional
-        If True, uses TF-IDF for vectorization, by default False.
+        If True, uses TF-IDF for vectorization, if False, uses embeddings, by default True.
     """
 
     if low_resource:
@@ -135,6 +135,6 @@ def clusterize_text(
 
     X = do_umap(X)
 
-    labels = perform_clustering(texts, X)
+    labels = perform_clustering(X)
 
     return labels

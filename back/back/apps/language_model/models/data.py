@@ -429,7 +429,7 @@ class Intent(ChangesMixin):
         The message associated with this intent.
     """
 
-    intent_name = models.CharField(max_length=255, unique=True)
+    intent_name = models.CharField(max_length=255, unique=False)
     auto_generated = models.BooleanField(default=False, editable=False)
     valid = models.BooleanField(default=False)
     suggested_intent = models.BooleanField(default=False, editable=False)
