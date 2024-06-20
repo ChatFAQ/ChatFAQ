@@ -29,7 +29,7 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import { useHead } from "@unhead/vue";
-import {ref, defineProps, onMounted} from "vue";
+import {ref, defineProps, onMounted, watch} from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
@@ -63,10 +63,25 @@ const props = defineProps([
     "sourcesFirst",
     "lang",
     "previewMode",
+    "customCss",
 ]);
 let data = props
-
+const _customCss = ref(props.customCss)
+watch( () => props.customCss, (newVal, _)=> {
+    _customCss.value = newVal
+    init()
+}, {immediate: true, deep: true})
 async function init() {
+    if(_customCss.value) {
+        const customCss = document.getElementById("custom-css");
+        if (customCss)
+            customCss.remove();
+        const style = document.createElement('style');
+        style.id = "custom-css";
+        style.innerHTML = _customCss.value;
+        document.head.appendChild(style);
+    }
+
     if (props.previewMode)
         return
 
@@ -104,17 +119,17 @@ store.subtitle = data.subtitle;
 
 
 if (data.fullScreen !== undefined)
-    store.fullScreen = data.fullScreen;
+    store.fullScreen = data.fullScreen && data.fullScreen !== "false";
 if (data.maximized !== undefined)
-    store.maximized = data.maximized;
+    store.maximized = data.maximized && data.maximized !== "false";
 if (data.historyOpened !== undefined)
-    store.historyOpened = data.historyOpened;
+    store.historyOpened = data.historyOpened && data.historyOpened !== "false";
 if (data.displayGeneration !== undefined)
-    store.displayGeneration = data.displayGeneration;
+    store.displayGeneration = data.displayGeneration && data.displayGeneration !== "false";
 if (data.displaySources !== undefined)
-    store.displaySources = data.displaySources;
+    store.displaySources = data.displaySources && data.displaySources !== "false";
 if (data.sourcesFirst !== undefined)
-    store.sourcesFirst = data.sourcesFirst;
+    store.sourcesFirst = data.sourcesFirst && data.sourcesFirst !== "false";
 
 if (store.fullScreen) {
     store.opened = true

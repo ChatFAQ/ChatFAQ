@@ -4,7 +4,9 @@
             <Menu />
             <div class="content-wrapper">
                 <slot />
-                <ActiveTasks class="active-tasks"></ActiveTasks>
+                <div class="active-tasks-wrapper">
+                    <ActiveTasks></ActiveTasks>
+                </div>
             </div>
         </div>
     </client-only>
@@ -26,14 +28,19 @@ import ActiveTasks from "~/components/task_history/ActiveTasks.vue";
 
 </script>
 <style lang="scss" scoped>
-.active-tasks {
+.active-tasks-wrapper {
+    display: flex;
     position: fixed;
     bottom: 0;
     right: 0;
     margin-right: 16px;
     margin-bottom: 16px;
-    width: 330px;
     background-color: #f2f0f7;
     border-radius: 4px;
+    .active-tasks {
+        width: 330px;
+        background-color: #f2f0f7;
+        border-radius: 4px;
+    }
 }
 </style>

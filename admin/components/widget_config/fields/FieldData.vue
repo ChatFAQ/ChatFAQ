@@ -31,9 +31,6 @@ import GradientField from "~/components/widget_config/fields/GradientField.vue";
 import FontField from "~/components/widget_config/fields/FontField.vue";
 import {authHeaders} from "~/store/items.js";
 
-defineExpose({
-    submit,
-})
 const {$axios} = useNuxtApp();
 const subFields = ref({})
 
@@ -46,6 +43,11 @@ const props = defineProps({
         type: String,
         mandatory: true
     }
+})
+
+defineExpose({
+    submit,
+    props
 })
 
 const {data} = await useAsyncData(

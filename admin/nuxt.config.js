@@ -41,6 +41,11 @@ export default envManager((env) => {
                 chatfaqWS: (process.env.NUXT_PUBLIC_CHATFAQ_WS || process.env.CHATFAQ_WS) ?? "",
             },
         },
+        vue: {
+            compilerOptions: {
+                isCustomElement: (tag) => ['chatfaq-widget'].includes(tag),
+            },
+        },
         i18n: {
             locales: ['en', 'es', 'fr'],
             defaultLocale: 'en'

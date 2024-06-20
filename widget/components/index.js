@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst, lang, previewMode }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst, lang, previewMode, customCss }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -26,6 +26,7 @@ class ChatfaqWidget {
         props['sourcesFirst'] = sourcesFirst
         props['lang'] = lang
         props['previewMode'] = previewMode
+        props['customCss'] = customCss
 
         if (userId)
             props['userId'] = userId;
@@ -48,21 +49,21 @@ class ChatfaqWidget {
 class ChatfaqWidgetCustomElement extends HTMLElement {
     connectedCallback() {
         if(this.dataset.maximized === "false")
-            delete this.dataset.maximized
+            this.dataset.maximized = false
         if(this.dataset.fullScreen === "false")
-            delete this.dataset.fullScreen
+            this.dataset.fullScreen = false
         if(this.dataset.historyOpened === "false")
-            delete this.dataset.historyOpened
+            this.dataset.historyOpened = false
         if(this.dataset.manageUserId === "false")
-            delete this.dataset.manageUserId
+            this.dataset.manageUserId = false
         if(this.dataset.displayGeneration === "false")
-            delete this.dataset.displayGeneration
+            this.dataset.displayGeneration = false
         if(this.dataset.displaySources === "false")
-            delete this.dataset.displaySources
+            this.dataset.displaySources = false
         if(this.dataset.sourcesFirst === "false")
-            delete this.dataset.sourcesFirst
+            this.dataset.sourcesFirst = false
         if(this.dataset.previewMode === "false")
-            delete this.dataset.previewMode
+            this.dataset.previewMode = false
 
         const app = _buildApp(this.dataset);
         app.mount(this)

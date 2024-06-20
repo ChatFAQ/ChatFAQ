@@ -67,6 +67,16 @@
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('theme')" name="theme">
+            <teleport to=".active-tasks-wrapper">
+                <chatfaq-widget
+                    :key="customCss"
+                    :data-title="title"
+                    :data-subtitle="subtitle"
+                    :data-preview-mode="true"
+                    :data-maximized="false"
+                    :data-custom-css="customCss"
+                ></chatfaq-widget>
+            </teleport>
             <ReadWriteView
                 :readableName="$t('theme')"
                 apiUrl="/back/api/widget/themes/"
@@ -80,7 +90,7 @@
                 @submitFormStart="submitFieldData"
             >
                 <template v-slot:write-data="props">
-                    <FieldData :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
+                    <FieldData @click="updatePreview" :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -93,6 +103,7 @@ import {useItemsStore} from "~/store/items.js";
 import FieldData from "~/components/widget_config/fields/FieldData.vue";
 import ExampleScript from "~/components/widget_config/fields/ExampleScript.vue";
 import {useI18n} from "vue-i18n";
+const conf = useRuntimeConfig()
 
 const { t } = useI18n();
 
@@ -113,6 +124,7 @@ const displayingOrderOptions = ref([{
     value: true,
     label: t('sourcesfirst'),
 }])
+const customCss = ref("")
 await itemsStore.loadSchema()
 
 function submitFieldData() {
@@ -127,4 +139,36 @@ function submitMessageLayout(_, form) {
     form.display_sources = elementsShown.value[1] === 't'
     form.sources_first = displayingOrder.value
 }
+
+function getCss(formObj) {
+    let css = ":root {";
+    for (let cssVar in formObj) {
+        let value = formObj[cssVar];
+        if (typeof value === 'object') {
+            css += `--${cssVar}-light: ${value.light};`;
+            css += `--${cssVar}-dark: ${value.dark};`;
+        } else {
+            css += `--${cssVar}: ${value};`;
+        }
+    }
+    css += "}";
+
+    return css;
+}
+
+function updatePreview() {
+    fieldData.value.submit()
+    const p = fieldData.value.props
+    customCss.value = getCss(p.form[p.fieldName])
+}
+
+const title = ref("Hello there 👋")
+const subtitle = ref("How can we help you?")
 </script>
+
+<style >
+.chatfaq-widget {
+    display: block !important;
+    position: relative !important;
+}
+</style>
