@@ -21,6 +21,8 @@ import { useGlobalStore } from "~/store";
 const store = useGlobalStore()
 
 async function downloadHistory() {
+    if (store.previewMode)
+        return
     let filename = '';
     const ids = store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
     fetch(

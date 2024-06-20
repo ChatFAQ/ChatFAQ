@@ -3,6 +3,7 @@
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :manageUserId="manageUserId" :title="title"
                 :subtitle="subtitle" :historyOpened="historyOpened"  :historyOpenedMobile="historyOpenedMobile"
                 :fullScreen="fullScreen" :displayGeneration="displayGeneration" :displaySources="displaySources" :sourcesFirst="sourcesFirst"
+                :preview-mode="true"
         />
     </client-only>
 </template>

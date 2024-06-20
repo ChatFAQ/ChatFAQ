@@ -114,6 +114,9 @@ function manageEnterInput(ev, cb) {
 };
 
 onMounted(async () => {
+    if (store.previewMode)
+        return
+
     let response = await fetch(store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`)
     response = await response.json();
     if (response.results && response.results.length) {
@@ -124,6 +127,9 @@ onMounted(async () => {
 })
 
 async function sendUserFeedback(value, _collapse) {
+    if (store.previewMode)
+        return
+
     if (collapse.value)
         return
     feedbackValue.value = value

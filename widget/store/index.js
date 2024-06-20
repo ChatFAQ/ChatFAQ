@@ -29,7 +29,8 @@ export const useGlobalStore = defineStore('globalStore', {
             isPhone: false,
             displayGeneration: true,
             displaySources: true,
-            sourcesFirst: false
+            sourcesFirst: false,
+            previewMode: false
         }
     },
     actions: {
@@ -65,6 +66,70 @@ export const useGlobalStore = defineStore('globalStore', {
                 this.messages[index] = message
             else
                 this.messages.push(message)
+        },
+        setPreviewMode() {
+            this.previewMode = true
+            this.disconnected = false
+            this.messages = [{
+                "type": "response",
+                "status": 200,
+                "ctx": {
+                    "conversation_id": "168",
+                    "user_id": "e35b6551-a323-4d89-a88f-777f8b0f3518"
+                },
+                "node_type": "action",
+                "stack_id": "bb1cbe14-fa72-4698-9e57-c5028a806b69",
+                "stack": [{
+                    "payload": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+                    "type": "text",
+                    "meta": {
+                        "allow_feedback": false
+                    }
+                }],
+                "last": true,
+                "sender": {
+                    "type": "bot"
+                },
+                "confidence": 1,
+                "send_time": 1718881248945,
+                "receiver": {
+                    "type": "human",
+                    "id": "e35b6551-a323-4d89-a88f-777f8b0f3518"
+                },
+                "conversation": "168",
+                "id": 5379
+            }, {
+                "sender": {
+                    "type": "human",
+                    "platform": "WS",
+                    "id": "e35b6551-a323-4d89-a88f-777f8b0f3518"
+                },
+                "stack": [{
+                    "type": "text",
+                    "payload": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                }],
+                "stack_id": "0",
+                "last": true
+            }]
+            this.conversations = [
+                {
+                    "id": 1,
+                    "user_id": "e35b6551-a323-4d89-a88f-777f8b0f3518",
+                    "rags": [],
+                    "created_date": "2024-06-20T13:16:55.622441",
+                    "updated_date": "2024-06-20T13:16:55.622549",
+                    "platform_conversation_id": "255022336",
+                    "name": "Lorem ipsum dolor sit amet."
+                },
+                {
+                    "id": 2,
+                    "user_id": "e35b6551-a323-4d89-a88f-777f8b0f3518",
+                    "rags": [],
+                    "created_date": "2024-06-20T13:02:03.136604",
+                    "updated_date": "2024-06-20T13:02:03.136705",
+                    "platform_conversation_id": "725628099",
+                    "name": "Consectetur adipiscing elit."
+                }]
         }
     },
     getters: {

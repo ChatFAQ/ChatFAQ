@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst, lang }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst, lang, previewMode }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -25,6 +25,7 @@ class ChatfaqWidget {
         props['displaySources'] = displaySources
         props['sourcesFirst'] = sourcesFirst
         props['lang'] = lang
+        props['previewMode'] = previewMode
 
         if (userId)
             props['userId'] = userId;
@@ -60,6 +61,8 @@ class ChatfaqWidgetCustomElement extends HTMLElement {
             delete this.dataset.displaySources
         if(this.dataset.sourcesFirst === "false")
             delete this.dataset.sourcesFirst
+        if(this.dataset.previewMode === "false")
+            delete this.dataset.previewMode
 
         const app = _buildApp(this.dataset);
         app.mount(this)

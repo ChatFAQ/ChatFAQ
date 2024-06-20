@@ -62,6 +62,7 @@ const props = defineProps([
     "displaySources",
     "sourcesFirst",
     "lang",
+    "previewMode",
 ]);
 let data = props
 
@@ -83,6 +84,9 @@ async function init() {
     }
 }
 
+if (props.previewMode) {
+    store.setPreviewMode()
+}
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
 store.userId = props.userId;

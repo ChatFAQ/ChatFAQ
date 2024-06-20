@@ -44,6 +44,9 @@ function edit() {
 
 async function submit() {
     editing.value = false
+    if (store.previewMode)
+        return
+
     if (itemTitleEdit.value.value !== originalValue) {
         await store.renameConversationName(props.conversationId, itemTitleEdit.value.value)
     }
@@ -53,6 +56,9 @@ async function submit() {
 let counter = 0;
 let timer = undefined;
 function openConversation(ev) {
+    if (store.previewMode)
+        return
+
     if (ev.target.classList.contains("conversation-loader")) {
         counter++;
         if (counter === 1) {

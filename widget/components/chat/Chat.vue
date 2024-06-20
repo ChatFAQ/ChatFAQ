@@ -101,6 +101,9 @@ function deleteHeartbeat() {
 
 
 function createConnection() {
+    if(store.previewMode)
+        return
+
     if (ws)
         ws.close()
 
@@ -145,7 +148,9 @@ function createConnection() {
     };
 }
 
-store.createNewConversation()
+
+if(!store.previewMode)
+    store.createNewConversation()
 
 function manageEnterInput(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
@@ -179,13 +184,6 @@ function sendMessage() {
     store.scrollToBottom += 1;
 }
 
-function isFirstOfType(msg, flatStack) {
-    if (!flatStack.indexOf(msg))
-        return true
-    if (flatStack[flatStack.indexOf(msg) - 1].sender.type !== msg.sender.type)
-        return true
-    return false
-}
 
 </script>
 <style scoped lang="scss">
