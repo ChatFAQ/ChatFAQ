@@ -80,3 +80,14 @@ body {
         margin-bottom: 13px;
     }
 }
+
+.main-component-page-loader {
+    width: 100%;
+    height: calc(100% + 55px); // 55px (margin-bottom of the parent)
+}
+
+.read-write-loader {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}

@@ -1,6 +1,5 @@
 <template>
-    <div class="write-view-wrapper" v-loading="itemsStore.loading"
-         element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="write-view-wrapper">
         <div v-if="backButton" class="navigation-header">
             <BackButton @click="emit('exit')"/>
         </div>

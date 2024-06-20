@@ -18,7 +18,7 @@
                 <div class="number-of-items">{{progressInfo.progress}}/{{progressInfo.total}} {{ $t("items") }}</div>
             </div>
         </div>
-        <div class="labeling-tool" v-loading="loadingConversation" element-loading-background="rgba(255, 255, 255, 0.8)">
+        <div class="labeling-tool" v-loading="loadingConversation">
             <div class="labeling-tool-panels">
                 <div class="labeling-tool-left-side">
                     <div class="selected-conversation-info">

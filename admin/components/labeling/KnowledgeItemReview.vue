@@ -1,6 +1,5 @@
 <template>
-    <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)"
-         class="labeling-kis-wrapper">
+    <div v-if="reviewedKIs.message_id !== undefined" v-loading="itemsStore.loading" class="labeling-kis-wrapper">
         <div class="rate-all-kis-info">{{$t("pleaserateallthekis")}}</div>
         <div class="ki-title">{{$t("knowledgeitems")}}</div>
         <div class="no-knowledge-items" v-if="!reviewedKIs.kis.length">{{$t("noknowledgeitems")}}</div>

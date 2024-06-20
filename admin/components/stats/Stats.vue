@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-page-title">{{ $t("stats") }}</div>
-    <div class="stats-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="stats-wrapper" v-loading="loading">
         <div class="text-explanation" v-html="$t('statsexplanation')"></div>
         <Filters :filtersSchema="filterSchema" @change="requestStats" ref="filtersEl"/>
         <div class="stats" v-if="stats">

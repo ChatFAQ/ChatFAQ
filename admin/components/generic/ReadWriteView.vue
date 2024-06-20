@@ -1,52 +1,65 @@
 <template>
     <client-only>
-        <div class="rw-wrapper" v-loading="itemsStore.loading"  element-loading-background="rgba(255, 255, 255, 0.8)">
-            <ReadView
-                v-if="editing === undefined && !adding"
-                @editing="(id) => editing = id"
-                @adding="adding = true"
-                :apiUrl="apiUrl"
-                :readableName="readableName"
-                :cardProps="cardProps"
-                :tableProps="tableProps"
-                :titleProps="titleProps"
-                :readOnly="readOnly"
-                :defaultSort="defaultSort"
-                :defaultFilters="defaultFilters"
-                :initialFiltersValues="initialFiltersValues"
-                :filtersSchema="filtersSchema"
-                :requiredFilter="requiredFilter"
-                :textExplanation="textExplanation"
-                ref="readView"
-            >
-                <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                    <slot :name="name" v-bind="data"></slot>
+        <div class="rw-wrapper" v-loading="itemsStore.loading" element-loading-background="rgba(242,240,247,0.8)">
+            <Suspense v-if="editing === undefined && !adding">
+                <template #default>
+                    <ReadView
+                        @editing="(id) => editing = id"
+                        @adding="adding = true"
+                        :apiUrl="apiUrl"
+                        :readableName="readableName"
+                        :cardProps="cardProps"
+                        :tableProps="tableProps"
+                        :titleProps="titleProps"
+                        :readOnly="readOnly"
+                        :defaultSort="defaultSort"
+                        :defaultFilters="defaultFilters"
+                        :initialFiltersValues="initialFiltersValues"
+                        :filtersSchema="filtersSchema"
+                        :requiredFilter="requiredFilter"
+                        :textExplanation="textExplanation"
+                        ref="readView"
+                    >
+                        <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                            <slot :name="name" v-bind="data"></slot>
+                        </template>
+                    </ReadView>
                 </template>
-            </ReadView>
-            <WriteView
-                v-else
-                @exit="toReadView"
-                :readableName="readableName"
-                :apiUrl="apiUrl"
-                :itemId="editing"
-                :titleProps="titleProps"
-                :excludeFields="excludeFields"
-                :conditionalIncludedFields="conditionalIncludedFields"
-                :sections="sections"
-                :outsideSection="outsideSection"
-                v-bind="$attrs"
-                :readOnly="readOnly"
-                :order="order"
-                :backButton="backButton"
-                :commandButtons="commandButtons"
-                :leaveAfterSave="leaveAfterSave"
-                :itemIdProp="itemIdProp"
-                :contentType="contentType"
-            >
-                <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                    <slot :name="name" v-bind="data"></slot>
+                <template #fallback>
+                    <div class="read-write-loader" v-loading="true"/>
                 </template>
-            </WriteView>
+            </Suspense>
+
+            <Suspense v-else>
+                <template #default>
+                <WriteView
+                    @exit="toReadView"
+                    :readableName="readableName"
+                    :apiUrl="apiUrl"
+                    :itemId="editing"
+                    :titleProps="titleProps"
+                    :excludeFields="excludeFields"
+                    :conditionalIncludedFields="conditionalIncludedFields"
+                    :sections="sections"
+                    :outsideSection="outsideSection"
+                    v-bind="$attrs"
+                    :readOnly="readOnly"
+                    :order="order"
+                    :backButton="backButton"
+                    :commandButtons="commandButtons"
+                    :leaveAfterSave="leaveAfterSave"
+                    :itemIdProp="itemIdProp"
+                    :contentType="contentType"
+                >
+                    <template v-for="(_, name) in $slots" v-slot:[name]="data">
+                        <slot :name="name" v-bind="data"></slot>
+                    </template>
+                </WriteView>
+                </template>
+                <template #fallback>
+                    <div class="read-write-loader" v-loading="true"/>
+                </template>
+            </Suspense>
         </div>
     </client-only>
 </template>

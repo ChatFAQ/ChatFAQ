@@ -1,5 +1,5 @@
 <template>
-    <div class="read-view-wrapper" v-loading="loading" element-loading-background="rgba(255, 255, 255, 0.8)">
+    <div class="read-view-wrapper" v-loading="loading">
         <div v-if="textExplanation" class="text-explanation" v-html="textExplanation"></div>
         <Filters @change="loadItems" v-if="filtersSchema" :initialFiltersValues="initialFiltersValues" :filtersSchema="filtersSchema" :key="readableName" ref="filtersEl"/>
         <div class="section-header">

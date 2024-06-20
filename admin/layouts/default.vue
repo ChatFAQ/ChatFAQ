@@ -37,6 +37,7 @@ import ActiveTasks from "~/components/task_history/ActiveTasks.vue";
     margin-bottom: 16px;
     background-color: #f2f0f7;
     border-radius: 4px;
+    z-index: 2000;
     .active-tasks {
         width: 330px;
         background-color: #f2f0f7;
