@@ -110,6 +110,7 @@
             </div>
         </div>
     </div>
+    <slot name="bottom-write"></slot>
     <el-dialog v-model="deleteDialogVisible" :title="$t('warning')" width="500" center>
         <span>
             {{ $t('deleteitemwarning') }}

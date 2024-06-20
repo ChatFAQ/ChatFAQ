@@ -67,16 +67,6 @@
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('theme')" name="theme">
-            <teleport to=".active-tasks-wrapper">
-                <chatfaq-widget
-                    :key="customCss"
-                    :data-title="title"
-                    :data-subtitle="subtitle"
-                    :data-preview-mode="true"
-                    :data-maximized="false"
-                    :data-custom-css="customCss"
-                ></chatfaq-widget>
-            </teleport>
             <ReadWriteView
                 :readableName="$t('theme')"
                 apiUrl="/back/api/widget/themes/"
@@ -91,6 +81,19 @@
             >
                 <template v-slot:write-data="props">
                     <FieldData @click="updatePreview" :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
+                </template>
+
+                <template v-slot:bottom-write>
+                    <teleport to=".active-tasks-wrapper">
+                        <chatfaq-widget
+                            :key="customCss"
+                            :data-title="title"
+                            :data-subtitle="subtitle"
+                            :data-preview-mode="true"
+                            :data-maximized="false"
+                            :data-custom-css="customCss"
+                        ></chatfaq-widget>
+                    </teleport>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
