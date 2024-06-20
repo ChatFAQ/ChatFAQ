@@ -67,6 +67,9 @@ const props = defineProps([
 let data = props
 
 async function init() {
+    if (props.previewMode)
+        return
+
     if (props.widgetConfigId !== undefined) {
         const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, {headers: {
             'widget-id': props.widgetConfigId
