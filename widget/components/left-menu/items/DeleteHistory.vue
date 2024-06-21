@@ -64,7 +64,7 @@ async function deleteConversations() {
     display: flex;
     flex-direction: row-reverse;
     .check-icon {
-        color: $chatfaq-check-icon-color;
+        color: $chatfaq-menu-check-icon-color;
     }
     .close-icon {
         color: $chatfaq-close-icon-color;

@@ -1,48 +1,17 @@
 <template>
-    <svg v-if="_modelValue" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="checkbox" @click="change">
-        <g clip-path="url(#clip0_174_112)">
-            <rect x="1" y="1" width="14" height="14" rx="4" fill="#DFDAEA" fill-opacity="0.1"/>
-            <path d="M4.5 8L6.97487 10.4749L11.9246 5.52512" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </g>
-        <rect x="1.5" y="1.5" width="13" height="13" rx="3.5" stroke="currentColor"/>
-        <defs>
-            <clipPath id="clip0_174_112">
-                <rect x="1" y="1" width="14" height="14" rx="4" fill="currentColor"/>
-            </clipPath>
-        </defs>
-    </svg>
-
+    <CheckboxChecked v-if="_modelValue" @click="change" class="checkbox" />
     <div v-else class="unchecked">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="checkbox non-ghost" @click="change">
-            <g clip-path="url(#clip0_174_110)">
-            </g>
-            <rect x="1.5" y="1.5" width="13" height="13" rx="3.5" stroke="currentColor"/>
-            <defs>
-                <clipPath id="clip0_174_110">
-                    <rect x="1" y="1" width="14" height="14" rx="4" fill="currentColor"/>
-                </clipPath>
-            </defs>
-        </svg>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="checkbox ghost" @click="change">
-            <g clip-path="url(#clip0_174_112)">
-                <rect x="1" y="1" width="14" height="14" rx="4" fill="#DFDAEA" fill-opacity="0.1"/>
-                <path d="M4.5 8L6.97487 10.4749L11.9246 5.52512" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                      stroke-linejoin="round" class="ghosted"/>
-            </g>
-            <rect x="1.5" y="1.5" width="13" height="13" rx="3.5" stroke="currentColor"/>
-            <defs>
-                <clipPath id="clip0_174_112">
-                    <rect x="1" y="1" width="14" height="14" rx="4" fill="currentColor"/>
-                </clipPath>
-            </defs>
-        </svg>
+        <Checkbox @click="change" class="checkbox non-ghost"/>
+        <CheckboxHover  class="checkbox ghost" @click="change"/>
     </div>
 </template>
 
 
 <script setup>
 import {ref, watch, defineEmits} from "vue";
+import Checkbox from "~/components/icons/Checkbox.vue";
+import CheckboxChecked from "~/components/icons/CheckboxChecked.vue";
+import CheckboxHover from "~/components/icons/CheckboxHover.vue";
 
 const props = defineProps(["modelValue", "dark", "notReactive"]);
 const emit = defineEmits(['update:modelValue'])
@@ -64,8 +33,9 @@ function change() {
 
 .checkbox {
     min-width: 16px;
+    color: $chatfaq-check-icon-color-light;
     &.dark {
-        fill: $chatfaq-color-chatMessageReference-text-light;
+        color: $chatfaq-check-icon-color-dark;
     }
 }
 .unchecked {
@@ -76,9 +46,6 @@ function change() {
     &:hover {
         .ghost {
             display: block;
-            .ghosted {
-                opacity: 0.5;
-            }
         }
         .non-ghost {
             display: none;

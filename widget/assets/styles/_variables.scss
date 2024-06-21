@@ -83,7 +83,9 @@
     --chatfaq-double-arrow-left-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-arrow-down-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-trash-icon-color: var(--chatfaq-color-neutral-white);
-    --chatfaq-check-icon-color: var(--chatfaq-color-neutral-white);
+    --chatfaq-menu-check-icon-color: var(--chatfaq-color-neutral-white);
+    --chatfaq-check-icon-color-light: var(--chatfaq-color-neutral-white);
+    --chatfaq-check-icon-color-dark: var(--chatfaq-color-neutral-white);
     --chatfaq-close-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-download-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-edit-icon-color: var(--chatfaq-color-neutral-white);
@@ -242,7 +244,9 @@ $phone-breakpoint: var(--phone-breakpoint);
 
 $chatfaq-arrow-down-icon-color: var(--chatfaq-arrow-down-icon-color);
 $chatfaq-burger-menu-icon-color: var(--chatfaq-burger-menu-icon-color);
-$chatfaq-check-icon-color: var(--chatfaq-check-icon-color);
+$chatfaq-menu-check-icon-color: var(--chatfaq-menu-check-icon-color);
+$chatfaq-check-icon-color-light: var(--chatfaq-check-icon-color-light);
+$chatfaq-check-icon-color-dark: var(--chatfaq-check-icon-color-dark);
 $chatfaq-checkbox-checked-icon-color: var(--chatfaq-checkbox-checked-icon-color);
 $chatfaq-checkbox-icon-color: var(--chatfaq-checkbox-icon-color);
 $chatfaq-close-icon-color: var(--chatfaq-close-icon-color);

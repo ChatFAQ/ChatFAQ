@@ -119,7 +119,7 @@ function timestampToSentence(isoString) {
 
         .check-icon {
             margin-right: 4px;
-            color: $chatfaq-check-icon-color;
+            color: $chatfaq-menu-check-icon-color;
         }
         .close-icon {
             color: $chatfaq-close-icon-color;
