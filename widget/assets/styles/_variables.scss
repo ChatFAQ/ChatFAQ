@@ -63,12 +63,6 @@
     // Button
     --chatfaq-font-button: normal normal 600 14px/17px 'Montserrat';
 
-
-     /* Icons */
-    --chatfaq-send-icon: url('~/assets/icons/send.svg');
-    --chatfaq-send-dark-icon: url('~/assets/icons/send-dark.svg');
-
-
     --chatfaq-maximize-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-minimize-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-dot-menu-icon-color: var(--chatfaq-color-neutral-white);
@@ -245,9 +239,6 @@ $chatfaq-font-caption-md: var(--chatfaq-font-caption-md);
 $chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
 $chatfaq-size-bubbleButton: var(--chatfaq-size-bubbleButton);
 $phone-breakpoint: var(--phone-breakpoint);
-
-$chatfaq-send-dark-icon: var(--chatfaq-send-dark-icon);
-$chatfaq-send-icon: var(--chatfaq-send-icon);
 
 $chatfaq-arrow-down-icon-color: var(--chatfaq-arrow-down-icon-color);
 $chatfaq-burger-menu-icon-color: var(--chatfaq-burger-menu-icon-color);
