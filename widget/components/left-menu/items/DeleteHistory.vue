@@ -3,8 +3,8 @@
         <i class="trash-icon"/>
         <span>{{ $t("confirm") }}</span>
         <div class="confirm-controls">
-            <i class="close-icon" @click="() => {store.deleting = false}"/>
-            <i class="check-icon" @click="deleteConversations"/>
+            <Close class="close-icon" @click="() => {store.deleting = false}"/>
+            <Check class="check-icon" @click="deleteConversations"/>
         </div>
     </MenuItem>
     <MenuItem v-else @click="store.deleting = true; store.downloading = false;">
@@ -15,6 +15,8 @@
 </template>
 
 <script setup>
+import Check from "~/components/icons/Check.vue";
+import Close from "~/components/icons/Close.vue";
 import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
@@ -56,16 +58,16 @@ async function deleteConversations() {
 .trash-icon {
     content: $chatfaq-trash-icon;
 }
-.check-icon {
-    content: $chatfaq-check-icon;
-}
-.close-icon {
-    content: $chatfaq-close-icon;
-}
 .confirm-controls {
     width: 100%;
     display: flex;
     flex-direction: row-reverse;
+    .check-icon {
+        color: $chatfaq-check-icon-color;
+    }
+    .close-icon {
+        color: $chatfaq-close-icon-color;
+    }
 }
 </style>
 

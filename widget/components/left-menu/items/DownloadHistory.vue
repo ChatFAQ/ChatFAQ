@@ -3,8 +3,8 @@
         <i class="download-icon"/>
         <span>{{ $t("confirm") }}</span>
         <div class="confirm-controls">
-            <i class="close-icon" @click="() => {store.downloading = false}"/>
-            <i class="check-icon" @click="downloadHistory"/>
+            <Close class="close-icon" @click="() => {store.downloading = false}"/>
+            <Check class="check-icon" @click="downloadHistory"/>
         </div>
     </MenuItem>
     <MenuItem v-else @click="store.downloading = true; store.deleting = false;">
@@ -15,6 +15,9 @@
 </template>
 
 <script setup>
+
+import Check from "~/components/icons/Check.vue";
+import Close from "~/components/icons/Close.vue";
 
 import { useGlobalStore } from "~/store";
 
@@ -56,16 +59,17 @@ import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 .download-icon {
     content: $chatfaq-download-icon;
 }
-.close-icon {
-    content: $chatfaq-close-icon;
-}
-.check-icon {
-    content: $chatfaq-check-icon;
-}
+
 .confirm-controls {
     width: 100%;
     display: flex;
     flex-direction: row-reverse;
+    .check-icon {
+        color: $chatfaq-check-icon-color;
+    }
+    .close-icon {
+        color: $chatfaq-close-icon-color;
+    }
 }
 </style>
 

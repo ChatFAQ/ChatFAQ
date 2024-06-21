@@ -13,8 +13,8 @@
             <i class="edit" @click="edit"/>
         </div>
         <div class="edit-controls" v-else>
-            <i v-if="editing" class="check-icon" @click="submit"/>
-            <i v-if="editing" class="close-icon" @click="editing = false"/>
+            <Check v-if="editing" class="check-icon" @click="submit"/>
+            <Close v-if="editing" class="close-icon" @click="editing = false"/>
         </div>
     </MenuItem>
 </template>
@@ -24,6 +24,8 @@ import { ref, watch } from 'vue';
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 import { useGlobalStore } from "~/store";
 import Checkbox from "~/components/generic/Checkbox.vue";
+import Check from "~/components/icons/Check.vue";
+import Close from "~/components/icons/Close.vue";
 
 const store = useGlobalStore();
 
@@ -112,12 +114,11 @@ function timestampToSentence(isoString) {
         margin-left: auto;
 
         .check-icon {
-            content: $chatfaq-check-icon;
             margin-right: 4px;
+            color: $chatfaq-check-icon-color;
         }
-
         .close-icon {
-            content: $chatfaq-close-icon;
+            color: $chatfaq-close-icon-color;
         }
     }
 
