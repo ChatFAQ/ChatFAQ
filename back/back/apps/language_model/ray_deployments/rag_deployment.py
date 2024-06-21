@@ -1,5 +1,6 @@
 import json
-
+from asgiref.sync import sync_to_async
+from typing import List, Dict
 import ray
 from ray import serve
 from ray.serve.handle import DeploymentHandle
@@ -9,9 +10,11 @@ from back.apps.language_model.models.enums import (
     DeviceChoices,
     RetrieverTypeChoices,
 )
+
 from .e5_deployment import launch_e5
 from .colbert_deployment import launch_colbert
 from logging import getLogger
+from chat_rag import RAG
 
 logger = getLogger(__name__)
 
@@ -33,11 +36,11 @@ class RAGDeployment:
             self.handle = handle
             print("RetrieverHandleClient created")
 
-        async def retrieve(self, message: str, top_k: int):
+        async def retrieve(self, message: List[str], top_k: int) -> List[List[Dict]]:
             print(f"Retrieving for message: {message}")
-            result = await self.handle.remote(message, top_k)
+            result = await self.handle.remote(message[0], top_k)
             print(f"Results retrieved: {result}")
-            return result
+            return [result]
 
     def __init__(
         self,
@@ -45,16 +48,27 @@ class RAGDeployment:
         llm_config_id: int,
         lang: str = "en",
     ):
-        from back.apps.language_model.models import LLMConfig
-        from chat_rag import RAG
+        self.retriever_handle = retriever_handle
+        self.llm_config_id = llm_config_id
+        self.lang = lang
+        self.rag = None
 
-        retriever = self.RetrieverHandleClient(retriever_handle)
+    async def initialize_rag(self):
+        """
+        Lazy initialization of the RAG object, we cannot initialize it in the constructor because accessing the database is an async operation and the constructor is synchronous.
+        """
+        if self.rag is None:
+            from back.apps.language_model.models import LLMConfig
 
-        llm_config = LLMConfig.objects.get(pk=llm_config_id)
-        llm = llm_config.load_llm()
+            retriever = self.RetrieverHandleClient(self.retriever_handle)
 
-        self.rag = RAG(retriever=retriever, llm=llm, lang=lang)
-        print("RAGDeployment created")
+            llm_config = await sync_to_async(LLMConfig.objects.get)(
+                pk=self.llm_config_id
+            )
+            llm = llm_config.load_llm()
+
+            self.rag = RAG(retriever=retriever, llm=llm, lang=self.lang)
+            print("Rag Orchestrator initialized.")
 
     async def gen_response(
         self,
@@ -67,12 +81,12 @@ class RAGDeployment:
         only_context=False,
     ):
         print(f"Generating response for messages: {messages}")
+        await self.initialize_rag()  # Ensure RAG is initialized
+
         context_sent = False
-        # async for response_dict in self.rag.stream(messages, prev_contents, prompt_structure_dict, generation_config_dict, only_context=only_context):
         async for response_dict in self.rag.astream(
             messages, prev_contents, temperature, max_tokens, seed, n_contexts_to_use
         ):
-            # Send the context only once
             if not context_sent:
                 yield_dict = response_dict
                 context_sent = True
@@ -81,7 +95,7 @@ class RAGDeployment:
             response_str = json.dumps(yield_dict)
             yield response_str
 
-    def __call__(
+    async def __call__(
         self,
         messages,
         prev_contents,
@@ -89,9 +103,9 @@ class RAGDeployment:
         max_tokens,
         seed,
         n_contexts_to_use,
-        only_context,
+        only_context=False,
     ):
-        return self.gen_response(
+        async for response in self.gen_response(
             messages,
             prev_contents,
             temperature,
@@ -99,7 +113,8 @@ class RAGDeployment:
             seed,
             n_contexts_to_use,
             only_context,
-        )
+        ):
+            yield response
 
 
 def launch_rag(
@@ -166,7 +181,6 @@ def launch_rag_deployment(rag_config_id):
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f"retriever_{rag_config.retriever_config.name}"
-
 
     if retriever_type == RetrieverTypeChoices.E5:
         model_name = rag_config.retriever_config.model_name

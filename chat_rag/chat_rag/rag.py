@@ -110,7 +110,9 @@ class RAG:
             List of all conversation contexts and list of the retrieved contexts for the current user message.
         """
         logger.info("Retrieving new contexts")
-        contexts = await self.retriever.retrieve([message], top_k=n_contexts_to_use)[0]
+        contexts = await self.retriever.retrieve([message], top_k=n_contexts_to_use)
+
+        contexts = contexts[0]
 
         return self._get_unique_contexts(prev_contents, n_contexts_to_use, contexts)
 
@@ -139,11 +141,12 @@ class RAG:
                 if ndx < len(contexts) - 1:  # no newline on last context
                     system_prompt += "\n"
 
-            return system_prompt
         else:
             system_prompt + f"\n{CONTEXT_PREFIX[lang]}\n{NO_CONTEXT_SUFFIX[lang]}"
 
         messages = [{"role": "system", "content": system_prompt}] + messages
+
+        return messages
 
     def stream(
         self,
