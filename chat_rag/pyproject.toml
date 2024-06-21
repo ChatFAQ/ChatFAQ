@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "chat-rag"
-version = "0.1.74"
+version = "0.1.76"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
 packages = [{ include = "chat_rag" }]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
+python = ">=3.10,<3.12"
 python-dotenv = "^0.21.0"
 numpy = "1.26.0"
 pandas = "2.2.2"

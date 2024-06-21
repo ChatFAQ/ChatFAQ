@@ -1,9 +1,9 @@
-FROM python:3.10.13-slim
+FROM python:3.11.9-slim
 
 ARG MODEL_W_PIP_EXTRA=""
 
 RUN python -m venv /opt/model-w  \
-    && /opt/model-w/bin/python -m pip install --no-cache-dir $MODEL_W_PIP_EXTRA 'modelw-docker==2023.4.0b4' \
+    && /opt/model-w/bin/python -m pip install --no-cache-dir $MODEL_W_PIP_EXTRA 'modelw-docker==2024.4.0' \
     && ln -s /opt/model-w/bin/modelw-docker /usr/local/bin/modelw-docker
 
 RUN mkdir /code \
@@ -106,7 +106,7 @@ RUN modelw-docker build
 ARG INSTALL_CHAT_RAG
 ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 
-RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.73; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.76; fi
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
 
 ENV RAY_task_events_max_num_task_in_gcs=100
