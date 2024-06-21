@@ -13,7 +13,6 @@ from back.apps.language_model.models.enums import (
 from .e5_deployment import launch_e5
 from .colbert_deployment import launch_colbert
 from logging import getLogger
-from chat_rag import RAG
 
 logger = getLogger(__name__)
 
@@ -57,6 +56,7 @@ class RAGDeployment:
         Lazy initialization of the RAG object, we cannot initialize it in the constructor because accessing the database is an async operation and the constructor is synchronous.
         """
         if self.rag is None:
+            from chat_rag import RAG
             from back.apps.language_model.models import LLMConfig
 
             retriever = self.RetrieverHandleClient(self.retriever_handle)

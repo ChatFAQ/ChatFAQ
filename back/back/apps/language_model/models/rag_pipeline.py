@@ -17,26 +17,9 @@ from back.common.models import ChangesMixin
 from back.apps.language_model.tasks import index_task
 from back.apps.language_model.ray_deployments import launch_rag_deployment, delete_rag_deployment
 
-from chat_rag.llms import (
-    LLM,
-    ClaudeChatModel,
-    MistralChatModel,
-    OpenAIChatModel,
-    VLLMModel,
-)
-
 from logging import getLogger
 
 logger = getLogger(__name__)
-
-
-LLM_CLASSES = {
-    "claude": ClaudeChatModel,
-    "mistral": MistralChatModel,
-    "openai": OpenAIChatModel,
-    "vllm": VLLMModel,
-    "together": OpenAIChatModel,
-}
 
 
 # First, define the Manager subclass.
@@ -351,7 +334,22 @@ class LLMConfig(ChangesMixin):
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
 
-    def load_llm(self) -> LLM:
+    def load_llm(self):
+        from chat_rag.llms import (
+            ClaudeChatModel,
+            MistralChatModel,
+            OpenAIChatModel,
+            VLLMModel,
+        )
+
+        LLM_CLASSES = {
+            "claude": ClaudeChatModel,
+            "mistral": MistralChatModel,
+            "openai": OpenAIChatModel,
+            "vllm": VLLMModel,
+            "together": OpenAIChatModel,
+        }
+
         base_url = self.base_url
         llm_type = self.get_llm_type()
 
