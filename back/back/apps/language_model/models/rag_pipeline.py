@@ -1,5 +1,4 @@
 import uuid
-from asgiref.sync import sync_to_async
 
 from django.db import models, transaction
 from pgvector.django import MaxInnerProduct
@@ -16,7 +15,7 @@ from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
 from back.common.models import ChangesMixin
 
 from back.apps.language_model.tasks import index_task
-from back.apps.language_model.ray_deployments import launch_rag_deployment
+from back.apps.language_model.ray_deployments import launch_rag_deployment, delete_rag_deployment
 
 from chat_rag.llms import (
     LLM,
@@ -93,6 +92,7 @@ class RAGConfig(ChangesMixin):
     # When saving we want to check if the llm_config has changed and in that reload the RAG
     def save(self, *args, **kwargs):
         redeploy_rag = False
+        shutdown_rag = False
 
         if self.pk is not None:
             old = RAGConfig.objects.get(pk=self.pk)
@@ -123,6 +123,13 @@ class RAGConfig(ChangesMixin):
                 logger.info(
                     f"RAG config {self.name} changed retriever model. Index needs to be updated..."
                 )
+            # if we disabled it then we delete the rag deployment
+            if old.enabled and not self.enabled:
+                shutdown_rag = True
+                logger.info(
+                    f"RAG config {self.name} changed to disabled. Shutting down the RAG deployment..."
+                )
+
 
         super().save(*args, **kwargs)
 
@@ -134,6 +141,15 @@ class RAGConfig(ChangesMixin):
                 launch_rag_deployment.options(name=task_name).remote(self.id)
 
             # Schedule the task to run after the transaction is committed
+            transaction.on_commit(on_commit_callback)
+
+        if shutdown_rag and not self.enabled:
+
+            def on_commit_callback():
+                task_name = f"delete_rag_deployment_{self.name}"
+                print(f"Submitting the {task_name} task to the Ray cluster...")
+                delete_rag_deployment.options(name=task_name).remote(self.get_deploy_name())
+
             transaction.on_commit(on_commit_callback)
 
     def trigger_reindex(self):
