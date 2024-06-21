@@ -86,12 +86,10 @@
                 <template v-slot:bottom-write>
                     <teleport to=".active-tasks-wrapper">
                         <chatfaq-widget
-                            :key="customCss"
                             :data-title="title"
                             :data-subtitle="subtitle"
                             :data-preview-mode="true"
                             :data-maximized="false"
-                            :data-custom-css="customCss"
                         ></chatfaq-widget>
                     </teleport>
                 </template>
@@ -165,6 +163,14 @@ function updatePreview() {
     fieldData.value.submit()
     const p = fieldData.value.props
     customCss.value = getCss(p.form[p.fieldName])
+
+    const cssElement = document.getElementById("custom-css");
+    if (cssElement)
+        cssElement.remove();
+    const style = document.createElement('style');
+    style.id = "custom-css";
+    style.innerHTML = customCss.value;
+    document.head.appendChild(style);
 }
 
 const title = ref("Hello there 👋")
