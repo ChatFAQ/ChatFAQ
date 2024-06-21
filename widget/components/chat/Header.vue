@@ -12,7 +12,7 @@
             <Maximize class="min-icon" v-else/>
         </div>
         <div class="minimizer" v-if="!store.fullScreen" @click="store.opened = false">
-            <i/>
+            <ArrowDown class="min-icon"/>
         </div>
     </div>
 </template>
@@ -21,6 +21,7 @@
 import {useGlobalStore} from "~/store";
 import Maximize from "~/components/icons/Maximize.vue";
 import Minimize from "~/components/icons/Minimize.vue";
+import ArrowDown from "~/components/icons/ArrowDown.vue";
 
 const store = useGlobalStore();
 </script>
@@ -82,11 +83,12 @@ $phone-breakpoint: 600px;
         }
         &.minimizer {
             display: none;
-            i {
-                content: $chatfaq-arrow-down-icon;
-            }
             @media only screen and (max-width: $phone-breakpoint) {
                 display: flex;
+            }
+            .min-icon {
+                margin: auto;
+                color: $chatfaq-arrow-down-icon-color;
             }
         }
 
