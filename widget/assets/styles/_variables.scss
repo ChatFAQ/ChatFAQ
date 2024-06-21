@@ -65,8 +65,6 @@
 
 
      /* Icons */
-    --chatfaq-bubble-button-open-icon: url('~/assets/icons/bubble-button-open.svg');
-    --chatfaq-bubble-button-close-icon: url('~/assets/icons/bubble-button-close.svg');
     --chatfaq-maximize-icon: url('~/assets/icons/maximize.svg');
     --chatfaq-minimize-icon: url('~/assets/icons/minimize.svg');
     --chatfaq-dot-menu-icon: url('~/assets/icons/dot-menu.svg');
@@ -97,6 +95,10 @@
     --chatfaq-copy-icon: url('~/assets/icons/copy.svg');
     --chatfaq-thumb-up-icon: url('~/assets/icons/thumb-up.svg');
     --chatfaq-thumb-down-icon: url('~/assets/icons/thumb-down.svg');
+
+
+    --chatfaq-bubble-button-open-icon-color: var(--chatfaq-color-neutral-white);
+    --chatfaq-bubble-button-close-icon-color: var(--chatfaq-color-neutral-white);
 
      /* Sizes */
     --chatfaq-size-bubbleButton: 60px;
@@ -167,8 +169,6 @@
 $chatfaq-arrow-down-icon: var(--chatfaq-arrow-down-icon);
 $chatfaq-arrow-circle-down-icon: var(--chatfaq-arrow-circle-down-icon);
 $chatfaq-arrow-circle-up-icon: var(--chatfaq-arrow-circle-up-icon);
-$chatfaq-bubble-button-close-icon: var(--chatfaq-bubble-button-close-icon);
-$chatfaq-bubble-button-open-icon: var(--chatfaq-bubble-button-open-icon);
 $chatfaq-burger-menu-icon: var(--chatfaq-burger-menu-icon);
 $chatfaq-check-icon: var(--chatfaq-check-icon);
 $chatfaq-checkbox-checked-icon: var(--chatfaq-checkbox-checked-icon);
@@ -276,3 +276,6 @@ $chatfaq-thumb-down-icon: var(--chatfaq-thumb-down-icon);
 $chatfaq-thumb-up-icon: var(--chatfaq-thumb-up-icon);
 $chatfaq-trash-icon: var(--chatfaq-trash-icon);
 $phone-breakpoint: var(--phone-breakpoint);
+
+$chatfaq-bubble-button-open-icon-color: var(--chatfaq-bubble-button-open-icon-color);
+$chatfaq-bubble-button-close-icon-color: var(--chatfaq-bubble-button-close-icon-color);

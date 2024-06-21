@@ -20,7 +20,8 @@
             </div>
             <div v-if="!isPhoneLandscape && !fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
                  @click="store.opened = !store.opened">
-                <i :class="store.opened ? 'close' : 'open'"/>
+                <BubbleClose v-if="store.opened" class="bubble-icon close" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
+                <BubbleOpen v-else class="bubble-icon open" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
             </div>
         </div>
     </Suspense>
@@ -33,6 +34,8 @@ import {ref, defineProps, onMounted, watch} from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
+import BubbleOpen from "~/components/icons/BubbleOpen.vue";
+import BubbleClose from "~/components/icons/BubbleClose.vue";
 import {getUserId} from "~/utils";
 import { useI18n } from "vue-i18n";
 const i18n = useI18n();
@@ -404,18 +407,17 @@ $widget-margin: 16px;
             }
         }
 
-        i {
+        .bubble-icon {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
 
             &.open {
-                content: $chatfaq-bubble-button-open-icon;
+                color: $chatfaq-bubble-button-open-icon-color;
             }
-
             &.close {
-                content: $chatfaq-bubble-button-close-icon;
+                color: $chatfaq-bubble-button-close-icon-color;
             }
         }
     }
