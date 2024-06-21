@@ -2,12 +2,12 @@
     <div class="gradinet-color-field">
         <div class="gradients-picker">
             <div class="gradient">
-                <el-color-picker v-model="firstGradient" size="large" show-alpha  @change="firstGradient = rgba2hex(firstGradient)"/>
-                <el-input v-model="firstGradient" size="large" class="hex-input" placeholder="Hex color" @change="firstGradient = rgba2hex(firstGradient)"/>
+                <el-color-picker v-model="firstGradient" size="large" show-alpha  @change="firstGradient = rgba2hex(firstGradient);$emit('change')"/>
+                <el-input v-model="firstGradient" size="large" class="hex-input" placeholder="Hex color" @input="firstGradient = rgba2hex(firstGradient);$emit('change')"/>
             </div>
             <div class="gradient">
-                <el-color-picker v-model="secondGradient" size="large" show-alpha  @change="secondGradient = rgba2hex(secondGradient)"/>
-                <el-input v-model="secondGradient" size="large" class="hex-input" placeholder="Hex color" @change="secondGradient = rgba2hex(secondGradient)"/>
+                <el-color-picker v-model="secondGradient" size="large" show-alpha  @change="secondGradient = rgba2hex(secondGradient);$emit('change')"/>
+                <el-input v-model="secondGradient" size="large" class="hex-input" placeholder="Hex color" @input="secondGradient = rgba2hex(secondGradient);$emit('change')"/>
             </div>
         </div>
         <div class="gradient-visualizer-wrapper">

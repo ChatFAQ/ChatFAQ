@@ -1,12 +1,11 @@
 <template>
     <div class="font-field">
         <div class="preview" :style="{font: getValue()}">Aa</div>
-        <el-input v-model="field.value"/>
+        <el-input v-model="field.value" @input=";$emit('change')"/>
     </div>
 </template>
 
 <script setup>
-import { rgba2hex } from '~/utils'
 
 defineExpose({
     getValue,

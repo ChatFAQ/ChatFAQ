@@ -1,8 +1,8 @@
 <template>
     <div class="color-field">
-        <el-color-picker v-model="colorValue" size="large" show-alpha @change="colorValue = rgba2hex(colorValue)"/>
+        <el-color-picker v-model="colorValue" size="large" show-alpha @change="colorValue = rgba2hex(colorValue);$emit('change')"/>
         <!-- <span class="hex-preview">{{rgba2hex(colorValue).toUpperCase()}}</span> -->
-        <el-input v-model="colorValue" size="large" class="hex-input" placeholder="Hex color" @change="colorValue = rgba2hex(colorValue)"/>
+        <el-input v-model="colorValue" size="large" class="hex-input" placeholder="Hex color" @input="colorValue = rgba2hex(colorValue);$emit('change')"/>
     </div>
 </template>
 

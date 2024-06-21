@@ -80,7 +80,7 @@
                 @submitFormStart="submitFieldData"
             >
                 <template v-slot:write-data="props">
-                    <FieldData @click="updatePreview" :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
+                    <FieldData @css-change="updatePreview" :form="props.form" :fieldName="props.fieldName" ref="fieldData"/>
                 </template>
 
                 <template v-slot:bottom-write>
@@ -160,6 +160,8 @@ function getCss(formObj) {
 }
 
 function updatePreview() {
+    if(!fieldData.value)
+        return
     fieldData.value.submit()
     const p = fieldData.value.props
     customCss.value = getCss(p.form[p.fieldName])
