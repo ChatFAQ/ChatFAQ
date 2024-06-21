@@ -20,8 +20,8 @@
             </div>
             <div v-if="!isPhoneLandscape && !fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
                  @click="store.opened = !store.opened">
-                <BubbleClose v-if="store.opened" class="bubble-icon close" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
-                <BubbleOpen v-else class="bubble-icon open" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
+                <BubbleButtonClose v-if="store.opened" class="bubble-icon close" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
+                <BubbleButtonOpen v-else class="bubble-icon open" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
             </div>
         </div>
     </Suspense>
@@ -34,8 +34,8 @@ import {ref, defineProps, onMounted, watch} from "vue";
 import LeftMenu from "~/components/left-menu/LeftMenu.vue";
 import Header from "~/components/chat/Header.vue";
 import Chat from "~/components/chat/Chat.vue";
-import BubbleOpen from "~/components/icons/BubbleOpen.vue";
-import BubbleClose from "~/components/icons/BubbleClose.vue";
+import BubbleButtonOpen from "~/components/icons/BubbleButtonOpen.vue";
+import BubbleButtonClose from "~/components/icons/BubbleButtonClose.vue";
 import {getUserId} from "~/utils";
 import { useI18n } from "vue-i18n";
 const i18n = useI18n();
