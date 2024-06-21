@@ -8,7 +8,8 @@
             <div class="subtitle"> {{ store.subtitle }}</div>
         </div>
         <div class="maximizer" v-if="!store.fullScreen" @click="store.maximized = !store.maximized; store.scrollToBottom += 1">
-            <i :class="{'maximized': store.maximized}" />
+            <Minimize class="max-icon" v-if="store.maximized"/>
+            <Maximize class="min-icon" v-else/>
         </div>
         <div class="minimizer" v-if="!store.fullScreen" @click="store.opened = false">
             <i/>
@@ -18,6 +19,8 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
+import Maximize from "~/components/icons/Maximize.vue";
+import Minimize from "~/components/icons/Minimize.vue";
 
 const store = useGlobalStore();
 </script>
@@ -65,15 +68,13 @@ $phone-breakpoint: 600px;
         }
         &.maximizer {
             border: 1px solid $chatfaq-color-menu-border;
-            i {
-                content: $chatfaq-maximize-icon;
-                &.maximized {
-                    width: 20px;
-                    @media only screen and (min-width: $phone-breakpoint) {
-                        content: $chatfaq-minimize-icon;
-                        width: 24px;
-                    }
-                }
+            .max-icon {
+                margin: auto;
+                color: $chatfaq-maximize-icon-color;
+            }
+            .min-icon {
+                margin: auto;
+                color: $chatfaq-minimize-icon-color;
             }
             @media only screen and (max-width: $phone-breakpoint) {
                 display: none;
