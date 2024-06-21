@@ -1,7 +1,8 @@
 <template>
     <div class="left-menu-wrapper">
         <div class="menu-button" @click="store.historyOpened = !store.historyOpened">
-            <i :class="{'opened': store.historyOpened}"/>
+            <DoubleArrowLeft v-if="store.historyOpened" class="double-arrow-left"/>
+            <BurgerMenu v-else class="burger-menu"/>
         </div>
         <div class="new-conversation">
             <div class="left-menu-item">
@@ -45,6 +46,8 @@ import LightMode from "~/components/left-menu/items/LightMode.vue";
 import DownloadHistory from "~/components/left-menu/items/DownloadHistory.vue";
 import DeleteHistory from "~/components/left-menu/items/DeleteHistory.vue";
 import Footer from "~/components/left-menu/items/Footer.vue";
+import BurgerMenu from "~/components/icons/BurgerMenu.vue";
+import DoubleArrowLeft from "~/components/icons/DoubleArrowLeft.vue";
 import {ref, watch} from "vue";
 
 const historyItems = ref(null)
@@ -164,6 +167,7 @@ $history-width: 220px;
     }
 
     .menu-button {
+        display: none;
         @media only screen and (max-width: $phone-breakpoint) {
             position: absolute;
             left: $history-width;
@@ -176,14 +180,15 @@ $history-width: 220px;
             display: flex;
             border: 1px solid $chatfaq-color-menu-border;
             background: $chatfaq-color-menuButton-background;
-            i {
+            .burger-menu {
                 width: 20px;
                 margin: auto;
-                content: $chatfaq-burger-menu-icon;
-
-                &.opened {
-                    content: $chatfaq-double-arrow-left-icon;
-                }
+                color: $chatfaq-burger-menu-icon-color;
+            }
+            .double-arrow-left {
+                width: 20px;
+                margin: auto;
+                color: $chatfaq-double-arrow-left-icon-color;
             }
         }
     }

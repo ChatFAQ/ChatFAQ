@@ -1,7 +1,8 @@
 <template>
     <div class="widget-wrapper-header">
         <div class="menu-button" @click="store.historyOpened = !store.historyOpened">
-            <i :class="{'opened': store.historyOpened}"/>
+            <DoubleArrowRight v-if="store.historyOpened" class="double-arrow-right"/>
+            <BurgerMenu v-else class="burger-menu"/>
         </div>
         <div class="header-text">
             <div class="title"> {{ store.title }}</div>
@@ -22,6 +23,8 @@ import {useGlobalStore} from "~/store";
 import Maximize from "~/components/icons/Maximize.vue";
 import Minimize from "~/components/icons/Minimize.vue";
 import ArrowDown from "~/components/icons/ArrowDown.vue";
+import BurgerMenu from "~/components/icons/BurgerMenu.vue";
+import DoubleArrowRight from "~/components/icons/DoubleArrowRight.vue";
 
 const store = useGlobalStore();
 </script>
@@ -104,18 +107,16 @@ $phone-breakpoint: 600px;
 
             &:hover {
                 background: $chatfaq-color-menuItem-background-hover;
-                i {
-                    width: 20px;
-                    margin: auto;
-                }
             }
-            i {
+            .burger-menu {
                 width: 20px;
                 margin: auto;
-                content: $chatfaq-burger-menu-icon;
-                &.opened {
-                    content: $chatfaq-double-arrow-right-icon;
-                }
+                color: $chatfaq-burger-menu-icon-color;
+            }
+            .double-arrow-right {
+                width: 20px;
+                margin: auto;
+                color: $chatfaq-double-arrow-right-icon-color;
             }
         }
         &.logo {
