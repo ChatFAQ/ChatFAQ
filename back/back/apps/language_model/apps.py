@@ -1,9 +1,8 @@
-import os
 from django.apps import AppConfig
-from django.conf import settings
 from back.utils import is_server_process
 from logging import getLogger
-import ray
+from ray import serve
+from ray.serve.config import ProxyLocation
 
 
 logger = getLogger(__name__)
@@ -22,6 +21,9 @@ class DatasetConfig(AppConfig):
         from back.apps.language_model.ray_deployments import launch_rag_deployment
 
         RAGConfig = self.get_model("RAGConfig")
+
+        if not serve.status().applications:
+            serve.start(detached=True, proxy_location=ProxyLocation(ProxyLocation.Disabled))
 
         # Now we launch the deployment of the RAGs
         for rag_config in RAGConfig.enabled_objects.all():

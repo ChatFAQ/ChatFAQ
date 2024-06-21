@@ -3,10 +3,6 @@ import json
 import ray
 from ray import serve
 from ray.serve.handle import DeploymentHandle
-from ray.serve.config import HTTPOptions, ProxyLocation
-
-from starlette.responses import StreamingResponse
-from starlette.requests import Request
 
 from back.apps.language_model.models.enums import (
     DeviceChoices,
@@ -135,9 +131,6 @@ def launch_rag_deployment(rag_config_id):
     print(f"Submitting the {task_name} task to the Ray cluster...")
     # Need to wait for the task to finish before launching the new deployment
     ray.get(delete_rag_deployment.options(name=task_name).remote(rag_deploy_name))
-
-    if not serve.status().applications:
-        serve.start(detached=True, proxy_location=ProxyLocation(ProxyLocation.Disabled))
 
     retriever_type = rag_config.retriever_config.get_retriever_type()
     retriever_deploy_name = f'retriever_{rag_config.retriever_config.name}'

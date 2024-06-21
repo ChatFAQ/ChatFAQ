@@ -28,7 +28,7 @@
                         :ref="el => fieldsRef[fieldName] = el"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                            <slot :name="name" v-bind="data"></slot>
+                            <slot :name="name" v-bind="{...data, form}"></slot>
                         </template>
                     </FormField>
                     <ReadOnlyField
@@ -38,7 +38,7 @@
                         :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                            <slot :name="name" v-bind="data"></slot>
+                            <slot :name="name" v-bind="{...data, form}"></slot>
                         </template>
                     </ReadOnlyField>
                 </div>
@@ -55,7 +55,7 @@
                         :ref="el => fieldsRef[fieldName] = el"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                            <slot :name="name" v-bind="data"></slot>
+                            <slot :name="name" v-bind="{...data, form}"></slot>
                         </template>
                     </FormField>
                     <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
@@ -64,7 +64,7 @@
                                    :value="form[fieldName]"
                     >
                         <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                            <slot :name="name" v-bind="data"></slot>
+                            <slot :name="name" v-bind="{...data, form}"></slot>
                         </template>
                     </ReadOnlyField>
                 </div>
@@ -80,7 +80,7 @@
                     :ref="el => fieldsRef[fieldName] = el"
                 >
                     <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                        <slot :name="name" v-bind="data"></slot>
+                        <slot :name="name" v-bind="{...data, form}"></slot>
                     </template>
                 </FormField>
                 <ReadOnlyField v-else-if="allExcludeFields.indexOf(fieldName) === -1 && props.readOnly"
@@ -89,7 +89,7 @@
                                :value="form[fieldName]"
                 >
                     <template v-for="(_, name) in $slots" v-slot:[name]="data">
-                        <slot :name="name" v-bind="data"></slot>
+                        <slot :name="name" v-bind="{...data, form}"></slot>
                     </template>
                 </ReadOnlyField>
             </div>
@@ -210,6 +210,16 @@ const props = defineProps({
         required: false,
         default: true,
     },
+    itemIdProp: {
+        type: String,
+        required: false,
+        default: "id",
+    },
+    contentType: {
+        type: String,
+        required: false,
+        default: "multipart/form-data",
+    },
 })
 
 const allExcludeFields = computed(() => {
@@ -271,7 +281,7 @@ async function initializeFormValues() {
     if (props.itemId !== undefined) {
         itemsStore.loading = true
         const data = await itemsStore.retrieveItems(props.apiUrl, {
-            id: props.itemId,
+            [props.itemIdProp]: props.itemId,
             limit: 0,
             offset: 0
         }, true) || {}
@@ -309,7 +319,7 @@ async function submitForm(extraVals = {}, callback = undefined) {
 
         try {
             const headers = {
-                'Content-Type': 'multipart/form-data',
+                'Content-Type': props.contentType,
                 ...authHeaders()
             }
 

@@ -1,4 +1,4 @@
-THEME_DEFAULTS = {
+THEME_DEFAULTS_BY_SECTION = {
     # Title
     # Body
     "chatfaq-font-body-xl": {
@@ -243,3 +243,4 @@ THEME_DEFAULTS = {
         "value": "#020c1cb3",
     },
 }
+THEME_DEFAULTS = {k: v["value"] for k, v in THEME_DEFAULTS_BY_SECTION.items()}

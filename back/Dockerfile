@@ -109,5 +109,6 @@ ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.73; fi
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
 
+ENV RAY_task_events_max_num_task_in_gcs=100
 
 CMD ./starter_script.sh
