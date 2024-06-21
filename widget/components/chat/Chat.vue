@@ -31,9 +31,7 @@
                 @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
                 @paste="managePaste"
             />
-            <i class="chat-send-button"
-               :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}"
-               @click="sendMessage"></i>
+            <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
         </div>
     </div>
 </template>
@@ -43,6 +41,7 @@ import {ref, watch, nextTick} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
+import Send from "~/components/icons/Send.vue";
 
 const store = useGlobalStore();
 
@@ -325,15 +324,15 @@ function sendMessage() {
 }
 
 .chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
-    content: $chatfaq-send-icon;
     margin: 11px 16px;
     cursor: pointer;
     height: 16px;
     align-self: end;
     opacity: 0.6;
+    color: $chatfaq-send-icon-color-light;
 
     &.dark-mode {
-        content: $chatfaq-send-dark-icon;
+        color: $chatfaq-send-icon-color-dark;
     }
 
     &.active {

@@ -67,8 +67,6 @@
      /* Icons */
     --chatfaq-send-icon: url('~/assets/icons/send.svg');
     --chatfaq-send-dark-icon: url('~/assets/icons/send-dark.svg');
-    --chatfaq-thumb-up-icon: url('~/assets/icons/thumb-up.svg');
-    --chatfaq-thumb-down-icon: url('~/assets/icons/thumb-down.svg');
 
 
     --chatfaq-maximize-icon-color: var(--chatfaq-color-neutral-white);
@@ -78,8 +76,8 @@
     --chatfaq-dot-menu-hovered-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-logo-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-logo-long-icon-color: var(--chatfaq-color-neutral-white);
-    --chatfaq-send-icon-color: var(--chatfaq-color-neutral-white);
-    --chatfaq-send-dark-icon-color: var(--chatfaq-color-neutral-white);
+    --chatfaq-send-icon-color-light: var(--chatfaq-color-primary-900);
+    --chatfaq-send-icon-color-dark: var(--chatfaq-color-neutral-white);
     --chatfaq-moon-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-sun-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-refresh-icon-color: var(--chatfaq-color-neutral-white);
@@ -250,8 +248,6 @@ $phone-breakpoint: var(--phone-breakpoint);
 
 $chatfaq-send-dark-icon: var(--chatfaq-send-dark-icon);
 $chatfaq-send-icon: var(--chatfaq-send-icon);
-$chatfaq-thumb-down-icon: var(--chatfaq-thumb-down-icon);
-$chatfaq-thumb-up-icon: var(--chatfaq-thumb-up-icon);
 
 $chatfaq-arrow-down-icon-color: var(--chatfaq-arrow-down-icon-color);
 $chatfaq-burger-menu-icon-color: var(--chatfaq-burger-menu-icon-color);
@@ -274,8 +270,8 @@ $chatfaq-minimize-icon-color: var(--chatfaq-minimize-icon-color);
 $chatfaq-moon-icon-color: var(--chatfaq-moon-icon-color);
 $chatfaq-plus-icon-color: var(--chatfaq-plus-icon-color);
 $chatfaq-refresh-icon-color: var(--chatfaq-refresh-icon-color);
-$chatfaq-send-dark-icon-color: var(--chatfaq-send-dark-icon-color);
-$chatfaq-send-icon-color: var(--chatfaq-send-icon-color);
+$chatfaq-send-icon-color-dark: var(--chatfaq-send-icon-color-dark);
+$chatfaq-send-icon-color-light: var(--chatfaq-send-icon-color-light);
 $chatfaq-sun-icon-color: var(--chatfaq-sun-icon-color);
 $chatfaq-thumb-down-icon-color: var(--chatfaq-thumb-down-icon-color);
 $chatfaq-thumb-up-icon-color: var(--chatfaq-thumb-up-icon-color);
