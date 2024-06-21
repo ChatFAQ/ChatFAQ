@@ -11,14 +11,8 @@
             >
                 <span v-if="collapsed">{{ (references?.knowledge_items || []).length }} <span v-if="(references?.knowledge_items || []).length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span></span>
                 <span v-else>Show Less</span>
-                <svg v-if="collapsed" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M10 7.33398L8 9.33398L6 7.33398" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M6 8.66602L8 6.66602L10 8.66602" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <ArrowDownCircle v-if="collapsed"/>
+                <ArrowUpCircle v-else/>
             </div>
         </div>
         <div class="references" v-if="!collapsed">
@@ -40,6 +34,8 @@
 
 import { useGlobalStore } from "~/store";
 import {ref} from "vue";
+import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
+import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 
 const props = defineProps(["references"]);
 const store = useGlobalStore();
