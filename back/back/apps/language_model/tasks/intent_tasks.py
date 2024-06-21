@@ -330,13 +330,7 @@ def generate_intents_task(
     if not rag_conf:
         print(f"No RAG config found for knowledge base: {knowledge_base_pk}")
         return
-
-    # if the retriever type is not e5, then return
-    if rag_conf.retriever_config.get_retriever_type() != RetrieverTypeChoices.E5:
-        print(
-            f"Intent generation is not supported for retriever type: {rag_conf.retriever_config.get_retriever_type().value} right now"
-        )
-        return
+    
 
     kb = KnowledgeBase.objects.get(pk=knowledge_base_pk)
     lang = kb.get_lang().value
@@ -353,16 +347,28 @@ def generate_intents_task(
     print("Clusterizing texts...")
     task_name = f"clusterize_texts_{knowledge_base_pk}"
     # We try to place the task on a GPU if available
-    pg = placement_group([{"CPU": 1.0}, {"GPU": 1.0}, {"tasks": 1.0}], strategy="STRICT_PACK", name="clusterize_texts")
-    device = 'cpu'
+    if low_resource:
+        # Use only CPU resources when low_resource is True
+        print('Adquiring a CPU for the low resource clustering task...')
+        pg = placement_group([{"CPU": 1.0, "tasks": 1.0}], strategy="STRICT_PACK", name="clusterize_texts")
+        device = 'cpu'
+    else:
+        # Try to use GPU when low_resource is False
+        print('Adquiring a GPU for the clustering task...')
+        pg = placement_group([{"CPU": 1.0, "GPU": 1.0, "tasks": 1.0}], strategy="STRICT_PACK", name="clusterize_texts")
+        device = 'cpu'
+
     try:
         ray.get(pg.ready(), timeout=10)
-        device = 'gpu'
+        if not low_resource: # assing GPU
+            device = 'gpu'
         scheduling_strategy = PlacementGroupSchedulingStrategy(
             placement_group=pg,
+            placement_group_bundle_index=0,
         )
     except Exception:
-        print("There are no GPUs available, using CPUs for the task")
+        if not low_resource:
+            print("There are no GPUs available or placement group creation failed, using CPUs for the task")
         scheduling_strategy = None
 
     labels = ray.get(
