@@ -1,6 +1,6 @@
 <template>
     <MenuItem v-if="store.deleting">
-        <i class="trash-icon"/>
+        <Trash class="trash-icon"/>
         <span>{{ $t("confirm") }}</span>
         <div class="confirm-controls">
             <Close class="close-icon" @click="() => {store.deleting = false}"/>
@@ -8,7 +8,7 @@
         </div>
     </MenuItem>
     <MenuItem v-else @click="store.deleting = true; store.downloading = false;">
-        <i class="trash-icon"/>
+        <Trash class="trash-icon"/>
         <span v-if="store.selectedConversations.length">{{ $t("deleteselected") }}</span>
         <span v-else>{{ $t("clearhistory") }}</span>
     </MenuItem>
@@ -22,6 +22,7 @@ import { useGlobalStore } from "~/store";
 const store = useGlobalStore();
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
+import Trash from "~/components/icons/Trash.vue";
 
 async function deleteConversation(id) {
     if (store.previewMode)
@@ -56,10 +57,10 @@ async function deleteConversations() {
 <style lang="scss" scoped>
 
 .trash-icon {
-    content: $chatfaq-trash-icon;
+    color: $chatfaq-trash-icon-color;
 }
 .confirm-controls {
-    width: 100%;
+    margin-left: auto;
     display: flex;
     flex-direction: row-reverse;
     .check-icon {

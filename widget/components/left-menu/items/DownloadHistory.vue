@@ -1,6 +1,6 @@
 <template>
     <MenuItem v-if="store.downloading">
-        <i class="download-icon"/>
+        <Download class="download-icon"/>
         <span>{{ $t("confirm") }}</span>
         <div class="confirm-controls">
             <Close class="close-icon" @click="() => {store.downloading = false}"/>
@@ -8,7 +8,7 @@
         </div>
     </MenuItem>
     <MenuItem v-else @click="store.downloading = true; store.deleting = false;">
-        <i class="download-icon"/>
+        <Download class="download-icon"/>
         <span v-if="store.selectedConversations.length">{{ $t("downloadselected") }}</span>
         <span v-else>{{ $t("downloadhistory") }}</span>
     </MenuItem>
@@ -51,17 +51,18 @@ async function downloadHistory() {
 }
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
+import Download from "~/components/icons/Download.vue";
 </script>
 
 
 <style lang="scss" scoped>
 
 .download-icon {
-    content: $chatfaq-download-icon;
+    color: $chatfaq-download-icon-color;
 }
 
 .confirm-controls {
-    width: 100%;
+    margin-left: auto;
     display: flex;
     flex-direction: row-reverse;
     .check-icon {
