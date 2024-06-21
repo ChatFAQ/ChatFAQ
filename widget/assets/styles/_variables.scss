@@ -65,11 +65,8 @@
 
 
      /* Icons */
-    --chatfaq-logo-long-icon: url('~/assets/icons/logo-long.svg');
     --chatfaq-send-icon: url('~/assets/icons/send.svg');
     --chatfaq-send-dark-icon: url('~/assets/icons/send-dark.svg');
-    --chatfaq-moon-icon: url('~/assets/icons/moon.svg');
-    --chatfaq-sun-icon: url('~/assets/icons/sun.svg');
     --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
     --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
     --chatfaq-plus-icon: url('~/assets/icons/plus.svg');
@@ -256,14 +253,11 @@ $chatfaq-size-bubbleButton: var(--chatfaq-size-bubbleButton);
 $phone-breakpoint: var(--phone-breakpoint);
 
 $chatfaq-edit-icon: var(--chatfaq-edit-icon);
-$chatfaq-logo-long-icon: var(--chatfaq-logo-long-icon);
 $chatfaq-mail-icon: var(--chatfaq-mail-icon);
-$chatfaq-moon-icon: var(--chatfaq-moon-icon);
 $chatfaq-plus-icon: var(--chatfaq-plus-icon);
 $chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
 $chatfaq-send-dark-icon: var(--chatfaq-send-dark-icon);
 $chatfaq-send-icon: var(--chatfaq-send-icon);
-$chatfaq-sun-icon: var(--chatfaq-sun-icon);
 $chatfaq-thumb-down-icon: var(--chatfaq-thumb-down-icon);
 $chatfaq-thumb-up-icon: var(--chatfaq-thumb-up-icon);
 

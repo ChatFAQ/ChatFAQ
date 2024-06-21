@@ -1,6 +1,7 @@
 <template>
     <MenuItem @click="store.darkMode = !store.darkMode">
-        <i class="light-mode-icon" :class="{'dark-mode': store.darkMode}"/>
+        <Sun class="light-mode-icon"  v-if="store.darkMode"/>
+        <Moon class="dark-mode-icon" v-else/>
         <span v-if="!store.darkMode">{{ $t("showdarkmode") }}</span>
         <span v-else>{{ $t("showlightmode") }}</span>
     </MenuItem>
@@ -9,6 +10,8 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
+import Moon from "~/components/icons/Moon.vue";
+import Sun from "~/components/icons/Sun.vue";
 
 const store = useGlobalStore();
 
@@ -18,10 +21,10 @@ const store = useGlobalStore();
 <style lang="scss" scoped>
 
 .light-mode-icon {
-    content: $chatfaq-moon-icon;
+    color: $chatfaq-moon-icon-color;
 
     &.dark-mode {
-        content: $chatfaq-sun-icon;
+        color: $chatfaq-sun-icon-color;
     }
 }
 </style>
