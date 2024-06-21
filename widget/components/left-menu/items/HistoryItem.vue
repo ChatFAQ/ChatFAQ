@@ -109,6 +109,7 @@ function timestampToSentence(isoString) {
 
         .edit {
             display: unset;
+            color: $chatfaq-edit-icon-color;
         }
     }
 
