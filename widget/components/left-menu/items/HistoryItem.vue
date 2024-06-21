@@ -10,7 +10,7 @@
         <input v-else ref="itemTitleEdit" class="item-name edit" rows="1" :value="name" @keyup.enter="submit"/>
 
         <div class="edit-controls" v-if="!editing">
-            <i class="edit" @click="edit"/>
+            <Edit class="edit" @click="edit"/>
         </div>
         <div class="edit-controls" v-else>
             <Check v-if="editing" class="check-icon" @click="submit"/>
@@ -26,6 +26,7 @@ import { useGlobalStore } from "~/store";
 import Checkbox from "~/components/generic/Checkbox.vue";
 import Check from "~/components/icons/Check.vue";
 import Close from "~/components/icons/Close.vue";
+import Edit from "~/components/icons/Edit.vue";
 
 const store = useGlobalStore();
 
@@ -100,12 +101,14 @@ function timestampToSentence(isoString) {
     &.open {
         background-color: $chatfaq-color-menuItem-background-hover;
     }
-
+    .edit {
+        display: none;
+    }
     &:hover, &.editing {
         background-color: $chatfaq-color-menuItem-background-hover;
 
-        i.edit {
-            content: $chatfaq-edit-icon;
+        .edit {
+            display: unset;
         }
     }
 

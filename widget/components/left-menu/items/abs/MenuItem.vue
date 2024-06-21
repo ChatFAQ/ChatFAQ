@@ -24,9 +24,6 @@
     }
     &:hover {
         background-color: $chatfaq-color-menuItem-background-hover;
-        i.edit {
-            content: $chatfaq-edit-icon;
-        }
     }
 }
 </style>
