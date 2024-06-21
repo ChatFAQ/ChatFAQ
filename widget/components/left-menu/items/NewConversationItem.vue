@@ -1,6 +1,6 @@
 <template>
     <MenuItem @click="store.createNewConversation">
-        <i class="plus"/>
+        <Plus class="plus"/>
         <span>{{ $t("newconversation") }}</span>
     </MenuItem>
 </template>
@@ -9,6 +9,7 @@
 
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 import { useGlobalStore } from "~/store";
+import Plus from "~/components/icons/Plus.vue";
 
 const store = useGlobalStore();
 
@@ -18,7 +19,7 @@ const store = useGlobalStore();
 <style lang="scss" scoped>
 
 .plus {
-    content: $chatfaq-plus-icon;
+    color: $chatfaq-plus-icon-color;
 }
 </style>
 

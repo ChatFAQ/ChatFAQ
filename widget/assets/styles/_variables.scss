@@ -67,10 +67,6 @@
      /* Icons */
     --chatfaq-send-icon: url('~/assets/icons/send.svg');
     --chatfaq-send-dark-icon: url('~/assets/icons/send-dark.svg');
-    --chatfaq-refresh-icon: url('~/assets/icons/refresh.svg');
-    --chatfaq-mail-icon: url('~/assets/icons/mail.svg');
-    --chatfaq-plus-icon: url('~/assets/icons/plus.svg');
-    --chatfaq-edit-icon: url('~/assets/icons/edit.svg');
     --chatfaq-thumb-up-icon: url('~/assets/icons/thumb-up.svg');
     --chatfaq-thumb-down-icon: url('~/assets/icons/thumb-down.svg');
 
@@ -252,10 +248,6 @@ $chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
 $chatfaq-size-bubbleButton: var(--chatfaq-size-bubbleButton);
 $phone-breakpoint: var(--phone-breakpoint);
 
-$chatfaq-edit-icon: var(--chatfaq-edit-icon);
-$chatfaq-mail-icon: var(--chatfaq-mail-icon);
-$chatfaq-plus-icon: var(--chatfaq-plus-icon);
-$chatfaq-refresh-icon: var(--chatfaq-refresh-icon);
 $chatfaq-send-dark-icon: var(--chatfaq-send-dark-icon);
 $chatfaq-send-icon: var(--chatfaq-send-icon);
 $chatfaq-thumb-down-icon: var(--chatfaq-thumb-down-icon);
