@@ -57,7 +57,7 @@
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
                 :defaultSort="{'prop': 'name'}">
-                <template v-slot:write-system_prefix="{fieldName, form, formServerErrors}">
+                <template v-slot:write-system_prompt="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
                                   :prop="fieldName"
                                   :error="formServerErrors[fieldName]">

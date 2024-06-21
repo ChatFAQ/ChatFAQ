@@ -132,7 +132,7 @@ class BaseModel:
         self,
         contents: List[str] = None,
         batch_size: int = 1,
-        prefix: str = "passage: ",
+        prefix: str = "",
         disable_progress_bar: bool = False,
     ):
         """
@@ -144,7 +144,7 @@ class BaseModel:
         batch_size : int, optional
             Batch size to be used for encoding the context, by default 1
         prefix : str, optional
-            Prefix or instruction to be added to the context, by default 'passage: ' for e5 models.
+            Prefix or instruction to be added to the context. Sometimes is used for instruct embedding models like Instructor models or intfloat/multilingual-e5-large-instruct.
         """
         logger.info("Building embeddings...")
 

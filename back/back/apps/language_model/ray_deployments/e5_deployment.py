@@ -39,7 +39,6 @@ class E5Deployment:
         Batch handler for the retriever model. This method is called by Ray Serve when a batch of requests is received.
         It creates the query embeddings, sends them to a pgvector backend endpoint for retrieval asynchronously and returns the results.
         """
-
         embeddings = self.model.build_embeddings(queries, prefix='query: ')
 
         async with ClientSession() as session:
@@ -91,6 +90,4 @@ def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='e
             ).bind(model_name, use_cpu, rag_config_id, lang)
 
     print("E5 deployment started")
-    # serve.run(retriever_handle, host="0.0.0.0", port=8000, route_prefix="/retrieve", name='retriever_deployment')
-    # print("E5 deployment finished")
     return retriever_handle

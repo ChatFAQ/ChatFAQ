@@ -1,48 +1,100 @@
-from typing import List
+import asyncio
+import json
+from typing import Dict, List
 
-from openai import OpenAI
+from pydantic import BaseModel, Field
+
+from chat_rag.llms import LLM
 
 
-def generate_intents(
-    intent_queries_list: List[List[str]], max_new_tokens=100
-) -> List[str]:
+class SubmitClusterTitle(BaseModel):
+    title: str = Field(
+        ...,
+        title="Cluster Title",
+        description="The title you would assign to the cluster of knowledge items.",
+    )
+
+
+USER_MESSAGE = """You will be assigning representative names/titles to clusters of "knowledge items". Knowledge items are chunks of content extracted from documents like PDFs, Word files, web pages, etc. Each knowledge item has a title and content. 
+
+Here is the full set of knowledge items of a cluster:
+
+{items}
+
+Your task is to assign a clear name/title to each cluster that captures the main theme, topic, or intent that the knowledge items in that cluster have in common.
+
+Look for commonalities across the items to identify the central theme, topic, or intent that links them together. 
+
+The names should be clear, specific, and representative of the cluster's contents. Avoid vague or overly broad names.
+
+The cluster title should be in the same language as the knowledge items.
+"""
+
+
+def generate_intent(cluster_texts: List[Dict], llm: LLM) -> str:
     """
-    Generate a batch of texts from a given instruction and a list of text inputs.
+    Generates an intent for the given cluster texts.
     Parameters
     ----------
-    intent_queries_list : List[List[str]]
-        List containing lists of intent queries.
-    max_new_tokens : int, optional
-        Maximum number of tokens to be generated, by default 100
+    cluster_texts : List[Dict]
+        List of dictionaries containing the cluster title and items.
+    llm : LLM
+        The language model to use.
+    Returns
+    -------
+    str
+        The generated intents.
+    """
+    # Pick five items of the cluster. We should have a better way to handle this for not exceeding the llm context length.
+    items = json.dumps(cluster_texts[:5])
+
+    messages = [{"role": "user", "content": USER_MESSAGE.format(items=items)}]
+
+    # structured generation
+    response = llm.generate(
+        messages, tools=[SubmitClusterTitle], tool_choice="SubmitClusterTitle"
+    )
+
+    return json.loads(response[0]["args"])["title"]
+
+
+async def agenerate_intent(cluster_texts: List[Dict], llm: LLM) -> str:
+    """
+    Generates an intent for the given cluster texts.
+    Parameters
+    ----------
+    cluster_texts : List[Dict]
+        List of dictionaries containing the cluster title and items.
+    llm : LLM
+        The language model to use.
+    Returns
+    -------
+    str
+        The generated intents.
+    """
+    items = json.dumps(cluster_texts[:5])
+    messages = [{"role": "user", "content": USER_MESSAGE.format(items=items)}]
+    response = await llm.agenerate(
+        messages, tools=[SubmitClusterTitle], tool_choice="SubmitClusterTitle"
+    )
+    return json.loads(response[0]["args"])["title"]
+
+
+# Batch processing
+async def agenerate_intents(clusters_texts: List[List[Dict]], llm: LLM) -> List[str]:
+    """
+    Generate intents for the given clusters texts.
+    Parameters
+    ----------
+    clusters_texts : List[List[Dict]]
+        List of list of dictionaries containing the cluster texts.
+    llm : LLM
+        The language model to use.
     Returns
     -------
     List[str]
-        List of generated intents.
+        The generated intents.
     """
-    client = OpenAI()
-
-    instruction = "Summarize the intent that represents all the following questions in a few words:",
-
-    # Generate prompts for each intent
-    input_texts = []
-    for intent_queries in intent_queries_list:
-        intent_queries = list(set(intent_queries))
-        input_text = f"{instruction}\n"
-
-        # Append each query
-        for query in intent_queries[:10]:
-            input_text += f"- {query}\n"
-
-        input_text += "The intent is to "
-        input_texts.append(input_text)
-
-    responses = []
-    #batches of 20
-    for i in range(0, len(input_texts), 20):
-        result = client.completions.create(model='gpt-3.5-turbo-instruct',
-        prompt=input_texts[i:i+20],
-        temperature=0.5,
-        max_tokens=max_new_tokens).choices
-        responses.extend(result)
-
-    return ['To ' + response.text for response in responses]
+    tasks = [agenerate_intent(cluster_texts, llm) for cluster_texts in list(clusters_texts.values())]
+    intents =  await asyncio.gather(*tasks)
+    return intents

@@ -102,10 +102,13 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
         yield {"model_response": f"RAG config with name: {rag_config_name} does not exist.", "references": {}, "final": True}
         return
 
-    p_conf = model_to_dict(rag_conf.prompt_config)
-    p_conf.pop("id")
-    g_conf = model_to_dict(rag_conf.generation_config)
-    g_conf.pop("id")
+    p_conf = rag_conf.prompt_config
+    system_prompt = p_conf.system_prompt
+    n_contexts_to_use = p_conf.n_contexts_to_use
+    g_conf = rag_conf.generation_config
+    temperature = g_conf.temperature
+    max_tokens = g_conf.max_tokens
+    seed = g_conf.seed
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
     prev_kis = await database_sync_to_async(conv.get_kis)()
@@ -116,6 +119,8 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     if input_text:
         messages.append({"role": "user", "content": input_text})
 
+    messages.insert(0, {"role": "system", "content": system_prompt})
+
     references = None
 
     try:
@@ -124,8 +129,10 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
             response = handle.remote(
                 messages,
                 await database_sync_to_async(list)(prev_kis.values_list("content", flat=True)),
-                p_conf,
-                g_conf,
+                temperature,
+                max_tokens,
+                seed,
+                n_contexts_to_use,
                 only_context
             )
             async for ray_res in response:
