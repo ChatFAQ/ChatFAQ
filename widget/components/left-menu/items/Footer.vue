@@ -4,13 +4,14 @@
             <div class="text">
                 Powered by
             </div>
-            <i alt="ChatFAQ" class="logo-long"/>
+            <LogoLong alt="ChatFAQ" class="logo-long"/>
         </div>
     </div>
 </template>
 
 <script setup>
 import {useGlobalStore} from "~/store";
+import LogoLong from "~/components/icons/LogoLong.vue";
 
 const store = useGlobalStore();
 </script>
@@ -25,7 +26,8 @@ const store = useGlobalStore();
 
         &.logo-long {
             margin-left: 8px;
-            content: $chatfaq-logo-long-icon;
+            margin-top: auto;
+            margin-bottom: auto;
         }
 
         &.text {

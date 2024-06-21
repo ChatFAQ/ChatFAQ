@@ -119,11 +119,6 @@ $phone-breakpoint: 600px;
                 color: $chatfaq-double-arrow-right-icon-color;
             }
         }
-        &.logo {
-            margin-left: 24px;
-            margin-right: 16px;
-            content: $chatfaq-logo-icon;
-        }
 
         &.header-text {
             .title {
