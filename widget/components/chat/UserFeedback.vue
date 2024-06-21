@@ -6,36 +6,8 @@
             <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}:</div>
             <!-- <div v-else-if="feedbacked">{{ $t('feedbacksent') }}:</div> -->
             <div class="feedback-controls">
-                <!-- Thumb Up -->
-                <div class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}">
-                    <svg @click="sendUserFeedback('positive')"
-                         width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2 7C2 6.44772 2.44772 6 3 6H4.66667V14H3C2.44772 14 2 13.5523 2 13V7Z"
-                              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path
-                            d="M4.66669 7.33333V12.6667L5.65899 13.3282C6.31606 13.7662 7.08809 14 7.87779 14H10.1253C11.5918 14 12.8434 12.9398 13.0845 11.4932L13.6119 8.3288C13.8151 7.10973 12.875 6 11.6391 6H9.33335"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path
-                            d="M9.33335 6L9.79147 3.70944C9.91061 3.11371 9.56752 2.5225 8.99117 2.33038V2.33038C8.42245 2.14081 7.80088 2.39827 7.53279 2.93447L5.33335 7.33333H4.66669"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-
-                <!-- Thumb Down -->
-                <div class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'collapse': collapse}">
-                    <svg @click="sendUserFeedback('negative')"
-                         width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 9C14 9.55228 13.5523 10 13 10H11.3333V2H13C13.5523 2 14 2.44772 14 3V9Z"
-                              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path
-                            d="M11.3333 8.66667V3.33333L10.341 2.6718C9.68394 2.23375 8.91191 2 8.12221 2H5.87469C4.40818 2 3.15661 3.06024 2.91551 4.5068L2.38811 7.6712C2.18494 8.89027 3.12502 10 4.3609 10H6.66665"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path
-                            d="M6.66665 10L6.20853 12.2906C6.08939 12.8863 6.43248 13.4775 7.00883 13.6696V13.6696C7.57755 13.8592 8.19912 13.6017 8.46721 13.0655L10.6666 8.66667H11.3333"
-                            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <!-- Copy -->
+                <ThumbUp class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('positive')" />
+                <ThumbDown class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('negative')"/>
                 <CopyToClipboard :msg-id="msgId"/>
             </div>
         </div>
@@ -92,6 +64,8 @@ import Checkbox from "~/components/generic/Checkbox.vue";
 import {useI18n} from 'vue-i18n'
 import CopyToClipboard from "~/components/chat/CopyToClipboard.vue";
 import {ref, defineProps, onMounted} from "vue";
+import ThumbUp from "~/components/icons/ThumbUp.vue";
+import ThumbDown from "~/components/icons/ThumbDown.vue";
 
 const props = defineProps(["msgId"]);
 
@@ -203,10 +177,12 @@ async function sendUserFeedback(value, _collapse) {
             margin-left: 15px;
         }
         .feedback-controls {
-            margin-left: 15px;
             margin-right: 10px;
             display: flex;
             margin-left: auto;
+            > svg {
+               margin-right: 6px;
+            }
         }
     }
 
@@ -296,9 +272,13 @@ async function sendUserFeedback(value, _collapse) {
     .control {
         cursor: pointer;
         color: $chatfaq-color-clipboard-text-light;
-        padding: 5px;
-        margin-top: 2px;
+        margin-top: 7px;
         display: flex;
+        div {
+            svg {
+                margin-right: 10px;
+            }
+        }
         &.dark-mode {
             color: $chatfaq-color-clipboard-text-dark;
         }
