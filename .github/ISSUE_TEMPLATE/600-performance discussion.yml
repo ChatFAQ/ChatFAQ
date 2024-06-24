@@ -1,0 +1,42 @@
+name: ⚡ Discussion on the performance of ChatFAQ
+description: Submit a proposal/discussion about the performance of ChatFAQ
+title: "[Performance]: "
+labels: ["performance"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### Before submitting an issue, please make sure the issue hasn't been already addressed by searching through [the existing and past issues](https://github.com/ChatFAQ/ChatFAQ/issues?q=is%3Aissue+sort%3Acreated-desc+).
+- type: textarea
+  attributes:
+    label: Proposal to improve performance
+    description: >
+      How do you plan to improve ChatFAQ's performance?
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Report of performance regression
+    description: >
+      Please provide detailed description of performance comparison to confirm the regression.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Misc discussion on performance
+    description: >
+      Anything about the performance.
+  validations:
+    required: false
+- type: input
+  id: os_version
+  attributes:
+    label: OS Version
+    description: The version of your operating system, found with `uname -a` of on unix-like system
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    value: >
+      Thanks for contributing 🎉!

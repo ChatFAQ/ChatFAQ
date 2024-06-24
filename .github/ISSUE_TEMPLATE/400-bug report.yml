@@ -1,0 +1,47 @@
+name: 🐛 Bug report
+description: Raise an issue here if you find a bug.
+title: "[Bug]: "
+labels: ["bug"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### Before submitting an issue, please make sure the issue hasn't been already addressed by searching through [the existing and past issues](https://github.com/ChatFAQ/ChatFAQ/issues?q=is%3Aissue+sort%3Acreated-desc+).
+- type: input
+  id: os_version
+  attributes:
+    label: OS Version
+    description: The version of your operating system, found with `uname -a` of on unix-like system
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 🐛 Describe the bug
+    description: |
+      Please provide a clear and concise description of what the bug is.
+
+      If relevant, add a minimal example so that we can reproduce the error by running the code. It is very important for the snippet to be as succinct (minimal) as possible, so please take time to trim down any irrelevant code to help us debug efficiently. We are going to copy-paste your code and we expect to get the same result as you did: avoid any external data, and include the relevant imports, etc. For example:
+
+      If the code is too long (hopefully, it isn't), feel free to put it in a public gist and link it in the issue: https://gist.github.com.
+
+      Please also paste or describe the results you observe instead of the expected results. If you observe an error, please paste the error message including the **full** traceback of the exception. It may be relevant to wrap error messages in ```` ```triple quotes blocks``` ````.
+
+      Please set the environment variable `export DEBUG=true` to turn on more logging to help debugging potential issues.
+
+    placeholder: |
+      A clear and concise description of what the bug is.
+
+      ```python
+      # Sample code to reproduce the problem
+      ```
+
+      ```
+      The error message you got, with the full traceback.
+      ```
+  validations:
+    required: true
+- type: markdown
+  attributes:
+    value: >
+      Thanks for contributing 🎉!

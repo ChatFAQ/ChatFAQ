@@ -1,0 +1,28 @@
+name: 💻 Usage
+description: Raise an issue here if you don't know how to use ChatFAQ.
+title: "[Usage]: "
+labels: ["usage"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### Before submitting an issue, please make sure the issue hasn't been already addressed by searching through [the existing and past issues](https://github.com/ChatFAQ/ChatFAQ/issues?q=is%3Aissue+sort%3Acreated-desc+).
+- type: input
+  id: os_version
+  attributes:
+    label: OS Version
+    description: The version of your operating system, found with `uname -a` of on unix-like system
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: How would you like to use ChatFAQ?
+    description: |
+      A detailed description of how you want to use ChatFAQ.
+    value: |
+      I want my bot to send messages to a Telegram channel and I don't know how integrate it with ChatFAQ.
+- type: markdown
+  attributes:
+    value: >
+      Thanks for contributing 🎉!
