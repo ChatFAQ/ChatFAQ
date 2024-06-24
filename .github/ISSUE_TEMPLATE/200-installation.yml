@@ -1,0 +1,46 @@
+name: 🛠️ Installation
+description: Report an issue here when you hit errors during installation.
+title: "[Installation]: "
+labels: ["installation"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### Before submitting an issue, please make sure the issue hasn't been already addressed by searching through [the existing and past issues](https://github.com/ChatFAQ/ChatFAQ/issues?q=is%3Aissue+sort%3Acreated-desc+).
+- type: input
+  id: os_version
+  attributes:
+    label: OS Version
+    description: The version of your operating system, found with `uname -a` of on unix-like system
+  validations:
+    required: true
+- type: textarea
+  id: problem
+  attributes:
+    label: Problem Description
+    description: A description of the problem including expected versus actual behavior
+  validations:
+    required: true
+- type: textarea
+  id: steps
+  attributes:
+    label: Steps to Reproduce
+    description: |
+      A minimal but complete recreation of the problem including (e.g.) index
+      creation, mappings, settings, query etc.  The easier you make for us to
+      reproduce it, the more likely that somebody will take the time to look at it.
+  validations:
+    required: true
+- type: textarea
+  id: logs
+  attributes:
+    label: Logs (if relevant)
+    description: Any log relevant log messages or snippets
+  validations:
+    required: false
+- type: markdown
+  attributes:
+    value: >
+      Thanks for contributing 🎉!
+
