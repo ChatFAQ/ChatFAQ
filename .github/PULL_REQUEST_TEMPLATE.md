@@ -12,6 +12,10 @@ FIX #xxxx (*link existing issues this PR will resolve*)
 
 <p>Thank you for your contribution to ChatFAQ! Before submitting the pull request, please ensure the PR meets the following criteria. This helps ChatFAQ maintain the code quality and improve the efficiency of the review process.</p>
 
+<h3>PR branch</h3>
+Make sure that this PR targets the main branch.
+
+
 <h3>PR Title and Classification</h3>
 <p>Only specific types of PRs will be reviewed. The PR title is prefixed appropriately to indicate the type of change. Please use one of the following:</p>
 <ul>
