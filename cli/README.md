@@ -1,5 +1,7 @@
 # ChatFAQ Command Line Interface (CLI) Tool
 
+<b style="color: red;">The CLI is currently not maintained and is not up to date with the current state of the project because of the lack of resources. If you are interested in contributing to the CLI, please reach out to us by opening an issue.</b>
+
 The full potential of ChatFAQ services, datasets, and models at the tip of your fingers.
 
 ## Prerequisites
