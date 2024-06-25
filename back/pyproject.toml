@@ -46,6 +46,7 @@ pillow = "^10.3.0"
 redis = "5.0.4"
 fastapi = "0.111"
 memray = "^1.12.0"
+granian = "*"
 
 
 [tool.poetry.group.dev.dependencies]
