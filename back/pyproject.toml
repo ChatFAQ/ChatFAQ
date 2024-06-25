@@ -82,6 +82,6 @@ node-edge = {version = "^0.1.0b6", allow-prereleases = true}
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "back.config.settings"
-python_files = []
+python_files = ["test_*.py", "*_test.py"]
 django_debug_mode = true
 addopts = ["--output", "bdd/report/results/media", "--screenshot", "on", "--video", "on", "--full-page-screenshot", "--cucumberjson=bdd/report/results/report.json", "--html=bdd/report/results/pytest.html"]
