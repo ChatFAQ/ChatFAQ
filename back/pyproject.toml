@@ -70,3 +70,18 @@ build-backend = "poetry.core.masonry.api"
 name = "test"
 url = "https://test.pypi.org/simple/"
 priority = "explicit"
+
+[tool.poetry.group.test.dependencies]
+psutil = "^5.9.8"
+pytest = "^8.1.1"
+pytest-bdd = "^7.0.1"
+pytest-django = "^4.8.0"
+pytest-html = "^4.1.1"
+pytest-playwright = "^0.4.4"
+node-edge = {version = "^0.1.0b6", allow-prereleases = true}
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "back.config.settings"
+python_files = []
+django_debug_mode = true
+addopts = ["--output", "bdd/report/results/media", "--screenshot", "on", "--video", "on", "--full-page-screenshot", "--cucumberjson=bdd/report/results/report.json", "--html=bdd/report/results/pytest.html"]
