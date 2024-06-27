@@ -4,6 +4,8 @@ from chat_rag.llms.claude_client import ClaudeChatModel
 from chat_rag.llms.mistral_client import MistralChatModel
 from chat_rag.llms.openai_client import OpenAIChatModel
 from chat_rag.llms.vllm_client import VLLMModel
+from chat_rag.llms.format_tools import format_tools
+
 
 __all__ = [
     "LLM",
