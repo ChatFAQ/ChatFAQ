@@ -20,14 +20,7 @@
             "updated_date": "2023-10-06T11:58:11.038",
             "name": "default",
             "llm_type": "openai",
-            "llm_name": "gpt-3.5-turbo",
-            "ggml_llm_filename": null,
-            "model_config": null,
-            "load_in_8bit": false,
-            "use_fast_tokenizer": true,
-            "trust_remote_code_tokenizer": false,
-            "trust_remote_code_model": false,
-            "revision": "main",
+            "llm_name": "gpt-4o",
             "model_max_length": null
         }
     },
@@ -49,12 +42,9 @@
             "created_date": "2023-10-06T11:58:11.016",
             "updated_date": "2023-10-06T11:58:11.019",
             "name": "default",
-            "top_k": 50,
-            "top_p": 1.0,
             "temperature": 0.2,
-            "repetition_penalty": 1.0,
             "seed": 42,
-            "max_new_tokens": 256
+            "max_tokens": 1024
         }
     },
     {
