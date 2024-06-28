@@ -14,7 +14,6 @@ from back.apps.language_model.models.enums import (
 from .e5_deployment import launch_e5
 from .colbert_deployment import launch_colbert
 from logging import getLogger
-from chat_rag import RAG
 
 logger = getLogger(__name__)
 
@@ -59,13 +58,21 @@ class RAGDeployment:
         """
         if self.rag is None:
             from back.apps.language_model.models import LLMConfig
+            from chat_rag import RAG
+            from chat_rag.llms import load_llm
+
 
             retriever = self.RetrieverHandleClient(self.retriever_handle)
 
             llm_config = await sync_to_async(LLMConfig.objects.get)(
                 pk=self.llm_config_id
             )
-            llm = llm_config.load_llm()
+            llm = load_llm(
+                llm_config.llm_type,
+                llm_config.llm_name,
+                base_url=llm_config.base_url,
+                model_max_length=llm_config.model_max_length,
+            )
 
             self.rag = RAG(retriever=retriever, llm=llm, lang=self.lang)
             print("Rag Orchestrator initialized.")

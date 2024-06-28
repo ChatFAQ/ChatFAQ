@@ -2,10 +2,9 @@ import os
 from typing import Dict, List
 
 from anthropic import Anthropic, AsyncAnthropic
-from instructor import Mode, handle_response_model
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM
+from chat_rag.llms import LLM, Mode, format_tools
 
 
 class ClaudeChatModel(LLM):
@@ -24,12 +23,7 @@ class ClaudeChatModel(LLM):
         """
         self._check_tool_choice(tools, tool_choice)
 
-        tools_formatted = []
-        for tool in tools:
-            _, tool_formatted = handle_response_model(
-                tool, mode=Mode.ANTHROPIC_TOOLS, messages=[]
-            )
-            tools_formatted.append(tool_formatted["tools"][0])
+        tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
 
         if tool_choice:
             # If the tool_choice is a named tool, then apply correct formatting

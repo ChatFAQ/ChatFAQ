@@ -1,13 +1,12 @@
 import os
 from typing import Dict, List
 
-from instructor import Mode, handle_response_model
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM
+from chat_rag.llms import LLM, Mode, format_tools
 
 
 class MistralChatModel(LLM):
@@ -40,10 +39,7 @@ class MistralChatModel(LLM):
         """
         self._check_tool_choice(tools, tool_choice)
 
-        tools_formatted = []
-        for tool in tools:
-            _, tool_formatted = handle_response_model(tool, mode=Mode.MISTRAL_TOOLS)
-            tools_formatted.append(tool_formatted["tools"][0])
+        tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
         if tool_choice:
             if tool_choice not in ["required", "auto"]:

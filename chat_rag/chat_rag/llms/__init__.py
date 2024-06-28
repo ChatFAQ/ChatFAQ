@@ -17,3 +17,22 @@ __all__ = [
     "HFModel",
 ]
 
+
+LLM_CLASSES = {
+    "claude": ClaudeChatModel,
+    "mistral": MistralChatModel,
+    "openai": OpenAIChatModel,
+    "vllm": VLLMModel,
+    "together": OpenAIChatModel,
+}
+
+def load_llm(llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None):
+    # For Together model, set the fixed TOGETHER url
+    if llm_type == "together":
+        base_url = "https://api.together.xyz/v1"
+
+    llm = LLM_CLASSES[llm_type](
+        llm_name, base_url=base_url, model_max_length=model_max_length
+    )
+    return llm
+

@@ -1,11 +1,10 @@
 import os
 from typing import Dict, List
 
-from instructor import Mode, handle_response_model
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM
+from chat_rag.llms import LLM, Mode, format_tools
 
 
 class OpenAIChatModel(LLM):
@@ -37,10 +36,7 @@ class OpenAIChatModel(LLM):
         """
         self._check_tool_choice(tools, tool_choice)
 
-        tools_formatted = []
-        for tool in tools:
-            _, tool_formatted = handle_response_model(tool, mode=Mode.TOOLS)
-            tools_formatted.append(tool_formatted["tools"][0])
+        tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool.model_json_schema()['title'] for tool in tools]:

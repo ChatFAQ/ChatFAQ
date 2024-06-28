@@ -74,9 +74,15 @@ def generate_titles_task(knowledge_base_pk, n_titles=10):
 def generate_intents(clusters_texts, llm_config_id):
     from chat_rag.intent_detection import agenerate_intents
     from back.apps.language_model.models import LLMConfig
+    from chat_rag.llms import load_llm
 
     llm_config = LLMConfig.objects.get(pk=llm_config_id)
-    llm = llm_config.load_llm()
+    llm = load_llm(
+                llm_config.llm_type,
+                llm_config.llm_name,
+                base_url=llm_config.base_url,
+                model_max_length=llm_config.model_max_length,
+            )
 
     print("Generating intents...")
     intents = asyncio.run(agenerate_intents(clusters_texts, llm))
