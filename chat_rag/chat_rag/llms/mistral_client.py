@@ -6,8 +6,8 @@ from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM, Mode, format_tools
-
+from .base_llm import LLM
+from .format_tools import Mode, format_tools
 
 class MistralChatModel(LLM):
     def __init__(

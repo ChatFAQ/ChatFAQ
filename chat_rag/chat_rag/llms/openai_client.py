@@ -4,8 +4,8 @@ from typing import Dict, List
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM, Mode, format_tools
-
+from .base_llm import LLM
+from .format_tools import Mode, format_tools
 
 class OpenAIChatModel(LLM):
     def __init__(
