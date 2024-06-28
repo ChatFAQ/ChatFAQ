@@ -337,12 +337,9 @@ The generation config is used to define the characteristics of the second part f
 The sampling generation process is configured with the following properties:
 
 - **name**: Just a name for the generation process.
-- **top_k**: The number of tokens to consider for the top-k sampling. Default: 50.
-- **top_p**: The cumulative probability for the top-p sampling. Default: 1.0.
 - **temperature**: The temperature for the sampling. Default: 0.2.
-- **repetition_penalty**: The repetition penalty for the sampling. Default: 1.0.
 - **seed**: The seed for the sampling. Default: 42.
-- **max_new_tokens**: The maximum number of new tokens to generate. Default: 256.
+- **max_tokens**: The maximum number of new tokens to generate. Default: 1024.
 
 We recommend setting the temperature to low values, less than 1.0 because we want the model to be factual, not creative. A very good guide of all this parameters can be found in the [HuggingFace documentation](https://huggingface.co/blog/how-to-generate).
 
@@ -351,12 +348,9 @@ An example of a generation config is the following:
 ```json
 {
     "name": "Llama2_GenerationConfig",
-    "top_k": 50,
-    "top_p": 1.0,
     "temperature": 0.2,
-    "repetition_penalty": 1.0,
     "seed": 42,
-    "max_new_tokens": 256
+    "max_tokens": 1024
 }
 ```
 

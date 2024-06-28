@@ -162,7 +162,7 @@
     "llmtype": "LLM Type",
     "load_in_8bit": "Load in 8-bit",
     "logs": "Logs",
-    "max_new_tokens": "Max New Tokens",
+    "max_tokens": "Max New Tokens",
     "message": "Message",
     "meta": "Meta",
     "metadata": "Metadata",

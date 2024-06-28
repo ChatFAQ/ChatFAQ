@@ -162,7 +162,7 @@
     "llmtype": "Type de LLM",
     "load_in_8bit": "Charger en 8 bits",
     "logs": "Journaux",
-    "max_new_tokens": "Maximum de nouveaux jetons",
+    "max_tokens": "Maximum de nouveaux jetons",
     "message": "Message",
     "meta": "Méta",
     "metadata": "Métadonnées",

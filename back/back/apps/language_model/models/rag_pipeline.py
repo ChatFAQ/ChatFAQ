@@ -357,7 +357,7 @@ class GenerationConfig(ChangesMixin):
     Defines the generation configuration for a model.
     temperature : float, optional
         The temperature for the sampling, by default 0.2
-    max_new_tokens : int, optional
+    max_tokens : int, optional
         The maximum number of new tokens to generate, by default 256
     seed : int, optional
         The seed for the sampling, by default 42
