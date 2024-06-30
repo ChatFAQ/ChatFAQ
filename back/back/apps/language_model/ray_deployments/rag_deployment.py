@@ -1,5 +1,4 @@
 import json
-from asgiref.sync import sync_to_async
 from typing import List, Dict
 import ray
 from ray import serve
@@ -44,38 +43,19 @@ class RAGDeployment:
     def __init__(
         self,
         retriever_handle: DeploymentHandle,
-        llm_config_id: int,
+        llm_type: str,
+        llm_name: str,
+        base_url: str,
+        model_max_length: int,
         lang: str = "en",
     ):
+        from chat_rag import RAG
+        from chat_rag.llms import load_llm
+
         self.retriever_handle = retriever_handle
-        self.llm_config_id = llm_config_id
         self.lang = lang
-        self.rag = None
-
-    async def initialize_rag(self):
-        """
-        Lazy initialization of the RAG object, we cannot initialize it in the constructor because accessing the database is an async operation and the constructor is synchronous.
-        """
-        if self.rag is None:
-            from back.apps.language_model.models import LLMConfig
-            from chat_rag import RAG
-            from chat_rag.llms import load_llm
-
-
-            retriever = self.RetrieverHandleClient(self.retriever_handle)
-
-            llm_config = await sync_to_async(LLMConfig.objects.get)(
-                pk=self.llm_config_id
-            )
-            llm = load_llm(
-                llm_config.llm_type,
-                llm_config.llm_name,
-                base_url=llm_config.base_url,
-                model_max_length=llm_config.model_max_length,
-            )
-
-            self.rag = RAG(retriever=retriever, llm=llm, lang=self.lang)
-            print("Rag Orchestrator initialized.")
+        llm = load_llm(llm_type, llm_name, base_url=base_url, model_max_length=model_max_length)
+        self.rag = RAG(retriever=self.RetrieverHandleClient(retriever_handle), llm=llm, lang=lang)
 
     async def gen_response(
         self,
@@ -88,7 +68,6 @@ class RAGDeployment:
         only_context=False,
     ):
         print(f"Generating response for messages: {messages}")
-        await self.initialize_rag()  # Ensure RAG is initialized
 
         context_sent = False
         async for response_dict in self.rag.astream(
@@ -127,7 +106,10 @@ class RAGDeployment:
 def launch_rag(
     rag_deploy_name,
     retriever_handle,
-    llm_config_id,
+    llm_type,
+    llm_name,
+    base_url,
+    model_max_length,
     lang,
     num_replicas=1,
 ):
@@ -138,7 +120,7 @@ def launch_rag(
     print(f"Launching RAG deployment with name: {rag_deploy_name}")
     rag_handle = RAGDeployment.options(
         num_replicas=num_replicas,
-    ).bind(retriever_handle, llm_config_id, lang)
+    ).bind(retriever_handle, llm_type, llm_name, base_url, model_max_length, lang)
 
     print(f"Launched RAG deployment with name: {rag_deploy_name}")
     route_prefix = f"/rag/{rag_deploy_name}"
@@ -206,12 +188,18 @@ def launch_rag_deployment(rag_config_id):
         raise ValueError(f"Retriever type: {retriever_type.value} not supported.")
 
     # LLM Info
-    llm_config_id = rag_config.llm_config.pk
+    llm_type = rag_config.llm_config.llm_type
+    llm_name = rag_config.llm_config.llm_name
+    base_url = rag_config.llm_config.base_url
+    model_max_length = rag_config.llm_config.model_max_length
 
     launch_rag(
         rag_deploy_name,
         retriever_handle,
-        llm_config_id,
+        llm_type,
+        llm_name,
+        base_url,
+        model_max_length,
         lang,
         num_replicas,
     )
