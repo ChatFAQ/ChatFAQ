@@ -413,6 +413,28 @@ files = [
 ]
 
 [[package]]
+name = "bm25s"
+version = "0.1.7"
+description = "An ultra-fast implementation of BM25 based on sparse matrices."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "bm25s-0.1.7-py3-none-any.whl", hash = "sha256:a1f81737a0fcf11d0728bbb8cd6e3c8d7442acf16f0d910daf5da04f8d2dc631"},
+    {file = "bm25s-0.1.7.tar.gz", hash = "sha256:f9e42134113666abaac8ec8f8d70b1fabd7b7cb6e8bac92ff078971a325034a3"},
+]
+
+[package.dependencies]
+numpy = "*"
+scipy = "*"
+
+[package.extras]
+core = ["PyStemmer", "jax[cpu]", "tqdm", "ujson"]
+dev = ["black"]
+full = ["PyStemmer", "black", "huggingface-hub", "jax[cpu]", "tqdm", "ujson"]
+hf = ["huggingface-hub"]
+stem = ["PyStemmer"]
+
+[[package]]
 name = "catalogue"
 version = "2.0.10"
 description = "Super lightweight function registries for your library"
@@ -6039,4 +6061,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "56cd9a1906a873a65009b7016cfe50951092eb19f41713f73d9c7174bf04a335"
+content-hash = "80976d0cb53e7fee541c25d533a2262054cd4442055e64e39eb023b900a226db"
