@@ -1,7 +1,7 @@
 from typing import List
 from logging import getLogger
 
-from chat_rag.utils.cross_encoder import ReRanker
+from chat_rag.utils.reranker import ReRanker
 
 
 logger = getLogger(__name__)
