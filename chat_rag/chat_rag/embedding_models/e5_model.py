@@ -3,7 +3,7 @@ from logging import getLogger
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
+from chat_rag.embedding_models.base_model import BaseModel
 
 logger = getLogger(__name__)
 

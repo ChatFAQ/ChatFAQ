@@ -4,7 +4,7 @@ import torch
 import srsly
 from ragatouille import RAGPretrainedModel
 from ragatouille.data.preprocessors import llama_index_sentence_splitter
-from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
+from chat_rag.utils.reference_checker import clean_relevant_references
 
 
 

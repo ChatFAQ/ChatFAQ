@@ -4,7 +4,7 @@ from logging import getLogger
 import numpy as np
 import torch
 
-from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
+from chat_rag.embedding_models.base_model import BaseModel
 
 logger = getLogger(__name__)
 

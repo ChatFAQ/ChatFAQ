@@ -6,7 +6,7 @@ import umap
 from sklearn.cluster import HDBSCAN # Maybe replace with cuML implementation for speedup when using GPU
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from chat_rag.inf_retrieval.embedding_models import BaseModel, E5Model
+from chat_rag.embedding_models import BaseModel, E5Model
 
 logger = logging.getLogger(__name__)
 

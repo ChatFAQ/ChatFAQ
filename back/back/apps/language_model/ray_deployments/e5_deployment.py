@@ -21,8 +21,8 @@ class E5Deployment:
     """
 
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
-        from chat_rag.inf_retrieval.embedding_models import E5Model
-        from chat_rag.inf_retrieval.cross_encoder import ReRanker
+        from chat_rag.embedding_models import E5Model
+        from chat_rag.utils.cross_encoder import ReRanker
 
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
