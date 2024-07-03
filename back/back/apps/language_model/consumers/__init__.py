@@ -1,8 +1,6 @@
 import json
 import uuid
-
 from logging import getLogger
-from django.forms.models import model_to_dict
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -10,9 +8,13 @@ from django.contrib.auth.models import AnonymousUser
 from ray.serve import get_deployment_handle
 
 from back.apps.broker.consumers.message_types import RPCMessageType
-from back.apps.broker.models.message import Conversation, StackPayloadType, AgentType, Message
+from back.apps.broker.models.message import AgentType, Conversation, StackPayloadType
 from back.apps.broker.serializers.rpc import RPCLLMRequestSerializer
-from back.apps.language_model.models import RAGConfig, KnowledgeItem, MessageKnowledgeItem
+from back.apps.language_model.models import (
+    KnowledgeItem,
+    MessageKnowledgeItem,
+    RAGConfig,
+)
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
 
@@ -28,7 +30,9 @@ def format_msgs_chain_to_llm_context(msgs_chain):
                 if stack["type"] == StackPayloadType.text.value:
                     text += stack["payload"]
                 else:
-                    logger.warning(f"Stack type {stack['type']} for sender {msg['sender']['type']} is not supported for LLM contextualization.")
+                    logger.warning(
+                        f"Stack type {stack['type']} for sender {msg['sender']['type']} is not supported for LLM contextualization."
+                    )
 
             if text:
                 messages.append({"role": "user", "content": text})
@@ -36,9 +40,11 @@ def format_msgs_chain_to_llm_context(msgs_chain):
             text = ""
             for stack in msg.stack:
                 if stack["type"] == StackPayloadType.lm_generated_text.value:
-                    text += stack['payload']['model_response']
+                    text += stack["payload"]["model_response"]
                 else:
-                    logger.warning(f"Stack type {stack['type']} for sender {msg.sender['type']} is not supported for LLM contextualization.")
+                    logger.warning(
+                        f"Stack type {stack['type']} for sender {msg.sender['type']} is not supported for LLM contextualization."
+                    )
             if text:
                 messages.append({"role": "assistant", "content": text})
 
@@ -51,7 +57,9 @@ async def resolve_references(reference_kis, conv, rag_conf, relate_kis_to_msgs=F
     prev_kis = await database_sync_to_async(conv.get_kis)()
 
     for index, ki in enumerate(reference_kis):
-        ki_item = await database_sync_to_async(KnowledgeItem.objects.prefetch_related('knowledgeitemimage_set').get)(pk=ki['k_item_id'])
+        ki_item = await database_sync_to_async(
+            KnowledgeItem.objects.prefetch_related("knowledgeitemimage_set").get
+        )(pk=ki["k_item_id"])
         reference_kis[index] = {
             **ki_item.to_retrieve_context(),
             "similarity": ki["similarity"],
@@ -85,7 +93,14 @@ async def resolve_references(reference_kis, conv, rag_conf, relate_kis_to_msgs=F
     }
 
 
-async def query_ray(rag_config_name, conversation_id, input_text=None, use_conversation_context=True, only_context=False, streaming=True):
+async def query_ray(
+    rag_config_name,
+    conversation_id,
+    input_text=None,
+    use_conversation_context=True,
+    only_context=False,
+    streaming=True,
+):
     """
     # for debuggin purposes send 100 messages waiting 0.1 seconds between each one
     import asyncio
@@ -97,53 +112,87 @@ async def query_ray(rag_config_name, conversation_id, input_text=None, use_conve
     return
     """
     try:
-        rag_conf = await database_sync_to_async(RAGConfig.enabled_objects.prefetch_related("prompt_config", "generation_config", "knowledge_base").get)(name=rag_config_name)
+        rag_conf = await database_sync_to_async(
+            RAGConfig.enabled_objects.prefetch_related(
+                "prompt_config", "generation_config", "knowledge_base"
+            ).get
+        )(name=rag_config_name)
     except RAGConfig.DoesNotExist:
-        yield {"model_response": f"RAG config with name: {rag_config_name} does not exist.", "references": {}, "final": True}
+        yield {
+            "model_response": f"RAG config with name: {rag_config_name} does not exist.",
+            "references": {},
+            "final": True,
+        }
         return
 
-    p_conf = model_to_dict(rag_conf.prompt_config)
-    p_conf.pop("id")
-    g_conf = model_to_dict(rag_conf.generation_config)
-    g_conf.pop("id")
+    p_conf = rag_conf.prompt_config
+    system_prompt = p_conf.system_prompt
+    n_contexts_to_use = p_conf.n_contexts_to_use
+    g_conf = rag_conf.generation_config
+    temperature = g_conf.temperature
+    max_tokens = g_conf.max_tokens
+    seed = g_conf.seed
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
     prev_kis = await database_sync_to_async(conv.get_kis)()
 
     messages = ""
     if use_conversation_context:
-        messages = format_msgs_chain_to_llm_context(await database_sync_to_async(list)(conv.get_msgs_chain()))
+        messages = format_msgs_chain_to_llm_context(
+            await database_sync_to_async(list)(conv.get_msgs_chain())
+        )
     if input_text:
         messages.append({"role": "user", "content": input_text})
+
+    messages.insert(0, {"role": "system", "content": system_prompt})
 
     references = None
 
     try:
         if streaming:
-            handle = get_deployment_handle('rag_orchestrator', app_name=rag_conf.get_deploy_name()).options(stream=True)
+            handle = get_deployment_handle(
+                "rag_orchestrator", app_name=rag_conf.get_deploy_name()
+            ).options(stream=True)
             response = handle.remote(
                 messages,
-                await database_sync_to_async(list)(prev_kis.values_list("content", flat=True)),
-                p_conf,
-                g_conf,
-                only_context
+                await database_sync_to_async(list)(
+                    prev_kis.values_list("content", flat=True)
+                ),
+                temperature,
+                max_tokens,
+                seed,
+                n_contexts_to_use,
+                only_context,
             )
             async for ray_res in response:
                 ray_res = json.loads(ray_res)
                 if references is None:
-                    references = await resolve_references((ray_res.get("context", [[]]) or [[]])[0], conv, rag_conf, relate_kis_to_msgs=not input_text)
+                    references = await resolve_references(
+                        (ray_res.get("context", [[]]) or [[]])[0],
+                        conv,
+                        rag_conf,
+                        relate_kis_to_msgs=not input_text,
+                    )
 
-                    logger.info(f"{'#' * 80}\n"
-                                f"References: {references}\n"
-                                f"{'#' * 80}")
+                    logger.info(
+                        f"{'#' * 80}\n" f"References: {references}\n" f"{'#' * 80}"
+                    )
 
-                yield {"model_response": ray_res.get("res", ""), "references": references, "final": False}
+                yield {
+                    "model_response": ray_res.get("res", ""),
+                    "references": references,
+                    "final": False,
+                }
         else:
             pass  # TODO: implement non-streaming version
     except Exception as e:
         logger.error("Error during RAG query", exc_info=e)
         # return _send_message(bot_channel_name, lm_msg_id, channel_layer, chanel_name, msg='There was an error generating the response. Please try again or contact the administrator.')
-        yield {"model_response": "There was an error generating the response. Please try again or contact the administrator.", "references": {}, "final": True}
+        yield {
+            "model_response": "There was an error generating the response. Please try again or contact the administrator.",
+            "references": {},
+            "final": True,
+        }
         return
 
     yield {"model_response": "", "references": references, "final": True}
@@ -185,7 +234,14 @@ class LLMConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
 
         lm_msg_id = str(uuid.uuid4())
         data = serializer.validated_data
-        async for chunk in query_ray(data["rag_config_name"], data["conversation_id"], data.get("input_text"), data["use_conversation_context"], data.get("only_context"), data["streaming"]):
+        async for chunk in query_ray(
+            data["rag_config_name"],
+            data["conversation_id"],
+            data.get("input_text"),
+            data["use_conversation_context"],
+            data.get("only_context"),
+            data["streaming"],
+        ):
             await self.send(
                 json.dumps(
                     {

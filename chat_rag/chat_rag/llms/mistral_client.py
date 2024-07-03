@@ -4,140 +4,84 @@ from typing import Dict, List
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
+from pydantic import BaseModel
 
-from chat_rag.llms import RAGLLM
+from .base_llm import LLM
+from .format_tools import Mode, format_tools
 
-
-class MistralChatModel(RAGLLM):
+class MistralChatModel(LLM):
     def __init__(
         self,
-        llm_name: str,
-        base_url: str = None,
+        llm_name: str = "mistral-large-latest",
         **kwargs,
     ):
         self.client = MistralClient(api_key=os.environ["MISTRAL_API_KEY"])
+        self.aclient = MistralAsyncClient(api_key=os.environ["MISTRAL_API_KEY"])
         self.llm_name = llm_name
 
     def format_prompt(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        system_prefix: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
+    ) -> List[ChatMessage]:
         """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : list
-            The context to use.
-        system_prefix : str
-            The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
-        n_contexts_to_use : int, optional
-            The number of contexts to use, by default 3
-        lang : str, optional
-            The language of the prompt, by default 'en'
+        Formats the prompt to be used by the model into the correct Mistral format.
         """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prefix=system_prefix,
-            n_contexts_to_use=n_contexts_to_use,
-            lang=lang,
-        )
-        final_messages = [ChatMessage(role='system', content=system_prompt)]  \
-            + [ChatMessage(role=message['role'], content=message['content']) for message in messages]
-        
-        print(final_messages)
+        final_messages = [
+            ChatMessage(role=message["role"], content=message["content"])
+            for message in messages
+        ]
 
         return final_messages
-    
-    def generate(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
+
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
         """
-        Generate text from a prompt using the model.
-        Parameters
-        ---------text-
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        Returns
-        -------
-        str
-            The generated text.
+        Format the tools from a generic BaseModel to the OpenAI format.
         """
+        self._check_tool_choice(tools, tool_choice)
 
-        messages = self.format_prompt(
-            messages=messages,
-            contexts=contexts,
-            **prompt_structure_dict,
-            lang=lang,
-        )
+        tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
-        chat_response = self.client.chat(
-            model=self.llm_name,
-            messages=messages,
-            temperature=generation_config_dict["temperature"],
-            top_p=generation_config_dict["top_p"],
-            max_tokens=generation_config_dict["max_new_tokens"],
-            random_seed=generation_config_dict["seed"],
-        )
+        if tool_choice:
+            if tool_choice not in ["required", "auto"]:
+                raise ValueError(
+                    "Named tool choice is not supported for Mistral, only 'required' or 'auto' is supported."
+                )
 
-        return chat_response.choices[0].message.content
+            tool_choice = (
+                "any" if tool_choice == "required" else tool_choice
+            )  # map "required" to "any"
+
+        return tools_formatted, tool_choice
+
+    def _extract_tool_info(self, message) -> List[Dict]:
+        """
+        Format the tool information from the anthropic response to a standard format.
+        """
+        tools = []
+        for tool in message.tool_calls:
+            tools.append(
+                {
+                    "id": tool.id,
+                    "name": tool.function.name,
+                    "args": tool.function.arguments,
+                }
+            )
+
+        return tools
 
     def stream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
+        temperature: float = 1.0,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ):
         """
         Generate text from a prompt using the model in streaming mode.
         Parameters
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
@@ -146,108 +90,33 @@ class MistralChatModel(RAGLLM):
 
         messages = self.format_prompt(
             messages=messages,
-            contexts=contexts,
-            **prompt_structure_dict,
-            lang=lang,
         )
 
         for chunk in self.client.chat_stream(
             model=self.llm_name,
             messages=messages,
-            temperature=generation_config_dict["temperature"],
-            top_p=generation_config_dict["top_p"],
-            max_tokens=generation_config_dict["max_new_tokens"],
-            random_seed=generation_config_dict["seed"],
+            temperature=temperature,
+            max_tokens=max_tokens,
+            random_seed=seed,
         ):
             if chunk.choices[0].delta.content is not None:
                 yield chunk.choices[0].delta.content
 
         return
 
-
-class AsyncMistralChatModel(RAGLLM):
-    def __init__(
-        self,
-        llm_name: str,
-        **kwargs,
-    ):
-        self.client = MistralAsyncClient(api_key=os.environ["MISTRAL_API_KEY"])
-        self.llm_name = llm_name
-
-    def format_prompt(
+    async def astream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        system_prefix: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
+        temperature: float = 1.0,
+        max_tokens: int = 1024,
+        seed: int = None,
+    ):
         """
-        Formats the prompt to be used by the model.
+        Generate text from a prompt using the model in streaming mode.
         Parameters
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : list
-            The context to use.
-        system_prefix : str
-            The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-            The tag to indicate the end of the role (system role, user role, assistant role).
-        n_contexts_to_use : int, optional
-            The number of contexts to use, by default 3
-        lang : str, optional
-            The language of the prompt, by default 'en'
-        """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prefix=system_prefix,
-            n_contexts_to_use=n_contexts_to_use,
-            lang=lang,
-        )
-        final_messages = [ChatMessage(role='system', content=system_prompt)]  \
-            + [ChatMessage(role=message['role'], content=message['content']) for message in messages]
-        
-        print(final_messages)
-
-        return final_messages
-  
-
-    async def generate(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
-        """
-        Generate text from a prompt using the model.
-        Parameters
-        ---------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
@@ -256,67 +125,104 @@ class AsyncMistralChatModel(RAGLLM):
 
         messages = self.format_prompt(
             messages=messages,
-            contexts=contexts,
-            **prompt_structure_dict,
-            lang=lang,
         )
 
-        chat_response = await self.client.chat(
+        async for chunk in self.aclient.chat_stream(
             model=self.llm_name,
             messages=messages,
-            temperature=generation_config_dict["temperature"],
-            top_p=generation_config_dict["top_p"],
-            max_tokens=generation_config_dict["max_new_tokens"],
-            random_seed=generation_config_dict["seed"],
-        )
+            temperature=temperature,
+            max_tokens=max_tokens,
+            random_seed=seed,
+        ):
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content
 
-        return chat_response.choices[0].message.content
+        return
 
-    async def stream(
+    def generate(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
-            """
-            Generate text from a prompt using the model in streaming mode.
-            Parameters
-            ---------
-            messages : List[Tuple[str, str]]
-                The messages to use for the prompt. Pair of (role, message).
-            contexts : List[str]
-                The contexts to use for generation.
-            prompt_structure_dict : dict
-                Dictionary containing the structure of the prompt.
-            generation_config_dict : dict
-                Keyword arguments for the generation.
-            lang : str
-                The language of the prompt.
-            Returns
-            -------
-            str
-                The generated text.
-            """
-            
-            messages = self.format_prompt(
-                messages=messages,
-                contexts=contexts,
-                **prompt_structure_dict,
-                lang=lang,
-            )
-    
-            async for chunk in self.client.chat_stream(
-                model=self.llm_name,
-                messages=messages,
-                temperature=generation_config_dict["temperature"],
-                top_p=generation_config_dict["top_p"],
-                max_tokens=generation_config_dict["max_new_tokens"],
-                random_seed=generation_config_dict["seed"],
-            ):
-                if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
-    
-            return
+        temperature: float = 1.0,
+        max_tokens: int = 1024,
+        seed: int = None,
+        tools: List[Dict] = None,
+        tool_choice: str = None,
+    ):
+        """
+        Generate text from a prompt using a model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+
+        messages = self.format_prompt(
+            messages=messages,
+        )
+
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+
+        chat_response = self.client.chat(
+            model=self.llm_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            random_seed=seed,
+            tools=tools,
+            tool_choice=tool_choice,
+        )
+
+        message = chat_response.choices[0].message
+        if chat_response.choices[0].finish_reason == "tool_calls":
+            return self._extract_tool_info(message)
+
+        return message.content
+
+    async def agenerate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 1.0,
+        max_tokens: int = 1024,
+        seed: int = None,
+        tools: List[Dict] = None,
+        tool_choice: str = None,
+    ):
+        """
+        Generate text from a prompt using a model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+
+        messages = self.format_prompt(
+            messages=messages,
+        )
+        
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+
+        chat_response = await self.aclient.chat(
+            model=self.llm_name,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            random_seed=seed,
+            tools=tools,
+            tool_choice=tool_choice,
+        )
+
+        message = chat_response.choices[0].message
+        if chat_response.choices[0].finish_reason == "tool_calls":
+            return self._extract_tool_info(message)
+
+        return message.content

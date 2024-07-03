@@ -1,11 +1,11 @@
-from typing import List
 from logging import getLogger
+from typing import List
 
-from tqdm import tqdm
 import torch
 import torch.nn.functional as F
 from torch import Tensor
-from transformers import AutoTokenizer, AutoModel
+from tqdm import tqdm
+from transformers import AutoModel, AutoTokenizer
 
 logger = getLogger(__name__)
 
@@ -20,6 +20,8 @@ class BaseModel:
         model_name: str = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1",
         use_cpu: bool = False,
         huggingface_key: str = None,
+        trust_remote_code: bool = False,
+        **kwargs,
     ):
         """
         Parameters
@@ -30,6 +32,8 @@ class BaseModel:
             Whether to use CPU for encoding, by default False
         huggingface_key : str, optional
             Huggingface key to be used for private models, by default None
+        trust_remote_code : bool, optional
+            Whether to trust the remote code, by default False
         """
 
         self.device = "cuda" if (not use_cpu and torch.cuda.is_available()) else "cpu"
@@ -44,6 +48,8 @@ class BaseModel:
         self.model = AutoModel.from_pretrained(
             model_name,
             token=huggingface_key,
+            trust_remote_code=trust_remote_code,
+            **kwargs,
         ).to(self.device)
 
     def average_pool(
@@ -121,12 +127,12 @@ class BaseModel:
         torch.cuda.empty_cache()
 
         return all_embeddings
-    
+
     def build_embeddings(
         self,
         contents: List[str] = None,
         batch_size: int = 1,
-        prefix: str = "passage: ",
+        prefix: str = "",
         disable_progress_bar: bool = False,
     ):
         """
@@ -138,7 +144,7 @@ class BaseModel:
         batch_size : int, optional
             Batch size to be used for encoding the context, by default 1
         prefix : str, optional
-            Prefix or instruction to be added to the context, by default 'passage: ' for e5 models.
+            Prefix or instruction to be added to the context. Sometimes is used for instruct embedding models like Instructor models or intfloat/multilingual-e5-large-instruct.
         """
         logger.info("Building embeddings...")
 

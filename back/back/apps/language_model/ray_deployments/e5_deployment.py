@@ -21,8 +21,8 @@ class E5Deployment:
     """
 
     def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
-        from chat_rag.inf_retrieval.embedding_models import E5Model
-        from chat_rag.inf_retrieval.cross_encoder import ReRanker
+        from chat_rag.embedding_models import E5Model
+        from chat_rag.utils.reranker import ReRanker
 
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
@@ -39,7 +39,6 @@ class E5Deployment:
         Batch handler for the retriever model. This method is called by Ray Serve when a batch of requests is received.
         It creates the query embeddings, sends them to a pgvector backend endpoint for retrieval asynchronously and returns the results.
         """
-
         embeddings = self.model.build_embeddings(queries, prefix='query: ')
 
         async with ClientSession() as session:
@@ -68,6 +67,8 @@ class E5Deployment:
                 continue
 
             reranked_results = self.reranker(query, results)
+            for result in reranked_results:
+                result['score'] = result['score'].item() # convert scores from np.float32 to float
             results_reranked.append(reranked_results)
 
         return results_reranked
@@ -91,6 +92,4 @@ def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='e
             ).bind(model_name, use_cpu, rag_config_id, lang)
 
     print("E5 deployment started")
-    # serve.run(retriever_handle, host="0.0.0.0", port=8000, route_prefix="/retrieve", name='retriever_deployment')
-    # print("E5 deployment finished")
     return retriever_handle
