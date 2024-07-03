@@ -686,13 +686,7 @@ To configure this server you need to:
 modules > ia-configuration > the-rag-pipeline > prompt-config,"modules > ia-configuration > the-rag-pipeline > prompt-config: The prompt is the input that the LLM will use to generate the answer. This config indicates how to build the final prompt that the LLM reads.
 
 - **name**: Just a name for this prompt.
-- **system_prefix**: This system prompt indicates the LLM how to behave.
-- **system_tag**: The tag to indicate the start of the system prefix for the LLM.
-- **system_end**: The tag to indicate the end of the system prefix for the LLM.
-- **user_tag**: The tag to indicate the start of the user input.
-- **user_end**: The tag to indicate the end of the user input.
-- **assistant_tag**: The tag to indicate the start of the assistant output.
-- **assistant_end**: The tag to indicate the end of the assistant output.
+- **system_prompt**: This system prompt indicates the LLM how to behave.
 - **n_contexts_to_use**: The number of contexts from the Retriever to use in the generation process. Default: 3
 
 We recommend using the [ChatML guidelines](https://github.com/openai/openai-python/blob/main/chatml.md), an of course using LLMs trained using this format, like Llama-2. The example here is the prompt format used by [Llama-2](https://huggingface.co/blog/llama2#how-to-prompt-llama-2):
@@ -708,19 +702,13 @@ Then for the tags it is recommended to use the following:
 ```json
 {
     ""name"": ""Llama2_PromptConfig"",
-    ""system_prefix"": ""You are a helpful, respectful and honest assistant. <Rest of the text> If you don't know the answer to a question, please don't share false information.\n\n"",
-    ""system_tag"": ""<s>[INST] <<SYS>>\n"",
-    ""system_end"": ""\n<</SYS>>\n"",
-    ""user_tag"": """",
-    ""user_end"": ""[/INST]\n"",
-    ""assistant_tag"": """",
-    ""assistant_end"": ""[/INST]\n""
+    ""system_prompt"": ""You are a helpful, respectful and honest assistant. <Rest of the text> If you don't know the answer to a question, please don't share false information.\n\n""
 }
 ```
 
 When constructing the prompt we just concatenate the tags in the following order:
 1. system_tag
-2. system_prefix
+2. system_prompt
 3. system_end
 4. user_tag
 5. user message

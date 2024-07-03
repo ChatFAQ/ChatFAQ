@@ -265,7 +265,6 @@ This uses a client to connect to a [vLLM server](https://github.com/vllm-project
 To configure this server you need to:
 
 - You need to specify the model that you want to use inside this [`Dockerfile`](https://github.com/ChatFAQ/ChatFAQ/tree/develop/model_engines/llm), and then follow [this instructions](https://github.com/ChatFAQ/ChatFAQ/tree/develop/model_engines/llm).
-- - You need to specify the URL of the vLLM server in the `.env`. Usually it will be `VLLM_ENDPOINT_URL=http://localhost:5000/generate`.
 - Start the back, go to the admin and from it you only need to specify that you want to use the `vLLM Client`.
 
 ### Prompt Config
@@ -273,13 +272,7 @@ To configure this server you need to:
 The prompt is the input that the LLM will use to generate the answer. This config indicates how to build the final prompt that the LLM reads.
 
 - **name**: Just a name for this prompt.
-- **system_prefix**: This system prompt indicates the LLM how to behave.
-- **system_tag**: The tag to indicate the start of the system prefix for the LLM.
-- **system_end**: The tag to indicate the end of the system prefix for the LLM.
-- **user_tag**: The tag to indicate the start of the user input.
-- **user_end**: The tag to indicate the end of the user input.
-- **assistant_tag**: The tag to indicate the start of the assistant output.
-- **assistant_end**: The tag to indicate the end of the assistant output.
+- **system_prompt**: This system prompt indicates the LLM how to behave.
 - **n_contexts_to_use**: The maximum number of knowledge items that will be appear in the sources. Default: 3
 
 In the system prefix you can use the following text behavior:
@@ -331,13 +324,7 @@ must check the model's documentation to see what tags are needed. For example, f
 ```json
 {
     "name": "Llama2_PromptConfig",
-    "system_prefix": "You are a helpful, respectful and honest assistant. <Rest of the text> If you don't know the answer to a question, please don't share false information.\n\n",
-    "system_tag": "<s>[INST] <<SYS>>\n",
-    "system_end": "\n<</SYS>>\n",
-    "user_tag": "",
-    "user_end": "[/INST]\n",
-    "assistant_tag": "",
-    "assistant_end": "[/INST]\n"
+    "system_prompt": "You are a helpful, respectful and honest assistant. <Rest of the text> If you don't know the answer to a question, please don't share false information.\n\n",
 }
 ```
 
@@ -350,12 +337,9 @@ The generation config is used to define the characteristics of the second part f
 The sampling generation process is configured with the following properties:
 
 - **name**: Just a name for the generation process.
-- **top_k**: The number of tokens to consider for the top-k sampling. Default: 50.
-- **top_p**: The cumulative probability for the top-p sampling. Default: 1.0.
 - **temperature**: The temperature for the sampling. Default: 0.2.
-- **repetition_penalty**: The repetition penalty for the sampling. Default: 1.0.
 - **seed**: The seed for the sampling. Default: 42.
-- **max_new_tokens**: The maximum number of new tokens to generate. Default: 256.
+- **max_tokens**: The maximum number of new tokens to generate. Default: 1024.
 
 We recommend setting the temperature to low values, less than 1.0 because we want the model to be factual, not creative. A very good guide of all this parameters can be found in the [HuggingFace documentation](https://huggingface.co/blog/how-to-generate).
 
@@ -364,12 +348,9 @@ An example of a generation config is the following:
 ```json
 {
     "name": "Llama2_GenerationConfig",
-    "top_k": 50,
-    "top_p": 1.0,
     "temperature": 0.2,
-    "repetition_penalty": 1.0,
     "seed": 42,
-    "max_new_tokens": 256
+    "max_tokens": 1024
 }
 ```
 
