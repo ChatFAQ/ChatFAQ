@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 
 def generate_titles(contents, n_titles, lang):
-    from chat_rag.inf_retrieval.query_generator import QueryGenerator
+    from chat_rag.utils.gen_question import QueryGenerator
     from tqdm import tqdm
 
     api_key = os.environ.get("OPENAI_API_KEY", None)
@@ -76,7 +76,7 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
     def retrieve(queries, rag_config_id, e5_model_args, batch_size, top_k=1):
         import requests
         import os
-        from chat_rag.inf_retrieval.embedding_models import E5Model
+        from chat_rag.utils.embedding_models import E5Model
 
         e5_model = E5Model(**e5_model_args, huggingface_key=os.environ.get("HUGGINGFACE_API_KEY", None))
 
@@ -104,7 +104,7 @@ def get_similarity_scores(titles, rag_config_id, e5_model_args, batch_size):
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def clusterize_queries(queries, e5_model_args, batch_size):
 
-    from chat_rag.inf_retrieval.embedding_models import E5Model
+    from chat_rag.utils.embedding_models import E5Model
     from chat_rag.intent_detection import clusterize_text
 
     e5_model = E5Model(**e5_model_args, huggingface_key=os.environ.get("HUGGINGFACE_API_KEY", None))
