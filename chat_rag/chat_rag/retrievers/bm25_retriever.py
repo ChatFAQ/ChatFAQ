@@ -47,7 +47,7 @@ class BM25Retriever:
                 [
                     {
                         **doc,
-                        "score": score,
+                        "score": score.item(), # from np.float32 to float
                     }
                     for doc, score in zip(results_query, scores_queries)
                 ]

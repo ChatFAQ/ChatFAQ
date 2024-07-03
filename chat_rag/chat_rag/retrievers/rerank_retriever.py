@@ -25,5 +25,8 @@ class ReRankRetriever:
         contexts_ranked = []
         for query, contexts in zip(queries, contexts_retrieved):
             query_contexts = self.reranker(query, contexts, batch_size=batch_size)  # rerank and filter contexts
+            # convert scores from np.float32 to float
+            for context in query_contexts:
+                context["score"] = context["score"].item()
             contexts_ranked.append(query_contexts)
         return contexts_ranked
