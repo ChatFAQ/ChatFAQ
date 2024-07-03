@@ -2,3 +2,4 @@ from chat_rag.retrievers.semantic_retriever import SemanticRetriever
 from chat_rag.retrievers.rerank_retriever import ReRankRetriever
 from chat_rag.retrievers.retriever_client import RetrieverClient
 from chat_rag.retrievers.colbert_retriever import ColBERTRetriever
+from chat_rag.retrievers.bm25_retriever import BM25Retriever

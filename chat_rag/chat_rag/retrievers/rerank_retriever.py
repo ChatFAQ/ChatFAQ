@@ -19,10 +19,11 @@ class ReRankRetriever:
         self,
         queries: List[str],
         top_k: int = 5,
+        batch_size: int = 32,
     ):
         contexts_retrieved = self.retriever.retrieve(queries, top_k=top_k)  # retrieve contexts
         contexts_ranked = []
         for query, contexts in zip(queries, contexts_retrieved):
-            query_contexts = self.reranker(query, contexts)  # rerank and filter contexts
+            query_contexts = self.reranker(query, contexts, batch_size=batch_size)  # rerank and filter contexts
             contexts_ranked.append(query_contexts)
         return contexts_ranked

@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 import bm25s
 
 
-class BM25SRetriever:
+class BM25Retriever:
     def __init__(self, corpus: List[Dict[str, Any]], stemmer=None):
         """
         Retrieve documents from a corpus using BM25.
