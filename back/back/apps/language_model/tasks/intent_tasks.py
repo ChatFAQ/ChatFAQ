@@ -13,6 +13,9 @@ from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 logger = getLogger(__name__)
 
 
+# Helper functions
+
+
 def retrieve(queries, kb_id):
     """
     Use BM25 for the initial retrieval and then rerank the results with a cross-encoder.
@@ -42,6 +45,57 @@ def retrieve(queries, kb_id):
 
     return results
 
+
+def get_placement_group(low_resource):
+    if low_resource:
+        logger.info("Acquiring a CPU for the low resource clustering task...")
+        return placement_group(
+            [{"CPU": 1.0, "tasks": 1.0}],
+            strategy="STRICT_PACK",
+            name="clusterize_texts",
+        ), "cpu"
+    else:
+        logger.info("Acquiring a GPU for the clustering task...")
+        return placement_group(
+            [{"CPU": 1.0, "GPU": 1.0, "tasks": 1.0}],
+            strategy="STRICT_PACK",
+            name="clusterize_texts",
+        ), "gpu"
+
+
+def run_clustering_task(knowledge_base_pk, texts, batch_size, lang, low_resource):
+    task_name = f"clusterize_texts_{knowledge_base_pk}"
+    pg, device = get_placement_group(low_resource)
+
+    try:
+        ray.get(pg.ready(), timeout=10)
+        scheduling_strategy = PlacementGroupSchedulingStrategy(
+            placement_group=pg,
+            placement_group_bundle_index=0,
+        )
+    except Exception:
+        if not low_resource:
+            logger.info(
+                "No GPUs available or placement group creation failed, using CPUs for the task"
+            )
+        scheduling_strategy = None
+        device = "cpu"
+
+    try:
+        labels = ray.get(
+            clusterize_texts_task.options(
+                name=task_name,
+                scheduling_strategy=scheduling_strategy,
+            ).remote(texts, batch_size, lang, device, low_resource)
+        )
+        return labels
+    except Exception as e:
+        raise e
+    finally:
+        remove_placement_group(pg)
+
+
+# Tasks
 
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def generate_titles_task(knowledge_base_pk, llm_config_id, max_k_items: int = 50):
@@ -124,7 +178,6 @@ def generate_intents(clusters_texts, llm_config_id):
 
 @ray.remote(num_cpus=1, resources={"tasks": 1}, num_returns=2)
 def get_similarity_scores(titles, kb_id):
-
     import numpy as np
 
     results = retrieve(titles, kb_id)
@@ -148,6 +201,7 @@ def clusterize_texts_task(texts, batch_size, lang, device, low_resource):
         low_resource=low_resource,
     )
     return labels
+
 
 @ray.remote(num_cpus=0.5, resources={"tasks": 1})
 def generate_intents_task(
@@ -192,51 +246,9 @@ def generate_intents_task(
     logger.info(f"Generating intents for {k_items.count()} knowledge items")
 
     logger.info("Clusterizing texts...")
-    task_name = f"clusterize_texts_{knowledge_base_pk}"
-    # We try to place the task on a GPU if available
-    if low_resource:
-        # Use only CPU resources when low_resource is True
-        logger.info("Adquiring a CPU for the low resource clustering task...")
-        pg = placement_group(
-            [{"CPU": 1.0, "tasks": 1.0}],
-            strategy="STRICT_PACK",
-            name="clusterize_texts",
-        )
-        device = "cpu"
-    else:
-        # Try to use GPU when low_resource is False
-        logger.info("Adquiring a GPU for the clustering task...")
-        pg = placement_group(
-            [{"CPU": 1.0, "GPU": 1.0, "tasks": 1.0}],
-            strategy="STRICT_PACK",
-            name="clusterize_texts",
-        )
-        device = "cpu"
-
-    try:
-        ray.get(pg.ready(), timeout=10)
-        if not low_resource:  # assing GPU
-            device = "gpu"
-        scheduling_strategy = PlacementGroupSchedulingStrategy(
-            placement_group=pg,
-            placement_group_bundle_index=0,
-        )
-    except Exception:
-        if not low_resource:
-            logger.info(
-                "There are no GPUs available or placement group creation failed, using CPUs for the task"
-            )
-        scheduling_strategy = None
-
-    labels = ray.get(
-        clusterize_texts_task.options(
-            name=task_name,
-            scheduling_strategy=scheduling_strategy,
-        ).remote(texts, batch_size, lang, device, low_resource)
+    labels = run_clustering_task(
+        knowledge_base_pk, texts, batch_size, lang, low_resource
     )
-
-    # Now we remove the pg because we don't want to keep it alive
-    remove_placement_group(pg)
 
     k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     logger.info(f"Number of clusters: {k_clusters}")
@@ -336,7 +348,6 @@ def generate_suggested_intents_task(
         knowledge_item__knowledge_base=knowledge_base_pk
     )[:100]
 
-
     lang = rag_conf.knowledge_base.get_lang().value
 
     task_name = f"get_similarity_scores_{knowledge_base_pk}_in_domain"
@@ -356,7 +367,9 @@ def generate_suggested_intents_task(
     mean_sim_in_domain, std_sim_in_domain = ray.get(in_domain_task_ref)
     mean_sim_out_domain, std_sim_out_domain = ray.get(out_domain_task_ref)
 
-    logger.info(f"Mean similarity in domain: {mean_sim_in_domain}, std: {std_sim_in_domain}")
+    logger.info(
+        f"Mean similarity in domain: {mean_sim_in_domain}, std: {std_sim_in_domain}"
+    )
     logger.info(
         f"Mean similarity out domain: {mean_sim_out_domain}, std: {std_sim_out_domain}"
     )
@@ -410,12 +423,12 @@ def generate_suggested_intents_task(
     messages = [
         message
         for message, result in zip(messages, results)
-        if new_intents_thresholds["min"] < result[0]["score"] < new_intents_thresholds["max"]
+        if new_intents_thresholds["min"]
+        < result[0]["score"]
+        < new_intents_thresholds["max"]
     ]
 
-    messages_text = [
-        message.stack[0]["payload"] for message in messages
-    ]
+    messages_text = [message.stack[0]["payload"] for message in messages]
 
     logger.info(f"Number of messages after filtering: {messages.count()}")
 
@@ -423,49 +436,9 @@ def generate_suggested_intents_task(
         logger.info("There are no suggested intents to generate")
         return
 
-
     logger.info("Clusterizing texts...")
-    task_name = f"clusterize_texts_{knowledge_base_pk}"
-    # We try to place the task on a GPU if available
-    if low_resource:
-        # Use only CPU resources when low_resource is True
-        logger.info("Adquiring a CPU for the low resource clustering task...")
-        pg = placement_group(
-            [{"CPU": 1.0, "tasks": 1.0}],
-            strategy="STRICT_PACK",
-            name="clusterize_texts",
-        )
-        device = "cpu"
-    else:
-        # Try to use GPU when low_resource is False
-        logger.info("Adquiring a GPU for the clustering task...")
-        pg = placement_group(
-            [{"CPU": 1.0, "GPU": 1.0, "tasks": 1.0}],
-            strategy="STRICT_PACK",
-            name="clusterize_texts",
-        )
-        device = "cpu"
-
-    try:
-        ray.get(pg.ready(), timeout=10)
-        if not low_resource:  # assing GPU
-            device = "gpu"
-        scheduling_strategy = PlacementGroupSchedulingStrategy(
-            placement_group=pg,
-            placement_group_bundle_index=0,
-        )
-    except Exception:
-        if not low_resource:
-            logger.info(
-                "There are no GPUs available or placement group creation failed, using CPUs for the task"
-            )
-        scheduling_strategy = None
-
-    labels = ray.get(
-        clusterize_texts_task.options(
-            name=task_name,
-            scheduling_strategy=scheduling_strategy,
-        ).remote(messages_text, batch_size, lang, device, low_resource)
+    labels = run_clustering_task(
+        knowledge_base_pk, messages_text, batch_size, lang, low_resource
     )
 
     k_clusters = len(set(labels)) - (1 if -1 in labels else 0)
@@ -478,7 +451,6 @@ def generate_suggested_intents_task(
         if label != -1:  # -1 is the label for outliers
             clusters[label].append(query)
             cluster_instances[label].append(message_instace)
-
 
     task_name = f"generate_intents_{knowledge_base_pk}"
     intents = ray.get(
