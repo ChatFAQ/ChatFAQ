@@ -57,7 +57,7 @@
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
                 :defaultSort="{'prop': 'name'}">
-                <template v-slot:write-system_prefix="{fieldName, form, formServerErrors}">
+                <template v-slot:write-system_prompt="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
                                   :prop="fieldName"
                                   :error="formServerErrors[fieldName]">
@@ -76,12 +76,12 @@
             <ReadWriteView :readableName="$t('generation')" apiUrl="/back/api/language-model/generation-configs/"
                            :cardProps="{
                     'temperature': $t('temperature'),
-                    'max_new_tokens': $t('maxtokens'),
+                    'max_tokens': $t('maxtokens'),
                 }"
                            :tableProps="{
                     'name': {'name': $t('name'), 'sortable': true},
                     'temperature': {'name': $t('temperature')},
-                    'max_new_tokens': {'name': $t('maxtokens')},
+                    'max_tokens': {'name': $t('maxtokens')},
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
                 :defaultSort="{'prop': 'name'}">
