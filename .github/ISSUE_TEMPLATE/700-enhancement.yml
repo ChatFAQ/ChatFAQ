@@ -1,0 +1,33 @@
+name: 📈️ Feature enhancement
+description: Submit an enhancement to an existing ChatFAQ feature
+title: "[Enhancement]: "
+labels: ["enhancement"]
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      #### Before submitting an issue, please make sure the issue hasn't been already addressed by searching through [the existing and past issues](https://github.com/ChatFAQ/ChatFAQ/issues?q=is%3Aissue+sort%3Acreated-desc+).
+- type: textarea
+  attributes:
+    label: 📈️ Existing Feature Description
+    description: >
+      Provide a brief description of the existing feature that you would like to enhance.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: 📈️ Proposed Enhancement Details
+    description: >
+      A clear and concise description of the enhancement you are proposing. Explain why this enhancement would be beneficial. If this is related to another GitHub issue, please link here too.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Additional context
+    description: >
+      Add any other context, screenshots, or examples that would help in understanding the enhancement.
+- type: markdown
+  attributes:
+    value: >
+      Thanks for contributing 🎉!
