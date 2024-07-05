@@ -63,7 +63,7 @@ def parse_elements(
     Parameters
     ----------
     elements : List[Element]
-        A list of unstructured elements. Usually the ouput of a partition functions.
+        A list of unstructured elements. Usually the output of a partition functions.
     file_type: str
         The type of file to parse. Can be 'pdf' or 'html'.
     combine_under_n_chars: int
