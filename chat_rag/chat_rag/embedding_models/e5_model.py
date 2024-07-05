@@ -3,7 +3,7 @@ from logging import getLogger
 import torch
 from transformers import AutoTokenizer, AutoModel
 
-from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
+from chat_rag.embedding_models.base_model import BaseModel
 
 logger = getLogger(__name__)
 
@@ -46,3 +46,10 @@ class E5Model(BaseModel):
             model_name,
             token=huggingface_key,
         ).to(self.device)
+
+    def build_embeddings(self, contents: torch.List[str] = None, batch_size: int = 1, prefix: str = "passage: ", disable_progress_bar: bool = False):
+        """
+        In the E5 Models we use the prefix 'passage: ' for the context and 'query: ' for the query.
+        """
+
+        return super().build_embeddings(contents, batch_size, prefix, disable_progress_bar)

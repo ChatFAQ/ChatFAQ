@@ -4,7 +4,7 @@ from logging import getLogger
 import numpy as np
 import torch
 
-from chat_rag.inf_retrieval.embedding_models.base_model import BaseModel
+from chat_rag.embedding_models.base_model import BaseModel
 
 logger = getLogger(__name__)
 
@@ -46,7 +46,7 @@ class SemanticRetriever:
         )
 
         if embeddings is None:
-            logger.info(f"Embeddings not provided.")
+            logger.info("Embeddings not provided.")
         else:
             logger.info(f"Embeddings provided with shape {embeddings.shape}")
 

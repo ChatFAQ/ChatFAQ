@@ -21,7 +21,7 @@ logger = getLogger(__name__)
 @ray.remote(num_cpus=1, resources={"tasks": 1})
 def generate_embeddings_task(data):
 
-    from chat_rag.inf_retrieval.embedding_models import E5Model
+    from chat_rag.embedding_models import E5Model
 
     embedding_model = E5Model(
         model_name=data["model_name"],
@@ -30,7 +30,7 @@ def generate_embeddings_task(data):
     )
 
     embeddings = embedding_model.build_embeddings(
-        contents=data["contents"], batch_size=data["batch_size"]
+        contents=data["contents"], batch_size=data["batch_size"], prefix="passage: "
     )
 
     # from tensor to list

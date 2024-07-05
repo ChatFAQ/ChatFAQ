@@ -1,7 +1,7 @@
 from typing import List
 from logging import getLogger
 
-from chat_rag.inf_retrieval.cross_encoder import ReRanker
+from chat_rag.utils.reranker import ReRanker
 
 
 logger = getLogger(__name__)
@@ -19,10 +19,14 @@ class ReRankRetriever:
         self,
         queries: List[str],
         top_k: int = 5,
+        batch_size: int = 32,
     ):
         contexts_retrieved = self.retriever.retrieve(queries, top_k=top_k)  # retrieve contexts
         contexts_ranked = []
         for query, contexts in zip(queries, contexts_retrieved):
-            query_contexts = self.reranker(query, contexts)  # rerank and filter contexts
+            query_contexts = self.reranker(query, contexts, batch_size=batch_size)  # rerank and filter contexts
+            # convert scores from np.float32 to float
+            for context in query_contexts:
+                context["score"] = context["score"].item()
             contexts_ranked.append(query_contexts)
         return contexts_ranked

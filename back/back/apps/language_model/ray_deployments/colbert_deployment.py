@@ -24,7 +24,7 @@ class ColBERTDeployment:
     """
 
     def __init__(self, index_path, storages_mode):
-        from chat_rag.inf_retrieval.reference_checker import clean_relevant_references
+        from chat_rag.utils.reference_checker import clean_relevant_references
         from ragatouille import RAGPretrainedModel
 
 

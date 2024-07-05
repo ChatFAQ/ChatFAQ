@@ -2,110 +2,62 @@ import os
 from typing import Dict, List
 
 from anthropic import Anthropic, AsyncAnthropic
+from pydantic import BaseModel
 
-from chat_rag.llms import CONTEXT_PREFIX, RAGLLM
+from .base_llm import LLM
+from .format_tools import Mode, format_tools
 
 
-class ClaudeChatModel(RAGLLM):
-    def __init__(self, llm_name, **kwargs) -> None:
+class ClaudeChatModel(LLM):
+    def __init__(self, llm_name: str = "claude-3-opus-20240229", **kwargs) -> None:
         self.llm_name = llm_name
         self.client = Anthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
-
-    def format_prompt(
-        self,
-        contexts: List[str],
-        system_prefix: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
-        """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        contexts : list
-            The context to use.
-        system_prefix : str
-            The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-        Returns
-        -------
-        list
-            The formatted prompt.
-        """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prefix=system_prefix,
-            n_contexts_to_use=n_contexts_to_use,
-            lang=lang,
+        self.aclient = AsyncAnthropic(
+            api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
-        return system_prompt
-
-    def generate(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str):
         """
-        Generate text from a prompt using the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        Returns
-        -------
-        str
-            The generated text.
+        Format the tools from a generic BaseModel to the OpenAI format.
         """
+        self._check_tool_choice(tools, tool_choice)
 
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
+        tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
 
-        message = self.client.messages.create(
-            model=self.llm_name,
-            system=system_prompt,
-            messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
-        )
+        if tool_choice:
+            # If the tool_choice is a named tool, then apply correct formatting
+            if tool_choice in [tool.model_json_schema()['title'] for tool in tools]:
+                tool_choice = {"type": "tool", "name": tool_choice}
+            else: # if it's required or auto, then apply the correct formatting
+                tool_choice = (
+                    {"type": "any"} if tool_choice == "required" else {"type": tool_choice}
+                )  # map "required" to "any"
 
-        return message.content[0].text
-    
+        return tools_formatted, tool_choice
+
+    def _extract_tool_info(self, content: List) -> List[Dict]:
+        """
+        Format the tool information from the anthropic response to a standard format.
+        Claude only calls one tool at a time but we return a list for consistency.
+        """
+        tool = {}
+        for block in content:
+            if block.type == "tool_use":
+                tool["id"] = block.id
+                tool["name"] = block.name
+                tool["args"] = block.input
+            elif block.type == "text":
+                tool["text"] = block.text
+        return [tool]
+
     def stream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -113,30 +65,19 @@ class ClaudeChatModel(RAGLLM):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
             The generated text.
         """
-
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
+        system_prompt = messages.pop(0)["content"]
 
         stream = self.client.messages.create(
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
+            temperature=temperature,
+            max_tokens=max_tokens,
             stream=True,
         )
 
@@ -144,107 +85,12 @@ class ClaudeChatModel(RAGLLM):
             if event.type == "content_block_delta":
                 yield event.delta.text
 
-        
-class AsyncClaudeChatModel(RAGLLM):
-    def __init__(self, llm_name, **kwargs) -> None:
-        self.llm_name = llm_name
-        self.client = AsyncAnthropic(
-            api_key=os.environ.get("ANTHROPIC_API_KEY")
-        )
-
-    def format_prompt(
-        self,
-        contexts: List[str],
-        system_prefix: str,
-        n_contexts_to_use: int = 3,
-        lang: str = "en",
-        **kwargs,
-    ) -> List[Dict[str, str]]:
-        """
-        Formats the prompt to be used by the model.
-        Parameters
-        ----------
-        contexts : list
-            The context to use.
-        system_prefix : str
-            The prefix to indicate instructions for the LLM.
-        system_tag : str
-            The tag to indicate the start of the system prefix for the LLM.
-        system_end : str
-            The tag to indicate the end of the system prefix for the LLM.
-        user_tag : str
-            The tag to indicate the start of the user input.
-        user_end : str
-            The tag to indicate the end of the user input.
-        assistant_tag : str
-            The tag to indicate the start of the assistant output.
-        assistant_end : str
-            The tag to indicate the end of the assistant output.
-        Returns
-        -------
-        list
-            The formatted prompt.
-        """
-        system_prompt = self.format_system_prompt(
-            contexts=contexts,
-            system_prefix=system_prefix,
-            n_contexts_to_use=n_contexts_to_use,
-            lang=lang,
-        )
-
-        return system_prompt
-    
-    async def generate(
+    async def astream(
         self,
         messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
-    ) -> str:
-        """
-        Generate text from a prompt using the model.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
-        Returns
-        -------
-        str
-            The generated text.
-        """
-
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
-
-        message = await self.client.messages.create(
-            model=self.llm_name,
-            system=system_prompt,
-            messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
-        )
-
-        return message.content[0].text
-    
-    async def stream(
-        self,
-        messages: List[Dict[str, str]],
-        contexts: List[str],
-        prompt_structure_dict: dict,
-        generation_config_dict: dict = None,
-        lang: str = "en",
-        **kwargs,
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -252,33 +98,107 @@ class AsyncClaudeChatModel(RAGLLM):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        contexts : List[str]
-            The contexts to use for generation.
-        prompt_structure_dict : dict
-            Dictionary containing the structure of the prompt.
-        generation_config_dict : dict
-            Keyword arguments for the generation.
-        lang : str
-            The language of the prompt.
         Returns
         -------
         str
             The generated text.
         """
+        system_prompt = messages.pop(0)["content"]
 
-        system_prompt = self.format_prompt(contexts, **prompt_structure_dict, lang=lang)
-
-        stream = await self.client.messages.create(
+        stream = await self.aclient.messages.create(
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            max_tokens=generation_config_dict['max_new_tokens'],
-            temperature=generation_config_dict['temperature'],
-            top_p=generation_config_dict['top_p'],
-            top_k=generation_config_dict['top_k'],
+            temperature=temperature,
+            max_tokens=max_tokens,
             stream=True,
         )
 
         async for event in stream:
             if event.type == "content_block_delta":
                 yield event.delta.text
+
+    def generate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+        tools: List[BaseModel] = None,
+        tool_choice: str = None,
+    ) -> str:
+        """
+        Generate text from a prompt using the model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+
+        tool_kwargs = {}
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+
+        system_prompt = messages.pop(0)["content"]
+
+        message = self.client.messages.create(
+            model=self.llm_name,
+            system=system_prompt,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **tool_kwargs,
+        )
+
+        content = message.content
+        if any([x.type == "tool_use" for x in content]):
+            return self._extract_tool_info(content)
+
+        return content[0].text
+
+    async def agenerate(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.2,
+        max_tokens: int = 1024,
+        seed: int = None,
+        tools: List[BaseModel] = None,
+        tool_choice: str = None,
+    ) -> str:
+        """
+        Generate text from a prompt using the model.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        Returns
+        -------
+        str
+            The generated text.
+        """
+        
+        tool_kwargs = {}
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+
+        system_prompt = messages.pop(0)["content"]
+
+        message = await self.aclient.messages.create(
+            model=self.llm_name,
+            system=system_prompt,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            **tool_kwargs,
+        )
+
+        content = message.content
+        if any([x.type == "tool_use" for x in content]):
+            return self._extract_tool_info(content)
+        return message.content[0].text
