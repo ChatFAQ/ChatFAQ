@@ -56,22 +56,9 @@ class LLMDeployment:
             ):
                 yield res
 
-
 @ray.remote(num_cpus=0.1, resources={"tasks": 1})
-def delete_serve_app(deployment_name: str):
-    if serve.status().applications:
-        serve.delete(deployment_name)
-        try:
-            serve.get_app_handle(deployment_name)
-            # if it doesn't return error it means the deployment is still running
-            print(
-                f"{deployment_name} could not be deleted, so it doesn't exist or it is still running."
-            )
-        except Exception:
-            print(f"{deployment_name} was deleted successfully")
-
-@ray.remote(num_cpus=0.1, resources={"tasks": 1})
-def launch_llm_deployment(name: str, llm_type: str, llm_name: str, base_url: str=None, model_max_length: int = None, num_replicas: int = 1):
+def launch_llm_deployment(name: str, llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None, num_replicas: int = 1):
+    from back.apps.language_model.ray_deployments import delete_serve_app
 
     # delete the deployment if it already exists
     task_name = f"delete_serve_app_{name}"
@@ -83,4 +70,4 @@ def launch_llm_deployment(name: str, llm_type: str, llm_name: str, base_url: str
         num_replicas=num_replicas,
     ).bind(llm_type, llm_name, base_url, model_max_length)
 
-    serve.run(llm_app, name=name)
+    serve.run(llm_app, name=name, route_prefix=None)

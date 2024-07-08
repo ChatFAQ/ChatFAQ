@@ -18,10 +18,8 @@ from back.apps.language_model.tasks import index_task
 from back.apps.language_model.ray_deployments import (
     launch_rag_deployment,
     delete_rag_deployment,
-)
-from back.apps.language_model.ray_deployments.llm_deployment import (
     launch_llm_deployment,
-    delete_serve_app,
+    delete_serve_app
 )
 
 from logging import getLogger
@@ -234,8 +232,6 @@ class RetrieverConfig(ChangesMixin):
     device = models.CharField(
         max_length=10, choices=DeviceChoices.choices, default=DeviceChoices.CPU
     )
-    enabled = models.BooleanField(default=True)
-    num_replicas = models.IntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -322,7 +318,7 @@ class LLMConfig(ChangesMixin):
     llm_name = models.CharField(max_length=100, default="gpt-4o")
     base_url = models.CharField(max_length=255, blank=True, null=True)
     model_max_length = models.IntegerField(blank=True, null=True)
-    enabled = models.BooleanField(default=True)
+    enabled = models.BooleanField(default=False)
     num_replicas = models.IntegerField(default=1)
 
     def __str__(self):
@@ -333,6 +329,24 @@ class LLMConfig(ChangesMixin):
 
     def get_deploy_name(self):
         return f"llm_{self.name}"
+    
+    def trigger_deploy(self):
+        """Deploys should be automatically triggered when the LLM is saved, but this method is here for manual triggering if needed."""
+        if self.enabled:
+            task_name = f"launch_llm_deployment_{self.name}"
+            print(f"Submitting the {task_name} task to the Ray cluster...")
+            launch_llm_deployment.options(name=task_name).remote(
+                self.get_deploy_name(),
+                self.get_llm_type(),
+                self.llm_name,
+                self.base_url,
+                self.model_max_length,
+                self.num_replicas,
+            )
+        else:
+            logger.info(
+                f"LLM {self.name} is not enabled, skipping deploy"
+            )
 
     def save(self, *args, **kwargs):
         redeploy_llm = False
@@ -353,6 +367,12 @@ class LLMConfig(ChangesMixin):
                 shutdown_llm = True
                 logger.info(
                     f"LLM config {self.name} changed to disabled. Shutting down the LLM deployment..."
+                )
+
+            if not old_llm.enabled and self.enabled:
+                redeploy_llm = True
+                logger.info(
+                    f"LLM config {self.name} changed to enabled. Launching the LLM deployment..."
                 )
 
         super().save(*args, **kwargs)
@@ -376,13 +396,13 @@ class LLMConfig(ChangesMixin):
             transaction.on_commit(on_commit_callback)
 
         if shutdown_llm and not self.enabled:
-                def on_commit_callback():
-                    deployment_name = self.get_deploy_name()
-                    task_name = f"delete_serve_app_{deployment_name}"
-                    print(f"Submitting the {task_name} task to the Ray cluster...")
-                    delete_serve_app.options(name=task_name).remote(deployment_name)
-    
-                transaction.on_commit(on_commit_callback)
+            def on_commit_callback():
+                deployment_name = self.get_deploy_name()
+                task_name = f"delete_serve_app_{deployment_name}"
+                print(f"Submitting the {task_name} task to the Ray cluster...")
+                delete_serve_app.options(name=task_name).remote(deployment_name)
+
+            transaction.on_commit(on_commit_callback)
 
 
 class PromptConfig(ChangesMixin):
