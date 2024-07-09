@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema_field,
-    extend_schema_serializer,
 )
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -15,7 +14,6 @@ from rest_framework.exceptions import ValidationError
 from back.apps.broker.models.message import AgentType, Satisfaction, StackPayloadType
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
-from back.common.validators import AtLeastNOf, PresentTogether
 
 if TYPE_CHECKING:
     from back.apps.broker.models.message import Message
@@ -129,7 +127,6 @@ class LLMGeneratedTextPayload(serializers.Serializer):
         llm_config_name = serializers.CharField()
         llm_config_id = serializers.CharField()
         lm_msg_id = serializers.CharField()
-        references = Reference(required=False, allow_null=True)
 
     payload = _LLMGeneratedTextPayload()
 

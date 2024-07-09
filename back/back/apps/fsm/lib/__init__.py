@@ -170,7 +170,7 @@ class FSM:
 
     def manage_last_llm_msg(self, _new):
         _old = self.last_aggregated_msg
-        if _new['stack'][0]["type"] == StackPayloadType.rag_generated_text.value:
+        if _new['stack'][0]["type"] in [StackPayloadType.llm_generated_text.value, StackPayloadType.rag_generated_text.value]:
             if _new["stack_id"] == _old.get("stack_id"):
                 more_model_response = _new["stack"][0]['payload']['model_response']
                 old_payload = _old["stack"][0]['payload']
@@ -179,7 +179,7 @@ class FSM:
 
     async def save_if_last_llm_msg(self, _new):
         if self.last_aggregated_msg.get("last"):
-            if self.last_aggregated_msg['stack'][0]["type"] == StackPayloadType.rag_generated_text.value:
+            if self.last_aggregated_msg['stack'][0]["type"] in [StackPayloadType.llm_generated_text.value, StackPayloadType.rag_generated_text.value]:
                 rag_config_id = (await database_sync_to_async(RAGConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['rag_config_name'])).id
                 self.last_aggregated_msg['stack'][0]['payload']["rag_config_id"] = rag_config_id
 

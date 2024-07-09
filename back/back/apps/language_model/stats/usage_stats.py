@@ -26,7 +26,7 @@ def calculate_usage_stats(messages):
     for rag_config_id_aux in rag_config_ids:
         # Filter messages by RAG config ID within the JSONField
         messages_per_rag = Message.objects.filter(
-            stack__contains=[{"type": "lm_generated_text", "payload": {"rag_config_id": str(rag_config_id_aux)}}]
+            stack__contains=[{"type": "rag_generated_text", "payload": {"rag_config_id": str(rag_config_id_aux)}}]
         )
 
         messages_per_rag_count = messages_per_rag.count()

@@ -5,7 +5,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 
 from back.apps.language_model.models import KnowledgeItem
 from back.common.models import ChangesMixin
@@ -289,7 +288,7 @@ class Message(ChangesMixin):
         for layer in stack:
             if layer["type"] == StackPayloadType.text.value:
                 stack_text += layer["payload"] + "\n"
-            elif layer["type"] == StackPayloadType.rag_generated_text.value:
+            elif layer["type"] in [StackPayloadType.rag_generated_text.value, StackPayloadType.llm_generated_text.value]:
                 if layer["payload"]["model_response"]:
                     stack_text += layer["payload"]["model_response"]
             else:

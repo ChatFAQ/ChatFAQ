@@ -60,7 +60,7 @@ const feedbacking = ref(null)
 
 const MSG_TYPES = {
     text: "text",
-    lm_generated_text: "lm_generated_text",
+    lm_generated_text: "rag_generated_text",
 }
 const layersFinished = computed(() =>  props.message.last)
 

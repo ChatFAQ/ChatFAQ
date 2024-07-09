@@ -307,12 +307,11 @@ class ChatFAQSDK:
             self,
             llm_config_name,
             messages,
+            temperature,
+            max_tokens,
+            seed,
             conversation_id,
             bot_channel_name,
-            temperature=0.7,
-            max_tokens=1024,
-            seed=42,
-            streaming=True,
     ):
         logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
         self.llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
@@ -328,7 +327,6 @@ class ChatFAQSDK:
                         "temperature": temperature,
                         "max_tokens": max_tokens,
                         "seed": seed,
-                        "streaming": streaming,
                     },
                 }
             )
