@@ -1,5 +1,5 @@
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import LMGeneratedText, Text
+from chatfaq_sdk.layers import RAGGeneratedText, Text
 
 
 def send_greeting(ctx: dict):
@@ -7,7 +7,7 @@ def send_greeting(ctx: dict):
 
 
 def send_answer(ctx: dict):
-    yield LMGeneratedText("default", only_context=True)
+    yield RAGGeneratedText("default", only_context=True)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

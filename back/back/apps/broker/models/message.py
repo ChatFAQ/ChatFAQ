@@ -1,10 +1,10 @@
-from logging import getLogger
 from enum import Enum
+from logging import getLogger
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.contrib.postgres.fields import ArrayField
 from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 
 from back.apps.language_model.models import KnowledgeItem
@@ -26,7 +26,8 @@ class AgentType(Enum):
 
 class StackPayloadType(Enum):
     text = "text"
-    lm_generated_text = "lm_generated_text"
+    rag_generated_text = "rag_generated_text"
+    llm_generated_text = "llm_generated_text"
     html = "html"
     image = "image"
     satisfaction = "satisfaction"
@@ -75,7 +76,7 @@ class Conversation(ChangesMixin):
         return Message.objects.filter(
             conversation=self,
             sender__type=AgentType.bot.value,
-            stack__contains=[{"type": StackPayloadType.lm_generated_text.value}]
+            stack__contains=[{"type": StackPayloadType.rag_generated_text.value}]
         )
 
     def get_review_progress(self):
@@ -131,9 +132,9 @@ class Conversation(ChangesMixin):
                 grouped_chain.append(m)
             elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.text.value:
                 grouped_chain.append(m)
-            elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.lm_generated_text.value:
+            elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.rag_generated_text.value:
                 if len(grouped_chain) > 0 and grouped_chain[-1]['sender']['type'] == 'bot' and \
-                    grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.lm_generated_text.value and \
+                    grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.rag_generated_text.value and \
                     grouped_chain[-1]['stack_id'] == m['stack_id']:
                     grouped_chain[-1]['stack'][0]['payload']['model_response'] += first_stack_el['payload'][
                         'model_response']
@@ -268,7 +269,7 @@ class Message(ChangesMixin):
 
         all_kis_to_review = set()
         for stackItem in self.stack:
-            if stackItem["type"] == StackPayloadType.lm_generated_text.value:
+            if stackItem["type"] == StackPayloadType.rag_generated_text.value:
                 for ki_ref in stackItem.get("payload", {}).get("references", {}).get("knowledge_items", []):
                     all_kis_to_review.add(str(ki_ref.get("knowledge_item_id")))
 
@@ -288,7 +289,7 @@ class Message(ChangesMixin):
         for layer in stack:
             if layer["type"] == StackPayloadType.text.value:
                 stack_text += layer["payload"] + "\n"
-            elif layer["type"] == StackPayloadType.lm_generated_text.value:
+            elif layer["type"] == StackPayloadType.rag_generated_text.value:
                 if layer["payload"]["model_response"]:
                     stack_text += layer["payload"]["model_response"]
             else:
