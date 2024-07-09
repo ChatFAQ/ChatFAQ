@@ -111,7 +111,7 @@ async def resolve_references(reference_kis, conv, rag_conf, relate_kis_to_msgs=F
 async def query_llm(
     llm_config_name: str,
     conversation_id: int,
-    messages: List[Dict[str, str]],
+    messages: List[Dict[str, str]] = None,
     temperature: float = 0.7,
     max_tokens: int = 1024,
     seed: int = 42,
@@ -134,14 +134,15 @@ async def query_llm(
     )
     new_messages = prev_messages.copy()
 
-    if messages[0]["role"] == "system":
-        if prev_messages[0]["role"] == "system":
-            new_messages[0] = messages[0]  # replace the system message
-        else:
-            new_messages.insert(0, messages[0])  # add the system message
+    if messages: # In case the user sends a message
+        if messages[0]["role"] == "system":
+            if prev_messages[0]["role"] == "system":
+                new_messages[0] = messages[0]  # replace the system message
+            else:
+                new_messages.insert(0, messages[0])  # add the system message
 
-        # pop the system message
-        messages = messages[1:]
+            # pop the system message
+            messages = messages[1:]
 
     new_messages.extend(messages)
 
