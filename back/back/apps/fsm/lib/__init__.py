@@ -179,9 +179,13 @@ class FSM:
 
     async def save_if_last_llm_msg(self, _new):
         if self.last_aggregated_msg.get("last"):
-            if self.last_aggregated_msg['stack'][0]["type"] in [StackPayloadType.llm_generated_text.value, StackPayloadType.rag_generated_text.value]:
+            if self.last_aggregated_msg['stack'][0]["type"] == StackPayloadType.rag_generated_text.value:
                 rag_config_id = (await database_sync_to_async(RAGConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['rag_config_name'])).id
                 self.last_aggregated_msg['stack'][0]['payload']["rag_config_id"] = rag_config_id
+
+            elif self.last_aggregated_msg['stack'][0]['type'] == StackPayloadType.llm_generated_text.value:
+                llm_config_id = (await database_sync_to_async(RAGConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['llm_config_name'])).id
+                self.last_aggregated_msg['stack'][0]['payload']["llm_config_id"] = llm_config_id
 
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)

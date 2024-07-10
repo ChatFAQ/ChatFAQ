@@ -130,7 +130,7 @@ async def query_llm(
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
     prev_messages = format_msgs_chain_to_llm_context(
-        await database_sync_to_async(list)(conv.get_msgs_chain(), StackPayloadType.llm_generated_text.value)
+        await database_sync_to_async(list)(conv.get_msgs_chain()), StackPayloadType.llm_generated_text.value
     )
     new_messages = prev_messages.copy()
 

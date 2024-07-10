@@ -143,10 +143,13 @@ class LLMGeneratedText(Layer):
                     {
                         "payload": {
                             "model_response": result["model_response"],
-                            "references": [], # Same reason as the above comment on _type
-                            "rag_config_name": self.llm_config_name, # Same reason as the above comment on _type
-                            # "llm_config_name": self.llm_config_name,
+                            "llm_config_name": self.llm_config_name,
                             "lm_msg_id": result["lm_msg_id"],
+
+
+                            # Add these fields to the payload to make it compatible with the RAGGeneratedText layer for now
+                            "references": {'knowledge_base_id': 1, 'knowledge_items': [], 'knowledge_item_images': {}}, 
+                            "rag_config_name": "default", 
                         }
                     }
                 ], final

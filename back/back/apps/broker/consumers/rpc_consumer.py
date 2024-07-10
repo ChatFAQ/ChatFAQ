@@ -141,11 +141,6 @@ class RPCConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
         if not serializer.is_valid():
             await self.error_response({"payload": serializer.errors})
             return
-        
-        print('#'*100)
-        print(type(serializer.validated_data))
-        print(serializer.validated_data)
-        print('#'*100)
 
         res = {
             "type": "rpc_response",

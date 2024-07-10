@@ -7,7 +7,9 @@ def send_greeting(ctx: dict):
 
 
 def send_answer(ctx: dict):
-    yield LLMGeneratedText("default")
+    yield LLMGeneratedText("gpt-4o", messages=[
+        {"role": "system", "content": "You are a helpful assistant."}
+    ])
     # yield Text(f"Tell me more")
 
 

@@ -128,6 +128,10 @@ class LLMGeneratedTextPayload(serializers.Serializer):
         llm_config_id = serializers.CharField()
         lm_msg_id = serializers.CharField()
 
+        # For compatibility with the widget frontend
+        rag_config_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+        references = Reference(required=False, allow_null=True)
+
     payload = _LLMGeneratedTextPayload()
 
 class HTMLPayload(serializers.Serializer):
