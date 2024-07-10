@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
@@ -37,7 +37,7 @@ class MistralChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tool_choice(tools, tool_choice)
+        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
@@ -145,7 +145,7 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Dict] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ):
         """
@@ -189,7 +189,7 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Dict] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ):
         """

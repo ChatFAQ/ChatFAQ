@@ -105,6 +105,13 @@ class ReferenceKi(serializers.Serializer):
     image_urls = serializers.DictField(required=False, allow_null=True, allow_empty=True)
 
 
+class ToolUse(serializers.Serializer):
+    id = serializers.CharField(required=True)
+    name = serializers.CharField(required=True)
+    args = serializers.DictField(required=True)
+    text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
 class Reference(serializers.Serializer):
     knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
     knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
@@ -127,6 +134,7 @@ class LLMGeneratedTextPayload(serializers.Serializer):
         llm_config_name = serializers.CharField()
         llm_config_id = serializers.CharField()
         lm_msg_id = serializers.CharField()
+        tool_use = serializers.ListField(child=ToolUse(), required=False, allow_null=True)
 
         # For compatibility with the widget frontend
         rag_config_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)

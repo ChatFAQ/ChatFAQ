@@ -310,6 +310,8 @@ class ChatFAQSDK:
             temperature,
             max_tokens,
             seed,
+            tools,
+            tool_choice,
             conversation_id,
             bot_channel_name,
     ):
@@ -327,6 +329,8 @@ class ChatFAQSDK:
                         "temperature": temperature,
                         "max_tokens": max_tokens,
                         "seed": seed,
+                        "tools": tools,
+                        "tool_choice": tool_choice,
                     },
                 }
             )

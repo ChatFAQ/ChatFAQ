@@ -115,6 +115,8 @@ async def query_llm(
     temperature: float = 0.7,
     max_tokens: int = 1024,
     seed: int = 42,
+    tools: List[Dict] = None,
+    tool_choice: str = None,
     streaming: bool = True,
 ):
     try:
@@ -158,9 +160,21 @@ async def query_llm(
                 temperature,
                 max_tokens,
                 seed,
+                tools,
+                tool_choice
             )
 
             async for res in response:
+                # if res is a list then it's a tool response and it's not streamed, it returns the full response
+                if isinstance(res, list):
+                    yield {
+                        "model_response": "",
+                        "tool_use": res,
+                        "final": True,
+                    }
+                    return
+
+
                 yield {
                     "model_response": res,
                     "final": False,
@@ -344,6 +358,8 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("temperature"),
             data.get("max_tokens"),
             data.get("seed"),
+            data.get("tools"),
+            data.get("tool_choice"),
             data.get("streaming"),
         ):
             await self.send(

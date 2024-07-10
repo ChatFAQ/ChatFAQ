@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import ray
 from pydantic import BaseModel
@@ -35,7 +35,7 @@ class LLMDeployment:
         temperature: float,
         max_tokens: int,
         seed: int,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ):
         if tools:  # LLM doesn't support tools in stream mode

@@ -80,6 +80,10 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     temperature = serializers.FloatField(default=0.7, required=False)
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)
+    tools = serializers.ListField(
+        child=serializers.DictField(), allow_empty=True, required=False
+    )
+    tool_choice = serializers.CharField(allow_blank=True, required=False)
     streaming = serializers.BooleanField(default=True)
 
 
