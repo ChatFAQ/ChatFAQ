@@ -8,7 +8,7 @@ from channels.layers import get_channel_layer
 from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.broker.models.message import StackPayloadType
-from back.apps.language_model.models import RAGConfig
+from back.apps.language_model.models import RAGConfig, LLMConfig
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -184,11 +184,14 @@ class FSM:
                 self.last_aggregated_msg['stack'][0]['payload']["rag_config_id"] = rag_config_id
 
             elif self.last_aggregated_msg['stack'][0]['type'] == StackPayloadType.llm_generated_text.value:
-                llm_config_id = (await database_sync_to_async(RAGConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['llm_config_name'])).id
+                llm_config_id = (await database_sync_to_async(LLMConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['llm_config_name'])).id
                 self.last_aggregated_msg['stack'][0]['payload']["llm_config_id"] = llm_config_id
 
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
+            print('>'*100)
+            print(self.last_aggregated_msg)
+            print('<'*100)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             return (await database_sync_to_async(serializer.save)()).id
 

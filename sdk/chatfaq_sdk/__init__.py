@@ -302,7 +302,6 @@ class ChatFAQSDK:
             )
         )
 
-
     async def send_llm_request(
             self,
             llm_config_name,

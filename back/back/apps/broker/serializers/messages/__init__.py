@@ -108,7 +108,7 @@ class ReferenceKi(serializers.Serializer):
 class ToolUse(serializers.Serializer):
     id = serializers.CharField(required=True)
     name = serializers.CharField(required=True)
-    args = serializers.DictField(required=True)
+    args = serializers.JSONField(required=True)
     text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
@@ -134,7 +134,7 @@ class LLMGeneratedTextPayload(serializers.Serializer):
         llm_config_name = serializers.CharField()
         llm_config_id = serializers.CharField()
         lm_msg_id = serializers.CharField()
-        tool_use = serializers.ListField(child=ToolUse(), required=False, allow_null=True)
+        tool_use = serializers.ListField(child=ToolUse(), required=False, allow_null=True, allow_empty=True)
 
         # For compatibility with the widget frontend
         rag_config_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
@@ -251,10 +251,10 @@ class MessageSerializer(serializers.ModelSerializer):
             conversation=self.initial_data["conversation"], prev=prev
         ).first():
             raise ValidationError(
-                f"prev should be always unique for the same conversation"
+                "prev should be always unique for the same conversation"
             )
         if prev and prev.conversation != str(self.initial_data["conversation"]):
-            raise ValidationError(f"prev should belong to the same conversation")
+            raise ValidationError("prev should belong to the same conversation")
 
     def get_reviewed(self, obj):
         return obj.completed_review

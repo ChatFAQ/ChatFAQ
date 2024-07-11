@@ -1,0 +1,64 @@
+from chatfaq_sdk.fsm import FSMDefinition, State, Transition
+from chatfaq_sdk.layers import LLMGeneratedText, Text, StructuredGeneration
+from pydantic import BaseModel
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+
+# Define your desired output structure
+class UserInfo(BaseModel):
+    name: str
+    age: int
+
+
+def send_greeting(ctx: dict):
+    yield Text(
+        "I will extract the name and age of an user description, please input the description",
+        allow_feedback=False,
+    )
+
+
+def extract_info(ctx: dict):
+    logger.info("Extracting user info...")
+    user_info = StructuredGeneration(
+        "gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an assistant that extracts the user information from a description.",
+            },
+        ],
+        tools=[UserInfo],
+        tool_choice="UserInfo",
+    )
+
+    logger.info(f"Info extracted: {user_info}")
+
+    yield Text(f"Info extracted: {user_info}", allow_feedback=False)
+
+
+
+greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
+
+extract_info_state = State(
+    name="Extracting Info",
+    events=[extract_info],
+)
+
+# After the initial state, always transition to the extraction state
+_to_extraction = Transition(
+    dest=extract_info_state,
+)
+
+
+fsm_definition = FSMDefinition(
+    states=[greeting_state, extract_info_state], transitions=[_to_extraction]
+)
+
