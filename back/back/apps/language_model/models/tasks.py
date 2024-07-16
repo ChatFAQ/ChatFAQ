@@ -64,6 +64,10 @@ class RayTaskState(models.Model):
             tasks.append(ray_api.get_task(task.task_id))
         ray_task_states_data = []
         for task in tasks:
-            ray_task_states_data.append(task.__dict__)
+            if type(task) == list:
+                for t in task:
+                    ray_task_states_data.append(t.__dict__)
+            else:
+                ray_task_states_data.append(task.__dict__)
 
         return parse_task_states_data + ray_task_states_data
