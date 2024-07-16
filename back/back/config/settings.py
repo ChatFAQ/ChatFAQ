@@ -1,5 +1,6 @@
 import os
 from importlib import metadata
+import logging
 
 from urllib.parse import quote as urlquote
 from model_w.env_manager import EnvManager
@@ -13,7 +14,6 @@ load_dotenv()
 
 MIDDLEWARE = []
 INSTALLED_APPS = []
-LOGGING = {}
 STORAGES_MODE = os.getenv("STORAGES_MODE")
 LOCAL_STORAGE = STORAGES_MODE == "local"
 
@@ -115,6 +115,11 @@ class CustomPreset(ModelWDjango):
             ]
 
         yield channel_layers_config
+
+    def pre_logging(self, env: EnvManager):
+        logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+        logging.getLogger("daphne.ws_protocol").setLevel(logging.WARNING)
+        return super().pre_logging(env)
 
 
 model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=False)
@@ -252,31 +257,6 @@ with EnvManager(model_w_django) as env:
                 },
             },
         }
-    """
-
-    # ---
-    # Logging
-    # ---
-    """
-    SIMPLE_LOG = True
-    LOGGING_CONFIG = "logging.config.dictConfig"
-    LOGGING = {
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            "json": {"()": "back.utils.logging_formatters.DjangoJsonFormatter"}
-        },
-        "handlers": {
-            "console": {
-                "class": "logging.StreamHandler",
-                "formatter": "json",
-            },
-        },
-        "root": {
-            "handlers": ["console"],
-            "level": "DEBUG" if is_true(preset._debug(env)) else "INFO",
-        },
-    }
     """
 
     # ---
