@@ -55,15 +55,15 @@ class RayTaskState(models.Model):
         from back.apps.language_model.serializers.tasks import RayTaskStateSerializer
 
         parse_task_states = cls.objects.all()
+
+        parse_task_states_data = RayTaskStateSerializer(parse_task_states, many=True).data
+
         ray_task_states = ray_api.list_tasks()
         tasks = []
         for task in ray_task_states:
             tasks.append(ray_api.get_task(task.task_id))
-
-        parse_task_states_data = RayTaskStateSerializer(parse_task_states, many=True).data
-
         ray_task_states_data = []
-        for task in ray_task_states:
+        for task in tasks:
             ray_task_states_data.append(task.__dict__)
 
         return parse_task_states_data + ray_task_states_data
