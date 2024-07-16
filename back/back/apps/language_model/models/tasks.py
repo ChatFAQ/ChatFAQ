@@ -58,7 +58,7 @@ class RayTaskState(models.Model):
 
         parse_task_states_data = RayTaskStateSerializer(parse_task_states, many=True).data
 
-        ray_task_states = ray_api.list_tasks()
+        ray_task_states = ray_api.list_tasks(raise_on_missing_output=False)
         tasks = []
         for task in ray_task_states:
             tasks.append(ray_api.get_task(task.task_id))
