@@ -47,12 +47,15 @@ class Transition(NamedTuple):
         state
     unless: List of str
         The same as conditions but considering the function with a 'not' operator in front of it
+    cascade: bool
+        Execute the transition without waiting for the next user input
     """
 
     dest: Text
     source: Text = None
     conditions: List[Text] = []
     unless: List[Text] = []
+    cascade: bool = False
 
 
 class FSM:
@@ -121,7 +124,22 @@ class FSM:
             self.current_state = self.get_state_by_name(best_transition.dest)
             logger.debug(f"FSM to -----> {self.current_state}")
             await self.run_current_state_events(transition_data)
+
+            await self.check_cascade_transitions()
+
         await self.save_cache()
+
+    async def check_cascade_transitions(self):
+        cascade_transitions = [t for t in self.get_current_state_transitions() if t.cascade]
+        for t in cascade_transitions:
+            score, _data = await self.check_transition_condition(t)
+            if score > 0:
+                logger.debug(f"FSM cascade transition from ---> {self.current_state}")
+                self.current_state = self.get_state_by_name(t.dest)
+                logger.debug(f"FSM cascade transition to -----> {self.current_state}")
+                await self.run_current_state_events(_data)
+                # We only execute the first valid cascade transition
+                break
 
     async def run_current_state_events(self, transition_data=None):
         """

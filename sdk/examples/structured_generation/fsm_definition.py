@@ -1,5 +1,5 @@
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import LLMGeneratedText, Text, StructuredGeneration
+from chatfaq_sdk.layers import Text, StructuredGeneration
 from pydantic import BaseModel
 
 import logging
@@ -41,7 +41,12 @@ def extract_info(ctx: dict):
 
     logger.info(f"Info extracted: {user_info}")
 
-    yield Text(f"Info extracted: {user_info}", allow_feedback=False)
+    yield Text("Info extracted.", allow_feedback=False)
+
+
+def send_info(ctx: dict):
+    print(ctx["last_mml"])
+    yield Text("Here is the extracted information", allow_feedback=False)
 
 
 
@@ -52,13 +57,24 @@ extract_info_state = State(
     events=[extract_info],
 )
 
+send_info_state = State(
+    name="Send Info",
+    events=[send_info],
+)
+
 # After the initial state, always transition to the extraction state
 _to_extraction = Transition(
     dest=extract_info_state,
 )
 
+_to_send_info = Transition(
+    source=extract_info_state,
+    dest=send_info_state,
+    cascade=True,
+)
+
 
 fsm_definition = FSMDefinition(
-    states=[greeting_state, extract_info_state], transitions=[_to_extraction]
+    states=[greeting_state, extract_info_state, send_info_state], transitions=[_to_extraction, _to_send_info]
 )
 
