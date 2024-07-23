@@ -81,9 +81,9 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)
     tools = serializers.ListField(
-        child=serializers.DictField(), allow_empty=True, required=False
+        child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
     )
-    tool_choice = serializers.CharField(allow_blank=True, required=False)
+    tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
     streaming = serializers.BooleanField(default=True)
 
 

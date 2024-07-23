@@ -207,9 +207,6 @@ class FSM:
 
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
-            print('>'*100)
-            print(self.last_aggregated_msg)
-            print('<'*100)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             return (await database_sync_to_async(serializer.save)()).id
 

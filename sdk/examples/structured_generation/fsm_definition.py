@@ -27,7 +27,7 @@ def send_greeting(ctx: dict):
 
 def extract_info(ctx: dict):
     logger.info("Extracting user info...")
-    user_info = StructuredGeneration(
+    yield StructuredGeneration(
         "gpt-4o",
         messages=[
             {
@@ -39,12 +39,9 @@ def extract_info(ctx: dict):
         tool_choice="UserInfo",
     )
 
-    logger.info(f"Info extracted: {user_info}")
-
-    yield Text("Info extracted.", allow_feedback=False)
-
 
 def send_info(ctx: dict):
+    print('The last MML is:')
     print(ctx["last_mml"])
     yield Text("Here is the extracted information", allow_feedback=False)
 

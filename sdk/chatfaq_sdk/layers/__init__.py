@@ -249,8 +249,29 @@ class StructuredGeneration(Layer):
         final = False
         while not final:
             results = (await ctx.llm_request_futures[data["bot_channel_name"]])()
+            print(f"Results: {results}")
 
             # For tool use it's not streamed, so we can just return the first result
             # What happens if the LLM doesn't return any tool use?
             for result in results:
-                return result.get("tool_use", [])
+                # yield result.get("tool_use", []), True
+                yield (
+                    [
+                        {
+                            "payload": {
+                                "model_response": result["model_response"],
+                                "llm_config_name": self.llm_config_name,
+                                "lm_msg_id": result["lm_msg_id"],
+                                "tool_use": result.get("tool_use", []),
+                                # Add these fields to the payload to make it compatible with the RAGGeneratedText layer for now
+                                "references": {
+                                    "knowledge_base_id": 1,
+                                    "knowledge_items": [],
+                                    "knowledge_item_images": {},
+                                },
+                                "rag_config_name": "default",
+                            }
+                        }
+                    ],
+                    True,
+                )
