@@ -334,7 +334,7 @@ class ChatFAQSDK:
                 }
             )
         )
-            
+
 
     def rpc(self, name: str) -> Callable:
         """
@@ -347,8 +347,8 @@ class ChatFAQSDK:
 
         def outer(func):
             @wraps(func)
-            def inner(ctx: dict):
-                return func(ctx)
+            def inner(sdk: ChatFAQSDK, ctx: dict):
+                return func(sdk, ctx)
 
             if name not in self.rpcs:
                 self._rpcs[name] = []
@@ -362,22 +362,24 @@ class ChatFAQSDK:
         return outer
 
     async def _run_handler(self, handler, data):
-        layers = handler(data)
-        if inspect.isgenerator(layers):
+        async_func = handler(self, data)
+        if inspect.isasyncgen(async_func):
             is_last = False
-            layer = next(layers)
+            layer = await anext(async_func)
+
             while not is_last:
                 _layer = None
                 try:
-                    _layer = next(layers)
-                except StopIteration:
+                    _layer = await anext(async_func)
+                except StopAsyncIteration:
                     is_last = True
 
                 async for results in self._layer_results(layer, data):
                     yield [results[0], results[1] and is_last, results[2]]
                 layer = _layer
         else:
-            async for results in self._layer_results(layers, data):
+            layer = await async_func
+            async for results in self._layer_results(layer, data):
                 yield results
 
     async def _layer_results(self, layer, data):

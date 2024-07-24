@@ -1,12 +1,13 @@
+from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import LLMGeneratedText, Text
 
 
-def send_greeting(ctx: dict):
+async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
     yield Text("How can we help you?", allow_feedback=False)
 
 
-def send_answer(ctx: dict):
+async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     yield LLMGeneratedText("gpt-4o", messages=[
         {"role": "system", "content": "You are a helpful assistant."}
     ])
