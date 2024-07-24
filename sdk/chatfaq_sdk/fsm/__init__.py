@@ -88,7 +88,6 @@ class Transition:
         source: State = None,
         conditions: List[Callable] = [],
         unless: List[Callable] = [],
-        cascade: bool = False
     ):
         """
 
@@ -104,21 +103,17 @@ class Transition:
             The functions that has to pass in order to satisfy the transition
         unless: function
             The functions that doesn't have to pass in order to satisfy the transition
-        cascade: bool
-            Execute the transition without waiting for the next user input
         """
         self.source = source
         self.dest = dest
         self.conditions = conditions
         self.unless = unless
-        self.cascade = cascade
 
     def to_dict_repr(self):
         json = {
             "dest": self.dest.name,
             "unless": [f.__name__ for f in self.unless],
             "conditions": [f.__name__ for f in self.conditions],
-            "cascade": self.cascade,
         }
         if self.source:
             json["source"] = self.source.name
