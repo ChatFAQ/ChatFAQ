@@ -42,11 +42,13 @@ undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
 twisted = "^23.10.0rc1"
-ray = {version = "2.21.0", extras = ["data", "serve"]}
+ray = {extras = ["data", "serve"], version = "^2.32.0"}
 pillow = "^10.3.0"
 redis = "5.0.4"
 fastapi = "0.111"
 memray = "^1.12.0"
+gunicorn = "^22.0.0"
+uvicorn = "^0.30.1"
 
 
 [tool.poetry.group.dev.dependencies]
