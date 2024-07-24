@@ -139,6 +139,7 @@ class LLMGeneratedText(Layer):
         seed: int = 42,
         tools: List[BaseModel] = None,
         tool_choice: str = None,
+        use_conversation_context=True,
         *args,
         **kwargs,
     ):
@@ -150,6 +151,7 @@ class LLMGeneratedText(Layer):
         self.seed = seed
         self.tools = tools
         self.tool_choice = tool_choice
+        self.use_conversation_context = use_conversation_context
 
         if tools:
             self.tools = [tool.model_json_schema() for tool in tools] # Transform the models into their JSON schema so they can be sent to the backend
@@ -167,6 +169,7 @@ class LLMGeneratedText(Layer):
             self.tool_choice,
             data["conversation_id"],
             data["bot_channel_name"],
+            self.use_conversation_context
         )
 
         logger.debug("...Receive LLM res")

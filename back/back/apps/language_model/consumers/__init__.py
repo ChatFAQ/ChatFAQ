@@ -118,6 +118,7 @@ async def query_llm(
     tools: List[Dict] = None,
     tool_choice: str = None,
     streaming: bool = True,
+    use_conversation_context: bool = True,
 ):
     try:
         llm_config = await database_sync_to_async(LLMConfig.enabled_objects.get)(
@@ -131,22 +132,26 @@ async def query_llm(
         return
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-    prev_messages = format_msgs_chain_to_llm_context(
-        await database_sync_to_async(list)(conv.get_msgs_chain()), StackPayloadType.llm_generated_text.value
-    )
-    new_messages = prev_messages.copy()
+    
+    if use_conversation_context:
+        prev_messages = format_msgs_chain_to_llm_context(
+            await database_sync_to_async(list)(conv.get_msgs_chain()), StackPayloadType.llm_generated_text.value
+        )
+        new_messages = prev_messages.copy()
 
-    if messages: # In case the user sends a message
-        if messages[0]["role"] == "system":
-            if prev_messages[0]["role"] == "system":
-                new_messages[0] = messages[0]  # replace the system message
-            else:
-                new_messages.insert(0, messages[0])  # add the system message
+        if messages: # In case the fsm sends messages
+            if messages[0]["role"] == "system":
+                if prev_messages[0]["role"] == "system":
+                    new_messages[0] = messages[0]  # replace the original system message with the new one from the fsm
+                else:
+                    new_messages.insert(0, messages[0])  # or add the fsm system message
 
-            # pop the system message
-            messages = messages[1:]
+                # pop the system message
+                messages = messages[1:]
 
-    new_messages.extend(messages)
+        new_messages.extend(messages)
+    else:
+        new_messages = messages
 
     try:
         if streaming:
@@ -361,6 +366,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("tools"),
             data.get("tool_choice"),
             data.get("streaming"),
+            data.get("use_conversation_context"),
         ):
             await self.send(
                 json.dumps(

@@ -85,6 +85,14 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     )
     tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
     streaming = serializers.BooleanField(default=True)
+    use_conversation_context = serializers.BooleanField(default=True)
+
+    def validate(self, attrs):
+        if not attrs.get("messages") and not attrs.get("use_conversation_context"):
+            raise serializers.ValidationError(
+                "If there are no messages then use_conversation_context should be always True"
+            )
+        return attrs
 
 
 class RPCRAGRequestSerializer(serializers.Serializer):

@@ -313,6 +313,7 @@ class ChatFAQSDK:
             tool_choice,
             conversation_id,
             bot_channel_name,
+            use_conversation_context,
     ):
         logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
         self.llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
@@ -330,6 +331,7 @@ class ChatFAQSDK:
                         "seed": seed,
                         "tools": tools,
                         "tool_choice": tool_choice,
+                        "use_conversation_context": use_conversation_context,
                     },
                 }
             )

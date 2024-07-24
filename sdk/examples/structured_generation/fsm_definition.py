@@ -1,5 +1,5 @@
 from chatfaq_sdk import ChatFAQSDK
-from chatfaq_sdk.clients import BackendClient
+from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import Text
 from pydantic import BaseModel
@@ -31,8 +31,8 @@ async def send_info(sdk: ChatFAQSDK, ctx: dict):
     print('The last MML is:')
     print(ctx["last_mml"])
     logger.info("Extracting user info...")
-    backend_client = BackendClient(sdk)
-    async for res in backend_client.req(
+    async for res in llm_request(
+        sdk,
         "gpt-4o",
         messages=[
             {
