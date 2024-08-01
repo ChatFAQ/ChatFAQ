@@ -97,7 +97,7 @@ services:
     envs: [ django ]
     port: 8000
     internal_ports: [8265, 6375, 9090]
-    instance_size: L
+    instance_size: XL
     route_prefixes:
       - "/back"
 
