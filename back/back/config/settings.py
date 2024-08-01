@@ -169,6 +169,16 @@ with EnvManager(model_w_django) as env:
 
     CORS_ALLOW_HEADERS = [
         'widget-id',
+        'content-type',
+        'authorization',
+        'x-requested-with',
+        'accept',
+        'accept-encoding',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-xsrf-token',
+        'dnt',
     ]
     # ---
     # Plumbing
