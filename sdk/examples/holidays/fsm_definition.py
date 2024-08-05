@@ -9,8 +9,6 @@ import json
 
 
 PLACES = ["Madrid", "Paris", "Rome"]
-FINAL_PLACE = None
-FINAL_BUDGET = None
 
 class SubmitPlace(BaseModel):
     place: Literal["Madrid", "Paris", "Rome"] = Field(
@@ -76,17 +74,23 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
             }
         ],
     )
+
+    place = None
     async for place in generator:
         print(place)
         args = place['tool_use'][0]['args']
         args = json.loads(args)
-        FINAL_PLACE = args['place']
+        place = args['place']
+    
+    # Start the state and submit it so other states can access it
+    state = {"place": place}
 
-    yield Text(f"Great! Then {FINAL_PLACE} is the best destination. What budget are you willing to go?", allow_feedback=False)
+    yield Text(f"Great! Then {place} is the best destination. What budget are you willing to go?", allow_feedback=False, state={"place": final_place})
 
 
 async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
     user_budget = ctx["last_mml"]["stack"][0]["payload"]
+    state = ctx["state"]
 
     generator = llm_request(
         sdk,
@@ -104,13 +108,16 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
         ],
     )
 
+    budget = None
     async for budget in generator:
         print(budget)
         args = budget['tool_use'][0]['args']
         args = json.loads(args)
-        FINAL_BUDGET = args['budget']
+        budget = args['budget']
+    
+    state["budget"] = budget
         
-    yield Text(f"Great. Let me find vacations in {FINAL_PLACE} with budget {FINAL_BUDGET}", allow_feedback=False)
+    yield Text(f"Great. Let me find vacations in {state['place']} with budget {budget}", allow_feedback=False, state=state)
     
 
 places_options_state = State(name="Greeting", events=[send_places], initial=True)

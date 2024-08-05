@@ -198,6 +198,7 @@ class MessageStackSerializer(serializers.Serializer):
     payload = Payload(required=False)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
+    state = serializers.JSONField(required=False)
 
     def validate(self, data):
         if data.get("type") == StackPayloadType.text.value:

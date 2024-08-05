@@ -13,8 +13,9 @@ class Layer:
 
     _type = None
 
-    def __init__(self, allow_feedback=True):
+    def __init__(self, allow_feedback=True, state={}):
         self.allow_feedback = allow_feedback
+        self.state = state
 
     async def build_payloads(self, ctx, data) -> tuple[List[dict], bool]:
         """
@@ -35,6 +36,7 @@ class Layer:
                 r["type"] = self._type
                 r["meta"] = {}
                 r["meta"]["allow_feedback"] = self.allow_feedback
+                r["state"] = self.state
             yield [_repr, last]
 
 
@@ -154,7 +156,9 @@ class LLMGeneratedText(Layer):
         self.use_conversation_context = use_conversation_context
 
         if tools:
-            self.tools = [tool.model_json_schema() for tool in tools] # Transform the models into their JSON schema so they can be sent to the backend
+            self.tools = [
+                tool.model_json_schema() for tool in tools
+            ]  # Transform the models into their JSON schema so they can be sent to the backend
 
     async def build_payloads(self, ctx, data):
         logger.debug("Waiting for LLM...")
@@ -169,7 +173,7 @@ class LLMGeneratedText(Layer):
             self.tool_choice,
             data["conversation_id"],
             data["bot_channel_name"],
-            self.use_conversation_context
+            self.use_conversation_context,
         )
 
         logger.debug("...Receive LLM res")
