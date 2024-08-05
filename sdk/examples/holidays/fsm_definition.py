@@ -85,7 +85,7 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     # Start the state and submit it so other states can access it
     state = {"place": place}
 
-    yield Text(f"Great! Then {place} is the best destination. What budget are you willing to go?", allow_feedback=False, state={"place": final_place})
+    yield Text(f"Great! Then {place} is the best destination. What budget are you willing to go?", allow_feedback=False, state=state)
 
 
 async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
