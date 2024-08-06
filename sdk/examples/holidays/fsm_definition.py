@@ -4,18 +4,11 @@ from chatfaq_sdk.layers import Text
 from chatfaq_sdk.clients import llm_request
 from .prompts import travel_place_q, collect_place_p, collect_budget_p
 from pydantic import BaseModel, Field
-from typing import Literal
 import json
 
 
-PLACES = ["Madrid", "Paris", "Rome"]
+DEFAULT_PLACES = ["Madrid", "Paris", "Rome"]
 
-class SubmitPlace(BaseModel):
-    place: Literal["Madrid", "Paris", "Rome"] = Field(
-        ...,
-        title="Place",
-        description="The place that most closely matches the description."
-    )
 
 class SubmitBudget(BaseModel):
     budget: str = Field(
@@ -30,6 +23,9 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
     #     "Hi, let’s find a great destination for your next trip", allow_feedback=False
     # )
 
+    state = ctx["state"] if ctx["state"] else {}
+    places = state["places"] if "places" in state else DEFAULT_PLACES
+
     # Very expensive to generate this each time a conversation is started, we should cache this
     # and regenerate it only when the list of places changes
     response = ""
@@ -42,7 +38,7 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
         messages=[
             {
                 "role": "user",
-                "content": travel_place_q.format(PLACES_LIST=", ".join(PLACES)),
+                "content": travel_place_q.format(PLACES_LIST=", ".join(places)),
             }
         ],
     )
@@ -59,6 +55,15 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
 async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     user_description = ctx["last_mml"]["stack"][0]["payload"]
 
+    places = ctx["state"]["places"] if "places" in ctx["state"] else DEFAULT_PLACES
+
+    class SubmitPlace(BaseModel):
+        place: str = Field(
+            ...,
+            title="Place",
+            description=f"The place that most closely matches the description between {', '.join(places)}",
+        )
+
     generator = llm_request(
         sdk,
         "gpt-4o",
@@ -70,7 +75,7 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
         messages=[
             {
                 "role": "user",
-                "content": collect_place_p.format(PLACES=", ".join(PLACES), USER_DESCRIPTION=user_description),
+                "content": collect_place_p.format(PLACES=", ".join(places), USER_DESCRIPTION=user_description),
             }
         ],
     )
