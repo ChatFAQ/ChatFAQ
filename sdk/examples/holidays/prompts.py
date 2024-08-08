@@ -31,11 +31,6 @@ Here is the list of possible places:
 {PLACES}
 </places>
 
-The user has provided the following description of what they're looking for:
-<description>
-{USER_DESCRIPTION}
-</description>
-
 To complete this task, follow these steps:
 
 1. Carefully read the user's description and identify key features or characteristics they are looking for in a holiday destination.

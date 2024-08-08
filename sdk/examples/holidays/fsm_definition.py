@@ -46,15 +46,12 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
         response += chunk["model_response"]
 
     response = response.split("<question>")[1].split("</question>")[0].strip()
-    print(response)
     yield Text(response, allow_feedback=False)
 
     # yield Text("To continue, please provide a description of your ideal travel experience", allow_feedback=False)
 
 
 async def collect_place(sdk: ChatFAQSDK, ctx: dict):
-    user_description = ctx["conv_mml"][-1]["stack"][0]["payload"]
-
     places = ctx["state"]["places"] if "places" in ctx["state"] else DEFAULT_PLACES
 
     class SubmitPlace(BaseModel):
@@ -67,22 +64,21 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     generator = llm_request(
         sdk,
         "gpt-4o",
-        use_conversation_context=False,
+        use_conversation_context=True, # Here we let the backend append all the previous messages to send to the LLM
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
         tools=[SubmitPlace],
         tool_choice="SubmitPlace",
         messages=[
             {
-                "role": "user",
-                "content": collect_place_p.format(PLACES=", ".join(places), USER_DESCRIPTION=user_description),
+                "role": "system",
+                "content": collect_place_p.format(PLACES=", ".join(places)),
             }
         ],
     )
 
     place = None
     async for place in generator:
-        print(place)
         args = place['tool_use'][0]['args']
         args = json.loads(args)
         place = args['place']
@@ -100,7 +96,7 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
     generator = llm_request(
         sdk,
         "gpt-4o",
-        use_conversation_context=False,
+        use_conversation_context=False, # Here we control exactly which messages are sent to the LLM
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
         tools=[SubmitBudget],
@@ -115,7 +111,6 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
 
     budget = None
     async for budget in generator:
-        print(budget)
         args = budget['tool_use'][0]['args']
         args = json.loads(args)
         budget = args['budget']
