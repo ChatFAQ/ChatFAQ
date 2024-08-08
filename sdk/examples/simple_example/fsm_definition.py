@@ -7,7 +7,7 @@ from chatfaq_sdk.layers import Text
 
 
 async def is_saying_goodbye(sdk: ChatFAQSDK, ctx: dict):
-    if ctx["last_mml"]["stack"][0]["payload"] == "goodbye":
+    if ctx["conv_mml"][-1]["stack"][0]["payload"] == "goodbye":
         return Condition(1)
     return Condition(0)
 
@@ -18,11 +18,11 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
-    last_payload = ctx["last_mml"]["stack"][0]["payload"]
+    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
     yield Text(
         f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}'
     )
-    yield Text(f"Tell me more")
+    yield Text("Tell me more")
 
 
 async def send_goodbye(ctx: dict):

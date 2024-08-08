@@ -147,8 +147,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         from back.apps.fsm.models import FSMDefinition
 
         conv = await database_sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
-        last_mml = await database_sync_to_async(conv.get_last_msg)()
-        last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
+        conv_mml = await database_sync_to_async(conv.get_conv_mml)()
 
         fsm_def = await database_sync_to_async(FSMDefinition.objects.get)(
             pk=self.fsm_def.pk
@@ -168,7 +167,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return {
             "conversation_id": self.conversation.pk,
             "user_id": self.user_id,
-            "last_mml": last_mml,
+            "conv_mml": conv_mml,
             "bot_channel_name": self.channel_name,
             "state": last_state_values
         }

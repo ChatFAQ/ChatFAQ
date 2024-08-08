@@ -53,7 +53,7 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def collect_place(sdk: ChatFAQSDK, ctx: dict):
-    user_description = ctx["last_mml"]["stack"][0]["payload"]
+    user_description = ctx["conv_mml"][-1]["stack"][0]["payload"]
 
     places = ctx["state"]["places"] if "places" in ctx["state"] else DEFAULT_PLACES
 
@@ -94,7 +94,7 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
-    user_budget = ctx["last_mml"]["stack"][0]["payload"]
+    user_budget = ctx["conv_mml"][-1]["stack"][0]["payload"]
     state = ctx["state"]
 
     generator = llm_request(

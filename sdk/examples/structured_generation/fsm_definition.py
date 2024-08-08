@@ -29,7 +29,7 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 async def send_info(sdk: ChatFAQSDK, ctx: dict):
     print('The last MML is:')
-    print(ctx["last_mml"])
+    print(ctx["conv_mml"][-1])
     logger.info("Extracting user info...")
     async for res in llm_request(
         sdk,

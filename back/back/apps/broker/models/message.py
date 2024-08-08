@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.forms import model_to_dict
 
 from back.apps.language_model.models import KnowledgeItem
 from back.common.models import ChangesMixin
@@ -82,7 +83,11 @@ class Conversation(ChangesMixin):
         if last_message:
             return last_message.stack[0]["state"]
         return None
-        
+
+    def get_conv_mml(self):
+        messages = self.get_msgs_chain()
+        conv_mml = [model_to_dict(message, fields=["stack", "sender"]) if message else None for message in messages]
+        return conv_mml
 
     def get_last_human_mml(self):
         return (
