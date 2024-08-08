@@ -34,7 +34,9 @@ env:
       REDIS_URL: '{{ redis.REDIS_URL }}'
       REMOTE_RAY_CLUSTER_ADDRESS_HEAD: 'back:6375'
       DO_REGION: 'ams3'
-      RAY_BACKEND_LOG_LEVEL: 'debug'
+      RAY_BACKEND_LOG_LEVEL: 'warning'
+      RAY_ROTATION_MAX_BYTES: '10485760'
+      RAY_ROTATION_BACKUP_COUNT: '1'
       ANTHROPIC_API_KEY: '{{ secret("ANTHROPIC_API_KEY") }}'
       HUGGINGFACE_KEY: '{{ secret("HUGGINGFACE_KEY") }}'
       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
@@ -97,7 +99,7 @@ services:
     envs: [ django ]
     port: 8000
     internal_ports: [8265, 6375, 9090]
-    instance_size: XL
+    instance_size: M
     route_prefixes:
       - "/back"
 
