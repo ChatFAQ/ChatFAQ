@@ -2,13 +2,12 @@ from django.urls import re_path
 
 from back.apps.broker.consumers.parse_consumer import ParseConsumer
 from back.apps.broker.consumers.rpc_consumer import RPCConsumer
-from back.apps.language_model.consumers import LLMConsumer
+from back.apps.language_model.consumers import AIConsumer
 from back.apps.language_model.consumers.tasks_progress import TasksProgressConsumer
 from back.common.abs.bot_consumers import BrokerMetaClass
 from back.common.abs.bot_consumers.http import HTTPBotConsumer
 from back.common.abs.bot_consumers.ws import WSBotConsumer
 from back.utils import is_server_process
-
 
 websocket_urlpatterns = [
     re_path(
@@ -20,8 +19,8 @@ websocket_urlpatterns = [
         RPCConsumer.as_asgi(),
     ),
     re_path(
-        r"back/ws/broker/llm/$",
-        LLMConsumer.as_asgi(),
+        r"back/ws/broker/ai/$",
+        AIConsumer.as_asgi(),
     ),
     re_path(
         r"back/ws/broker/parse/$",

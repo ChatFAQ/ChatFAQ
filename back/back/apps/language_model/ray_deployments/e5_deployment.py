@@ -66,7 +66,7 @@ class E5Deployment:
                 results_reranked.append([])
                 continue
 
-            reranked_results = self.reranker(query, results)
+            reranked_results = self.reranker(query, results, threshold=0.5)
             for result in reranked_results:
                 result['score'] = result['score'].item() # convert scores from np.float32 to float
             results_reranked.append(reranked_results)

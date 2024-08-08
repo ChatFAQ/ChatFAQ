@@ -1,11 +1,11 @@
-from logging import getLogger
 from enum import Enum
+from logging import getLogger
 
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.contrib.postgres.fields import ArrayField
-from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
+from django.forms import model_to_dict
 
 from back.apps.language_model.models import KnowledgeItem
 from back.common.models import ChangesMixin
@@ -26,7 +26,8 @@ class AgentType(Enum):
 
 class StackPayloadType(Enum):
     text = "text"
-    lm_generated_text = "lm_generated_text"
+    rag_generated_text = "rag_generated_text"
+    llm_generated_text = "llm_generated_text"
     html = "html"
     image = "image"
     satisfaction = "satisfaction"
@@ -54,28 +55,54 @@ class Conversation(ChangesMixin):
         ).first()
 
     def get_msgs_chain(self):
-        return Message.objects.filter(conversation=self).order_by('created_date')
+        return Message.objects.filter(conversation=self).order_by("created_date")
 
     def get_kis(self):
         chain = self.get_msgs_chain()
-        msg_ids = chain.values_list('id', flat=True)
-        return KnowledgeItem.objects.prefetch_related('knowledgeitemimage_set').filter(messageknowledgeitem__message_id__in=msg_ids).distinct().order_by("updated_date")
+        msg_ids = chain.values_list("id", flat=True)
+        return (
+            KnowledgeItem.objects.prefetch_related("knowledgeitemimage_set")
+            .filter(messageknowledgeitem__message_id__in=msg_ids)
+            .distinct()
+            .order_by("updated_date")
+        )
 
     def get_last_msg(self):
         return (
             Message.objects.filter(conversation=self).order_by("-created_date").first()
         )
 
+    def get_last_state(self):
+        # order the messages by created_date, then keep the messages that contain a state in the stack
+        # and return the last one
+        last_message = (Message.objects.filter(conversation=self)
+            .filter(Q(stack__contains=[{"state": {}}]) | Q(stack__icontains='"state":'))
+            .order_by("-created_date")
+            .first())
+        
+        if last_message:
+            return last_message.stack[0]["state"]
+        return None
+
+    def get_conv_mml(self):
+        messages = self.get_msgs_chain()
+        conv_mml = [model_to_dict(message, fields=["stack", "sender"]) if message else None for message in messages]
+        return conv_mml
+
     def get_last_human_mml(self):
         return (
-            Message.objects.filter(conversation=self, sender__type=AgentType.human.value).order_by("-created_date").first()
+            Message.objects.filter(
+                conversation=self, sender__type=AgentType.human.value
+            )
+            .order_by("-created_date")
+            .first()
         )
 
     def get_all_reviewable_bot_msgs(self):
         return Message.objects.filter(
             conversation=self,
             sender__type=AgentType.bot.value,
-            stack__contains=[{"type": StackPayloadType.lm_generated_text.value}]
+            stack__contains=[{"type": StackPayloadType.rag_generated_text.value}],
         )
 
     def get_review_progress(self):
@@ -87,37 +114,37 @@ class Conversation(ChangesMixin):
         return {"progress": progress, "total": reviewable_bot_msgs.count()}
 
     def get_formatted_conversation(self, chain):
-        '''
+        """
         Returns a list of messages in the format of the conversation LLMs.
-        '''
+        """
         messages = []
         human_messages_ids = []
 
         bot_content = ""
         for m in chain[1:]:  # skip predefined message
-            if m.sender['type'] == 'human':
+            if m.sender["type"] == "human":
                 if bot_content != "":  # when human message, add bot message before
-                    messages.append({'role': 'assistant', 'content': bot_content})
+                    messages.append({"role": "assistant", "content": bot_content})
                     bot_content = ""
 
-                messages.append({'role': 'user', 'content': m.stack[0]['payload']})
+                messages.append({"role": "user", "content": m.stack[0]["payload"]})
                 human_messages_ids.append(m.id)
-            elif m.sender['type'] == 'bot':
-                bot_content += m.stack[0]['payload']['model_response']
+            elif m.sender["type"] == "bot":
+                bot_content += m.stack[0]["payload"]["model_response"]
 
         if bot_content != "":  # last message
-            messages.append({'role': 'assistant', 'content': bot_content})
+            messages.append({"role": "assistant", "content": bot_content})
 
         return messages, human_messages_ids
 
     def group_by_stack(self, chain):
-        '''
+        """
         returns the chain but with the bot messages stack[0].payload of the same stack_id concatenated.
-        '''
+        """
         from back.apps.broker.serializers import MessageSerializer
 
         def _stack_el(m):
-            el = m['stack']
+            el = m["stack"]
             while type(el) is list:
                 el = el[0]
             return el
@@ -127,23 +154,36 @@ class Conversation(ChangesMixin):
             m = MessageSerializer(m).data
             first_stack_el = _stack_el(m)
 
-            if m['sender']['type'] == 'human':
+            if m["sender"]["type"] == "human":
                 grouped_chain.append(m)
-            elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.text.value:
+            elif (
+                m["sender"]["type"] == "bot"
+                and first_stack_el["type"] == StackPayloadType.text.value
+            ):
                 grouped_chain.append(m)
-            elif m['sender']['type'] == 'bot' and first_stack_el['type'] == StackPayloadType.lm_generated_text.value:
-                if len(grouped_chain) > 0 and grouped_chain[-1]['sender']['type'] == 'bot' and \
-                    grouped_chain[-1]['stack'][0]['type'] == StackPayloadType.lm_generated_text.value and \
-                    grouped_chain[-1]['stack_id'] == m['stack_id']:
-                    grouped_chain[-1]['stack'][0]['payload']['model_response'] += first_stack_el['payload'][
-                        'model_response']
+            elif (
+                m["sender"]["type"] == "bot"
+                and first_stack_el["type"] == StackPayloadType.rag_generated_text.value
+            ):
+                if (
+                    len(grouped_chain) > 0
+                    and grouped_chain[-1]["sender"]["type"] == "bot"
+                    and grouped_chain[-1]["stack"][0]["type"]
+                    == StackPayloadType.rag_generated_text.value
+                    and grouped_chain[-1]["stack_id"] == m["stack_id"]
+                ):
+                    grouped_chain[-1]["stack"][0]["payload"]["model_response"] += (
+                        first_stack_el["payload"]["model_response"]
+                    )
                 else:
                     grouped_chain.append(m)
 
-                if m['last']:
-                    grouped_chain[-1]['last'] = m['last']
-                    grouped_chain[-1]['id'] = m['id']
-                    grouped_chain[-1]['stack'][0]['payload']['references'] = first_stack_el['payload']['references']
+                if m["last"]:
+                    grouped_chain[-1]["last"] = m["last"]
+                    grouped_chain[-1]["id"] = m["id"]
+                    grouped_chain[-1]["stack"][0]["payload"]["references"] = (
+                        first_stack_el["payload"]["references"]
+                    )
         return grouped_chain
 
     @classmethod
@@ -268,19 +308,30 @@ class Message(ChangesMixin):
 
         all_kis_to_review = set()
         for stackItem in self.stack:
-            if stackItem["type"] == StackPayloadType.lm_generated_text.value:
-                for ki_ref in stackItem.get("payload", {}).get("references", {}).get("knowledge_items", []):
+            if stackItem["type"] == StackPayloadType.rag_generated_text.value:
+                for ki_ref in (
+                    stackItem.get("payload", {})
+                    .get("references", {})
+                    .get("knowledge_items", [])
+                ):
                     all_kis_to_review.add(str(ki_ref.get("knowledge_item_id")))
 
-        reviewed_kis = set(str(review["knowledge_item_id"]) for review in self.adminreview.ki_review_data)
+        reviewed_kis = set(
+            str(review["knowledge_item_id"])
+            for review in self.adminreview.ki_review_data
+        )
 
         return all_kis_to_review == reviewed_kis
 
     def get_chain(self):
-        return Message.objects.filter(conversation=self.conversation, created_date__gte=self.created_date).order_by('created_date')
+        return Message.objects.filter(
+            conversation=self.conversation, created_date__gte=self.created_date
+        ).order_by("created_date")
 
     def to_text(self):
-        return self._to_text(self.stack, self.send_time.strftime('[%Y-%m-%d %H:%M:%S]'), self.sender)
+        return self._to_text(
+            self.stack, self.send_time.strftime("[%Y-%m-%d %H:%M:%S]"), self.sender
+        )
 
     @staticmethod
     def _to_text(stack, send_time, sender):
@@ -288,16 +339,21 @@ class Message(ChangesMixin):
         for layer in stack:
             if layer["type"] == StackPayloadType.text.value:
                 stack_text += layer["payload"] + "\n"
-            elif layer["type"] == StackPayloadType.lm_generated_text.value:
+            elif layer["type"] in [
+                StackPayloadType.rag_generated_text.value,
+                StackPayloadType.llm_generated_text.value,
+            ]:
                 if layer["payload"]["model_response"]:
                     stack_text += layer["payload"]["model_response"]
             else:
-                logger.error(f"Unknown stack payload type to export as csv: {layer['type']}")
+                logger.error(
+                    f"Unknown stack payload type to export as csv: {layer['type']}"
+                )
 
         return f"{send_time} {sender['type']}: {stack_text}"
 
     def save(self, *args, **kwargs):
-        if not self.prev: # avoid setting prev to itself if model is being updated
+        if not self.prev:  # avoid setting prev to itself if model is being updated
             self.prev = self.conversation.get_last_msg()
         super(Message, self).save(*args, **kwargs)
 
@@ -334,4 +390,6 @@ class AdminReview(ChangesMixin):
     ki_review_data = models.JSONField(null=True, blank=True, default=list)
     gen_review_msg = models.TextField(null=True, blank=True)
     gen_review_val = models.IntegerField(null=True, choices=VALUE_CHOICES)
-    gen_review_type = models.CharField(null=True, blank=True, max_length=255, choices=REVIEW_TYPES)
+    gen_review_type = models.CharField(
+        null=True, blank=True, max_length=255, choices=REVIEW_TYPES
+    )

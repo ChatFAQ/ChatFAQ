@@ -12,4 +12,4 @@ isort:
 	$(PYTHON_BIN) -m isort examples
 
 run_example:
-	$(PYTHON_BIN) examples/model_example/__main__.py
+	$(PYTHON_BIN) examples/rag_example/__main__.py

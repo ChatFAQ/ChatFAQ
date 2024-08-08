@@ -34,7 +34,7 @@ greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
 
 def send_answer(ctx: dict):
-    last_payload = ctx["last_mml"]["stack"][0]["payload"]
+    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
     yield Text(
         f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}'
     )
@@ -60,7 +60,7 @@ Declare the only computable condition for the transitions of our FSM:
 
 ```python
 def is_saying_goodbye(ctx: dict):
-    if ctx["last_mml"]["stack"][0]["payload"] == "goodbye":
+    if ctx["conv_mml"][-1]["stack"][0]["payload"] == "goodbye":
         return Condition(1)
     return Condition(0)
 ```
@@ -128,7 +128,7 @@ def send_greeting(ctx: dict):
 
 
 def send_answer(ctx: dict):
-    last_payload = ctx["last_mml"]["stack"][0]["payload"]
+    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
     yield LMGeneratedText(last_payload, "my_rag_config")
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

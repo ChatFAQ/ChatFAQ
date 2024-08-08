@@ -4,7 +4,7 @@
 # License: MIT (https://github.com/jxnl/instructor/blob/main/LICENSE)
 
 import enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from docstring_parser import parse
 from pydantic import BaseModel
@@ -18,7 +18,7 @@ class Mode(enum.Enum):
     ANTHROPIC_TOOLS = "anthropic_tools"
 
 
-def openai_schema(model: BaseModel) -> Dict[str, Any]:
+def openai_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
     """
     Return the schema in the format of OpenAI's schema as jsonschema
 
@@ -28,7 +28,11 @@ def openai_schema(model: BaseModel) -> Dict[str, Any]:
     Returns:
         model_json_schema (dict): A dictionary in the format of OpenAI's schema as jsonschema
     """
-    schema = model.model_json_schema()
+    if not isinstance(model, Dict): # 
+        schema = model.model_json_schema()
+    else:
+        schema = model
+
     docstring = parse(model.__doc__ or "")
     parameters = {k: v for k, v in schema.items() if k not in ("title", "description")}
     for param in docstring.params:
@@ -58,7 +62,7 @@ def openai_schema(model: BaseModel) -> Dict[str, Any]:
     }
 
 
-def anthropic_schema(model: BaseModel) -> Dict[str, Any]:
+def anthropic_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
     """
     Return the schema in the format of Anthropic's schema
     """
@@ -70,13 +74,13 @@ def anthropic_schema(model: BaseModel) -> Dict[str, Any]:
     }
 
 
-def format_tools(tools: List[BaseModel], mode: Mode) -> List[Dict[str, Any]]:
+def format_tools(tools: List[Union[BaseModel, Dict]], mode: Mode) -> List[Dict[str, Any]]:
     """
     Given a series of Pydantic models, return the JSON schema required by each LLM provider.
     Parameters
     ----------
-    tools : List[BaseModel]
-        A list of Pydantic models
+    tools : List[Union[BaseModel, Dict]]
+        A list of Pydantic models or theirs model_json_schema
     mode : Mode
         The LLM provider to format the tools for
     Returns

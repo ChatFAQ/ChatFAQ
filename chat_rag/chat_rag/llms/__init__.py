@@ -27,7 +27,7 @@ LLM_CLASSES = {
     "together": OpenAIChatModel,
 }
 
-def load_llm(llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None):
+def load_llm(llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None) -> LLM:
     # For Together model, set the fixed TOGETHER url
     if llm_type == "together":
         base_url = "https://api.together.xyz/v1"

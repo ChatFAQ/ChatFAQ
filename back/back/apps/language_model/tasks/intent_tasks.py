@@ -394,7 +394,7 @@ def generate_suggested_intents_task(
             stack__contains=[
                 {
                     "payload": {"references": {"knowledge_base_id": "1"}},
-                    "type": "lm_generated_text",
+                    "type": "rag_generated_text",
                 }
             ]
         )
