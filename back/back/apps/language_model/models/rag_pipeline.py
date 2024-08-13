@@ -18,6 +18,8 @@ from back.apps.language_model.tasks import index_task
 from back.apps.language_model.ray_deployments import (
     launch_rag_deployment,
     delete_rag_deployment,
+    launch_llm_deployment,
+    delete_serve_app
 )
 
 from logging import getLogger
@@ -195,6 +197,11 @@ class RAGConfig(ChangesMixin):
         return query_results
 
 
+class EnabledRetrieverConfigManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(enabled=True)
+
+
 class RetrieverConfig(ChangesMixin):
     """
     A config with all the settings to configure the retriever.
@@ -234,6 +241,9 @@ class RetrieverConfig(ChangesMixin):
 
     def get_device(self):
         return DeviceChoices(self.device)
+    
+    def get_deploy_name(self):
+        return f"retriever_{self.name}"
 
     # When saving we want to check if the model_name has changed and in that case regenerate all the embeddings for the
     # knowledge bases that uses this retriever.
@@ -277,6 +287,11 @@ class RetrieverConfig(ChangesMixin):
             transaction.on_commit(on_commit_callback)
 
 
+class EnabledLLMConfigManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(enabled=True)
+
+
 class LLMConfig(ChangesMixin):
     """
      A model config with all the settings to configure an LLM.
@@ -292,6 +307,10 @@ class LLMConfig(ChangesMixin):
          The maximum length of the model.
     """
 
+    objects = models.Manager()  # The default manager.
+
+    enabled_objects = EnabledLLMConfigManager()  # The Dahl-specific manager.
+
     name = models.CharField(max_length=255, unique=True)
     llm_type = models.CharField(
         max_length=10, choices=LLMChoices.choices, default=LLMChoices.OPENAI
@@ -299,6 +318,8 @@ class LLMConfig(ChangesMixin):
     llm_name = models.CharField(max_length=100, default="gpt-4o")
     base_url = models.CharField(max_length=255, blank=True, null=True)
     model_max_length = models.IntegerField(blank=True, null=True)
+    enabled = models.BooleanField(default=False)
+    num_replicas = models.IntegerField(default=1)
 
     def __str__(self):
         return self.name
@@ -306,36 +327,81 @@ class LLMConfig(ChangesMixin):
     def get_llm_type(self):
         return LLMChoices(self.llm_type)
 
+    def get_deploy_name(self):
+        return f"llm_{self.name}"
+    
+    def trigger_deploy(self):
+        """Deploys should be automatically triggered when the LLM is saved, but this method is here for manual triggering if needed."""
+        if self.enabled:
+            task_name = f"launch_llm_deployment_{self.name}"
+            print(f"Submitting the {task_name} task to the Ray cluster...")
+            launch_llm_deployment.options(name=task_name).remote(
+                self.get_deploy_name(),
+                self.get_llm_type(),
+                self.llm_name,
+                self.base_url,
+                self.model_max_length,
+                self.num_replicas,
+            )
+        else:
+            logger.info(
+                f"LLM {self.name} is not enabled, skipping deploy"
+            )
+
     def save(self, *args, **kwargs):
-        logger.info(
-            "Checking if we need to redeploy RAGs because of a LLM config change"
-        )
-        rags_to_redeploy = None
+        redeploy_llm = False
+        shutdown_llm = False
+
         if self.pk is not None:
             old_llm = LLMConfig.objects.get(pk=self.pk)
 
             if (
                 self.llm_name != old_llm.llm_name
                 or self.get_llm_type() != old_llm.get_llm_type()
+                or self.base_url != old_llm.base_url
+                or self.model_max_length != old_llm.model_max_length
             ):
-                # change the rag config index status to NO_INDEX
-                rags_to_redeploy = RAGConfig.objects.filter(llm_config=self)
+                redeploy_llm = True
+
+            if old_llm.enabled and not self.enabled:
+                shutdown_llm = True
+                logger.info(
+                    f"LLM config {self.name} changed to disabled. Shutting down the LLM deployment..."
+                )
+
+            if not old_llm.enabled and self.enabled:
+                redeploy_llm = True
+                logger.info(
+                    f"LLM config {self.name} changed to enabled. Launching the LLM deployment..."
+                )
 
         super().save(*args, **kwargs)
 
-        if rags_to_redeploy:
+        if redeploy_llm and self.enabled:
 
             def on_commit_callback():
-                logger.info("LLM changed, launching rag redeploys")
-                for rag in rags_to_redeploy:
-                    if rag.enabled:
-                        task_name = f"launch_rag_deployment_{rag.name}"
-                        logger.info(
-                            f"Submitting the {task_name} task to the Ray cluster..."
-                        )
-                        launch_rag_deployment.options(name=task_name).remote(rag.id)
+                deployment_name = self.get_deploy_name()
+                task_name = f"launch_llm_deployment_{deployment_name}"
+                print(f"Submitting the {task_name} task to the Ray cluster...")
+                launch_llm_deployment.options(name=task_name).remote(
+                    deployment_name,
+                    self.get_llm_type(),
+                    self.llm_name,
+                    self.base_url,
+                    self.model_max_length,
+                    self.num_replicas,
+                )
 
             # Schedule the task to run after the transaction is committed
+            transaction.on_commit(on_commit_callback)
+
+        if shutdown_llm and not self.enabled:
+            def on_commit_callback():
+                deployment_name = self.get_deploy_name()
+                task_name = f"delete_serve_app_{deployment_name}"
+                print(f"Submitting the {task_name} task to the Ray cluster...")
+                delete_serve_app.options(name=task_name).remote(deployment_name)
+
             transaction.on_commit(on_commit_callback)
 
 

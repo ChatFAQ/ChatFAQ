@@ -1,6 +1,6 @@
-from typing import Optional, Tuple, List
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from enum import Enum
+from typing import List, Optional
 
 
 @dataclass
@@ -64,5 +64,5 @@ class DataSource:
 
 class WSType(Enum):
     rpc = "rpc"
-    llm = "llm"
+    ai = "ai"
     parse = "parse"

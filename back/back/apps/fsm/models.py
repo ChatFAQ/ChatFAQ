@@ -16,6 +16,7 @@ class FSMDefinition(ChangesMixin):
     # TODO: Model 'definitions' inside DB ???
     name = models.CharField(null=True, unique=True, max_length=255)
     definition = models.JSONField(null=True)
+    initial_state_values = models.JSONField(null=True)
 
     def build_fsm(self, ctx: BotConsumer, current_state: State = None) -> FSM:
         m = FSM(

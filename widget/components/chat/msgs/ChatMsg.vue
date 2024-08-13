@@ -26,7 +26,7 @@
                     }">
                     <div class="layer" v-for="layer in props.message.stack">
                         <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
-                        <LMMsg v-if="layer.type === MSG_TYPES.lm_generated_text" :data="layer" :is-last="isLastOfType && layersFinished"/>
+                        <LMMsg v-if="layer.type === MSG_TYPES.rag_generated_text || layer.type === MSG_TYPES.llm_generated_text" :data="layer" :is-last="isLastOfType && layersFinished"/>
                     </div>
                     <References v-if="store.displaySources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)" :references="props.message.stack[0].payload.references"></References>
                 </div>
@@ -60,7 +60,8 @@ const feedbacking = ref(null)
 
 const MSG_TYPES = {
     text: "text",
-    lm_generated_text: "lm_generated_text",
+    rag_generated_text: "rag_generated_text",
+    llm_generated_text: "llm_generated_text",
 }
 const layersFinished = computed(() =>  props.message.last)
 

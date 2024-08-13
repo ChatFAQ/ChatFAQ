@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from pydantic import BaseModel
 from transformers import AutoConfig, AutoTokenizer
@@ -152,7 +152,7 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
         ):
         """
@@ -201,7 +201,7 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ):
         """
