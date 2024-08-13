@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from drf_spectacular.utils import (
     PolymorphicProxySerializer,
     extend_schema_field,
-    extend_schema_serializer,
 )
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -15,7 +14,6 @@ from rest_framework.exceptions import ValidationError
 from back.apps.broker.models.message import AgentType, Satisfaction, StackPayloadType
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
-from back.common.validators import AtLeastNOf, PresentTogether
 
 if TYPE_CHECKING:
     from back.apps.broker.models.message import Message
@@ -107,22 +105,42 @@ class ReferenceKi(serializers.Serializer):
     image_urls = serializers.DictField(required=False, allow_null=True, allow_empty=True)
 
 
+class ToolUse(serializers.Serializer):
+    id = serializers.CharField(required=True)
+    name = serializers.CharField(required=True)
+    args = serializers.JSONField(required=True)
+    text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+
+
 class Reference(serializers.Serializer):
     knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
     knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
     knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
-class LMGeneratedTextPayload(serializers.Serializer):
-    class _LMGeneratedTextPayload(serializers.Serializer):
+class RAGGeneratedTextPayload(serializers.Serializer):
+    class _RAGGeneratedTextPayload(serializers.Serializer):
         model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
         rag_config_name = serializers.CharField()
         rag_config_id = serializers.CharField()
         lm_msg_id = serializers.CharField()
         references = Reference(required=False, allow_null=True)
 
-    payload = _LMGeneratedTextPayload()
+    payload = _RAGGeneratedTextPayload()
 
+class LLMGeneratedTextPayload(serializers.Serializer):
+    class _LLMGeneratedTextPayload(serializers.Serializer):
+        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
+        llm_config_name = serializers.CharField()
+        llm_config_id = serializers.CharField()
+        lm_msg_id = serializers.CharField()
+        tool_use = serializers.ListField(child=ToolUse(), required=False, allow_null=True, allow_empty=True)
+
+        # For compatibility with the widget frontend
+        rag_config_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+        references = Reference(required=False, allow_null=True)
+
+    payload = _LLMGeneratedTextPayload()
 
 class HTMLPayload(serializers.Serializer):
     @staticmethod
@@ -158,7 +176,8 @@ class QuickRepliesPayload(serializers.Serializer):
         resource_type_field_name="payload",
         serializers={
             "TextPayload": TextPayload,
-            "LMGeneratedTextPayload": LMGeneratedTextPayload,
+            "RAGGeneratedTextPayload": RAGGeneratedTextPayload,
+            "LLMGeneratedTextPayload": LLMGeneratedTextPayload,
             "HTMLPayload": HTMLPayload,
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,
@@ -179,12 +198,15 @@ class MessageStackSerializer(serializers.Serializer):
     payload = Payload(required=False)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
+    state = serializers.JSONField(required=False)
 
     def validate(self, data):
         if data.get("type") == StackPayloadType.text.value:
             s = TextPayload(data=data)
-        elif data.get("type") == StackPayloadType.lm_generated_text.value:
-            s = LMGeneratedTextPayload(data=data)
+        elif data.get("type") == StackPayloadType.rag_generated_text.value:
+            s = RAGGeneratedTextPayload(data=data)
+        elif data.get("type") == StackPayloadType.llm_generated_text.value:
+            s = LLMGeneratedTextPayload(data=data)
         elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
         elif data.get("type") == StackPayloadType.image.value:
@@ -230,10 +252,10 @@ class MessageSerializer(serializers.ModelSerializer):
             conversation=self.initial_data["conversation"], prev=prev
         ).first():
             raise ValidationError(
-                f"prev should be always unique for the same conversation"
+                "prev should be always unique for the same conversation"
             )
         if prev and prev.conversation != str(self.initial_data["conversation"]):
-            raise ValidationError(f"prev should belong to the same conversation")
+            raise ValidationError("prev should belong to the same conversation")
 
     def get_reviewed(self, obj):
         return obj.completed_review

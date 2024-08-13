@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from anthropic import Anthropic, AsyncAnthropic
 from pydantic import BaseModel
@@ -22,13 +22,13 @@ class ClaudeChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tool_choice(tools, tool_choice)
+        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
 
         if tool_choice:
             # If the tool_choice is a named tool, then apply correct formatting
-            if tool_choice in [tool.model_json_schema()['title'] for tool in tools]:
+            if tool_choice in [tool['title'] for tool in tools]:
                 tool_choice = {"type": "tool", "name": tool_choice}
             else: # if it's required or auto, then apply the correct formatting
                 tool_choice = (
@@ -124,7 +124,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ) -> str:
         """
@@ -167,7 +167,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ) -> str:
         """

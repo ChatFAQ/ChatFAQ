@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
@@ -34,12 +34,12 @@ class OpenAIChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        self._check_tool_choice(tools, tool_choice)
+        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
         # If the tool_choice is a named tool, then apply correct formatting
-        if tool_choice in [tool.model_json_schema()['title'] for tool in tools]:
+        if tool_choice in [tool['title'] for tool in tools]:
             tool_choice = {
                 "type": "function",
                 "function": {
@@ -138,7 +138,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ) -> str | List:
         """
@@ -168,7 +168,7 @@ class OpenAIChatModel(LLM):
         )
 
         message = response.choices[0].message
-        if response.choices[0].finish_reason == "tool_calls":
+        if message.tool_calls:
             return self._extract_tool_info(message)
 
         return message.content
@@ -179,7 +179,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[BaseModel] = None,
+        tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
     ) -> str:
         """

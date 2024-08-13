@@ -1,13 +1,14 @@
+from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import LMGeneratedText, Text
+from chatfaq_sdk.layers import RAGGeneratedText, Text
 
 
-def send_greeting(ctx: dict):
+async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
     yield Text("How can we help you?", allow_feedback=False)
 
 
-def send_answer(ctx: dict):
-    yield LMGeneratedText("default", only_context=True)
+async def send_answer(sdk: ChatFAQSDK, ctx: dict):
+    yield RAGGeneratedText("default", only_context=True)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

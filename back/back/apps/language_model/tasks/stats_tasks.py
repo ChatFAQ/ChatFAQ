@@ -45,7 +45,7 @@ def calculate_rag_stats_task(rag_config_id, dates_ranges=[(None, None)]):
 
         messages = Message.objects.filter(
             stack__contains=[
-            {"type": "lm_generated_text", "payload": {"rag_config_id": str(rag_config_id)}}
+            {"type": "rag_generated_text", "payload": {"rag_config_id": str(rag_config_id)}}
         ]
         )
 
@@ -144,7 +144,7 @@ def calculate_usage_stats_task(rag_config_id=None, dates_ranges=[(None, None)]):
 
         if rag_config_id:
             messages = messages.filter(stack__contains=[
-                {"type": "lm_generated_text", "payload": {"rag_config_id": str(rag_config_id)}}
+                {"type": "rag_generated_text", "payload": {"rag_config_id": str(rag_config_id)}}
             ])
 
         if start_date is not None:  # Apply start_date if not None

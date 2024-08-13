@@ -144,16 +144,32 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         We serialize the ctx just so we can send it to the RPC Servers
         """
         from back.apps.broker.models.message import Conversation  # TODO: CI
+        from back.apps.fsm.models import FSMDefinition
 
         conv = await database_sync_to_async(Conversation.objects.get)(pk=self.conversation.pk)
-        last_mml = await database_sync_to_async(conv.get_last_msg)()
+        conv_mml = await database_sync_to_async(conv.get_conv_mml)()
 
-        last_mml = model_to_dict(last_mml, fields=["stack"]) if last_mml else None
+        fsm_def = await database_sync_to_async(FSMDefinition.objects.get)(
+            pk=self.fsm_def.pk
+        )
+        initial_state_values = fsm_def.initial_state_values
+        initial_state_values = initial_state_values if initial_state_values else {}
+        last_state_values = await database_sync_to_async(conv.get_last_state)()
+
+        if last_state_values is None:
+            last_state_values = initial_state_values
+        else:
+            # We keep the last state values and fill the missing ones with the initial state values
+            for key, value in initial_state_values.items():
+                if key not in last_state_values:
+                    last_state_values[key] = value
+
         return {
             "conversation_id": self.conversation.pk,
             "user_id": self.user_id,
-            "last_mml": last_mml,
+            "conv_mml": conv_mml,
             "bot_channel_name": self.channel_name,
+            "state": last_state_values
         }
 
     # ---------- Broker methods ----------
