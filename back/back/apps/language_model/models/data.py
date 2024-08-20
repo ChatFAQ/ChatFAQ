@@ -265,22 +265,22 @@ class KnowledgeItem(ChangesMixin):
 
     def save(self, *args, **kwargs):
 
-        # get the rag configs to which this knowledge base belongs
-        rag_configs = apps.get_model("language_model", "RAGConfig").objects.filter(
+        # get the retriever configs to which this knowledge base belongs
+        retriever_configs = apps.get_model("language_model", "RetrieverConfig").objects.filter(
             knowledge_base=self.knowledge_base
         )
 
-        # set the rag config index status to outdated
+        # set the retriever config index status to outdated
         if self.pk is None: # new item
-            for rag_config in rag_configs:
-                rag_config.index_status = IndexStatusChoices.OUTDATED
-                rag_config.save()
+            for retriever_config in retriever_configs:
+                retriever_config.index_status = IndexStatusChoices.OUTDATED
+                retriever_config.save()
         else: # modified item
             old_item = KnowledgeItem.objects.get(pk=self.pk)
             if self.content != old_item.content:
-                for rag_config in rag_configs:
-                    rag_config.index_status = IndexStatusChoices.OUTDATED
-                    rag_config.save()
+                for retriever_config in retriever_configs:
+                    retriever_config.index_status = IndexStatusChoices.OUTDATED
+                    retriever_config.save()
 
         super().save(*args, **kwargs)
 
@@ -382,14 +382,14 @@ class Embedding(ChangesMixin):
     Embedding representation for a KnowledgeItem.
     knowledge_item: KnowledgeItem
         The KnowledgeItem associated with this embedding.
-    rag_config: RAGConfig
-        The RAGConfig associated with this embedding.
+    retriever_config: RetrieverConfig
+        The retriever_configs associated with this embedding.
     embedding: ArrayField
         The actual embedding values.
     """
 
     knowledge_item = models.ForeignKey(KnowledgeItem, on_delete=models.CASCADE, editable=False)
-    rag_config = models.ForeignKey("RAGConfig", on_delete=models.CASCADE, editable=False)
+    retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.CASCADE, editable=False)
     embedding = VectorField(null=True, blank=True, editable=False)
 
     def __str__(self):

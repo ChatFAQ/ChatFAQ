@@ -19,11 +19,10 @@ class DatasetConfig(AppConfig):
         from back.apps.language_model.signals import on_rag_config_change  # noqa
         from back.apps.language_model.models.enums import IndexStatusChoices
         from back.apps.language_model.ray_deployments import (
-            launch_rag_deployment,
             launch_llm_deployment,
         )
 
-        RAGConfig = self.get_model("RAGConfig")
+        RetrieverConfig = self.get_model("RetrieverConfig")
         LLMConfig = self.get_model("LLMConfig")
 
         if not serve.status().applications:
@@ -32,14 +31,14 @@ class DatasetConfig(AppConfig):
             )
 
         # Now we launch the deployment of the RAGs
-        for rag_config in RAGConfig.enabled_objects.all():
-            if rag_config.get_index_status() in [
+        for retriever_config in RetrieverConfig.enabled_objects.all():
+            if retriever_config.get_index_status() in [
                 IndexStatusChoices.OUTDATED,
                 IndexStatusChoices.UP_TO_DATE,
             ]:
-                task_name = f"launch_rag_deployment_{rag_config.name}"
+                task_name = f"launch_rag_deployment_{retriever_config.name}"
                 logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-                launch_rag_deployment.options(name=task_name).remote(rag_config.id)
+                retriever_config.trigger_deploy()
 
         for llm_config in LLMConfig.enabled_objects.all():
             task_name = f"launch_llm_deployment_{llm_config.name}"

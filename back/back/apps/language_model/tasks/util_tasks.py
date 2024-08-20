@@ -120,11 +120,11 @@ def test_task(argument_one):
     logger2.info('*'*50)
     logger2.warning('$'*50)
 
-    from back.apps.language_model.models import RAGConfig
-    print("Number of RAGConfigs: ", RAGConfig.objects.all().count())     
+    from back.apps.language_model.models import LLMConfig
+    print("Number of LLMConfig: ", LLMConfig.objects.all().count())     
 
     import time
 
     time.sleep(10)
 
-    return RAGConfig.objects.all().count()
+    return LLMConfig.objects.all().count()

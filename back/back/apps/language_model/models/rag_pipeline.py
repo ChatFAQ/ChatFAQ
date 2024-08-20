@@ -16,185 +16,15 @@ from back.common.models import ChangesMixin
 
 from back.apps.language_model.tasks import index_task
 from back.apps.language_model.ray_deployments import (
-    launch_rag_deployment,
-    delete_rag_deployment,
     launch_llm_deployment,
-    delete_serve_app
+    launch_colbert_deployment,
+    launch_e5_deployment,
+    delete_serve_app,
 )
 
 from logging import getLogger
 
 logger = getLogger(__name__)
-
-
-# First, define the Manager subclass.
-class EnabledRAGConfigManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(enabled=True)
-
-
-class RAGConfig(ChangesMixin):
-    """
-    It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline
-    """
-
-    objects = models.Manager()  # The default manager.
-    enabled_objects = EnabledRAGConfigManager()  # The Dahl-specific manager.
-
-    name = models.CharField(max_length=255, unique=True)
-    knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
-    llm_config = models.ForeignKey("LLMConfig", on_delete=models.PROTECT)
-    prompt_config = models.ForeignKey("PromptConfig", on_delete=models.PROTECT)
-    generation_config = models.ForeignKey("GenerationConfig", on_delete=models.PROTECT)
-    retriever_config = models.ForeignKey("RetrieverConfig", on_delete=models.PROTECT)
-    enabled = models.BooleanField(default=True)
-    s3_index_path = models.CharField(
-        max_length=255, blank=True, null=True, editable=False
-    )
-    num_replicas = models.IntegerField(default=1)
-
-    index_status = models.CharField(
-        max_length=20,
-        choices=IndexStatusChoices.choices,
-        default=IndexStatusChoices.NO_INDEX,
-        editable=False,
-    )
-
-    def generate_s3_index_path(self):
-        unique_id = str(uuid.uuid4())[:8]
-        return f"indexes/{self.name}_index_{unique_id}"
-
-    def get_index_status(self):
-        return IndexStatusChoices(self.index_status)
-
-    def get_deploy_name(self):
-        return f"rag_{self.name}"
-
-    def __str__(self):
-        return (
-            self.name
-            if self.name is not None
-            else f"{self.llm_config.name} - {self.knowledge_base.name}"
-        )
-
-    # When saving we want to check if the llm_config has changed and in that reload the RAG
-    def save(self, *args, **kwargs):
-        redeploy_rag = False
-        shutdown_rag = False
-
-        if self.pk is not None:
-            old = RAGConfig.objects.get(pk=self.pk)
-            if self.name != old.name:
-                redeploy_rag = True
-                logger.info(f"RAG config name changed...")
-            if self.llm_config != old.llm_config:
-                redeploy_rag = True
-                logger.info(f"RAG config {self.name} changed llm config...")
-            if (
-                not old.enabled and self.enabled
-            ):  # If the config was disabled and now is enabled
-                redeploy_rag = True
-                logger.info(
-                    f"RAG config {self.name} {'enabled' if self.enabled else 'disabled'} changed llm config..."
-                )
-            if self.knowledge_base != old.knowledge_base:
-                self.index_status = IndexStatusChoices.NO_INDEX
-                logger.info(
-                    f"RAG config {self.name} changed knowledge base. Index needs to be updated..."
-                )
-            if (
-                self.retriever_config.model_name != old.retriever_config.model_name
-                or self.retriever_config.get_retriever_type()
-                != old.retriever_config.get_retriever_type()
-            ):
-                self.index_status = IndexStatusChoices.NO_INDEX
-                logger.info(
-                    f"RAG config {self.name} changed retriever model. Index needs to be updated..."
-                )
-            # if we disabled it then we delete the rag deployment
-            if old.enabled and not self.enabled:
-                shutdown_rag = True
-                logger.info(
-                    f"RAG config {self.name} changed to disabled. Shutting down the RAG deployment..."
-                )
-
-        super().save(*args, **kwargs)
-
-        if redeploy_rag and self.enabled:
-
-            def on_commit_callback():
-                task_name = f"launch_rag_deployment_{self.name}"
-                print(f"Submitting the {task_name} task to the Ray cluster...")
-                launch_rag_deployment.options(name=task_name).remote(self.id)
-
-            # Schedule the task to run after the transaction is committed
-            transaction.on_commit(on_commit_callback)
-
-        if shutdown_rag and not self.enabled:
-
-            def on_commit_callback():
-                task_name = f"delete_rag_deployment_{self.name}"
-                print(f"Submitting the {task_name} task to the Ray cluster...")
-                delete_rag_deployment.options(name=task_name).remote(
-                    self.get_deploy_name()
-                )
-
-            transaction.on_commit(on_commit_callback)
-
-    def trigger_reindex(self):
-        logger.info(f"Launching RAG reindex for {self.name}")
-        index_task.remote(self.id, launch_rag_deploy=self.enabled)
-
-    def trigger_deploy(self):
-        """Deploys should be automatically triggered when the RAG is saved, but this method is here for manual triggering if needed."""
-        if self.enabled and self.get_index_status() in [
-            IndexStatusChoices.OUTDATED,
-            IndexStatusChoices.UP_TO_DATE,
-        ]:
-            logger.info(f"Launching RAG deploy for {self.name}")
-            task_name = f"launch_rag_deployment_{self.name}"
-            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-            launch_rag_deployment.options(name=task_name).remote(self.id)
-        else:
-            logger.info(
-                f"RAG {self.name} is not enabled or index is not up to date, skipping deploy"
-            )
-
-    def retrieve_kitems(self, query_embedding, threshold, top_k):
-        """
-        Returns the context for the given query_embedding.
-        Parameters
-        ----------
-        query_embedding : torch.Tensor, np.ndarray or list
-            Query embedding to be used for retrieval.
-        threshold : float
-            Threshold for filtering the context.
-        top_k : int
-            Number of context to be returned. If -1, all context are returned.
-        rag_config : RAGConfig
-            RAGConfig to be used for filtering the KnowledgeItems.
-        """
-        items_for_query = (
-            KnowledgeItem.objects.filter(embedding__rag_config=self)
-            .annotate(
-                similarity=-MaxInnerProduct("embedding__embedding", query_embedding)
-            )
-            .filter(similarity__gt=threshold)
-            .order_by("-similarity")
-        )
-
-        if top_k != -1:
-            items_for_query = items_for_query[:top_k]
-
-        query_results = [
-            {
-                "k_item_id": item.id,
-                "content": item.content,
-                "similarity": item.similarity,
-            }
-            for item in items_for_query
-        ]
-        return query_results
 
 
 class EnabledRetrieverConfigManager(models.Manager):
@@ -233,6 +63,20 @@ class RetrieverConfig(ChangesMixin):
         max_length=10, choices=DeviceChoices.choices, default=DeviceChoices.CPU
     )
 
+    knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
+    index_status = models.CharField(
+        max_length=20,
+        choices=IndexStatusChoices.choices,
+        default=IndexStatusChoices.NO_INDEX,
+        editable=False,
+    )
+    s3_index_path = models.CharField(
+        max_length=255, blank=True, null=True, editable=False
+    )
+
+    enabled = models.BooleanField(default=False)
+    num_replicas = models.IntegerField(default=1)
+
     def __str__(self):
         return self.name
 
@@ -241,17 +85,48 @@ class RetrieverConfig(ChangesMixin):
 
     def get_device(self):
         return DeviceChoices(self.device)
-    
+
     def get_deploy_name(self):
         return f"retriever_{self.name}"
 
-    # When saving we want to check if the model_name has changed and in that case regenerate all the embeddings for the
-    # knowledge bases that uses this retriever.
+    def generate_s3_index_path(self):
+        unique_id = str(uuid.uuid4())[:8]
+        return f"indexes/{self.name}_index_{unique_id}"
+
+    def get_index_status(self):
+        return IndexStatusChoices(self.index_status)
+
+    def trigger_deploy(self):
+        """Deploys should be automatically triggered when the Retriever is saved, but this method is here for manual triggering if needed."""
+        if self.enabled and self.index_status in [
+                IndexStatusChoices.OUTDATED,
+                IndexStatusChoices.UP_TO_DATE,
+            ]:
+            task_name = f"launch_retriever_deployment_{self.name}"
+            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+            if self.get_retriever_type() == RetrieverTypeChoices.E5:
+                launch_e5_deployment.options(name=task_name).remote(
+                    self.get_deploy_name(),
+                    self.model_name,
+                    self.get_device() == DeviceChoices.CPU,
+                    self.knowledge_base.get_lang().value,
+                    self.num_replicas,
+                )
+            elif self.get_retriever_type() == RetrieverTypeChoices.COLBERT:
+                launch_colbert_deployment.options(name=task_name).remote(
+                    self.get_deploy_name(), self.s3_index_path, self.num_replicas
+                )
+        else:
+            logger.info(f"Retriever {self.name} is not enabled, skipping deploy")
+
+    def trigger_reindex(self):
+        logger.info(f"Launching Retriever reindex for {self.name}")
+        index_task.remote(self.id, launch_retriever_deploy=self.enabled)
+
     def save(self, *args, **kwargs):
-        logger.info(
-            "Checking if we need to generate embeddings because of a retriever config change"
-        )
-        rags_to_redeploy = None
+        redeploy_retriever = False
+        shutdown_retriever = False
+
         if self.pk is not None:
             old_retriever = RetrieverConfig.objects.get(pk=self.pk)
 
@@ -259,32 +134,80 @@ class RetrieverConfig(ChangesMixin):
                 self.model_name != old_retriever.model_name
                 or self.get_retriever_type() != old_retriever.get_retriever_type()
             ):
-                # If the model or model type has changed we need to reindex and not redeploy the RAGs until the index is ready
-                rag_configs = RAGConfig.objects.filter(retriever_config=self)
-                for rag_config in rag_configs:
-                    rag_config.index_status = IndexStatusChoices.NO_INDEX
-                    rag_config.save()
+                redeploy_retriever = True
+                self.index_status = IndexStatusChoices.NO_INDEX
 
-            if self.get_device() != old_retriever.get_device():
-                # if the device has changed we need to redeploy all the RAGs that use this retriever
-                rags_to_redeploy = RAGConfig.objects.filter(retriever_config=self)
+            if (
+                self.batch_size != old_retriever.batch_size
+                or self.get_device() != old_retriever.get_device()
+            ):
+                redeploy_retriever = True
+
+            if old_retriever.enabled and not self.enabled:
+                shutdown_retriever = True
+                logger.info(
+                    f"Retriever config {self.name} changed to disabled. Shutting down the Retriever deployment..."
+                )
+
+            if not old_retriever.enabled and self.enabled:
+                redeploy_retriever = True
+                logger.info(
+                    f"Retriever config {self.name} changed to enabled. Launching the Retriever deployment..."
+                )
 
         super().save(*args, **kwargs)
 
-        if rags_to_redeploy:
+        if redeploy_retriever and self.enabled:
 
             def on_commit_callback():
-                logger.info("Retriever device changed, launching rag redeploys")
-                for rag in rags_to_redeploy:
-                    if rag.enabled:
-                        task_name = f"launch_rag_deployment_{rag.name}"
-                        logger.info(
-                            f"Submitting the {task_name} task to the Ray cluster..."
-                        )
-                        launch_rag_deployment.options(name=task_name).remote(rag.id)
+                self.trigger_deploy()
 
             # Schedule the task to run after the transaction is committed
             transaction.on_commit(on_commit_callback)
+
+        if shutdown_retriever and not self.enabled:
+
+            def on_commit_callback():
+                deployment_name = self.get_deploy_name()
+                task_name = f"delete_serve_app_{deployment_name}"
+                logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+                delete_serve_app.options(name=task_name).remote(deployment_name)
+
+            transaction.on_commit(on_commit_callback)
+
+    def retrieve_kitems(self, query_embedding, threshold, top_k):
+        """
+        Returns the context for the given query_embedding.
+        Parameters
+        ----------
+        query_embedding : torch.Tensor, np.ndarray or list
+            Query embedding to be used for retrieval.
+        threshold : float
+            Threshold for filtering the context.
+        top_k : int
+            Number of context to be returned. If -1, all context are returned.
+        """
+        items_for_query = (
+            KnowledgeItem.objects.filter(embedding__retriever_config=self)
+            .annotate(
+                similarity=-MaxInnerProduct("embedding__embedding", query_embedding)
+            )
+            .filter(similarity__gt=threshold)
+            .order_by("-similarity")
+        )
+
+        if top_k != -1:
+            items_for_query = items_for_query[:top_k]
+
+        query_results = [
+            {
+                "k_item_id": item.id,
+                "content": item.content,
+                "similarity": item.similarity,
+            }
+            for item in items_for_query
+        ]
+        return query_results
 
 
 class EnabledLLMConfigManager(models.Manager):
@@ -329,7 +252,7 @@ class LLMConfig(ChangesMixin):
 
     def get_deploy_name(self):
         return f"llm_{self.name}"
-    
+
     def trigger_deploy(self):
         """Deploys should be automatically triggered when the LLM is saved, but this method is here for manual triggering if needed."""
         if self.enabled:
@@ -344,9 +267,7 @@ class LLMConfig(ChangesMixin):
                 self.num_replicas,
             )
         else:
-            logger.info(
-                f"LLM {self.name} is not enabled, skipping deploy"
-            )
+            logger.info(f"LLM {self.name} is not enabled, skipping deploy")
 
     def save(self, *args, **kwargs):
         redeploy_llm = False
@@ -396,6 +317,7 @@ class LLMConfig(ChangesMixin):
             transaction.on_commit(on_commit_callback)
 
         if shutdown_llm and not self.enabled:
+
             def on_commit_callback():
                 deployment_name = self.get_deploy_name()
                 task_name = f"delete_serve_app_{deployment_name}"

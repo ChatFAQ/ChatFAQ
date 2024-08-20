@@ -26,7 +26,6 @@ class AgentType(Enum):
 
 class StackPayloadType(Enum):
     text = "text"
-    rag_generated_text = "rag_generated_text"
     llm_generated_text = "llm_generated_text"
     html = "html"
     image = "image"

@@ -1,9 +1,11 @@
-import os
 import asyncio
+import os
 from typing import List
-from aiohttp import ClientSession
-from ray import serve
 from urllib.parse import urljoin
+
+from aiohttp import ClientSession
+import ray
+from ray import serve
 
 
 @serve.deployment(
@@ -20,13 +22,13 @@ class E5Deployment:
     Ray Serve Deployment class for serving the embedding and reranker retriever models in a Ray cluster.
     """
 
-    def __init__(self, model_name, use_cpu, rag_config_id, lang='en'):
+    def __init__(self, model_name, use_cpu, retriever_id, lang='en'):
         from chat_rag.embedding_models import E5Model
         from chat_rag.utils.reranker import ReRanker
 
         hf_key = os.environ.get('HUGGINGFACE_API_KEY')
         self.token = os.environ.get('BACKEND_TOKEN')
-        self.retrieve_endpoint = urljoin(os.environ.get('BACKEND_HOST'), f"/back/api/language-model/rag-configs/{rag_config_id}/retrieve/")
+        self.retrieve_endpoint = urljoin(os.environ.get('BACKEND_HOST'), f"/back/api/language-model/retriever-configs/{retriever_id}/retrieve/")
 
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.reranker = ReRanker(lang=lang, device='cpu' if use_cpu else 'cuda')
@@ -85,11 +87,13 @@ class E5Deployment:
         return await self.batch_handler(query, top_k)
 
 
-def launch_e5(retriever_deploy_name, model_name, use_cpu, rag_config_id, lang='en'):
+@ray.remote(num_cpus=0.1, resources={"tasks": 1})
+def launch_e5_deployment(retriever_deploy_name, model_name, use_cpu, retriever_id, lang, num_replicas):
     print(f"Launching E5 deployment with name: {retriever_deploy_name}")
-    retriever_handle = E5Deployment.options(
+    retriever_app = E5Deployment.options(
             name=retriever_deploy_name,
-            ).bind(model_name, use_cpu, rag_config_id, lang)
+            num_replicas=num_replicas
+    ).bind(model_name, use_cpu, retriever_id, lang)
 
-    print("E5 deployment started")
-    return retriever_handle
+    serve.run(retriever_app, name=retriever_deploy_name, route_prefix=None)
+    print(f"Launched E5 deployment with name: {retriever_deploy_name}")
