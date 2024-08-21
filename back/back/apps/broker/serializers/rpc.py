@@ -73,7 +73,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         Whether the LLM response should be streamed or not
     """
 
-    llm_config_name = serializers.CharField()
+    llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
     messages = serializers.ListField(child=serializers.DictField())
@@ -93,6 +93,14 @@ class RPCLLMRequestSerializer(serializers.Serializer):
                 "If there are no messages then use_conversation_context should be always True"
             )
         return attrs
+
+
+class RPCRetrieverRequestSerializer(serializers.Serializer):
+    
+    retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    bot_channel_name = serializers.CharField()
+    query = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    top_k = serializers.IntegerField(default=3)
 
 
 class RPCRAGRequestSerializer(serializers.Serializer):

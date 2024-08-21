@@ -12,12 +12,13 @@ from back.apps.broker.consumers.message_types import RPCMessageType
 from back.apps.broker.models.message import AgentType, Conversation, StackPayloadType
 from back.apps.broker.serializers.rpc import (
     RPCLLMRequestSerializer,
+    RPCRetrieverRequestSerializer,
     RPCResponseSerializer,
 )
 from back.apps.language_model.models import (
     KnowledgeItem,
     LLMConfig,
-    MessageKnowledgeItem,
+    RetrieverConfig,
 )
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
@@ -64,10 +65,9 @@ def format_msgs_chain_to_llm_context(msgs_chain, message_type: str) -> List[Dict
     return messages
 
 
-async def resolve_references(reference_kis, conv, retriever_config, relate_kis_to_msgs=False):
+async def resolve_references(reference_kis, retriever_config):
     # ColBERT only returns the k item id, similarity and content, so we need to get the full k item fields
     # We also adapt the pgvector retriever to match colbert's output
-    prev_kis = await database_sync_to_async(conv.get_kis)()
 
     for index, ki in enumerate(reference_kis):
         ki_item = await database_sync_to_async(
@@ -83,21 +83,20 @@ async def resolve_references(reference_kis, conv, retriever_config, relate_kis_t
     reference_ki_images = {}
     for reference_ki in reference_kis:
         reference_ki_images = {**reference_ki_images, **reference_ki["image_urls"]}
-    for ki in await database_sync_to_async(list)(prev_kis):
-        for ki_img in await database_sync_to_async(ki.knowledgeitemimage_set.all)():
-            reference_ki_images[ki_img.image_file.name] = ki_img.image_file.url
 
-    if relate_kis_to_msgs:  # Only when the generated text based on a human message then we will associate the generated text with it
-        last_human_mml = await database_sync_to_async(conv.get_last_human_mml)()
-        msgs2kis = [
-            MessageKnowledgeItem(
-                message=last_human_mml,
-                knowledge_item_id=ki["knowledge_item_id"],
-                similarity=ki["similarity"],
-            )
-            for ki in reference_kis
-        ]
-        await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
+    # TODO: We no longer associate the knowledge items with messages, in the future we will modify this
+    # TODO: to associate the query with the knowledge items and the retriever used.
+    # if relate_kis_to_msgs:  # Only when the generated text based on a human message then we will associate the generated text with it
+    #     last_human_mml = await database_sync_to_async(conv.get_last_human_mml)()
+    #     msgs2kis = [
+    #         MessageKnowledgeItem(
+    #             message=last_human_mml,
+    #             knowledge_item_id=ki["knowledge_item_id"],
+    #             similarity=ki["similarity"],
+    #         )
+    #         for ki in reference_kis
+    #     ]
+    #     await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
 
     return {
         "knowledge_base_id": retriever_config.knowledge_base.pk,
@@ -200,6 +199,40 @@ async def query_llm(
         return
 
 
+async def query_retriever(
+    retriever_config_name: str,
+    query: str,
+    top_k: int,
+):
+    try:
+        retriever_config = await database_sync_to_async(RetrieverConfig.enabled_objects.get)(
+            name=retriever_config_name
+        )
+    except RetrieverConfig.DoesNotExist:
+        return {
+            "content": f"Retriever config with name: {retriever_config_name} does not exist.",
+            "final": True,
+        }
+
+    try:
+        retriever_deploy_name = retriever_config.get_deploy_name()
+        handle = get_deployment_handle(
+            deployment_name=retriever_deploy_name, app_name=retriever_deploy_name
+        )
+
+        response = await handle.remote(query, top_k)
+        result = response.result()
+        result = await resolve_references(result, retriever_config)
+
+        return result
+    
+    except Exception as e:
+        logger.error("Error while querying the retriever", exc_info=e)
+        return {
+            "error": True,
+        }
+
+
 class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
     """
     The consumer in responsible for handling all the AI requests from the SDK, for now only calling a LLM.
@@ -235,6 +268,8 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
 
         if serializer.validated_data["type"] == RPCMessageType.llm_request.value:
             await self.process_llm_request(serializer.validated_data["data"])
+        elif serializer.validated_data["type"] == RPCMessageType.retriever_request.value:
+            await self.process_retriever_request(serializer.validated_data["data"])
 
     async def process_llm_request(self, data):
         serializer = RPCLLMRequestSerializer(data=data)
@@ -271,6 +306,45 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                     }
                 )
             )
+
+    async def process_retriever_request(self, data):
+        serializer = RPCRetrieverRequestSerializer(data=data)
+        if not serializer.is_valid():
+            await self.error_response(
+                {"payload": {"errors": serializer.errors, "request_info": data}}
+            )
+            return
+        
+        data = serializer.validated_data
+        result = await query_retriever(
+            data["retriever_config_name"],
+            data["query"],
+            data.get("top_k"),
+        )
+
+        if result.get("error"):
+            await self.error_response(
+                {
+                    "payload": {
+                        "errors": result,
+                        "request_info": data,
+                    }
+                }
+            )
+            return
+
+        await self.send(
+            json.dumps(
+                {
+                    "type": RPCMessageType.retriever_request_result.value,
+                    "status": WSStatusCodes.ok.value,
+                    "payload": {
+                        "k_items": result,
+                        "bot_channel_name": data["bot_channel_name"],
+                    },
+                }
+            )
+        )
 
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value

@@ -74,6 +74,7 @@ class ChatFAQSDK:
 
         self.llm_request_futures = {}
         self.llm_request_msg_buffer = {}
+        self.retriever_request_futures = {}
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -168,7 +169,12 @@ class ChatFAQSDK:
                 continue
 
             if actions.get(data.get("type")) is not None:
-                asyncio.create_task(actions[data.get("type")](data["payload"]))
+                if actions.get(data.get("type")) == MessageType.retriever_request_result:
+                    # The back-end returns the complete result in one message so
+                    # as we already have the complete result we can set the future to the result
+                    self.retriever_results[data["payload"]["bot_channel_name"]].set_result(data["payload"])
+                else:
+                    asyncio.create_task(actions[data.get("type")](data["payload"]))
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
 
@@ -332,6 +338,23 @@ class ChatFAQSDK:
                         "tools": tools,
                         "tool_choice": tool_choice,
                         "use_conversation_context": use_conversation_context,
+                    },
+                }
+            )
+        )
+
+    async def send_retriever_request(self, retriever_config_name, query, top_k, bot_channel_name):
+        logger.info(f"[RETRIEVER] Requesting Retriever ({retriever_config_name})")
+        self.retriever_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
+        await getattr(self, f"ws_{WSType.ai.value}").send(
+            json.dumps(
+                {
+                    "type": MessageType.retriever_request.value,
+                    "data": {
+                        "retriever_config_name": retriever_config_name,
+                        "bot_channel_name": bot_channel_name,
+                        "query": query,
+                        "top_k": top_k,
                     },
                 }
             )
