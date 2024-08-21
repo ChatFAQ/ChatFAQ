@@ -53,7 +53,7 @@ def format_msgs_chain_to_llm_context(msgs_chain, message_type: str) -> List[Dict
             text = ""
             for stack in msg.stack:
                 if stack["type"] == message_type:
-                    text += stack["payload"]["model_response"]
+                    text += stack["payload"]["content"]
                 else:
                     logger.warning(
                         f"Stack type {stack['type']} for sender {msg.sender['type']} is not supported for LLM contextualization."
@@ -124,7 +124,7 @@ async def query_llm(
         )
     except LLMConfig.DoesNotExist:
         yield {
-            "model_response": f"LLM config with name: {llm_config_name} does not exist.",
+            "content": f"LLM config with name: {llm_config_name} does not exist.",
             "final": True,
         }
         return
@@ -171,7 +171,7 @@ async def query_llm(
                 # if res is a list then it's a tool response and it's not streamed, it returns the full response
                 if isinstance(res, list):
                     yield {
-                        "model_response": "",
+                        "content": "",
                         "tool_use": res,
                         "final": True,
                     }
@@ -179,12 +179,12 @@ async def query_llm(
 
 
                 yield {
-                    "model_response": res,
+                    "content": res,
                     "final": False,
                 }
 
             yield {
-                "model_response": "",
+                "content": "",
                 "final": True,
             }
 
@@ -194,7 +194,7 @@ async def query_llm(
     except Exception as e:
         logger.error("Error during LLM query", exc_info=e)
         yield {
-            "model_response": "There was an error generating the response. Please try again or contact the administrator.",
+            "content": "There was an error generating the response. Please try again or contact the administrator.",
             "final": True,
         }
         return

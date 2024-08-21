@@ -16,7 +16,7 @@ class DatasetConfig(AppConfig):
     def ready(self):
         if not is_server_process():
             return
-        from back.apps.language_model.signals import on_rag_config_change  # noqa
+        from back.apps.language_model.signals import on_retriever_config_change  # noqa
         from back.apps.language_model.models.enums import IndexStatusChoices
         from back.apps.language_model.ray_deployments import (
             launch_llm_deployment,

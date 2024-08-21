@@ -1,6 +1,6 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import Text
+from chatfaq_sdk.layers import Message
 from chatfaq_sdk.clients import llm_request
 from .prompts import travel_place_q, collect_place_p, collect_budget_p
 from pydantic import BaseModel, Field
@@ -19,7 +19,7 @@ class SubmitBudget(BaseModel):
 
 
 async def send_places(sdk: ChatFAQSDK, ctx: dict):
-    # yield Text(
+    # yield Message(
     #     "Hi, let’s find a great destination for your next trip", allow_feedback=False
     # )
 
@@ -43,12 +43,12 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
         ],
     )
     async for chunk in generator:
-        response += chunk["model_response"]
+        response += chunk["content"]
 
     response = response.split("<question>")[1].split("</question>")[0].strip()
-    yield Text(response, allow_feedback=False)
+    yield Message(response, allow_feedback=False)
 
-    # yield Text("To continue, please provide a description of your ideal travel experience", allow_feedback=False)
+    # yield Message("To continue, please provide a description of your ideal travel experience", allow_feedback=False)
 
 
 async def collect_place(sdk: ChatFAQSDK, ctx: dict):
@@ -86,7 +86,7 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     # Start the state and submit it so other states can access it
     state = {"place": place}
 
-    yield Text(f"Great! Then {place} is the best destination. What budget are you willing to go?", allow_feedback=False, state=state)
+    yield Message(f"Great! Then {place} is the best destination. What budget are you willing to go?", allow_feedback=False, state=state)
 
 
 async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
@@ -117,7 +117,7 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
     
     state["budget"] = budget
         
-    yield Text(f"Great. Let me find vacations in {state['place']} with budget {budget}", allow_feedback=False, state=state)
+    yield Message(f"Great. Let me find vacations in {state['place']} with budget {budget}", allow_feedback=False, state=state)
     
 
 places_options_state = State(name="Greeting", events=[send_places], initial=True)

@@ -12,7 +12,7 @@ class MessageAdmin(admin.ModelAdmin):
         if isinstance(payload, str):
             return payload
         else:
-            return payload['model_response']
+            return payload['content']
 
     def sender_type(self, obj):
         return obj.sender["type"]

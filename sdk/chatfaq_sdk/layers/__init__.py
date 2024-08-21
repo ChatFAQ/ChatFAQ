@@ -40,19 +40,69 @@ class Layer:
             yield [_repr, last]
 
 
-class Text(Layer):
+class Message(Layer):
     """
-    Simplest layer representing raw text
+    A flexible message layer that can include text, references, tool calls, and other metadata.
     """
 
-    _type = "text"
+    _type = "message"
 
-    def __init__(self, payload, *args, **kwargs):
+    def __init__(self, content, references=[], tool_calls=[], *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.payload = payload
+        self.content = content
+        self.references = references
+        self.tool_calls = tool_calls
 
     async def build_payloads(self, ctx, data):
-        yield [{"payload": self.payload}], True
+        payload = {
+            "payload": {
+                "content": self.content,
+                "references": self.references,
+                "tool_calls": self.tool_calls,
+            }
+        }
+        yield [payload], True
+
+
+class StreamingMessage(Layer):
+    _type = "message_chunk"
+
+    def __init__(self, generator, references=[], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.generator = generator
+        self.references = references
+
+    async def build_payloads(self, ctx, data):
+        async for chunk in self.generator:
+            final = chunk.get("final", False)
+            tool_calls = chunk.get("tool_calls", [])
+            if final:  # now we send the references only in the final message
+                yield (
+                    [
+                        {
+                            "payload": {
+                                "content": chunk.get("content"),
+                                "references": self.references,
+                                "tool_calls": tool_calls,
+                            }
+                        }
+                    ],
+                    final,
+                )
+                break
+
+            else:
+                yield (
+                    [
+                        {
+                            "payload": {
+                                "content": chunk.get("content"),
+                                "tool_calls": tool_calls,
+                            }
+                        }
+                    ],
+                    final,
+                )
 
 
 class RAGGeneratedText(Layer):

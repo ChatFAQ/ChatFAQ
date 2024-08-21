@@ -172,11 +172,11 @@ class FSM:
 
     def manage_last_llm_msg(self, _new):
         _old = self.last_aggregated_msg
-        if _new['stack'][0]["type"] in [StackPayloadType.llm_generated_text.value, StackPayloadType.rag_generated_text.value]:
+        if _new['stack'][0]["type"] == StackPayloadType.message_chunk.value:
             if _new["stack_id"] == _old.get("stack_id"):
-                more_model_response = _new["stack"][0]['payload']['model_response']
+                more_content = _new["stack"][0]['payload']['content']
                 old_payload = _old["stack"][0]['payload']
-                _new["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
+                _new["stack"][0]['payload']['content'] = old_payload['content'] + more_content
         self.last_aggregated_msg = _new
 
     async def save_if_last_llm_msg(self, _new):

@@ -3,7 +3,7 @@ import random
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.conditions import Condition
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import Text
+from chatfaq_sdk.layers import Message
 
 
 async def is_saying_goodbye(sdk: ChatFAQSDK, ctx: dict):
@@ -13,20 +13,20 @@ async def is_saying_goodbye(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Text("Hello!")
-    yield Text("How are you?", allow_feedback=False)
+    yield Message("Hello!")
+    yield Message("How are you?", allow_feedback=False)
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
-    yield Text(
+    yield Message(
         f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}'
     )
-    yield Text("Tell me more")
+    yield Message("Tell me more")
 
 
 async def send_goodbye(ctx: dict):
-    yield Text("Byeeeeeeee!", allow_feedback=False)
+    yield Message("Byeeeeeeee!", allow_feedback=False)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

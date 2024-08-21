@@ -93,16 +93,16 @@ class QuickReplySerializer(serializers.Serializer):
 
 # ----------- Payload's types -----------
 
-
-class TextPayload(serializers.Serializer):
-    payload = serializers.CharField()
-
-
 class ReferenceKi(serializers.Serializer):
     knowledge_item_id = serializers.CharField(required=True)
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     image_urls = serializers.DictField(required=False, allow_null=True, allow_empty=True)
+
+class Reference(serializers.Serializer):
+    knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
+    knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
+    knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class ToolUse(serializers.Serializer):
@@ -112,10 +112,13 @@ class ToolUse(serializers.Serializer):
     text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
-class Reference(serializers.Serializer):
-    knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
-    knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
-    knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+class MessagePayload(serializers.Serializer):
+    class _MessagePayload(serializers.Serializer):
+        content = serializers.CharField(trim_whitespace=False, allow_blank=True)
+        references = Reference(required=False, allow_null=True)
+        tool_use = ToolUse(many=True, required=False, allow_null=True, allow_empty=True)
+
+    payload = _MessagePayload()
 
 
 class RAGGeneratedTextPayload(serializers.Serializer):
@@ -175,7 +178,7 @@ class QuickRepliesPayload(serializers.Serializer):
         component_name="Payload",
         resource_type_field_name="payload",
         serializers={
-            "TextPayload": TextPayload,
+            "MessagePayload": MessagePayload,
             "RAGGeneratedTextPayload": RAGGeneratedTextPayload,
             "LLMGeneratedTextPayload": LLMGeneratedTextPayload,
             "HTMLPayload": HTMLPayload,
@@ -201,8 +204,8 @@ class MessageStackSerializer(serializers.Serializer):
     state = serializers.JSONField(required=False)
 
     def validate(self, data):
-        if data.get("type") == StackPayloadType.text.value:
-            s = TextPayload(data=data)
+        if data.get("type") in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
+            s = MessagePayload(data=data)
         elif data.get("type") == StackPayloadType.rag_generated_text.value:
             s = RAGGeneratedTextPayload(data=data)
         elif data.get("type") == StackPayloadType.llm_generated_text.value:

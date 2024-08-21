@@ -1,10 +1,10 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import RAGGeneratedText, Text
+from chatfaq_sdk.layers import RAGGeneratedText, Message
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Text("How can we help you?", allow_feedback=False)
+    yield Message("How can we help you?", allow_feedback=False)
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
