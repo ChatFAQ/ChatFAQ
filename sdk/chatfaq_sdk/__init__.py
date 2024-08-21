@@ -172,7 +172,7 @@ class ChatFAQSDK:
                 if actions.get(data.get("type")) == MessageType.retriever_request_result:
                     # The back-end returns the complete result in one message so
                     # as we already have the complete result we can set the future to the result
-                    self.retriever_results[data["payload"]["bot_channel_name"]].set_result(data["payload"])
+                    self.retriever_request_futures[data["payload"]["bot_channel_name"]].set_result(data["payload"])
                 else:
                     asyncio.create_task(actions[data.get("type")](data["payload"]))
             else:
