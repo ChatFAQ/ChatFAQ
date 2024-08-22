@@ -2,36 +2,34 @@ from datetime import datetime
 from io import BytesIO
 from zipfile import ZipFile
 
+import django_filters
+from django.db.models import Avg, Count, Q
 from django.db.models.functions import Trunc
-from django.db.models import Count, Avg
-
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.views import APIView
-from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 
+from ...language_model.stats import calculate_general_stats, calculate_response_stats
 from ..models import ConsumerRoundRobinQueue
 from ..models.message import AdminReview, AgentType, Conversation, Message, UserFeedback
 from ..serializers import (
     AdminReviewSerializer,
+    ConsumerRoundRobinQueueSerializer,
     ConversationMessagesSerializer,
-    UserFeedbackSerializer, ConversationSerializer, StatsSerializer, ConsumerRoundRobinQueueSerializer
+    ConversationSerializer,
+    StatsSerializer,
+    UserFeedbackSerializer,
 )
 from ..serializers.messages import MessageSerializer
-import django_filters
-
-from ...language_model.models import RAGConfig, Intent
-from ...language_model.stats import calculate_response_stats, calculate_general_rag_stats
-from django.db.models import Q
 
 
 class ConversationFilterSet(django_filters.FilterSet):
-    rag = django_filters.CharFilter(method='filter_rag')
     reviewed = django_filters.CharFilter(method='filter_reviewed')
 
     class Meta:
@@ -40,10 +38,6 @@ class ConversationFilterSet(django_filters.FilterSet):
            'created_date': ['lte', 'gte'],
            'id': ['exact'],
         }
-
-    def filter_rag(self, queryset, name, value):
-        rag = RAGConfig.objects.filter(pk=value).first()
-        return queryset.filter(message__stack__0__payload__rag_config_name=rag.name).distinct()
 
     def filter_reviewed(self, queryset, name, value):
         val = True
@@ -182,9 +176,6 @@ class Stats(APIView):
         serializer = StatsSerializer(data=request.GET)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        rag = None
-        if data.get("rag") is not None:
-            rag = RAGConfig.objects.get(pk=data["rag"])
         min_date = data.get("min_date", None)
         max_date = data.get("max_date", None)
         granularity = data.get("granularity", None)
@@ -196,33 +187,21 @@ class Stats(APIView):
         if max_date:
             conversations = conversations.filter(created_date__lte=max_date)
 
-        if rag:
-            conversations_rag_filtered = conversations.filter(
-                message__stack__0__payload__rag_config_id=str(rag.id)
-            ).distinct()
-        else:
-            conversations_rag_filtered = conversations.all()
+
         # --- Total conversations
-        total_conversations = conversations_rag_filtered.count()
+        total_conversations = conversations.count()
         # --- Message count per conversation
-        conversations_message_count = conversations_rag_filtered.annotate(
+        conversations_message_count = conversations.annotate(
             count=Count("message")
         ).values("count", "name")
         # average of conversations_message_count
-        conversations_message_avg = conversations_rag_filtered.annotate(
+        conversations_message_avg = conversations.annotate(
             count=Count("message")
         ).aggregate(avg=Avg("count"))
         # --- Conversations by date
-        conversations_by_date = conversations_rag_filtered.annotate(
+        conversations_by_date = conversations.annotate(
             date=Trunc("created_date", granularity)
         ).values("created_date").annotate(count=Count("id"))
-
-        # --- Conversations per RAG Config
-        conversations_per_rag = conversations.filter(
-            message__stack__0__payload__rag_config_id__isnull=False
-        ).annotate(
-            rag_id=Count("message__stack__0__payload__rag_config_id")
-        ).values("message__stack__0__payload__rag_config_id")
 
         # ----------- Messages -----------
         messages = Message.objects
@@ -231,24 +210,14 @@ class Stats(APIView):
         if max_date:
             messages = messages.filter(created_date__lte=max_date)
 
-        if rag:
-            messages_rag_filtered = messages.filter(
-                stack__0__payload__rag_config_id=str(rag.id)
-            ).distinct()
-        else:
-            messages_rag_filtered = messages.all()
+        messages = messages.all()
 
-        # --- Messages per RAG Config
-        messages_per_rag = Message.objects.filter(
-            stack__0__payload__rag_config_id__isnull=False
-        ).annotate(
-            rag_id=Count("stack__0__payload__rag_config_id")
-        ).values("stack__0__payload__rag_config_id").annotate(count=Count("stack__0__payload__rag_config_id"))
+
         messages_with_prev = messages.filter(prev__isnull=False)
-        general_stats = calculate_general_rag_stats(messages_with_prev, messages_with_prev.count())
+        general_stats = calculate_general_stats(messages_with_prev, messages_with_prev.count())
         # ----------- Reviews and Feedbacks -----------
-        admin_reviews = AdminReview.objects.filter(message__in=messages_rag_filtered)
-        user_feedbacks = UserFeedback.objects.filter(message__in=messages_rag_filtered, value__isnull=False)
+        admin_reviews = AdminReview.objects.filter(message__in=messages)
+        user_feedbacks = UserFeedback.objects.filter(message__in=messages, value__isnull=False)
         reviews_and_feedbacks = calculate_response_stats(admin_reviews, user_feedbacks)
 
         positive_admin_reviews = admin_reviews.filter(ki_review_data__contains=[{"value": "positive"}]).count()
@@ -265,10 +234,9 @@ class Stats(APIView):
         return JsonResponse(
             {
                 "total_conversations": total_conversations,
-                # "conversations_per_rag": list(conversations_per_rag.all()),
                 "conversations_message_count": list(conversations_message_count.all()),
                 "conversations_message_avg": round(conversations_message_avg.get('avg'), 2) if conversations_message_avg is not None else None,
-                "messages_per_rag": list(messages_per_rag.all()),
+                "total_messages": list(messages.all()),
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
                 **reviews_and_feedbacks,

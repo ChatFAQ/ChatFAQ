@@ -9,8 +9,6 @@ class RPCMessageType(Enum):
     llm_request_result = "llm_request_result"
     retriever_request = "retriever_request"
     retriever_request_result = "retriever_request_result"
-    rag_request = "rag_request"
-    rag_request_result = "rag_request_result"
     error = "error"
 
 

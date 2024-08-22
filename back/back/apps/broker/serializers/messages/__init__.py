@@ -120,31 +120,6 @@ class MessagePayload(serializers.Serializer):
 
     payload = _MessagePayload()
 
-
-class RAGGeneratedTextPayload(serializers.Serializer):
-    class _RAGGeneratedTextPayload(serializers.Serializer):
-        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
-        rag_config_name = serializers.CharField()
-        rag_config_id = serializers.CharField()
-        lm_msg_id = serializers.CharField()
-        references = Reference(required=False, allow_null=True)
-
-    payload = _RAGGeneratedTextPayload()
-
-class LLMGeneratedTextPayload(serializers.Serializer):
-    class _LLMGeneratedTextPayload(serializers.Serializer):
-        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
-        llm_config_name = serializers.CharField()
-        llm_config_id = serializers.CharField()
-        lm_msg_id = serializers.CharField()
-        tool_use = serializers.ListField(child=ToolUse(), required=False, allow_null=True, allow_empty=True)
-
-        # For compatibility with the widget frontend
-        rag_config_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-        references = Reference(required=False, allow_null=True)
-
-    payload = _LLMGeneratedTextPayload()
-
 class HTMLPayload(serializers.Serializer):
     @staticmethod
     def html_syntax_validator(value):
@@ -179,8 +154,6 @@ class QuickRepliesPayload(serializers.Serializer):
         resource_type_field_name="payload",
         serializers={
             "MessagePayload": MessagePayload,
-            "RAGGeneratedTextPayload": RAGGeneratedTextPayload,
-            "LLMGeneratedTextPayload": LLMGeneratedTextPayload,
             "HTMLPayload": HTMLPayload,
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,
@@ -206,10 +179,6 @@ class MessageStackSerializer(serializers.Serializer):
     def validate(self, data):
         if data.get("type") in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
             s = MessagePayload(data=data)
-        elif data.get("type") == StackPayloadType.rag_generated_text.value:
-            s = RAGGeneratedTextPayload(data=data)
-        elif data.get("type") == StackPayloadType.llm_generated_text.value:
-            s = LLMGeneratedTextPayload(data=data)
         elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
         elif data.get("type") == StackPayloadType.image.value:

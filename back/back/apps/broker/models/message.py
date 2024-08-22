@@ -27,7 +27,6 @@ class AgentType(Enum):
 class StackPayloadType(Enum):
     message = "message"
     message_chunk = "message_chunk"
-    llm_generated_text = "llm_generated_text"
     html = "html"
     image = "image"
     satisfaction = "satisfaction"
@@ -258,7 +257,7 @@ class Message(ChangesMixin):
 
         all_kis_to_review = set()
         for stackItem in self.stack:
-            if stackItem["type"] == StackPayloadType.rag_generated_text.value:
+            if stackItem["payload"].get("references", {}):
                 for ki_ref in (
                     stackItem.get("payload", {})
                     .get("references", {})
@@ -287,12 +286,7 @@ class Message(ChangesMixin):
     def _to_text(stack, send_time, sender):
         stack_text = ""
         for layer in stack:
-            if layer["type"] == StackPayloadType.text.value:
-                stack_text += layer["payload"] + "\n"
-            elif layer["type"] in [
-                StackPayloadType.rag_generated_text.value,
-                StackPayloadType.llm_generated_text.value,
-            ]:
+            if layer["type"] in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
                 if layer["payload"]["content"]:
                     stack_text += layer["payload"]["content"]
             else:

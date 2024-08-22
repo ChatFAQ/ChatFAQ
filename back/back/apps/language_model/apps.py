@@ -30,24 +30,15 @@ class DatasetConfig(AppConfig):
                 detached=True, proxy_location=ProxyLocation(ProxyLocation.Disabled)
             )
 
-        # Now we launch the deployment of the RAGs
+        # Now we launch the deployment of the AI components
         for retriever_config in RetrieverConfig.enabled_objects.all():
             if retriever_config.get_index_status() in [
                 IndexStatusChoices.OUTDATED,
                 IndexStatusChoices.UP_TO_DATE,
             ]:
-                task_name = f"launch_rag_deployment_{retriever_config.name}"
+                task_name = f"launch_retriever_deployment_{retriever_config.name}"
                 logger.info(f"Submitting the {task_name} task to the Ray cluster...")
                 retriever_config.trigger_deploy()
 
         for llm_config in LLMConfig.enabled_objects.all():
-            task_name = f"launch_llm_deployment_{llm_config.name}"
-            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-            launch_llm_deployment.options(name=task_name).remote(
-                llm_config.get_deploy_name(),
-                llm_config.llm_type,
-                llm_config.llm_name,
-                llm_config.base_url,
-                llm_config.model_max_length,
-                llm_config.num_replicas,
-            )
+            llm_config.trigger_deploy()
