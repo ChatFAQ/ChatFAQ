@@ -9,6 +9,7 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     # TODO: Implement the new RAG logic
+    pass
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
