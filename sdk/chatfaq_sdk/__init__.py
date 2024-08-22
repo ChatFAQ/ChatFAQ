@@ -93,7 +93,6 @@ class ChatFAQSDK:
         }
         ai_actions = {
             MessageType.llm_request_result.value: self.llm_request_result_callback,
-            MessageType.rag_request_result.value: self.llm_request_result_callback,
             MessageType.error.value: self.error_callback,
         }
         coros_or_futures = [
@@ -277,37 +276,6 @@ class ChatFAQSDK:
     async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
-    async def send_rag_request(
-        self,
-        rag_config_name,
-        input_text,
-        use_conversation_context,
-        only_context,
-        conversation_id,
-        bot_channel_name,
-        user_id=None,
-    ):
-        logger.info(f"[RAG] Requesting RAG ({rag_config_name})")
-        self.llm_request_futures[bot_channel_name] = (
-            asyncio.get_event_loop().create_future()
-        )
-        await getattr(self, f"ws_{WSType.ai.value}").send(
-            json.dumps(
-                {
-                    "type": MessageType.rag_request.value,
-                    "data": {
-                        "rag_config_name": rag_config_name,
-                        "input_text": input_text,
-                        "use_conversation_context": use_conversation_context,
-                        "conversation_id": conversation_id,
-                        "user_id": user_id,
-                        "bot_channel_name": bot_channel_name,
-                        "only_context": only_context,
-                    },
-                }
-            )
-        )
-
     async def send_llm_request(
             self,
             llm_config_name,
@@ -359,7 +327,6 @@ class ChatFAQSDK:
                 }
             )
         )
-
 
     def rpc(self, name: str) -> Callable:
         """

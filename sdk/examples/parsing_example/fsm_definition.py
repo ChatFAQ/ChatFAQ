@@ -1,6 +1,6 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import RAGGeneratedText, Message
+from chatfaq_sdk.layers import Message
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
@@ -8,8 +8,7 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
-    yield RAGGeneratedText("default")
-    # yield Message(f"Tell me more")
+    # TODO: Implement the new RAG logic
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
