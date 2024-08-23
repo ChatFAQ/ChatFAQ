@@ -47,7 +47,7 @@ class Message(Layer):
 
     _type = "message"
 
-    def __init__(self, content, references=[], tool_calls=[], *args, **kwargs):
+    def __init__(self, content, references={}, tool_calls=[], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = content
         self.references = references
@@ -67,7 +67,7 @@ class Message(Layer):
 class StreamingMessage(Layer):
     _type = "message_chunk"
 
-    def __init__(self, generator, references=[], *args, **kwargs):
+    def __init__(self, generator, references={}, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.generator = generator
         self.references = references

@@ -47,6 +47,10 @@ class RetrieverConfig(ChangesMixin):
         The device to use for the retriever.
     """
 
+    objects = models.Manager()  # The default manager.
+
+    enabled_objects = EnabledRetrieverConfigManager()  # The Dahl-specific manager.
+
     name = models.CharField(max_length=255, unique=True)
     model_name = models.CharField(
         max_length=255, default="colbert-ir/colbertv2.0"
@@ -109,6 +113,7 @@ class RetrieverConfig(ChangesMixin):
                     self.get_deploy_name(),
                     self.model_name,
                     self.get_device() == DeviceChoices.CPU,
+                    self.pk,
                     self.knowledge_base.get_lang().value,
                     self.num_replicas,
                 )

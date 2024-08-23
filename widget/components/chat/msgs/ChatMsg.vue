@@ -49,7 +49,7 @@
 import {useGlobalStore} from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
 import Message from "~/components/chat/msgs/Message.vue";
-import References from "components/chat/msgs/References.vue";
+import References from "~/components/chat/msgs/References.vue";
 import {ref, computed} from "vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);

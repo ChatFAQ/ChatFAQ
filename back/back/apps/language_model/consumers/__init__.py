@@ -26,23 +26,23 @@ from back.utils.custom_channels import CustomAsyncConsumer
 logger = getLogger(__name__)
 
 
-def format_msgs_chain_to_llm_context(msgs_chain, message_type: str) -> List[Dict[str, str]]:
+def format_msgs_chain_to_llm_context(msgs_chain, message_types: List[str]) -> List[Dict[str, str]]:
     """
     Returns a list of messages using the OpenAI standard format for LLMs.
     Parameters
     ----------
     msgs_chain :
         A list of messages in the broker format.
-    message_type : str
-        The type of message to extract from the broker message stack.
+    message_types : List[str]
+        The types of messages to extract from the broker message stack.
     """
     messages = []
     for msg in msgs_chain:
         if msg.sender["type"] == AgentType.human.value:
             text = ""
             for stack in msg.stack:
-                if stack["type"] == StackPayloadType.text.value:
-                    text += stack["payload"]
+                if stack["type"] in message_types:
+                    text += stack["payload"]["content"]
                 else:
                     logger.warning(
                         f"Stack type {stack['type']} for sender {msg['sender']['type']} is not supported for LLM contextualization."
@@ -53,7 +53,7 @@ def format_msgs_chain_to_llm_context(msgs_chain, message_type: str) -> List[Dict
         elif msg.sender["type"] == AgentType.bot.value:
             text = ""
             for stack in msg.stack:
-                if stack["type"] == message_type:
+                if stack["type"] in message_types:
                     text += stack["payload"]["content"]
                 else:
                     logger.warning(
@@ -132,7 +132,7 @@ async def query_llm(
     
     if use_conversation_context:
         prev_messages = format_msgs_chain_to_llm_context(
-            await database_sync_to_async(list)(conv.get_msgs_chain()), StackPayloadType.llm_generated_text.value
+            await database_sync_to_async(list)(conv.get_msgs_chain()), [StackPayloadType.message.value, StackPayloadType.message_chunk.value]
         )
         new_messages = prev_messages.copy()
 

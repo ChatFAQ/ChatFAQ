@@ -168,10 +168,15 @@ class ChatFAQSDK:
                 continue
 
             if actions.get(data.get("type")) is not None:
-                if actions.get(data.get("type")) == MessageType.retriever_request_result:
+                if (
+                    actions.get(data.get("type"))
+                    == MessageType.retriever_request_result
+                ):
                     # The back-end returns the complete result in one message so
                     # as we already have the complete result we can set the future to the result
-                    self.retriever_request_futures[data["payload"]["bot_channel_name"]].set_result(data["payload"])
+                    self.retriever_request_futures[
+                        data["payload"]["bot_channel_name"]
+                    ].set_result(data["payload"])
                 else:
                     asyncio.create_task(actions[data.get("type")](data["payload"]))
             else:
@@ -277,20 +282,22 @@ class ChatFAQSDK:
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
     async def send_llm_request(
-            self,
-            llm_config_name,
-            messages,
-            temperature,
-            max_tokens,
-            seed,
-            tools,
-            tool_choice,
-            conversation_id,
-            bot_channel_name,
-            use_conversation_context,
+        self,
+        llm_config_name,
+        messages,
+        temperature,
+        max_tokens,
+        seed,
+        tools,
+        tool_choice,
+        conversation_id,
+        bot_channel_name,
+        use_conversation_context,
     ):
         logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
-        self.llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
+        self.llm_request_futures[bot_channel_name] = (
+            asyncio.get_event_loop().create_future()
+        )
         await getattr(self, f"ws_{WSType.ai.value}").send(
             json.dumps(
                 {
@@ -311,9 +318,13 @@ class ChatFAQSDK:
             )
         )
 
-    async def send_retriever_request(self, retriever_config_name, query, top_k, bot_channel_name):
+    async def send_retriever_request(
+        self, retriever_config_name, query, top_k, bot_channel_name
+    ):
         logger.info(f"[RETRIEVER] Requesting Retriever ({retriever_config_name})")
-        self.retriever_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
+        self.retriever_request_futures[bot_channel_name] = (
+            asyncio.get_event_loop().create_future()
+        )
         await getattr(self, f"ws_{WSType.ai.value}").send(
             json.dumps(
                 {

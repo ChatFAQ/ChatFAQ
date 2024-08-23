@@ -1,6 +1,7 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import LLMGeneratedText, Message
+from chatfaq_sdk.layers import Message, StreamingMessage
+from chatfaq_sdk.clients import llm_request
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
@@ -8,10 +9,17 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
-    yield LLMGeneratedText("gpt-4o", messages=[
-        {"role": "system", "content": "You are a helpful assistant."}
-    ])
-    # yield Message(f"Tell me more")
+    
+    generator = llm_request(
+        sdk,
+        "gpt-4o",
+        use_conversation_context=True,
+        conversation_id=ctx["conversation_id"],
+        bot_channel_name=ctx["bot_channel_name"],
+        messages=[{"role": "system", "content": "You are a helpful assistant."}],
+    )
+
+    yield StreamingMessage(generator)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

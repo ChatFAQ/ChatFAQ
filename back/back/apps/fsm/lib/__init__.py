@@ -174,9 +174,9 @@ class FSM:
         _old = self.last_aggregated_msg
         if _new['stack'][0]["type"] == StackPayloadType.message_chunk.value:
             if _new["stack_id"] == _old.get("stack_id"):
-                more_content = _new["stack"][0]['payload']['content']
-                old_payload = _old["stack"][0]['payload']
-                _new["stack"][0]['payload']['content'] = old_payload['content'] + more_content
+                more_content = _new["stack"][0]["payload"]["content"]
+                old_payload = _old["stack"][0]["payload"]["content"]
+                _new["stack"][0]['payload']['content'] = old_payload + more_content
         self.last_aggregated_msg = _new
 
     async def save_if_last_llm_msg(self, _new):
