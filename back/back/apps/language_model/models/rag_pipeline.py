@@ -332,6 +332,12 @@ class LLMConfig(ChangesMixin):
             transaction.on_commit(on_commit_callback)
 
 
+# ============================================================
+# NOTE: Prompt and Generation Config Usage
+# ------------------------------------------------------------
+# Currently, these configurations are not used anywhere.
+# In the future they may be used from the SDK
+# ============================================================
 class PromptConfig(ChangesMixin):
     """
     Defines the structure of the prompt for a model.
