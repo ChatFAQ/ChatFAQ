@@ -338,7 +338,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                     "type": RPCMessageType.retriever_request_result.value,
                     "status": WSStatusCodes.ok.value,
                     "payload": {
-                        "k_items": result,
+                        **result,
                         "bot_channel_name": data["bot_channel_name"],
                     },
                 }
