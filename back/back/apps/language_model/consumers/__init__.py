@@ -99,7 +99,7 @@ async def resolve_references(reference_kis, retriever_config):
     #     await database_sync_to_async(MessageKnowledgeItem.objects.bulk_create)(msgs2kis)
 
     return {
-        "knowledge_base_id": retriever_config.knowledge_base.pk,
+        "knowledge_base_id": await database_sync_to_async(lambda: retriever_config.knowledge_base.pk)(),
         "knowledge_items": reference_kis,
         "knowledge_item_images": reference_ki_images,
     }
@@ -220,8 +220,7 @@ async def query_retriever(
             deployment_name=retriever_deploy_name, app_name=retriever_deploy_name
         )
 
-        response = await handle.remote(query, top_k)
-        result = response.result()
+        result = await handle.remote(query, top_k)
         result = await resolve_references(result, retriever_config)
 
         return result

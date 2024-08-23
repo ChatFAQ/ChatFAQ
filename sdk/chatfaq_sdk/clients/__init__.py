@@ -57,7 +57,7 @@ async def retrieve(
     await sdk.send_retriever_request(retriever_name, query, top_k, bot_channel_name)
 
     logger.debug("[Retrieve] Waiting for Retrieve req...")
-    results = (await sdk.retriever_request_futures[bot_channel_name])()
+    results = await sdk.retriever_request_futures[bot_channel_name]
     logger.debug("[Retrieve] ...receive results from Retrieve req")
 
     return results

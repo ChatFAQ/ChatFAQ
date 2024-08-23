@@ -93,6 +93,7 @@ class ChatFAQSDK:
         }
         ai_actions = {
             MessageType.llm_request_result.value: self.llm_request_result_callback,
+            MessageType.retriever_request_result.value: self.retriever_request_result_callback,
             MessageType.error.value: self.error_callback,
         }
         coros_or_futures = [
@@ -168,19 +169,14 @@ class ChatFAQSDK:
                 continue
 
             if actions.get(data.get("type")) is not None:
-                if (
-                    actions.get(data.get("type"))
-                    == MessageType.retriever_request_result
-                ):
-                    # The back-end returns the complete result in one message so
-                    # as we already have the complete result we can set the future to the result
-                    self.retriever_request_futures[
-                        data["payload"]["bot_channel_name"]
-                    ].set_result(data["payload"])
-                else:
-                    asyncio.create_task(actions[data.get("type")](data["payload"]))
+                asyncio.create_task(actions[data.get("type")](data["payload"]))
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
+
+
+    async def retriever_request_result_callback(self, payload):
+        logger.info(f"[RETRIEVER] Result received: {payload}")
+        self.retriever_request_futures[payload["bot_channel_name"]].set_result(payload)
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
