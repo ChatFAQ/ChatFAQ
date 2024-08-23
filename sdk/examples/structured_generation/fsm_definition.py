@@ -44,6 +44,7 @@ async def send_info(sdk: ChatFAQSDK, ctx: dict):
         tool_choice="UserInfo",
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
+        use_conversation_context=True,
     ):
         yield Message(f"Here is the extracted information: {json.dumps(res)}", allow_feedback=False)
 
