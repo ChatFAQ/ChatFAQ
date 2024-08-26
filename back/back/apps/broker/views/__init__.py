@@ -240,7 +240,7 @@ class Stats(APIView):
                 "total_conversations": total_conversations,
                 "conversations_message_count": list(conversations_message_count.all()),
                 "conversations_message_avg": round(conversations_message_avg.get('avg'), 2) if conversations_message_avg is not None else None,
-                "total_messages": list(messages.all()),
+                "total_messages": messages.count(),  # Change this line
                 "conversations_by_date": list(conversations_by_date.all()),
                 **general_stats,
                 **reviews_and_feedbacks,

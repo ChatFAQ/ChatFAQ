@@ -46,6 +46,7 @@ class MessageSerializer(serializers.ModelSerializer):
 def _get_fsm_defs(_, obj):
     """Returns the FSM definitions name"""
     fsm_def_ids = Message.objects.filter(conversation=obj).values_list("stack__0__fsm_definition", flat=True).distinct()
+    fsm_def_ids = list(filter(None, fsm_def_ids))
     return [FSMDefinition.objects.get(id=fsm_def_id).name for fsm_def_id in fsm_def_ids]
 
 
