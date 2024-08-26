@@ -61,7 +61,7 @@
     "domain": "Domain",
     "fsmdef": "FSM Definition",
     "fsm_def": "FSM Definition",
-    "fsms": "FSMs",
+    "fsms": "Finite State Machines Definitions",
     "general": "General",
     "layout": "Layout",
     "theme": "Theme",

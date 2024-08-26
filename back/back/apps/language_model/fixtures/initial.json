@@ -14,7 +14,7 @@
             "enabled": true,
             "s3_index_path": null,
             "index_status": "up_to_date"
-                }
+        }
     },
     {
         "model": "language_model.llmconfig",

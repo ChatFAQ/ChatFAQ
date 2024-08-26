@@ -2,7 +2,7 @@
     <div class="dashboard-page-title">{{ $t("welcome", { name: userName }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading">
         <div class="text-explanation" v-html="$t('dashboardexplanation')"></div>
-        <div class="section-title">{{ $t("sdks") }}</div>
+        <div class="section-title">{{ $t("fsms") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
             <Card v-for="sdk in sdks" :editable="false" :deletable="false" @delete="initItems" :item="sdk"

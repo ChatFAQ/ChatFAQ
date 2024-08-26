@@ -41,17 +41,28 @@ class RetrieverConfig(ChangesMixin):
         The name of the retriever model to use. It must be a HuggingFace repo id.
     retriever_type: str
         The type of retriever to use.
+    knowledge_base: KnowledgeBase
+        The knowledge base to use for the retriever.
+    index_status: str
+        The status of the retriever index.
+    s3_index_path: str
+        The path to the retriever index in S3.
     batch_size: int
         The batch size to use for the retriever.
     device: str
         The device to use for the retriever.
+    enabled: bool
+        Whether the retriever is enabled.
+    num_replicas: int
+        The number of replicas to deploy in the Ray cluster.
     """
 
     objects = models.Manager()  # The default manager.
 
     enabled_objects = EnabledRetrieverConfigManager()  # The Dahl-specific manager.
-
     name = models.CharField(max_length=255, unique=True)
+
+    # Model properties
     model_name = models.CharField(
         max_length=255, default="colbert-ir/colbertv2.0"
     )  # For dev and demo purposes.
@@ -60,13 +71,8 @@ class RetrieverConfig(ChangesMixin):
         choices=RetrieverTypeChoices.choices,
         default=RetrieverTypeChoices.COLBERT,
     )
-    batch_size = models.IntegerField(
-        default=1
-    )  # batch size 1 for better default cpu generation
-    device = models.CharField(
-        max_length=10, choices=DeviceChoices.choices, default=DeviceChoices.CPU
-    )
 
+    # Knowledge Base properties
     knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
     index_status = models.CharField(
         max_length=20,
@@ -78,6 +84,13 @@ class RetrieverConfig(ChangesMixin):
         max_length=255, blank=True, null=True, editable=False
     )
 
+    # Model inference properties
+    batch_size = models.IntegerField(
+        default=1
+    )  # batch size 1 for better default cpu generation
+    device = models.CharField(
+        max_length=10, choices=DeviceChoices.choices, default=DeviceChoices.CPU
+    )
     enabled = models.BooleanField(default=False)
     num_replicas = models.IntegerField(default=1)
 
@@ -233,6 +246,10 @@ class LLMConfig(ChangesMixin):
          The base url where the model is hosted. It is used for vLLM deployments and Together LLM Endpoints.
     model_max_length: int
          The maximum length of the model.
+     enabled: bool
+         Whether the LLM is enabled.
+     num_replicas: int
+         The number of replicas to deploy in the Ray cluster.
     """
 
     objects = models.Manager()  # The default manager.
