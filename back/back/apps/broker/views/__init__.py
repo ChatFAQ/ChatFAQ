@@ -31,6 +31,7 @@ from ..serializers.messages import MessageSerializer
 
 class ConversationFilterSet(django_filters.FilterSet):
     reviewed = django_filters.CharFilter(method='filter_reviewed')
+    fsm_def = django_filters.CharFilter(method='filter_fsm_def')
 
     class Meta:
         model = Conversation
@@ -38,6 +39,9 @@ class ConversationFilterSet(django_filters.FilterSet):
            'created_date': ['lte', 'gte'],
            'id': ['exact'],
         }
+
+    def filter_fsm_def(self, queryset, name, value):
+        return queryset.filter(message__stack__0__contains=[{'fsm_definition': value}]).distinct()
 
     def filter_reviewed(self, queryset, name, value):
         val = True

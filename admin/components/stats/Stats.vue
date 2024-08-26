@@ -22,11 +22,11 @@
             </div>
             <div class="section-title">{{ $t("reviewsandfeedback") }}</div>
             <div class="group-stats">
-                <StatCard class="stat" :title="$t('precision')" :content="stats.precision"/>
-                <StatCard class="stat" :title="$t('recall')" :content="stats.recall"/>
-                <StatCard class="stat" :title="$t('f1')" :content="stats.f1"/>
-                <StatCard class="stat" :title="$t('adminquality')" :content="stats.admin_quality"/>
-                <StatCard class="stat" :title="$t('userquality')" :content="stats.user_quality"/>
+                <StatCard class="stat" type="percentage" :title="$t('precision')" :content="stats.precision"/>
+                <StatCard class="stat" type="percentage" :title="$t('recall')" :content="stats.recall"/>
+                <StatCard class="stat" type="percentage" :title="$t('f1')" :content="stats.f1"/>
+                <StatCard class="stat" type="percentage" :title="$t('adminquality')" :content="stats.admin_quality"/>
+                <StatCard class="stat" type="percentage" :title="$t('userquality')" :content="stats.user_quality"/>
             </div>
         </div>
     </div>
@@ -46,16 +46,15 @@ const stats = ref(undefined)
 const filtersEl = ref(undefined)
 const loading = ref(false)
 
+// NOTE: I don't know if we want to add the fsm_def filter
 const filterSchema = ref(
    [
-       {'type': 'ref', 'placeholder': t('rag'), 'field': 'rag', 'endpoint': '/back/api/language-model/rag-configs/'},
+    //    {'type': 'ref', 'placeholder': t('fsmdef'), 'field': 'fsm_def', 'endpoint': '/back/api/fsm/definitions/'},
        {'type': 'range-date', 'startPlaceholder': t('startdate'), 'endPlaceholder': t('enddate'), 'field': 'created_date'},
    ]
 )
 
 async function requestStats(_filters) {
-    // if (itemsStore.filters.rag === undefined)
-    //     stats.value = undefined
     loading.value = true
     let filters = {..._filters}
     if (filters.created_date__gte) {

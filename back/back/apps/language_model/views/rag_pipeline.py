@@ -27,6 +27,17 @@ class RetrieverConfigAPIViewSet(viewsets.ModelViewSet):
     filterset_fields = ["id"]
     search_fields = ['name']
 
+    @action(detail=True, url_name="trigger-reindex", url_path="trigger-reindex")
+    def trigger_reindex(self, request, *args, **kwargs):
+        """
+        A view to trigger reindexing of the knowledge base:
+        """
+        retriever_conf = RetrieverConfig.objects.filter(pk=kwargs["pk"]).first()
+        if not retriever_conf:
+            return JsonResponse({"status": "retriever not found"}, status=404)
+        retriever_conf.trigger_reindex()
+        return JsonResponse({"status": "reindex triggered"})
+
     @action(detail=True, url_name='retrieve', url_path='retrieve', methods=['POST'], parser_classes=[JSONParser])
     def retrieve_knowledge_items(self, request, *args, **kwargs):
         """
