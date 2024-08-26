@@ -14,6 +14,7 @@ from rest_framework.exceptions import ValidationError
 from back.apps.broker.models.message import AgentType, Satisfaction, StackPayloadType
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
+from back.apps.fsm.models import FSMDefinition
 
 if TYPE_CHECKING:
     from back.apps.broker.models.message import Message
@@ -169,12 +170,27 @@ class Payload(serializers.Field):
         return data
 
 
+class FSMDefinitionField(serializers.Field):
+    def to_internal_value(self, data):
+        fsm_def = FSMDefinition.get_by_id_or_name(data)
+        if fsm_def:
+            return fsm_def.id
+        raise serializers.ValidationError(f"FSM Definition '{data}' not found.")
+
+    def to_representation(self, value):
+        try:
+            fsm_def = FSMDefinition.objects.get(id=value)
+            return fsm_def.name
+        except FSMDefinition.DoesNotExist:
+            return None
+
 class MessageStackSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType], required=False)
     payload = Payload(required=False)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
     state = serializers.JSONField(required=False)
+    fsm_definition = FSMDefinitionField(required=False, allow_null=True)
 
     def validate(self, data):
         if data.get("type") in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:

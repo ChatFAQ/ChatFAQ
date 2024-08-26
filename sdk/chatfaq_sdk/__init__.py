@@ -386,7 +386,7 @@ class ChatFAQSDK:
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        results = layer.result(self, data)
+        results = layer.result(self, data, fsm_def_name=self.fsm_name)
         # check if is generator
         async for r in results:
             yield r + [

@@ -29,7 +29,7 @@ class Layer:
         """
         raise NotImplementedError
 
-    async def result(self, ctx, data) -> List[dict]:
+    async def result(self, ctx, data, fsm_def_name: str = None) -> List[dict]:
         repr_gen = self.build_payloads(ctx, data)
         async for _repr, last in repr_gen:
             for r in _repr:
@@ -37,6 +37,8 @@ class Layer:
                 r["meta"] = {}
                 r["meta"]["allow_feedback"] = self.allow_feedback
                 r["state"] = self.state
+                if fsm_def_name:
+                    r["fsm_definition"] = fsm_def_name
             yield [_repr, last]
 
 
