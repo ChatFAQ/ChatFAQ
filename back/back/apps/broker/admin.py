@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models.message import Message, UserFeedback, AdminReview
 from .models import ConsumerRoundRobinQueue, RemoteSDKParsers
+import time
 
 
 class MessageAdmin(admin.ModelAdmin):
@@ -9,10 +10,12 @@ class MessageAdmin(admin.ModelAdmin):
 
     def payload_text(self, obj):
         payload = obj.stack[0]['payload']
-        if isinstance(payload, str):
-            return payload
-        else:
+        if 'content' in payload and isinstance(payload, dict):
             return payload['content']
+        elif 'model_response' in payload and isinstance(payload, dict):
+            return payload['model_response']
+        else:
+            return payload
 
     def sender_type(self, obj):
         return obj.sender["type"]

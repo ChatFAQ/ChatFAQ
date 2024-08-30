@@ -125,7 +125,7 @@ class Conversation(ChangesMixin):
                     messages.append({"role": "assistant", "content": bot_content})
                     bot_content = ""
 
-                messages.append({"role": "user", "content": m.stack[0]["payload"]})
+                messages.append({"role": "user", "content": m.stack[0]["payload"]["content"]})
                 human_messages_ids.append(m.id)
             elif m.sender["type"] == "bot":
                 bot_content += m.stack[0]["payload"]["content"]

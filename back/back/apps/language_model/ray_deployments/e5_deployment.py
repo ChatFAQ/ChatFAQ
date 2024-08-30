@@ -13,7 +13,7 @@ from ray import serve
     ray_actor_options={
             "num_cpus": 1,
             "resources": {
-                "rags": 1,
+                "ai_components": 1,
             }
         }
 )

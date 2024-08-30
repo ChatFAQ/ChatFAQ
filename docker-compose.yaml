@@ -53,7 +53,7 @@ services:
       args:
         - INSTALL_CHAT_RAG=true
     container_name: chatfaq_ray
-    command: ["/.venv/bin/ray", "start", "--address=back:6375", "--resources={\"tasks\": 100, \"rags\": 100}", "--block"]
+    command: ["/.venv/bin/ray", "start", "--address=back:6375", "--resources={\"tasks\": 100, \"ai_components\": 100}", "--block"]
     networks:
       - default
       - chatfaq_db_net

@@ -14,7 +14,7 @@ from back.apps.language_model.tasks import read_s3_index
     ray_actor_options={
         "num_cpus": 1,
         "resources": {
-            "rags": 1,
+            "ai_components": 1,
         },
     },
 )

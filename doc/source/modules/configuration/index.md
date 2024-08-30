@@ -32,7 +32,7 @@ Here you can set up multiple AI components that can be used to compose AI pipeli
 - You can create a simple chatbot using only a LLM.
 - You can create any kind of agent using the ChatFAQ SDK, given that the backend supports tool use.
 
-ChatFAQ provide in its fixtures a default configuration for each of these components except for the Knowledge Base and the RAG Config. You can apply the fixtures by simply running the following command from the `back` directory:
+ChatFAQ provide in its fixtures a default configuration for each of these components. You can apply the fixtures by simply running the following command from the `back` directory:
 
 ```bash
 make apply_fixtures
@@ -327,7 +327,7 @@ from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.clients import retrieve
 from chatfaq_sdk.layers import Message
 
-async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
+async def send_retrieval(sdk: ChatFAQSDK, ctx: dict):
     query = 'What is ChatFAQ?'
     items = await retrieve(sdk, 'chatfaq_retriever', query, top_k=3, bot_channel_name=ctx["bot_channel_name"])
     yield Message(
@@ -344,7 +344,7 @@ from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.layers import Message, StreamingMessage
 
-async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
+async def send_llm_answer(sdk: ChatFAQSDK, ctx: dict):
     # Some messages
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
@@ -352,4 +352,39 @@ async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
     ]
     generator = llm_request(sdk, 'gpt-4o', use_conversation_context=False, conversation_id=ctx["conversation_id"], bot_channel_name=ctx["bot_channel_name"], messages=messages)
     yield StreamingMessage(generator)
+```
+
+Creating a simple RAG pipeline:
+
+```python
+from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.clients import retrieve, llm_request
+from chatfaq_sdk.layers import Message, StreamingMessage
+from chatfaq_sdk.utils import convert_mml_to_llm_format
+
+async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
+
+    messages = convert_mml_to_llm_format(ctx["conv_mml"][1:])
+    last_user_message = messages[-1]["content"]
+    
+    # Retrieve context
+    contexts = await retrieve(sdk, 'chatfaq_retriever', last_user_message, top_k=3, bot_channel_name=ctx["bot_channel_name"])
+    
+    # Augment prompt with context
+    system_prompt = rag_system_prompt
+    context_content = "\n".join([f"- {context['content']}" for context in contexts['knowledge_items']])
+    system_prompt += f"\nInformation:\n{context_content}"
+    messages.insert(0, {"role": "system", "content": system_prompt})
+    
+    # Generate response
+    generator = llm_request(
+        sdk,
+        "gpt-4o",
+        use_conversation_context=False,
+        conversation_id=ctx["conversation_id"],
+        bot_channel_name=ctx["bot_channel_name"],
+        messages=messages,
+    )
+
+    yield StreamingMessage(generator, references=contexts)
 ```

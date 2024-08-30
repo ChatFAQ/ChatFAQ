@@ -393,8 +393,8 @@ def generate_suggested_intents_task(
         Message.objects.filter(
             stack__contains=[
                 {
-                    "payload": {"references": {"knowledge_base_id": "1"}},
-                    "type": "rag_generated_text",
+                    "payload": {"references": {"knowledge_base_id": knowledge_base_pk}},
+                    # "type": "rag_generated_text",
                 }
             ]
         )
@@ -410,7 +410,7 @@ def generate_suggested_intents_task(
     messages = Message.objects.filter(id__in=Subquery(subquery), sender__type="human")
 
     messages_text = [
-        Message.objects.get(id=item["message_id"]).stack[0]["payload"]
+        Message.objects.get(id=item["message_id"]).stack[0]["payload"]["content"]
         for item in messages
     ]
 
@@ -428,7 +428,7 @@ def generate_suggested_intents_task(
         < new_intents_thresholds["max"]
     ]
 
-    messages_text = [message.stack[0]["payload"] for message in messages]
+    messages_text = [message.stack[0]["payload"]["content"] for message in messages]
 
     logger.info(f"Number of messages after filtering: {messages.count()}")
 
