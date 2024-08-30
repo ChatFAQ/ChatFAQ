@@ -2,6 +2,7 @@ import os
 from typing import Dict, List, Union
 
 from anthropic import Anthropic, AsyncAnthropic
+from anthropic._types import NOT_GIVEN
 from pydantic import BaseModel
 
 from .base_llm import LLM
@@ -70,7 +71,9 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = messages.pop(0)["content"]
+        system_prompt = NOT_GIVEN
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)["content"]
 
         stream = self.client.messages.create(
             model=self.llm_name,
@@ -103,7 +106,9 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = messages.pop(0)["content"]
+        system_prompt = NOT_GIVEN
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)["content"]
 
         stream = await self.aclient.messages.create(
             model=self.llm_name,
@@ -144,7 +149,9 @@ class ClaudeChatModel(LLM):
             tools, tool_choice = self._format_tools(tools, tool_choice)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
-        system_prompt = messages.pop(0)["content"]
+        system_prompt = NOT_GIVEN
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)["content"]
 
         message = self.client.messages.create(
             model=self.llm_name,
@@ -187,7 +194,9 @@ class ClaudeChatModel(LLM):
             tools, tool_choice = self._format_tools(tools, tool_choice)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
-        system_prompt = messages.pop(0)["content"]
+        system_prompt = NOT_GIVEN
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)["content"]
 
         message = await self.aclient.messages.create(
             model=self.llm_name,
