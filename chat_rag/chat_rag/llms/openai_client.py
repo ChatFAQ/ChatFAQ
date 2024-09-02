@@ -1,11 +1,37 @@
 import os
 from typing import Dict, List, Union
+import json
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
-from .base_llm import LLM
+from chat_rag.llms import LLM, Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
+
+
+def map_openai_message(openai_message) -> Message:
+    # Map usage
+    usage = Usage(
+        input_tokens=openai_message.usage.prompt_tokens,
+        output_tokens=openai_message.usage.completion_tokens
+    )
+    content_blocks: List[Content] = []
+    for choice in openai_message.choices:
+        if choice.message.tool_calls:
+            tool_uses = [ToolUse(id=tool_call.id, name=tool_call.function.name, input=json.loads(tool_call.function.arguments)) for tool_call in choice.message.tool_calls]
+            content_blocks.append(Content(stop_reason=choice.finish_reason, role=choice.message.role, type="tool_use", tool_use=tool_uses))
+        else:
+            content_blocks.append(Content(text=choice.message.content, stop_reason=choice.finish_reason, role=choice.message.role, type="text"))
+
+    message = Message(
+        model=openai_message.model,
+        usage=usage,
+        content=content_blocks,
+        created=openai_message.created
+    )
+
+    return message
+
 
 class OpenAIChatModel(LLM):
     def __init__(
@@ -140,7 +166,7 @@ class OpenAIChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ) -> str | List:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -149,8 +175,8 @@ class OpenAIChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
@@ -171,7 +197,7 @@ class OpenAIChatModel(LLM):
         if message.tool_calls:
             return self._extract_tool_info(message)
 
-        return message.content
+        return map_openai_message(response)
 
     async def agenerate(
         self,
@@ -181,7 +207,7 @@ class OpenAIChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -190,8 +216,8 @@ class OpenAIChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
@@ -212,4 +238,4 @@ class OpenAIChatModel(LLM):
         if message.tool_calls:
             return self._extract_tool_info(message)
 
-        return message.content
+        return map_openai_message(response)

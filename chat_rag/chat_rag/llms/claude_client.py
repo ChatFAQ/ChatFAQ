@@ -24,7 +24,8 @@ def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
             content_blocks.append(Content(
                 text=block.text,
                 type="text",
-                stop_reason=anthropic_message.stop_reason
+                stop_reason=anthropic_message.stop_reason,
+                role=anthropic_message.role
             ))
         elif block.type == "tool_use":
             tool_use = ToolUse(id=block.id, name=block.name, input=block.input)
@@ -32,11 +33,11 @@ def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
                 # text="",
                 type="tool_use",
                 tool_use=[tool_use],
-                stop_reason=anthropic_message.stop_reason
+                stop_reason=anthropic_message.stop_reason,
+                role=anthropic_message.role
             ))
     # Map the entire message
     message = Message(
-        role=anthropic_message.role,
         content=content_blocks,
         model=anthropic_message.model,
         usage=usage
