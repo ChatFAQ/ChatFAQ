@@ -10,6 +10,8 @@ from chat_rag.exceptions import (
     PromptTooLongException,
     RequestException,
 )
+from .message import Message
+from chat_rag.llms.openai_client import map_openai_message
 from chat_rag.llms import OpenAIChatModel
 
 logger = logging.getLogger(__name__)
@@ -154,7 +156,7 @@ class VLLMModel(OpenAIChatModel):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-        ):
+        ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -163,7 +165,7 @@ class VLLMModel(OpenAIChatModel):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str
+        Message
             The generated text.
         """
 
@@ -189,11 +191,7 @@ class VLLMModel(OpenAIChatModel):
             **tool_kwargs,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-
-        return message.content
+        return map_openai_message(response)
 
     async def agenerate(
         self,
@@ -203,7 +201,7 @@ class VLLMModel(OpenAIChatModel):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ):
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -212,7 +210,7 @@ class VLLMModel(OpenAIChatModel):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str
+        Message
             The generated text.
         """
 
@@ -238,11 +236,7 @@ class VLLMModel(OpenAIChatModel):
             **tool_kwargs,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-        
-        return message.content
+        return map_openai_message(response)
 
 def return_openai_error(e):
     logger.error(f"Error with the request to the vLLM OpenAI server: {e}")

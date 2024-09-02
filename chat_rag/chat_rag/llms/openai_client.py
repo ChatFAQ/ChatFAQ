@@ -5,7 +5,8 @@ import json
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM, Message, Usage, Content, ToolUse
+from .base_llm import LLM
+from .message import Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
 
 
@@ -73,22 +74,6 @@ class OpenAIChatModel(LLM):
                 },
             }
         return tools_formatted, tool_choice
-
-    def _extract_tool_info(self, message) -> List[Dict]:
-        """
-        Format the tool information from the anthropic response to a standard format.
-        """
-        tools = []
-        for tool in message.tool_calls:
-            tools.append(
-                {
-                    "id": tool.id,
-                    "name": tool.function.name,
-                    "args": tool.function.arguments,
-                }
-            )
-
-        return tools
 
     def stream(
         self,
@@ -193,10 +178,6 @@ class OpenAIChatModel(LLM):
             stream=False,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-
         return map_openai_message(response)
 
     async def agenerate(
@@ -233,9 +214,5 @@ class OpenAIChatModel(LLM):
             tool_choice=tool_choice,
             stream=False,
         )
-
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
 
         return map_openai_message(response)

@@ -1,10 +1,12 @@
 import os
 from typing import Dict, List, Union
+import json
 
 from mistralai import Mistral
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM, Message, Usage, Content, ToolUse
+from .base_llm import LLM
+from .message import Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
 
 
@@ -60,22 +62,6 @@ class MistralChatModel(LLM):
 
         return tools_formatted, tool_choice
 
-    def _extract_tool_info(self, message) -> List[Dict]:
-        """
-        Format the tool information from the anthropic response to a standard format.
-        """
-        tools = []
-        for tool in message.tool_calls:
-            tools.append(
-                {
-                    "id": tool.id,
-                    "name": tool.function.name,
-                    "args": tool.function.arguments,
-                }
-            )
-
-        return tools
-
     def stream(
         self,
         messages: List[Dict[str, str]],
@@ -103,8 +89,8 @@ class MistralChatModel(LLM):
             max_tokens=max_tokens,
             random_seed=seed,
         ):
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
+            if chunk.data.choices[0].delta.content is not None:
+                yield chunk.data.choices[0].delta.content
 
         return
 
@@ -135,8 +121,8 @@ class MistralChatModel(LLM):
             max_tokens=max_tokens,
             random_seed=seed,
         ):
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
+            if chunk.data.choices[0].delta.content is not None:
+                yield chunk.data.choices[0].delta.content
 
         return
 
@@ -160,10 +146,6 @@ class MistralChatModel(LLM):
         str
             The generated text.
         """
-
-        messages = self.format_prompt(
-            messages=messages,
-        )
 
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
@@ -200,10 +182,6 @@ class MistralChatModel(LLM):
         str
             The generated text.
         """
-
-        messages = self.format_prompt(
-            messages=messages,
-        )
         
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)

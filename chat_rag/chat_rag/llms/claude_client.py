@@ -5,7 +5,8 @@ from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM, Message, Usage, Content, ToolUse
+from .base_llm import LLM
+from .message import Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
 from anthropic.types.message import Message as AnthropicMessage
 
@@ -74,21 +75,6 @@ class ClaudeChatModel(LLM):
                 )  # map "required" to "any"
 
         return tools_formatted, tool_choice
-
-    def _extract_tool_info(self, content: List) -> List[Dict]:
-        """
-        Format the tool information from the anthropic response to a standard format.
-        Claude only calls one tool at a time but we return a list for consistency.
-        """
-        tool = {}
-        for block in content:
-            if block.type == "tool_use":
-                tool["id"] = block.id
-                tool["name"] = block.name
-                tool["args"] = block.input
-            elif block.type == "text":
-                tool["text"] = block.text
-        return [tool]
 
     def stream(
         self,
@@ -199,10 +185,6 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         )
 
-        content = message.content
-        if any([x.type == "tool_use" for x in content]):
-            return self._extract_tool_info(content)
-
         return map_anthropic_message(message)
 
     async def agenerate(
@@ -244,7 +226,4 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         )
 
-        content = message.content
-        if any([x.type == "tool_use" for x in content]):
-            return self._extract_tool_info(content)
         return map_anthropic_message(message)
