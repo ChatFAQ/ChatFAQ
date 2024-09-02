@@ -1,13 +1,13 @@
+import json
 import os
 from typing import Dict, List, Union
-import json
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
 from .base_llm import LLM
-from .message import Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
+from .message import Content, Message, ToolUse, Usage
 
 
 def map_openai_message(openai_message) -> Message:
@@ -19,7 +19,7 @@ def map_openai_message(openai_message) -> Message:
     content_blocks: List[Content] = []
     for choice in openai_message.choices:
         if choice.message.tool_calls:
-            tool_uses = [ToolUse(id=tool_call.id, name=tool_call.function.name, input=json.loads(tool_call.function.arguments)) for tool_call in choice.message.tool_calls]
+            tool_uses = [ToolUse(id=tool_call.id, name=tool_call.function.name, arguments=json.loads(tool_call.function.arguments)) for tool_call in choice.message.tool_calls]
             content_blocks.append(Content(stop_reason=choice.finish_reason, role=choice.message.role, type="tool_use", tool_use=tool_uses))
         else:
             content_blocks.append(Content(text=choice.message.content, stop_reason=choice.finish_reason, role=choice.message.role, type="text"))

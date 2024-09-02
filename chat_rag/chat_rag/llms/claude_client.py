@@ -1,14 +1,15 @@
 import os
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Iterator
+import json
 
 from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
+from anthropic.types.message import Message as AnthropicMessage
 from pydantic import BaseModel
 
 from .base_llm import LLM
-from .message import Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
-from anthropic.types.message import Message as AnthropicMessage
+from .message import Content, Message, ToolUse, Usage
 
 
 def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
@@ -29,7 +30,7 @@ def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
                 role=anthropic_message.role
             ))
         elif block.type == "tool_use":
-            tool_use = ToolUse(id=block.id, name=block.name, input=block.input)
+            tool_use = ToolUse(id=block.id, name=block.name, arguments=block.input)
             content_blocks.append(Content(
                 # text="",
                 type="tool_use",
@@ -45,6 +46,51 @@ def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
     )
 
     return message
+
+
+def map_anthropic_stream(stream: Iterator) -> Iterator[Content]:
+    """
+    Process an Anthropic stream and return a stream of messages. 
+    Text is streamed as text_delta.
+    The tool use is not streamed, it is accumulated and returned as a single tool use.
+    In the last message, the usage is returned.
+    """
+    tool_use_name = None
+    tool_use_id = None
+    tool_use_arguments = None
+    model = None
+    role = None
+
+    for event in stream:
+        if event.type == "message_start":
+            model = event.message.model
+            role = event.message.role
+        elif event.type == "content_block_delta" and event.delta.type == "text_delta":
+            yield Message(
+                model=model,
+                role=role,
+                content=[Content(type="text_delta", text=event.delta.text, role=role, stop_reason="")]
+            )
+        elif event.type == "content_block_start" and event.content_block.type == "tool_use":
+            tool_use_name = event.content_block.name
+            tool_use_id = event.content_block.id
+            tool_use_arguments = ""
+        elif event.type == "content_block_delta" and event.delta.type == "input_json_delta":
+            tool_use_arguments += event.delta.partial_json
+        elif event.type == "content_block_stop" and hasattr(event, 'content_block') and event.content_block.type == "tool_use":
+            tool_use_arguments = json.loads(tool_use_arguments)
+            yield Message(
+                model=model,
+                role=role,
+                content=[Content(type="tool_use", tool_use=[ToolUse(id=tool_use_id, name=tool_use_name, arguments=tool_use_arguments)], role=role, stop_reason="")]
+            )
+        elif event.type == "message_stop":
+            yield Message(
+                model=model,
+                role=role,
+                content=[Content(type="text", text="", role=role, stop_reason="")],
+                usage=Usage(input_tokens=event.message.usage.input_tokens, output_tokens=event.message.usage.output_tokens)
+            )
 
 
 class ClaudeChatModel(LLM):
@@ -81,6 +127,8 @@ class ClaudeChatModel(LLM):
         messages: List[Dict[str, str]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
         seed: int = None,
     ):
         """
@@ -98,18 +146,22 @@ class ClaudeChatModel(LLM):
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
 
-        stream = self.client.messages.create(
+        tool_kwargs = {}
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+
+        with self.client.messages.stream(
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            stream=True,
-        )
+            **tool_kwargs,
+        ) as stream:
 
-        for event in stream:
-            if event.type == "content_block_delta":
-                yield event.delta.text
+            for event in map_anthropic_stream(stream):
+                yield event
 
     async def astream(
         self,
@@ -117,6 +169,8 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -133,18 +187,22 @@ class ClaudeChatModel(LLM):
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
 
-        stream = await self.aclient.messages.create(
+        tool_kwargs = {}
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+
+        with await self.aclient.messages.stream(
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
-            stream=True,
-        )
+            **tool_kwargs,
+        ) as stream:
 
-        async for event in stream:
-            if event.type == "content_block_delta":
-                yield event.delta.text
+            async for event in map_anthropic_stream(stream):
+                yield event
 
     def generate(
         self,
