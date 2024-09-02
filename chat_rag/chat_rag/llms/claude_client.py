@@ -5,12 +5,12 @@ from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
 from pydantic import BaseModel
 
-from .base_llm import LLM
+from chat_rag.llms import LLM, Message
 from .format_tools import Mode, format_tools
 
 
 class ClaudeChatModel(LLM):
-    def __init__(self, llm_name: str = "claude-3-opus-20240229", **kwargs) -> None:
+    def __init__(self, llm_name: str = "claude-3-5-sonnet-20240620", **kwargs) -> None:
         self.llm_name = llm_name
         self.client = Anthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY"),

@@ -2,6 +2,8 @@ from typing import Dict, List, Optional, Union, Tuple
 
 from pydantic import BaseModel
 
+from chat_rag.llms.message import Message
+
 
 class LLM:
 
@@ -45,7 +47,7 @@ class LLM:
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ) -> Optional[str | List[str]]:
+    ) -> Message:
         pass
 
     async def agenerate(
@@ -56,5 +58,5 @@ class LLM:
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ) -> Optional[str | List[str]]:
+    ) -> Message:
         pass
