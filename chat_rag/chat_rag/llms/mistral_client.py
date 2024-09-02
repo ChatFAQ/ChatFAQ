@@ -1,13 +1,35 @@
 import os
 from typing import Dict, List, Union
 
-from mistralai.async_client import MistralAsyncClient
-from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+from mistralai import Mistral
 from pydantic import BaseModel
 
-from .base_llm import LLM
+from chat_rag.llms import LLM, Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
+
+
+def map_mistral_message(mistral_message):
+    usage = Usage(
+        input_tokens=mistral_message.usage.prompt_tokens,
+        output_tokens=mistral_message.usage.completion_tokens
+    )
+    content_blocks = []
+    for choice in mistral_message.choices:
+        if choice.message.tool_calls:
+            tool_uses = [ToolUse(id=tool_call.id, name=tool_call.function.name, input=json.loads(tool_call.function.arguments)) for tool_call in choice.message.tool_calls]
+            content_blocks.append(Content(stop_reason=choice.finish_reason, role=choice.message.role, type="tool_use", tool_use=tool_uses))
+        else:
+            content_blocks.append(Content(text=choice.message.content, stop_reason=choice.finish_reason, role=choice.message.role, type="text"))
+
+    message = Message(
+        model=mistral_message.model,
+        usage=usage,
+        content=content_blocks,
+        created=mistral_message.created
+    )
+
+    return message
+
 
 class MistralChatModel(LLM):
     def __init__(
@@ -15,23 +37,8 @@ class MistralChatModel(LLM):
         llm_name: str = "mistral-large-latest",
         **kwargs,
     ):
-        self.client = MistralClient(api_key=os.environ["MISTRAL_API_KEY"])
-        self.aclient = MistralAsyncClient(api_key=os.environ["MISTRAL_API_KEY"])
+        self.client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
         self.llm_name = llm_name
-
-    def format_prompt(
-        self,
-        messages: List[Dict[str, str]],
-    ) -> List[ChatMessage]:
-        """
-        Formats the prompt to be used by the model into the correct Mistral format.
-        """
-        final_messages = [
-            ChatMessage(role=message["role"], content=message["content"])
-            for message in messages
-        ]
-
-        return final_messages
 
     def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
         """
@@ -88,11 +95,8 @@ class MistralChatModel(LLM):
             The generated text.
         """
 
-        messages = self.format_prompt(
-            messages=messages,
-        )
 
-        for chunk in self.client.chat_stream(
+        for chunk in self.client.chat.stream(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
@@ -123,11 +127,8 @@ class MistralChatModel(LLM):
             The generated text.
         """
 
-        messages = self.format_prompt(
-            messages=messages,
-        )
 
-        async for chunk in self.aclient.chat_stream(
+        async for chunk in self.client.chat.stream_async(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
@@ -167,7 +168,7 @@ class MistralChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
-        chat_response = self.client.chat(
+        chat_response = self.client.chat.complete(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
@@ -177,11 +178,7 @@ class MistralChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        message = chat_response.choices[0].message
-        if chat_response.choices[0].finish_reason == "tool_calls":
-            return self._extract_tool_info(message)
-
-        return message.content
+        return map_mistral_message(chat_response)
 
     async def agenerate(
         self,
@@ -211,7 +208,7 @@ class MistralChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
-        chat_response = await self.aclient.chat(
+        chat_response = await self.client.chat.complete_async(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
@@ -221,8 +218,4 @@ class MistralChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        message = chat_response.choices[0].message
-        if chat_response.choices[0].finish_reason == "tool_calls":
-            return self._extract_tool_info(message)
-
-        return message.content
+        return map_mistral_message(chat_response)
