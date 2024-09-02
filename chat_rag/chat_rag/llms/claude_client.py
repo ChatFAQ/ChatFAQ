@@ -5,8 +5,44 @@ from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
 from pydantic import BaseModel
 
-from chat_rag.llms import LLM, Message
+from chat_rag.llms import LLM, Message, Usage, Content, ToolUse
 from .format_tools import Mode, format_tools
+from anthropic.types.message import Message as AnthropicMessage
+
+
+def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
+    # Map usage
+    usage = Usage(
+        input_tokens=anthropic_message.usage.input_tokens,
+        output_tokens=anthropic_message.usage.output_tokens
+    )
+
+    # Map content blocks
+    content_blocks: List[Content] = []
+    for block in anthropic_message.content:
+        if block.type == "text":
+            content_blocks.append(Content(
+                text=block.text,
+                type="text",
+                stop_reason=anthropic_message.stop_reason
+            ))
+        elif block.type == "tool_use":
+            tool_use = ToolUse(id=block.id, name=block.name, input=block.input)
+            content_blocks.append(Content(
+                # text="",
+                type="tool_use",
+                tool_use=[tool_use],
+                stop_reason=anthropic_message.stop_reason
+            ))
+    # Map the entire message
+    message = Message(
+        role=anthropic_message.role,
+        content=content_blocks,
+        model=anthropic_message.model,
+        usage=usage
+    )
+
+    return message
 
 
 class ClaudeChatModel(LLM):
@@ -131,7 +167,7 @@ class ClaudeChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -166,7 +202,7 @@ class ClaudeChatModel(LLM):
         if any([x.type == "tool_use" for x in content]):
             return self._extract_tool_info(content)
 
-        return content[0].text
+        return map_anthropic_message(message)
 
     async def agenerate(
         self,
@@ -176,7 +212,7 @@ class ClaudeChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -210,4 +246,4 @@ class ClaudeChatModel(LLM):
         content = message.content
         if any([x.type == "tool_use" for x in content]):
             return self._extract_tool_info(content)
-        return message.content[0].text
+        return map_anthropic_message(message)

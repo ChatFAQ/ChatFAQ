@@ -5,7 +5,7 @@ from chat_rag.llms.mistral_client import MistralChatModel
 from chat_rag.llms.openai_client import OpenAIChatModel
 from chat_rag.llms.vllm_client import VLLMModel
 from chat_rag.llms.format_tools import format_tools, Mode
-from chat_rag.llms.message import Message
+from chat_rag.llms.message import Message, Usage, Content, ToolUse
 
 
 __all__ = [
