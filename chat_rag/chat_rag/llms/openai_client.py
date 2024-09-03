@@ -63,12 +63,10 @@ class OpenAIChatModel(LLM):
         """
 
         tools_formatted = format_tools(tools, mode=Mode.TOOLS)
-
-        tools_names = [tool['title'] for tool in tools_formatted]
-        tool_choice = self._check_tool_choice(tools_names, tool_choice)
+        print(tools_formatted)
 
         # If the tool_choice is a named tool, then apply correct formatting
-        if tool_choice in [tool['title'] for tool in tools]:
+        if tool_choice in [tool['function']['name'] for tool in tools_formatted]:
             tool_choice = {
                 "type": "function",
                 "function": {
