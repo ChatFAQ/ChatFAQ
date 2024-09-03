@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Iterator
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
@@ -34,6 +34,70 @@ def map_openai_message(openai_message) -> Message:
     return message
 
 
+def map_openai_stream(stream: Iterator) -> Iterator[Message]:
+    """
+    Process an OpenAI stream and return a stream of messages. 
+    Text is streamed as text_delta.
+    The tool use is not streamed, it is accumulated and returned as a single tool use.
+    In the last message, the usage is returned.
+    """
+    tool_use_name = None
+    tool_use_id = None
+    tool_use_arguments = None
+    model = None
+    created = None
+    role = None
+
+    def send_tool_message():
+        nonlocal tool_use_name, tool_use_id, tool_use_arguments
+        if tool_use_name and tool_use_id and tool_use_arguments:
+            message = Message(
+                model=model,
+                role=role,
+                content=[Content(type="tool_use", tool_use=[ToolUse(id=tool_use_id, name=tool_use_name, arguments=json.loads(tool_use_arguments))], role=role, stop_reason="")],
+                )
+            # reset tool use variables
+            tool_use_name = None
+            tool_use_id = None
+            tool_use_arguments = None
+            return message
+        else:
+            return None
+
+    for event in stream:
+        if model is None: # first empty message
+           model = event.model
+           role = event.choices[0].delta.role
+           created = event.created
+        
+        if not event.choices and event.usage: # last message and it's empty
+           message = send_tool_message() # send the last tool message
+           if message:
+              yield message
+           yield Message(model=model, created=created, content=[Content(type="text_delta", text="", role=role, stop_reason="")], usage=Usage(input_tokens=event.usage.prompt_tokens, output_tokens=event.usage.completion_tokens))
+        elif event.choices[0].delta.tool_calls and event.choices[0].delta.tool_calls[0].id: # first message of a tool use
+           message = send_tool_message()
+           if message:
+              yield message
+           tool_use_name = event.choices[0].delta.tool_calls[0].function.name
+           tool_use_id = event.choices[0].delta.tool_calls[0].id
+           tool_use_arguments = "" # start accumulating arguments
+        elif event.choices[0].delta.tool_calls and tool_use_name: # accumulating arguments for a tool use
+            tool_use_arguments += event.choices[0].delta.tool_calls[0].function.arguments
+        else: # normal text message
+           message = send_tool_message()
+           if message:
+              yield message
+           content_blocks = []
+           for choice in event.choices:
+              if choice.finish_reason == "stop" or choice.finish_reason == "content_filter" or choice.finish_reason == "tool_calls":
+                  content_blocks.append(Content(stop_reason=choice.finish_reason, role=role, type="text_delta"))
+                  yield Message(model=model, created=created, content=content_blocks)     
+              elif choice.delta.content:
+                  content_blocks.append(Content(text=choice.delta.content, stop_reason="", role=role, type="text_delta"))
+                  yield Message(model=model, created=created, content=content_blocks)  
+
+
 class OpenAIChatModel(LLM):
     def __init__(
         self,
@@ -63,7 +127,6 @@ class OpenAIChatModel(LLM):
         """
 
         tools_formatted = format_tools(tools, mode=Mode.TOOLS)
-        print(tools_formatted)
 
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool['function']['name'] for tool in tools_formatted]:
@@ -81,6 +144,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -93,6 +158,8 @@ class OpenAIChatModel(LLM):
         str
             The generated text.
         """
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -102,12 +169,12 @@ class OpenAIChatModel(LLM):
             seed=seed,
             n=1,
             stream=True,
+            stream_options={"include_usage": True},
+            tools=tools,
+            tool_choice=tool_choice,
         )
-        for chunk in response:
-            if chunk.choices[0].finish_reason == "stop":
-                return
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content  # return the delta text message
+        for event in map_openai_stream(response):
+            yield event
 
     async def astream(
         self,
@@ -115,6 +182,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -127,6 +196,8 @@ class OpenAIChatModel(LLM):
         str
             The generated text.
         """
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
@@ -136,12 +207,12 @@ class OpenAIChatModel(LLM):
             seed=seed,
             n=1,
             stream=True,
+            stream_options={"include_usage": True},
+            tools=tools,
+            tool_choice=tool_choice,
         )
-        async for chunk in response:
-            if chunk.choices[0].finish_reason == "stop":
-                return
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
+        for event in map_openai_stream(response):
+            yield event
 
     def generate(
         self,
