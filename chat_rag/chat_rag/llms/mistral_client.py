@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Iterator
 
 from mistralai import Mistral
 from pydantic import BaseModel
@@ -31,6 +31,40 @@ def map_mistral_message(mistral_message):
     )
 
     return message
+
+
+def map_mistral_stream(stream: Iterator) -> Iterator[Message]:
+    """
+    Process a Mistral stream and return a stream of messages. 
+    Text is streamed as text_delta.
+    The tool use is not streamed, it is accumulated and returned as a single tool use.
+    In the last message, the usage is returned.
+    """
+    model = None
+    created = None
+    role = None
+    for event in stream:
+        event = event.data
+        if model is None: # first empty message
+           model = event.model
+           role = event.choices[0].delta.role
+           created = event.created
+
+        if event.choices[0].delta.tool_calls:
+            tool_uses = [ToolUse(id=tool_call.id, name=tool_call.function.name, arguments=json.loads(tool_call.function.arguments)) for tool_call in event.choices[0].delta.tool_calls]
+            yield Message(model=model, created=created, content=[Content(type="tool_use", tool_use=tool_uses, role=role, stop_reason="")])        
+        else: # normal text message
+           content_blocks = []
+           for choice in event.choices:
+              if choice.finish_reason == "stop" or choice.finish_reason == "content_filter" or choice.finish_reason == "tool_calls":
+                  content_blocks.append(Content(stop_reason=choice.finish_reason, role=role, type="text_delta"))
+                  yield Message(model=model, created=created, content=content_blocks)     
+              elif choice.delta.content:
+                  content_blocks.append(Content(text=choice.delta.content, stop_reason="", role=role, type="text_delta"))
+                  yield Message(model=model, created=created, content=content_blocks)
+
+        if event.choices[0].finish_reason and event.usage: # last message and it's empty
+           yield Message(model=model, created=created, content=[Content(type="text_delta", text="", role=role, stop_reason="")], usage=Usage(input_tokens=event.usage.prompt_tokens, output_tokens=event.usage.completion_tokens))   
 
 
 class MistralChatModel(LLM):
@@ -67,6 +101,8 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -79,19 +115,22 @@ class MistralChatModel(LLM):
         str
             The generated text.
         """
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
-
-        for chunk in self.client.chat.stream(
+        stream = self.client.chat.stream(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
             random_seed=seed,
-        ):
-            if chunk.data.choices[0].delta.content is not None:
-                yield chunk.data.choices[0].delta.content
+            tools=tools,
+            tool_choice=tool_choice,
+        )
 
-        return
+        for chunk in map_mistral_stream(stream):
+            yield chunk
+            
 
     async def astream(
         self,
@@ -99,6 +138,8 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -111,19 +152,22 @@ class MistralChatModel(LLM):
         str
             The generated text.
         """
+        if tools:
+            tools, tool_choice = self._format_tools(tools, tool_choice)
 
-
-        async for chunk in self.client.chat.stream_async(
+        stream = self.client.chat.stream_async(
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
             random_seed=seed,
-        ):
-            if chunk.data.choices[0].delta.content is not None:
-                yield chunk.data.choices[0].delta.content
+            tools=tools,
+            tool_choice=tool_choice,
+        )
 
-        return
+        for chunk in map_mistral_stream(stream):
+            yield chunk
+            
 
     def generate(
         self,
