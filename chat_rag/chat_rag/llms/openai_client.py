@@ -61,9 +61,11 @@ class OpenAIChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.TOOLS)
+
+        tools_names = [tool['title'] for tool in tools_formatted]
+        tool_choice = self._check_tool_choice(tools_names, tool_choice)
 
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool['title'] for tool in tools]:

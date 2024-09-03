@@ -107,13 +107,12 @@ class ClaudeChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
 
         if tool_choice:
             # If the tool_choice is a named tool, then apply correct formatting
-            if tool_choice in [tool['title'] for tool in tools]:
+            if tool_choice in [tool['name'] for tool in tools_formatted]:
                 tool_choice = {"type": "tool", "name": tool_choice}
             else: # if it's required or auto, then apply the correct formatting
                 tool_choice = (
@@ -127,9 +126,9 @@ class ClaudeChatModel(LLM):
         messages: List[Dict[str, str]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
+        seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
-        seed: int = None,
     ):
         """
         Generate text from a prompt using the model.

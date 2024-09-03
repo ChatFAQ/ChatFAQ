@@ -67,10 +67,11 @@ def anthropic_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
     Return the schema in the format of Anthropic's schema
     """
     schema = openai_schema(model)
+    print(schema)
     return {
         "name": schema["name"],
         "description": schema["description"],
-        "input_schema": model.model_json_schema(),
+        "input_schema": schema["parameters"]
     }
 
 
