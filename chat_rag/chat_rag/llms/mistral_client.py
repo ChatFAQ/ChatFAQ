@@ -46,7 +46,6 @@ class MistralChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
