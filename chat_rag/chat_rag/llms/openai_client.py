@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Union, Iterator
+from typing import Any, Dict, Iterator, List, Union
 
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
@@ -10,7 +10,40 @@ from .format_tools import Mode, format_tools
 from .message import Content, Message, ToolUse, Usage
 
 
-def map_openai_message(openai_message) -> Message:
+def map_input_messages(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Parse the standard chat_rag message format into OpenAI messages. 
+    Mainly for having a common format of tool use accross OpenAI, Anthropic, etc. 
+    """
+    parsed_messages = []
+    for message in messages:
+        new_message = message.copy()  # Create a shallow copy of the message
+        if new_message['role'] == 'assistant' and 'tool_use' in new_message:
+            new_message['tool_calls'] = [
+                {
+                    "id": tool_use['id'],
+                    "function": {
+                        "arguments": json.dumps(tool_use['arguments']),
+                        "name": tool_use['name']
+                    },
+                    "type": "function"  # Add this line to match the desired output
+                }
+                for tool_use in new_message['tool_use']
+            ]
+            del new_message['tool_use']
+            if 'text' in new_message:
+                del new_message['text'] # Remove the 'text' field if it exists
+        elif new_message['role'] == 'tool_result':
+            new_message['role'] = 'tool' # Change 'tool_result' to 'tool'
+            new_message['tool_call_id'] = new_message['tool_use_id']
+            del new_message['tool_use_id']
+        
+        parsed_messages.append(new_message)
+    
+    return parsed_messages
+
+
+def map_output_message(openai_message) -> Message:
     # Map usage
     usage = Usage(
         input_tokens=openai_message.usage.prompt_tokens,
@@ -34,7 +67,7 @@ def map_openai_message(openai_message) -> Message:
     return message
 
 
-def map_openai_stream(stream: Iterator) -> Iterator[Message]:
+def map_output_stream(stream: Iterator) -> Iterator[Message]:
     """
     Process an OpenAI stream and return a stream of messages. 
     Text is streamed as text_delta.
@@ -161,6 +194,8 @@ class OpenAIChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         response = self.client.chat.completions.create(
             model=self.llm_name,
             messages=messages,
@@ -173,7 +208,7 @@ class OpenAIChatModel(LLM):
             tools=tools,
             tool_choice=tool_choice,
         )
-        for event in map_openai_stream(response):
+        for event in map_output_stream(response):
             yield event
 
     async def astream(
@@ -199,6 +234,8 @@ class OpenAIChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
             messages=messages,
@@ -211,7 +248,7 @@ class OpenAIChatModel(LLM):
             tools=tools,
             tool_choice=tool_choice,
         )
-        for event in map_openai_stream(response):
+        for event in map_output_stream(response):
             yield event
 
     def generate(
@@ -237,6 +274,8 @@ class OpenAIChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         response = self.client.chat.completions.create(
             model=self.llm_name,
             messages=messages,
@@ -249,7 +288,7 @@ class OpenAIChatModel(LLM):
             stream=False,
         )
 
-        return map_openai_message(response)
+        return map_output_message(response)
 
     async def agenerate(
         self,
@@ -274,6 +313,8 @@ class OpenAIChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
             messages=messages,
@@ -286,4 +327,4 @@ class OpenAIChatModel(LLM):
             stream=False,
         )
 
-        return map_openai_message(response)
+        return map_output_message(response)

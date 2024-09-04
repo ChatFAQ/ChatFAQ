@@ -10,9 +10,10 @@ from chat_rag.exceptions import (
     PromptTooLongException,
     RequestException,
 )
-from .message import Message
-from chat_rag.llms.openai_client import map_openai_message
 from chat_rag.llms import OpenAIChatModel
+from chat_rag.llms.openai_client import map_output_message
+
+from .message import Message
 
 logger = logging.getLogger(__name__)
 
@@ -191,7 +192,7 @@ class VLLMModel(OpenAIChatModel):
             **tool_kwargs,
         )
 
-        return map_openai_message(response)
+        return map_output_message(response)
 
     async def agenerate(
         self,
@@ -236,7 +237,7 @@ class VLLMModel(OpenAIChatModel):
             **tool_kwargs,
         )
 
-        return map_openai_message(response)
+        return map_output_message(response)
 
 def return_openai_error(e):
     logger.error(f"Error with the request to the vLLM OpenAI server: {e}")
