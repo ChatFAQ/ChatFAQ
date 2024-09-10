@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Union, Iterator
+from typing import Dict, List, Union, Iterator, Any
 
 from mistralai import Mistral
 from pydantic import BaseModel
@@ -10,7 +10,39 @@ from .format_tools import Mode, format_tools
 from .message import Content, Message, ToolUse, Usage
 
 
-def map_mistral_message(mistral_message):
+def map_input_messages(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Parse the standard chat_rag message format into Mistral messages
+    """
+    parsed_messages = []
+    for message in messages:
+        new_message = message.copy()  # Create a shallow copy of the message
+        if new_message["role"] == "assistant" and "tool_use" in new_message:
+            new_message["tool_calls"] = [
+                {
+                    "id": tool_use["id"],
+                    "function": {
+                        "name": tool_use["name"],
+                        "arguments": tool_use["arguments"],
+                    },
+                    "type": "function",  # Add this line to match the desired output
+                }
+                for tool_use in new_message["tool_use"]
+            ]
+            del new_message["tool_use"]
+            if "text" in new_message:
+                del new_message["text"]  # Remove the 'text' field
+        elif new_message["role"] == "tool_result":
+            new_message["role"] = "tool"  # Change 'tool_result' to 'tool'
+            new_message["tool_call_id"] = new_message["tool_use_id"]
+            del new_message["tool_use_id"]
+
+        parsed_messages.append(new_message)
+
+    return parsed_messages
+
+
+def map_output_message(mistral_message):
     usage = Usage(
         input_tokens=mistral_message.usage.prompt_tokens,
         output_tokens=mistral_message.usage.completion_tokens
@@ -33,7 +65,7 @@ def map_mistral_message(mistral_message):
     return message
 
 
-def map_mistral_stream(stream: Iterator) -> Iterator[Message]:
+def map_output_stream(stream: Iterator) -> Iterator[Message]:
     """
     Process a Mistral stream and return a stream of messages. 
     Text is streamed as text_delta.
@@ -118,6 +150,8 @@ class MistralChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         stream = self.client.chat.stream(
             model=self.llm_name,
             messages=messages,
@@ -128,7 +162,7 @@ class MistralChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        for chunk in map_mistral_stream(stream):
+        for chunk in map_output_stream(stream):
             yield chunk
             
 
@@ -155,6 +189,8 @@ class MistralChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         stream = self.client.chat.stream_async(
             model=self.llm_name,
             messages=messages,
@@ -165,7 +201,7 @@ class MistralChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        for chunk in map_mistral_stream(stream):
+        for chunk in map_output_stream(stream):
             yield chunk
             
 
@@ -193,6 +229,8 @@ class MistralChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         chat_response = self.client.chat.complete(
             model=self.llm_name,
             messages=messages,
@@ -203,7 +241,7 @@ class MistralChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        return map_mistral_message(chat_response)
+        return map_output_message(chat_response)
 
     async def agenerate(
         self,
@@ -229,6 +267,8 @@ class MistralChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = map_input_messages(messages)
+
         chat_response = await self.client.chat.complete_async(
             model=self.llm_name,
             messages=messages,
@@ -239,4 +279,4 @@ class MistralChatModel(LLM):
             tool_choice=tool_choice,
         )
 
-        return map_mistral_message(chat_response)
+        return map_output_message(chat_response)

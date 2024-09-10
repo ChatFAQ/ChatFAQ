@@ -12,7 +12,7 @@ from .format_tools import Mode, format_tools
 from .message import Content, Message, ToolUse, Usage
 
 
-def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
+def map_output_message(anthropic_message: AnthropicMessage) -> Message:
     # Map usage
     usage = Usage(
         input_tokens=anthropic_message.usage.input_tokens,
@@ -48,7 +48,7 @@ def map_anthropic_message(anthropic_message: AnthropicMessage) -> Message:
     return message
 
 
-def map_anthropic_stream(stream: Iterator) -> Iterator[Content]:
+def map_output_stream(stream: Iterator) -> Iterator[Content]:
     """
     Process an Anthropic stream and return a stream of messages. 
     Text is streamed as text_delta.
@@ -159,7 +159,7 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         ) as stream:
 
-            for event in map_anthropic_stream(stream):
+            for event in map_output_stream(stream):
                 yield event
 
     async def astream(
@@ -200,7 +200,7 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         ) as stream:
 
-            async for event in map_anthropic_stream(stream):
+            async for event in map_output_stream(stream):
                 yield event
 
     def generate(
@@ -242,7 +242,7 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         )
 
-        return map_anthropic_message(message)
+        return map_output_message(message)
 
     async def agenerate(
         self,
@@ -283,4 +283,4 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         )
 
-        return map_anthropic_message(message)
+        return map_output_message(message)
