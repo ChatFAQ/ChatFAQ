@@ -32,7 +32,6 @@ class E5Deployment:
 
         self.model = E5Model(model_name=model_name, use_cpu=use_cpu, huggingface_key=hf_key)
         self.reranker = ReRanker(lang=lang, device='cpu' if use_cpu else 'cuda')
-
         print(f"RetrieverDeployment initialized with model_name={model_name}, use_cpu={use_cpu}")
 
     @serve.batch(max_batch_size=5, batch_wait_timeout_s=0.2)
@@ -90,9 +89,11 @@ class E5Deployment:
 @ray.remote(num_cpus=0.1, resources={"tasks": 1})
 def launch_e5_deployment(retriever_deploy_name, model_name, use_cpu, retriever_id, lang, num_replicas):
     print(f"Launching E5 deployment with name: {retriever_deploy_name}")
+    num_gpus = 0.3 if not use_cpu else 0 # Arbitrary number to avoid that one model takes a whole GPU, this probably should be configurable somewhere.
     retriever_app = E5Deployment.options(
             name=retriever_deploy_name,
-            num_replicas=num_replicas
+            num_replicas=num_replicas,
+            ray_actor_options={"num_gpus": num_gpus}
     ).bind(model_name, use_cpu, retriever_id, lang)
 
     serve.run(retriever_app, name=retriever_deploy_name, route_prefix=None)
