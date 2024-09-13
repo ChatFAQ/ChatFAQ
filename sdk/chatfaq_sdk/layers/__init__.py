@@ -2,6 +2,7 @@ from logging import getLogger
 from typing import Dict, List
 
 from pydantic import BaseModel
+from uuid import uuid4
 
 logger = getLogger(__name__)
 
@@ -16,6 +17,7 @@ class Layer:
     def __init__(self, allow_feedback=True, state={}):
         self.allow_feedback = allow_feedback
         self.state = state
+        self.stack_id = str(uuid4())
 
     async def build_payloads(self, ctx, data) -> tuple[List[dict], bool]:
         """
@@ -31,7 +33,7 @@ class Layer:
 
     async def result(self, ctx, data, fsm_def_name: str = None) -> List[dict]:
         repr_gen = self.build_payloads(ctx, data)
-        async for _repr, last in repr_gen:
+        async for _repr, last_chunk in repr_gen:
             for r in _repr:
                 r["type"] = self._type
                 r["meta"] = {}
@@ -39,7 +41,7 @@ class Layer:
                 r["state"] = self.state
                 if fsm_def_name:
                     r["fsm_definition"] = fsm_def_name
-            yield [_repr, last]
+            yield [_repr, self.stack_id, last_chunk]
 
 
 class Message(Layer):
@@ -76,9 +78,9 @@ class StreamingMessage(Layer):
 
     async def build_payloads(self, ctx, data):
         async for chunk in self.generator:
-            final = chunk.get("final", False)
+            last_chunk = chunk.get("last_chunk", False)
             tool_calls = chunk.get("tool_calls", [])
-            if final:  # now we send the references only in the final message
+            if last_chunk:  # now we send the references only in the final message
                 yield (
                     [
                         {
@@ -89,7 +91,7 @@ class StreamingMessage(Layer):
                             }
                         }
                     ],
-                    final,
+                    last_chunk,
                 )
                 break
 
@@ -103,5 +105,5 @@ class StreamingMessage(Layer):
                             }
                         }
                     ],
-                    final,
+                    last_chunk,
                 )

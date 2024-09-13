@@ -34,8 +34,10 @@ class RPCResultSerializer(serializers.Serializer):
 
     ctx = CtxSerializer()
     node_type = serializers.ChoiceField(choices=[n.value for n in RPCNodeType])
+    stack_group_id = serializers.CharField(max_length=255)
     stack_id = serializers.CharField(max_length=255)
     stack = serializers.JSONField(default=dict)
+    last_chunk = serializers.BooleanField(default=False)
     last = serializers.BooleanField(default=False)
 
     def validate(self, attrs):
@@ -96,7 +98,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
 
 
 class RPCRetrieverRequestSerializer(serializers.Serializer):
-    
+
     retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     bot_channel_name = serializers.CharField()
     query = serializers.CharField(required=True, allow_blank=False, allow_null=False)

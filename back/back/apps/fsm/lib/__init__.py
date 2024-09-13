@@ -164,7 +164,7 @@ class FSM:
         """
         if data["node_type"] == RPCNodeType.action.value:
             self.manage_last_llm_msg(data)
-            id = await self.save_if_last_llm_msg(data)
+            id = await self.save_if_last_chunk(data)
             data["id"] = id
             await self.ctx.send_response(data)
         else:
@@ -179,8 +179,8 @@ class FSM:
                 _new["stack"][0]['payload']['content'] = old_payload + more_content
         self.last_aggregated_msg = _new
 
-    async def save_if_last_llm_msg(self, _new):
-        if self.last_aggregated_msg.get("last"):
+    async def save_if_last_chunk(self, _new):
+        if self.last_aggregated_msg.get("last_chunk"):
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)

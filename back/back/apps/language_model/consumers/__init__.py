@@ -124,12 +124,12 @@ async def query_llm(
     except LLMConfig.DoesNotExist:
         yield {
             "content": f"LLM config with name: {llm_config_name} does not exist.",
-            "final": True,
+            "last_chunk": True,
         }
         return
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-    
+
     if use_conversation_context:
         prev_messages = format_msgs_chain_to_llm_context(
             await database_sync_to_async(list)(conv.get_msgs_chain()), [StackPayloadType.message.value, StackPayloadType.message_chunk.value]
@@ -172,19 +172,19 @@ async def query_llm(
                     yield {
                         "content": "",
                         "tool_use": res,
-                        "final": True,
+                        "last_chunk": True,
                     }
                     return
 
 
                 yield {
                     "content": res,
-                    "final": False,
+                    "last_chunk": False,
                 }
 
             yield {
                 "content": "",
-                "final": True,
+                "last_chunk": True,
             }
 
         else:
@@ -194,7 +194,7 @@ async def query_llm(
         logger.error("Error during LLM query", exc_info=e)
         yield {
             "content": "There was an error generating the response. Please try again or contact the administrator.",
-            "final": True,
+            "last_chunk": True,
         }
         return
 
@@ -211,7 +211,7 @@ async def query_retriever(
     except RetrieverConfig.DoesNotExist:
         return {
             "content": f"Retriever config with name: {retriever_config_name} does not exist.",
-            "final": True,
+            "last_chunk": True,
         }
 
     try:
@@ -224,7 +224,7 @@ async def query_retriever(
         result = await resolve_references(result, retriever_config)
 
         return result
-    
+
     except Exception as e:
         logger.error("Error while querying the retriever", exc_info=e)
         return {
@@ -313,7 +313,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                 {"payload": {"errors": serializer.errors, "request_info": data}}
             )
             return
-        
+
         data = serializer.validated_data
         result = await query_retriever(
             data["retriever_config_name"],

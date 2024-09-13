@@ -78,7 +78,7 @@ class Conversation(ChangesMixin):
             .filter(Q(stack__contains=[{"state": {}}]) | Q(stack__icontains='"state":'))
             .order_by("-created_date")
             .first())
-        
+
         if last_message:
             return last_message.stack[0]["state"]
         return None
@@ -222,8 +222,10 @@ class Message(ChangesMixin):
             For the user to express its satisfaction to the given bot’s answer
     stack_id: str
         The id of the stack to which this message belongs to. This is used to group stacks
+    stack_group_id: str
+        The id of the stack to which this message belongs to. This is used to group stacks
     last: bool
-        Whether this message is the last one of the stack_id
+        Whether this message is the last one of the stack_group_id
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -242,6 +244,7 @@ class Message(ChangesMixin):
     meta = models.JSONField(null=True)
     stack = models.JSONField(null=True)
     stack_id = models.CharField(max_length=255, null=True)
+    stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
 
     @property

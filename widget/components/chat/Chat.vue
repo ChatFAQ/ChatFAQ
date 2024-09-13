@@ -174,6 +174,7 @@ function sendMessage() {
             },
         }],
         "stack_id": "0",
+        "stack_group_id": "0",
         "last": true,
     };
     if (store.userId !== undefined)

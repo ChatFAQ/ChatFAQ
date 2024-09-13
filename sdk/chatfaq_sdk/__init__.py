@@ -217,12 +217,12 @@ class ChatFAQSDK:
 
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
-        for handler_index, handler in enumerate(self.rpcs[payload["name"]]):
-            stack_id = str(uuid.uuid4())
-            logger.info(f"[RPC]     |---> ::: {handler}")
+        for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
+            stack_group_id = str(uuid.uuid4())
+            logger.info(f"[RPC]     |---> ::: {state_or_transition}")
 
-            async for res, last_from_handler, node_type in self._run_handler(
-                handler, payload["ctx"]
+            async for res, stack_id, last_chunk, node_type, last_from_state_or_transition in self._run_state_or_transition(
+                state_or_transition, payload["ctx"]
             ):
                 await getattr(self, f"ws_{WSType.rpc.value}").send(
                     json.dumps(
@@ -231,11 +231,13 @@ class ChatFAQSDK:
                             "data": {
                                 "ctx": payload["ctx"],
                                 "node_type": node_type,
+                                "stack_group_id": stack_group_id,
                                 "stack_id": stack_id,
                                 "stack": res,
-                                "last": handler_index
+                                "last_chunk": last_chunk,
+                                "last": index
                                 == len(self.rpcs[payload["name"]]) - 1
-                                and last_from_handler,
+                                and last_from_state_or_transition,
                             },
                         }
                     )
@@ -360,8 +362,8 @@ class ChatFAQSDK:
 
         return outer
 
-    async def _run_handler(self, handler, data):
-        async_func = handler(self, data)
+    async def _run_state_or_transition(self, state_or_transition, data):
+        async_func = state_or_transition(self, data)
         if inspect.isasyncgen(async_func):
             is_last = False
             layer = await anext(async_func)
@@ -374,7 +376,7 @@ class ChatFAQSDK:
                     is_last = True
 
                 async for results in self._layer_results(layer, data):
-                    yield [results[0], results[1] and is_last, results[2]]
+                    yield [*results, is_last]
                 layer = _layer
         else:
             layer = await async_func
