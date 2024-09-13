@@ -11,11 +11,18 @@ from chat_rag.exceptions import (
     RequestException,
 )
 from chat_rag.llms import OpenAIChatModel
-from chat_rag.llms.openai_client import map_output_message
+from chat_rag.llms.openai_client import map_input_messages, map_output_message
 
 from .message import Message
 
 logger = logging.getLogger(__name__)
+
+TOOLS_NOT_IMPLEMENTED_ERROR = (
+    "Tool parameters are not supported when using vLLM in streaming mode. To use tools there two options:"
+    "1. Use the client in non-streaming mode (generate method)"
+    "2. In streaming mode, include the tools in the system prompt according to the specific model's format. "
+    "You will need to parse the text output manually to extract tool usage information."
+)
 
 
 class VLLMModel(OpenAIChatModel):
@@ -109,6 +116,8 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -121,6 +130,10 @@ class VLLMModel(OpenAIChatModel):
         str
             The generated text.
         """
+        if tools:
+            raise NotImplementedError(TOOLS_NOT_IMPLEMENTED_ERROR)
+
+        messages = map_input_messages(messages)
         messages = self.format_prompt(messages)
 
         for chunk in super().stream(messages, temperature, max_tokens, seed):
@@ -132,6 +145,8 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -144,6 +159,10 @@ class VLLMModel(OpenAIChatModel):
         str
             The generated text.
         """
+        if tools:
+            raise NotImplementedError(TOOLS_NOT_IMPLEMENTED_ERROR)
+
+        messages = map_input_messages(messages)
         messages = self.format_prompt(messages)
 
         async for chunk in super().astream(messages, temperature, max_tokens, seed):
@@ -170,9 +189,7 @@ class VLLMModel(OpenAIChatModel):
             The generated text.
         """
 
-        if tool_choice and tool_choice in ['required', 'auto']:
-            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
-
+        messages = map_input_messages(messages)
         messages = self.format_prompt(messages)
 
         # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything
@@ -215,9 +232,7 @@ class VLLMModel(OpenAIChatModel):
             The generated text.
         """
 
-        if tool_choice and tool_choice in ['required', 'auto']:
-            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
-
+        messages = map_input_messages(messages)
         messages = self.format_prompt(messages)
 
         # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything

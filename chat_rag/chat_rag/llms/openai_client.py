@@ -2,7 +2,7 @@ import json
 import os
 from typing import Any, Dict, Iterator, List, Union
 
-from openai import AsyncOpenAI, OpenAI
+from openai import AsyncOpenAI, OpenAI, NOT_GIVEN
 from pydantic import BaseModel
 
 from .base_llm import LLM
@@ -177,8 +177,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
-        tool_choice: str = None,
+        tools: List[Union[BaseModel, Dict]] = NOT_GIVEN,
+        tool_choice: str = NOT_GIVEN,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -195,6 +195,7 @@ class OpenAIChatModel(LLM):
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
         messages = map_input_messages(messages)
+
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -217,8 +218,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
-        tool_choice: str = None,
+        tools: List[Union[BaseModel, Dict]] = NOT_GIVEN,
+        tool_choice: str = NOT_GIVEN,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -257,8 +258,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
-        tool_choice: str = None,
+        tools: List[Union[BaseModel, Dict]] = NOT_GIVEN,
+        tool_choice: str = NOT_GIVEN,
     ) -> Message:
         """
         Generate text from a prompt using the model.
@@ -296,8 +297,8 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
-        tool_choice: str = None,
+        tools: List[Union[BaseModel, Dict]] = NOT_GIVEN,
+        tool_choice: str = NOT_GIVEN,
     ) -> Message:
         """
         Generate text from a prompt using the model.

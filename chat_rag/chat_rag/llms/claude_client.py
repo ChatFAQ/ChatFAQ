@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Union, Iterator
+from typing import Dict, List, Union, Iterator, Any
 import json
 
 from anthropic import Anthropic, AsyncAnthropic
@@ -10,6 +10,41 @@ from pydantic import BaseModel
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
 from .message import Content, Message, ToolUse, Usage
+
+
+
+def map_input_messages(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Parse the standard chat_rag message format into Anthropic messages
+    """
+    parsed_messages = []
+    for message in messages:
+        new_message = message.copy()  # Create a shallow copy of the message
+        if new_message["role"] == "assistant" and "tool_use" in new_message:
+            new_message["content"] = [
+                {
+                    "type": "text",
+                    "text": new_message["text"]
+                },
+            ]
+            new_message["content"].extend([
+                {
+                    "type": "tool_use",
+                    "id": tool_use["id"],
+                    "name": tool_use["name"],
+                    "input": json.loads(tool_use["arguments"])
+                }
+                for tool_use in new_message["tool_use"]
+            ])
+            del new_message["text"]
+            del new_message["tool_use"]
+        elif new_message["role"] == "tool_result":
+            if "name" in new_message:
+                del new_message["name"]
+
+        parsed_messages.append(new_message)
+
+    return parsed_messages
 
 
 def map_output_message(anthropic_message: AnthropicMessage) -> Message:
@@ -150,6 +185,8 @@ class ClaudeChatModel(LLM):
             tools, tool_choice = self._format_tools(tools, tool_choice)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
+        messages = map_input_messages(messages)
+
         with self.client.messages.stream(
             model=self.llm_name,
             system=system_prompt,
@@ -190,6 +227,8 @@ class ClaudeChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+
+        messages = map_input_messages(messages)
 
         with await self.aclient.messages.stream(
             model=self.llm_name,
@@ -233,6 +272,8 @@ class ClaudeChatModel(LLM):
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
 
+        messages = map_input_messages(messages)
+
         message = self.client.messages.create(
             model=self.llm_name,
             system=system_prompt,
@@ -273,6 +314,8 @@ class ClaudeChatModel(LLM):
         system_prompt = NOT_GIVEN
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
+
+        messages = map_input_messages(messages)
 
         message = await self.aclient.messages.create(
             model=self.llm_name,
