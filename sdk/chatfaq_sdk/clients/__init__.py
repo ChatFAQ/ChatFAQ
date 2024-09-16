@@ -62,3 +62,15 @@ async def retrieve(
 
     return results
 
+
+async def get_prompt(
+    sdk: ChatFAQSDK,
+    prompt_config_name: str,
+    bot_channel_name: str,
+):
+    await sdk.send_prompt_request(prompt_config_name, bot_channel_name)
+
+    logger.debug("[Prompt] Waiting for Prompt req...")
+    results = await sdk.prompt_request_futures[bot_channel_name]
+    logger.debug("[Prompt] ...receive results from Prompt req")
+    return results

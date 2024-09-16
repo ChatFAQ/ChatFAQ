@@ -75,6 +75,7 @@ class ChatFAQSDK:
         self.llm_request_futures = {}
         self.llm_request_msg_buffer = {}
         self.retriever_request_futures = {}
+        self.prompt_request_futures = {}
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -94,6 +95,7 @@ class ChatFAQSDK:
         ai_actions = {
             MessageType.llm_request_result.value: self.llm_request_result_callback,
             MessageType.retriever_request_result.value: self.retriever_request_result_callback,
+            MessageType.prompt_request_result.value: self.prompt_request_result_callback,
             MessageType.error.value: self.error_callback,
         }
         coros_or_futures = [
@@ -177,6 +179,11 @@ class ChatFAQSDK:
     async def retriever_request_result_callback(self, payload):
         logger.info(f"[RETRIEVER] Result received: {payload}")
         self.retriever_request_futures[payload["bot_channel_name"]].set_result(payload)
+
+
+    async def prompt_request_result_callback(self, payload):
+        logger.info(f"[PROMPT] Result received: {payload}")
+        self.prompt_request_futures[payload["bot_channel_name"]].set_result(payload)
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
@@ -332,6 +339,23 @@ class ChatFAQSDK:
                         "bot_channel_name": bot_channel_name,
                         "query": query,
                         "top_k": top_k,
+                    },
+                }
+            )
+        )
+
+    async def send_prompt_request(self, prompt_config_name, bot_channel_name):
+        logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")
+        self.prompt_request_futures[bot_channel_name] = (
+            asyncio.get_event_loop().create_future()
+        )
+        await getattr(self, f"ws_{WSType.ai.value}").send(
+            json.dumps(
+                {
+                    "type": MessageType.prompt_request.value,
+                    "data": {
+                        "prompt_config_name": prompt_config_name,
+                        "bot_channel_name": bot_channel_name,
                     },
                 }
             )

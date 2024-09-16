@@ -9,6 +9,8 @@ class MessageType(Enum):
     llm_request_result = "llm_request_result"
     retriever_request = "retriever_request"
     retriever_request_result = "retriever_request_result"
+    prompt_request = "prompt_request"
+    prompt_request_result = "prompt_request_result"
     error = "error"
     register_parsers = "register_parsers"
     parser_result_ki = "parser_result_ki"

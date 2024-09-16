@@ -358,15 +358,12 @@ class LLMConfig(ChangesMixin):
 class PromptConfig(ChangesMixin):
     """
     Defines the structure of the prompt for a model.
-    system_prompt : str
+    prompt : str
         The prompt to indicate instructions for the LLM.
-    n_contexts_to_use : int, optional
-        The number of contexts to use, by default 3
     """
 
     name = models.CharField(max_length=255, unique=True)
-    system_prompt = models.TextField(blank=True, default="")
-    n_contexts_to_use = models.IntegerField(default=5)
+    prompt = models.TextField(blank=False, default="")
     history = HistoricalRecords()
 
     def __str__(self):

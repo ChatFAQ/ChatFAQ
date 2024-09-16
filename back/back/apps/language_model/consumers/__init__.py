@@ -14,11 +14,13 @@ from back.apps.broker.serializers.rpc import (
     RPCLLMRequestSerializer,
     RPCRetrieverRequestSerializer,
     RPCResponseSerializer,
+    RPCPromptRequestSerializer,
 )
 from back.apps.language_model.models import (
     KnowledgeItem,
     LLMConfig,
     RetrieverConfig,
+    PromptConfig,
 )
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
@@ -231,7 +233,6 @@ async def query_retriever(
             "error": True,
         }
 
-
 class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
     """
     The consumer in responsible for handling all the AI requests from the SDK, for now only calling a LLM.
@@ -269,6 +270,8 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             await self.process_llm_request(serializer.validated_data["data"])
         elif serializer.validated_data["type"] == RPCMessageType.retriever_request.value:
             await self.process_retriever_request(serializer.validated_data["data"])
+        elif serializer.validated_data["type"] == RPCMessageType.prompt_request.value:
+            await self.process_prompt_request(serializer.validated_data["data"])
 
     async def process_llm_request(self, data):
         serializer = RPCLLMRequestSerializer(data=data)
@@ -344,6 +347,45 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                 }
             )
         )
+
+    async def process_prompt_request(self, data):
+        serializer = RPCPromptRequestSerializer(data=data)
+        if not serializer.is_valid():
+            await self.error_response(
+                {"payload": {"errors": serializer.errors, "request_info": data}}
+            )
+            return
+        
+        data = serializer.validated_data
+
+        try:
+            prompt_config = await database_sync_to_async(PromptConfig.objects.get)(
+                name=data["prompt_config_name"]
+            )
+            await self.send(
+                json.dumps(
+                    {
+                        "type": RPCMessageType.prompt_request_result.value,
+                        "status": WSStatusCodes.ok.value,
+                        "payload": {
+                            "prompt": prompt_config.prompt,
+                            "bot_channel_name": data["bot_channel_name"],
+                        },
+                    }
+                )
+            )
+
+        except PromptConfig.DoesNotExist:
+            await self.error_response(
+                {
+                    "payload": {
+                        "errors": f"Prompt config with name: {data['prompt_config_name']} does not exist.",
+                        "request_info": data,
+                    }
+                }
+            )
+
+
 
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value
