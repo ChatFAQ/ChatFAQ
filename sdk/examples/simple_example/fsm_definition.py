@@ -25,7 +25,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     yield Message("Tell me more")
 
 
-async def send_goodbye(ctx: dict):
+async def send_goodbye(sdk: ChatFAQSDK, ctx: dict):
     yield Message("Byeeeeeeee!", allow_feedback=False)
 
 
