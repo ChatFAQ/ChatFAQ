@@ -5,8 +5,10 @@ from chatfaq_sdk.clients import llm_request, retrieve
 from chatfaq_sdk.utils import convert_mml_to_llm_format
 from .prompts import rag_system_prompt
 
+
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
     yield Message("How can we help you?", allow_feedback=False)
+
 
 async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
 
