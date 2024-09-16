@@ -381,7 +381,7 @@ class ChatFAQSDK:
         else:
             layer = await async_func
             async for results in self._layer_results(layer, data):
-                yield results
+                yield [*results, True]
 
     async def _layer_results(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Condition):
