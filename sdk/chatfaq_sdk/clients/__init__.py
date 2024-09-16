@@ -42,7 +42,7 @@ async def llm_request(
         logger.debug("[LLMRequest] ...receive results from LLM req")
 
         for result in results:
-            final = result.get("final", False)
+            final = result.get("last_chunk", False)
             yield result
         logger.debug(f"[LLMRequest] (Final: {final})")
 
