@@ -1,7 +1,9 @@
 from django.db.models import Subquery
+
 from back.apps.language_model.models import Intent
 
-def calculate_general_rag_stats(prev_messages, num_messages):
+
+def calculate_general_stats(prev_messages, num_messages):
         chit_chats_count = prev_messages.filter(messageknowledgeitem__isnull=True).count()
         chit_chats_percentage = chit_chats_count / num_messages * 100
 

@@ -1,77 +1,76 @@
-# SDK Documentation
+# Concepts
 
-For those chatbots with complex Finite State Machine (FSM) behaviours, you will probably want to run them on a separate process, that is what for the SDK is made for. Its primary function is to execute the FSM's computations (transition's conditions and states) by running Remote Procedure Call (RPC) server that listen to the back-end requests.
+## Concepts
 
-## Usage
+- <u>FSMDefinition</u>: Is the full description of a Finite State Machine.
 
-### Simple example
+An FSM (Finite State Machine) definition consists of two types of blocks: States and Transitions.
 
-This is just a dummy example that displays the basic usage of the library.
+- <u>States</u>: A state in an FSM is a node that represents a specific condition. When a node is reached, its associated **events** are triggered. These events are executed on the demand of the ChatFAQ back-end server as Remote Procedure Calls (RPC).
 
-We are going to build the next FSM:
+- <u>Transitions</u>: Transitions define the **conditions** needed to move from one state to another. These conditions are executed on the demand of the ChatFAQ back-end server as Remote Procedure Calls (RPC).
 
-![fsm](../../../../doc/source/_static/images/simple_fsm_diagram.png)
+Both **events** and **conditions** are functionality that is executed on demand by the ChatFAQ back-end server as RPCs. An RPC is a function that is executed remotely, and its results are returned to the caller.
 
-Import basic modules to build your first FMS:
+## Example
+
+Let's walk through a [simple example](https://github.com/ChatFAQ/ChatFAQ/blob/develop/sdk/examples/simple_example/fsm_definition.py) of the usage of the SDK.
+
+The diagram below describes the FSM definition used in this example.
+
+![Simple FSM](../../_static/images/simple_fsm_diagram.png)
+
+## States
+
+Instantiate the **State** class for creating a new state in the SDK:
+
+- Give it a **name**.
+- If it's the initial state, set **initial** to `True`.
+- Pass a list of **events** that should be triggered when it is entered.
 
 ```python
-import os
-import random
-from chatfaq_sdk import ChatFAQSDK
-from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.conditions import Condition
-from chatfaq_sdk.layers import Text
+greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
+answering_state = State(name="Answering", events=[send_answer])
+goodbye_state = State(name="Goodbye", events=[send_goodbye])
 ```
 
-Declare the 3 possible states of our FSM:
+In this example, the FSM definition is composed of 3 states: **Greeting**, **Answering**, **Goodbye**.
+
+The Greeting state is the initial state, all FSM definitions should have one and only one initial state.
+
+All our 3 states have one event to trigger once entered:
+
+- **Greeting** triggers `send_greeting`, which yields two Messages: a greeting and a question.
+- **Answering** triggers `send_answer`, which yields two Messages: a customized answer based on the last message and an invitation to continue the conversation.
+- **Goodbye** triggers `send_goodbye`, which yields a single Message saying goodbye.
 
 ```python
-def send_greeting(ctx: dict):
-    yield Text("Hello!")
-    yield Text("How are you?", allow_feedback=False)
+async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
+    yield Message("Hello!")
+    yield Message("How are you?", allow_feedback=False)
 
-greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
-
-
-def send_answer(ctx: dict):
-    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
-    yield Text(
+async def send_answer(sdk: ChatFAQSDK, ctx: dict):
+    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]["content"]
+    yield Message(
         f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}'
     )
-    yield Text(f"Tell me more")
+    yield Message("Tell me more")
 
-answering_state = State(
-    name="Answering",
-    events=[send_answer],
-)
-
-
-def send_goodbye(ctx: dict):
-    yield Text("Byeeeeeeee!", allow_feedback=False)
-
-goodbye_state = State(
-    name="Goodbye",
-    events=[send_goodbye],
-)
-
+async def send_goodbye(ctx: dict):
+    yield Message("Byeeeeeeee!", allow_feedback=False)
 ```
 
-Declare the only computable condition for the transitions of our FSM:
+## Transitions
 
-```python
-def is_saying_goodbye(ctx: dict):
-    if ctx["conv_mml"][-1]["stack"][0]["payload"] == "goodbye":
-        return Condition(1)
-    return Condition(0)
-```
+Instantiate the **Transition** class for creating a new transition in the SDK:
 
-Now lets glue everything together:
-
-Declare our transitions
+- Pass the **source** state from which this transition is possible (or do not pass it if this transition is possible from any state, AKA *ubiquitous transitions*).
+- Pass the **dest** state, indicating the state on which this transition lands.
+- Declare the list of **conditions** that need to pass for the transition to happen.
+- Declare the list of **unless** conditions that need NOT to pass for the transition to happen.
 
 ```python
 any_to_goodbye = Transition(dest=goodbye_state, conditions=[is_saying_goodbye])
-
 greeting_to_answer = Transition(
     source=greeting_state,
     dest=answering_state,
@@ -82,7 +81,18 @@ answer_to_answer = Transition(
 )
 ```
 
-Build the final instance of our FSM:
+The `is_saying_goodbye` condition is defined as follows:
+
+```python
+async def is_saying_goodbye(sdk: ChatFAQSDK, ctx: dict):
+    if ctx["conv_mml"][-1]["stack"][0]["payload"]["content"] == "goodbye":
+        return Condition(1)
+    return Condition(0)
+```
+
+## FSM Definition
+
+The last step is to glue everything together by instantiating the **FSMDefinition** class:
 
 ```python
 fsm_definition = FSMDefinition(
@@ -91,22 +101,46 @@ fsm_definition = FSMDefinition(
 )
 ```
 
-Finally, run the RPC server loop with the previously built FSM:
+Note that the order of transitions matters: if 2 transitions return the same scores, then the first one on the list will be the winner.
+
+
+## Connection
+
+The only thing left after defining your FSM is to communicate it to ChatFAQ back-end server and remain listening as an RPC server (for executing your previously declared events and conditions on demand).
+
+We do so by instantiating the class ChatFAQSDK and passing to the constructor 5 parameters:
+
+- *chatfaq_host*: the address of our ChatFAQ back-end server
+
+- *user_email*: the email of ChatFAQ back-end admin user
+
+- *user_password*:  the password of ChatFAQ back-end admin user
+
+- *fsm_name*: the name of our new FSM Definition if we are providing `fsm_def`, or the name/ID of an already existing FSM Definition on the remote server if `fsm_def` is not provided
+
+- *fsm_def* (optional): an instance of FSMDefinition
+
+You should make sure the used user belongs to the *RPC* group; you can set that from the admin site of ChatFAQ back-end server.
+
+Then we call our ChatFAQSDK instance's `connect` method, and we are done.
 
 ```python
-import os
+# Code snippet from examples/__init__.py
+from chatfaq_sdk import ChatFAQSDK
+from .fsm_def import fsm_def
 
-sdk = ChatFAQSDK(
-    chatfaq_retrieval_http="http://localhost:8000",
+chatfaq = ChatFAQSDK(
     chatfaq_ws="ws://localhost:8000",
-    token=os.getenv("CHATFAQ_TOKEN"),
-    fsm_name="my_first_fsm",
-    fsm_definition=fsm_definition,
+    chatfaq_http="http://localhost:8000",
+    token="XXXXXXXXX",
+    fsm_name="simple_fsm",
+    fsm_definition=fsm_def,
 )
-sdk.connect()
+
+chatfaq.connect()
 ```
 
-### Model example
+### LLM example
 
 All of that is great, but where is the large language model capabilities that ChatFAQ offers?
 
@@ -114,22 +148,35 @@ What if we want to build a FSM that makes use of a Language Model?
 
 For that, you first need to [configure your model](../configuration/index.md).
 
-Once you have configured all the components of the model, you will just need to reference the name of your RAG Configuration inside a state of the FSM.
-
-For example, if you have a RAG Configuration named `my_rag_config`, you can use it inside a state like this:
+Once you have configured all the components of the model, you will just need to reference the name of your LLM inside a state of the FSM. Let's see a FSM definition that makes use of a LLM.
 
 ```python
+from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import LMGeneratedText, Text
+from chatfaq_sdk.layers import Message, StreamingMessage
+from chatfaq_sdk.clients import llm_request
+from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 
-def send_greeting(ctx: dict):
-    yield Text("How can we help you?", allow_feedback=False)
+async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
+    yield Message("How can we help you?", allow_feedback=False)
 
 
-def send_answer(ctx: dict):
-    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
-    yield LMGeneratedText(last_payload, "my_rag_config")
+async def send_answer(sdk: ChatFAQSDK, ctx: dict):
+    messages = convert_mml_to_llm_format(ctx["conv_mml"][1:]) # skip the greeting message
+    messages.insert(0, {"role": "system", "content": "You are a helpful assistant."})
+
+    generator = llm_request(
+        sdk,
+        "gpt-4o",
+        use_conversation_context=True,
+        conversation_id=ctx["conversation_id"],
+        bot_channel_name=ctx["bot_channel_name"],
+        messages=messages,
+    )
+
+    yield StreamingMessage(generator)
+
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
@@ -148,6 +195,8 @@ fsm_definition = FSMDefinition(
 )
 ```
 
-For the sake of completeness, here is the diagram of this FSM:
+As you can see we reference the LLM inside the `send_answer` event.
 
-![fsm](../../../../doc/source/_static/images/model_fsm_diagram.png)
+Here is the diagram of the FSM definition:
+
+![llm_fsm](../../_static/images/llm_fsm_diagram.png)

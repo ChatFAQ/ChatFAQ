@@ -4,15 +4,35 @@ The ChatFAQ admin will be a node application that allows you to manage your chat
 
 ## Dashboard
 
-The ChatFAQ Admin Panel provides a comprehensive interface for accessing various aspects of the platform. Within the panel, administrators have access to a variety of tools and essential information for maintaining and optimizing the system. Key features include:
+The ChatFAQ Admin Panel provides a comprehensive interface for accessing various aspects of the platform. The dashboard offers an overview of key components and their status. Key features include:
 
-- **SDK Repository**: The panel offers a centralized repository where administrators can see information about existing System Domain Knowledges (SDKs). 
+- **FSMs (Finite State Machines)**: 
+  - Displays a list of existing FSMs.
+  - Shows the FSM name and creation date.
 
-- **Active RAG Monitoring**: Administrators can conveniently monitor the status of Retrieval Augmented Information (RAG) indicators within the panel. These indicators provide valuable insights into the performance of various aspects of the RAG.
+- **Retrievers**: 
+  - Lists all enabled retrievers.
+  - For each retriever, shows:
+    - Enabled/Disabled status (with a toggle switch)
+    - Model name
+    - Retriever type
+  - Includes a "Reindex" button for each retriever.
+  - If no retrievers are available, a message indicates this.
 
-- **Widgets**: The panel facilitates tracking and analysis of widgets currently in use across the platform. Administrators can visualize which widgets are being utilized.
+- **LLMs (Language Models)**:
+  - Lists all enabled language models.
+  - For each LLM, shows:
+    - Enabled/Disabled status (with a toggle switch)
+    - LLM type
+    - LLM name
+  - If no LLMs are available, a message indicates this.
 
-
+- **Widgets**:
+  - Displays a list of all widgets.
+  - For each widget, shows:
+    - Domain
+    - FSM (Finite State Machine) definition
+  - If no widgets are available, a message indicates this.
 
 ## Labeling
 
@@ -21,8 +41,6 @@ The Labeling section of the ChatFAQ admin tool facilitate the management and imp
 ### Initial screen: Conversation Search and Filtering
 
 - **Search bar** : Locate specific conversations of interest based on their content or title.
-  
-- **Filter by RAG**: Filter conversations based on the specific chatbot you want to evaluate.
   
 - **Date Range Selection**: Filter conversations by their date range.
   

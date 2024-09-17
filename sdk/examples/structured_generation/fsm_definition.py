@@ -1,7 +1,7 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import Text
+from chatfaq_sdk.layers import Message
 from pydantic import BaseModel
 import json
 import logging
@@ -21,7 +21,7 @@ class UserInfo(BaseModel):
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Text(
+    yield Message(
         "I will extract the name and age of an user description, please input the description",
         allow_feedback=False,
     )
@@ -44,8 +44,9 @@ async def send_info(sdk: ChatFAQSDK, ctx: dict):
         tool_choice="UserInfo",
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
+        use_conversation_context=True,
     ):
-        yield Text(f"Here is the extracted information: {json.dumps(res)}", allow_feedback=False)
+        yield Message(f"Here is the extracted information: {json.dumps(res)}", allow_feedback=False)
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 

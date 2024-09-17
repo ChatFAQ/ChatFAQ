@@ -77,25 +77,25 @@ import random
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.conditions import Condition
-from chatfaq_sdk.layers import Text
+from chatfaq_sdk.layers import Message
 ```
 
 Declare the 3 possible states of our FSM:
 
 ```python
 def send_greeting(ctx: dict):
-    yield Text("Hello!")
-    yield Text("How are you?", allow_feedback=False)
+    yield Message("Hello!")
+    yield Message("How are you?", allow_feedback=False)
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
 
 def send_answer(ctx: dict):
-    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]
-    yield Text(
+    last_payload = ctx["conv_mml"][-1]["stack"][0]["payload"]["content"]
+    yield Message(
         f'My answer to your message: "{last_payload}" is: {random.randint(0, 999)}'
     )
-    yield Text(f"Tell me more")
+    yield Message("Tell me more")
 
 answering_state = State(
     name="Answering",
@@ -104,7 +104,7 @@ answering_state = State(
 
 
 def send_goodbye(ctx: dict):
-    yield Text("Byeeeeeeee!", allow_feedback=False)
+    yield Message("Byeeeeeeee!", allow_feedback=False)
 
 goodbye_state = State(
     name="Goodbye",
@@ -117,7 +117,7 @@ Declare the only computable condition for the transitions of our FSM:
 
 ```python
 def is_saying_goodbye(ctx: dict):
-    if ctx["conv_mml"][-1]["stack"][0]["payload"] == "goodbye":
+    if ctx["conv_mml"][-1]["stack"][0]["payload"]["content"] == "goodbye":
         return Condition(1)
     return Condition(0)
 ```
@@ -163,60 +163,4 @@ sdk = ChatFAQSDK(
 sdk.connect()
 ```
 
-The resulting FSM looks like this:
 
-## Other useful info
-### Build the docs
-
-go inside the `doc` directory and run:
-
-```
-poetry run make html
-```
-
-
-### Publish package
-
-#### PYPI test
-
-add repository to poetry config
-
-    poetry config repositories.chatfaq-sdk https://test.pypi.org/legacy/
-
-get token from https://test.pypi.org/manage/account/token/
-
-store token using
-
-    poetry config pypi-token.chatfaq-sdk pypi-YYYYYYYY
-
-#### PYPI production
-
-get token from https://pypi.org/manage/account/token/
-
-store token using
-
-    poetry config pypi-token.chatfaq-sdk pypi-XXXXXXXX
-
-Each time you need to publish
-
-Bump version
-
-    poetry version prerelease
-
-or
-
-    poetry version patch
-
-#### Poetry Build
-
-    poetry build
-
-#### Poetry Publish
-
-To TestPyPi
-
-    poetry publish -r chatfaq-sdk
-
-To PyPi
-
-    poetry publish

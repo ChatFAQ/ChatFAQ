@@ -18,7 +18,7 @@ const copied = ref(false);
 
 async function copy() {
     const msg = store.getMessageById(props.msgId)
-    const text = msg.stack[0].payload.model_response
+    const text = msg.stack[0].payload.content
     navigator.clipboard.writeText(text);
     copied.value = true;
     setTimeout(() => {

@@ -6,7 +6,7 @@
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
             'name': {'name': $t('name')},
-            'rags': {'name': $t('rags')},
+            'fsm_defs': {'name': $t('fsms')},
             'created_date': {'name': $t('created_date'), 'sortable': true},
             'user_id': {'name': $t('userid')},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
@@ -15,7 +15,7 @@
         :filtersSchema="[
             {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
             {'type': 'range-date', 'startPlaceholder': $t('startdate'), 'endPlaceholder': $t('enddate'), 'field': 'created_date'},
-            {'type': 'ref', 'placeholder': $t('rag'), 'field': 'rag', 'endpoint': '/back/api/language-model/rag-configs/'},
+            {'type': 'ref', 'placeholder': $t('fsm_def'), 'field': 'fsm_def', 'endpoint': '/back/api/fsm/definitions/'},
             {
                 'type': 'enum',
                 'placeholder': $t('reviewed'),
@@ -29,8 +29,8 @@
         <template v-slot:view="{row}">
             <div class="go-to-view" @click="goToLabelingConversation(row.id)">{{ $t("view") }}</div>
         </template>
-        <template v-slot:rags="{row}">
-            {{ row?.rags ? row.rags.join(",") : "" }}
+        <template v-slot:fsms="{row}">
+            {{ row?.fsms ? row.fsms.join(",") : "" }}
         </template>
     </ReadView>
 
@@ -38,7 +38,6 @@
 </template>
 
 <script setup>
-import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
 import ReadView from "~/components/generic/ReadView.vue";
 

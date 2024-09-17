@@ -25,9 +25,8 @@ class AgentType(Enum):
 
 
 class StackPayloadType(Enum):
-    text = "text"
-    rag_generated_text = "rag_generated_text"
-    llm_generated_text = "llm_generated_text"
+    message = "message"
+    message_chunk = "message_chunk"
     html = "html"
     image = "image"
     satisfaction = "satisfaction"
@@ -79,7 +78,7 @@ class Conversation(ChangesMixin):
             .filter(Q(stack__contains=[{"state": {}}]) | Q(stack__icontains='"state":'))
             .order_by("-created_date")
             .first())
-        
+
         if last_message:
             return last_message.stack[0]["state"]
         return None
@@ -102,7 +101,6 @@ class Conversation(ChangesMixin):
         return Message.objects.filter(
             conversation=self,
             sender__type=AgentType.bot.value,
-            stack__contains=[{"type": StackPayloadType.rag_generated_text.value}],
         )
 
     def get_review_progress(self):
@@ -127,64 +125,15 @@ class Conversation(ChangesMixin):
                     messages.append({"role": "assistant", "content": bot_content})
                     bot_content = ""
 
-                messages.append({"role": "user", "content": m.stack[0]["payload"]})
+                messages.append({"role": "user", "content": m.stack[0]["payload"]["content"]})
                 human_messages_ids.append(m.id)
             elif m.sender["type"] == "bot":
-                bot_content += m.stack[0]["payload"]["model_response"]
+                bot_content += m.stack[0]["payload"]["content"]
 
         if bot_content != "":  # last message
             messages.append({"role": "assistant", "content": bot_content})
 
         return messages, human_messages_ids
-
-    def group_by_stack(self, chain):
-        """
-        returns the chain but with the bot messages stack[0].payload of the same stack_id concatenated.
-        """
-        from back.apps.broker.serializers import MessageSerializer
-
-        def _stack_el(m):
-            el = m["stack"]
-            while type(el) is list:
-                el = el[0]
-            return el
-
-        grouped_chain = []
-        for m in chain:
-            m = MessageSerializer(m).data
-            first_stack_el = _stack_el(m)
-
-            if m["sender"]["type"] == "human":
-                grouped_chain.append(m)
-            elif (
-                m["sender"]["type"] == "bot"
-                and first_stack_el["type"] == StackPayloadType.text.value
-            ):
-                grouped_chain.append(m)
-            elif (
-                m["sender"]["type"] == "bot"
-                and first_stack_el["type"] == StackPayloadType.rag_generated_text.value
-            ):
-                if (
-                    len(grouped_chain) > 0
-                    and grouped_chain[-1]["sender"]["type"] == "bot"
-                    and grouped_chain[-1]["stack"][0]["type"]
-                    == StackPayloadType.rag_generated_text.value
-                    and grouped_chain[-1]["stack_id"] == m["stack_id"]
-                ):
-                    grouped_chain[-1]["stack"][0]["payload"]["model_response"] += (
-                        first_stack_el["payload"]["model_response"]
-                    )
-                else:
-                    grouped_chain.append(m)
-
-                if m["last"]:
-                    grouped_chain[-1]["last"] = m["last"]
-                    grouped_chain[-1]["id"] = m["id"]
-                    grouped_chain[-1]["stack"][0]["payload"]["references"] = (
-                        first_stack_el["payload"]["references"]
-                    )
-        return grouped_chain
 
     @classmethod
     def conversations_from_sender(cls, sender_id):
@@ -273,8 +222,10 @@ class Message(ChangesMixin):
             For the user to express its satisfaction to the given bot’s answer
     stack_id: str
         The id of the stack to which this message belongs to. This is used to group stacks
+    stack_group_id: str
+        The id of the stack to which this message belongs to. This is used to group stacks
     last: bool
-        Whether this message is the last one of the stack_id
+        Whether this message is the last one of the stack_group_id
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -293,6 +244,7 @@ class Message(ChangesMixin):
     meta = models.JSONField(null=True)
     stack = models.JSONField(null=True)
     stack_id = models.CharField(max_length=255, null=True)
+    stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
 
     @property
@@ -308,7 +260,7 @@ class Message(ChangesMixin):
 
         all_kis_to_review = set()
         for stackItem in self.stack:
-            if stackItem["type"] == StackPayloadType.rag_generated_text.value:
+            if stackItem["payload"].get("references", {}):
                 for ki_ref in (
                     stackItem.get("payload", {})
                     .get("references", {})
@@ -337,14 +289,9 @@ class Message(ChangesMixin):
     def _to_text(stack, send_time, sender):
         stack_text = ""
         for layer in stack:
-            if layer["type"] == StackPayloadType.text.value:
-                stack_text += layer["payload"] + "\n"
-            elif layer["type"] in [
-                StackPayloadType.rag_generated_text.value,
-                StackPayloadType.llm_generated_text.value,
-            ]:
-                if layer["payload"]["model_response"]:
-                    stack_text += layer["payload"]["model_response"]
+            if layer["type"] in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
+                if layer["payload"]["content"]:
+                    stack_text += layer["payload"]["content"]
             else:
                 logger.error(
                     f"Unknown stack payload type to export as csv: {layer['type']}"

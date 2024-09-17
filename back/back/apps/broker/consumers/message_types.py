@@ -7,8 +7,10 @@ class RPCMessageType(Enum):
     rpc_result = "rpc_result"
     llm_request = "llm_request"
     llm_request_result = "llm_request_result"
-    rag_request = "rag_request"
-    rag_request_result = "rag_request_result"
+    retriever_request = "retriever_request"
+    retriever_request_result = "retriever_request_result"
+    prompt_request = "prompt_request"
+    prompt_request_result = "prompt_request_result"
     error = "error"
 
 

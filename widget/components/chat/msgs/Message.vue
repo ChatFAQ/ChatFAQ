@@ -46,8 +46,8 @@ const minImgRefs = computed(() => {
 })
 
 function replaceMarkedDownImagesByReferences() {
-    const images = props.data.payload.model_response.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
-    let res = props.data.payload.model_response;
+    const images = props.data.payload.content.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
+    let res = props.data.payload.content;
     if (images) {
         images.forEach((image, index) => {
             // capture only the alt text of the image markdown:
@@ -61,7 +61,7 @@ function replaceMarkedDownImagesByReferences() {
 }
 
 const markedDown = computed(() => {
-    let res = props.data.payload.model_response;
+    let res = props.data.payload.content;
     res = replaceMarkedDownImagesByReferences(res)
     const hightlight = store.darkMode ? hightlight_dark : hightlight_light
     // regex for detecting and represent markdown links:
@@ -90,7 +90,7 @@ const getMarkedDownImages = computed(() => {
 })
 
 function _getMarkedDownImages() {
-    const images = props.data.payload.model_response.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
+    const images = props.data.payload.content.match(/!\[([^\]]+)\][ \n]*\(([^\)]+)\)/g);
     if (images) {
         const res = images.map((image) => {
             const imageRegex = /!\[([^\]]+)\][ \n]*\(([^\)]+)\)/;

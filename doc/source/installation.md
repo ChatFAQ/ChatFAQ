@@ -17,7 +17,7 @@ The system comprises seven main components, here are their relationships and the
 - **Widget** <!-- (<a href="/en/latest/modules/installations/index.html#widget-installation">local install</a>) --> is a JS browser client application from which the user interacts with the bot.
 
 
-- **Admin** is a JS browser client application to manage the chatbots, datasets, retriever, models, RAG configs, etc...
+- **Admin** is a JS browser client application to manage the chatbots, knowledge bases, retrievers, models, configs, etc...
 
 
 - **Ray workers** are used to run distributed inference on the models.
@@ -26,7 +26,7 @@ The system comprises seven main components, here are their relationships and the
 - **Channel layer** (Redis) is used to communicate through WebSockets between the back-end and the SDK, admin and widget.
 
 
-- **Relational Database** (PostgreSQL) is used to store all the data related to the chatbots, datasets, retriever, models, RAG configs, etc...
+- **Relational Database** (PostgreSQL) is used to store all the data related to the chatbots, knowledge bases, retrievers, models, configs, etc...
 
 ### Docker
 
@@ -101,8 +101,6 @@ To manage the chatbot and view the model configuration we provided, go to:
 
 ## Deeper into ChatFAQ
 
-If you want to use your own dataset, you can check the [Dataset Configuration](./modules/configuration/index.html#knowledge-base) documentation.
-
-If you want to learn how to configure your own RAG (LLM model, retriever model, prompt configuration, etc...) you can check the [RAG Configuration](./modules/configuration/index.html#rag-config) documentation.
+If you want to use your own knowledge base, you can check the [Knowledge Base Configuration](./modules/configuration/index.html#knowledge-base) documentation.
 
 If you want to learn how to use the SDK, so you can create your own chatbot behavior, you can check the [SDK](./modules/sdk/index.md) documentation.

@@ -159,8 +159,8 @@ function manageEnterInput(ev, cb) {
 };
 
 function sendMessage() {
-    const promptValue = chatInput.value.innerText.trim()
-    if (!promptValue.length || store.waitingForResponse || store.disconnected)
+    const user_message = chatInput.value.innerText.trim()
+    if (!user_message.length || store.waitingForResponse || store.disconnected)
         return;
     const m = {
         "sender": {
@@ -168,10 +168,13 @@ function sendMessage() {
             "platform": "WS",
         },
         "stack": [{
-            "type": "text",
-            "payload": promptValue,
+            "type": "message",
+            "payload": {
+                "content": user_message
+            },
         }],
         "stack_id": "0",
+        "stack_group_id": "0",
         "last": true,
     };
     if (store.userId !== undefined)

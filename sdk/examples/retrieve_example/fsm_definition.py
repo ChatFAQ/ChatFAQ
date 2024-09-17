@@ -1,14 +1,20 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import RAGGeneratedText, Text
+from chatfaq_sdk.layers import Message
+from chatfaq_sdk.clients import retrieve
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Text("How can we help you?", allow_feedback=False)
+    yield Message("How can we help you?", allow_feedback=False)
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
-    yield RAGGeneratedText("default", only_context=True)
+    results = await retrieve(sdk, 'active_seed_e5_small', 'Pure ActiveSeed?', top_k=3, bot_channel_name=ctx["bot_channel_name"])
+    
+    yield Message(
+        'This is a test',
+        references=results,
+    )
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
