@@ -9,6 +9,7 @@ from ray.util.placement_group import (
 )
 from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 
+from back.apps.broker.models.message import AgentType
 
 logger = getLogger(__name__)
 
@@ -407,7 +408,7 @@ def generate_suggested_intents_task(
     )
 
     # Main query to get the messages where id is in the subquery result
-    messages = Message.objects.filter(id__in=Subquery(subquery), sender__type="human")
+    messages = Message.objects.filter(id__in=Subquery(subquery), sender__type=AgentType.human.value)
 
     messages_text = [
         Message.objects.get(id=item["message_id"]).stack[0]["payload"]["content"]

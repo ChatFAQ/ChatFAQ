@@ -22,6 +22,7 @@ class Satisfaction(Enum):
 class AgentType(Enum):
     human = "human"
     bot = "bot"
+    system = "system"
 
 
 class StackPayloadType(Enum):
@@ -120,14 +121,14 @@ class Conversation(ChangesMixin):
 
         bot_content = ""
         for m in chain[1:]:  # skip predefined message
-            if m.sender["type"] == "human":
+            if m.sender["type"] == AgentType.human.value:
                 if bot_content != "":  # when human message, add bot message before
                     messages.append({"role": "assistant", "content": bot_content})
                     bot_content = ""
 
                 messages.append({"role": "user", "content": m.stack[0]["payload"]["content"]})
                 human_messages_ids.append(m.id)
-            elif m.sender["type"] == "bot":
+            elif m.sender["type"] == AgentType.bot.value:
                 bot_content += m.stack[0]["payload"]["content"]
 
         if bot_content != "":  # last message

@@ -139,8 +139,8 @@ async def query_llm(
         new_messages = prev_messages.copy()
 
         if messages: # In case the fsm sends messages
-            if messages[0]["role"] == "system":
-                if prev_messages[0]["role"] == "system":
+            if messages[0]["role"] == AgentType.system.value:
+                if prev_messages[0]["role"] == AgentType.system.value:
                     new_messages[0] = messages[0]  # replace the original system message with the new one from the fsm
                 else:
                     new_messages.insert(0, messages[0])  # or add the fsm system message
@@ -355,7 +355,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                 {"payload": {"errors": serializer.errors, "request_info": data}}
             )
             return
-        
+
         data = serializer.validated_data
 
         try:
