@@ -37,17 +37,20 @@ class FSMDefinition(ChangesMixin):
 
     @classmethod
     def get_or_create_from_definition(
-        cls, name, definition
+        cls, name, definition, overwrite
     ) -> Tuple[Union[FSMDefinition, None], bool, str]:
         for item in cls.objects.all():
             if item.definition == definition and item.name == name:
                 return item, False, ""
-        if cls.objects.filter(name=name).first():
+        if not overwrite and cls.objects.filter(name=name).first():
             return (
                 None,
                 False,
                 f"Trying to create a new FSM definition with a conflicting name: {name} which already exists",
             )
+        elif overwrite:
+            cls.objects.filter(name=name).delete()
+
         fsm = cls(
             name=name,
             definition=definition,

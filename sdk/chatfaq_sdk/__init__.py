@@ -40,6 +40,7 @@ class ChatFAQSDK:
         token: str,
         fsm_name: Optional[Union[int, str]],
         fsm_definition: Optional[FSMDefinition] = None,
+        overwrite_definition: Optional[bool] = False,
         data_source_parsers: Optional[dict[str, DataSourceParser]] = None,
     ):
         """
@@ -58,6 +59,15 @@ class ChatFAQSDK:
         fsm_definition: Union[FSMDefinition, None]
             The FSM you are going to create in the ChatFAQ's back-end server, if already exists a FSM definition on the server with
             the same struincurre then that one will be reused and your 'name' parameter will be ignored
+
+        overwrite_definition: Optional[bool]
+            Whether to overwrite an existing FSM with the same name. Watch out! if you set this to True and there is a FSM
+            with the same name it will be deleted and recreated with the new definition, if there are other instances of the FSM running
+            they will get into a undefined state use it carefully only when you are sure that no other instance is running
+
+        data_source_parsers: Optional[dict[str, DataSourceParser]]
+            A dictionary with the parsers you want to register in the ChatFAQ's back-end server, the key should be the name of the parser
+            and the value should be the parser function itself
         """
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
@@ -66,6 +76,7 @@ class ChatFAQSDK:
         self.token = token
         self.fsm_name = fsm_name
         self.fsm_def = fsm_definition
+        self.overwrite_definition = overwrite_definition
         self.data_source_parsers = data_source_parsers
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
@@ -187,7 +198,7 @@ class ChatFAQSDK:
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}")
+            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting exisitng definition if already exists." if self.overwrite_definition else "")
             await getattr(self, f"ws_{WSType.rpc.value}").send(
                 json.dumps(
                     {
@@ -195,6 +206,7 @@ class ChatFAQSDK:
                         "data": {
                             "name": self.fsm_name,
                             "definition": self.fsm_def.to_dict_repr(),
+                            "overwrite": self.overwrite_definition,
                         },
                     }
                 )
