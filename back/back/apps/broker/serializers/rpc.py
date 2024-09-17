@@ -34,8 +34,10 @@ class RPCResultSerializer(serializers.Serializer):
 
     ctx = CtxSerializer()
     node_type = serializers.ChoiceField(choices=[n.value for n in RPCNodeType])
+    stack_group_id = serializers.CharField(max_length=255)
     stack_id = serializers.CharField(max_length=255)
     stack = serializers.JSONField(default=dict)
+    last_chunk = serializers.BooleanField(default=False)
     last = serializers.BooleanField(default=False)
 
     def validate(self, attrs):
@@ -73,7 +75,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         Whether the LLM response should be streamed or not
     """
 
-    llm_config_name = serializers.CharField()
+    llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
     messages = serializers.ListField(child=serializers.DictField())
@@ -95,44 +97,17 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         return attrs
 
 
-class RPCRAGRequestSerializer(serializers.Serializer):
-    """
-    Represents the RAG requests coming from the RPC server
-    Attributes
-    ----------
-    rag_config_name: str
-        The name of the RAG Config to use in the LLM to generate the text from
-    conversation_id: str
-        The conversation id to which the LLM response belongs
-    bot_channel_name: str
-        The bot channel name to which the LLM response should be sent back
-    input_text: str
-        The input text to generate the text from, it could be None in which case the LLM will generate a text from the previous messages passed as a context
-    use_conversation_context: bool
-        If True the LLM will use the previous messages as a context to generate the text (if the input_text is None this should be always True)
-    streaming: bool
-        Whether the LLM response should be streamed or not
-    only_context: bool
-        If True the LLM will only return the sources and no generation will be done
-    """
-
-    rag_config_name = serializers.CharField()
-    conversation_id = serializers.CharField()
+class RPCPromptRequestSerializer(serializers.Serializer):
+    prompt_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     bot_channel_name = serializers.CharField()
-    input_text = serializers.CharField(
-        allow_null=True, allow_blank=True, required=False
-    )
-    use_conversation_context = serializers.BooleanField(default=True)
-    streaming = serializers.BooleanField(default=True)
-    only_context = serializers.BooleanField(default=False)
 
-    # If the input_text is None then use_conversation_context should always be True, check for that:
-    def validate(self, attrs):
-        if not attrs.get("input_text") and not attrs.get("use_conversation_context"):
-            raise serializers.ValidationError(
-                "If the input_text is None then use_conversation_context should be always True"
-            )
-        return attrs
+
+class RPCRetrieverRequestSerializer(serializers.Serializer):
+
+    retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    bot_channel_name = serializers.CharField()
+    query = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    top_k = serializers.IntegerField(default=3)
 
 
 class RegisterParsersSerializer(serializers.Serializer):
@@ -151,10 +126,13 @@ class RPCFSMDefSerializer(serializers.Serializer):
         Name of the new FSM
     definition: dict
         The definition itself
+    overwrite: bool
+        Whether to overwrite an existing FSM with the same name
     """
 
     name = serializers.CharField(max_length=255)
     definition = serializers.JSONField(default=dict)
+    overwrite = serializers.BooleanField(default=False)
 
 
 class RPCResponseSerializer(serializers.Serializer):
@@ -172,8 +150,7 @@ class RPCResponseSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[n.value for n in RPCMessageType])
     data = serializers.JSONField(
         default=dict
-    )  # data = {rag_config_name, input_text, use_conversation_context, conversation_id, bot_channel_name}
-
+    )
 
 class ParseResponseSerializer(serializers.Serializer):
     """

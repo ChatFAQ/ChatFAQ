@@ -106,7 +106,8 @@ RUN modelw-docker build
 ARG INSTALL_CHAT_RAG
 ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 
-RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.78; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing nvidia-cudnn-cu12..."; poetry add nvidia-cudnn-cu12==8.9.2.26; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag==0.1.80; fi
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
 
 ENV RAY_task_events_max_num_task_in_gcs=100

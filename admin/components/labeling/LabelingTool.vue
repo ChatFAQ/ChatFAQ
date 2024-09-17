@@ -23,7 +23,7 @@
                 <div class="labeling-tool-left-side">
                     <div class="selected-conversation-info">
                         <div>{{conversation.name}}</div>
-                        <div>{{ conversation?.rags ? conversation.rags.join(",") : "" }}</div>
+                        <div>{{ conversation?.fsms ? conversation.fsms.join(",") : "" }}</div>
                         <div>{{formatDate(conversation.created_date)}}</div>
                     </div>
                     <div v-for="msgs in getQAMessageGroups(conversation.msgs_chain)"
@@ -42,7 +42,7 @@
                             </span>
                             <div class="message-content" :class="{[msg.sender.type]: true}">
                                 {{
-                                    typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.model_response
+                                    typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.content
                                 }}
                             </div>
                         </div>

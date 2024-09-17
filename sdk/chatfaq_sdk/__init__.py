@@ -40,6 +40,7 @@ class ChatFAQSDK:
         token: str,
         fsm_name: Optional[Union[int, str]],
         fsm_definition: Optional[FSMDefinition] = None,
+        overwrite_definition: Optional[bool] = False,
         data_source_parsers: Optional[dict[str, DataSourceParser]] = None,
     ):
         """
@@ -58,6 +59,15 @@ class ChatFAQSDK:
         fsm_definition: Union[FSMDefinition, None]
             The FSM you are going to create in the ChatFAQ's back-end server, if already exists a FSM definition on the server with
             the same struincurre then that one will be reused and your 'name' parameter will be ignored
+
+        overwrite_definition: Optional[bool]
+            Whether to overwrite an existing FSM with the same name. Watch out! if you set this to True and there is a FSM
+            with the same name it will be deleted and recreated with the new definition, if there are other instances of the FSM running
+            they will get into a undefined state use it carefully only when you are sure that no other instance is running
+
+        data_source_parsers: Optional[dict[str, DataSourceParser]]
+            A dictionary with the parsers you want to register in the ChatFAQ's back-end server, the key should be the name of the parser
+            and the value should be the parser function itself
         """
         if fsm_definition is dict and fsm_name is None:
             raise Exception("If you declare a FSM definition you should provide a name")
@@ -66,6 +76,7 @@ class ChatFAQSDK:
         self.token = token
         self.fsm_name = fsm_name
         self.fsm_def = fsm_definition
+        self.overwrite_definition = overwrite_definition
         self.data_source_parsers = data_source_parsers
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
@@ -74,6 +85,8 @@ class ChatFAQSDK:
 
         self.llm_request_futures = {}
         self.llm_request_msg_buffer = {}
+        self.retriever_request_futures = {}
+        self.prompt_request_futures = {}
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -92,7 +105,8 @@ class ChatFAQSDK:
         }
         ai_actions = {
             MessageType.llm_request_result.value: self.llm_request_result_callback,
-            MessageType.rag_request_result.value: self.llm_request_result_callback,
+            MessageType.retriever_request_result.value: self.retriever_request_result_callback,
+            MessageType.prompt_request_result.value: self.prompt_request_result_callback,
             MessageType.error.value: self.error_callback,
         }
         coros_or_futures = [
@@ -172,9 +186,19 @@ class ChatFAQSDK:
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
 
+
+    async def retriever_request_result_callback(self, payload):
+        logger.info(f"[RETRIEVER] Result received: {payload}")
+        self.retriever_request_futures[payload["bot_channel_name"]].set_result(payload)
+
+
+    async def prompt_request_result_callback(self, payload):
+        logger.info(f"[PROMPT] Result received: {payload}")
+        self.prompt_request_futures[payload["bot_channel_name"]].set_result(payload)
+
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}")
+            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting exisitng definition if already exists." if self.overwrite_definition else "")
             await getattr(self, f"ws_{WSType.rpc.value}").send(
                 json.dumps(
                     {
@@ -182,6 +206,7 @@ class ChatFAQSDK:
                         "data": {
                             "name": self.fsm_name,
                             "definition": self.fsm_def.to_dict_repr(),
+                            "overwrite": self.overwrite_definition,
                         },
                     }
                 )
@@ -211,12 +236,12 @@ class ChatFAQSDK:
 
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
-        for handler_index, handler in enumerate(self.rpcs[payload["name"]]):
-            stack_id = str(uuid.uuid4())
-            logger.info(f"[RPC]     |---> ::: {handler}")
+        for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
+            stack_group_id = str(uuid.uuid4())
+            logger.info(f"[RPC]     |---> ::: {state_or_transition}")
 
-            async for res, last_from_handler, node_type in self._run_handler(
-                handler, payload["ctx"]
+            async for res, stack_id, last_chunk, node_type, last_from_state_or_transition in self._run_state_or_transition(
+                state_or_transition, payload["ctx"]
             ):
                 await getattr(self, f"ws_{WSType.rpc.value}").send(
                     json.dumps(
@@ -225,11 +250,13 @@ class ChatFAQSDK:
                             "data": {
                                 "ctx": payload["ctx"],
                                 "node_type": node_type,
+                                "stack_group_id": stack_group_id,
                                 "stack_id": stack_id,
                                 "stack": res,
-                                "last": handler_index
+                                "last_chunk": last_chunk,
+                                "last": index
                                 == len(self.rpcs[payload["name"]]) - 1
-                                and last_from_handler,
+                                and last_from_state_or_transition,
                             },
                         }
                     )
@@ -271,52 +298,23 @@ class ChatFAQSDK:
     async def error_callback(payload):
         logger.error(f"Error from ChatFAQ's back-end server: {payload}")
 
-    async def send_rag_request(
+    async def send_llm_request(
         self,
-        rag_config_name,
-        input_text,
-        use_conversation_context,
-        only_context,
+        llm_config_name,
+        messages,
+        temperature,
+        max_tokens,
+        seed,
+        tools,
+        tool_choice,
         conversation_id,
         bot_channel_name,
-        user_id=None,
+        use_conversation_context,
     ):
-        logger.info(f"[RAG] Requesting RAG ({rag_config_name})")
+        logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
         self.llm_request_futures[bot_channel_name] = (
             asyncio.get_event_loop().create_future()
         )
-        await getattr(self, f"ws_{WSType.ai.value}").send(
-            json.dumps(
-                {
-                    "type": MessageType.rag_request.value,
-                    "data": {
-                        "rag_config_name": rag_config_name,
-                        "input_text": input_text,
-                        "use_conversation_context": use_conversation_context,
-                        "conversation_id": conversation_id,
-                        "user_id": user_id,
-                        "bot_channel_name": bot_channel_name,
-                        "only_context": only_context,
-                    },
-                }
-            )
-        )
-
-    async def send_llm_request(
-            self,
-            llm_config_name,
-            messages,
-            temperature,
-            max_tokens,
-            seed,
-            tools,
-            tool_choice,
-            conversation_id,
-            bot_channel_name,
-            use_conversation_context,
-    ):
-        logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
-        self.llm_request_futures[bot_channel_name] = asyncio.get_event_loop().create_future()
         await getattr(self, f"ws_{WSType.ai.value}").send(
             json.dumps(
                 {
@@ -337,6 +335,43 @@ class ChatFAQSDK:
             )
         )
 
+    async def send_retriever_request(
+        self, retriever_config_name, query, top_k, bot_channel_name
+    ):
+        logger.info(f"[RETRIEVER] Requesting Retriever ({retriever_config_name})")
+        self.retriever_request_futures[bot_channel_name] = (
+            asyncio.get_event_loop().create_future()
+        )
+        await getattr(self, f"ws_{WSType.ai.value}").send(
+            json.dumps(
+                {
+                    "type": MessageType.retriever_request.value,
+                    "data": {
+                        "retriever_config_name": retriever_config_name,
+                        "bot_channel_name": bot_channel_name,
+                        "query": query,
+                        "top_k": top_k,
+                    },
+                }
+            )
+        )
+
+    async def send_prompt_request(self, prompt_config_name, bot_channel_name):
+        logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")
+        self.prompt_request_futures[bot_channel_name] = (
+            asyncio.get_event_loop().create_future()
+        )
+        await getattr(self, f"ws_{WSType.ai.value}").send(
+            json.dumps(
+                {
+                    "type": MessageType.prompt_request.value,
+                    "data": {
+                        "prompt_config_name": prompt_config_name,
+                        "bot_channel_name": bot_channel_name,
+                    },
+                }
+            )
+        )
 
     def rpc(self, name: str) -> Callable:
         """
@@ -363,8 +398,8 @@ class ChatFAQSDK:
 
         return outer
 
-    async def _run_handler(self, handler, data):
-        async_func = handler(self, data)
+    async def _run_state_or_transition(self, state_or_transition, data):
+        async_func = state_or_transition(self, data)
         if inspect.isasyncgen(async_func):
             is_last = False
             layer = await anext(async_func)
@@ -377,19 +412,19 @@ class ChatFAQSDK:
                     is_last = True
 
                 async for results in self._layer_results(layer, data):
-                    yield [results[0], results[1] and is_last, results[2]]
+                    yield [*results, is_last]
                 layer = _layer
         else:
             layer = await async_func
             async for results in self._layer_results(layer, data):
-                yield results
+                yield [*results, True]
 
     async def _layer_results(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Condition):
             raise Exception(
                 "RPCs results should return either Layers type objects or result type objects"
             )
-        results = layer.result(self, data)
+        results = layer.result(self, data, fsm_def_name=self.fsm_name)
         # check if is generator
         async for r in results:
             yield r + [

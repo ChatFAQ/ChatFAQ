@@ -13,3 +13,6 @@ isort:
 
 run_example:
 	$(PYTHON_BIN) examples/rag_example/__main__.py
+
+run_holidays:
+	$(PYTHON_BIN) examples/holidays/__main__.py

@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from back.apps.language_model.models import RayTaskState
 from back.apps.language_model.serializers.tasks import RayTaskStateSerializer
 from rest_framework.views import APIView
-from ray.util.state import api as ray_api
 from drf_spectacular.utils import extend_schema
 
 

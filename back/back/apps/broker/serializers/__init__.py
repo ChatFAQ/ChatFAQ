@@ -2,7 +2,7 @@ from django.apps import apps
 from rest_framework import serializers
 
 from back.apps.broker.models.message import Message, AdminReviewValue, AgentType
-from back.apps.language_model.models import RAGConfig
+from back.apps.fsm.models import FSMDefinition
 
 
 class IdSerializer(serializers.Serializer):
@@ -43,23 +43,16 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-def _get_rags(_, obj):
-    # return queryset.filter(message__stack__0__payload__rag_config_id=rag.id).distinct()
-    # Get all the messages from this conversation and aggregate all the rag_config_ids:
-    rag_ids = Message.objects.filter(
-        conversation=obj
-    ).filter(
-        stack__0__payload__rag_config_id__isnull=False
-    ).values_list(
-        "stack__0__payload__rag_config_id", flat=True
-    ).distinct()
-    # get the RAGConfign names from the ids:
-    rag_names = list(RAGConfig.objects.filter(id__in=list(rag_ids.all())).values_list("name", flat=True).all())
-    return rag_names
+def _get_fsm_defs(_, obj):
+    """Returns the FSM definitions name"""
+    fsm_def_ids = Message.objects.filter(conversation=obj).values_list("stack__0__fsm_definition", flat=True).distinct()
+    fsm_def_ids = list(filter(None, fsm_def_ids))
+    return [FSMDefinition.objects.get(id=fsm_def_id).name for fsm_def_id in fsm_def_ids]
+
 
 class ConversationMessagesSerializer(serializers.ModelSerializer):
     msgs_chain = serializers.SerializerMethodField()
-    rags = serializers.SerializerMethodField()
+    fsm_defs = serializers.SerializerMethodField()
 
     class Meta:
         model = apps.get_model("broker", "Conversation")
@@ -67,13 +60,13 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
 
     def get_msgs_chain(self, obj):
         return [MessageSerializer(m).data for m in obj.get_msgs_chain()]
-
-    get_rags = _get_rags
+    
+    get_fsm_defs = _get_fsm_defs
 
 
 class ConversationSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
-    rags = serializers.SerializerMethodField()
+    fsm_defs = serializers.SerializerMethodField()
 
     class Meta:
         model = apps.get_model("broker", "Conversation")
@@ -85,8 +78,9 @@ class ConversationSerializer(serializers.ModelSerializer):
                 return msg.sender.get("id")
             if msg.receiver and msg.receiver.get("type") == AgentType.human.value:
                 return msg.receiver.get("id")
+            
+    get_fsm_defs = _get_fsm_defs
 
-    get_rags = _get_rags
 
 
 class AdminReviewValue(serializers.Serializer):
@@ -107,7 +101,6 @@ class AdminReviewSerializer(serializers.ModelSerializer):
 
 
 class StatsSerializer(serializers.Serializer):
-    rag = serializers.CharField(required=False, allow_null=True)
     min_date = serializers.DateField(required=False, allow_null=True)
     max_date = serializers.DateField(required=False, allow_null=True)
     granularity = serializers.ChoiceField(

@@ -8,7 +8,7 @@ from channels.layers import get_channel_layer
 from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models import ConsumerRoundRobinQueue
 from back.apps.broker.models.message import StackPayloadType
-from back.apps.language_model.models import RAGConfig, LLMConfig
+from back.apps.language_model.models import LLMConfig
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -164,7 +164,7 @@ class FSM:
         """
         if data["node_type"] == RPCNodeType.action.value:
             self.manage_last_llm_msg(data)
-            id = await self.save_if_last_llm_msg(data)
+            id = await self.save_if_last_chunk(data)
             data["id"] = id
             await self.ctx.send_response(data)
         else:
@@ -172,23 +172,15 @@ class FSM:
 
     def manage_last_llm_msg(self, _new):
         _old = self.last_aggregated_msg
-        if _new['stack'][0]["type"] in [StackPayloadType.llm_generated_text.value, StackPayloadType.rag_generated_text.value]:
+        if _new['stack'][0]["type"] == StackPayloadType.message_chunk.value:
             if _new["stack_id"] == _old.get("stack_id"):
-                more_model_response = _new["stack"][0]['payload']['model_response']
-                old_payload = _old["stack"][0]['payload']
-                _new["stack"][0]['payload']['model_response'] = old_payload['model_response'] + more_model_response
+                more_content = _new["stack"][0]["payload"]["content"]
+                old_payload = _old["stack"][0]["payload"]["content"]
+                _new["stack"][0]['payload']['content'] = old_payload + more_content
         self.last_aggregated_msg = _new
 
-    async def save_if_last_llm_msg(self, _new):
-        if self.last_aggregated_msg.get("last"):
-            if self.last_aggregated_msg['stack'][0]["type"] == StackPayloadType.rag_generated_text.value:
-                rag_config_id = (await database_sync_to_async(RAGConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['rag_config_name'])).id
-                self.last_aggregated_msg['stack'][0]['payload']["rag_config_id"] = rag_config_id
-
-            elif self.last_aggregated_msg['stack'][0]['type'] == StackPayloadType.llm_generated_text.value:
-                llm_config_id = (await database_sync_to_async(LLMConfig.objects.get)(name=self.last_aggregated_msg['stack'][0]['payload']['llm_config_name'])).id
-                self.last_aggregated_msg['stack'][0]['payload']["llm_config_id"] = llm_config_id
-
+    async def save_if_last_chunk(self, _new):
+        if self.last_aggregated_msg.get("last_chunk"):
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)

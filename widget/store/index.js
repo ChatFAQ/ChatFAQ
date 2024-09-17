@@ -109,6 +109,7 @@ export const useGlobalStore = defineStore('globalStore', {
                     "payload": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
                 }],
                 "stack_id": "0",
+                "stack_group_id": "0",
                 "last": true
             }]
             this.conversations = [

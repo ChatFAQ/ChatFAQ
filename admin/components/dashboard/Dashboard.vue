@@ -2,20 +2,20 @@
     <div class="dashboard-page-title">{{ $t("welcome", { name: userName }) }}</div>
     <div class="dashboard-wrapper" v-loading="itemsStore.loading">
         <div class="text-explanation" v-html="$t('dashboardexplanation')"></div>
-        <div class="section-title">{{ $t("sdks") }}</div>
+        <div class="section-title">{{ $t("fsms") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!sdks || !sdks.length">{{ $t('nosdks') }}</div>
             <Card v-for="sdk in sdks" :editable="false" :deletable="false" @delete="initItems" :item="sdk"
                   :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
                   :titleProps="['fsm_name']" />
         </div>
-        <div class="section-title">{{ $t("rags") }}</div>
+        <div class="section-title">{{ $t("retrievers") }}</div>
         <div class="cards-view">
-            <div class="no-items" v-if="!rags || !rags.length">{{ $t('norags') }}</div>
-            <Card v-for="rag in rags" @delete="initItems" @edit="() => goTo('ai_config')" :item="rag"
-                  :cardProps="cardPropsRAG" :itemSchema="itemSchemaRAG" :apiUrl="RAGAPIUrl">
+            <div class="no-items" v-if="!retrievers || !retrievers.length">{{ $t('noretrievers') }}</div>
+            <Card v-for="retriever in retrievers" @delete="initItems" @edit="() => goTo('ai_config')" :item="retriever"
+                  :cardProps="cardPropsRetriever" :itemSchema="itemSchemaRetriever" :apiUrl="RetrieverAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRagReindex(item.id, $t)"
+                    <el-button class="bottom-card-button" @click="callRetrieverReindex(item.id, $t)"
                                :disabled="item.index_status === 'up_to_date'">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
@@ -27,7 +27,25 @@
                     <span class="title">{{ name }}:</span>
                     <el-switch
                         v-model="item.enabled"
-                        :before-change="() => switchEnabled(item)"
+                        :before-change="() => switchEnabled(item, RetrieverAPIUrl)"
+                        @click.native.stop
+                        :loading="loading[item.id]"
+                        :active-value="true"
+                        :inactive-value="false"
+                    />
+                </template>
+            </Card>
+        </div>
+        <div class="section-title">{{ $t("llms") }}</div>
+        <div class="cards-view">
+            <div class="no-items" v-if="!llms || !llms.length">{{ $t('nollms') }}</div>
+            <Card v-for="llm in llms" @delete="initItems" @edit="() => goTo('ai_config')" :item="llm"
+                  :cardProps="cardPropsLLM" :itemSchema="itemSchemaLLM" :apiUrl="LLMAPIUrl">
+                <template v-slot:enabled="{item, name}">
+                    <span class="title">{{ name }}:</span>
+                    <el-switch
+                        v-model="item.enabled"
+                        :before-change="() => switchEnabled(item, LLMAPIUrl)"
                         @click.native.stop
                         :loading="loading[item.id]"
                         :active-value="true"
@@ -51,7 +69,7 @@ import { authHeaders, useItemsStore } from "~/store/items.js";
 import { useAuthStore } from "~/store/auth.js";
 import { useI18n } from "vue-i18n";
 import Card from "~/components/generic/Card.vue";
-import { callRagReindex, upsertItem } from "~/utils/index.js";
+import { callRetrieverReindex, upsertItem } from "~/utils/index.js";
 
 const { t } = useI18n();
 const itemsStore = useItemsStore();
@@ -61,12 +79,23 @@ const router = useRouter();
 
 const loading = ref({});
 
-// -------- RAG --------
-const RAGAPIUrl = ref("/back/api/language-model/rag-configs/");
-const cardPropsRAG = ref({
+// -------- Retriever --------
+const RetrieverAPIUrl = ref("/back/api/language-model/retriever-configs/");
+const cardPropsRetriever = ref({
     "enabled": t("enabled"),
+    "model_name": t("modelname"),
+    "retriever_type": t("retrievertype"),
 });
-const itemSchemaRAG = ref({});
+const itemSchemaRetriever = ref({});
+
+// -------- LLM --------
+const LLMAPIUrl = ref("/back/api/language-model/llm-configs/");
+const cardPropsLLM = ref({
+    "enabled": t("enabled"),
+    "llm_type": t("llmtype"),
+    "llm_name": t("llmname"),
+});
+const itemSchemaLLM = ref({});
 
 // -------- Widget --------
 const WidgetAPIUrl = ref("/back/api/widget/widgets/");
@@ -82,13 +111,17 @@ const cardPropsSDK = ref({
     "created_date": t("created_date"),
 });
 const itemSchemaSDK = ref({});
-const rags = ref([]);
+
+const retrievers = ref([]);
+const llms = ref([]);
 const widgets = ref([]);
 const sdks = ref([]);
 const userName = await authStore.getUserName()
+
 async function initData() {
     itemsStore.loading = true;
-    itemSchemaRAG.value = await itemsStore.getSchemaDef(RAGAPIUrl.value);
+    itemSchemaRetriever.value = await itemsStore.getSchemaDef(RetrieverAPIUrl.value);
+    itemSchemaLLM.value = await itemsStore.getSchemaDef(LLMAPIUrl.value);
     itemSchemaWidget.value = await itemsStore.getSchemaDef(WidgetAPIUrl.value);
     itemSchemaSDK.value = await itemsStore.getSchemaDef(SDKAPIUrl.value);
     itemsStore.loading = false;
@@ -96,7 +129,8 @@ async function initData() {
 
 async function initItems() {
     itemsStore.loading = true;
-    rags.value = (await $axios.get(RAGAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
+    retrievers.value = (await $axios.get(RetrieverAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
+    llms.value = (await $axios.get(LLMAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
     widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
     sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
     itemsStore.loading = false;
@@ -109,10 +143,10 @@ function goTo(route) {
     router.push({ name: route });
 }
 
-async function switchEnabled(item) {
+async function switchEnabled(item, apiUrl) {
     try {
         loading.value[item.id] = true;
-        const res = await upsertItem(RAGAPIUrl.value, { id: item.id, enabled: !item.enabled }, itemsStore, false, {}, t);
+        const res = await upsertItem(apiUrl, { id: item.id, enabled: !item.enabled }, itemsStore, false, {}, t);
         item.enabled = res.enabled;  // Assuming the backend responds with the updated state
         loading.value[item.id] = false;
     } catch (e) {
@@ -122,7 +156,6 @@ async function switchEnabled(item) {
 }
 
 </script>
-
 
 <style lang="scss">
 .dashboard-wrapper {

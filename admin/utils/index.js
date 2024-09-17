@@ -107,11 +107,11 @@ export async function deleteItem(id, itemsStore, apiUrl, $t) {
 }
 
 
-export async function callRagReindex(ragId, $t) {
+export async function callRetrieverReindex(retrieverId, $t) {
     const {$axios} = useNuxtApp();
 
     try {
-        await $axios.get(`/back/api/language-model/rag-configs/${ragId}/trigger-reindex/`, { "headers": authHeaders() });
+        await $axios.get(`/back/api/language-model/retriever-configs/${retrieverId}/trigger-reindex/`, { "headers": authHeaders() });
     } catch (e) {
         ElNotification({
             title: "Error",

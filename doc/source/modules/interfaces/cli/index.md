@@ -1,5 +1,7 @@
 # ChatFAQ Command Line Interface (CLI) Tool
 
+> ⚠️ The CLI is currently not being maintained, we don't recommend using it.
+
 The CLI allows you to interact with the backend server from the command line. It offers the same capabilities as the Django admin panel or the ChatFAQ admin.
 
 ## Prerequisites

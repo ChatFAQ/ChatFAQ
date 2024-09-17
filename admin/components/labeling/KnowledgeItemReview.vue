@@ -67,11 +67,12 @@ async function initKIReview() {
     itemsStore.loading = true
     reviewedKIs.value = {message_id: props.message.id, kis: []}
     const references = props.message.stack[props.message.stack.length - 1].payload.references
-    if (!references) {
+
+    if (!references || !Object.keys(references).length) {
         itemsStore.loading = false
         return
     }
-    for (const ki_ref of references.knowledge_items) {
+    for (const ki_ref of references.knowledge_items || []) {
         const ki = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, true)
         if (ki)
             reviewedKIs.value.kis.push(ki)

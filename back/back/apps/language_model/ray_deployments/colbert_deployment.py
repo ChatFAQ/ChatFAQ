@@ -1,10 +1,10 @@
-from typing import List
 import os
-import ray
-from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
-from ray import serve
-from django.conf import settings
+from typing import List
 
+import ray
+from django.conf import settings
+from ray import serve
+from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 
 from back.apps.language_model.tasks import read_s3_index
 
@@ -14,7 +14,7 @@ from back.apps.language_model.tasks import read_s3_index
     ray_actor_options={
         "num_cpus": 1,
         "resources": {
-            "rags": 1,
+            "ai_components": 1,
         },
     },
 )
@@ -24,8 +24,9 @@ class ColBERTDeployment:
     """
 
     def __init__(self, index_path, storages_mode):
-        from chat_rag.utils.reference_checker import clean_relevant_references
         from ragatouille import RAGPretrainedModel
+
+        from chat_rag.utils.reference_checker import clean_relevant_references
 
 
         self.clean_relevant_references = clean_relevant_references
@@ -109,16 +110,18 @@ def construct_index_path(index_path: str):
         bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         return f"s3://{bucket_name}/{index_path}"
 
-
-def launch_colbert(retriever_deploy_name, index_path):
+@ray.remote(num_cpus=0.1, resources={"tasks": 1})
+def launch_colbert_deployment(retriever_deploy_name, index_path, num_replicas):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name} and index_path: {index_path}")
 
     storages_mode = settings.STORAGES_MODE
 
     index_path = construct_index_path(index_path)
     print(f"Index path: {index_path}")
-    retriever_handle = ColBERTDeployment.options(
-        name=retriever_deploy_name,
+    retriever_app = ColBERTDeployment.options(
+        name=retriever_deploy_name, 
+        num_replicas=num_replicas
     ).bind(index_path, storages_mode)
+    
+    serve.run(retriever_app, name=retriever_deploy_name, route_prefix=None)
     print(f"Launched ColBERT deployment with name: {retriever_deploy_name}")
-    return retriever_handle

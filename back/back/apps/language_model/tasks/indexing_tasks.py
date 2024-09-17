@@ -12,7 +12,6 @@ from back.apps.language_model.models.enums import (
     RetrieverTypeChoices,
 )
 
-from back.apps.language_model.ray_deployments import launch_rag_deployment
 from .colbert_actor import ColBERTActor
 
 logger = getLogger(__name__)
@@ -39,13 +38,13 @@ def generate_embeddings_task(data):
     return embeddings
 
 
-def get_modified_k_items_ids(rag_config):
+def get_modified_k_items_ids(retriever_config):
     """
     Get the ids of the k items that have been modified.
     Parameters
     ----------
-    rag_config : RAGConfig
-        The RAGConfig object.
+    retriever_config : RetrieverConfig
+        The RetrieverConfig object.
     Returns
     -------
     modified_k_item_ids : list
@@ -55,7 +54,7 @@ def get_modified_k_items_ids(rag_config):
 
     modified_k_item_ids = list(
         Embedding.objects.filter(
-            rag_config=rag_config,
+            retriever_config=retriever_config,
             updated_date__lt=F("knowledge_item__updated_date"),
         ).values_list("knowledge_item__pk", flat=True)
     )
@@ -63,23 +62,23 @@ def get_modified_k_items_ids(rag_config):
     return modified_k_item_ids
 
 
-def generate_embeddings(k_items, rag_config):
+def generate_embeddings(k_items, retriever_config):
     """
     Generate the embeddings for a knowledge base.
     Parameters
     ----------
     ki_ids : list
         A list of primary keys of the KnowledgeItem objects.
-    ragconfig_id : int
-        The primary key of the RAGConfig object.
+    retriever_config : RetrieverConfig
+        The RetrieverConfig object.
     """
     from back.apps.language_model.models import Embedding
 
-    model_name = rag_config.retriever_config.model_name
-    batch_size = rag_config.retriever_config.batch_size
-    device = rag_config.retriever_config.get_device().value
+    model_name = retriever_config.model_name
+    batch_size = retriever_config.batch_size
+    device = retriever_config.get_device().value
     logger.info(
-        f"Generating embeddings for {k_items.count()} knowledge items. Knowledge base: {rag_config.knowledge_base.name}"
+        f"Generating embeddings for {k_items.count()} knowledge items. Knowledge base: {retriever_config.knowledge_base.name}"
     )
     logger.info(f"Retriever model: {model_name}")
     logger.info(f"Batch size: {batch_size}")
@@ -95,37 +94,33 @@ def generate_embeddings(k_items, rag_config):
 
     # Submit the task to the Ray cluster
     num_gpus = 1 if device == "cuda" else 0
-    task_name = f"generate_embeddings_{rag_config.name}"
+    task_name = f"generate_embeddings_{retriever_config.name}"
     embeddings_ref = generate_embeddings_task.options(resources={"tasks": 1}, num_gpus=num_gpus, name=task_name).remote(data)
     embeddings = ray.get(embeddings_ref)
 
     new_embeddings = [
         Embedding(
             knowledge_item=item,
-            rag_config=rag_config,
+            retriever_config=retriever_config,
             embedding=embedding,
         )
         for item, embedding in zip(k_items, embeddings)
     ]
     Embedding.objects.bulk_create(new_embeddings)
     logger.info(
-        f"Embeddings generated for knowledge base: {rag_config.knowledge_base.name}"
+        f"Embeddings generated for knowledge base: {retriever_config.knowledge_base.name}"
     )
 
 
-def index_e5(rag_config):
+def index_e5(retriever_config):
     """
     Generate the embeddings for a knowledge base for the E5 retriever.
-    Parameters
-    ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
     """
     from back.apps.language_model.models import Embedding, KnowledgeItem
 
     # When a k item is deleted, its embedding is also deleted in cascade, so we need to remove the embeddings of only the modified k items
     # get the modified k items ids
-    modified_k_item_ids = get_modified_k_items_ids(rag_config)
+    modified_k_item_ids = get_modified_k_items_ids(retriever_config)
 
     logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
 
@@ -134,10 +129,10 @@ def index_e5(rag_config):
 
     # get the k items that have no associated embeddings
     k_items = KnowledgeItem.objects.filter(
-        knowledge_base=rag_config.knowledge_base
-    ).exclude(embedding__rag_config=rag_config)
+        knowledge_base=retriever_config.knowledge_base
+    ).exclude(embedding__retriever_config=retriever_config)
 
-    generate_embeddings(k_items=k_items, rag_config=rag_config)
+    generate_embeddings(k_items=k_items, retriever_config=retriever_config)
 
 
 def get_indexed_k_items_ids(s3_index_path):
@@ -203,25 +198,21 @@ def get_indexed_k_items_ids(s3_index_path):
     return indexed_k_item_ids
 
 
-def modify_index(rag_config):
+def modify_index(retriever_config):
     """
     Modify the index for a knowledge base. It removes, modifies and adds the k items to an existing index.
-    Parameters
-    ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
     """
     from django.conf import settings
     from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
     from back.apps.language_model.models import Embedding, KnowledgeItem
 
-    s3_index_path = rag_config.s3_index_path
-    index_path = construct_index_path(rag_config.s3_index_path)
-    bsize = rag_config.retriever_config.batch_size
-    device = rag_config.retriever_config.get_device().value
+    s3_index_path = retriever_config.s3_index_path
+    index_path = construct_index_path(retriever_config.s3_index_path)
+    bsize = retriever_config.batch_size
+    device =retriever_config.get_device().value
     num_gpus = 1 if device == "cuda" else 0
     storages_mode = settings.STORAGES_MODE
-    actor_name = f"modify_colbert_index_{rag_config.name}"
+    actor_name = f"modify_colbert_index_{retriever_config.name}"
 
     logger.info(f"Index path: {index_path}")
     logger.info(f"Bsize: {bsize}, Device: {device}, Num GPUs: {num_gpus}, Storages Mode: {storages_mode}")
@@ -233,7 +224,7 @@ def modify_index(rag_config):
 
         # k items to remove
         current_k_item_ids = KnowledgeItem.objects.filter(
-            knowledge_base=rag_config.knowledge_base
+            knowledge_base=retriever_config.knowledge_base
         ).values_list("pk", flat=True)
 
         indexed_k_item_ids = get_indexed_k_items_ids(s3_index_path)
@@ -246,7 +237,7 @@ def modify_index(rag_config):
         logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
 
         # modified k items need to be removed from the index also
-        modified_k_item_ids = get_modified_k_items_ids(rag_config)
+        modified_k_item_ids = get_modified_k_items_ids(retriever_config)
 
         logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
 
@@ -270,8 +261,8 @@ def modify_index(rag_config):
 
         # get the k items that have no associated embeddings
         k_items = KnowledgeItem.objects.filter(
-            knowledge_base=rag_config.knowledge_base
-        ).exclude(embedding__rag_config=rag_config)
+            knowledge_base=retriever_config.knowledge_base
+        ).exclude(embedding__retriever_config=retriever_config)
 
         logger.info(f"Number of k items to add: {len(k_items)}")
 
@@ -281,11 +272,11 @@ def modify_index(rag_config):
         if k_items:
             add_task_ref = colbert.add_to_index.remote(contents_to_add, contents_pk_to_add, bsize)
 
-            # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+            # create an empty embedding for each knowledge item for the given retriever config for tracking which items are indexed
             embeddings = [
                 Embedding(
                     knowledge_item=item,
-                    rag_config=rag_config,
+                    retriever_config=retriever_config,
                 )
                 for item in k_items
             ]
@@ -296,18 +287,18 @@ def modify_index(rag_config):
 
         if save_index:
 
-            new_s3_index_path = rag_config.generate_s3_index_path()
+            new_s3_index_path = retriever_config.generate_s3_index_path()
             logger.info(f"New index path: {new_s3_index_path}")
 
             # Now we save the index only once after all modifications
             index_saved = ray.get(colbert.save_index.remote(
                 construct_index_path(new_s3_index_path)
             ))
-            rag_config.s3_index_path = new_s3_index_path
-            rag_config.save()
+            retriever_config.s3_index_path = new_s3_index_path
+            retriever_config.save()
 
             # delete the old index files
-            task_name = f"delete_index_files_{rag_config.name}"
+            task_name = f"delete_index_files_{retriever_config.name}"
             print(f"Submitting the {task_name} task to the Ray cluster...")
             delete_index_files.options(name=task_name).remote(s3_index_path)
 
@@ -316,31 +307,31 @@ def modify_index(rag_config):
 
     except Exception as e:
         logger.error(f"Error modifying index: {e}")
-        # remove all embeddings for the given rag config
-        Embedding.objects.filter(rag_config=rag_config).delete()
+        # remove all embeddings for the given retriever config
+        Embedding.objects.filter(retriever_config=retriever_config).delete()
         # indexing starting from scratch
-        creates_index(rag_config=rag_config)
+        creates_index(retriever_config=retriever_config)
 
 
-def creates_index(rag_config):
+def creates_index(retriever_config):
     """
     Build the index for a knowledge base using the ColBERT retriever.
     Parameters
     ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
+    retriever_config:
+        The RetrieverConfig object.
     """
     from django.conf import settings
     from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
     from back.apps.language_model.models import Embedding, KnowledgeItem
 
-    k_items = KnowledgeItem.objects.filter(knowledge_base=rag_config.knowledge_base)
+    k_items = KnowledgeItem.objects.filter(knowledge_base=retriever_config.knowledge_base)
 
-    s3_index_path = rag_config.generate_s3_index_path()
+    s3_index_path = retriever_config.generate_s3_index_path()
 
-    colbert_name = rag_config.retriever_config.model_name
-    bsize = rag_config.retriever_config.batch_size
-    device = rag_config.retriever_config.get_device().value
+    colbert_name = retriever_config.model_name
+    bsize = retriever_config.batch_size
+    device = retriever_config.get_device().value
     storages_mode = settings.STORAGES_MODE
 
 
@@ -350,10 +341,10 @@ def creates_index(rag_config):
     contents_pk = [str(item.pk) for item in k_items]
 
     logger.info(
-            f"Building index for knowledge base: {rag_config.knowledge_base.name} with colbert model: {colbert_name}"
+            f"Building index for knowledge base: {retriever_config.knowledge_base.name} with colbert model: {colbert_name}"
         )
 
-    actor_name = f"create_colbert_index_{rag_config.name}"
+    actor_name = f"create_colbert_index_{retriever_config.name}"
 
     index_path = construct_index_path(s3_index_path)
     colbert = ColBERTActor.options(name=actor_name).remote(index_path, device=device, colbert_name=colbert_name, storages_mode=storages_mode)
@@ -369,42 +360,42 @@ def creates_index(rag_config):
 
 
     if index_saved:
-        # create an empty embedding for each knowledge item for the given rag config for tracking which items are indexed
+        # create an empty embedding for each knowledge item for the given retriever config for tracking which items are indexed
         embeddings = [
             Embedding(
                 knowledge_item=item,
-                rag_config=rag_config,
+                retriever_config=retriever_config,
             )
             for item in k_items
         ]
         Embedding.objects.bulk_create(embeddings)
 
         # save s3 index path
-        rag_config.s3_index_path = s3_index_path
-        rag_config.save()
+        retriever_config.s3_index_path = s3_index_path
+        retriever_config.save()
 
     else:
-        logger.error(f"Error building index for knowledge base: {rag_config.knowledge_base.name}")
+        logger.error(f"Error building index for knowledge base: {retriever_config.knowledge_base.name}")
 
 
-def index_colbert(rag_config):
+def index_colbert(retriever_config):
     """
     Build the index for a knowledge base.
     Parameters
     ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
+    retriever_config : 
+        The RetrieverConfig object.
     """
 
     from back.apps.language_model.models import Embedding
 
     if Embedding.objects.filter(
-        rag_config=rag_config
-    ).exists():  # if there are embeddings for the given rag config
-        modify_index(rag_config)
+        retriever_config=retriever_config
+    ).exists():  # if there are embeddings for the given retriever config
+        modify_index(retriever_config)
 
     else:
-        creates_index(rag_config=rag_config)
+        creates_index(retriever_config=retriever_config)
 
 
 @ray.remote(num_cpus=0.2, resources={"tasks": 1})
@@ -444,44 +435,42 @@ def delete_index_files(s3_index_path):
 
 
 @ray.remote(num_cpus=0.5, resources={"tasks": 1})
-def index_task(rag_config_id, launch_rag_deploy: bool = False):
+def index_task(retriever_config_id, launch_retriever_deploy: bool = False):
     """
     Build the index for a knowledge base.
     Parameters
     ----------
-    rag_config_id : int
-        The primary key of the RAGConfig object.
-    launch_rag_deploy : bool
-        Whether to launch the RAG deployment after the index is built.
+    retriever_config_id : int
+        The primary key of the RetrieverConfig object.
+    launch_retriever_deploy : bool
+        Whether to launch the retriever deployment after the index is built.
     """
-    from back.apps.language_model.models import RAGConfig, Embedding
+    from back.apps.language_model.models import RetrieverConfig, Embedding
 
 
-    rag_config = RAGConfig.objects.get(pk=rag_config_id)
+    retriever_config = RetrieverConfig.objects.get(pk=retriever_config_id)
 
-    retriever_type = rag_config.retriever_config.get_retriever_type()
+    retriever_type = retriever_config.get_retriever_type()
 
-    # if no_index, remove all rag config embeddings for a clean start and no leftovers
-    if rag_config.get_index_status() == IndexStatusChoices.NO_INDEX:
-        Embedding.objects.filter(rag_config=rag_config).delete()
+    # if no_index, remove all retriever config embeddings for a clean start and no leftovers
+    if retriever_config.get_index_status() == IndexStatusChoices.NO_INDEX:
+        Embedding.objects.filter(retriever_config=retriever_config).delete()
 
         # remove the index files from S3
-        task_name = f"delete_index_files_{rag_config.name}"
+        task_name = f"delete_index_files_{retriever_config.name}"
         print(f"Submitting the {task_name} task to the Ray cluster...")
-        delete_index_files.options(name=task_name).remote(rag_config.s3_index_path)
+        delete_index_files.options(name=task_name).remote(retriever_config.s3_index_path)
 
     if retriever_type == RetrieverTypeChoices.E5:
-        index_e5(rag_config)
+        index_e5(retriever_config)
     elif retriever_type == RetrieverTypeChoices.COLBERT:
-        index_colbert(rag_config)
+        index_colbert(retriever_config)
 
-    rag_config.index_status = IndexStatusChoices.UP_TO_DATE
-    rag_config.save()
+    retriever_config.index_status = IndexStatusChoices.UP_TO_DATE
+    retriever_config.save()
 
-    logger.info(f"Index built for knowledge base: {rag_config.knowledge_base.name}")
+    logger.info(f"Index built for knowledge base: {retriever_config.knowledge_base.name}")
 
-    # launch rag
-    if launch_rag_deploy:
-        task_name = f"launch_rag_deployment_{rag_config.name}"
-        print(f"Submitting the {task_name} task to the Ray cluster...")
-        launch_rag_deployment.options(name=task_name).remote(rag_config_id)
+    # launch retriever
+    if launch_retriever_deploy:
+        retriever_config.trigger_deploy()

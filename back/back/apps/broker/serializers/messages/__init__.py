@@ -14,6 +14,7 @@ from rest_framework.exceptions import ValidationError
 from back.apps.broker.models.message import AgentType, Satisfaction, StackPayloadType
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
+from back.apps.fsm.models import FSMDefinition
 
 if TYPE_CHECKING:
     from back.apps.broker.models.message import Message
@@ -93,16 +94,16 @@ class QuickReplySerializer(serializers.Serializer):
 
 # ----------- Payload's types -----------
 
-
-class TextPayload(serializers.Serializer):
-    payload = serializers.CharField()
-
-
 class ReferenceKi(serializers.Serializer):
     knowledge_item_id = serializers.CharField(required=True)
     url = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     title = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     image_urls = serializers.DictField(required=False, allow_null=True, allow_empty=True)
+
+class Reference(serializers.Serializer):
+    knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
+    knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
+    knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class ToolUse(serializers.Serializer):
@@ -112,35 +113,13 @@ class ToolUse(serializers.Serializer):
     text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
-class Reference(serializers.Serializer):
-    knowledge_items = ReferenceKi(many=True, required=False, allow_null=True)
-    knowledge_item_images = serializers.DictField(required=False, allow_null=True, allow_empty=True)
-    knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-
-
-class RAGGeneratedTextPayload(serializers.Serializer):
-    class _RAGGeneratedTextPayload(serializers.Serializer):
-        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
-        rag_config_name = serializers.CharField()
-        rag_config_id = serializers.CharField()
-        lm_msg_id = serializers.CharField()
+class MessagePayload(serializers.Serializer):
+    class _MessagePayload(serializers.Serializer):
+        content = serializers.CharField(trim_whitespace=False, allow_blank=True)
         references = Reference(required=False, allow_null=True)
+        tool_use = ToolUse(many=True, required=False, allow_null=True, allow_empty=True)
 
-    payload = _RAGGeneratedTextPayload()
-
-class LLMGeneratedTextPayload(serializers.Serializer):
-    class _LLMGeneratedTextPayload(serializers.Serializer):
-        model_response = serializers.CharField(trim_whitespace=False, allow_blank=True)
-        llm_config_name = serializers.CharField()
-        llm_config_id = serializers.CharField()
-        lm_msg_id = serializers.CharField()
-        tool_use = serializers.ListField(child=ToolUse(), required=False, allow_null=True, allow_empty=True)
-
-        # For compatibility with the widget frontend
-        rag_config_name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-        references = Reference(required=False, allow_null=True)
-
-    payload = _LLMGeneratedTextPayload()
+    payload = _MessagePayload()
 
 class HTMLPayload(serializers.Serializer):
     @staticmethod
@@ -175,9 +154,7 @@ class QuickRepliesPayload(serializers.Serializer):
         component_name="Payload",
         resource_type_field_name="payload",
         serializers={
-            "TextPayload": TextPayload,
-            "RAGGeneratedTextPayload": RAGGeneratedTextPayload,
-            "LLMGeneratedTextPayload": LLMGeneratedTextPayload,
+            "MessagePayload": MessagePayload,
             "HTMLPayload": HTMLPayload,
             "ImagePayload": ImagePayload,
             "SatisfactionPayload": SatisfactionPayload,
@@ -193,20 +170,31 @@ class Payload(serializers.Field):
         return data
 
 
+class FSMDefinitionField(serializers.Field):
+    def to_internal_value(self, data):
+        fsm_def = FSMDefinition.get_by_id_or_name(data)
+        if fsm_def:
+            return fsm_def.id
+        raise serializers.ValidationError(f"FSM Definition '{data}' not found.")
+
+    def to_representation(self, value):
+        try:
+            fsm_def = FSMDefinition.objects.get(id=value)
+            return fsm_def.name
+        except FSMDefinition.DoesNotExist:
+            return None
+
 class MessageStackSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType], required=False)
     payload = Payload(required=False)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
     state = serializers.JSONField(required=False)
+    fsm_definition = FSMDefinitionField(required=False, allow_null=True)
 
     def validate(self, data):
-        if data.get("type") == StackPayloadType.text.value:
-            s = TextPayload(data=data)
-        elif data.get("type") == StackPayloadType.rag_generated_text.value:
-            s = RAGGeneratedTextPayload(data=data)
-        elif data.get("type") == StackPayloadType.llm_generated_text.value:
-            s = LLMGeneratedTextPayload(data=data)
+        if data.get("type") in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
+            s = MessagePayload(data=data)
         elif data.get("type") == StackPayloadType.html.value:
             s = HTMLPayload(data=data)
         elif data.get("type") == StackPayloadType.image.value:
@@ -227,6 +215,7 @@ class MessageStackSerializer(serializers.Serializer):
 class MessageSerializer(serializers.ModelSerializer):
     stack = serializers.ListField(child=MessageStackSerializer())
     stack_id = serializers.CharField(required=False, max_length=255)
+    stack_group_id = serializers.CharField(required=False, max_length=255)
     last = serializers.BooleanField(default=False)
     sender = AgentSerializer()
     receiver = AgentSerializer(required=False)

@@ -18,7 +18,7 @@
                     <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
                 </div>
             </div>
-            <div v-if="!isPhoneLandscape && !fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
+            <div v-if="!isPhoneLandscape && !store.fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
                  @click="store.opened = !store.opened">
                 <BubbleButtonClose v-if="store.opened" class="bubble-icon close" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
                 <BubbleButtonOpen v-else class="bubble-icon open" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />

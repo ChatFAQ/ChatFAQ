@@ -1,23 +1,38 @@
 # AI Configuration
 
-After setting up the components, you will probably want to configure a model that you want to use for your chatbot. Typically the model will be used from the SDK, from a state within its FSM.
+## Table of Contents
+- [AI Configuration](#ai-configuration)
+  - [Table of Contents](#table-of-contents)
+    - [Knowledge Base](#knowledge-base)
+      - [CSV parsing options](#csv-parsing-options)
+      - [PDF and URL parsing options](#pdf-and-url-parsing-options)
+      - [Parsing Recommendations](#parsing-recommendations)
+      - [CSV Structure](#csv-structure)
+      - [Knowledge items Recomendations](#knowledge-items-recomendations)
+    - [Retriever Config](#retriever-config)
+      - [Model properties](#model-properties)
+      - [Knowledge Base properties](#knowledge-base-properties)
+      - [Model inference properties](#model-inference-properties)
+      - [ColBERT Search](#colbert-search)
+      - [Standard Semantic Search](#standard-semantic-search)
+      - [Indexing](#indexing)
+    - [LLM Config](#llm-config)
+      - [OpenAI](#openai)
+      - [vLLM Client](#vllm-client)
+    - [Prompt Config](#prompt-config)
+        - [Description of the assistant](#description-of-the-assistant)
+        - [Refusals to out of scope questions](#refusals-to-out-of-scope-questions)
+    - [Generation Config](#generation-config)
+  - [Using your AI Components](#using-your-ai-components)
 
-## The RAG Pipeline
 
-The [RAG (Retrieval-Augmented Generation)](https://arxiv.org/abs/2005.11401) architecture is a workflow that combines a retriever and a generator. The retriever is used to retrieve the most relevant knowledge items from a knowledge base, and the generator is used to generate an answer from the retrieved knowledge items.
+Here you can set up multiple AI components that can be used to compose AI pipelines using Finite State Machines from the ChatFAQ SDK. For example:
 
-In ChatFAQ we choose to follow this pattern. Next we explain how to configure it.
+- You can create a RAG (Retrieval Augmented Generation) FSM pipeline, using a retriever, a generator and a knowledge base.
+- You can create a simple chatbot using only a LLM.
+- You can create any kind of agent using the ChatFAQ SDK, given that the backend supports tool use.
 
-We define 5 main components that are needed to configure a RAG pipeline:
-
-- Knowledge Base
-- Retriever
-- Prompt
-- Generation
-- LLM
-- RAG
-
-ChatFAQ provide in its fixtures a default configuration for each of these components except for the Knowledge Base and the RAG Config. You can apply the fixtures by simply running the following command from the `back` directory:
+ChatFAQ provide in its fixtures a default configuration for each of these components. You can apply the fixtures by simply running the following command from the `back` directory:
 
 ```bash
 make apply_fixtures
@@ -51,7 +66,7 @@ Next we list the different properties that a of knowledge bases has.
 - **section_index_col**: The index of the column that contains the section of the knowledge item.
 - **role_index_col**: The index of the column that contains the role of the knowledge item.
 - **page_number_index_col**: The index of the column that contains the page number of the knowledge item.
-- **source_index_col**: The index of the column that coontains the original document of the knowledge item.
+- **source_index_col**: The index of the column that contains the original document of the knowledge item.
 
 #### PDF and URL parsing options
 
@@ -108,17 +123,31 @@ An example of a CSV for the Knowledge Base is the following:
 
 The retriever is the component that will retrieve the most relevant knowledge items from the knowledge base.
 
-The retriever is configured with the following properties:
+The retriever is configured with the following properties, which can be separated into 3 groups:
 
+- **Model properties**: These are the properties that define the retriever model.
+- **Knowledge Base properties**: These are the properties that define the knowledge base.
+- **Model inference properties**: These are the properties that define the inference properties of the retriever.
+
+#### Model properties
 - **name**: Just a name for the retriever.
 - **model_name**: The name of the retriever model to use. It must be a HuggingFace repo id. Default: 'colbert-ir/colbertv2.0'.
 - **retriever_type**: The type of retriever to use. It can be 'ColBERT Search' or 'Standard Semantic Search'. Default: 'ColBERT Search'.
+
+#### Knowledge Base properties
+- **knowledge_base**: The knowledge base to use for the retriever.
+- **index_status**: The status of the retriever index.
+- **s3_index_path**: The path to the retriever index in S3.
+
+#### Model inference properties
 - **batch_size**: The batch size to use for the retriever. Default: 1.
 - **device**: The device to use for the retriever. It can be a CPU or a GPU. Default: 'cpu'.
+- **enabled**: Whether the retriever is enabled. Default: True.
+- **num_replicas**: The number of replicas to deploy in the Ray cluster. Default: 1.
 
 #### ColBERT Search
 
-We recommend setting [ColBERT](https://arxiv.org/abs/2004.12832) as the retriever. It generates multiple embeddings for each knowledge item and query, which allows for more accurate retrieval generally and it is faster than the Standard Semantic Search retriever.
+We recommend setting [ColBERT](https://arxiv.org/abs/2004.12832) as the retriever. It generates multiple embeddings for each knowledge item and query, which allows for more accurate retrieval generally. The search process is faster than the Standard Semantic Search retriever, but the indexing process is slower.
 
 Model per language:
 
@@ -146,10 +175,43 @@ An example of a retriever config is the following:
     "name": "colbert",
     "model_name": "colbert-ir/colbertv2.0",
     "retriever_type": "ColBERT Search",
+    "knowledge_base": 1,
+    "index_status": "NO_INDEX",
+    "s3_index_path": "",
     "batch_size": 1,
-    "device": "cpu"
+    "device": "cpu",
+    "enabled": true,
+    "num_replicas": 1
 }
 ```
+
+#### Indexing
+
+The retriever needs to build an index of the knowledge base to perform searches. This index is created and managed automatically, but you need to manually trigger indexing.
+
+In the admin panel, each Retriever has a "ReIndex" button. This button is active (clickable) when:
+
+1. The index has not been built yet (index_status is NO_INDEX)
+2. The index is outdated (index_status is OUTDATED)
+
+The index status will automatically update to OUTDATED when:
+
+- The associated knowledge base is modified
+- The retriever's model or type is changed
+
+To initiate indexing:
+
+1. Go to the admin panel.
+2. Navigate to the Retrievers section
+3. Find the retriever you want to index
+4. Click the "ReIndex" button if it's active
+
+The indexing process will start a ray task in the background. You can monitor its progress in the Ray dashboard. Once complete, the index status will update to UP_TO_DATE.
+
+For ColBERT retrievers, the index is stored in S3 for persistence and faster loading. The S3 path is automatically generated and stored in the `s3_index_path` field.
+
+Note: Indexing can take some time, especially for large knowledge bases. Ensure your system has sufficient resources available before starting the process.
+
 
 ### LLM Config
 
@@ -157,17 +219,13 @@ The LLM is the component that defines the model that will generate the answer fr
 
 The LLM is configured with the following properties:
 
-- **name**: Just a name for the LLM.
-- **llm_type**: The type of LLM to use. It can be 'OpenAI', 'Claude', 'Local GPU Model' (HuggingFace), 'Local CPU Model (ggml)' or a 'vLLM Client'. Default: 'Local GPU Model'.
-- **llm_name**: The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc. Default: gpt2.
-- **ggml_llm_filename**: The GGML filename of the model, if it is a GGML model.
-- **model_config**: The huggingface model config of the model, needed for GGML models.
-- **load_in_8bit**: Whether to load the model in 8bit or not, only for Local GPU HuggingFace models. Default: False.
-- **use_fast_tokenizer**: Whether to use the fast tokenizer or not. Default: True.
-- **trust_remote_code_tokenizer**: Whether to trust the remote code for the tokenizer or not. Default: False.
-- **trust_remote_code_model**: Whether to trust the remote code for the model or not. Default: False.
-- **revision**: The specific model version to use. It can be a branch name, a tag name, or a commit id, since we use a git-based system for storing models. Default: main.
+- **name**: Just an identifier name for the LLM.
+- **llm_type**: The type of LLM to use. It can be 'OpenAI', 'Claude', 'Mistral', 'Together' or 'vLLM Client'. Default: 'OpenAI'.
+- **llm_name**: The API name of the LLM to use. It is the HuggingFace repo id if using the vLLM Client, an OpenAI model api name if using OpenAI, etc. Default: gpt-4o.
+- **base_url**: The base url where the model is hosted. It is used for vLLM deployments and Together LLM Endpoints as they use the OpenAI API. Default: None.
 - **model_max_length**: The maximum length of the model. Default: None.
+- **enabled**: Whether the LLM is enabled. Default: True.
+- **num_replicas**: The number of replicas to deploy in the Ray cluster. Default: 1.
 
 Our preferred option is to use an open-source LLM like [Llama-2](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf) for English and [Qwen-Chat](https://huggingface.co/Qwen/Qwen-7B-Chat) for other languages.
 
@@ -177,56 +235,6 @@ To access Llama-2 models you need to set a environment variable in the back `.en
 HUGGINGFACE_KEY=XXXXXX
 ```
 
-We can run these models locally, using a GPU or a CPU.
-
-#### GPU
-
-For GPU we recommend using the following configuration:
-
-```json
-{
-    "name": "Llama2_GPU",
-    "llm_type": "Local GPU Model",
-    "llm_name": "meta-llama/Llama-2-7b-chat-hf",
-    "revision": "main",
-    "load_in_8bit": false,
-    "use_fast_tokenizer": true,
-    "trust_remote_code_tokenizer": false,
-    "trust_remote_code_model": false,
-    "model_max_length": 4096
-}
-```
-
-This uses the HuggingFace model implementations.
-
-> ⚠️ To know if our GPU is enough to load the model we need to multiply its number of parameters by 2. For example, Llama-2-7B has 7B parameters, so we need at least 14GB of GPU memory to load it. This is because every parameter is stored in 2 bytes.
-
-#### CPU
-
-For CPU we recommend using the following configuration:
-
-```json
-{
-    "name": "Llama2_CPU",
-    "llm_type": "Local CPU Model (ggml)",
-    "llm_name": "TheBloke/Llama-2-7B-GGML",
-    "revision": "main",
-    "ggml_llm_filename": "llama-2-7b.ggmlv3.q4_0.bin",
-    "model_config": "meta-llama/Llama-2-7b-chat-hf",
-    "use_fast_tokenizer": true,
-    "trust_remote_code_tokenizer": false,
-    "trust_remote_code_model": false,
-    "model_max_length": 4096
-}
-```
-
-This uses the [GGML](https://github.com/ggerganov/ggml/) library and [CTransformers](https://github.com/marella/ctransformers/tree/main) for python bindings. For a list of available models, check [here](https://github.com/marella/ctransformers/tree/main#supported-models).
-
-For these configurations we need to specify the repo where the models files are stored (llm_name) and then the filename of the model file (ggml_llm_filename). We also need to specify the model config, which is the HuggingFace model config of the model.
-
-> ⚠️ To know if our CPU is enough to run the model we need to divide its number of parameters by 2. For example, Llama-2-7B has 7B parameters, so we need at least 3.5GB of RAM to run it. This is because it uses 4 bit quantization and every parameter is stored in 4 bits.
->
-> Given that our prompts are long, the time to get the first word can be long (several seconds), but after that the generation is fast.
 
 #### OpenAI
 
@@ -234,40 +242,32 @@ This is the easiest way to get a model running. We just need to specify the mode
 
 ```json
 {
-    "name": "ChatGPT",
+    "name": "GPT-4o",
     "llm_type": "OpenAI",
-    "llm_name": "gpt-3.5-turbo"
+    "llm_name": "gpt-4o",
+    "enabled": true,
+    "num_replicas": 1
 }
 ```
 
-The OpenAI models are specified [here](https://platform.openai.com/docs/models/). `gpt-3.5-turbo` should be enough for most use cases. To access OpenAI models you need to set a environment variable in the back `.env` file with your OpenAI API key:
+The OpenAI models are specified [here](https://platform.openai.com/docs/models/). To access OpenAI models you need to set a environment variable in the back `.env` file with your OpenAI API key:
 
 ```
 OPENAI_API_KEY=XXXXXX
 ```
 
-#### Claude
-
-This uses the [Claude models by Anthropic](https://docs.anthropic.com/claude/docs/models-overview#model-recommendations), example:
-
-```json
-{
-    "name": "Claude",
-    "llm_type": "Claude",
-    "llm_name": "claude-2"
-}
-```
+The same process applies for the other LLM clients. Look at the back `.env-template` file to see how to set the environment variables.
 
 #### vLLM Client
 
 This uses a client to connect to a [vLLM server](https://github.com/vllm-project/vllm). The vLLM server is a server that runs a LLM model and exposes an API to generate answers, it has the best latency and throughput performance.
 
-To configure this server you need to:
-
-- You need to specify the model that you want to use inside this [`Dockerfile`](https://github.com/ChatFAQ/ChatFAQ/tree/develop/model_engines/llm), and then follow [this instructions](https://github.com/ChatFAQ/ChatFAQ/tree/develop/model_engines/llm).
-- Start the back, go to the admin and from it you only need to specify that you want to use the `vLLM Client`.
+To configure this server we refer to the [vLLM documentation](https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html).
 
 ### Prompt Config
+
+> ⚠️ This config is not currently used anywhere, right now you set the prompts in the FSM definition. In the future you will be able to reference this prompts configs from the FSM definition.
+
 
 The prompt is the input that the LLM will use to generate the answer. This config indicates how to build the final prompt that the LLM reads.
 
@@ -275,17 +275,8 @@ The prompt is the input that the LLM will use to generate the answer. This confi
 - **system_prompt**: This system prompt indicates the LLM how to behave.
 - **n_contexts_to_use**: The maximum number of knowledge items that will be appear in the sources. Default: 3
 
-In the system prefix you can use the following text behavior:
+For RAG (Retrieval-Augmented Generation) applications, we recommend using the following system guidelines as a foundation:
 
-```
-You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
-```
-
-#### System Prefix Recommendations
-
-The system prefix indicates the LLM how to behave. We recommend that your system prefix contains at least these two parts:
 
 ##### Description of the assistant
 
@@ -311,26 +302,9 @@ Here you can specify what to do when the user asks a question that is out of sco
 
 You can modify this previous text to adapt it to your use case, but it is important to keep the same structure.
 
-#### Tags Recommendations
-
-Tags should only be set when using a HuggingFace model that **doesn't contain a chat template**. In case the model contains a chat template, the tags should be empty and will be ignored, only the system prefix will be used. For more information about chat templates check the following links:
-
-[Blog introducing chat templates](https://huggingface.co/blog/chat-templates)
-[HuggingFace documentation about chat templates](https://huggingface.co/docs/transformers/chat_templating)
-
-In case a chat template is not available for your model, let's say you are using a Llama-2 model, you
-must check the model's documentation to see what tags are needed. For example, for Llama-2 we need to use the following tags:
-
-```json
-{
-    "name": "Llama2_PromptConfig",
-    "system_prompt": "You are a helpful, respectful and honest assistant. <Rest of the text> If you don't know the answer to a question, please don't share false information.\n\n",
-}
-```
-
-> ⚠️ If you use an OpenAI, Claude or vLLM model you only need to specify the **system prefix**, the other fields are not used.
-
 ### Generation Config
+
+> ⚠️ This config is not currently used anywhere, right now you set the generation parameters in the FSM definition. In the future you will be able to reference this generation configs from the FSM definition.
 
 The generation config is used to define the characteristics of the second part from the RAG pipeline, the generation process. We use sampling to generate the answer.
 
@@ -343,61 +317,74 @@ The sampling generation process is configured with the following properties:
 
 We recommend setting the temperature to low values, less than 1.0 because we want the model to be factual, not creative. A very good guide of all this parameters can be found in the [HuggingFace documentation](https://huggingface.co/blog/how-to-generate).
 
-An example of a generation config is the following:
 
-```json
-{
-    "name": "Llama2_GenerationConfig",
-    "temperature": 0.2,
-    "seed": 42,
-    "max_tokens": 1024
-}
-```
+## Using your AI Components
 
-### RAG Config
+With the ChatFAQ SDK you can reference these AI components when developing your FSM. Let's say we have a retriever called `chatfaq_retriever` and we want to use it in a state. We can do it like this:
 
-Finally, the RAG config is used to glue all the previous components together.
+```python
+from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.clients import retrieve
+from chatfaq_sdk.layers import Message
 
-It relates the different elements to create a RAG (Retrieval Augmented Generation) pipeline.
-
-The RAG config is configured with the following properties:
-
-- name: Just a name for the RAG config.
-- knowledge_base: The knowledge base to use.
-- llm_config: The LLM config to use.
-- prompt_config: The prompt config to use.
-- generation_config: The generation config to use.
-- retriever_config: The retriever config to use.
-- disabled: Whether to disable this RAG config or not to reduce the memory usage if it is not used. Default: False.
-
-Remember that currently all the relevant data/models can be accessed and modified from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)) or from the CLI.
-
-It is **very important** to run the indexing tasks manually after creating, modifying a RAG config, or after modifying the knowledge base. You can do it from the RAGConfig django admin panel.
-
-An example of a RAG config is the following:
-
-```json
-{
-    "name": "chatfaq_llama_rag",
-    "knowledge_base": "ChatFAQ_KB",
-    "llm_config": "Llama2_GPU",
-    "prompt_config": "Llama2_PromptConfig",
-    "generation_config": "Llama2_GenerationConfig",
-    "retriever_config": "e5-retriever",
-    "disabled": false
-}
-```
-
-## Using your RAG Pipeline
-
-To create the RAG pipeline you just need to link all the components together. You can do it from the Django admin panel ([http://localhost/back/admin/](http://localhost/back/admin/)).
-
-Then, if you go to the Celery logs you will see that the RAG pipeline is being built. This process can take several minutes, depending on the size of the knowledge base. When it is finished you will see a message like this:
+async def send_retrieval(sdk: ChatFAQSDK, ctx: dict):
+    query = 'What is ChatFAQ?'
+    items = await retrieve(sdk, 'chatfaq_retriever', query, top_k=3, bot_channel_name=ctx["bot_channel_name"])
+    yield Message(
+        '', # Send only the items in the message to be displayed in the chat UI.
+        references=items,
+    )
 
 ```
-[2023-10-20 11:03:22,743: INFO/MainProcess] Loading RAG config: chatfaq_llama_rag with llm: meta-llama/Llama-2-7b-chat-hf with llm type: Local GPU Model with knowledge base: chatfaq retriever: intfloat/e5-small-v2 and retriever device: cpu
+
+For a LLM called 'gpt-4o' we can use it in streaming mode like this:
+
+```python
+from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.clients import llm_request
+from chatfaq_sdk.layers import Message, StreamingMessage
+
+async def send_llm_answer(sdk: ChatFAQSDK, ctx: dict):
+    # Some messages
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "What is the capital of France?"},
+    ]
+    generator = llm_request(sdk, 'gpt-4o', use_conversation_context=False, conversation_id=ctx["conversation_id"], bot_channel_name=ctx["bot_channel_name"], messages=messages)
+    yield StreamingMessage(generator)
 ```
 
-Once you have created your RAG pipeline, you can use it to generate answers.
+Creating a simple RAG pipeline:
 
-The last step will be to reference the name of the Rag Config from a state of your SDK's FSM. <a href="/en/latest/modules/sdk/index.html#model-example">Here is an example of that</a>
+```python
+from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.clients import retrieve, llm_request
+from chatfaq_sdk.layers import Message, StreamingMessage
+from chatfaq_sdk.utils import convert_mml_to_llm_format
+
+async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
+
+    messages = convert_mml_to_llm_format(ctx["conv_mml"][1:])
+    last_user_message = messages[-1]["content"]
+    
+    # Retrieve context
+    contexts = await retrieve(sdk, 'chatfaq_retriever', last_user_message, top_k=3, bot_channel_name=ctx["bot_channel_name"])
+    
+    # Augment prompt with context
+    system_prompt = rag_system_prompt
+    context_content = "\n".join([f"- {context['content']}" for context in contexts['knowledge_items']])
+    system_prompt += f"\nInformation:\n{context_content}"
+    messages.insert(0, {"role": "system", "content": system_prompt})
+    
+    # Generate response
+    generator = llm_request(
+        sdk,
+        "gpt-4o",
+        use_conversation_context=False,
+        conversation_id=ctx["conversation_id"],
+        bot_channel_name=ctx["bot_channel_name"],
+        messages=messages,
+    )
+
+    yield StreamingMessage(generator, references=contexts)
+```

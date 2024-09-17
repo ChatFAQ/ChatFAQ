@@ -96,7 +96,7 @@ services:
 
   - name: back
     image: back
-    envs: [ sentry, django ]
+    envs: [ django ]
     port: 8000
     internal_ports: [8265, 6375, 9090]
     instance_size: M
@@ -117,12 +117,12 @@ workers:
       tag: "production"
     envs: [ django, ray_worker ]
     instance_size: XXL
-    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"rags":100}' --block
+    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"ai_components":100}' --block
 
 jobs:
   - name: migrate
     when: PRE_DEPLOY
     image: back
     instance_size: XS
-    envs: [ sentry, django ]
+    envs: [ django ]
     command: modelw-docker run python manage.py migrate

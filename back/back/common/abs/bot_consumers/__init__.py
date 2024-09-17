@@ -88,22 +88,22 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     def rpc_result_streaming_generator(self):
         self.fsm.rpc_result_future = asyncio.get_event_loop().create_future()
 
-        first_stack_id = self.message_buffer[0]["stack_id"]
-        last_index_diff_stack_id = 0
+        first_stack_group_id = self.message_buffer[0]["stack_group_id"]
+        last_index_diff_stack_group_id = 0
         for index, msg in enumerate(self.message_buffer):
-            if msg["stack_id"] != first_stack_id:
+            if msg["stack_group_id"] != first_stack_group_id:
                 break
-            last_index_diff_stack_id = index
-        _message_buffer = self.message_buffer[: last_index_diff_stack_id + 1]
-        self.message_buffer = self.message_buffer[last_index_diff_stack_id + 1:]
+            last_index_diff_stack_group_id = index
+        _message_buffer = self.message_buffer[: last_index_diff_stack_group_id + 1]
+        self.message_buffer = self.message_buffer[last_index_diff_stack_group_id + 1:]
         _stack = []
         for msg in _message_buffer:
             _stack += msg["stack"]
         if not self.message_buffer:
-            return _stack, _message_buffer[-1]["stack_id"], _message_buffer[-1]["last"]
+            return _stack, _message_buffer[-1]["stack_group_id"], _message_buffer[-1]["last"]
         else:
             self.fsm.rpc_result_future.set_result(self.rpc_result_streaming_generator)
-            return _stack, _message_buffer[-1]["stack_id"], _message_buffer[-1]["last"]
+            return _stack, _message_buffer[-1]["stack_group_id"], _message_buffer[-1]["last"]
 
     async def disconnect(self, code=None):
         logger.debug(

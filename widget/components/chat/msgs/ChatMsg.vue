@@ -25,8 +25,7 @@
                         'feedbacking': feedbacking
                     }">
                     <div class="layer" v-for="layer in props.message.stack">
-                        <TextMsg v-if="layer.type === MSG_TYPES.text" :data="layer"/>
-                        <LMMsg v-if="layer.type === MSG_TYPES.rag_generated_text || layer.type === MSG_TYPES.llm_generated_text" :data="layer" :is-last="isLastOfType && layersFinished"/>
+                        <Message :data="layer" :is-last="isLastOfType && layersFinished"/>
                     </div>
                     <References v-if="store.displaySources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)" :references="props.message.stack[0].payload.references"></References>
                 </div>
@@ -49,20 +48,15 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
-import TextMsg from "~/components/chat/msgs/text/TextMsg.vue";
-import LMMsg from "~/components/chat/msgs/llm/LMMsg.vue";
-import References from "~/components/chat/msgs/llm/References.vue";
+import Message from "~/components/chat/msgs/Message.vue";
+import References from "~/components/chat/msgs/References.vue";
 import {ref, computed} from "vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null)
 
-const MSG_TYPES = {
-    text: "text",
-    rag_generated_text: "rag_generated_text",
-    llm_generated_text: "llm_generated_text",
-}
+
 const layersFinished = computed(() =>  props.message.last)
 
 </script>

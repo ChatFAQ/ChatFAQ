@@ -1,17 +1,28 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import LLMGeneratedText, Text
+from chatfaq_sdk.layers import Message, StreamingMessage
+from chatfaq_sdk.clients import llm_request
+from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Text("How can we help you?", allow_feedback=False)
+    yield Message("How can we help you?", allow_feedback=False)
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
-    yield LLMGeneratedText("gpt-4o", messages=[
-        {"role": "system", "content": "You are a helpful assistant."}
-    ])
-    # yield Text(f"Tell me more")
+    messages = convert_mml_to_llm_format(ctx["conv_mml"][1:]) # skip the greeting message
+    messages.insert(0, {"role": "system", "content": "You are a helpful assistant."})
+
+    generator = llm_request(
+        sdk,
+        "gpt-4o",
+        use_conversation_context=True,
+        conversation_id=ctx["conversation_id"],
+        bot_channel_name=ctx["bot_channel_name"],
+        messages=messages,
+    )
+
+    yield StreamingMessage(generator)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
