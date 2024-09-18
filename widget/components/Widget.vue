@@ -67,6 +67,7 @@ const props = defineProps([
     "lang",
     "previewMode",
     "customCss",
+    "customMsgComponents"
 ]);
 let data = props
 const _customCss = ref(props.customCss)
@@ -111,6 +112,7 @@ if (props.previewMode) {
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
 store.userId = props.userId;
+store.customMsgComponents = props.customMsgComponents;
 
 if (!store.userId && data.manageUserId) {
     store.userId = getUserId()

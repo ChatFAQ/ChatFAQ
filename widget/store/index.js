@@ -30,7 +30,8 @@ export const useGlobalStore = defineStore('globalStore', {
             displayGeneration: true,
             displaySources: true,
             sourcesFirst: false,
-            previewMode: false
+            previewMode: false,
+            customMsgComponents: {}
         }
     },
     actions: {
@@ -152,6 +153,10 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
-        }
+        },
+        customMsgComponent: (state) => (name) => {
+            if(!state.customMsgComponents) return;
+            return state.customMsgComponents[name]
+        },
     }
 })
