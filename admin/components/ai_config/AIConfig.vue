@@ -55,21 +55,18 @@
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('prompt')" name="prompt-configs">
             <ReadWriteView :readableName="$t('prompt')" apiUrl="/back/api/language-model/prompt-configs/"
-                           :cardProps="{
-                    'n_contexts_to_use': $t('contextsnumber'),
-                }"
+                           :cardProps="{}"
                            :tableProps="{
                     'name': {'name': $t('name'), 'sortable': true},
-                    'n_contexts_to_use': {'name': $t('contextsnumber')},
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
                 :defaultSort="{'prop': 'name'}">
-                <template v-slot:write-system_prompt="{fieldName, form, formServerErrors}">
+                <template v-slot:write-prompt="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
                                   :prop="fieldName"
                                   :error="formServerErrors[fieldName]">
                         <el-input
-                            class="system-prefix-input"
+                            class="prompt-input"
                             v-model="form[fieldName]"
                             autosize
                             @keydown.enter.stop
