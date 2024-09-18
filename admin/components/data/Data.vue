@@ -58,7 +58,7 @@
                                   :prop="fieldName"
                                   :error="formServerErrors[fieldName]">
                         <el-input
-                            class="system-prefix-input"
+                            class="prompt-input"
                             v-model="form[fieldName]"
                             autosize
                             @keydown.enter.stop
