@@ -25,7 +25,7 @@
                         'feedbacking': feedbacking
                     }">
                     <template v-if="store.customIFramedMsg(getFirstStackType())">
-                        <iframe :src="store.customIFramedMsg(getFirstStackType())"></iframe>
+                        <iframe :src="addingQueryParamStack(store.customIFramedMsg(getFirstStackType()), props.message.stack)"></iframe>
                     </template>
                     <template v-else>
                         <div class="layer" v-for="layer in props.message.stack">
@@ -66,6 +66,11 @@ const layersFinished = computed(() =>  props.message.last)
 
 function getFirstStackType() {
     return props.message.stack[0].type
+}
+function addingQueryParamStack(url, value) {
+    const urlObj = new URL(url);
+    urlObj.searchParams.set("stack", JSON.stringify(value));
+    return urlObj.toString();
 }
 
 </script>
