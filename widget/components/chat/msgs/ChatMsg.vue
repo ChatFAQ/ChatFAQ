@@ -25,7 +25,7 @@
                         'feedbacking': feedbacking
                     }">
                     <template v-if="store.customIFramedMsg(getFirstStackType())">
-                        <iframe :src="addingQueryParamStack(store.customIFramedMsg(getFirstStackType()), props.message.stack)"></iframe>
+                        <iframe style="border: 0;" :src="addingQueryParamStack(store.customIFramedMsg(getFirstStackType()), props.message.stack)"></iframe>
                     </template>
                     <template v-else>
                         <div class="layer" v-for="layer in props.message.stack">
