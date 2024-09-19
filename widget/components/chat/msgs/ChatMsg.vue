@@ -24,10 +24,15 @@
                         'sources-first': store.sourcesFirst,
                         'feedbacking': feedbacking
                     }">
-                    <div class="layer" v-for="layer in props.message.stack">
-                        <Message :data="layer" :is-last="isLastOfType && layersFinished"/>
-                    </div>
-                    <References v-if="store.displaySources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)" :references="props.message.stack[0].payload.references"></References>
+                    <template v-if="store.customIFramedMsg[getFirstStackType()]">
+                        <iframe :src="store.customIFramedMsg[getFirstStackType()]"></iframe>
+                    </template>
+                    <template v-else>
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <Message :data="layer" :is-last="isLastOfType && layersFinished"/>
+                        </div>
+                        <References v-if="store.displaySources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)" :references="props.message.stack[0].payload.references"></References>
+                    </template>
                 </div>
                 <UserFeedback
                     v-if="
@@ -58,6 +63,10 @@ const feedbacking = ref(null)
 
 
 const layersFinished = computed(() =>  props.message.last)
+
+function getFirstStackType() {
+    return props.message.stack[0].type
+}
 
 </script>
 <style scoped lang="scss">

@@ -30,7 +30,8 @@ export const useGlobalStore = defineStore('globalStore', {
             displayGeneration: true,
             displaySources: true,
             sourcesFirst: false,
-            previewMode: false
+            previewMode: false,
+            customIFramedMsgs: {}
         }
     },
     actions: {
