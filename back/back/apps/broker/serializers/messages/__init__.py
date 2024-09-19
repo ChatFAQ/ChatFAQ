@@ -11,7 +11,7 @@ from lxml.etree import XMLSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from back.apps.broker.models.message import AgentType, Satisfaction, StackPayloadType
+from back.apps.broker.models.message import AgentType, Satisfaction
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
 from back.apps.fsm.models import FSMDefinition
@@ -184,32 +184,15 @@ class FSMDefinitionField(serializers.Field):
         except FSMDefinition.DoesNotExist:
             return None
 
+
 class MessageStackSerializer(serializers.Serializer):
-    type = serializers.ChoiceField(choices=[n.value for n in StackPayloadType], required=False)
+    type = serializers.CharField(required=True, max_length=255)
+    streaming = serializers.BooleanField(default=False)
     payload = Payload(required=False)
     id = serializers.CharField(required=False, max_length=255)
     meta = serializers.JSONField(required=False)
     state = serializers.JSONField(required=False)
     fsm_definition = FSMDefinitionField(required=False, allow_null=True)
-
-    def validate(self, data):
-        if data.get("type") in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
-            s = MessagePayload(data=data)
-        elif data.get("type") == StackPayloadType.html.value:
-            s = HTMLPayload(data=data)
-        elif data.get("type") == StackPayloadType.image.value:
-            s = ImagePayload(data=data)
-        elif data.get("type") == StackPayloadType.satisfaction.value:
-            s = SatisfactionPayload(data=data)
-        elif data.get("type") == StackPayloadType.quick_replies.value:
-            s = QuickRepliesPayload(data=data)
-        else:
-            # TODO: support any other structure? just mark it as a JSONField and let the user handle it in the FE?
-            #  letting the database record the payload as unknow structure?
-            raise serializers.ValidationError(f'type not supported {data.get("type")}')
-        s.is_valid(raise_exception=True)
-        data["payload"] = s.validated_data["payload"]
-        return data
 
 
 class MessageSerializer(serializers.ModelSerializer):

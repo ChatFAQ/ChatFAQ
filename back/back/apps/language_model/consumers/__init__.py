@@ -9,7 +9,7 @@ from django.contrib.auth.models import AnonymousUser
 from ray.serve import get_deployment_handle
 
 from back.apps.broker.consumers.message_types import RPCMessageType
-from back.apps.broker.models.message import AgentType, Conversation, StackPayloadType
+from back.apps.broker.models.message import AgentType, Conversation
 from back.apps.broker.serializers.rpc import (
     RPCLLMRequestSerializer,
     RPCRetrieverRequestSerializer,
@@ -28,7 +28,7 @@ from back.utils.custom_channels import CustomAsyncConsumer
 logger = getLogger(__name__)
 
 
-def format_msgs_chain_to_llm_context(msgs_chain, message_types: List[str]) -> List[Dict[str, str]]:
+def format_msgs_chain_to_llm_context(msgs_chain) -> List[Dict[str, str]]:
     """
     Returns a list of messages using the OpenAI standard format for LLMs.
     Parameters
@@ -43,24 +43,17 @@ def format_msgs_chain_to_llm_context(msgs_chain, message_types: List[str]) -> Li
         if msg.sender["type"] == AgentType.human.value:
             text = ""
             for stack in msg.stack:
-                if stack["type"] in message_types:
+                if stack["payload"].get("content") is not None:
                     text += stack["payload"]["content"]
-                else:
-                    logger.warning(
-                        f"Stack type {stack['type']} for sender {msg['sender']['type']} is not supported for LLM contextualization."
-                    )
 
             if text:
                 messages.append({"role": "user", "content": text})
         elif msg.sender["type"] == AgentType.bot.value:
             text = ""
             for stack in msg.stack:
-                if stack["type"] in message_types:
+                if stack["payload"].get("content") is not None:
                     text += stack["payload"]["content"]
-                else:
-                    logger.warning(
-                        f"Stack type {stack['type']} for sender {msg.sender['type']} is not supported for LLM contextualization."
-                    )
+
             if text:
                 messages.append({"role": "assistant", "content": text})
 
@@ -134,7 +127,7 @@ async def query_llm(
 
     if use_conversation_context:
         prev_messages = format_msgs_chain_to_llm_context(
-            await database_sync_to_async(list)(conv.get_msgs_chain()), [StackPayloadType.message.value, StackPayloadType.message_chunk.value]
+            await database_sync_to_async(list)(conv.get_msgs_chain())
         )
         new_messages = prev_messages.copy()
 

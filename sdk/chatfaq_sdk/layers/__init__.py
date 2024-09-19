@@ -13,6 +13,7 @@ class Layer:
     """
 
     _type = None
+    _streaming = False
 
     def __init__(self, allow_feedback=True, state={}):
         self.allow_feedback = allow_feedback
@@ -36,6 +37,7 @@ class Layer:
         async for _repr, last_chunk in repr_gen:
             for r in _repr:
                 r["type"] = self._type
+                r["streaming"] = self._streaming
                 r["meta"] = {}
                 r["meta"]["allow_feedback"] = self.allow_feedback
                 r["state"] = self.state
@@ -70,6 +72,7 @@ class Message(Layer):
 
 class StreamingMessage(Layer):
     _type = "message_chunk"
+    _streaming = True
 
     def __init__(self, generator, references={}, *args, **kwargs):
         super().__init__(*args, **kwargs)
