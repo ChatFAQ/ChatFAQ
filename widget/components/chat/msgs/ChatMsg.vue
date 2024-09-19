@@ -24,8 +24,8 @@
                         'sources-first': store.sourcesFirst,
                         'feedbacking': feedbacking
                     }">
-                    <template v-if="store.customIFramedMsg[getFirstStackType()]">
-                        <iframe :src="store.customIFramedMsg[getFirstStackType()]"></iframe>
+                    <template v-if="store.customIFramedMsg(getFirstStackType())">
+                        <iframe :src="store.customIFramedMsg(getFirstStackType())"></iframe>
                     </template>
                     <template v-else>
                         <div class="layer" v-for="layer in props.message.stack">

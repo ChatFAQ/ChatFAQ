@@ -153,6 +153,9 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
+        },
+        customIFramedMsg: (state) => (id) => {
+            return state.customIFramedMsgs[id]
         }
     }
 })
