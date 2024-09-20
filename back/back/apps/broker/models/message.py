@@ -22,15 +22,7 @@ class Satisfaction(Enum):
 class AgentType(Enum):
     human = "human"
     bot = "bot"
-
-
-class StackPayloadType(Enum):
-    message = "message"
-    message_chunk = "message_chunk"
-    html = "html"
-    image = "image"
-    satisfaction = "satisfaction"
-    quick_replies = "quick_replies"
+    system = "system"
 
 
 class AdminReviewValue(Enum):
@@ -120,14 +112,14 @@ class Conversation(ChangesMixin):
 
         bot_content = ""
         for m in chain[1:]:  # skip predefined message
-            if m.sender["type"] == "human":
+            if m.sender["type"] == AgentType.human.value:
                 if bot_content != "":  # when human message, add bot message before
                     messages.append({"role": "assistant", "content": bot_content})
                     bot_content = ""
 
                 messages.append({"role": "user", "content": m.stack[0]["payload"]["content"]})
                 human_messages_ids.append(m.id)
-            elif m.sender["type"] == "bot":
+            elif m.sender["type"] == AgentType.bot.value:
                 bot_content += m.stack[0]["payload"]["content"]
 
         if bot_content != "":  # last message
@@ -289,13 +281,8 @@ class Message(ChangesMixin):
     def _to_text(stack, send_time, sender):
         stack_text = ""
         for layer in stack:
-            if layer["type"] in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
-                if layer["payload"]["content"]:
-                    stack_text += layer["payload"]["content"]
-            else:
-                logger.error(
-                    f"Unknown stack payload type to export as csv: {layer['type']}"
-                )
+            if layer["payload"].get("content") is not None:
+                stack_text += layer["payload"]["content"]
 
         return f"{send_time} {sender['type']}: {stack_text}"
 

@@ -95,7 +95,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
                 "If there are no messages then use_conversation_context should be always True"
             )
         return attrs
-    
+
 
 class RPCPromptRequestSerializer(serializers.Serializer):
     prompt_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
@@ -126,10 +126,13 @@ class RPCFSMDefSerializer(serializers.Serializer):
         Name of the new FSM
     definition: dict
         The definition itself
+    overwrite: bool
+        Whether to overwrite an existing FSM with the same name
     """
 
     name = serializers.CharField(max_length=255)
     definition = serializers.JSONField(default=dict)
+    overwrite = serializers.BooleanField(default=False)
 
 
 class RPCResponseSerializer(serializers.Serializer):

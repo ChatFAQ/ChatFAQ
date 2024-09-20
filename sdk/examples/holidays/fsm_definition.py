@@ -82,7 +82,7 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
         args = place['tool_use'][0]['args']
         args = json.loads(args)
         place = args['place']
-    
+
     # Start the state and submit it so other states can access it
     state = {"place": place}
 
@@ -114,11 +114,11 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
         args = budget['tool_use'][0]['args']
         args = json.loads(args)
         budget = args['budget']
-    
+
     state["budget"] = budget
-        
+
     yield Message(f"Great. Let me find vacations in {state['place']} with budget {budget}", allow_feedback=False, state=state)
-    
+
 
 places_options_state = State(name="Greeting", events=[send_places], initial=True)
 

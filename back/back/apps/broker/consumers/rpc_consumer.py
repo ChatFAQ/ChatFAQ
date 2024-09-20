@@ -114,7 +114,7 @@ class RPCConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             )
         fsm, created, errors = await database_sync_to_async(
             FSMDefinition.get_or_create_from_definition
-        )(data["name"], data["definition"])
+        )(data["name"], data["definition"], data["overwrite"])
         if errors:
             await self.error_response(
                 {"payload": {"errors": errors, "request_info": data}}

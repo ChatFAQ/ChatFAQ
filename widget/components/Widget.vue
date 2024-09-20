@@ -67,6 +67,7 @@ const props = defineProps([
     "lang",
     "previewMode",
     "customCss",
+    "customIFramedMsgs"
 ]);
 let data = props
 const _customCss = ref(props.customCss)
@@ -119,7 +120,8 @@ if (!store.userId && data.manageUserId) {
 store.fsmDef = data.fsmDef;
 store.title = data.title;
 store.subtitle = data.subtitle;
-
+if (data.customIFramedMsgs)
+    store.customIFramedMsgs = JSON.parse(data.customIFramedMsgs)
 
 if (data.fullScreen !== undefined)
     store.fullScreen = data.fullScreen && data.fullScreen !== "false";

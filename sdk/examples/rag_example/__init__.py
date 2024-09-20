@@ -6,5 +6,6 @@ def main():
     sdk = make_chatfaq_sdk(
         fsm_name="rag_fsm",
         fsm_definition=fsm_definition,
+        overwrite_definition=True,
     )
     sdk.connect()
