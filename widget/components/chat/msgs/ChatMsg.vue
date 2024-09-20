@@ -15,17 +15,31 @@
                 'maximized': store.maximized
             }">
             <div
-                class="stack-wrapper">
+                class="stack-wrapper"
+                :class="{
+                    'full-width': iframedMsg && iframedMsg.fullWidth,
+                }">
                 <div class="stack"
                     :class="{
                         [props.message.sender.type]: true,
                         'dark-mode': store.darkMode,
                         'maximized': store.maximized,
                         'sources-first': store.sourcesFirst,
-                        'feedbacking': feedbacking
+                        'feedbacking': feedbacking,
+                        'full-width': iframedMsg && iframedMsg.fullWidth
                     }">
-                    <template v-if="store.customIFramedMsg(getFirstStackType())">
-                        <iframe style="border: 0;" :src="addingQueryParamStack(store.customIFramedMsg(getFirstStackType()), props.message.stack)"></iframe>
+                    <template v-if="iframedMsg">
+                        <iframe
+                            style="border: 0;"
+                            :style="{
+                                height: iframedMsg.height,
+                            }"
+                            :src="addingQueryParamStack(iframedMsg.src)"
+                            :class="{
+                                'full-width': iframedMsg.fullWidth,
+                            }"
+                            :scrolling="iframedMsg.scrolling || 'auto'"
+                        ></iframe>
                     </template>
                     <template v-else>
                         <div class="layer" v-for="layer in props.message.stack">
@@ -63,13 +77,15 @@ const feedbacking = ref(null)
 
 
 const layersFinished = computed(() =>  props.message.last)
+const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()))
 
 function getFirstStackType() {
     return props.message.stack[0].type
 }
-function addingQueryParamStack(url, value) {
+function addingQueryParamStack(url) {
+    if (!url) return;
     const urlObj = new URL(url);
-    urlObj.searchParams.set("stack", JSON.stringify(value));
+    urlObj.searchParams.set("stack", JSON.stringify(props.message.stack));
     return urlObj.toString();
 }
 
@@ -158,7 +174,6 @@ $phone-breakpoint: 600px;
 
 .stack-wrapper {
     max-width: 100%;
-
     .stack {
         max-width: 100%;
         border-radius: 6px;
@@ -204,5 +219,9 @@ $phone-breakpoint: 600px;
             margin-bottom: 5px;
         }
     }
+}
+
+.full-width {
+    width: 100%;
 }
 </style>
