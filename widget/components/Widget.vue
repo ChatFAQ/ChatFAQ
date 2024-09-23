@@ -14,8 +14,8 @@
                           :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
                 <div class="widget-body"
                      :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened}">
-                    <Header class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
-                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                    <Header v-if="!store.noHeader" class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'no-header': store.noHeader}"/>
                 </div>
             </div>
             <div v-if="!isPhoneLandscape && !store.fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
@@ -49,24 +49,26 @@ useHead({
     ],
 })
 
-const props = defineProps([
-    "chatfaqWs",
-    "chatfaqApi",
-    "fsmDef",
-    "userId",
-    "manageUserId",
-    "title",
-    "subtitle",
-    "startSmallMode",
-    "fullScreen",
-    "startWithHistoryClosed",
-    "widgetConfigId",
-    "hideSources",
-    "sourcesFirst",
-    "lang",
-    "previewMode",
-    "customCss",
-]);
+const props = defineProps({
+    chatfaqWs: String,
+    chatfaqApi: String,
+    fsmDef: String,
+    userId: String,
+    manageUserId: Boolean,
+    title: String,
+    subtitle: String,
+    startSmallMode: Boolean,
+    fullScreen: Boolean,
+    startWithHistoryClosed: Boolean,
+    widgetConfigId: String,
+    hideSources: Boolean,
+    sourcesFirst: Boolean,
+    onlyChat: Boolean,
+    lang: String,
+    previewMode: Boolean,
+    customCss: String,
+});
+
 let data = props
 const _customCss = ref(props.customCss)
 watch( () => props.customCss, (newVal, _)=> {
@@ -119,17 +121,19 @@ store.fsmDef = data.fsmDef;
 store.title = data.title;
 store.subtitle = data.subtitle;
 
-
 if (data.startWithHistoryClosed)
     store.historyOpened = false
 if (data.startSmallMode)
     store.maximized = false
 if (data.hideSources)
     store.displaySources = false
+if (data.onlyChat) {
+    store.noHeader = true;
+    store.historyOpened = false;
+}
 
-store.fullScreen = data.fullScreen !== undefined
-store.sourcesFirst = data.sourcesFirst !== undefined
-
+store.fullScreen = data.fullScreen
+store.sourcesFirst = data.sourcesFirst
 if (store.fullScreen) {
     store.opened = true
     store.maximized = false
@@ -363,6 +367,10 @@ $widget-margin: 16px;
         border-right: 1px solid $chatfaq-color-menu-border;
         border-bottom: 1px solid $chatfaq-color-menu-border;
         border-radius: 0px 0px 10px 10px;
+        &.no-header { // No header means no history neither
+            border-radius: 10px;
+            border-top: 1px solid $chatfaq-color-menu-border;
+        }
 
         &.history {
             border-radius: 0px 0px 10px 0px;
