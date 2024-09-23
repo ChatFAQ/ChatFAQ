@@ -13,6 +13,11 @@ export const useGlobalStore = defineStore('globalStore', {
             menuOpened: false,
             maximized: true,
             historyOpened: true,
+            displaySources: true,
+            fullScreen: false,
+            sourcesFirst: false,
+            previewMode: false,
+            opened: false,
             conversations: [],
             messages: [],
             selectedConversations: [],
@@ -22,15 +27,10 @@ export const useGlobalStore = defineStore('globalStore', {
             // clicked, then other components will subscribe for any change and react to the fact that has been clicked
             scrollToBottom: 0,
             feedbackSent: 0,
-            opened: false,
+            disconnected: true,
             deleting: false,
             downloading: false,
-            disconnected: true,
             isPhone: false,
-            displayGeneration: true,
-            displaySources: true,
-            sourcesFirst: false,
-            previewMode: false
         }
     },
     actions: {

@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, maximized, fullScreen, historyOpened, widgetConfigId, displayGeneration, displaySources, sourcesFirst, lang, previewMode, customCss }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, startSmallMode, fullScreen, startWithHistoryClosed, widgetConfigId, hideSources, sourcesFirst, lang, previewMode, customCss }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -16,17 +16,17 @@ class ChatfaqWidget {
         props['chatfaqApi'] = chatfaqApi;
         props['chatfaqWs'] = chatfaqWs
         props['fsmDef'] = fsmDef
-        props['maximized'] = maximized
         props['fullScreen'] = fullScreen
-        props['historyOpened'] = historyOpened
         props['widgetConfigId'] = widgetConfigId
         props['manageUserId'] = manageUserId
-        props['displayGeneration'] = displayGeneration
-        props['displaySources'] = displaySources
         props['sourcesFirst'] = sourcesFirst
         props['lang'] = lang
         props['previewMode'] = previewMode
         props['customCss'] = customCss
+
+        props['startWithHistoryClosed'] = startWithHistoryClosed
+        props['startSmallMode'] = startSmallMode
+        props['hideSources'] = hideSources
 
         if (userId)
             props['userId'] = userId;
@@ -48,23 +48,6 @@ class ChatfaqWidget {
 // for the moment we just implemented: https://github.com/vuejs/vue-web-component-wrapper/issues/93#issuecomment-909136116
 class ChatfaqWidgetCustomElement extends HTMLElement {
     connectedCallback() {
-        if(this.dataset.maximized === "false")
-            this.dataset.maximized = false
-        if(this.dataset.fullScreen === "false")
-            this.dataset.fullScreen = false
-        if(this.dataset.historyOpened === "false")
-            this.dataset.historyOpened = false
-        if(this.dataset.manageUserId === "false")
-            this.dataset.manageUserId = false
-        if(this.dataset.displayGeneration === "false")
-            this.dataset.displayGeneration = false
-        if(this.dataset.displaySources === "false")
-            this.dataset.displaySources = false
-        if(this.dataset.sourcesFirst === "false")
-            this.dataset.sourcesFirst = false
-        if(this.dataset.previewMode === "false")
-            this.dataset.previewMode = false
-
         const app = _buildApp(this.dataset);
         app.mount(this)
     }

@@ -57,12 +57,11 @@ const props = defineProps([
     "manageUserId",
     "title",
     "subtitle",
-    "maximized",
+    "startSmallMode",
     "fullScreen",
-    "historyOpened",
+    "startWithHistoryClosed",
     "widgetConfigId",
-    "displayGeneration",
-    "displaySources",
+    "hideSources",
     "sourcesFirst",
     "lang",
     "previewMode",
@@ -121,18 +120,15 @@ store.title = data.title;
 store.subtitle = data.subtitle;
 
 
-if (data.fullScreen !== undefined)
-    store.fullScreen = data.fullScreen && data.fullScreen !== "false";
-if (data.maximized !== undefined)
-    store.maximized = data.maximized && data.maximized !== "false";
-if (data.historyOpened !== undefined)
-    store.historyOpened = data.historyOpened && data.historyOpened !== "false";
-if (data.displayGeneration !== undefined)
-    store.displayGeneration = data.displayGeneration && data.displayGeneration !== "false";
-if (data.displaySources !== undefined)
-    store.displaySources = data.displaySources && data.displaySources !== "false";
-if (data.sourcesFirst !== undefined)
-    store.sourcesFirst = data.sourcesFirst && data.sourcesFirst !== "false";
+if (data.startWithHistoryClosed)
+    store.historyOpened = false
+if (data.startSmallMode)
+    store.maximized = false
+if (data.hideSources)
+    store.displaySources = false
+
+store.fullScreen = data.fullScreen !== undefined
+store.sourcesFirst = data.sourcesFirst !== undefined
 
 if (store.fullScreen) {
     store.opened = true
