@@ -67,6 +67,7 @@ const props = defineProps({
     lang: String,
     previewMode: Boolean,
     customCss: String,
+    initialConversationMetadata: String
 });
 
 let data = props
@@ -115,6 +116,9 @@ store.userId = props.userId;
 
 if (!store.userId && data.manageUserId) {
     store.userId = getUserId()
+}
+if (data.initialConversationMetadata) {
+    store.initialConversationMetadata = JSON.parse(data.initialConversationMetadata)
 }
 
 store.fsmDef = data.fsmDef;

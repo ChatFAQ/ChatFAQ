@@ -32,6 +32,7 @@ export const useGlobalStore = defineStore('globalStore', {
             deleting: false,
             downloading: false,
             isPhone: false,
+            initialConversationMetadata: {},
         }
     },
     actions: {

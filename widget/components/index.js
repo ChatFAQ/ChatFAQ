@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, startSmallMode, fullScreen, startWithHistoryClosed, widgetConfigId, hideSources, sourcesFirst, lang, previewMode, customCss }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, startSmallMode, fullScreen, startWithHistoryClosed, widgetConfigId, hideSources, sourcesFirst, lang, previewMode, customCss, initialConversationMetadata }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -23,6 +23,7 @@ class ChatfaqWidget {
         props['lang'] = lang
         props['previewMode'] = previewMode
         props['customCss'] = customCss
+        props['initialConversationMetadata'] = initialConversationMetadata
 
         props['startWithHistoryClosed'] = startWithHistoryClosed
         props['startSmallMode'] = startSmallMode
