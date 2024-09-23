@@ -48,6 +48,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
         self.conversation: Union[Conversation, None] = None
         self.user_id: Union[str, None] = None
+        self.initial_conversation_metadata: dict = {}
 
         self.fsm_def: "FSMDefinition" = None
         self.message_buffer = []
@@ -117,6 +118,11 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             "All classes that behave as contexts for machines should implement 'send_response'"
         )
 
+    def gather_initial_conversation_metadata(self, mml: "Message"):
+        raise NotImplemented(
+            "Implement a method that creates/gathers the conversation covnersation metadata"
+        )
+
     def gather_conversation_id(self, mml: "Message"):
         raise NotImplemented(
             "Implement a method that creates/gathers the conversation id"
@@ -138,6 +144,9 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
     def set_user_id(self, user_id):
         self.user_id = user_id
+
+    def set_initial_conversation_metadata(self, initial_conversation_metadata):
+        self.initial_conversation_metadata = initial_conversation_metadata
 
     async def serialize(self):
         """
@@ -165,6 +174,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
                     last_state_values[key] = value
 
         return {
+            "initial_conversation_metadata": self.initial_conversation_metadata,
             "conversation_id": self.conversation.pk,
             "user_id": self.user_id,
             "conv_mml": conv_mml,

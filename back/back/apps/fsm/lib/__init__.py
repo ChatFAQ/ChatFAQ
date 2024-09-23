@@ -69,6 +69,7 @@ class FSM:
         states: List[State],
         transitions: List[Transition],
         current_state: State = None,
+        initial_conversation_metadata: dict = {},
     ):
         """
         Parameters
@@ -91,6 +92,7 @@ class FSM:
         self.states = states
         self.transitions = transitions
         self.rpc_result_future: Union[asyncio.Future, None] = None
+        self.initial_conversation_metadata = initial_conversation_metadata
 
         self.current_state = current_state
         if not current_state:

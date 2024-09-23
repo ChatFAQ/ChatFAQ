@@ -113,7 +113,7 @@ function createConnection() {
         + "/"
         + store.fsmDef
         + "/"
-        + (store.userId ? `${store.userId}/` : "")
+        + (store.userId ? `${store.userId}/?metadata={"hola": "mundo"}` : "")
     );
     ws.onmessage = async function (e) {
         const msg = JSON.parse(e.data);
