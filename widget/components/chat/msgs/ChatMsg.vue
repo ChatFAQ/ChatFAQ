@@ -35,6 +35,7 @@
                 >
                     <template v-if="iframedMsg">
                         <iframe
+                            ref="iframedWindow"
                             style="border: 0;"
                             :style="{
                                 height: iframeHeight + 'px',
@@ -76,7 +77,7 @@ import { useGlobalStore } from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
 import Message from "~/components/chat/msgs/Message.vue";
 import References from "~/components/chat/msgs/References.vue";
-import {ref, computed, onMounted, onBeforeUnmount} from "vue";
+import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
@@ -84,6 +85,7 @@ const feedbacking = ref(null);
 const iframeHeight = ref(40);
 
 const layersFinished = computed(() => props.message.last);
+const iframedWindow = ref(null);
 const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()));
 
 function getFirstStackType() {
@@ -105,9 +107,16 @@ onBeforeUnmount(() => {
 });
 
 function handleMessage(event) {
-    iframeHeight.value = event.data;
-    console.log("Message received from iframe:", event.data);
+    if (iframedWindow.value && event.source === iframedWindow.value.contentWindow) {
+        iframeHeight.value = event.data;
+    }
 }
+
+watch(() => store.maximized, () => {
+    if (iframedWindow.value) {
+        iframedWindow.value.contentWindow.postMessage('heightRequest', '*');
+    }
+});
 
 </script>
 <style scoped lang="scss">
