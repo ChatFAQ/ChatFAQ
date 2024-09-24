@@ -14,8 +14,8 @@
                           :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
                 <div class="widget-body"
                      :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened}">
-                    <Header class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
-                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                    <Header v-if="!store.noHeader" class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'no-header': store.noHeader}"/>
                 </div>
             </div>
             <div v-if="!isPhoneLandscape && !store.fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
@@ -49,26 +49,28 @@ useHead({
     ],
 })
 
-const props = defineProps([
-    "chatfaqWs",
-    "chatfaqApi",
-    "fsmDef",
-    "userId",
-    "manageUserId",
-    "title",
-    "subtitle",
-    "maximized",
-    "fullScreen",
-    "historyOpened",
-    "widgetConfigId",
-    "displayGeneration",
-    "displaySources",
-    "sourcesFirst",
-    "lang",
-    "previewMode",
-    "customCss",
-    "customIFramedMsgs"
-]);
+const props = defineProps({
+    chatfaqWs: String,
+    chatfaqApi: String,
+    fsmDef: String,
+    userId: String,
+    manageUserId: Boolean,
+    title: String,
+    subtitle: String,
+    startSmallMode: Boolean,
+    fullScreen: Boolean,
+    startWithHistoryClosed: Boolean,
+    widgetConfigId: String,
+    hideSources: Boolean,
+    sourcesFirst: Boolean,
+    onlyChat: Boolean,
+    lang: String,
+    previewMode: Boolean,
+    customCss: String,
+    initialConversationMetadata: String,
+    customIFramedMsgs: String
+});
+
 let data = props
 const _customCss = ref(props.customCss)
 watch( () => props.customCss, (newVal, _)=> {
@@ -116,6 +118,9 @@ store.userId = props.userId;
 if (!store.userId && data.manageUserId) {
     store.userId = getUserId()
 }
+if (data.initialConversationMetadata) {
+    store.initialConversationMetadata = JSON.parse(data.initialConversationMetadata)
+}
 
 store.fsmDef = data.fsmDef;
 store.title = data.title;
@@ -123,19 +128,8 @@ store.subtitle = data.subtitle;
 if (data.customIFramedMsgs)
     store.customIFramedMsgs = JSON.parse(data.customIFramedMsgs)
 
-if (data.fullScreen !== undefined)
-    store.fullScreen = data.fullScreen && data.fullScreen !== "false";
-if (data.maximized !== undefined)
-    store.maximized = data.maximized && data.maximized !== "false";
-if (data.historyOpened !== undefined)
-    store.historyOpened = data.historyOpened && data.historyOpened !== "false";
-if (data.displayGeneration !== undefined)
-    store.displayGeneration = data.displayGeneration && data.displayGeneration !== "false";
-if (data.displaySources !== undefined)
-    store.displaySources = data.displaySources && data.displaySources !== "false";
-if (data.sourcesFirst !== undefined)
-    store.sourcesFirst = data.sourcesFirst && data.sourcesFirst !== "false";
-
+store.fullScreen = data.fullScreen
+store.sourcesFirst = data.sourcesFirst
 if (store.fullScreen) {
     store.opened = true
     store.maximized = false
@@ -369,6 +363,10 @@ $widget-margin: 16px;
         border-right: 1px solid $chatfaq-color-menu-border;
         border-bottom: 1px solid $chatfaq-color-menu-border;
         border-radius: 0px 0px 10px 10px;
+        &.no-header { // No header means no history neither
+            border-radius: 10px;
+            border-top: 1px solid $chatfaq-color-menu-border;
+        }
 
         &.history {
             border-radius: 0px 0px 10px 0px;

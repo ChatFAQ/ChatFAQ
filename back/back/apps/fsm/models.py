@@ -20,12 +20,13 @@ class FSMDefinition(ChangesMixin):
     definition = models.JSONField(null=True)
     initial_state_values = models.JSONField(null=True)
 
-    def build_fsm(self, ctx: BotConsumer, current_state: State = None) -> FSM:
+    def build_fsm(self, ctx: BotConsumer, current_state: State = None, initial_conversation_metadata=None) -> FSM:
         m = FSM(
             ctx=ctx,
             states=self.states,
             transitions=self.transitions,
             current_state=current_state,
+            initial_conversation_metadata=initial_conversation_metadata or {},
         )
         return m
 
@@ -79,6 +80,7 @@ class CachedFSM(ChangesMixin):
     conversation = models.ForeignKey("broker.Conversation", on_delete=models.CASCADE)
     current_state = models.JSONField(default=dict)
     fsm_def: FSMDefinition = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
+    initial_conversation_metadata = models.JSONField(default=dict)
 
     @classmethod
     def update_or_create(cls, fsm: FSM):
@@ -90,6 +92,7 @@ class CachedFSM(ChangesMixin):
                 conversation=fsm.ctx.conversation,
                 current_state=fsm.current_state._asdict(),
                 fsm_def=fsm.ctx.fsm_def,
+                initial_conversation_metadata=fsm.initial_conversation_metadata
             )
         instance.save()
 
@@ -98,7 +101,7 @@ class CachedFSM(ChangesMixin):
         instance: CachedFSM = cls.objects.filter(conversation=ctx.conversation).first()
         if instance:
             return instance.fsm_def.build_fsm(
-                ctx, typefit(State, instance.current_state)
+                ctx, typefit(State, instance.current_state), instance.initial_conversation_metadata
             )
 
         return None
