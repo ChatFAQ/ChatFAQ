@@ -22,6 +22,7 @@ export const useGlobalStore = defineStore('globalStore', {
             conversations: [],
             messages: [],
             selectedConversations: [],
+            initialSelectedPlConversationId: undefined,
             selectedPlConversationId: undefined,
             // The value of this properties (scrollToBottom, feedbackSent) is irrelevant, what it
             // really matters is the fact that its value changed, which happens every time "New Conversation" button is
@@ -50,7 +51,7 @@ export const useGlobalStore = defineStore('globalStore', {
             this.conversations.find((conversation) => conversation.id === id).name = name;
         },
         async openConversation(_selectedPlConversationId) {
-            const conversationId = this.conversations.find(conv => conv.platform_conversation_id.toString() === _selectedPlConversationId.toString()).id
+            const conversationId = this.conversation(_selectedPlConversationId).id
             let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
@@ -59,9 +60,11 @@ export const useGlobalStore = defineStore('globalStore', {
             this.messages = response.msgs_chain
             this.selectedPlConversationId = _selectedPlConversationId;
         },
-        createNewConversation() {
+        createNewConversation(selectedPlConversationId) {
             this.messages = [];
-            this.selectedPlConversationId = Math.floor(Math.random() * 1000000000);
+            if (!selectedPlConversationId)
+                selectedPlConversationId = Math.floor(Math.random() * 1000000000);
+            this.selectedPlConversationId = selectedPlConversationId;
         },
         addMessage(message) {
             const index = this.messages.findIndex(m => m.stack_id === message.stack_id)
@@ -139,6 +142,9 @@ export const useGlobalStore = defineStore('globalStore', {
     getters: {
         conversationsIds() {
             return this.conversations.reduce((acc, current) => acc.concat([current.id]), [])
+        },
+        conversation: (state) => (platformConversationId) => {
+            return state.conversations.find(conv => conv.platform_conversation_id.toString() === platformConversationId.toString())
         },
         waitingForResponse() {
             const msgs = this.messages || [];

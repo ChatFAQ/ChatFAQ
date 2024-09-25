@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import {ref, watch, nextTick} from "vue";
+import {ref, watch, nextTick, onMounted} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
@@ -56,6 +56,10 @@ let heartbeatTimeout = undefined
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+
+onMounted(async () => {
+    await initializeConversation()
+})
 
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
@@ -148,8 +152,19 @@ function createConnection() {
 }
 
 
-if(!store.previewMode)
-    store.createNewConversation()
+async function initializeConversation() {
+    if(store.previewMode)
+        return
+
+    if (store.initialSelectedPlConversationId) {
+        await store.gatherConversations()
+        if (store.conversation(store.initialSelectedPlConversationId)) {
+            await store.openConversation(store.initialSelectedPlConversationId);
+        }
+    } else {
+        store.createNewConversation(store.initialSelectedPlConversationId);
+    }
+}
 
 function manageEnterInput(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {

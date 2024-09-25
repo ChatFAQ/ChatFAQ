@@ -7,7 +7,7 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, startSmallMode, fullScreen, startWithHistoryClosed, widgetConfigId, hideSources, sourcesFirst, lang, previewMode, customCss, customIFramedMsgs, initialConversationMetadata }) {
+    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, manageUserId, userId, title, subtitle, startSmallMode, fullScreen, startWithHistoryClosed, onlyChat, conversationId, widgetConfigId, hideSources, sourcesFirst, lang, previewMode, customCss, customIFramedMsgs, initialConversationMetadata }) {
         if (typeof element == "string")
             element = document.querySelector(element)
         this.element = element;
@@ -17,6 +17,7 @@ class ChatfaqWidget {
         props['chatfaqWs'] = chatfaqWs
         props['fsmDef'] = fsmDef
         props['fullScreen'] = fullScreen
+        props['onlyChat'] = onlyChat
         props['widgetConfigId'] = widgetConfigId
         props['manageUserId'] = manageUserId
         props['sourcesFirst'] = sourcesFirst
@@ -29,13 +30,11 @@ class ChatfaqWidget {
         props['startSmallMode'] = startSmallMode
         props['hideSources'] = hideSources
         props['customIFramedMsgs'] = customIFramedMsgs
+        props['conversationId'] = conversationId
 
-        if (userId)
-            props['userId'] = userId;
-        if (title)
-            props['title'] = title;
-        if (subtitle)
-            props['subtitle'] = subtitle
+        props['userId'] = userId;
+        props['title'] = title;
+        props['subtitle'] = subtitle
 
         this.app = _buildApp(props);
     }

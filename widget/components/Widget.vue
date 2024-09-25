@@ -60,6 +60,7 @@ const props = defineProps({
     startSmallMode: Boolean,
     fullScreen: Boolean,
     startWithHistoryClosed: Boolean,
+    conversationId: String,
     widgetConfigId: String,
     hideSources: Boolean,
     sourcesFirst: Boolean,
@@ -114,6 +115,7 @@ if (props.previewMode) {
 store.chatfaqWS = props.chatfaqWs;
 store.chatfaqAPI = props.chatfaqApi;
 store.userId = props.userId;
+store.initialSelectedPlConversationId = props.conversationId
 
 if (!store.userId && data.manageUserId) {
     store.userId = getUserId()
@@ -134,6 +136,12 @@ if (store.fullScreen) {
     store.opened = true
     store.maximized = false
 }
+
+if (data.onlyChat) {
+    store.noHeader = true;
+    store.historyOpened = false;
+}
+
 i18n.locale.value = data.lang || "en";
 
 function isPhone() {
