@@ -54,7 +54,6 @@ const props = defineProps({
     chatfaqApi: String,
     fsmDef: String,
     userId: String,
-    manageUserId: Boolean,
     title: String,
     subtitle: String,
     startSmallMode: Boolean,
@@ -62,7 +61,6 @@ const props = defineProps({
     startWithHistoryClosed: Boolean,
     conversationId: String,
     widgetConfigId: String,
-    hideSources: Boolean,
     sourcesFirst: Boolean,
     onlyChat: Boolean,
     lang: String,
@@ -117,7 +115,7 @@ store.chatfaqAPI = props.chatfaqApi;
 store.userId = props.userId;
 store.initialSelectedPlConversationId = props.conversationId
 
-if (!store.userId && data.manageUserId) {
+if (store.userId === undefined) {
     store.userId = getUserId()
 }
 if (data.initialConversationMetadata) {
