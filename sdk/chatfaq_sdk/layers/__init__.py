@@ -110,3 +110,17 @@ class StreamingMessage(Layer):
                     ],
                     last_chunk,
                 )
+
+
+class GTMTag(Layer):
+    _type = "gtm_tag"
+
+    def __init__(self, tag):
+        super().__init__(allow_feedback=False)
+        self.tag = tag
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": self.tag
+        }
+        yield [payload], True

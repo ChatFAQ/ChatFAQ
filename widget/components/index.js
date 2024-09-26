@@ -7,32 +7,12 @@ function _buildApp(props) {
 }
 
 class ChatfaqWidget {
-    constructor({ element, chatfaqApi, chatfaqWs, fsmDef, userId, title, subtitle, startSmallMode, fullScreen, startWithHistoryClosed, onlyChat, conversationId, widgetConfigId, sourcesFirst, lang, previewMode, customCss, customIFramedMsgs, initialConversationMetadata }) {
-        if (typeof element == "string")
-            element = document.querySelector(element)
-        this.element = element;
+    constructor(attrs) {
+        if (typeof attrs.element == "string")
+            attrs.element = document.querySelector(attrs.element)
+        this.element = attrs.element;
 
-        const props = { ...element.dataset }
-        props['chatfaqApi'] = chatfaqApi;
-        props['chatfaqWs'] = chatfaqWs
-        props['fsmDef'] = fsmDef
-        props['fullScreen'] = fullScreen
-        props['onlyChat'] = onlyChat
-        props['widgetConfigId'] = widgetConfigId
-        props['sourcesFirst'] = sourcesFirst
-        props['lang'] = lang
-        props['previewMode'] = previewMode
-        props['customCss'] = customCss
-        props['initialConversationMetadata'] = initialConversationMetadata
-
-        props['startWithHistoryClosed'] = startWithHistoryClosed
-        props['startSmallMode'] = startSmallMode
-        props['customIFramedMsgs'] = customIFramedMsgs
-        props['conversationId'] = conversationId
-
-        props['userId'] = userId;
-        props['title'] = title;
-        props['subtitle'] = subtitle
+        const props = { ...this.element.dataset, ...attrs }
 
         this.app = _buildApp(props);
     }

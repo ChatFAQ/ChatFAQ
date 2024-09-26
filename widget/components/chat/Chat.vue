@@ -3,6 +3,7 @@
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
+                    v-if="renderable(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
@@ -49,6 +50,7 @@ const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
+const notRenderableStackTypes = ["gtm_tag"]
 
 let ws = undefined
 let heartbeatTimeout = undefined
@@ -131,9 +133,10 @@ function createConnection() {
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
 
-        store.addMessage(msg);
-        if (store.messages.length === 1) // First message, update list of conversations
+        if (!store.messages.length)
             await store.gatherConversations()
+        sendToGTM(msg)
+        store.addMessage(msg);
     };
     ws.onopen = function (e) {
         store.disconnected = false;
@@ -159,11 +162,10 @@ async function initializeConversation() {
     if (store.initialSelectedPlConversationId) {
         await store.gatherConversations()
         if (store.conversation(store.initialSelectedPlConversationId)) {
-            await store.openConversation(store.initialSelectedPlConversationId);
+            return await store.openConversation(store.initialSelectedPlConversationId);
         }
-    } else {
-        store.createNewConversation(store.initialSelectedPlConversationId);
     }
+    store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
 function manageEnterInput(ev, cb) {
@@ -201,6 +203,18 @@ function sendMessage() {
     store.scrollToBottom += 1;
 }
 
+function renderable(message) {
+    return !notRenderableStackTypes.includes(message.stack[0].type)
+}
+
+function sendToGTM(msg) {
+    if (msg?.stack?.length && msg.stack[0].type === "gtm_tag") {
+        if (window?.dataLayer)
+            window.dataLayer.push(msg.stack[0].payload);
+        else
+            console.warn("GTM tag received but no dataLayer found")
+    }
+}
 
 </script>
 <style scoped lang="scss">
