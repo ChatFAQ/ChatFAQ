@@ -27,7 +27,7 @@
         "@vue/compiler-sfc": "^3.0.11",
         "cross-env": "^7.0.3",
         "nuxt": "^3.1.1",
-        "vue-i18n": "^9.2.2"
+        "vue-i18n": "^9.14.1"
     },
     "dependencies": {
         "@babel/traverse": "^7.23.2",
