@@ -83,6 +83,8 @@ Next we will explain all the widget's possible parameters:
 
 `onlyChat`: if the widget should only display the chat, by default the widget displays the header and the history besides the chat.
 
+`fitToParent`: if the widget should fit to the parent element, by default the widget will be positioned absolute to the window.
+
 `initialConversationMetadata`: stringify JSON object with arbitrary metadata that will be sent and accessible in the SDK's FSM
 
 `customIFramedMsgs`: It is possible to customize the messages coming from the SDK's FSM, you can pass a JSON object with the following structure:
@@ -127,6 +129,7 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
         startSmallMode: true,
         fullScreen: true,
         onlyChat: true,
+        fitToParent: true,
         initialConversationMetadata: JSON.stringify({"hello": "world"}),
         customIFramedMsgs: JSON.stringify({
             "iframe": {
@@ -175,6 +178,7 @@ If you declare data attributes and a config object and its keys collide, then th
     data-start-small-mode
     data-full-screen
     data-only-chat
+    data-fit-to-parent
     data-initial-conversation-metadata='{"hello": "world"}'
     data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
 ></chatfaq-widget>

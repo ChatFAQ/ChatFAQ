@@ -19,6 +19,7 @@ export const useGlobalStore = defineStore('globalStore', {
             noHeader: false,
             previewMode: false,
             opened: false,
+            fitToParent: false,
             conversations: [],
             messages: [],
             selectedConversations: [],

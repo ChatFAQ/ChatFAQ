@@ -1,6 +1,8 @@
 <template>
     <Suspense>
-        <div class="chatfaq-widget">
+        <div class="chatfaq-widget" :class="{
+            'fit-to-parent': store.fitToParent
+        }">
             <div v-if="isPhoneLandscape" class="not-supported">
                 <div class="not-supported-text">
                     <div class="not-supported-text-title">Sorry, we don't support mobile landscape mode yet.</div>
@@ -8,7 +10,7 @@
                 </div>
             </div>
             <div v-if="store.opened && !isPhoneLandscape" class="widget-wrapper"
-                 :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}">
+                 :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'fit-to-parent': store.fitToParent}">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history"
                           :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
@@ -18,7 +20,7 @@
                     <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'no-header': store.noHeader}"/>
                 </div>
             </div>
-            <div v-if="!isPhoneLandscape && !store.fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
+            <div v-if="!isPhoneLandscape && !store.fullScreen && !store.fitToParent" class="widget-open-button" :class="{'opened': store.opened}"
                  @click="store.opened = !store.opened">
                 <BubbleButtonClose v-if="store.opened" class="bubble-icon close" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
                 <BubbleButtonOpen v-else class="bubble-icon open" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
@@ -63,6 +65,7 @@ const props = defineProps({
     widgetConfigId: String,
     sourcesFirst: Boolean,
     onlyChat: Boolean,
+    fitToParent: Boolean,
     lang: String,
     previewMode: Boolean,
     customCss: String,
@@ -107,13 +110,13 @@ async function init() {
     }
 }
 
-if (props.previewMode) {
+if (data.previewMode) {
     store.setPreviewMode()
 }
-store.chatfaqWS = props.chatfaqWs;
-store.chatfaqAPI = props.chatfaqApi;
-store.userId = props.userId;
-store.initialSelectedPlConversationId = props.conversationId
+store.chatfaqWS = data.chatfaqWs;
+store.chatfaqAPI = data.chatfaqApi;
+store.userId = data.userId;
+store.initialSelectedPlConversationId = data.conversationId
 
 if (store.userId === undefined) {
     store.userId = getUserId()
@@ -138,6 +141,10 @@ if (store.fullScreen) {
 if (data.onlyChat) {
     store.noHeader = true;
     store.historyOpened = false;
+}
+if (data.fitToParent) {
+    store.opened = true;
+    store.fitToParent = true;
 }
 
 i18n.locale.value = data.lang || "en";
@@ -223,6 +230,9 @@ $widget-margin: 16px;
 
 .chatfaq-widget {
     position: fixed;
+    &.fit-to-parent {
+        position: unset;
+    }
     z-index: 1000;
     bottom: 0;
     right: 0;
@@ -266,6 +276,9 @@ $widget-margin: 16px;
 
     .widget-wrapper {
         position: absolute;
+        &.fit-to-parent {
+            position: unset;
+        }
         display: flex;
         align-items: stretch;
         flex-flow: row;
