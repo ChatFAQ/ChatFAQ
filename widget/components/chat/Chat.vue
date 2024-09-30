@@ -1,5 +1,5 @@
 <template>
-    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
+    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
@@ -219,6 +219,9 @@ function sendToGTM(msg) {
 </script>
 <style scoped lang="scss">
 
+
+
+
 .chat-wrapper {
     font: $chatfaq-font-body-s;
     font-style: normal;
@@ -232,6 +235,10 @@ function sendToGTM(msg) {
 
     &.dark-mode {
         background-color: $chatfaq-color-chat-background-dark;
+    }
+    &.fit-to-parent {
+        border: unset !important;
+        border-radius: inherit !important;
     }
 }
 

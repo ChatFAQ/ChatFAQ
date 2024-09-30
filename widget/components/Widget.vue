@@ -15,7 +15,7 @@
                 <LeftMenu v-if="store.historyOpened" class="widget-history"
                           :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
                 <div class="widget-body"
-                     :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened}">
+                     :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened, 'fit-to-parent': store.fitToParent}">
                     <Header v-if="!store.noHeader" class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
                     <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'no-header': store.noHeader}"/>
                 </div>
@@ -177,6 +177,10 @@ onMounted(async () => {
 
 $phone-breakpoint: 600px;
 
+.fit-to-parent {
+    border-radius: inherit !important;
+}
+
 .chatfaq-widget {
     .widget-wrapper.full-screen > .widget-body > .chat {
         > .conversation-content {
@@ -276,22 +280,27 @@ $widget-margin: 16px;
 
     .widget-wrapper {
         position: absolute;
-        &.fit-to-parent {
-            position: unset;
-        }
         display: flex;
         align-items: stretch;
         flex-flow: row;
         right: 0px;
         margin: $widget-margin;
+
         bottom: calc($chatfaq-size-bubbleButton + $widget-open-button-margin);
 
+        &.fit-to-parent {
+            position: unset;
+            margin: 0px;
+        }
         &.full-screen {
             bottom: 0;
             margin: 0px;
         }
 
         .widget-body {
+            &.fit-to-parent {
+                width: 100% !important;
+            }
             &.maximized {
                 @media only screen and (min-width: $phone-breakpoint) {
                     width: calc(100dvw - $history-width - $widget-margin * 2);
@@ -317,7 +326,6 @@ $widget-margin: 16px;
                     }
                 }
             }
-
             display: flex;
             width: 400px;
             height: 580px;
