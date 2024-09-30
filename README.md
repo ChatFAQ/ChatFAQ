@@ -28,11 +28,11 @@ The official documentation is hosted on [Read the Docs](https://chatfaq.readthed
 - **Admin Dashboard**: A dashboard to manage all your knowledge bases, LLMs, retrievers, label conversations, see statistics, etc.
 - **Ray Cluster**: Power indexing pipelines, LLM inference, retrieval operations and more.
 - **Backend**: Django-based system to orchestrate all components.
-- **Foundational Models**: 
+- **Foundational Models**:
 
   - Primary: vLLM integration for open-source LLMs
   - Additional: Integrations with OpenAI, Anthropic, Mistral, Gemini and Together.
-  
+
 ### Visit Us!
 
 For more information about ChatFAQ and any additional needs, feel free to visit our [website](https://www.chatfaq.io/)
