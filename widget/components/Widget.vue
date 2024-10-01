@@ -178,6 +178,7 @@ onMounted(async () => {
 $phone-breakpoint: 600px;
 
 .fit-to-parent {
+    height: inherit !important;
     border-radius: inherit !important;
 }
 
