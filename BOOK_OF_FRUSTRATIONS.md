@@ -11,3 +11,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 - [ ] Admin: Add the composables (as such useNuxtApp ($axios), useItemsStore, etc...) inside the utility functions on the admin (itemstore, utls, etc...) so we won't pass them as parameters.
 - [ ] Admin: Axios should implement authetication with a middleware.
 - [ ] Redo the stats after the RAG removal.
+- [ ] Widget: If the widget won't show the list of conversations due to a render attribute that hides them, then it shouldn't be requesting them.
