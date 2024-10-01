@@ -4,7 +4,9 @@
             [props.message.sender.type]: true,
             'is-first': props.isFirst,
             'is-last': props.isLast,
-            'maximized': store.maximized
+            'maximized': store.maximized,
+            'mobile-no-margins': iframedMsg && iframedMsg.mobileNoMargins,
+            'desktop-no-margins': iframedMsg && iframedMsg.desktopNoMargins,
         }">
         <div
             class="message"
@@ -125,7 +127,6 @@ $phone-breakpoint: 600px;
 .message-wrapper {
     display: flex;
     flex-direction: column;
-
     &.bot {
         margin-left: 24px;
         margin-right: 86px;
@@ -199,6 +200,19 @@ $phone-breakpoint: 600px;
 
         &.human {
             align-self: end;
+        }
+    }
+
+    &.mobile-no-margins {
+        @media only screen and (max-width: $phone-breakpoint) {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    }
+    &.desktop-no-margins {
+        @media only screen and (min-width: $phone-breakpoint) {
+            margin-left: 5px;
+            margin-right: 5px;
         }
     }
 }

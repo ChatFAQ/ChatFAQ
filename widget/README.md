@@ -94,13 +94,23 @@ Next we will explain all the widget's possible parameters:
     "<MESSAGE_TYPE>": {
         "src": "<URL>",
         "fullWidth": Boolean,
+        "mobileNoMargins": Boolean,
+        "desktopNoMargins": Boolean,
         "dynamicHeight": Boolean,
         "scrolling": "yes"/"no",
         "noPadding": Boolean
     }
 }
 ```
-The widget will intercept any message with the type `<MESSAGE_TYPE>` and will render an iframe with the provided URL. The rest of the parameters are optional and will be used to customize the iframe's behavior.
+The widget will intercept any message with the type `<MESSAGE_TYPE>` and will render an iframe with the provided URL. The rest of the parameters are optional and will be used to customize the iframe's styling and behavior, next you can see the explanation of each parameter:
+
+- `src`<span style="color:red;">*</span>: URL of the iframe.
+- `fullWidth`: If the iframe should take the full width of the chat's message in which it is contained.
+- `mobileNoMargins`: If the message in which the iframe is contained should have no margins on mobile.
+- `desktopNoMargins`: If the message in which the iframe is contained should have no margins on desktop.
+- `dynamicHeight`: If the iframe should have a dynamic height, this will make the iframe's height to be the same as its content's height.
+- `scrolling`: If the iframe should have scrolling, by default the iframe will have scrolling.
+- `noPadding`: If the message in which the iframe is contained should have no padding, by default the message will have padding.
 
 
 ### JS Library
@@ -135,6 +145,8 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
             "iframe": {
                 "src": "https://localhost:3000/iframed-msg",
                 "fullWidth": true,
+                "mobileNoMargins": true,
+                "desktopNoMargins": true,
                 "dynamicHeight": true,
                 "scrolling": "np",
                 "noPadding": true
@@ -180,7 +192,7 @@ If you declare data attributes and a config object and its keys collide, then th
     data-only-chat
     data-fit-to-parent
     data-initial-conversation-metadata='{"hello": "world"}'
-    data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
+    data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "mobileNoMargins": true, "desktopNoMargins": true, "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
 ></chatfaq-widget>
 ```
 
