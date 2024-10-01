@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Tuple, Union
+from uuid import uuid4
 
 from django.db import models
 from typefit import typefit
@@ -53,7 +54,8 @@ class FSMDefinition(ChangesMixin):
             )
         elif overwrite:
             logger.info(f"Overwriting FSM definition with name: {name}")
-            cls.objects.filter(name=name).delete()
+            old_fsm = cls.objects.filter(name=name).first()
+            old_fsm.name = f"{name}_{uuid4()}"
 
         fsm = cls(
             name=name,
