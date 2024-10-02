@@ -85,6 +85,8 @@ Next we will explain all the widget's possible parameters:
 
 `fitToParent`: if the widget should fit to the parent element, by default the widget will be positioned absolute to the window.
 
+`stickInputPrompt`: if the input text should be sticked to the bottom of the chat, by default the input text will be sticked to the bottom of the chat but if for instance you choose to fit the widget to the parents height then the input text can disappear from the view.
+
 `initialConversationMetadata`: stringify JSON object with arbitrary metadata that will be sent and accessible in the SDK's FSM
 
 `customIFramedMsgs`: It is possible to customize the messages coming from the SDK's FSM, you can pass a JSON object with the following structure:
@@ -140,6 +142,7 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
         fullScreen: true,
         onlyChat: true,
         fitToParent: true,
+        stickInputPrompt: true,
         initialConversationMetadata: JSON.stringify({"hello": "world"}),
         customIFramedMsgs: JSON.stringify({
             "iframe": {
@@ -191,6 +194,7 @@ If you declare data attributes and a config object and its keys collide, then th
     data-full-screen
     data-only-chat
     data-fit-to-parent
+    data-stick-input-prompt
     data-initial-conversation-metadata='{"hello": "world"}'
     data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "mobileNoMargins": true, "desktopNoMargins": true, "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
 ></chatfaq-widget>

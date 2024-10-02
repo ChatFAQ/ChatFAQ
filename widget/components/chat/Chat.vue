@@ -1,5 +1,5 @@
 <template>
-    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent }" @click="store.menuOpened = false">
+    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
@@ -20,19 +20,21 @@
              :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
             {{ $t("connectingtoserver") }}
         </div>
-        <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
-            <div
-                :placeholder="$t('writeaquestionhere')"
-                class="chat-prompt"
-                :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
-                ref="chatInput"
-                @keydown="(ev) => manageEnterInput(ev, sendMessage)"
-                contenteditable
-                oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
-                @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
-                @paste="managePaste"
-            />
-            <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
+        <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt }">
+            <div class="chat-prompt-outer">
+                <div
+                    :placeholder="$t('writeaquestionhere')"
+                    class="chat-prompt"
+                    :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
+                    ref="chatInput"
+                    @keydown="(ev) => manageEnterInput(ev, sendMessage)"
+                    contenteditable
+                    oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
+                    @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
+                    @paste="managePaste"
+                />
+                <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
+            </div>
         </div>
     </div>
 </template>
@@ -231,6 +233,10 @@ function sendToGTM(msg) {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+
+    &.stick-input-prompt {
+        overflow: initial;
+    }
     background-color: $chatfaq-color-chat-background-light;
 
     &.dark-mode {
@@ -242,14 +248,21 @@ function sendToGTM(msg) {
     }
 }
 
-.input-chat-wrapper {
-    margin: 24px;
-    display: flex;
-    border-radius: 4px;
-    border: 1px solid $chatfaq-color-chatInput-border-light !important;
-    background-color: $chatfaq-color-chatInput-background-light;
-    box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+.chat-prompt-wrapper {
+    padding: 24px;
 
+    .chat-prompt-outer {
+        display: flex;
+        border-radius: 4px;
+        border: 1px solid $chatfaq-color-chatInput-border-light !important;
+        box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+    }
+
+    &.stick-input-prompt {
+        position: sticky;
+        bottom: 0px;
+    }
+    background-color: $chatfaq-color-chat-background-light;
     &.dark-mode {
         background-color: $chatfaq-color-chatInput-background-dark;
         border: 1px solid $chatfaq-color-chatInput-border-dark !important;

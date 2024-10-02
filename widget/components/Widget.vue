@@ -70,7 +70,8 @@ const props = defineProps({
     previewMode: Boolean,
     customCss: String,
     initialConversationMetadata: String,
-    customIFramedMsgs: String
+    customIFramedMsgs: String,
+    stickInputPrompt: Boolean
 });
 
 let data = props
@@ -117,7 +118,7 @@ store.chatfaqWS = data.chatfaqWs;
 store.chatfaqAPI = data.chatfaqApi;
 store.userId = data.userId;
 store.initialSelectedPlConversationId = data.conversationId
-
+store.stickInputPrompt = data.stickInputPrompt
 if (store.userId === undefined) {
     store.userId = getUserId()
 }
