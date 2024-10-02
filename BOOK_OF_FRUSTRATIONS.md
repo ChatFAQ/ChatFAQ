@@ -12,3 +12,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 - [ ] Admin: Axios should implement authetication with a middleware.
 - [ ] Redo the stats after the RAG removal.
 - [ ] Widget: If the widget won't show the list of conversations due to a render attribute that hides them, then it shouldn't be requesting them.
+- [ ] SDK: Typify the MML from the context so it has its own secured method to access the different data structure inside MMLs as such 'content', 'knowledge_items', etc...
