@@ -2,7 +2,9 @@ import asyncio
 import copy
 import inspect
 import json
+import os
 import queue
+import sentry_sdk
 import urllib.parse
 import uuid
 from functools import wraps
@@ -90,11 +92,20 @@ class ChatFAQSDK:
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
+        self.sentry = None
+        if SENTRY_DSN := os.getenv("SENTRY_DSN"):
+            self.sentry = sentry_sdk.init(SENTRY_DSN)
+
     def connect(self):
         try:
             asyncio.run(self.connexions())
         except KeyboardInterrupt:
             asyncio.run(self._disconnect())
+        except Exception as e:
+            if self.sentry:
+                sentry_sdk.capture_exception(e)
+            raise e
+
 
     async def connexions(self):
         setattr(self, f"ws_{WSType.rpc.value}", None)
