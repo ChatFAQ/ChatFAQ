@@ -2,12 +2,16 @@ from django.db import models
 from django.db.models import JSONField
 from uuid import uuid4
 
+from simple_history.models import HistoricalRecords
+
 from back.apps.widget.constants import THEME_DEFAULTS
 
 
 class Theme(models.Model):
     name = models.CharField(max_length=255)
     data = JSONField(default=THEME_DEFAULTS)
+
+    history = HistoricalRecords()
 
 
 class Widget(models.Model):
@@ -29,3 +33,5 @@ class Widget(models.Model):
     display_generation = models.BooleanField(default=True)
     display_sources = models.BooleanField(default=True)
     sources_first = models.BooleanField(default=False)
+
+    history = HistoricalRecords()

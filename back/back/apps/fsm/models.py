@@ -53,6 +53,7 @@ class FSMDefinition(ChangesMixin):
                 f"Trying to create a new FSM definition with a conflicting name: {name} which already exists",
             )
         elif overwrite:
+            # Should we instead create a new FSM definition just add a history record? and keep the same one?
             logger.info(f"Overwriting FSM definition with name: {name}")
             old_fsm = cls.objects.filter(name=name).first()
             old_fsm.name = f"{name}_{uuid4()}"
