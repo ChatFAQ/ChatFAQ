@@ -88,8 +88,8 @@
                         <chatfaq-widget
                             :data-title="title"
                             :data-subtitle="subtitle"
-                            :data-preview-mode="true"
-                            :data-maximized="false"
+                            data-preview-mode
+                            data-start-small-mode
                         ></chatfaq-widget>
                     </teleport>
                 </template>
