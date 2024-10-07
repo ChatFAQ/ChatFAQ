@@ -22,17 +22,27 @@
                         'name',
                         'domain',
                         'fsm_def',
+                        'chatfaq_ws',
+                        'chatfaq_api',
+                        'lang'
                     ],
-                [$t('layout')]: [
-                        'maximized',
-                        'fullScreen',
-                        'history_opened',
+                [$t('look & feel')]: [
                         'title',
                         'subtitle',
-                        'manage_user_id',
+                        'full_screen',
+                        'only_chat',
+                        'start_small_mode',
+                        'start_with_history_closed',
+                        'sources_first',
+                        'stick_input_prompt',
                     ],
-                [$t('messagelayout')]: [
-                        'messagelayout'
+                [$t('integration')]: [
+                        'fit_to_parent'
+                    ],
+                [$t('advanced')]: [
+                        'custom_css',
+                        'initial_conversation_metadata',
+                        'custom_i_framed_msgs',
                     ],
                 [$t('theme')]: [
                         'theme'
