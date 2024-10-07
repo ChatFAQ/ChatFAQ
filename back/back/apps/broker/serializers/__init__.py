@@ -47,7 +47,15 @@ def _get_fsm_defs(_, obj):
     """Returns the FSM definitions name"""
     fsm_def_ids = Message.objects.filter(conversation=obj).values_list("stack__0__fsm_definition", flat=True).distinct()
     fsm_def_ids = list(filter(None, fsm_def_ids))
-    return [FSMDefinition.objects.get(id=fsm_def_id).name for fsm_def_id in fsm_def_ids]
+    defs = []
+    for fsm_def_id in fsm_def_ids:
+        fsm_def = FSMDefinition.objects.filter(id=fsm_def_id).first()
+        if fsm_def:
+            defs.append(fsm_def.name)
+        else:  # If the SDK has overwritten the FSM definition, then the id will be dangling
+            defs.append(None)
+            # defs.append(fsm_def_id)
+    return defs
 
 
 class ConversationMessagesSerializer(serializers.ModelSerializer):
@@ -60,7 +68,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
 
     def get_msgs_chain(self, obj):
         return [MessageSerializer(m).data for m in obj.get_msgs_chain()]
-    
+
     get_fsm_defs = _get_fsm_defs
 
 
@@ -78,7 +86,7 @@ class ConversationSerializer(serializers.ModelSerializer):
                 return msg.sender.get("id")
             if msg.receiver and msg.receiver.get("type") == AgentType.human.value:
                 return msg.receiver.get("id")
-            
+
     get_fsm_defs = _get_fsm_defs
 
 

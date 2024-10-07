@@ -34,7 +34,7 @@ $phone-breakpoint: 600px;
 
     &.maximized {
         @media only screen and (min-width: $phone-breakpoint) {
-            margin-right: 35vw;
+            // margin-right: 35vw;
         }
     }
 }

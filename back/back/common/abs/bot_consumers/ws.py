@@ -2,7 +2,6 @@ import json
 from logging import getLogger
 from typing import TYPE_CHECKING
 
-import redis.exceptions
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
@@ -28,8 +27,8 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         await self.set_conversation(self.gather_conversation_id())
         self.set_fsm_def(await self.gather_fsm_def())
         self.set_user_id(await self.gather_user_id())
+        self.set_initial_conversation_metadata(await self.gather_initial_conversation_metadata())
 
-        # TODO: Support cached FSM ???
         self.fsm = await database_sync_to_async(CachedFSM.build_fsm)(self)
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
@@ -40,7 +39,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             )
             # await self.fsm.next_state()
         else:
-            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self)
+            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self, None, self.initial_conversation_metadata)
             await self.fsm.start()
             logger.debug(
                 f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"

@@ -1,8 +1,9 @@
 <template>
-    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode }" @click="store.menuOpened = false">
+    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
+                    v-if="renderable(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
@@ -19,25 +20,27 @@
              :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
             {{ $t("connectingtoserver") }}
         </div>
-        <div class="input-chat-wrapper" :class="{ 'dark-mode': store.darkMode }">
-            <div
-                :placeholder="$t('writeaquestionhere')"
-                class="chat-prompt"
-                :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
-                ref="chatInput"
-                @keydown="(ev) => manageEnterInput(ev, sendMessage)"
-                contenteditable
-                oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
-                @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
-                @paste="managePaste"
-            />
-            <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
+        <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt }">
+            <div class="chat-prompt-outer">
+                <div
+                    :placeholder="$t('writeaquestionhere')"
+                    class="chat-prompt"
+                    :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
+                    ref="chatInput"
+                    @keydown="(ev) => manageEnterInput(ev, sendMessage)"
+                    contenteditable
+                    oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
+                    @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
+                    @paste="managePaste"
+                />
+                <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, watch, nextTick} from "vue";
+import {ref, watch, nextTick, onMounted} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
@@ -49,6 +52,7 @@ const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
+const notRenderableStackTypes = ["gtm_tag"]
 
 let ws = undefined
 let heartbeatTimeout = undefined
@@ -56,6 +60,10 @@ let heartbeatTimeout = undefined
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+
+onMounted(async () => {
+    await initializeConversation()
+})
 
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
@@ -113,7 +121,7 @@ function createConnection() {
         + "/"
         + store.fsmDef
         + "/"
-        + (store.userId ? `${store.userId}/` : "")
+        + (store.userId ? `${store.userId}/?metadata=${JSON.stringify(store.initialConversationMetadata)}` : "")
     );
     ws.onmessage = async function (e) {
         const msg = JSON.parse(e.data);
@@ -127,9 +135,10 @@ function createConnection() {
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
 
-        store.addMessage(msg);
-        if (store.messages.length === 1) // First message, update list of conversations
+        if (!store.messages.length)
             await store.gatherConversations()
+        sendToGTM(msg)
+        store.addMessage(msg);
     };
     ws.onopen = function (e) {
         store.disconnected = false;
@@ -148,8 +157,18 @@ function createConnection() {
 }
 
 
-if(!store.previewMode)
-    store.createNewConversation()
+async function initializeConversation() {
+    if(store.previewMode)
+        return
+
+    if (store.initialSelectedPlConversationId) {
+        await store.gatherConversations()
+        if (store.conversation(store.initialSelectedPlConversationId)) {
+            return await store.openConversation(store.initialSelectedPlConversationId);
+        }
+    }
+    store.createNewConversation(store.initialSelectedPlConversationId);
+}
 
 function manageEnterInput(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
@@ -186,9 +205,24 @@ function sendMessage() {
     store.scrollToBottom += 1;
 }
 
+function renderable(message) {
+    return !notRenderableStackTypes.includes(message.stack[0].type)
+}
+
+function sendToGTM(msg) {
+    if (msg?.stack?.length && msg.stack[0].type === "gtm_tag") {
+        if (window?.dataLayer)
+            window.dataLayer.push(msg.stack[0].payload);
+        else
+            console.warn("GTM tag received but no dataLayer found")
+    }
+}
 
 </script>
 <style scoped lang="scss">
+
+
+
 
 .chat-wrapper {
     font: $chatfaq-font-body-s;
@@ -199,21 +233,36 @@ function sendMessage() {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+
+    &.stick-input-prompt {
+        overflow: initial;
+    }
     background-color: $chatfaq-color-chat-background-light;
 
     &.dark-mode {
         background-color: $chatfaq-color-chat-background-dark;
     }
+    &.fit-to-parent {
+        border: unset !important;
+        border-radius: inherit !important;
+    }
 }
 
-.input-chat-wrapper {
-    margin: 24px;
-    display: flex;
-    border-radius: 4px;
-    border: 1px solid $chatfaq-color-chatInput-border-light !important;
-    background-color: $chatfaq-color-chatInput-background-light;
-    box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+.chat-prompt-wrapper {
+    padding: 24px;
 
+    .chat-prompt-outer {
+        display: flex;
+        border-radius: 4px;
+        border: 1px solid $chatfaq-color-chatInput-border-light !important;
+        box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+    }
+
+    &.stick-input-prompt {
+        position: sticky;
+        bottom: 0px;
+    }
+    background-color: $chatfaq-color-chat-background-light;
     &.dark-mode {
         background-color: $chatfaq-color-chatInput-background-dark;
         border: 1px solid $chatfaq-color-chatInput-border-dark !important;

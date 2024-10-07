@@ -7,7 +7,6 @@ from channels.layers import get_channel_layer
 
 from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models import ConsumerRoundRobinQueue
-from back.apps.broker.models.message import StackPayloadType
 from back.apps.language_model.models import LLMConfig
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
@@ -69,6 +68,7 @@ class FSM:
         states: List[State],
         transitions: List[Transition],
         current_state: State = None,
+        initial_conversation_metadata: dict = {},
     ):
         """
         Parameters
@@ -91,6 +91,7 @@ class FSM:
         self.states = states
         self.transitions = transitions
         self.rpc_result_future: Union[asyncio.Future, None] = None
+        self.initial_conversation_metadata = initial_conversation_metadata
 
         self.current_state = current_state
         if not current_state:
@@ -172,7 +173,8 @@ class FSM:
 
     def manage_last_llm_msg(self, _new):
         _old = self.last_aggregated_msg
-        if _new['stack'][0]["type"] == StackPayloadType.message_chunk.value:
+
+        if _new['stack'][0]["streaming"]:
             if _new["stack_id"] == _old.get("stack_id"):
                 more_content = _new["stack"][0]["payload"]["content"]
                 old_payload = _old["stack"][0]["payload"]["content"]
