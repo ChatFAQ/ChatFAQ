@@ -88,10 +88,10 @@ export const useGlobalStore = defineStore('globalStore', {
                 "node_type": "action",
                 "stack_id": "bb1cbe14-fa72-4698-9e57-c5028a806b69",
                 "stack": [{
-                    "payload": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+                    "payload": {"content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur." },
                     "type": "text",
                     "meta": {
-                        "allow_feedback": false
+                        "allow_feedback": true
                     }
                 }],
                 "last": true,
@@ -114,7 +114,9 @@ export const useGlobalStore = defineStore('globalStore', {
                 },
                 "stack": [{
                     "type": "text",
-                    "payload": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                    "payload": {
+                       "content": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                    }
                 }],
                 "stack_id": "0",
                 "stack_group_id": "0",
