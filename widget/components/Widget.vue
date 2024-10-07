@@ -138,7 +138,12 @@ if (store.fullScreen) {
     store.opened = true
     store.maximized = false
 }
-
+if (data.startSmallMode) {
+    store.maximized = false
+}
+if (data.startWithHistoryClosed) {
+    store.historyOpened = false
+}
 if (data.onlyChat) {
     store.noHeader = true;
     store.historyOpened = false;
