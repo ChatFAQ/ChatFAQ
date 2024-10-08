@@ -31,12 +31,12 @@ async function copy() {
 
 .control {
     cursor: pointer;
-    color: $chatfaq-color-clipboard-text-light;
+    color: $chatfaq-color-thumbs-and-clipboard-light;
     margin-top: 6px;
     display: flex;
 
     &.dark-mode {
-        color: $chatfaq-color-clipboard-text-dark;
+        color: $chatfaq-color-thumbs-and-clipboard-dark;
     }
 }
 

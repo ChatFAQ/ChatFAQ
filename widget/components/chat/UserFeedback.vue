@@ -271,7 +271,7 @@ async function sendUserFeedback(value, _collapse) {
 
     .control {
         cursor: pointer;
-        color: $chatfaq-color-clipboard-text-light;
+        color: $chatfaq-color-thumbs-and-clipboard-light;
         margin-top: 7px;
         display: flex;
         div {
@@ -280,7 +280,7 @@ async function sendUserFeedback(value, _collapse) {
             }
         }
         &.dark-mode {
-            color: $chatfaq-color-clipboard-text-dark;
+            color: $chatfaq-color-thumbs-and-clipboard-dark;
         }
         &.collapse {
             cursor: unset;

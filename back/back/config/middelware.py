@@ -9,6 +9,7 @@ from rest_framework import exceptions
 from rest_framework.permissions import BasePermission
 
 from back.apps.widget.models import Widget
+from urllib.parse import urlparse
 
 logger = getLogger(__name__)
 
@@ -85,6 +86,6 @@ class IsAuthenticatedOrWidgetOriginHostPermission(BasePermission):
             widget = Widget.objects.get(id=widget_id)
         except Widget.DoesNotExist:
             return False
-        if widget.domain == origin:
+        if urlparse(widget.domain).netloc == urlparse(origin).netloc:
             return True
         return False

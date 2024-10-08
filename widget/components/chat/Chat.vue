@@ -114,6 +114,10 @@ function createConnection() {
     if (ws)
         ws.close()
 
+    let queryParams = ""
+    if (store.initialConversationMetadata)
+        queryParams = `?metadata=${JSON.stringify(store.initialConversationMetadata)}`
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
@@ -121,9 +125,9 @@ function createConnection() {
         + "/"
         + store.fsmDef
         + "/"
-        + (store.userId ? `${store.userId}/?metadata=${JSON.stringify(store.initialConversationMetadata)}` : "")
+        + (store.userId ? `${store.userId}/${queryParams}` : "")
     );
-    ws.onmessage = async function (e) {
+    ws.onmessage = function (e) {
         const msg = JSON.parse(e.data);
         if (msg.status === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
@@ -135,14 +139,13 @@ function createConnection() {
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
 
-        if (!store.messages.length)
-            await store.gatherConversations()
         sendToGTM(msg)
         store.addMessage(msg);
     };
-    ws.onopen = function (e) {
+    ws.onopen = async function () {
         store.disconnected = false;
         createHeartbeat(ws)
+        await store.gatherConversations()
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {

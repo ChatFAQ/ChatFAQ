@@ -22,17 +22,24 @@
                         'name',
                         'domain',
                         'fsm_def',
+                        'chatfaq_api',
+                        'lang'
                     ],
-                [$t('layout')]: [
-                        'maximized',
-                        'fullScreen',
-                        'history_opened',
+                [$t('look & feel')]: [
                         'title',
                         'subtitle',
-                        'manage_user_id',
+                        'full_screen',
+                        'only_chat',
+                        'start_small_mode',
+                        'start_with_history_closed',
+                        'sources_first',
+                        'stick_input_prompt',
+                        'fit_to_parent'
                     ],
-                [$t('messagelayout')]: [
-                        'messagelayout'
+                [$t('advanced')]: [
+                        'custom_css',
+                        'initial_conversation_metadata',
+                        'custom_i_framed_msgs',
                     ],
                 [$t('theme')]: [
                         'theme'
@@ -45,24 +52,32 @@
                 <template v-slot:write-script="props">
                     <ExampleScript :editing="readWriteViewWidget.editing"/>
                 </template>
-                <template v-slot:write-messagelayout="{schema, form}">
-                    <div>
-                        <el-form-item :label="$t('elementsshown') + ' *'">
-                            <el-radio v-model="elementsShown" label="tt">{{ $t('both') }}</el-radio>
-                            <el-radio v-model="elementsShown" label="tf">{{ $t('generation') }}</el-radio>
-                            <el-radio v-model="elementsShown" label="ft">{{ $t('sources') }}</el-radio>
-                        </el-form-item>
-                        <el-form-item :label="$t('displayorder') + ' *'">
-                            <el-select v-model="displayingOrder" placeholder="Select" style="width: 240px">
-                                <el-option
-                                    v-for="item in displayingOrderOptions"
-                                    :key="item.value"
-                                    :label="item.label"
-                                    :value="item.value"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </div>
+
+                <template v-slot:write-custom_i_framed_msgs="{fieldName, form, formServerErrors}">
+                    <el-form-item :label="$t(fieldName)"
+                                  :prop="fieldName"
+                                  :error="formServerErrors[fieldName]">
+                        <el-input
+                            class="prompt-input"
+                            v-model="form[fieldName]"
+                            autosize
+                            @keydown.enter.stop
+                            type="textarea"
+                        />
+                    </el-form-item>
+                </template>
+                <template v-slot:write-initial_conversation_metadata="{fieldName, form, formServerErrors}">
+                    <el-form-item :label="$t(fieldName)"
+                                  :prop="fieldName"
+                                  :error="formServerErrors[fieldName]">
+                        <el-input
+                            class="prompt-input"
+                            v-model="form[fieldName]"
+                            autosize
+                            @keydown.enter.stop
+                            type="textarea"
+                        />
+                    </el-form-item>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -88,8 +103,8 @@
                         <chatfaq-widget
                             :data-title="title"
                             :data-subtitle="subtitle"
-                            :data-preview-mode="true"
-                            :data-maximized="false"
+                            data-preview-mode
+                            data-start-small-mode
                         ></chatfaq-widget>
                     </teleport>
                 </template>
@@ -132,8 +147,12 @@ function submitFieldData() {
     fieldData.value.submit()
 }
 function initializedFormValues(form) {
-    displayingOrder.value = form.sources_first
-    elementsShown.value = form.display_generation.toString()[0] + form.display_sources.toString()[0]
+    if(form.custom_i_framed_msgs)
+        form.custom_i_framed_msgs = JSON.stringify(form.custom_i_framed_msgs, null, 4)
+    if(form.initial_conversation_metadata)
+        form.initial_conversation_metadata = JSON.stringify(form.initial_conversation_metadata, null, 4)
+    // displayingOrder.value = form.sources_first
+    // elementsShown.value = form.display_generation.toString()[0] + form.display_sources.toString()[0]
 }
 function submitMessageLayout(_, form) {
     form.display_generation = elementsShown.value[0] === 't'
