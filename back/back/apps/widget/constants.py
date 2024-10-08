@@ -154,7 +154,7 @@ THEME_DEFAULTS_BY_SECTION = {
             "dark": "#dfdaea",               # Primary 200
         }
     },
-    "chatfaq-color-clipboard-text": {
+    "chatfaq-color-thumbs-and-clipboard": {
         "type": "color",
         "section": "colors",
         "value": {
@@ -367,16 +367,6 @@ THEME_DEFAULTS_BY_SECTION = {
         "value": "#1A0438",  # Primary 900
     },
     "chatfaq-sun-icon-color": {
-        "type": "color",
-        "section": "icons",
-        "value": "#FFFFFF",  # Neutral White
-    },
-    "chatfaq-thumb-down-icon-color": {
-        "type": "color",
-        "section": "icons",
-        "value": "#FFFFFF",  # Neutral White
-    },
-    "chatfaq-thumb-up-icon-color": {
         "type": "color",
         "section": "icons",
         "value": "#FFFFFF",  # Neutral White
