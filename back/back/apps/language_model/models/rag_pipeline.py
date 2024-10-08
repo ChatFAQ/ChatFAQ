@@ -94,6 +94,8 @@ class RetrieverConfig(ChangesMixin):
     enabled = models.BooleanField(default=False)
     num_replicas = models.IntegerField(default=1)
 
+    history = HistoricalRecords()
+
     def __str__(self):
         return self.name
 
@@ -266,6 +268,8 @@ class LLMConfig(ChangesMixin):
     enabled = models.BooleanField(default=False)
     num_replicas = models.IntegerField(default=1)
 
+    history = HistoricalRecords()
+
     def __str__(self):
         return self.name
 
@@ -364,6 +368,7 @@ class PromptConfig(ChangesMixin):
 
     name = models.CharField(max_length=255, unique=True)
     prompt = models.TextField(blank=False, default="")
+
     history = HistoricalRecords()
 
     def __str__(self):
@@ -385,6 +390,8 @@ class GenerationConfig(ChangesMixin):
     temperature = models.FloatField(default=0.2)
     max_tokens = models.IntegerField(default=1024)
     seed = models.IntegerField(default=42)
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name

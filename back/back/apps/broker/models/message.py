@@ -25,15 +25,6 @@ class AgentType(Enum):
     system = "system"
 
 
-class StackPayloadType(Enum):
-    message = "message"
-    message_chunk = "message_chunk"
-    html = "html"
-    image = "image"
-    satisfaction = "satisfaction"
-    quick_replies = "quick_replies"
-
-
 class AdminReviewValue(Enum):
     positive = "positive"
     negative = "negative"
@@ -290,13 +281,8 @@ class Message(ChangesMixin):
     def _to_text(stack, send_time, sender):
         stack_text = ""
         for layer in stack:
-            if layer["type"] in [StackPayloadType.message.value, StackPayloadType.message_chunk.value]:
-                if layer["payload"]["content"]:
-                    stack_text += layer["payload"]["content"]
-            else:
-                logger.error(
-                    f"Unknown stack payload type to export as csv: {layer['type']}"
-                )
+            if layer["payload"].get("content") is not None:
+                stack_text += layer["payload"]["content"]
 
         return f"{send_time} {sender['type']}: {stack_text}"
 

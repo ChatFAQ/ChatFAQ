@@ -1,6 +1,8 @@
 <template>
     <Suspense>
-        <div class="chatfaq-widget">
+        <div class="chatfaq-widget" :class="{
+            'fit-to-parent': store.fitToParent
+        }">
             <div v-if="isPhoneLandscape" class="not-supported">
                 <div class="not-supported-text">
                     <div class="not-supported-text-title">Sorry, we don't support mobile landscape mode yet.</div>
@@ -8,17 +10,17 @@
                 </div>
             </div>
             <div v-if="store.opened && !isPhoneLandscape" class="widget-wrapper"
-                 :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}">
+                 :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'fit-to-parent': store.fitToParent}">
                 <div class="dark-filter" v-if="store.historyOpened"></div>
                 <LeftMenu v-if="store.historyOpened" class="widget-history"
                           :class="{'maximized': store.maximized, 'full-screen': store.fullScreen}"/>
                 <div class="widget-body"
-                     :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened}">
-                    <Header class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
-                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                     :class="{'maximized': store.maximized, 'full-screen': store.fullScreen, 'history-closed': !store.historyOpened, 'fit-to-parent': store.fitToParent}">
+                    <Header v-if="!store.noHeader" class="header" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen}"/>
+                    <Chat class="chat" :class="{'history': store.historyOpened, 'full-screen': store.fullScreen, 'no-header': store.noHeader}"/>
                 </div>
             </div>
-            <div v-if="!isPhoneLandscape && !store.fullScreen" class="widget-open-button" :class="{'opened': store.opened}"
+            <div v-if="!isPhoneLandscape && !store.fullScreen && !store.fitToParent" class="widget-open-button" :class="{'opened': store.opened}"
                  @click="store.opened = !store.opened">
                 <BubbleButtonClose v-if="store.opened" class="bubble-icon close" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
                 <BubbleButtonOpen v-else class="bubble-icon open" color="white" icon="'~/assets/icons/bubble-button-open.svg'" />
@@ -49,25 +51,29 @@ useHead({
     ],
 })
 
-const props = defineProps([
-    "chatfaqWs",
-    "chatfaqApi",
-    "fsmDef",
-    "userId",
-    "manageUserId",
-    "title",
-    "subtitle",
-    "maximized",
-    "fullScreen",
-    "historyOpened",
-    "widgetConfigId",
-    "displayGeneration",
-    "displaySources",
-    "sourcesFirst",
-    "lang",
-    "previewMode",
-    "customCss",
-]);
+const props = defineProps({
+    chatfaqWs: String,
+    chatfaqApi: String,
+    fsmDef: String,
+    userId: String,
+    title: String,
+    subtitle: String,
+    startSmallMode: Boolean,
+    fullScreen: Boolean,
+    startWithHistoryClosed: Boolean,
+    conversationId: String,
+    widgetConfigId: String,
+    sourcesFirst: Boolean,
+    onlyChat: Boolean,
+    fitToParent: Boolean,
+    lang: String,
+    previewMode: Boolean,
+    customCss: String,
+    initialConversationMetadata: String,
+    customIFramedMsgs: String,
+    stickInputPrompt: Boolean
+});
+
 let data = props
 const _customCss = ref(props.customCss)
 watch( () => props.customCss, (newVal, _)=> {
@@ -105,39 +111,43 @@ async function init() {
     }
 }
 
-if (props.previewMode) {
+if (data.previewMode) {
     store.setPreviewMode()
 }
-store.chatfaqWS = props.chatfaqWs;
-store.chatfaqAPI = props.chatfaqApi;
-store.userId = props.userId;
-
-if (!store.userId && data.manageUserId) {
+store.chatfaqWS = data.chatfaqWs;
+store.chatfaqAPI = data.chatfaqApi;
+store.userId = data.userId;
+store.initialSelectedPlConversationId = data.conversationId
+store.stickInputPrompt = data.stickInputPrompt
+if (store.userId === undefined) {
     store.userId = getUserId()
+}
+if (data.initialConversationMetadata) {
+    store.initialConversationMetadata = JSON.parse(data.initialConversationMetadata)
 }
 
 store.fsmDef = data.fsmDef;
 store.title = data.title;
 store.subtitle = data.subtitle;
+if (data.customIFramedMsgs)
+    store.customIFramedMsgs = JSON.parse(data.customIFramedMsgs)
 
-
-if (data.fullScreen !== undefined)
-    store.fullScreen = data.fullScreen && data.fullScreen !== "false";
-if (data.maximized !== undefined)
-    store.maximized = data.maximized && data.maximized !== "false";
-if (data.historyOpened !== undefined)
-    store.historyOpened = data.historyOpened && data.historyOpened !== "false";
-if (data.displayGeneration !== undefined)
-    store.displayGeneration = data.displayGeneration && data.displayGeneration !== "false";
-if (data.displaySources !== undefined)
-    store.displaySources = data.displaySources && data.displaySources !== "false";
-if (data.sourcesFirst !== undefined)
-    store.sourcesFirst = data.sourcesFirst && data.sourcesFirst !== "false";
-
+store.fullScreen = data.fullScreen
+store.sourcesFirst = data.sourcesFirst
 if (store.fullScreen) {
     store.opened = true
     store.maximized = false
 }
+
+if (data.onlyChat) {
+    store.noHeader = true;
+    store.historyOpened = false;
+}
+if (data.fitToParent) {
+    store.opened = true;
+    store.fitToParent = true;
+}
+
 i18n.locale.value = data.lang || "en";
 
 function isPhone() {
@@ -167,6 +177,11 @@ onMounted(async () => {
 @import "~/assets/styles/global.scss";
 
 $phone-breakpoint: 600px;
+
+.fit-to-parent {
+    height: inherit !important;
+    border-radius: inherit !important;
+}
 
 .chatfaq-widget {
     .widget-wrapper.full-screen > .widget-body > .chat {
@@ -221,6 +236,9 @@ $widget-margin: 16px;
 
 .chatfaq-widget {
     position: fixed;
+    &.fit-to-parent {
+        position: unset;
+    }
     z-index: 1000;
     bottom: 0;
     right: 0;
@@ -269,14 +287,22 @@ $widget-margin: 16px;
         flex-flow: row;
         right: 0px;
         margin: $widget-margin;
+
         bottom: calc($chatfaq-size-bubbleButton + $widget-open-button-margin);
 
+        &.fit-to-parent {
+            position: unset;
+            margin: 0px;
+        }
         &.full-screen {
             bottom: 0;
             margin: 0px;
         }
 
         .widget-body {
+            &.fit-to-parent {
+                width: 100% !important;
+            }
             &.maximized {
                 @media only screen and (min-width: $phone-breakpoint) {
                     width: calc(100dvw - $history-width - $widget-margin * 2);
@@ -302,7 +328,6 @@ $widget-margin: 16px;
                     }
                 }
             }
-
             display: flex;
             width: 400px;
             height: 580px;
@@ -367,6 +392,10 @@ $widget-margin: 16px;
         border-right: 1px solid $chatfaq-color-menu-border;
         border-bottom: 1px solid $chatfaq-color-menu-border;
         border-radius: 0px 0px 10px 10px;
+        &.no-header { // No header means no history neither
+            border-radius: 10px;
+            border-top: 1px solid $chatfaq-color-menu-border;
+        }
 
         &.history {
             border-radius: 0px 0px 10px 0px;

@@ -1,4 +1,6 @@
+import json
 from logging import getLogger
+from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
 
@@ -25,6 +27,11 @@ class CustomWSBotConsumer(WSBotConsumer):
 
     async def gather_user_id(self):
         return self.scope["url_route"]["kwargs"]["sender_id"]
+
+    async def gather_initial_conversation_metadata(self):
+        params = parse_qs(self.scope["query_string"])
+        _meta = params.get(b"metadata", [b"{}"])
+        return json.loads(_meta[0])
 
     @classmethod
     def platform_url_paths(cls) -> str:

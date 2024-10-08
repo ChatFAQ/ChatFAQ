@@ -5,7 +5,7 @@ For those chatbots with complex Finite State Machine (FSM) behaviours, you will 
 
 ## Prerequisites
 
-Make sure the next list of packages are installed on your system:
+Make sure the following list of packages are installed on your system:
 
 - Python 3.10
 - python3.10-dev
