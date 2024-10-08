@@ -12,6 +12,7 @@ const props = defineProps([
     "widgetConfigId", "editing"
 ]);
 import { useItemsStore } from "~/store/items.js";
+const conf = useRuntimeConfig()
 
 const itemsStore = useItemsStore()
 
@@ -19,16 +20,15 @@ const example = ref(`
 <div id="chatfaq-widget"></div>
 
 <script type="module">
-    import { ChatfaqWidget } from 'https://unpkg.com/chatfaq-widget@0.0.29/dist/chatfaq-widget.mjs';
+    import { ChatfaqWidget } from 'https://unpkg.com/chatfaq-widget@${conf.public.widgetVersion}/dist/chatfaq-widget.umd.js';
 
     const config = {
-    element: "#chatfaq-widget",
-    chatfaqApi: "<HTTP_YOUR_CHATFAQ_HOST>",
-    chatfaqWs: "<WS_YOUR_CHATFAQ_HOST>",
-    widgetConfigId: "${props.editing}"
-  }
-  const chatfaqWidget = new ChatfaqWidget(config);
-  chatfaqWidget.mount()
+        element: "#chatfaq-widget",
+        chatfaqApi: "<HTTP_YOUR_CHATFAQ_HOST>",
+        widgetConfigId: "${props.editing}"
+    }
+    const chatfaqWidget = new ChatfaqWidget(config);
+    chatfaqWidget.mount()
 \<\/script>
 `)
 </script>

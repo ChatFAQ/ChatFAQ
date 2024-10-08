@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import JSONField
 from uuid import uuid4
@@ -24,8 +25,23 @@ class Widget(models.Model):
     name = models.CharField(max_length=255)
     domain = models.URLField()
     fsm_def = models.CharField(null=True, max_length=255)
-    chatfaq_ws = models.URLField(null=True)
-    chatfaq_api = models.URLField(null=True)
+    # chatfaq_api = models.CharField(
+    #     max_length=255,
+    #     null=True,
+    #     validators=[RegexValidator(
+    #         regex=r'^(http|https)://([a-zA-Z0-9.-]+(:[0-9]+)?)/?$',
+    #         message='Enter a valid HTTP URL',
+    #     )]
+    # )
+    chatfaq_ws = models.CharField(
+        max_length=255,
+        null=True,
+        validators=[RegexValidator(
+            regex=r'^(ws|wss)://([a-zA-Z0-9.-]+(:[0-9]+)?)/?$',
+            message='Enter a WS URL',
+        )]
+    )
+
     lang = models.CharField(null=True, max_length=255)
     # look and feel
     title = models.CharField(max_length=255, null=True, blank=True)
@@ -41,6 +57,8 @@ class Widget(models.Model):
     # advanced
     custom_css = models.TextField(null=True, blank=True)
     initial_conversation_metadata = JSONField(default=dict)
-    custom_i_dramed_msgs = JSONField(default=dict)
+    custom_i_framed_msgs = JSONField(default=dict)
+
+    theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True)
     # ----------
     history = HistoricalRecords()

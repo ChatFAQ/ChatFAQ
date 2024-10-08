@@ -109,51 +109,54 @@ async function init() {
         style.innerHTML = data.css;
         document.head.appendChild(style);
     }
+    initStore()
 }
 
-if (data.previewMode) {
-    store.setPreviewMode()
-}
-store.chatfaqWS = data.chatfaqWs;
-store.chatfaqAPI = data.chatfaqApi;
-store.userId = data.userId;
-store.initialSelectedPlConversationId = data.conversationId
-store.stickInputPrompt = data.stickInputPrompt
-if (store.userId === undefined) {
-    store.userId = getUserId()
-}
-if (data.initialConversationMetadata) {
-    store.initialConversationMetadata = JSON.parse(data.initialConversationMetadata)
-}
+function initStore() {
+    if (data.previewMode) {
+        store.setPreviewMode()
+    }
+    store.chatfaqWS = data.chatfaqWs;
+    store.chatfaqAPI = data.chatfaqApi;
+    store.userId = data.userId;
+    store.initialSelectedPlConversationId = data.conversationId
+    store.stickInputPrompt = data.stickInputPrompt
+    if (store.userId === undefined) {
+        store.userId = getUserId()
+    }
+    store.initialConversationMetadata = data.initialConversationMetadata
+    store.customIFramedMsgs = data.customIFramedMsgs
+    if (typeof store.initialConversationMetadata === 'string')
+        store.initialConversationMetadata = JSON.parse(store.initialConversationMetadata)
+    if (typeof store.customIFramedMsgs === 'string')
+        store.customIFramedMsgs = JSON.parse(store.customIFramedMsgs)
 
-store.fsmDef = data.fsmDef;
-store.title = data.title;
-store.subtitle = data.subtitle;
-if (data.customIFramedMsgs)
-    store.customIFramedMsgs = JSON.parse(data.customIFramedMsgs)
+    store.fsmDef = data.fsmDef;
+    store.title = data.title;
+    store.subtitle = data.subtitle;
 
-store.fullScreen = data.fullScreen
-store.sourcesFirst = data.sourcesFirst
-if (store.fullScreen) {
-    store.opened = true
-    store.maximized = false
+    store.fullScreen = data.fullScreen
+    store.sourcesFirst = data.sourcesFirst
+    if (store.fullScreen) {
+        store.opened = true
+        store.maximized = false
+    }
+    if (data.startSmallMode) {
+        store.maximized = false
+    }
+    if (data.startWithHistoryClosed) {
+        store.historyOpened = false
+    }
+    if (data.onlyChat) {
+        store.noHeader = true;
+        store.historyOpened = false;
+    }
+    if (data.fitToParent) {
+        store.opened = true;
+        store.fitToParent = true;
+    }
+    i18n.locale.value = data.lang || "en";
 }
-if (data.startSmallMode) {
-    store.maximized = false
-}
-if (data.startWithHistoryClosed) {
-    store.historyOpened = false
-}
-if (data.onlyChat) {
-    store.noHeader = true;
-    store.historyOpened = false;
-}
-if (data.fitToParent) {
-    store.opened = true;
-    store.fitToParent = true;
-}
-
-i18n.locale.value = data.lang || "en";
 
 function isPhone() {
     let check = false;

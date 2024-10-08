@@ -13,7 +13,6 @@ export const useGlobalStore = defineStore('globalStore', {
             menuOpened: false,
             maximized: true,
             historyOpened: true,
-            displaySources: true,
             fullScreen: false,
             sourcesFirst: false,
             noHeader: false,

@@ -12,7 +12,7 @@ class WidgetSerializer(serializers.ModelSerializer):
 
     def get_css(self, obj):
         css = ":root {"
-        if obj.theme:
+        if getattr(obj, "theme", None):
             for css_var in obj.theme.data:
                 if type(obj.theme.data[css_var]) is dict:
                     css += f"--{css_var}-light: {obj.theme.data[css_var]['light']};"

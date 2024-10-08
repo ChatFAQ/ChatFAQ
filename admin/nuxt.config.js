@@ -1,6 +1,11 @@
 import { envManager, defineModelWConfig } from "@model-w/preset-nuxt3";
 import { defu } from "defu";
 
+const fs = require('fs')
+const packageJson = fs.readFileSync('./package.json')
+const widgetVersion = JSON.parse(packageJson)["dependencies"]["chatfaq-widget"] || 0
+
+
 export default envManager((env) => {
     const config = defineModelWConfig(env, {
         siteName: "ChatFAQ Admin",
@@ -39,6 +44,7 @@ export default envManager((env) => {
         runtimeConfig: {
             public: {
                 chatfaqWS: (process.env.NUXT_PUBLIC_CHATFAQ_WS || process.env.CHATFAQ_WS) ?? "",
+                widgetVersion: widgetVersion,
             },
         },
         vue: {
