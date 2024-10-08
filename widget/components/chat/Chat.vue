@@ -127,7 +127,7 @@ function createConnection() {
         + "/"
         + (store.userId ? `${store.userId}/${queryParams}` : "")
     );
-    ws.onmessage = async function (e) {
+    ws.onmessage = function (e) {
         const msg = JSON.parse(e.data);
         if (msg.status === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
@@ -139,14 +139,13 @@ function createConnection() {
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
 
-        if (!store.messages.length)
-            await store.gatherConversations()
         sendToGTM(msg)
         store.addMessage(msg);
     };
-    ws.onopen = function (e) {
+    ws.onopen = async function () {
         store.disconnected = false;
         createHeartbeat(ws)
+        await store.gatherConversations()
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
