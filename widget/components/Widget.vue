@@ -1,5 +1,5 @@
 <template>
-    <Suspense>
+    <Suspense v-if="initialized">
         <div class="chatfaq-widget" :class="{
             'fit-to-parent': store.fitToParent
         }">
@@ -44,6 +44,7 @@ const i18n = useI18n();
 
 const store = useGlobalStore();
 const isPhoneLandscape = ref(false);
+const initialized = ref(false);
 
 useHead({
     meta: [
@@ -98,13 +99,13 @@ async function init() {
         const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, {headers: {
             'widget-id': props.widgetConfigId
           }});
-        data = await response.json();
+        let _data = await response.json();
         // sneak case data keys to lowerCamelCase:
-        data = Object.keys(data).reduce((acc, key) => {
-            acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = data[key];
+        _data = Object.keys(_data).reduce((acc, key) => {
+            acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = _data[key];
             return acc;
         }, {});
-
+        data = {...data, ..._data}
         const style = document.createElement('style');
         style.innerHTML = data.css;
         document.head.appendChild(style);
@@ -156,6 +157,7 @@ function initStore() {
         store.fitToParent = true;
     }
     i18n.locale.value = data.lang || "en";
+    initialized.value = true;
 }
 
 function isPhone() {

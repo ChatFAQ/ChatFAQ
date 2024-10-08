@@ -4,8 +4,8 @@ export const useGlobalStore = defineStore('globalStore', {
     state: () => {
         return {
             fsmDef: undefined,
-            chatfaqWS: {},
-            chatfaqAPI: {},
+            chatfaqWS: undefined,
+            chatfaqAPI: undefined,
             userId: undefined,
             title: "",
             subtitle: "",
