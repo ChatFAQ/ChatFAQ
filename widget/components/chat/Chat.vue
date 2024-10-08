@@ -114,6 +114,10 @@ function createConnection() {
     if (ws)
         ws.close()
 
+    let queryParams = ""
+    if (store.initialConversationMetadata)
+        queryParams = `?metadata=${JSON.stringify(store.initialConversationMetadata)}`
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
@@ -121,7 +125,7 @@ function createConnection() {
         + "/"
         + store.fsmDef
         + "/"
-        + (store.userId ? `${store.userId}/?metadata=${JSON.stringify(store.initialConversationMetadata)}` : "")
+        + (store.userId ? `${store.userId}/${queryParams}` : "")
     );
     ws.onmessage = async function (e) {
         const msg = JSON.parse(e.data);
