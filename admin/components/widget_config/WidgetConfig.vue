@@ -155,6 +155,7 @@ function initializedFormValues(form) {
     // elementsShown.value = form.display_generation.toString()[0] + form.display_sources.toString()[0]
 }
 function submitMessageLayout(_, form) {
+    return
     form.display_generation = elementsShown.value[0] === 't'
     form.display_sources = elementsShown.value[1] === 't'
     form.sources_first = displayingOrder.value
