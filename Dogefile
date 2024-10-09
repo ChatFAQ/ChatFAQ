@@ -60,6 +60,7 @@ env:
       NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
       NUXT_API_URL: "{{ back.PRIVATE_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+      SENTRY_DSN: "wss://{{ SENTRY_DSN_ADMIN }}"
   - name: sdk
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"
