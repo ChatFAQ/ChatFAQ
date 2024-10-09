@@ -32,6 +32,7 @@
     "dependencies": {
         "@babel/traverse": "^7.23.2",
         "@gtm-support/vue-gtm": "^3.1.0",
+        "@sentry/nuxt": "^8.33.1",
         "browserify-sign": "^4.2.2",
         "ejs": "^3.1.9",
         "json5": "^2.2.3",

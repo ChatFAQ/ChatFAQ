@@ -54,13 +54,14 @@ env:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
+      SENTRY_DSN: "{{ secret("SENTRY_DSN_WIDGET") }}"
   - name: admin
     variables:
       SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
       NUXT_PROXY_OPTIONS_TARGET: "{{ back.PRIVATE_URL }}"
       NUXT_API_URL: "{{ back.PRIVATE_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-      SENTRY_DSN: "wss://{{ SENTRY_DSN_ADMIN }}"
+      SENTRY_DSN: "{{ secret("SENTRY_DSN_ADMIN") }}"
   - name: sdk
     variables:
       SENTRY_ENVIRONMENT: "{{ sdk.component_key }}"

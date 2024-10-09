@@ -29,6 +29,7 @@ export default defineNuxtConfig({
         public: {
             chatfaqAPI: (process.env.NUXT_PUBLIC_CHATFAQ_API || process.env.CHATFAQ_API) ?? "",
             chatfaqWS: (process.env.NUXT_PUBLIC_CHATFAQ_WS || process.env.CHATFAQ_WS) ?? "",
+            SENTRY_DNS: (process.env.SENTRY_DNS) ?? "",
         }
     },
     app: {
@@ -54,5 +55,6 @@ export default defineNuxtConfig({
                 },
             },
         }
-    }
+    },
+    modules: ["@sentry/nuxt/module"],
 })
