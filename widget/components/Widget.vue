@@ -92,9 +92,6 @@ async function init() {
         document.head.appendChild(style);
     }
 
-    if (props.previewMode)
-        return
-
     if (props.widgetConfigId !== undefined) {
         const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, {headers: {
             'widget-id': props.widgetConfigId
