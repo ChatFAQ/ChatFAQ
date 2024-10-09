@@ -318,7 +318,7 @@ function sendToGTM(msg) {
     @include scroll-style();
 
     &.dark-mode {
-        @include scroll-style(white);
+        @include scroll-style($chatfaq-color-scrollBar-dark);
     }
 }
 
@@ -333,7 +333,7 @@ function sendToGTM(msg) {
     @include scroll-style();
 
     &.dark-mode {
-        @include scroll-style(white);
+        @include scroll-style($chatfaq-color-scrollBar-dark);
     }
 }
 

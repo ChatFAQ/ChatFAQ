@@ -222,7 +222,7 @@ async function sendUserFeedback(value, _collapse) {
             @include scroll-style();
 
             &.dark-mode {
-                @include scroll-style($chatfaq-color-scrollBar-light);
+                @include scroll-style($chatfaq-color-scrollBar-dark);
             }
         }
 
