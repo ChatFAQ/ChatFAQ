@@ -22,7 +22,7 @@
                         'name',
                         'domain',
                         'fsm_def',
-                        'chatfaq_api',
+                        'chatfaq_ws',
                         'lang'
                     ],
                 [$t('look & feel')]: [
