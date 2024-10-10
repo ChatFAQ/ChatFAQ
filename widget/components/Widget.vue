@@ -187,6 +187,7 @@ $phone-breakpoint: 600px;
 
 .fit-to-parent {
     height: inherit !important;
+    min-height: inherit !important;
     border-radius: inherit !important;
 }
 

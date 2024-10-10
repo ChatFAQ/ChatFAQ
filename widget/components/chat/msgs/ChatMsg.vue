@@ -188,7 +188,7 @@ $phone-breakpoint: 600px;
         flex-direction: column;
         max-width: 570px;
         height: 100%;
-        margin: 16px 0 0;
+        margin: $chatfaq-size-space-between-msgs 0 0;
 
         &.is-first {
             margin-top: 30px;

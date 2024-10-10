@@ -95,6 +95,7 @@
 
      /* Sizes */
     --chatfaq-size-bubbleButton: 60px;
+    --chatfaq-size-space-between-msgs: 16px;
 
      /* Breakpoints */
 
@@ -148,6 +149,7 @@
     --chatfaq-color-menuItem-background-hover: var(--chatfaq-color-primary-900);
     --chatfaq-color-menuItem-background: var(--chatfaq-color-transparent-purple-10);
     --chatfaq-color-menuItem-border-edit: var(--chatfaq-color-tertiary-blue-500);
+    --chatfaq-box-shadows-color: var(--chatfaq-color-transparent-primary-10);
     --chatfaq-color-scrollBar-dark: var(--chatfaq-color-primary-500);
     --chatfaq-color-scrollBar-light: var(--chatfaq-color-neutral-white);
     --chatfaq-color-separator-dark: var(--chatfaq-color-neutral-purple);
@@ -205,6 +207,7 @@ $chatfaq-color-menuButton-background: var(--chatfaq-color-menuButton-background)
 $chatfaq-color-menuItem-background-hover: var(--chatfaq-color-menuItem-background-hover);
 $chatfaq-color-menuItem-background: var(--chatfaq-color-menuItem-background);
 $chatfaq-color-menuItem-border-edit: var(--chatfaq-color-menuItem-border-edit);
+$chatfaq-box-shadows-color: var(--chatfaq-box-shadows-color);
 $chatfaq-color-neutral-black: var(--chatfaq-color-neutral-black);
 $chatfaq-color-neutral-purple-light: var(--chatfaq-color-neutral-purple-light);
 $chatfaq-color-neutral-purple: var(--chatfaq-color-neutral-purple);
@@ -238,6 +241,7 @@ $chatfaq-font-button: var(--chatfaq-font-button);
 $chatfaq-font-caption-md: var(--chatfaq-font-caption-md);
 $chatfaq-font-caption-sm: var(--chatfaq-font-caption-sm);
 $chatfaq-size-bubbleButton: var(--chatfaq-size-bubbleButton);
+$chatfaq-size-space-between-msgs: var(--chatfaq-size-space-between-msgs);
 $phone-breakpoint: var(--phone-breakpoint);
 
 $chatfaq-arrow-down-icon-color: var(--chatfaq-arrow-down-icon-color);

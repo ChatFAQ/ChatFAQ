@@ -64,7 +64,7 @@ export default ({mode}) => {
                     // Provide global variables to use in the UMD build
                     // for externalized deps
                     globals: {
-                        vue: "Vue",
+                        vue: "Vue"
                     },
                 },
             },

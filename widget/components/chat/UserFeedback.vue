@@ -205,7 +205,7 @@ async function sendUserFeedback(value, _collapse) {
         border-radius: 4px;
         border: 1px solid $chatfaq-color-chatInput-border-light !important;
         background-color: $chatfaq-color-chat-background-light;
-        box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+        box-shadow: 0px 4px 4px $chatfaq-box-shadows-color;
         font-weight: 400;
 
         &.dark-mode {
