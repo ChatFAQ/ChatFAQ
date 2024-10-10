@@ -1,6 +1,6 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
-        <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode}">
+        <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
                     v-if="renderable(message)"
@@ -20,7 +20,7 @@
              :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
             {{ $t("connectingtoserver") }}
         </div>
-        <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt }">
+        <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt, 'fit-to-parent-prompt': store.fitToParent }">
             <div class="chat-prompt-outer">
                 <div
                     :placeholder="$t('writeaquestionhere')"
@@ -235,11 +235,7 @@ function sendToGTM(msg) {
     width: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 
-    &.stick-input-prompt {
-        overflow: initial;
-    }
     background-color: $chatfaq-color-chat-background-light;
 
     &.dark-mode {
@@ -248,17 +244,24 @@ function sendToGTM(msg) {
     &.fit-to-parent {
         border: unset !important;
         border-radius: inherit !important;
+        overflow: hidden;
+    }
+
+    &.stick-input-prompt {
+        overflow: initial !important;
     }
 }
 
 .chat-prompt-wrapper {
     padding: 24px;
-
+    &.fit-to-parent-prompt {
+        border-radius: inherit;
+    }
     .chat-prompt-outer {
         display: flex;
         border-radius: 4px;
         border: 1px solid $chatfaq-color-chatInput-border-light !important;
-        box-shadow: 0px 4px 4px rgba(70, 48, 117, 0.1);
+        box-shadow: 0px 4px 4px $chatfaq-box-shadows-color;
     }
 
     &.stick-input-prompt {
@@ -319,6 +322,9 @@ function sendToGTM(msg) {
 
     &.dark-mode {
         @include scroll-style($chatfaq-color-scrollBar-dark);
+    }
+    &.fit-to-parent-conversation-content {
+        min-height: inherit;
     }
 }
 

@@ -49,6 +49,11 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "body",
         "value": "60px",
     },
+    "chatfaq-size-space-between-msgs": {
+        "type": "font",
+        "section": "body",
+        "value": "16px",
+    },
     # Specific Colors
     "chatfaq-color-alertMessage-text": {
         "type": "color",
@@ -235,6 +240,11 @@ THEME_DEFAULTS_BY_SECTION = {
         "type": "color",
         "section": "colors",
         "value": "#9FFFFF",  # Tertiary Blue 500
+    },
+    "chatfaq-box-shadows-color": {
+        "type": "color",
+        "section": "colors",
+        "value": "#4630751a",  # Transparent Primary 10
     },
     "chatfaq-color-darkFilter": {
         "type": "color",
