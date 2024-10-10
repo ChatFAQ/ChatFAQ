@@ -56,5 +56,5 @@ export default defineNuxtConfig({
             },
         }
     },
-    modules: ["@sentry/nuxt/module"],
+    // modules: ["@sentry/nuxt/module"],
 })
