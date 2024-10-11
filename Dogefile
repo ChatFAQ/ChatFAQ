@@ -54,7 +54,7 @@ env:
       SENTRY_ENVIRONMENT: "{{ widget.component_key }}"
       NUXT_PUBLIC_CHATFAQ_API: "{{ APP_URL }}"
       NUXT_PUBLIC_CHATFAQ_WS: "wss://{{ APP_DOMAIN }}"
-      SENTRY_DSN: "{{ secret("SENTRY_DSN_WIDGET") }}"
+      # SENTRY_DSN: "{{ secret("SENTRY_DSN_WIDGET") }}"
   - name: admin
     variables:
       SENTRY_ENVIRONMENT: "{{ admin.component_key }}"
