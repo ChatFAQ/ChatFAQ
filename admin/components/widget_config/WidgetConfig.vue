@@ -32,6 +32,7 @@
                         'only_chat',
                         'start_small_mode',
                         'start_with_history_closed',
+                        'hide_sources',
                         'sources_first',
                         'stick_input_prompt',
                         'fit_to_parent'

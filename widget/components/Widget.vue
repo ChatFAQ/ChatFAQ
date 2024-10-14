@@ -64,6 +64,7 @@ const props = defineProps({
     startWithHistoryClosed: Boolean,
     conversationId: String,
     widgetConfigId: String,
+    hideSources: Boolean,
     sourcesFirst: Boolean,
     onlyChat: Boolean,
     fitToParent: Boolean,
@@ -135,6 +136,8 @@ function initStore() {
 
     store.fullScreen = data.fullScreen
     store.sourcesFirst = data.sourcesFirst
+    store.hideSources = data.hideSources
+
     if (store.fullScreen) {
         store.opened = true
         store.maximized = false

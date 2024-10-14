@@ -73,6 +73,8 @@ Next we will explain all the widget's possible parameters:
 
 `customCss`: custom css to be applied to the widget.
 
+`hideSources`: if the sources should be hidden, by default the sources will be displayed.
+
 `sourcesFirst`: It will reverse the default order of the sources and the chat, so the message's references will be displayed first.
 
 `startWithHistoryClosed`: if the widget starts with the history closed, by default the widget has the history opened.
@@ -136,6 +138,7 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
         lang: "es",
         previewMode: true,
         customCss: ":root { --chatfaq-color-primary-200: red; }",
+        hideSources: true,
         sourcesFirst: true,
         startWithHistoryClosed: true,
         startSmallMode: true,
@@ -188,6 +191,7 @@ If you declare data attributes and a config object and its keys collide, then th
     data-lang="es"
     data-preview-mode
     data-custom-css=":root { --chatfaq-color-primary-200: red; }"
+    data-hide-sources
     data-sources-first
     data-start-with-history-closed
     data-start-small-mode

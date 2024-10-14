@@ -54,7 +54,7 @@
                             <Message :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
                         <References
-                            v-if="store.displaySources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
+                            v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
                             :references="props.message.stack[0].payload.references"></References>
                     </template>
                 </div>
