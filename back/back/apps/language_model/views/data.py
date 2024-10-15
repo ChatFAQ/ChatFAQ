@@ -1,3 +1,5 @@
+import json
+
 import django_filters
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework.backends import DjangoFilterBackend
@@ -106,6 +108,12 @@ class KnowledgeBaseAPIViewSet(viewsets.ModelViewSet):
 
 
 class KnowledgeItemFilterSet(django_filters.FilterSet):
+    def filter_queryset(self, queryset):
+        filter_string = self.request.GET.get('metadata', "{}")
+        filter_dictionary = json.loads(filter_string)
+        queryset = queryset.filter(metadata__contains=filter_dictionary)
+        return super().filter_queryset(queryset)
+
     class Meta:
         model = KnowledgeItem
         fields = {
@@ -261,7 +269,7 @@ class IntentAPIViewSet(viewsets.ModelViewSet):
         task_name = f"generate_intents_{kb.name}"
         logger.info(f"Submitting the {task_name} task to the Ray cluster...")
         generate_intents_task.options(name=task_name).remote(kb.id, request.query_params.get("generate_titles"))
-            
+
         return JsonResponse({"message": "Task started"})
 
     @action(detail=True, url_name="list-knowledge-items", url_path="list-knowledge-items", methods=["GET"])
