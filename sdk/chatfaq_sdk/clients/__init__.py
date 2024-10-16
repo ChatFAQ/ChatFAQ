@@ -6,6 +6,7 @@ from chatfaq_sdk import ChatFAQSDK
 
 logger = getLogger(__name__)
 
+
 async def llm_request(
     sdk: ChatFAQSDK,
     llm_config_name: str,
@@ -61,6 +62,14 @@ async def retrieve(
     logger.debug("[Retrieve] ...receive results from Retrieve req")
 
     return results
+
+
+async def query_kis(
+    sdk: ChatFAQSDK,
+    knowledge_base_name: dict,
+    query: dict,
+):
+    return await sdk.query_kis(knowledge_base_name, query)
 
 
 async def get_prompt(

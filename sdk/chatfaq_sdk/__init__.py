@@ -367,6 +367,18 @@ class ChatFAQSDK:
             )
         )
 
+    async def query_kis(self, knowledge_base_name, query):
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                urllib.parse.urljoin(
+                    self.chatfaq_http,
+                    f"back/api/language-model/knowledge-items/?knowledge_base_name={knowledge_base_name}&metadata={json.dumps(query)}",
+                ),
+                headers={"Authorization": f"Token {self.token}"},
+            )
+            response.raise_for_status()
+            return response.json()
+
     async def send_prompt_request(self, prompt_config_name, bot_channel_name):
         logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")
         self.prompt_request_futures[bot_channel_name] = (
