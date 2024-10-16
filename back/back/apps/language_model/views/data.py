@@ -111,6 +111,8 @@ class KnowledgeItemFilterSet(django_filters.FilterSet):
     def filter_queryset(self, queryset):
         filter_string = self.request.GET.get('metadata', "{}")
         filter_dictionary = json.loads(filter_string)
+        if not filter_dictionary:
+            return super().filter_queryset(queryset)
         queryset = queryset.filter(metadata__contains=filter_dictionary)
         return super().filter_queryset(queryset)
 
