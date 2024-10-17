@@ -38,6 +38,7 @@
         </el-tab-pane>
         <el-tab-pane :lazy="true" :label="$t('knowledgeitem')" name="knowledge-item">
             <ReadWriteView :readableName="$t('knowledgeitem')"
+                           @initializedFormValues="initializedKIFormValues"
                            ref="readWriteViewKIs"
                            apiUrl="/back/api/language-model/knowledge-items/"
                            :tableProps="{
@@ -54,6 +55,19 @@
                            :initialFiltersValues="initialFiltersForKIsView"
             >
                 <template v-slot:write-content="{fieldName, form, formServerErrors}">
+                    <el-form-item :label="$t(fieldName)"
+                                  :prop="fieldName"
+                                  :error="formServerErrors[fieldName]">
+                        <el-input
+                            class="prompt-input"
+                            v-model="form[fieldName]"
+                            autosize
+                            @keydown.enter.stop
+                            type="textarea"
+                        />
+                    </el-form-item>
+                </template>
+                <template v-slot:write-metadata="{fieldName, form, formServerErrors}">
                     <el-form-item :label="$t(fieldName)"
                                   :prop="fieldName"
                                   :error="formServerErrors[fieldName]">
@@ -226,6 +240,11 @@ async function _triggerIntentsTask(endpoint) {
         type: "success",
     })
 }
+function initializedKIFormValues(form) {
+    if(form.metadata)
+        form.metadata = JSON.stringify(form.metadata, null, 4)
+}
+
 </script>
 <style lang="scss">
 .el-dialog__header {
