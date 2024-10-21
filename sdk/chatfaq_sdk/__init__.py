@@ -9,7 +9,7 @@ import urllib.parse
 import uuid
 from functools import wraps
 from logging import getLogger
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, List
 
 import httpx
 import websockets
@@ -19,7 +19,7 @@ from chatfaq_sdk.conditions import Condition
 from chatfaq_sdk.data_source_parsers import DataSourceParser
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
-from chatfaq_sdk.types import DataSource, WSType
+from chatfaq_sdk.types import DataSource, WSType, KnowledgeItem
 from chatfaq_sdk.types.messages import MessageType, RPCNodeType
 
 settings.configure()
@@ -367,7 +367,7 @@ class ChatFAQSDK:
             )
         )
 
-    async def query_kis(self, knowledge_base_name, query):
+    async def query_kis(self, knowledge_base_name, query) -> List[KnowledgeItem]:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 urllib.parse.urljoin(
@@ -377,7 +377,9 @@ class ChatFAQSDK:
                 headers={"Authorization": f"Token {self.token}"},
             )
             response.raise_for_status()
-            return response.json()
+            results = response.json()["results"]
+
+            return [KnowledgeItem(**res) for res in results]
 
     async def send_prompt_request(self, prompt_config_name, bot_channel_name):
         logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")

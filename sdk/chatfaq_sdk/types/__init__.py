@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 
 
 @dataclass
@@ -38,6 +38,11 @@ class KnowledgeItem:
     page_number: Optional[int] = 0
     metadata: Optional[dict] = None
     images: Optional[List[KnowledgeItemImage]] = None
+    id: Any = None
+    created_date: Any = None
+    updated_date: Any = None
+    role: Any = None
+    message: Any = None
 
     def dict(self):
         return {
