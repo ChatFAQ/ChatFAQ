@@ -12,7 +12,6 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny
-from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from ...language_model.stats import calculate_general_stats, calculate_response_stats
@@ -27,6 +26,10 @@ from ..serializers import (
     UserFeedbackSerializer,
 )
 from ..serializers.messages import MessageSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.files.storage import default_storage
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -250,3 +253,16 @@ class Stats(APIView):
             },
             safe=False,
         )
+
+
+class FileUploadView(APIView):
+    def post(self, request, format=None):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Save the file
+        file_name = default_storage.save(file.name, file)
+        file_url = default_storage.url(file_name)
+
+        return Response({'url': file_url}, status=status.HTTP_201_CREATED)
