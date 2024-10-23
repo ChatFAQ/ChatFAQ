@@ -3,7 +3,7 @@
          :class="{'feedbacked': feedbacked && !collapse, 'dark-mode': store.darkMode}">
         <div class="separator-line" v-if="feedbacked && !collapse" :class="{ 'dark-mode': store.darkMode }"></div>
         <div class="feedback-top">
-            <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}:</div>
+            <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}</div>
             <!-- <div v-else-if="feedbacked">{{ $t('feedbacksent') }}:</div> -->
             <div class="feedback-controls">
                 <ThumbUp class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('positive')" />
