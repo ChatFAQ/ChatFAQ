@@ -10,7 +10,7 @@
                 :class="{ 'dark-mode': store.darkMode, 'sources-first': store.sourcesFirst }"
             >
                 <span v-if="collapsed">{{ (references?.knowledge_items || []).length }} <span v-if="(references?.knowledge_items || []).length === 1">{{ $t('source') }}</span> <span v-else>{{ $t('sources') }}</span></span>
-                <span v-else>Show Less</span>
+                <span v-else>{{ $t('showless') }}</span>
                 <ArrowDownCircle v-if="collapsed"/>
                 <ArrowUpCircle v-else/>
             </div>
