@@ -10,7 +10,7 @@ on:
       - "widget/**"
       - "Dogefile"
     branches:
-      - "master"
+      - "production"
       - "develop"
       - "feature/**caps**"
       - "feature/**withmadrid**"
