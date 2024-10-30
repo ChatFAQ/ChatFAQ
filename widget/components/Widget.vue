@@ -398,7 +398,8 @@ $widget-margin: 16px;
 
     .widget-wrapper > .widget-body > .chat {
         position: relative;
-        height: 100%;
+        flex-grow: 1;
+        overflow: auto;
         border-left: 1px solid $chatfaq-color-menu-border;
         border-right: 1px solid $chatfaq-color-menu-border;
         border-bottom: 1px solid $chatfaq-color-menu-border;
