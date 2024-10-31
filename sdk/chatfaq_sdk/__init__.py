@@ -381,6 +381,20 @@ class ChatFAQSDK:
 
             return [KnowledgeItem(**res) for res in results]
 
+    async def query_prompt(self, prompt_name) -> List[KnowledgeItem]:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                urllib.parse.urljoin(
+                    self.chatfaq_http,
+                    f"back/api/language-model/prompt-configs/?name={prompt_name}",
+                ),
+                headers={"Authorization": f"Token {self.token}"},
+            )
+            response.raise_for_status()
+            results = response.json()["results"]
+            if results:
+                return results[0]["prompt"]
+
     async def send_prompt_request(self, prompt_config_name, bot_channel_name):
         logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")
         self.prompt_request_futures[bot_channel_name] = (

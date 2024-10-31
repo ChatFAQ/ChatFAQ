@@ -17,3 +17,4 @@ This file is intended for writing down all those TODOs/tech. deb. you know it ne
 - [ ] SDK: Currently the FSM definition can have contradictions, we should add a validation method to check for them. ex: you can declare transition between states and not provide the state itself.
 - [ ] SDK/Backend: When creating a data source parser the data source information that comes from the backend should have all the information of the different data source types (nowdays only the url comes with it) ex: in csv data source type the index columns, if it has headers or not, etc... also a metadata field inside the backend datasource would be nice to have, so we can pass this metadata to the custom parsers and make everything more dynamic.
 - [ ] Backend: We should rename env var BACKEND_TOKEN to CHATFAQ_TOKEN just for consistency purposes
+- [ ] Backend: Prompt Config should have a FK to the Knowledge Base for authentification purposes.

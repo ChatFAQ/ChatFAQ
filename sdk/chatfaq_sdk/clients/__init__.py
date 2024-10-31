@@ -72,6 +72,13 @@ async def query_kis(
     return await sdk.query_kis(knowledge_base_name, query)
 
 
+async def query_prompt(
+    sdk: ChatFAQSDK,
+    prompt_name: str,
+):
+    return await sdk.query_prompt(prompt_name)
+
+
 async def get_prompt(
     sdk: ChatFAQSDK,
     prompt_config_name: str,
