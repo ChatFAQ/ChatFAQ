@@ -81,6 +81,12 @@ const markedDown = computed(() => {
     // regex for detecting and representing markdown bold text:
     const boldRegex = /\*\*([^\*]+)\*\*/g;
     res = res.replace(boldRegex, '<b>$1</b>');
+    // italics
+    const italicRegex = /_([^_]+)_/g;
+    res = res.replace(italicRegex, '<i>$1</i>');
+    // strikethrough
+    const strikethroughRegex = /~~([^~]+)~~/g;
+    res = res.replace(strikethroughRegex, '<del>$1</del>');
 
     return res
 });
