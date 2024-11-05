@@ -193,8 +193,9 @@ class DataSource(ChangesMixin):
         KnowledgeItem.objects.bulk_create(new_items)
 
     def save(self, *args, **kw):
+        _should_update = self._should_update_items_from_file()
         super().save(*args, **kw)
-        if self._should_update_items_from_file():
+        if _should_update:
             self.update_items_from_file()
 
     def _should_update_items_from_file(self):
