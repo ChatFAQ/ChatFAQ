@@ -72,7 +72,7 @@ const markedDown = computed(() => {
     res = res.replace(listRegex, '<br/>- ');
     // regex for detecting and represent the character: ` highlighting ex: bla bla `bla` bla:
     const highlightRegex = /`([^`]+)`/g;
-    res = res.replace(highlightRegex, '<span style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span>');
+    res = res.replace(highlightRegex, '<span class="marked-down-highlight-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span>');
     // regex for detecting and representing codeblocks with tab  character:
     const codeBlockRegex = /(?:^|\n)(?:\t)([^\n]+)/g;
     const codeBlockRegex2 = /(?:^|\n)(?:    )([^\n]+)/g;
