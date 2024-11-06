@@ -289,6 +289,7 @@ with EnvManager(model_w_django) as env:
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'
         MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local_storage")
+        HOSTNAME = os.getenv('HOSTNAME', 'http://localhost:8000')
     else:
         # --------------------------- S3 ---------------------------
         AWS_S3_OBJECT_PARAMETERS = {
