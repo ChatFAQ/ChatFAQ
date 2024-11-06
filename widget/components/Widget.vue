@@ -103,7 +103,14 @@ async function init() {
             acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = _data[key];
             return acc;
         }, {});
-        data = {...data, ..._data}
+
+        const _data_bools = {}
+        for (const key in _data) {
+            if (typeof data[key] === 'boolean')
+                _data_bools[key] = data[key]
+        }
+        data = {..._data, ...data, _data_bools}
+
         const style = document.createElement('style');
         style.innerHTML = data.css;
         document.head.appendChild(style);

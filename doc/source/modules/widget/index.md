@@ -49,15 +49,19 @@ This will run a node server which will serve an empty webpage with just the Widg
 
 Next we will explain all the widget's possible parameters:
 
-`element`<span style="color:red;">*</span>: string selector or HTMLElement to which the widget will be attached.
+<span style="color:red;">*</span> → mandatory
+
+<span style="color:orange;">*</span> → mandatory if not using an admin's widget configuration
 
 `chatfaqApi`<span style="color:red;">*</span>: url of the chatfaq-api.
 
-`chatfaqWs`<span style="color:red;">*</span>: url of the chatfaq-ws.
+`element`<span style="color:red;">*</span> (only mandatory [with JS integration](#js-library)): string selector or HTMLElement to which the widget will be attached.
 
-`fsmDef`<span style="color:red;">*</span>: name of the FSM definition to use.
+`chatfaqWs`<span style="color:orange;">*</span>: url of the chatfaq-ws.
 
-`widgetConfigId`<span style="color:red;">*</span>: id of the widget configuration to use, firstly you need to create a widget configuration on the admin.
+`fsmDef`<span style="color:orange;">*</span>: name of the FSM definition to use.
+
+`widgetConfigId` id of the widget configuration to use, firstly you need to create a widget configuration on the admin. If provided the attributes defiuned straign on the element will override the ones defined on the admin's widget configuration **except for the boolean attributes** which will prevail the ones defined on the admin's widget configuration.
 
 `conversationId`: id of the conversation to use, if not provided a new conversation will be created.
 
