@@ -307,6 +307,7 @@ function speechToText() {
     sr.onend = () => {
         speechRecognitionRunning.value = false;
         thereIsContent.value = chatInput.value.innerText.length !== 0
+        sendMessage();
     }
     sr.start();
 }
