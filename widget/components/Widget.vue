@@ -73,7 +73,8 @@ const props = defineProps({
     customCss: String,
     initialConversationMetadata: String,
     customIFramedMsgs: String,
-    stickInputPrompt: Boolean
+    stickInputPrompt: Boolean,
+    speechRecognition: Boolean,
 });
 
 let data = props
@@ -127,6 +128,8 @@ function initStore() {
     store.userId = data.userId;
     store.initialSelectedPlConversationId = data.conversationId
     store.stickInputPrompt = data.stickInputPrompt
+    store.speechRecognition = data.speechRecognition
+
     if (store.userId === undefined) {
         store.userId = getUserId()
     }

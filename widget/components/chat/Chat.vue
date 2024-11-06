@@ -31,7 +31,8 @@
                     contenteditable
                     @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
                 />
-                <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
+                <Microphone v-if="store.speechRecognition" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !speechRecognitionRunning}" @click="speechToText"/>
+                <Send class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning}" @click="sendMessage"/>
             </div>
         </div>
     </div>
@@ -42,6 +43,7 @@ import {ref, watch, nextTick, onMounted} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
+import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 
 const store = useGlobalStore();
@@ -55,6 +57,10 @@ const notRenderableStackTypes = ["gtm_tag"]
 let ws = undefined
 let heartbeatTimeout = undefined
 let historyIndexHumanMsg = -1
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const speechRecognition = ref(new SpeechRecognition())
+const speechRecognitionRunning = ref(false)
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
@@ -208,9 +214,10 @@ function manageHotKeys(ev, cb) {
 }
 
 function sendMessage() {
-    const user_message = chatInput.value.innerText.trim()
-    if (!user_message.length || store.waitingForResponse || store.disconnected)
+    if (!thereIsContent.value || store.waitingForResponse || store.disconnected || speechRecognitionRunning.value)
         return;
+
+    const user_message = chatInput.value.innerText.trim()
     historyIndexHumanMsg = -1
     const m = {
         "sender": {
@@ -247,6 +254,61 @@ function sendToGTM(msg) {
         else
             console.warn("GTM tag received but no dataLayer found")
     }
+}
+
+function speechToText() {
+    const sr = speechRecognition.value;
+    if (speechRecognitionRunning.value) {
+        sr.stop()
+        return
+    }
+
+    sr.lang = 'en-US';
+    sr.continuous = false;
+    sr.interimResults = true;
+    sr.maxAlternatives = 1;
+    sr.onaudioend = () => {
+        sr.stop();
+    }
+    sr.soundend = () => {
+        sr.stop();
+    }
+    sr.onresult = (event) => {
+        const speechToText = event.results[0][0].transcript;
+        chatInput.value.innerText += speechToText;
+        sr.stop();
+    }
+    sr.onresult = (event) => {
+        var final = "";
+        var interim = "";
+        let i = 0;
+        for (i = 0; i < event.results.length; ++i) {
+            if (event.results[i].final) {
+                final += event.results[i][0].transcript;
+            } else {
+                interim += event.results[i][0].transcript;
+            }
+        }
+        if (event.results[0].final)
+            chatInput.value.innerText = final;
+        else
+            chatInput.value.innerText = interim;
+    }
+    sr.onspeechend = () => {
+        sr.stop();
+    }
+    sr.onerror = (event) => {
+        console.error('Error occurred in the speech recognition: ' + event.error);
+        sr.stop();
+    }
+    sr.onstart = () => {
+        speechRecognitionRunning.value = true;
+    }
+    sr.onend = () => {
+        speechRecognitionRunning.value = false;
+        thereIsContent.value = chatInput.value.innerText.length !== 0
+    }
+    sr.start();
 }
 
 </script>
@@ -412,8 +474,7 @@ function sendToGTM(msg) {
     }
 }
 
-.chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
-    margin: 11px 16px;
+.chat-prompt-button, .chat-prompt-button:focus, .chat-prompt-button:hover {
     cursor: pointer;
     height: 16px;
     align-self: end;
@@ -427,6 +488,14 @@ function sendToGTM(msg) {
     &.active {
         opacity: 1;
     }
+    &.micro {
+        margin: 11px 10px 11px 16px;
+    }
+    &.send {
+        margin: 11px 16px 11px 10px;
+    }
 }
+
+
 
 </style>
