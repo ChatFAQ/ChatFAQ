@@ -27,11 +27,9 @@
                     class="chat-prompt"
                     :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
                     ref="chatInput"
-                    @keydown="(ev) => manageEnterInput(ev, sendMessage)"
+                    @keydown="(ev) => manageHotKeys(ev, sendMessage)"
                     contenteditable
-                    oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
-                    @paste="managePaste"
                 />
                 <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
             </div>
@@ -56,6 +54,7 @@ const notRenderableStackTypes = ["gtm_tag"]
 
 let ws = undefined
 let heartbeatTimeout = undefined
+let historyIndexHumanMsg = -1
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
@@ -67,12 +66,6 @@ onMounted(async () => {
 
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
-}
-
-function managePaste(ev) {
-    ev.preventDefault()
-    const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
-    ev.target.innerHTML = text
 }
 
 function scrollConversationDown() {
@@ -173,17 +166,52 @@ async function initializeConversation() {
     store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
-function manageEnterInput(ev, cb) {
+function manageHotKeys(ev, cb) {
+    const _s = window.getSelection()
+    const _r = window.getSelection().getRangeAt(0)
+    const atTheBeginning = _r.endOffset === 0 && !_r.previousSibling;
+    const atTheEnd = _r.endOffset === _s.focusNode.length && !_r.endContainer.nextSibling;
+
     if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault()
         cb();
     }
-};
+    else if (ev.key === 'ArrowUp' && atTheBeginning) {
+        // Search for the previous human message from the index historyIndexHumanMsg
+        if (historyIndexHumanMsg === -1)
+            historyIndexHumanMsg = store.messages.length
+        ev.preventDefault()
+        if (store.messages) {
+            for (let i = historyIndexHumanMsg - 1; i >= 0; i--) {
+                if (store.messages[i].sender.type === 'human') {
+                    chatInput.value.innerText = store.messages[i].stack[0].payload.content
+                    historyIndexHumanMsg = i
+                    break
+                }
+            }
+        }
+    }
+    else if (ev.key === 'ArrowDown' && atTheEnd) { // Searcg for the next human message from the index historyIndexHumanMsg
+        ev.preventDefault()
+        if (historyIndexHumanMsg === -1)
+            historyIndexHumanMsg = store.messages.length
+        if (store.messages) {
+            for (let i = historyIndexHumanMsg + 1; i < store.messages.length; i++) {
+                if (store.messages[i].sender.type === 'human') {
+                    chatInput.value.innerText = store.messages[i].stack[0].payload.content
+                    historyIndexHumanMsg = i
+                    break
+                }
+            }
+        }
+    }
+}
 
 function sendMessage() {
     const user_message = chatInput.value.innerText.trim()
     if (!user_message.length || store.waitingForResponse || store.disconnected)
         return;
+    historyIndexHumanMsg = -1
     const m = {
         "sender": {
             "type": "human",
