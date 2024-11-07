@@ -66,8 +66,10 @@ const markedDown = computed(() => {
     const hightlight = store.darkMode ? hightlight_dark : hightlight_light
     // regex for detecting and representing markdown bold text
     const boldRegex = /\*\*([^\*]+)\*\*/g;
-    // regex for italic text
-    const italicRegex = /_([^_]+)_/g;
+    // regex for italic text with single underscore
+    const italicUnderscoreRegex = /_([^_]+)_/g;
+    // regex for italic text with single asterisk
+    const italicAsteriskRegex = /\*([^*]+)\*/g;
     // regex for detecting markdown links
     const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
     const linksArray = [];
@@ -76,7 +78,8 @@ const markedDown = computed(() => {
     res = res.replace(linkRegex, (match, text, url) => {
         // Step 2a: Process text for markdown styles (bold, italics)
         text = text.replace(boldRegex, '<b>$1</b>');
-        text = text.replace(italicRegex, '<i>$1</i>');
+        text = text.replace(italicAsteriskRegex, '<i>$1</i>');
+        text = text.replace(italicUnderscoreRegex, '<i>$1</i>');
 
         // Create placeholder for the link and store the processed text and URL
         const placeholder = `[[LINK${linksArray.length}]]`;
@@ -90,14 +93,16 @@ const markedDown = computed(() => {
     // regex for detecting and represent the character: ` highlighting ex: bla bla `bla` bla:
     const highlightRegex = /`([^`]+)`/g;
     res = res.replace(highlightRegex, '<span class="marked-down-highlight-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span>');
-    // regex for detecting and representing codeblocks with tab  character:
+    // regex for detecting and representing codeblocks with tab character:
     const codeBlockRegex = /(?:^|\n)(?:\t)([^\n]+)/g;
     const codeBlockRegex2 = /(?:^|\n)(?:    )([^\n]+)/g;
     res = res.replace(codeBlockRegex, '<span class="marked-down-code-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
     res = res.replace(codeBlockRegex2, '<span class="marked-down-code-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
+
     // regex for detecting and representing markdown bold text:
     res = res.replace(boldRegex, '<b>$1</b>');
-    res = res.replace(italicRegex, '<i>$1</i>');
+    res = res.replace(italicAsteriskRegex, '<i>$1</i>');
+    res = res.replace(italicUnderscoreRegex, '<i>$1</i>');
     // strikethrough
     const strikethroughRegex = /~~([^~]+)~~/g;
     res = res.replace(strikethroughRegex, '<del>$1</del>');
@@ -265,5 +270,10 @@ function openInNewTab(url) {
         margin-right: 4px;
     }
 }
+
+.marked-down-content {
+    -webkit-font-smoothing: antialiased;
+}
+
 </style>
 
