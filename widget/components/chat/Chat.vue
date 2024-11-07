@@ -52,7 +52,7 @@ const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
-const notRenderableStackTypes = ["gtm_tag"]
+const notRenderableStackTypes = ["gtm_tag", undefined]
 
 let ws = undefined
 let heartbeatTimeout = undefined
@@ -244,7 +244,7 @@ function sendMessage() {
 }
 
 function renderable(message) {
-    return !notRenderableStackTypes.includes(message.stack[0].type)
+    return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 function sendToGTM(msg) {

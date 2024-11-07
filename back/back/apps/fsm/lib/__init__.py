@@ -174,7 +174,7 @@ class FSM:
     def manage_last_llm_msg(self, _new):
         _old = self.last_aggregated_msg
 
-        if _new['stack'][0]["streaming"]:
+        if _new['stack'] and _new['stack'][0]["streaming"]:
             if _new["stack_id"] == _old.get("stack_id"):
                 more_content = _new["stack"][0]["payload"]["content"]
                 old_payload = _old["stack"][0]["payload"]["content"]

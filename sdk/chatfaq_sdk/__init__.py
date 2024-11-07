@@ -438,25 +438,19 @@ class ChatFAQSDK:
         return outer
 
     async def _run_state_or_transition(self, state_or_transition, data):
-        async_func = state_or_transition(self, data)
-        if inspect.isasyncgen(async_func):
-            is_last = False
-            layer = await anext(async_func)
-
-            while not is_last:
-                _layer = None
-                try:
-                    _layer = await anext(async_func)
-                except StopAsyncIteration:
-                    is_last = True
-
+        _state_or_transition = state_or_transition(self, data)
+        _last_result = None
+        if inspect.isasyncgen(_state_or_transition):
+            async for layer in _state_or_transition:
                 async for results in self._layer_results(layer, data):
-                    yield [*results, is_last]
-                layer = _layer
+                    _last_result = results
+                    yield [*results, False]
         else:
-            layer = await async_func
+            layer = await _state_or_transition
             async for results in self._layer_results(layer, data):
                 yield [*results, True]
+                return
+        yield [[], str(uuid.uuid4()), True, _last_result[3], True]
 
     async def _layer_results(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Condition):
