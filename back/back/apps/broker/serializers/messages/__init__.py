@@ -204,6 +204,7 @@ class MessageSerializer(serializers.ModelSerializer):
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()
     reviewed = serializers.SerializerMethodField()
+    persistent_context = serializers.JSONField(required=False, allow_null=True)
 
     class Meta:
         from back.apps.broker.models.message import Message  # TODO: CI

@@ -89,6 +89,8 @@ class ChatFAQSDK:
         self.llm_request_msg_buffer = {}
         self.retriever_request_futures = {}
         self.prompt_request_futures = {}
+        self._persistent_context = {}
+
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -245,8 +247,16 @@ class ChatFAQSDK:
             if ws is not None and ws.open:
                 await ws.close()
 
+    def _set_persistent_context(self, msg_ctx):
+        self._persistent_context[msg_ctx["conversation_id"]] = msg_ctx["persistent_context"]
+
+    def get_persistent_context(self, msg_ctx):
+        return self._persistent_context.get(msg_ctx["conversation_id"], {})
+
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
+        self._set_persistent_context(payload["ctx"])
+
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
             stack_group_id = str(uuid.uuid4())
             logger.info(f"[RPC]     |---> ::: {state_or_transition}")
@@ -260,6 +270,7 @@ class ChatFAQSDK:
                             "type": MessageType.rpc_result.value,
                             "data": {
                                 "ctx": payload["ctx"],
+                                "persistent_context": self.get_persistent_context(payload["ctx"]),
                                 "node_type": node_type,
                                 "stack_group_id": stack_group_id,
                                 "stack_id": stack_id,

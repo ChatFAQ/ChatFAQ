@@ -39,6 +39,7 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last_chunk = serializers.BooleanField(default=False)
     last = serializers.BooleanField(default=False)
+    persistent_context = serializers.JSONField(default=dict)
 
     def validate(self, attrs):
         attrs["sender"] = {"type": AgentType.bot.value}

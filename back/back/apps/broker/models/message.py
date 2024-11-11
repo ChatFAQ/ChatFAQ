@@ -75,6 +75,17 @@ class Conversation(ChangesMixin):
             return last_message.stack[0]["state"]
         return None
 
+    def get_last_persistent_context(self):
+        # order the messages by created_date, then keep the messages that contain a state in the stack
+        # and return the last one
+        last_message = (Message.objects.filter(conversation=self)
+            .filter(persistent_context__isnull=False)
+            .order_by("-created_date")
+            .first())
+        if last_message:
+            return last_message.persistent_context
+        return {}
+
     def get_conv_mml(self):
         messages = self.get_msgs_chain()
         conv_mml = [model_to_dict(message, fields=["stack", "sender"]) if message else None for message in messages]
@@ -218,6 +229,9 @@ class Message(ChangesMixin):
         The id of the stack to which this message belongs to. This is used to group stacks
     last: bool
         Whether this message is the last one of the stack_group_id
+    persistent_context: JSONField
+        The context that will persist through the conversation messages
+
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -234,6 +248,7 @@ class Message(ChangesMixin):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     meta = models.JSONField(null=True)
+    persistent_context = models.JSONField(null=True, blank=True)
     stack = models.JSONField(null=True)
     stack_id = models.CharField(max_length=255, null=True)
     stack_group_id = models.CharField(max_length=255, null=True)
