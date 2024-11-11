@@ -63,7 +63,7 @@
                         props.message.sender.type === 'bot' &&
                         props.message.stack[props.message.stack.length - 1].meta &&
                         props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
-                        props.message.last
+                        props.message.last_chunk
                     "
                     :msgId="props.message.id"
                     @feedbacking="feedbacking = true"
