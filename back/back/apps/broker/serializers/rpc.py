@@ -13,6 +13,7 @@ from back.apps.broker.models.message import AgentType
 class CtxSerializer(serializers.Serializer):
     conversation_id = serializers.CharField(max_length=255)
     user_id = serializers.CharField(allow_null=True, allow_blank=True, required=False)
+    status = serializers.JSONField(default=dict)
 
 
 class PayloadSerializer(serializers.Serializer):
@@ -39,7 +40,6 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last_chunk = serializers.BooleanField(default=False)
     last = serializers.BooleanField(default=False)
-    persistent_context = serializers.JSONField(default=dict)
 
     def validate(self, attrs):
         attrs["sender"] = {"type": AgentType.bot.value}

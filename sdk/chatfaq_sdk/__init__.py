@@ -89,7 +89,6 @@ class ChatFAQSDK:
         self.llm_request_msg_buffer = {}
         self.retriever_request_futures = {}
         self.prompt_request_futures = {}
-        self._persistent_context = {}
 
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
@@ -107,7 +106,6 @@ class ChatFAQSDK:
             if self.sentry:
                 sentry_sdk.capture_exception(e)
             raise e
-
 
     async def connexions(self):
         setattr(self, f"ws_{WSType.rpc.value}", None)
@@ -247,15 +245,12 @@ class ChatFAQSDK:
             if ws is not None and ws.open:
                 await ws.close()
 
-    def _set_persistent_context(self, msg_ctx):
-        self._persistent_context[msg_ctx["conversation_id"]] = msg_ctx["persistent_context"]
-
-    def get_persistent_context(self, msg_ctx):
-        return self._persistent_context.get(msg_ctx["conversation_id"], {})
-
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
-        self._set_persistent_context(payload["ctx"])
+        status = {}
+        if self.fsm_def.status_class:
+            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"]["status"])
+        payload["ctx"]["status"] = status
 
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
             stack_group_id = str(uuid.uuid4())
@@ -264,13 +259,16 @@ class ChatFAQSDK:
             async for res, stack_id, last_chunk, node_type, last_from_state_or_transition in self._run_state_or_transition(
                 state_or_transition, payload["ctx"]
             ):
+                _ctx = {**payload["ctx"]}
+                if _ctx["status"]:
+                    _ctx["status"] = _ctx["status"].serialize()
+
                 await getattr(self, f"ws_{WSType.rpc.value}").send(
                     json.dumps(
                         {
                             "type": MessageType.rpc_result.value,
                             "data": {
-                                "ctx": payload["ctx"],
-                                "persistent_context": self.get_persistent_context(payload["ctx"]),
+                                "ctx": _ctx,
                                 "node_type": node_type,
                                 "stack_group_id": stack_group_id,
                                 "stack_id": stack_id,

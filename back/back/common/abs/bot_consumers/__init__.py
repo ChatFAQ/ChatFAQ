@@ -172,7 +172,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             for key, value in initial_state_values.items():
                 if key not in last_state_values:
                     last_state_values[key] = value
-        persistent_context = await database_sync_to_async(conv.get_last_persistent_context)()
+        status = await database_sync_to_async(conv.get_last_status)()
 
         return {
             "initial_conversation_metadata": self.initial_conversation_metadata,
@@ -181,7 +181,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             "conv_mml": conv_mml,
             "bot_channel_name": self.channel_name,
             "state": last_state_values,
-            "persistent_context": persistent_context,
+            "status": status,
         }
 
     # ---------- Broker methods ----------

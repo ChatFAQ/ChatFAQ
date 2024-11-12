@@ -184,6 +184,7 @@ class FSM:
     async def save_if_last_chunk(self):
         if self.last_aggregated_msg.get("last_chunk"):
             self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
+            self.last_aggregated_msg["status"] = self.last_aggregated_msg["ctx"]["status"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             return (await database_sync_to_async(serializer.save)()).id

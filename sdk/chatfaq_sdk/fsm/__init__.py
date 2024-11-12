@@ -6,6 +6,16 @@ if TYPE_CHECKING:
     from chatfaq_sdk import ChatFAQSDK
 
 
+class StatusSerializer:
+    @staticmethod
+    def serialize(self) -> dict:
+        raise NotImplementedError
+
+    @staticmethod
+    async def deserialize(self, status) -> StatusSerializer:
+        raise NotImplementedError
+
+
 class FSMDefinition:
     """
     Representation of the entire FSM, this class will generate the DSM Definition sent to the ChatFAQ's back-end server
@@ -15,7 +25,8 @@ class FSMDefinition:
     def __init__(
         self,
         states: List[State] = [],
-        transitions: List[Transition] = []
+        transitions: List[Transition] = [],
+        status_class: StatusSerializer = None,
     ):
         """
 
@@ -25,9 +36,13 @@ class FSMDefinition:
             All the states conforming the FSM
         transitions: list of Transition
             All the transitions conforming the FSM
+        status_class: list of function
+            The class for serializing and deserializing de state of the FSM in case of having one, it should implement
+            StatusSerializer
         """
         self.states = states
         self.transitions = transitions
+        self.status_class = status_class
 
     def register_rpcs(self, chatfaq_sdk: ChatFAQSDK):
         for state in self.states:
