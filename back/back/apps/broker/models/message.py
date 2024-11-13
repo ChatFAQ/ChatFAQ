@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from logging import getLogger
 
@@ -191,10 +192,6 @@ class Message(ChangesMixin):
          There is no Conversation model, instead, a conversation is represented by the group of
          messages that share the same 'conversation' value, and their order is determined by
          the 'prev' attribute.
-    conversation_name: str
-        A name that describes the conversation. Since a conversation is a virtual concept
-         that does not have its own entity, this property is held by the first message in the
-         conversation, which has 'prev' set to null.
     send_time: str
         The moment at which this message was sent.
     confidence: float
@@ -300,6 +297,25 @@ class Message(ChangesMixin):
                 stack_text += layer["payload"]["content"]
 
         return f"{send_time} {sender['type']}: {stack_text}"
+
+    @classmethod
+    def template_server_error_message(cls, conversation_id):
+        conversation = Conversation.objects.get(pk=conversation_id)
+        return cls.objects.create(
+            conversation=conversation,
+            sender={"type": AgentType.bot.value},
+            receiver={"type": AgentType.human.value},
+            stack=[{
+                "type": "server_error",
+                "payload": {
+                    "content": "An error occurred while processing the request. Please try again later."
+                },
+            }],
+            send_time=conversation.get_last_msg().send_time,
+            last=True,
+            stack_id=str(uuid.uuid4()),
+            stack_group_id=str(uuid.uuid4()),
+        )
 
     def save(self, *args, **kwargs):
         if not self.prev:  # avoid setting prev to itself if model is being updated

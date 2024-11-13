@@ -7,7 +7,7 @@ from channels.layers import get_channel_layer
 
 from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models import ConsumerRoundRobinQueue
-from back.apps.language_model.models import LLMConfig
+from back.apps.broker.models.message import Message
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -96,6 +96,7 @@ class FSM:
         self.current_state = current_state
         if not current_state:
             self.current_state = self.get_initial_state()
+        self.waiting_for_rpc = None
 
     async def start(self):
         await self.run_current_state_events()
@@ -125,7 +126,6 @@ class FSM:
 
         await self.save_cache()
 
-
     async def run_current_state_events(self, transition_data=None):
         """
         It will call the RPC server, the procedure name is the event name declared in the fsm definition for the
@@ -140,6 +140,7 @@ class FSM:
             transition_data = {}
 
         for event_name in self.current_state.events:
+            self.waiting_for_rpc = event_name
             group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
             data = {
@@ -163,6 +164,12 @@ class FSM:
         """
         It will be called by the RPC Consumer when it receives a response from the RPC worker
         """
+        if data.get("rpc_died"):
+            logger.error(
+                f"RPC Worker died while running RPC {self.waiting_for_rpc}. This will probably cause a inconsistent conversation state."
+            )
+            await self.fix_inconsistent_last()
+            return
         if data["node_type"] == RPCNodeType.action.value:
             self.manage_last_llm_msg(data)
             id = await self.save_if_last_chunk()
@@ -187,7 +194,22 @@ class FSM:
             self.last_aggregated_msg["status"] = self.last_aggregated_msg["ctx"]["status"]
             serializer = self.MessageSerializer(data=self.last_aggregated_msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
+            self.waiting_for_rpc = None
             return (await database_sync_to_async(serializer.save)()).id
+
+    async def fix_inconsistent_last(self):
+        if self.waiting_for_rpc is None:
+            return
+        self.waiting_for_rpc = None  # Let's t least close the disconnect loop in the BotConsumer
+        if self.last_aggregated_msg and not self.last_aggregated_msg.get("last"):
+            self.last_aggregated_msg["last"] = True
+            self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
+            self.last_aggregated_msg["status"] = self.last_aggregated_msg["ctx"]["status"]
+            serializer = self.MessageSerializer(data=self.last_aggregated_msg)
+            await database_sync_to_async(serializer.is_valid)(raise_exception=True)
+            await database_sync_to_async(serializer.save)()
+        template_server_error_message = await database_sync_to_async(Message.template_server_error_message)(self.ctx.conversation.pk)
+        await database_sync_to_async(template_server_error_message.save)()
 
     def get_initial_state(self):
         for state in self.states:
@@ -253,6 +275,7 @@ class FSM:
         logger.debug(f"Waiting for RCP call {condition_name} (condition)...")
         payload = await self.rpc_result_future
         logger.debug(f"...Receive RCP call {condition_name} (condition)")
+        self.waiting_for_rpc = None
         return payload["stack"]["score"], payload["stack"]["data"]
 
     async def save_cache(self):
