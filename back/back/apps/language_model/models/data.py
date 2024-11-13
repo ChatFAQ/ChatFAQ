@@ -263,7 +263,7 @@ class KnowledgeItem(ChangesMixin):
     """
 
     knowledge_base = models.ForeignKey(KnowledgeBase, on_delete=models.CASCADE)
-    data_source = models.ForeignKey(DataSource, on_delete=models.CASCADE, null=True, blank=True, editable=False)
+    data_source = models.ForeignKey(DataSource, on_delete=models.CASCADE, null=True, blank=True)
     title = models.TextField(blank=True, null=True)
     content = models.TextField()
     url = models.URLField(max_length=2083, null=True, blank=True)
@@ -274,7 +274,7 @@ class KnowledgeItem(ChangesMixin):
     metadata = models.JSONField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.content} ds ({self.knowledge_base.pk})"
+        return f"{self.content} - KB: ({self.knowledge_base.pk})"
 
     def save(self, *args, **kwargs):
 
