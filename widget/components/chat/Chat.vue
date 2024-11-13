@@ -111,7 +111,7 @@ function createConnection() {
         + "/"
         + (store.userId ? `${store.userId}/${queryParams}` : "")
     );
-    ws.onmessage = function (e) {
+    ws.onmessage = async function (e) {
         const msg = JSON.parse(e.data);
         if (msg.status === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
@@ -125,10 +125,12 @@ function createConnection() {
 
         sendToGTM(msg)
         store.addMessage(msg);
+        if(store.messages.length === 1)
+            await store.gatherConversations()
     };
     ws.onopen = async function () {
         store.disconnected = false;
-        await store.gatherConversations()
+        // await store.gatherConversations()
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
