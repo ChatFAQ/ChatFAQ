@@ -110,8 +110,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         logger.debug(
             f"Disconnecting from conversation ({self.conversation.pk}) (CODE: {code})"
         )
-        while self.fsm.waiting_for_rpc:
-            await asyncio.sleep(1)
+        # while self.fsm.waiting_for_rpc:
+        #     await asyncio.sleep(1)
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
 
     async def send_response(self, stack: list):
