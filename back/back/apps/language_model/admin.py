@@ -31,6 +31,7 @@ class KnowledgeItemAdmin(admin.ModelAdmin):
     list_display = ["content", "url"]
     list_filter = ["knowledge_base"]
     search_fields = ["title", "content", "url", "metadata"]
+    readonly_fields = ('data_source',)
 
 
 class KnowledgeItemImageAdmin(admin.ModelAdmin):

@@ -125,6 +125,18 @@ class DataSource(ChangesMixin):
 
     parser = models.CharField(max_length=255, null=True, blank=True)
 
+    def __str__(self):
+        if self.parser:
+            return f"{self.parser} parser for {self.knowledge_base.name}"
+        elif self.original_csv:
+            return f"CSV for {self.knowledge_base.name}"
+        elif self.original_pdf:
+            return f"PDF for {self.knowledge_base.name}"
+        elif self.original_url:
+            return f"URL for {self.knowledge_base.name}"
+
+        return f"Data source for {self.knowledge_base.name}"
+
     def get_strategy(self):
         return StrategyChoices(self.strategy)
 
