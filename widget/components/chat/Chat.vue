@@ -55,7 +55,6 @@ const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", undefined]
 
 let ws = undefined
-let heartbeatTimeout = undefined
 let historyIndexHumanMsg = -1
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -89,20 +88,6 @@ function animateFeedbackSent() {
     setTimeout(() => {
         feedbackSentDisabled.value = true
     }, 1500)
-}
-
-function createHeartbeat(ws) {
-    ws.send(JSON.stringify({
-        "heartbeat": true
-    }));
-    heartbeatTimeout = setTimeout(() => {
-        createHeartbeat(ws)
-    }, 5000)
-
-}
-
-function deleteHeartbeat() {
-    clearTimeout(heartbeatTimeout)
 }
 
 
@@ -143,12 +128,10 @@ function createConnection() {
     };
     ws.onopen = async function () {
         store.disconnected = false;
-        createHeartbeat(ws)
         await store.gatherConversations()
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
-        deleteHeartbeat();
         if (plConversationId !== store.selectedPlConversationId)
             return;
         store.disconnected = true;
