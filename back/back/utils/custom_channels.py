@@ -16,16 +16,13 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
     tasks of the same consumer get executed in parallel.
     """
     # Start them all off as tasks
+    disconnect_called = False
     tasks = [
         asyncio.ensure_future(consumer_callable())
         for consumer_callable in consumer_callables
     ]
     dispatch_tasks = []
-    print("---------------------")
-    print(consumer_callables)
-    print("+++++++++")
-    print(tasks)
-    print("---------------------")
+
     try:
         while True:
             # Wait for any of them to complete
@@ -40,15 +37,15 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
                         dispatch_tasks_to_remove.append(task)
                     else:
                         result = task.result()
-                        dispatch_tasks.append(asyncio.create_task(dispatch(result)))
-                        print("XXXXXXXXXXXXXXX")
-                        print(result)
-                        print("XXXXXXXXXXXXXXX")
+                        tasks[i] = asyncio.ensure_future(consumer_callables[i]())
+
                         if result.get("type") == "websocket.disconnect":
-                            print(f"Not doing it again {consumer_callables[i]}")
-                            tasks[i] = None
+                            if not disconnect_called:  # call dispatch only once. Why is disconnect called mora than once?
+                                dispatch_tasks.append(asyncio.create_task(dispatch(result)))
+                            disconnect_called = True
                         else:
-                            tasks[i] = asyncio.ensure_future(consumer_callables[i]())
+                            dispatch_tasks.append(asyncio.create_task(dispatch(result)))
+
             for task in dispatch_tasks_to_remove:
                 if task.exception():
                     raise task.exception()
