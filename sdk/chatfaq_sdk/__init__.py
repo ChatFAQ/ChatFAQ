@@ -377,18 +377,26 @@ class ChatFAQSDK:
         )
 
     async def query_kis(self, knowledge_base_name, query) -> List[KnowledgeItem]:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                urllib.parse.urljoin(
-                    self.chatfaq_http,
-                    f"back/api/language-model/knowledge-items/?knowledge_base_name={knowledge_base_name}&metadata={json.dumps(query)}",
-                ),
-                headers={"Authorization": f"Token {self.token}"},
-            )
-            response.raise_for_status()
-            results = response.json()["results"]
+        res = []
+        offset = 0
+        more = True
+        while more:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    urllib.parse.urljoin(
+                        self.chatfaq_http,
+                        f"back/api/language-model/knowledge-items/?knowledge_base_name={knowledge_base_name}&metadata={json.dumps(query)}&offset={offset}",
+                    ),
+                    headers={"Authorization": f"Token {self.token}"},
+                )
+                response.raise_for_status()
+                _results = response.json()["results"]
+                _total = response.json()["count"]
+                res += _results
+                offset = len(res)
+                more = offset < _total
 
-            return [KnowledgeItem(**res) for res in results]
+        return [KnowledgeItem(**r) for r in res]
 
     async def query_prompt(self, prompt_name) -> List[KnowledgeItem]:
         async with httpx.AsyncClient() as client:
