@@ -84,7 +84,7 @@ class RPCConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
     async def disconnect(self, close_code):
         logger.debug("Disconnecting from RPC consumer...")
         for conversation_id in self.opened_rpc_sess_calls:
-            continue
+            # continue
             if not self.opened_rpc_sess_calls[conversation_id]:
                 continue
             res = {

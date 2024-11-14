@@ -21,9 +21,16 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
         for consumer_callable in consumer_callables
     ]
     dispatch_tasks = []
+    print("---------------------")
+    print(consumer_callables)
+    print("+++++++++")
+    print(tasks)
+    print("---------------------")
     try:
         while True:
             # Wait for any of them to complete
+            # remove None from tasks:
+            tasks = [task for task in tasks if task is not None]
             await asyncio.wait(tasks + dispatch_tasks, return_when=asyncio.FIRST_COMPLETED)
             dispatch_tasks_to_remove = []
             # Find the completed one(s), create dispatch_tasks with results, and replace them
@@ -34,7 +41,14 @@ async def concurrent_await_many_dispatch(consumer_callables, dispatch):
                     else:
                         result = task.result()
                         dispatch_tasks.append(asyncio.create_task(dispatch(result)))
-                        tasks[i] = asyncio.ensure_future(consumer_callables[i]())
+                        print("XXXXXXXXXXXXXXX")
+                        print(result)
+                        print("XXXXXXXXXXXXXXX")
+                        if result.get("type") == "websocket.disconnect":
+                            print(f"Not doing it again {consumer_callables[i]}")
+                            tasks[i] = None
+                        else:
+                            tasks[i] = asyncio.ensure_future(consumer_callables[i]())
             for task in dispatch_tasks_to_remove:
                 if task.exception():
                     raise task.exception()
