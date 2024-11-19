@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import {ref, watch, nextTick, onMounted} from "vue";
+import {ref, watch, nextTick, onMounted, computed} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";

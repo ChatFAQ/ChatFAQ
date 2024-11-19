@@ -115,7 +115,7 @@ async function init() {
             }
         }
 
-        data = {...server_data, ...data, data_bools}
+        data = {...server_data, ...data, ...data_bools}
 
         const style = document.createElement('style');
         style.innerHTML = data.css;
