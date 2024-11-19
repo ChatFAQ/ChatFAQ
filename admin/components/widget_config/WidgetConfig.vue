@@ -110,6 +110,8 @@
                             :data-subtitle="subtitle"
                             data-preview-mode
                             data-start-small-mode
+                            data-speech-recognition
+                            allow-attachments
                         ></chatfaq-widget>
                     </teleport>
                 </template>
