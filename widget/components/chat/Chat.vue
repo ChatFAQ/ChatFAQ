@@ -30,7 +30,7 @@
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
                     contenteditable
-                    @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
+                    @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
             <div class="prompt-right-button" :class="{'dark-mode': store.darkMode}" @click="() => { if(availableMicro) { speechToText() } else if (availableSend) { sendMessage() }}">
@@ -229,6 +229,7 @@ function sendMessage() {
     store.messages.push(m);
     ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
+    thereIsContent.value = false
     store.scrollToBottom += 1;
 }
 
