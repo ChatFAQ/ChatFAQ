@@ -61,7 +61,7 @@ Next we will explain all the widget's possible parameters:
 
 `fsmDef`<span style="color:orange;">*</span>: name of the FSM definition to use.
 
-`widgetConfigId` id of the widget configuration to use, firstly you need to create a widget configuration on the admin. If provided the attributes defiuned straign on the element will override the ones defined on the admin's widget configuration **except for the boolean attributes** which will prevail the ones defined on the admin's widget configuration.
+`widgetConfigId` is the ID of the widget configuration to use. First, you need to create a widget configuration in the admin panel. If provided, the attributes explicitly defined on the element will override those in the admin's widget configuration, **except for boolean attributes**, which will be set to `true` if either the admin's widget configuration or the element's attributes have them set to `true`.
 
 `conversationId`: id of the conversation to use, if not provided a new conversation will be created.
 

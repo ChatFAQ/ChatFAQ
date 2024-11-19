@@ -52,6 +52,10 @@ class Widget(models.Model):
     start_with_history_closed = models.BooleanField(default=False)
     sources_first = models.BooleanField(default=False)
     stick_input_prompt = models.BooleanField(default=False)
+    speech_recognition = models.BooleanField(default=False)
+    speech_recognition_auto_send = models.BooleanField(default=False)
+    allow_attachments = models.BooleanField(default=False)
+
     # integration
     fit_to_parent = models.BooleanField(default=False)
     # advanced

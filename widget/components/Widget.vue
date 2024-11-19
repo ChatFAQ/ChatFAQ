@@ -80,6 +80,7 @@ const props = defineProps({
 });
 
 let data = props
+
 const _customCss = ref(props.customCss)
 watch( () => props.customCss, (newVal, _)=> {
     _customCss.value = newVal
@@ -100,19 +101,21 @@ async function init() {
         const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, {headers: {
             'widget-id': props.widgetConfigId
           }});
-        let _data = await response.json();
+        let server_data = await response.json();
         // sneak case data keys to lowerCamelCase:
-        _data = Object.keys(_data).reduce((acc, key) => {
-            acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = _data[key];
+        server_data = Object.keys(server_data).reduce((acc, key) => {
+            acc[key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] = server_data[key];
             return acc;
         }, {});
 
-        const _data_bools = {}
-        for (const key in _data) {
-            if (typeof data[key] === 'boolean')
-                _data_bools[key] = data[key]
+        const data_bools = {}
+        for (const key in server_data) {
+            if (typeof data[key] === 'boolean') {
+                data_bools[key] = server_data[key] || data[key]
+            }
         }
-        data = {..._data, ...data, _data_bools}
+
+        data = {...server_data, ...data, data_bools}
 
         const style = document.createElement('style');
         style.innerHTML = data.css;
