@@ -75,6 +75,8 @@ const props = defineProps({
     customIFramedMsgs: String,
     stickInputPrompt: Boolean,
     speechRecognition: Boolean,
+    speechRecognitionAutoSend: Boolean,
+    allowAttachments: Boolean,
 });
 
 let data = props
@@ -129,6 +131,8 @@ function initStore() {
     store.initialSelectedPlConversationId = data.conversationId
     store.stickInputPrompt = data.stickInputPrompt
     store.speechRecognition = data.speechRecognition
+    store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
+    store.allowAttachments = data.allowAttachments
 
     if (store.userId === undefined) {
         store.userId = getUserId()

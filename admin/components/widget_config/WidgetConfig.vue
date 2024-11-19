@@ -35,7 +35,11 @@
                         'hide_sources',
                         'sources_first',
                         'stick_input_prompt',
-                        'fit_to_parent'
+                        'fit_to_parent',
+                        'stick_input_prompt',
+                        'speech_recognition',
+                        'speech_recognition_auto_send',
+                        'allow_attachments',
                     ],
                 [$t('advanced')]: [
                         'custom_css',

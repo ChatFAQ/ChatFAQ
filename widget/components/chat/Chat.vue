@@ -22,6 +22,7 @@
         </div>
         <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt, 'fit-to-parent-prompt': store.fitToParent }">
             <div class="chat-prompt-outer">
+                <Attach v-if="store.allowAttachments" class="attach-buttom"/>
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
@@ -31,8 +32,10 @@
                     contenteditable
                     @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
                 />
-                <Microphone v-if="store.speechRecognition" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !speechRecognitionRunning}" @click="speechToText"/>
-                <Send class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning}" @click="sendMessage"/>
+            </div>
+            <div class="prompt-right-button" :class="{'dark-mode': store.darkMode}" @click="() => { if(availableMicro) { speechToText() } else if (availableSend) { sendMessage() }}">
+                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
+                <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
             </div>
         </div>
     </div>
@@ -45,6 +48,7 @@ import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
+import Attach from "~/components/icons/Attach.vue";
 
 const store = useGlobalStore();
 
@@ -252,6 +256,7 @@ function speechToText() {
     sr.continuous = false;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
+
     sr.onaudioend = () => {
         sr.stop();
     }
@@ -266,8 +271,8 @@ function speechToText() {
     sr.onresult = (event) => {
         var final = "";
         var interim = "";
-        let i = 0;
-        for (i = 0; i < event.results.length; ++i) {
+
+        for (let i = 0; i < event.results.length; ++i) {
             if (event.results[i].final) {
                 final += event.results[i][0].transcript;
             } else {
@@ -292,10 +297,24 @@ function speechToText() {
     sr.onend = () => {
         speechRecognitionRunning.value = false;
         thereIsContent.value = chatInput.value.innerText.length !== 0
-        sendMessage();
+        if (store.speechRecognitionAutoSend)
+            sendMessage();
     }
     sr.start();
 }
+
+const availableSend = computed(() => {
+    return !store.speechRecognition || thereIsContent
+})
+const availableMicro = computed(() => {
+    return store.speechRecognition && !thereIsContent.value
+})
+const activeSend = computed(() => {
+    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+})
+const activeMicro = computed(() => {
+    return !speechRecognitionRunning.value
+})
 
 </script>
 <style scoped lang="scss">
@@ -330,24 +349,51 @@ function speechToText() {
 
 .chat-prompt-wrapper {
     padding: 24px;
+    display: flex;
+    background-color: $chatfaq-color-chat-background-light;
+    &.dark-mode {
+        background-color: $chatfaq-color-chat-background-dark;
+    }
+
     &.fit-to-parent-prompt {
         border-radius: inherit;
     }
     .chat-prompt-outer {
+        width: 100%;
         display: flex;
         border-radius: 4px;
         border: 1px solid $chatfaq-color-chatInput-border-light !important;
         box-shadow: 0px 4px 4px $chatfaq-box-shadows-color;
+
+        .attach-buttom {
+            margin-top: auto;
+            margin-bottom: auto;
+            line-height: 100%;
+            margin-left: 16px;
+            cursor: pointer;
+            color: $chatfaq-attach-icon-color-light;
+            &.dark-mode {
+                color: $chatfaq-attach-icon-color-dark;
+            }
+
+        }
     }
 
     &.stick-input-prompt {
         position: sticky;
         bottom: 0px;
     }
-    background-color: $chatfaq-color-chat-background-light;
-    &.dark-mode {
-        background-color: $chatfaq-color-chatInput-background-dark;
-        border: 1px solid $chatfaq-color-chatInput-border-dark !important;
+    .prompt-right-button {
+        flex: 0 0 40px;
+        height: 40px;
+        margin-left: 8px;
+        border-radius: 4px;
+        display: flex;
+        cursor: pointer;
+        background-color: $chatfaq-prompt-button-background-color-light;
+        &.dark-mode {
+            background-color: $chatfaq-prompt-button-background-color-dark;
+        }
     }
 }
 
@@ -465,20 +511,23 @@ function speechToText() {
     height: 16px;
     align-self: end;
     opacity: 0.6;
-    color: $chatfaq-send-icon-color-light;
+    margin: auto;
 
-    &.dark-mode {
-        color: $chatfaq-send-icon-color-dark;
+    &.send {
+        color: $chatfaq-send-icon-color-light;
+        &.dark-mode {
+            color: $chatfaq-send-icon-color-dark;
+        }
+    }
+    &.micro {
+        color: $chatfaq-microphone-icon-color-light;
+        &.dark-mode {
+            color: $chatfaq-microphone-icon-color-dark;
+        }
     }
 
     &.active {
         opacity: 1;
-    }
-    &.micro {
-        margin: 11px 10px 11px 16px;
-    }
-    &.send {
-        margin: 11px 16px 11px 10px;
     }
 }
 

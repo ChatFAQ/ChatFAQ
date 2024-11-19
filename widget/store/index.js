@@ -38,6 +38,8 @@ export const useGlobalStore = defineStore('globalStore', {
             initialConversationMetadata: {},
             customIFramedMsgs: {},
             speechRecognition: false,
+            speechRecognitionAutoSend: false,
+            allowAttachments: false,
         }
     },
     actions: {

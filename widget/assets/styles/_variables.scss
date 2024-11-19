@@ -30,6 +30,7 @@
     // Grey Scale
     --chatfaq-color-greyscale-200: #e7e8e9;
     --chatfaq-color-greyscale-500: #aaafb5;
+    --chatfaq-color-greyscale-600: #9c99a4;
     --chatfaq-color-greyscale-800: #545a64;
 
     // Gradient
@@ -43,7 +44,7 @@
     --chatfaq-color-transparent-neutral-black-70: rgba(2, 12, 28, .7);
     --chatfaq-color-transparent-primary-10: rgba(70, 48, 117, .1);
     --chatfaq-color-transparent-primary-20: rgba(70, 48, 117, .2);
-
+    --chatfaq-color-full-transparent: transparent;
 
      /* Fonts */
 
@@ -70,8 +71,12 @@
     --chatfaq-dot-menu-hovered-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-logo-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-logo-long-icon-color: var(--chatfaq-color-neutral-white);
-    --chatfaq-send-icon-color-light: var(--chatfaq-color-primary-900);
+    --chatfaq-send-icon-color-light: var(--chatfaq-color-neutral-white);
     --chatfaq-send-icon-color-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-microphone-icon-color-light: var(--chatfaq-color-neutral-white);
+    --chatfaq-microphone-icon-color-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-attach-icon-color-light: var(--chatfaq-color-greyscale-600);
+    --chatfaq-attach-icon-color-dark: var(--chatfaq-color-greyscale-600);
     --chatfaq-moon-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-sun-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-refresh-icon-color: var(--chatfaq-color-neutral-white);
@@ -117,7 +122,7 @@
     --chatfaq-color-chatInput-background-dark: var(--chatfaq-color-primary-800);
     --chatfaq-color-chatInput-background-light: var(--chatfaq-color-primary-300);
     --chatfaq-color-chatInput-border-dark: var(--chatfaq-color-primary-900);
-    --chatfaq-color-chatInput-border-light: var(--chatfaq-color-neutral-purple);
+    --chatfaq-color-chatInput-border-light: var(--chatfaq-color-greyscale-600);
     --chatfaq-color-chatInput-text-dark: var(--chatfaq-color-neutral-white);
     --chatfaq-color-chatInput-text-light: var(--chatfaq-color-neutral-black);
     --chatfaq-color-chatMessageBot-background-dark: var(--chatfaq-color-primary-800);
@@ -149,11 +154,13 @@
     --chatfaq-color-menuItem-background-hover: var(--chatfaq-color-primary-900);
     --chatfaq-color-menuItem-background: var(--chatfaq-color-transparent-purple-10);
     --chatfaq-color-menuItem-border-edit: var(--chatfaq-color-tertiary-blue-500);
-    --chatfaq-box-shadows-color: var(--chatfaq-color-transparent-primary-10);
+    --chatfaq-box-shadows-color: var(--chatfaq-color-full-transparent);
     --chatfaq-color-scrollBar-dark: var(--chatfaq-color-primary-500);
     --chatfaq-color-scrollBar-light: var(--chatfaq-color-neutral-white);
     --chatfaq-color-separator-dark: var(--chatfaq-color-neutral-purple);
     --chatfaq-color-separator-light: var(--chatfaq-color-transparent-primary-20);
+    --chatfaq-prompt-button-background-color-light: var(--chatfaq-color-primary-500);
+    --chatfaq-prompt-button-background-color-dark: var(--chatfaq-color-primary-500);
 }
 
 
@@ -269,8 +276,15 @@ $chatfaq-plus-icon-color: var(--chatfaq-plus-icon-color);
 $chatfaq-refresh-icon-color: var(--chatfaq-refresh-icon-color);
 $chatfaq-send-icon-color-dark: var(--chatfaq-send-icon-color-dark);
 $chatfaq-send-icon-color-light: var(--chatfaq-send-icon-color-light);
+$chatfaq-microphone-icon-color-dark: var(--chatfaq-microphone-icon-color-dark);
+$chatfaq-microphone-icon-color-light: var(--chatfaq-microphone-icon-color-light);
+$chatfaq-attach-icon-color-light: var(--chatfaq-attach-icon-color-light);
+$chatfaq-attach-icon-color-dark: var(--chatfaq-attach-icon-color-dark);
 $chatfaq-sun-icon-color: var(--chatfaq-sun-icon-color);
 $chatfaq-trash-icon-color: var(--chatfaq-trash-icon-color);
+
+$chatfaq-prompt-button-background-color-light: var(--chatfaq-prompt-button-background-color-light);
+$chatfaq-prompt-button-background-color-dark: var(--chatfaq-prompt-button-background-color-dark);
 
 $chatfaq-bubble-button-open-icon-color: var(--chatfaq-bubble-button-open-icon-color);
 $chatfaq-bubble-button-close-icon-color: var(--chatfaq-bubble-button-close-icon-color);

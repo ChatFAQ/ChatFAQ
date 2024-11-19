@@ -1,7 +1,7 @@
 <template>
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :title="title"
-                :subtitle="subtitle"
+                :subtitle="subtitle" allow-attachments speech-recognition speech-recognition-auto-send
         />
     </client-only>
 </template>
