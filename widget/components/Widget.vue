@@ -82,9 +82,9 @@ const props = defineProps({
 let data = props
 
 const _customCss = ref(props.customCss)
-watch( () => props.customCss, (newVal, _)=> {
+watch( () => props.customCss, async (newVal, _)=> {
     _customCss.value = newVal
-    init()
+    await init()
 }, {immediate: true, deep: true})
 async function init() {
     if(_customCss.value) {
@@ -111,6 +111,10 @@ async function init() {
         const merged_data = {}
         for (const key in data) {
             merged_data[key] = server_data[key] || data[key]
+        }
+        for (const key in server_data) {
+            if (!data[key])
+                merged_data[key] = server_data[key]
         }
         data = merged_data
 
