@@ -154,6 +154,7 @@ class VLLMModel(OpenAIChatModel):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        json_schema: Dict = None,
         ):
         """
         Generate text from a prompt using the model.
@@ -161,22 +162,25 @@ class VLLMModel(OpenAIChatModel):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        Returns
-        -------
-        str
-            The generated text.
+        tools : List[Union[BaseModel, Dict]], optional
+            Tools for function calling. Cannot be used with json_schema.
+        tool_choice : str, optional
+            The tool choice to use for tool use.
+        json_schema : Dict, optional
+            JSON schema to guide the generation format. Cannot be used with tools.
         """
-
-        if tool_choice and tool_choice in ['required', 'auto']:
-            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
+        if tools and json_schema:
+            raise ValueError("Cannot use both tools and json_schema at the same time")
 
         messages = self.format_prompt(messages)
 
-        # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything
-        tool_kwargs = {}
+        # Handle tools and json_schema kwargs
+        extra_kwargs = {}
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
-            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+            extra_kwargs.update({"tools": tools, "tool_choice": tool_choice})
+        elif json_schema:
+            extra_kwargs["extra_body"] = {"guided_json": json_schema}
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -186,7 +190,7 @@ class VLLMModel(OpenAIChatModel):
             seed=seed,
             n=1,
             stream=False,
-            **tool_kwargs,
+            **extra_kwargs,
         )
 
         message = response.choices[0].message
@@ -203,6 +207,7 @@ class VLLMModel(OpenAIChatModel):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        json_schema: Dict = None,
     ):
         """
         Generate text from a prompt using the model.
@@ -210,22 +215,25 @@ class VLLMModel(OpenAIChatModel):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        Returns
-        -------
-        str
-            The generated text.
+        tools : List[Union[BaseModel, Dict]], optional
+            Tools for function calling. Cannot be used with json_schema.
+        tool_choice : str, optional
+            The tool choice to use for tool use.
+        json_schema : Dict, optional
+            JSON schema to guide the generation format. Cannot be used with tools.
         """
-
-        if tool_choice and tool_choice in ['required', 'auto']:
-            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
+        if tools and json_schema:
+            raise ValueError("Cannot use both tools and json_schema at the same time")
 
         messages = self.format_prompt(messages)
 
-        # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything
-        tool_kwargs = {}
+        # Handle tools and json_schema kwargs
+        extra_kwargs = {}
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
-            tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
+            extra_kwargs.update({"tools": tools, "tool_choice": tool_choice})
+        elif json_schema:
+            extra_kwargs["extra_body"] = {"guided_json": json_schema}
 
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
@@ -235,7 +243,7 @@ class VLLMModel(OpenAIChatModel):
             seed=seed,
             n=1,
             stream=False,
-            **tool_kwargs,
+            **extra_kwargs,
         )
 
         message = response.choices[0].message
