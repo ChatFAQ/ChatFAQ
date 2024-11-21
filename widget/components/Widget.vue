@@ -108,14 +108,11 @@ async function init() {
             return acc;
         }, {});
 
-        const data_bools = {}
-        for (const key in server_data) {
-            if (typeof data[key] === 'boolean') {
-                data_bools[key] = server_data[key] || data[key]
-            }
+        const merged_data = {}
+        for (const key in data) {
+            merged_data[key] = server_data[key] || data[key]
         }
-
-        data = {...server_data, ...data, ...data_bools}
+        data = merged_data
 
         const style = document.createElement('style');
         style.innerHTML = data.css;
