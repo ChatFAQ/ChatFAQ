@@ -167,9 +167,6 @@ class VLLMModel(OpenAIChatModel):
             The generated text.
         """
 
-        if tool_choice and tool_choice in ['required', 'auto']:
-            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
-
         messages = self.format_prompt(messages)
 
         # If you pass tools as None, vllm will return a BadRequestError, so you need to don't pass anything
@@ -215,9 +212,6 @@ class VLLMModel(OpenAIChatModel):
         str
             The generated text.
         """
-
-        if tool_choice and tool_choice in ['required', 'auto']:
-            raise NotImplementedError("Tool choice is not supported for vLLM, only named tool choice is supported.")
 
         messages = self.format_prompt(messages)
 
