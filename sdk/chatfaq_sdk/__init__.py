@@ -44,6 +44,7 @@ class ChatFAQSDK:
         fsm_definition: Optional[FSMDefinition] = None,
         overwrite_definition: Optional[bool] = False,
         data_source_parsers: Optional[dict[str, DataSourceParser]] = None,
+        authentication_required: bool = False
     ):
         """
         Parameters
@@ -80,6 +81,7 @@ class ChatFAQSDK:
         self.fsm_def = fsm_definition
         self.overwrite_definition = overwrite_definition
         self.data_source_parsers = data_source_parsers
+        self.authentication_required = authentication_required
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
         # already registered that rpc under that name and avoid duplicates
@@ -218,6 +220,7 @@ class ChatFAQSDK:
                             "name": self.fsm_name,
                             "definition": self.fsm_def.to_dict_repr(),
                             "overwrite": self.overwrite_definition,
+                            "authentication_required": self.authentication_required,
                         },
                     }
                 )

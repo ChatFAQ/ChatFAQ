@@ -77,6 +77,7 @@ const props = defineProps({
     speechRecognition: Boolean,
     speechRecognitionAutoSend: Boolean,
     allowAttachments: Boolean,
+    authToken: String
 });
 
 let data = props
@@ -137,6 +138,7 @@ function initStore() {
     store.speechRecognition = data.speechRecognition
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
     store.allowAttachments = data.allowAttachments
+    store.authToken = data.authToken
 
     if (store.userId === undefined) {
         store.userId = getUserId()

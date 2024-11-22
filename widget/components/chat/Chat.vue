@@ -106,6 +106,12 @@ function createConnection() {
     if (store.initialConversationMetadata)
         queryParams = `?metadata=${JSON.stringify(store.initialConversationMetadata)}`
 
+    if (store.authToken && store.authToken.length) {
+        if (queryParams.length) queryParams += "&"
+        else queryParams = "?"
+        queryParams += `token=${encodeURIComponent(store.authToken)}`
+    }
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"

@@ -39,6 +39,8 @@ class Conversation(ChangesMixin):
 
     platform_conversation_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
+    initial_conversation_metadata = models.JSONField(default=dict)
+    authentication_required = models.BooleanField(default=False)
 
     def get_first_msg(self):
         return Message.objects.filter(

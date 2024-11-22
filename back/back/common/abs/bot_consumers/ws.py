@@ -1,6 +1,5 @@
 import json
 from logging import getLogger
-from typing import TYPE_CHECKING
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -8,9 +7,6 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from back.apps.fsm.models import CachedFSM
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
-
-if TYPE_CHECKING:
-    from back.apps.broker.models.message import Message
 
 
 logger = getLogger(__name__)
@@ -24,10 +20,12 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
 
     async def connect(self):
-        await self.set_conversation(self.gather_conversation_id())
         self.set_fsm_def(await self.gather_fsm_def())
         self.set_user_id(await self.gather_user_id())
-        self.set_initial_conversation_metadata(await self.gather_initial_conversation_metadata())
+
+        await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required)
+        if not await self.authenticate():
+            await self.close()
 
         self.fsm = await database_sync_to_async(CachedFSM.build_fsm)(self)
         # Join room group
@@ -39,7 +37,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             )
             # await self.fsm.next_state()
         else:
-            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self, None, self.initial_conversation_metadata)
+            self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self, None)
             await self.fsm.start()
             logger.debug(
                 f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"

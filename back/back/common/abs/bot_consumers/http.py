@@ -63,11 +63,14 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         serializer = self.serializer_class(data=data)
         serializer.is_valid()
 
-        await self.set_conversation(
-            self.gather_conversation_id(serializer.validated_data)
-        )
         self.set_fsm_def(await self.gather_fsm_def(serializer.validated_data))
         self.set_user_id(await self.gather_user_id(serializer.validated_data))
+
+        await self.set_conversation(
+            self.gather_conversation_id(serializer.validated_data),
+            await self.gather_initial_conversation_metadata(serializer.validated_data),
+            self.fsm_def.authentication_required
+        )
 
         mml = await database_sync_to_async(serializer.to_mml)(self)
         if not mml:

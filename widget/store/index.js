@@ -40,6 +40,7 @@ export const useGlobalStore = defineStore('globalStore', {
             speechRecognition: false,
             speechRecognitionAutoSend: false,
             allowAttachments: false,
+            authToken: undefined,
         }
     },
     actions: {

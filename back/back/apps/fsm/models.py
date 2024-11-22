@@ -16,18 +16,17 @@ logger = getLogger(__name__)
 
 
 class FSMDefinition(ChangesMixin):
-    # TODO: Model 'definitions' inside DB ???
     name = models.CharField(null=True, unique=True, max_length=255)
     definition = models.JSONField(null=True)
     initial_state_values = models.JSONField(null=True)
+    authentication_required = models.BooleanField(default=False)
 
-    def build_fsm(self, ctx: BotConsumer, current_state: State = None, initial_conversation_metadata=None) -> FSM:
+    def build_fsm(self, ctx: BotConsumer, current_state: State = None) -> FSM:
         m = FSM(
             ctx=ctx,
             states=self.states,
             transitions=self.transitions,
-            current_state=current_state,
-            initial_conversation_metadata=initial_conversation_metadata or {},
+            current_state=current_state
         )
         return m
 
@@ -41,10 +40,10 @@ class FSMDefinition(ChangesMixin):
 
     @classmethod
     def get_or_create_from_definition(
-        cls, name, definition, overwrite
+        cls, name, definition, authentication_required, overwrite
     ) -> Tuple[Union[FSMDefinition, None], bool, str]:
         for item in cls.objects.all():
-            if item.definition == definition and item.name == name:
+            if item.definition == definition and item.name == name and item.authentication_required == authentication_required:
                 return item, False, ""
         old_fsm = cls.objects.filter(name=name).first()
         if not overwrite and old_fsm:
@@ -58,10 +57,10 @@ class FSMDefinition(ChangesMixin):
             logger.info(f"Overwriting FSM definition with name: {name}")
             old_fsm.name = f"{name}_{uuid4()}"
             old_fsm.save()
-
         fsm = cls(
             name=name,
             definition=definition,
+            authentication_required=authentication_required,
         )
         fsm.save()
         return fsm, True, ""
@@ -84,7 +83,6 @@ class CachedFSM(ChangesMixin):
     conversation = models.ForeignKey("broker.Conversation", on_delete=models.CASCADE)
     current_state = models.JSONField(default=dict)
     fsm_def: FSMDefinition = models.ForeignKey(FSMDefinition, on_delete=models.CASCADE)
-    initial_conversation_metadata = models.JSONField(default=dict)
 
     @classmethod
     def update_or_create(cls, fsm: FSM):
@@ -96,7 +94,6 @@ class CachedFSM(ChangesMixin):
                 conversation=fsm.ctx.conversation,
                 current_state=fsm.current_state._asdict(),
                 fsm_def=fsm.ctx.fsm_def,
-                initial_conversation_metadata=fsm.initial_conversation_metadata
             )
         instance.save()
 
@@ -105,7 +102,7 @@ class CachedFSM(ChangesMixin):
         instance: CachedFSM = cls.objects.filter(conversation=ctx.conversation).first()
         if instance:
             return instance.fsm_def.build_fsm(
-                ctx, typefit(State, instance.current_state), instance.initial_conversation_metadata
+                ctx, typefit(State, instance.current_state)
             )
 
         return None
