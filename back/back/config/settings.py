@@ -311,7 +311,14 @@ with EnvManager(model_w_django) as env:
     MISTRAL_API_KEY = env.get("MISTRAL_API_KEY", default=None)
     TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
+    USE_RAY = env.get("USE_RAY", default=True) == "True"
+
+    print(f"USE_RAY: {USE_RAY}", type(USE_RAY))
+
     # --------------------------- RAY ---------------------------
-    if not ray.is_initialized() and is_server_process():
+    if USE_RAY and not ray.is_initialized() and is_server_process():
+        print("INITIALIZING RAY")
         ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
+    else:
+        print("NOT CONNECTING TO RAY")
 

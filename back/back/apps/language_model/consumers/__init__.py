@@ -24,6 +24,8 @@ from back.apps.language_model.models import (
 )
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
+from back.config import settings
+
 
 logger = getLogger(__name__)
 
@@ -147,40 +149,75 @@ async def query_llm(
 
     try:
         if streaming:
-            llm_deploy_name = llm_config.get_deploy_name()
-            handle = get_deployment_handle(
-                deployment_name=llm_deploy_name, app_name=llm_deploy_name
-            ).options(stream=True)
+            if settings.USE_RAY:
+                print("USING RAY LLM DEPLOYMENT")
+                llm_deploy_name = llm_config.get_deploy_name()
+                handle = get_deployment_handle(
+                    deployment_name=llm_deploy_name, app_name=llm_deploy_name
+                ).options(stream=True)
 
-            response = handle.remote(
-                new_messages,
-                temperature,
-                max_tokens,
-                seed,
-                tools,
-                tool_choice
-            )
+                response = handle.remote(
+                    new_messages,
+                    temperature,
+                    max_tokens,
+                    seed,
+                    tools,
+                    tool_choice
+                )
 
-            async for res in response:
-                # if res is a list then it's a tool response and it's not streamed, it returns the full response
-                if isinstance(res, list):
+                async for res in response:
+                    # if res is a list then it's a tool response and it's not streamed, it returns the full response
+                    if isinstance(res, list):
+                        yield {
+                            "content": "",
+                            "tool_use": res,
+                            "last_chunk": True,
+                        }
+                        return
+
+
                     yield {
-                        "content": "",
-                        "tool_use": res,
+                        "content": res,
+                        "last_chunk": False,
+                    }
+                yield {
+                    "content": "",
+                    "last_chunk": True,
+                }
+            else:
+                from chat_rag.llms import load_llm
+                llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
+
+                if tools:
+                    response = llm.agenerate(
+                        messages=new_messages,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        seed=seed,
+                        tools=tools,
+                        tool_choice=tool_choice,
+                    )
+                    yield {
+                        "content": response,
                         "last_chunk": True,
                     }
-                    return
-
-
-                yield {
-                    "content": res,
-                    "last_chunk": False,
-                }
-
-            yield {
-                "content": "",
-                "last_chunk": True,
-            }
+                else:
+                    response = llm.astream(
+                        messages=new_messages,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        seed=seed,
+                    )
+                    async for res in response:
+                        yield {
+                            "content": res,
+                            "last_chunk": False,
+                        }
+                    yield {
+                        "content": "",
+                        "last_chunk": True,
+                    }
+            
 
         else:
             pass
