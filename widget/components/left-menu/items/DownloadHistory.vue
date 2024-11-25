@@ -28,14 +28,16 @@ async function downloadHistory() {
         return
     let filename = '';
     const ids = store.selectedConversations.length ? store.selectedConversations : store.conversationsIds
+
+    const headers = { "Content-Type": "application/json" }
+    if (store.authToken)
+        headers.Authorization = `Token ${store.authToken}`;
+
     fetch(
         store.chatfaqAPI + `/back/api/broker/conversations/${ids}/download/`,
         {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Token ${store.authToken}`,
-            },
+            headers,
         }
     ).then(res => {
         const header = res.headers.get('Content-Disposition');

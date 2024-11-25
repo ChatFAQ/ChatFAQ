@@ -99,10 +99,13 @@ async function init() {
     }
 
     if (props.widgetConfigId !== undefined) {
-        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers: {
+        const headers = {
             'widget-id': props.widgetConfigId,
-            Authorization: `Token ${props.authToken}`
-        }});
+        }
+        if (props.authToken)
+            headers.Authorization = `Token ${props.authToken}`;
+
+        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
         let server_data = await response.json();
         // sneak case data keys to lowerCamelCase:
         server_data = Object.keys(server_data).reduce((acc, key) => {

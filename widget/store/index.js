@@ -45,24 +45,34 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     actions: {
         async gatherConversations() {
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`, {
-              headers: {Authorization: `Token ${this.authToken}`}
-            });
+            const headers = {}
+            if (this.authToken)
+                headers.Authorization = `Token ${this.authToken}`;
+
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`, { headers });
             this.conversations = await response.json();
         },
         async renameConversationName(id, name) {
+            const headers = { 'Content-Type': 'application/json' }
+            if (this.authToken)
+                headers.Authorization = `Token ${this.authToken}`;
+
             await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.authToken}` },
+                headers,
                 body: JSON.stringify({ name: name })
             });
             this.conversations.find((conversation) => conversation.id === id).name = name;
         },
         async openConversation(_selectedPlConversationId) {
+            const headers = { 'Content-Type': 'application/json' }
+            if (this.authToken)
+                headers.Authorization = `Token ${this.authToken}`;
+
             const conversationId = this.conversation(_selectedPlConversationId).id
             let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.authToken}` }
+                headers
             });
             response = await response.json();
             this.messages = response.msgs_chain
