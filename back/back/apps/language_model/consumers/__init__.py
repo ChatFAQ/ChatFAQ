@@ -185,7 +185,7 @@ async def query_llm(
                     "last_chunk": True,
                 }
             else:
-                from chat_rag.llms import load_llm
+                from chat_rag.llms import load_llm # The first time this is imported it will take a few seconds.
                 llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
 
                 if tools:

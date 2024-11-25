@@ -6059,7 +6059,10 @@ files = [
 idna = ">=2.0"
 multidict = ">=4.0"
 
+[extras]
+full = []
+
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "80976d0cb53e7fee541c25d533a2262054cd4442055e64e39eb023b900a226db"
+content-hash = "d1db3d8d8591cb44fc7c4f32b2a08a0c43d5c314a06e171014d71cdfd5b85a31"
