@@ -40,6 +40,7 @@ env:
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
       SENTRY_DSN: '{{ secret("SENTRY_DSN_BACK") }}'
+      USE_RAY: 'False'
   - name: widget
     variables:
       BASE_URL: "/demo"
