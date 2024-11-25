@@ -34,6 +34,7 @@ async function downloadHistory() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                Authorization: `Token ${store.authToken}`,
             },
         }
     ).then(res => {

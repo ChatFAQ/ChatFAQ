@@ -45,13 +45,15 @@ export const useGlobalStore = defineStore('globalStore', {
     },
     actions: {
         async gatherConversations() {
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`);
+            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`, {
+              headers: {Authorization: `Token ${this.authToken}`}
+            });
             this.conversations = await response.json();
         },
         async renameConversationName(id, name) {
             await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.authToken}` },
                 body: JSON.stringify({ name: name })
             });
             this.conversations.find((conversation) => conversation.id === id).name = name;
@@ -60,7 +62,7 @@ export const useGlobalStore = defineStore('globalStore', {
             const conversationId = this.conversation(_selectedPlConversationId).id
             let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.authToken}` }
             });
             response = await response.json();
             this.messages = response.msgs_chain
