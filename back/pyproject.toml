@@ -49,8 +49,6 @@ fastapi = "0.111"
 memray = "^1.12.0"
 gunicorn = "^22.0.0"
 uvicorn = "^0.30.1"
-
-[tool.poetry.group.lite.dependencies]
 chat-rag = "^0.1.81"
 
 
