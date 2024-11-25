@@ -11,13 +11,14 @@ from back.apps.language_model.models.enums import (
     IndexStatusChoices,
     RetrieverTypeChoices,
 )
+from back.utils.ray_utils import ray_task
 
 from .colbert_actor import ColBERTActor
 
 logger = getLogger(__name__)
 
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+@ray_task(num_cpus=1, resources={"tasks": 1})
 def generate_embeddings_task(data):
 
     from chat_rag.embedding_models import E5Model
@@ -398,7 +399,7 @@ def index_colbert(retriever_config):
         creates_index(retriever_config=retriever_config)
 
 
-@ray.remote(num_cpus=0.2, resources={"tasks": 1})
+@ray_task(num_cpus=0.2, resources={"tasks": 1})
 def delete_index_files(s3_index_path):
     """
     Delete the index files from S3.
@@ -434,7 +435,7 @@ def delete_index_files(s3_index_path):
             logger.info(f"Index files deleted from S3: {s3_index_path}")
 
 
-@ray.remote(num_cpus=0.5, resources={"tasks": 1})
+@ray_task(num_cpus=0.5, resources={"tasks": 1})
 def index_task(retriever_config_id, launch_retriever_deploy: bool = False):
     """
     Build the index for a knowledge base.

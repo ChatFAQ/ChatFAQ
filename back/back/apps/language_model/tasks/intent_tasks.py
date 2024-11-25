@@ -9,6 +9,8 @@ from ray.util.placement_group import (
 )
 from ray.util.scheduling_strategies import PlacementGroupSchedulingStrategy
 
+from back.utils.ray_utils import ray_task
+
 logger = getLogger(__name__)
 
 
@@ -96,7 +98,7 @@ def run_clustering_task(knowledge_base_pk, texts, batch_size, lang, low_resource
 
 # Tasks
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+@ray_task(num_cpus=1, resources={"tasks": 1})
 def generate_titles_task(knowledge_base_pk, llm_config_id, max_k_items: int = 50):
     """
     Generate titles for the knowledge items of a knowledge base.
@@ -156,7 +158,7 @@ def generate_titles_task(knowledge_base_pk, llm_config_id, max_k_items: int = 50
     logger.info(f"Questions generated for knowledge base: {kb.name}")
 
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+@ray_task(num_cpus=1, resources={"tasks": 1})
 def generate_intents(clusters_texts, llm_config_id):
     from back.apps.language_model.models import LLMConfig
     from chat_rag.intent_detection import agenerate_intents
@@ -175,7 +177,7 @@ def generate_intents(clusters_texts, llm_config_id):
     return intents
 
 
-@ray.remote(num_cpus=1, resources={"tasks": 1}, num_returns=2)
+@ray_task(num_cpus=1, resources={"tasks": 1}, num_returns=2)
 def get_similarity_scores(titles, kb_id):
     import numpy as np
 
@@ -188,7 +190,7 @@ def get_similarity_scores(titles, kb_id):
     return mean_similarity, std_similarity
 
 
-@ray.remote(num_cpus=1.0, resources={"tasks": 1.0})
+@ray_task(num_cpus=1.0, resources={"tasks": 1.0})
 def clusterize_texts_task(texts, batch_size, lang, device, low_resource):
     from chat_rag.intent_detection import clusterize_text
 
@@ -202,7 +204,7 @@ def clusterize_texts_task(texts, batch_size, lang, device, low_resource):
     return labels
 
 
-@ray.remote(num_cpus=0.5, resources={"tasks": 1})
+@ray_task(num_cpus=0.5, resources={"tasks": 1})
 def generate_intents_task(
     knowledge_base_pk, batch_size: int = 32, low_resource: bool = True
 ):
@@ -296,7 +298,7 @@ def generate_intents_task(
     logger.info("Knowledge items added to the intents successfully")
 
 
-@ray.remote(num_cpus=0.5, resources={"tasks": 1})
+@ray_task(num_cpus=0.5, resources={"tasks": 1})
 def generate_suggested_intents_task(
     knowledge_base_pk, batch_size: int = 32, _generate_titles=False, low_resource=True
 ):

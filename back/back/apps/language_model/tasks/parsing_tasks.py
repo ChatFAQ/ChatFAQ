@@ -5,10 +5,12 @@ from django.db import transaction
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
 
+from back.utils.ray_utils import ray_task
+
 logger = getLogger(__name__)
 
 
-@ray.remote(num_cpus=0.2, resources={"tasks": 1})
+@ray_task(num_cpus=0.2, resources={"tasks": 1})
 def parse_url_task(ds_id, url):
     """
     Get the html from the url and parse it.
@@ -49,7 +51,7 @@ def parse_pdf(pdf_file, strategy, splitter, chunk_size, chunk_overlap):
     return parsed_items
 
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+@ray_task(num_cpus=1, resources={"tasks": 1})
 def parse_pdf_task(ds_pk):
     """
     Parse a pdf file and return a list of KnowledgeItem objects.

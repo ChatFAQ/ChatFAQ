@@ -37,6 +37,10 @@ class ListTasksAPI(APIView):
             return Response({'error': 'Invalid limit or offset.'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = RayTaskState.get_all_ray_and_parse_tasks_serialized()
+
+        if not data:
+            return get_paginated_response([], limit, offset, 0)
+
         if sort_key:
             # if starts with "-" then sort in descending order
             sort_order = 'desc' if sort_key.startswith('-') else 'asc'
