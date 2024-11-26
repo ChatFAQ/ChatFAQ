@@ -170,9 +170,10 @@ class FSM:
             return
         if data["node_type"] == RPCNodeType.action.value:
             self.manage_last_llm_msg(data)
-            id = await self.save_if_last_chunk()
-            data["id"] = id
-            await self.ctx.send_response(data)
+            msg_to_platform = {**data, "id": await self.save_if_last_chunk()}
+            if msg_to_platform.get("ctx", {}):
+                del msg_to_platform["ctx"]  # This data should be visible only on the FSM not the client
+            await self.ctx.send_response(msg_to_platform)
         else:
             self.rpc_result_future.set_result(data)
 
@@ -188,9 +189,10 @@ class FSM:
 
     async def save_if_last_chunk(self):
         if self.last_aggregated_msg.get("last_chunk"):
-            self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
-            self.last_aggregated_msg["status"] = self.last_aggregated_msg["ctx"]["status"]
-            serializer = self.MessageSerializer(data=self.last_aggregated_msg)
+            msg = {**self.last_aggregated_msg}
+            msg["conversation"] = msg["ctx"]["conversation_id"]
+            msg["status"] = msg["ctx"]["status"]
+            serializer = self.MessageSerializer(data=msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             self.waiting_for_rpc = None
             return (await database_sync_to_async(serializer.save)()).id
@@ -200,10 +202,10 @@ class FSM:
             return
         self.waiting_for_rpc = None  # Let's t least close the disconnect loop in the BotConsumer
         if self.last_aggregated_msg and not self.last_aggregated_msg.get("last"):
-            self.last_aggregated_msg["last"] = True
-            self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
-            self.last_aggregated_msg["status"] = self.last_aggregated_msg["ctx"]["status"]
-            serializer = self.MessageSerializer(data=self.last_aggregated_msg)
+            msg = {**self.last_aggregated_msg, "last": True}
+            msg["conversation"] = msg["ctx"]["conversation_id"]
+            msg["status"] = msg["ctx"]["status"]
+            serializer = self.MessageSerializer(data=msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             await database_sync_to_async(serializer.save)()
         template_server_error_message = await database_sync_to_async(Message.template_server_error_message)(self.ctx.conversation.pk)
