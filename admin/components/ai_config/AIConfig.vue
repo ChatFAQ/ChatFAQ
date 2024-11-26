@@ -41,10 +41,11 @@
                     'enabled': {'name': $t('enabled')},
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
-                :defaultSort="{'prop': 'name'}">
+                :defaultSort="{'prop': 'name'}"
+                >
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRetrieverReindex(item.id, $t)"
-                            :disabled="item.index_status === 'up_to_date'">
+                            :disabled="item.index_status === 'up_to_date' || !$useRay">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
                             <Refresh/>
@@ -106,6 +107,7 @@ const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
 const itemType = ref("retriever-configs")
 await itemsStore.loadSchema()
+const { $useRay } = useNuxtApp()
 
 </script>
 

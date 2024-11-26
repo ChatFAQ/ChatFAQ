@@ -16,7 +16,7 @@
                   :cardProps="cardPropsRetriever" :itemSchema="itemSchemaRetriever" :apiUrl="RetrieverAPIUrl">
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRetrieverReindex(item.id, $t)"
-                               :disabled="item.index_status === 'up_to_date'">
+                               :disabled="item.index_status === 'up_to_date' || !$useRay">
                         <span>{{ $t("reindex") }}</span>
                         <el-icon>
                             <Refresh />
@@ -26,6 +26,7 @@
                 <template v-slot:enabled="{item, name}">
                     <span class="title">{{ name }}:</span>
                     <el-switch
+                        v-if="$useRay"
                         v-model="item.enabled"
                         :before-change="() => switchEnabled(item, RetrieverAPIUrl)"
                         @click.native.stop
@@ -78,6 +79,8 @@ const { $axios } = useNuxtApp();
 const router = useRouter();
 
 const loading = ref({});
+
+const { $useRay } = useNuxtApp()
 
 // -------- Retriever --------
 const RetrieverAPIUrl = ref("/back/api/language-model/retriever-configs/");
