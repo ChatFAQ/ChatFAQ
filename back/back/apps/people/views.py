@@ -124,7 +124,9 @@ class UserAPIViewSet(viewsets.ModelViewSet):
             user = self.get_object()
             user.set_password(password)
             user.save()
+            request.data._mutable = True
             request.data["password"] = user.password
+            request.data._mutable = False
         return super().update(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):

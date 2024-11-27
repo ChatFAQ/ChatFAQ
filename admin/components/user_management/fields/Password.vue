@@ -43,7 +43,12 @@ const props = defineProps({
         mandatory: true
     }
 })
-let oldEncryptedPass = ref(props.form[props.fieldName])
+let oldEncryptedPass = ref()
+
+watch(() => props.form, async () => {
+    oldEncryptedPass.value = props.form[props.fieldName]
+}, {deep: true})
+
 function toggleEditingPassword(ev) {
     editingPassword.value = !editingPassword.value
     if(editingPassword.value) {
@@ -78,6 +83,12 @@ function submit() {
         margin-left: 8px;
         height: 40px;
         width: 40px;
+    }
+}
+.el-form-item__content {
+    .el-input {
+        flex-grow: 1;
+        width: unset !important;
     }
 }
 </style>
