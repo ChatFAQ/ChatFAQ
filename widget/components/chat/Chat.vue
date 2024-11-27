@@ -553,7 +553,7 @@ const activeMicro = computed(() => {
 @keyframes smallScale {
     0% {
         transform: scale(1);
-        opacity: 1;
+        opacity: 0.7;
     }
     100% {
         transform: scale(1.5);
@@ -562,11 +562,11 @@ const activeMicro = computed(() => {
 }
 
 .has-scale-animation {
-    animation: smallScale 3s infinite
+    animation: smallScale 1.7s infinite
 }
 
 .has-delay-short {
-    animation-delay: 1.2s
+    animation-delay: 0.5s
 }
 
 .micro-anim-elm {
