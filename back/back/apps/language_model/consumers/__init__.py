@@ -325,8 +325,6 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("streaming"),
             data.get("use_conversation_context"),
         ):
-            print('-'*100)
-            print(chunk)
             await self.send(
                 json.dumps(
                     {
