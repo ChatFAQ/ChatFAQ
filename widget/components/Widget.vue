@@ -80,6 +80,11 @@ const props = defineProps({
     authToken: String
 });
 
+const jsonProps = [
+    "initialConversationMetadata",
+    "customIFramedMsgs"
+]
+
 let data = props
 
 const _customCss = ref(props.customCss)
@@ -115,10 +120,16 @@ async function init() {
 
         const merged_data = {}
         for (const key in data) {
-            merged_data[key] = server_data[key] || data[key]
+            if (jsonProps.indexOf(key) > -1) {
+                if (typeof data[key] == "string" && data[key].length > 0)
+                    data[key] = JSON.parse(data[key] || "{}")
+                merged_data[key] = { ...server_data[key], ...data[key]}
+            }
+            else
+                merged_data[key] = server_data[key] || data[key]
         }
         for (const key in server_data) {
-            if (!data[key])
+            if (data[key] === undefined)
                 merged_data[key] = server_data[key]
         }
         data = merged_data
@@ -147,12 +158,8 @@ function initStore() {
     if (store.userId === undefined) {
         store.userId = getUserId()
     }
-    store.initialConversationMetadata = data.initialConversationMetadata
     store.customIFramedMsgs = data.customIFramedMsgs
-    if (typeof store.initialConversationMetadata === 'string')
-        store.initialConversationMetadata = JSON.parse(store.initialConversationMetadata)
-    if (typeof store.customIFramedMsgs === 'string')
-        store.customIFramedMsgs = JSON.parse(store.customIFramedMsgs)
+    store.initialConversationMetadata = data.initialConversationMetadata
 
     store.fsmDef = data.fsmDef;
     store.title = data.title;
