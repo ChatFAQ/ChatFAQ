@@ -197,6 +197,13 @@ async def query_llm(
                         tools=tools,
                         tool_choice=tool_choice,
                     )
+                    if isinstance(response, list):
+                        yield {
+                            "content": "",
+                            "tool_use": response,
+                            "last_chunk": True,
+                        }
+                        return
                     yield {
                         "content": response,
                         "last_chunk": True,
