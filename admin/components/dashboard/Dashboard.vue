@@ -9,34 +9,37 @@
                   :cardProps="cardPropsSDK" :itemSchema="itemSchemaSDK" :apiUrl="SDKAPIUrl"
                   :titleProps="['fsm_name']" />
         </div>
-        <div class="section-title">{{ $t("retrievers") }}</div>
-        <div class="cards-view">
-            <div class="no-items" v-if="!retrievers || !retrievers.length">{{ $t('noretrievers') }}</div>
-            <Card v-for="retriever in retrievers" @delete="initItems" @edit="() => goTo('ai_config')" :item="retriever"
-                  :cardProps="cardPropsRetriever" :itemSchema="itemSchemaRetriever" :apiUrl="RetrieverAPIUrl">
-                <template v-slot:extra-card-bottom="{item}">
-                    <el-button class="bottom-card-button" @click="callRetrieverReindex(item.id, $t)"
-                               :disabled="item.index_status === 'up_to_date' || !$useRay">
-                        <span>{{ $t("reindex") }}</span>
-                        <el-icon>
-                            <Refresh />
-                        </el-icon>
-                    </el-button>
-                </template>
-                <template v-slot:enabled="{item, name}">
-                    <span class="title">{{ name }}:</span>
-                    <el-switch
-                        v-if="$useRay"
-                        v-model="item.enabled"
-                        :before-change="() => switchEnabled(item, RetrieverAPIUrl)"
-                        @click.native.stop
-                        :loading="loading[item.id]"
-                        :active-value="true"
-                        :inactive-value="false"
-                    />
-                </template>
-            </Card>
-        </div>
+
+        <template v-if="$useRay">
+            <div class="section-title">{{ $t("retrievers") }}</div>
+            <div class="cards-view">
+                <div class="no-items" v-if="!retrievers || !retrievers.length">{{ $t('noretrievers') }}</div>
+                <Card v-for="retriever in retrievers" @delete="initItems" @edit="() => goTo('ai_config')" :item="retriever"
+                      :cardProps="cardPropsRetriever" :itemSchema="itemSchemaRetriever" :apiUrl="RetrieverAPIUrl">
+                    <template v-slot:extra-card-bottom="{item}">
+                        <el-button class="bottom-card-button" @click="callRetrieverReindex(item.id, $t)"
+                                   :disabled="item.index_status === 'up_to_date'">
+                            <span>{{ $t("reindex") }}</span>
+                            <el-icon>
+                                <Refresh />
+                            </el-icon>
+                        </el-button>
+                    </template>
+                    <template v-slot:enabled="{item, name}">
+                        <span class="title">{{ name }}:</span>
+                        <el-switch
+                            v-model="item.enabled"
+                            :before-change="() => switchEnabled(item, RetrieverAPIUrl)"
+                            @click.native.stop
+                            :loading="loading[item.id]"
+                            :active-value="true"
+                            :inactive-value="false"
+                        />
+                    </template>
+                </Card>
+            </div>
+        </template>
+
         <div class="section-title">{{ $t("llms") }}</div>
         <div class="cards-view">
             <div class="no-items" v-if="!llms || !llms.length">{{ $t('nollms') }}</div>
@@ -132,7 +135,9 @@ async function initData() {
 
 async function initItems() {
     itemsStore.loading = true;
-    retrievers.value = (await $axios.get(RetrieverAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
+    if ($useRay) {
+        retrievers.value = (await $axios.get(RetrieverAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
+    }
     llms.value = (await $axios.get(LLMAPIUrl.value + "?enabled=1", { headers: authHeaders() })).data.results;
     widgets.value = (await $axios.get(WidgetAPIUrl.value, { headers: authHeaders() })).data.results;
     sdks.value = (await $axios.get(SDKAPIUrl.value, { headers: authHeaders() })).data.results;
