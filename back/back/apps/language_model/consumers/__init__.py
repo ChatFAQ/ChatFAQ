@@ -189,7 +189,7 @@ async def query_llm(
                 llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
 
                 if tools:
-                    response = llm.agenerate(
+                    response = await llm.agenerate(
                         messages=new_messages,
                         temperature=temperature,
                         max_tokens=max_tokens,
@@ -325,6 +325,8 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("streaming"),
             data.get("use_conversation_context"),
         ):
+            print('-'*100)
+            print(chunk)
             await self.send(
                 json.dumps(
                     {
