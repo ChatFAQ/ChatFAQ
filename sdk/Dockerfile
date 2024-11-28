@@ -24,4 +24,4 @@ RUN apt-get -y purge --auto-remove build-essential make curl
 
 COPY . .
 
-CMD ["poetry", "run", "python", "-m", "examples.rag_example"]
+CMD ["poetry", "run", "python", "-m", "examples.llm_example"]

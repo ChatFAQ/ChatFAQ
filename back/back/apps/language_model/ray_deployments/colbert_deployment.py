@@ -7,6 +7,8 @@ from ray import serve
 from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 
 from back.apps.language_model.tasks import read_s3_index
+from back.utils.ray_utils import ray_task
+
 
 
 @serve.deployment(
@@ -110,7 +112,7 @@ def construct_index_path(index_path: str):
         bucket_name = os.environ.get("AWS_STORAGE_BUCKET_NAME")
         return f"s3://{bucket_name}/{index_path}"
 
-@ray.remote(num_cpus=0.1, resources={"tasks": 1})
+@ray_task(num_cpus=0.1, resources={"tasks": 1})
 def launch_colbert_deployment(retriever_deploy_name, index_path, num_replicas):
     print(f"Launching ColBERT deployment with name: {retriever_deploy_name} and index_path: {index_path}")
 

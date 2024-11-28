@@ -1,6 +1,8 @@
 from django.db import models
 from ray.util.state import api as ray_api
 
+from back.config import settings
+
 
 class RayTaskState(models.Model):
 
@@ -52,6 +54,9 @@ class RayTaskState(models.Model):
 
     @classmethod
     def get_all_ray_and_parse_tasks_serialized(cls):
+        if not settings.USE_RAY:
+            return []
+        
         from back.apps.language_model.serializers.tasks import RayTaskStateSerializer
 
         parse_task_states = cls.objects.all()

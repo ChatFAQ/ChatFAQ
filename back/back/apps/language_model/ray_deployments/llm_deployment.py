@@ -4,6 +4,8 @@ import ray
 from pydantic import BaseModel
 from ray import serve
 
+from back.utils.ray_utils import ray_task
+
 
 @serve.deployment(
     name="llm_deployment",
@@ -56,7 +58,7 @@ class LLMDeployment:
             ):
                 yield res
 
-@ray.remote(num_cpus=0.1, resources={"tasks": 1})
+@ray_task(num_cpus=0.1, resources={"tasks": 1})
 def launch_llm_deployment(name: str, llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None, num_replicas: int = 1):
     from back.apps.language_model.ray_deployments import delete_serve_app
 

@@ -40,13 +40,7 @@ env:
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
       SENTRY_DSN: '{{ secret("SENTRY_DSN_BACK") }}'
-  - name: ray_worker
-    variables:
-      BACKEND_HOST: "{{ back.PRIVATE_URL }}"
-      BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
-  - name: ray_build
-    variables:
-      INSTALL_CHAT_RAG: 'true'
+      USE_RAY: 'False'
   - name: widget
     variables:
       BASE_URL: "/demo"
@@ -109,16 +103,6 @@ workers:
     image: sdk
     envs: [ sdk ]
     instance_size: XS
-
-  - name: ray
-    image:
-      host: docker.io
-      registry: chatfaq
-      repository: back-chatrag
-      tag: "production"
-    envs: [ django, ray_worker ]
-    instance_size: L
-    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"ai_components":100}' --block
 
 jobs:
   - name: migrate

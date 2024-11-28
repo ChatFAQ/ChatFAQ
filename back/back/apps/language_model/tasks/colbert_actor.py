@@ -5,8 +5,10 @@ import ray
 from ray.util.scheduling_strategies import NodeAffinitySchedulingStrategy
 
 from back.apps.language_model.tasks import read_s3_index, get_filesystem
+from back.utils.ray_utils import ray_task
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+
+@ray_task(num_cpus=1, resources={"tasks": 1})
 class ColBERTActor:
     def __init__(self, index_path: str, device: str = 'cpu', colbert_name: Optional[str] = None, storages_mode: str = None):
 

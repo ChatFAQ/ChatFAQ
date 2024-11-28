@@ -41,11 +41,13 @@ const router = useRouter();
 const conf = useRuntimeConfig()
 const { t } = useI18n();
 
+const { $useRay } = useNuxtApp()
+
 const WAITING_STATUSES = ["NIL", "PENDING_ARGS_AVAIL", "PENDING_NODE_ASSIGNMENT", "PENDING_OBJ_STORE_MEM_AVAIL", "PENDING_ARGS_FETCH", "SUBMITTED_TO_WORKER"]
 const RUNNING_STATUSES = ["RUNNING", "RUNNING_IN_RAY_GET", "RUNNING_IN_RAY_WAIT"]
 
 
-if (process.client)
+if (process.client && $useRay)
     createConnection()
 
 function createConnection() {
