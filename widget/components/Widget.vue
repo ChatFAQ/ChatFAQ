@@ -77,14 +77,20 @@ const props = defineProps({
     speechRecognition: Boolean,
     speechRecognitionAutoSend: Boolean,
     allowAttachments: Boolean,
+    authToken: String
 });
+
+const jsonProps = [
+    "initialConversationMetadata",
+    "customIFramedMsgs"
+]
 
 let data = props
 
 const _customCss = ref(props.customCss)
-watch( () => props.customCss, (newVal, _)=> {
+watch( () => props.customCss, async (newVal, _)=> {
     _customCss.value = newVal
-    init()
+    await init()
 }, {immediate: true, deep: true})
 async function init() {
     if(_customCss.value) {
@@ -98,9 +104,13 @@ async function init() {
     }
 
     if (props.widgetConfigId !== undefined) {
-        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, {headers: {
-            'widget-id': props.widgetConfigId
-          }});
+        const headers = {
+            'widget-id': props.widgetConfigId,
+        }
+        if (props.authToken)
+            headers.Authorization = `Token ${props.authToken}`;
+
+        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
         let server_data = await response.json();
         // sneak case data keys to lowerCamelCase:
         server_data = Object.keys(server_data).reduce((acc, key) => {
@@ -108,14 +118,21 @@ async function init() {
             return acc;
         }, {});
 
-        const data_bools = {}
-        for (const key in server_data) {
-            if (typeof data[key] === 'boolean') {
-                data_bools[key] = server_data[key] || data[key]
+        const merged_data = {}
+        for (const key in data) {
+            if (jsonProps.indexOf(key) > -1) {
+                if (typeof data[key] == "string" && data[key].length > 0)
+                    data[key] = JSON.parse(data[key] || "{}")
+                merged_data[key] = { ...server_data[key], ...data[key]}
             }
+            else
+                merged_data[key] = server_data[key] || data[key]
         }
-
-        data = {...server_data, ...data, ...data_bools}
+        for (const key in server_data) {
+            if (data[key] === undefined)
+                merged_data[key] = server_data[key]
+        }
+        data = merged_data
 
         const style = document.createElement('style');
         style.innerHTML = data.css;
@@ -136,16 +153,13 @@ function initStore() {
     store.speechRecognition = data.speechRecognition
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
     store.allowAttachments = data.allowAttachments
+    store.authToken = data.authToken
 
     if (store.userId === undefined) {
         store.userId = getUserId()
     }
-    store.initialConversationMetadata = data.initialConversationMetadata
     store.customIFramedMsgs = data.customIFramedMsgs
-    if (typeof store.initialConversationMetadata === 'string')
-        store.initialConversationMetadata = JSON.parse(store.initialConversationMetadata)
-    if (typeof store.customIFramedMsgs === 'string')
-        store.customIFramedMsgs = JSON.parse(store.customIFramedMsgs)
+    store.initialConversationMetadata = data.initialConversationMetadata
 
     store.fsmDef = data.fsmDef;
     store.title = data.title;

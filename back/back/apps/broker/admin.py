@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models.message import Message, UserFeedback, AdminReview
+from .models.message import Message, UserFeedback, AdminReview, Conversation
 from .models import ConsumerRoundRobinQueue, RemoteSDKParsers
 import time
 
@@ -31,5 +31,6 @@ class AdminReviewAdmin(admin.ModelAdmin):
 admin.site.register(Message, MessageAdmin)
 admin.site.register(UserFeedback, UserFeedbackAdmin)
 admin.site.register(AdminReview, AdminReviewAdmin)
+admin.site.register(Conversation)
 admin.site.register(ConsumerRoundRobinQueue)
 admin.site.register(RemoteSDKParsers)

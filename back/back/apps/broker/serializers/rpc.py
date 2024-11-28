@@ -134,6 +134,7 @@ class RPCFSMDefSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     definition = serializers.JSONField(default=dict)
     overwrite = serializers.BooleanField(default=False)
+    authentication_required = serializers.BooleanField(default=False)
 
 
 class RPCResponseSerializer(serializers.Serializer):

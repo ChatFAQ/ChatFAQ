@@ -200,6 +200,7 @@ class MessageSerializer(serializers.ModelSerializer):
     stack_id = serializers.CharField(required=False, max_length=255)
     stack_group_id = serializers.CharField(required=False, max_length=255)
     last = serializers.BooleanField(default=False)
+    last_chunk = serializers.BooleanField(default=False)
     sender = AgentSerializer()
     receiver = AgentSerializer(required=False)
     send_time = JSTimestampField()

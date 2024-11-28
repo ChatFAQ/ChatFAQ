@@ -13,8 +13,8 @@ def convert_mml_to_llm_format(mml):
     messages = []
 
     for message in mml:
-        if message['stack']:
-            content = message["stack"][0]["payload"].get("content")
+        for stack in message.get("stack", []):
+            content = stack["payload"].get("content")
             if not content:
                 continue
             messages.append({

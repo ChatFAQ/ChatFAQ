@@ -34,6 +34,8 @@
                 />
             </div>
             <div class="prompt-right-button" :class="{'dark-mode': store.darkMode}" @click="() => { if(availableMicro) { speechToText() } else if (availableSend) { sendMessage() }}">
+                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
+                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
                 <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
                 <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
             </div>
@@ -105,6 +107,12 @@ function createConnection() {
     let queryParams = ""
     if (store.initialConversationMetadata)
         queryParams = `?metadata=${JSON.stringify(store.initialConversationMetadata)}`
+
+    if (store.authToken && store.authToken.length) {
+        if (queryParams.length) queryParams += "&"
+        else queryParams = "?"
+        queryParams += `token=${encodeURIComponent(store.authToken)}`
+    }
 
     ws = new WebSocket(
         store.chatfaqWS
@@ -385,6 +393,7 @@ const activeMicro = computed(() => {
         bottom: 0px;
     }
     .prompt-right-button {
+        position: relative;
         flex: 0 0 40px;
         height: 40px;
         margin-left: 8px;
@@ -513,6 +522,7 @@ const activeMicro = computed(() => {
     align-self: end;
     opacity: 0.6;
     margin: auto;
+    z-index: 1;
 
     &.send {
         color: $chatfaq-send-icon-color-light;
@@ -531,7 +541,49 @@ const activeMicro = computed(() => {
         opacity: 1;
     }
 }
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
 
+@keyframes smallScale {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
 
+.has-scale-animation {
+    animation: smallScale 1.7s infinite
+}
+
+.has-delay-short {
+    animation-delay: 0.5s
+}
+
+.micro-anim-elm {
+    position: absolute;
+    background: $chatfaq-prompt-button-background-color-light;
+
+    &.dark-mode {
+        background: $chatfaq-prompt-button-background-color-dark;
+    }
+
+    border-radius: 4px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+}
 
 </style>

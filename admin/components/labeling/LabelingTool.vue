@@ -123,7 +123,7 @@ let conversations = []
 // get conversation async data
 async function initConversation() {
     loadingConversation.value = true
-    conversation.value = (await $axios.get("/back/api/broker/conversations/" + itemId.value + "/")).data
+    conversation.value = (await $axios.get("/back/api/broker/conversations/" + itemId.value + "/", { headers: authHeaders() })).data
     conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
     thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, 1)) !== undefined
     thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, -1)) !== undefined

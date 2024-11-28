@@ -39,6 +39,8 @@ class Conversation(ChangesMixin):
 
     platform_conversation_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
+    initial_conversation_metadata = models.JSONField(default=dict)
+    authentication_required = models.BooleanField(default=False)
 
     def get_first_msg(self):
         return Message.objects.filter(
@@ -226,6 +228,8 @@ class Message(ChangesMixin):
         The id of the stack to which this message belongs to. This is used to group stacks
     last: bool
         Whether this message is the last one of the stack_group_id
+    last_chunk: bool
+        Whether this message is the last one of the chunk
     status: JSONField
         The status of the FSM on that point on time
 
@@ -250,6 +254,7 @@ class Message(ChangesMixin):
     stack_id = models.CharField(max_length=255, null=True)
     stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
+    last_chunk = models.BooleanField(default=False)
 
     @property
     def completed_review(self):
