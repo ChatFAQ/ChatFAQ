@@ -68,7 +68,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return f"bot_{conversation_id}"
 
     def get_group_name(self):
-        return self.create_group_name(self.conversation.pk)
+        if self.conversation:
+            return self.create_group_name(self.conversation.pk)
 
     async def rpc_response(self, data: dict):
         """
@@ -110,7 +111,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         logger.debug(
             f"Disconnecting from conversation ({self.conversation.pk}) (CODE: {code})"
             if self.conversation
-            else "Disconnecting... probably not authenticated"
+            else "Disconnecting... no conversation present, probably not authenticated..."
         )
         if self.fsm:
             while self.fsm.waiting_for_rpc:
