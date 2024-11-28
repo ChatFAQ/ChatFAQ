@@ -97,6 +97,14 @@ Next we will explain all the widget's possible parameters:
 
 `customIFramedMsgs`: It is possible to customize the messages coming from the SDK's FSM, you can pass a JSON object with the following structure:
 
+`speechRecognition`: It enables the speech recognition feature, by default it is disabled.
+
+`speechRecognitionAutoSend`: If speech recognition should automatically send the recognized text once it detect the user stopped talking, by default it is disabled.
+
+`allowAttachments`: If the widget should allow the user to send attachments, by default it is disabled.
+
+`authToken`: The token to authenticate the user in case your FSM requires it.
+
 ```json
 {
     "<MESSAGE_TYPE>": {
@@ -150,6 +158,9 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
         onlyChat: true,
         fitToParent: true,
         stickInputPrompt: true,
+        speechRecognition: true,
+        speechRecognitionAutoSend: true,
+        allowAttachments: true,
         initialConversationMetadata: JSON.stringify({"hello": "world"}),
         customIFramedMsgs: JSON.stringify({
             "iframe": {
@@ -161,7 +172,8 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
                 "scrolling": "np",
                 "noPadding": true
             }
-        })
+        }),
+        authToken: "1234567890"
     }
 
     const chatfaqWidget = new ChatfaqWidget(config);
@@ -203,8 +215,12 @@ If you declare data attributes and a config object and its keys collide, then th
     data-only-chat
     data-fit-to-parent
     data-stick-input-prompt
+    data-speech-recognition
+    data-speech-recognition-auto-send
+    data-allow-attachments
     data-initial-conversation-metadata='{"hello": "world"}'
     data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "mobileNoMargins": true, "desktopNoMargins": true, "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
+    data-auth-token="1234567890"
 ></chatfaq-widget>
 ```
 

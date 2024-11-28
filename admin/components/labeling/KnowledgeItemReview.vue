@@ -80,7 +80,7 @@ async function initKIReview() {
             reviewedKIs.value.kis.push(ki)
     }
     review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, true) || {}
-    ki_choices.value = (await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {knowledge_base: props.references.knowledge_base_id, knowledge_base__id: references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})).results
+    ki_choices.value = (await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {knowledge_base: props.references.knowledge_base_id, knowledge_base__id: props.references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})).results
     itemsStore.loading = false
 }
 

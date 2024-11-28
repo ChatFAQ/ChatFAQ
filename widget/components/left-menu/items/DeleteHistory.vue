@@ -28,13 +28,15 @@ async function deleteConversation(id) {
     if (store.previewMode)
         return
 
+    const headers = { "Content-Type": "application/json" }
+    if (store.authToken)
+        headers.Authorization = `Token ${store.authToken}`;
+
     await fetch(
         store.chatfaqAPI + `/back/api/broker/conversations/${id}/`,
         {
             method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers,
         }
     );
 }

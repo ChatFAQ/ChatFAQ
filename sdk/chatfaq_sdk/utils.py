@@ -12,12 +12,13 @@ def convert_mml_to_llm_format(mml):
     messages = []
 
     for message in mml:
-        content = message["stack"][0]["payload"].get("content")
-        if not content:
-            continue
-        messages.append({
-            "role": roles_map[message["sender"]["type"]],
-            "content": content,
-        })
+        for stack in message.get("stack", []):
+            content = stack["payload"].get("content")
+            if not content:
+                continue
+            messages.append({
+                "role": roles_map[message["sender"]["type"]],
+                "content": content,
+            })
 
     return messages

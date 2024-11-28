@@ -65,4 +65,6 @@ class Widget(models.Model):
 
     theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True)
     # ----------
+    authentication_required = models.BooleanField(default=False)
+    # ----------
     history = HistoricalRecords()

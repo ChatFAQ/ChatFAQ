@@ -49,6 +49,9 @@
                 [$t('theme')]: [
                         'theme'
                     ],
+                [$t('authentication')]: [
+                        'authentication_required'
+                    ],
                 [$t('script')]: [
                         'script',
                     ]

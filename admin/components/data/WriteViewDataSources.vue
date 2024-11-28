@@ -38,6 +38,7 @@
                         ]
                     }"
                     ref="dataSourceForms"
+                    content-type="multipart/form-data"
                 >
                 </WriteView>
                 <template #title>

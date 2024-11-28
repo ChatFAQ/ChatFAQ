@@ -218,7 +218,7 @@ const props = defineProps({
     contentType: {
         type: String,
         required: false,
-        default: "multipart/form-data",
+        default: "application/json",
     },
 })
 
