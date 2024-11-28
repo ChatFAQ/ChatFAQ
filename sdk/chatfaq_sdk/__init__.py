@@ -170,8 +170,8 @@ class ChatFAQSDK:
                     await self._consume_loop(
                         consumer_route
                     )  # <----- "infinite" Connection Loop
-            except (websockets.WebSocketException, ConnectionRefusedError):
-                logger.info(f"{consumer_route.upper()} Connection error, retrying...")
+            except (websockets.WebSocketException, ConnectionRefusedError) as e:
+                logger.info(f"{consumer_route.upper()} Connection error: {e}, retrying...")
                 await asyncio.sleep(1)
 
     async def _consume_loop(self, consumer_route):
