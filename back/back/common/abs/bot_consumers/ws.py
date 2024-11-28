@@ -20,23 +20,17 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
 
     async def connect(self):
-        print(1)
         self.set_fsm_def(await self.gather_fsm_def())
         self.set_user_id(await self.gather_user_id())
 
-        print(2)
         await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required)
         if not await self.authenticate():
             await self.close()
 
-        print(3)
         self.fsm = await database_sync_to_async(CachedFSM.build_fsm)(self)
         # Join room group
-        print(4)
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
-        print(5)
         await self.accept()
-        print(6)
         if self.fsm:
             logger.debug(
                 f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await database_sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
@@ -48,7 +42,6 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             logger.debug(
                 f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"
             )
-        print(7)
 
     async def receive_json(self, content, **kwargs):
         if content.get("heartbeat", False):
