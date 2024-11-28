@@ -1,9 +1,9 @@
 import { envManager, defineModelWConfig } from "@model-w/preset-nuxt3";
 import { defu } from "defu";
 
-const fs = require('fs')
-const packageJson = fs.readFileSync('./package.json')
-const widgetVersion = JSON.parse(packageJson)["dependencies"]["chatfaq-widget"] || 0
+const fs = require("fs");
+const packageJson = fs.readFileSync("./package.json");
+const widgetVersion = JSON.parse(packageJson)["dependencies"]["chatfaq-widget"] || 0;
 
 
 export default envManager((env) => {
@@ -49,13 +49,13 @@ export default envManager((env) => {
         },
         vue: {
             compilerOptions: {
-                isCustomElement: (tag) => ['chatfaq-widget'].includes(tag),
+                isCustomElement: (tag) => ["chatfaq-widget"].includes(tag),
             },
         },
         i18n: {
-            locales: ['en', 'es', 'fr'],
-            defaultLocale: 'en'
-        }
+            locales: ["en", "es", "fr"],
+            defaultLocale: "en",
+        },
     });
 
     const out = defu(config, viteNuxtConfig);
