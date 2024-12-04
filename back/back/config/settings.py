@@ -100,7 +100,7 @@ class CustomPreset(ModelWDjango):
             address = channel_layers_config[1]["default"]["CONFIG"]["hosts"][0]
             channel_layers_config[1]["default"]["CONFIG"]["hosts"] = [
                 {
-                    "address": address,
+                    **address,
                     "health_check_interval": 10,
                     "retry_on_timeout": True,
                     "socket_keepalive": True,
@@ -311,7 +311,7 @@ with EnvManager(model_w_django) as env:
     MISTRAL_API_KEY = env.get("MISTRAL_API_KEY", default=None)
     TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
-    USE_RAY = env.get("USE_RAY", default=True) == "True"
+    USE_RAY = env.get("USE_RAY", default=True) in ["True", True, "yes", "Yes"]
 
     # --------------------------- RAY ---------------------------
     if USE_RAY and not ray.is_initialized() and is_server_process():
