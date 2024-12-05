@@ -1,4 +1,4 @@
-FROM python:3.10.13-slim
+FROM python:3.11.3-slim
 
 ARG MODEL_W_PIP_EXTRA=""
 
@@ -65,6 +65,7 @@ RUN apt-get update  \
         libharfbuzz-dev  \
         libfribidi-dev  \
         libxcb1-dev \
+        python3-dev \
         # NodeJS
         nodejs \
         # Things required to use Weasyprint
@@ -103,11 +104,12 @@ RUN modelw-docker build
 
 
 # For installing chat-rag full for back based images with all the AI functionality and libraries.
+# docker build --build-arg INSTALL_CHAT_RAG=true .
 ARG INSTALL_CHAT_RAG
 ENV INSTALL_CHAT_RAG=$INSTALL_CHAT_RAG
 
-RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing nvidia-cudnn-cu12..."; poetry add nvidia-cudnn-cu12==8.9.2.26; fi
-RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry add chat-rag[full]==0.2.3; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing nvidia-cudnn-cu12..."; pip install nvidia-cudnn-cu12==8.9.2.26; fi
+RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing chat-rag..."; poetry run pip install chat-rag[full]==0.2.3; fi
 RUN if [ "$INSTALL_CHAT_RAG" = "true" ]; then echo "Installing ninja-build..."; apt-get install ninja-build; fi
 
 ENV RAY_task_events_max_num_task_in_gcs=100
