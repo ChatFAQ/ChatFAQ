@@ -53,11 +53,12 @@ class Message(Layer):
 
     _type = "message"
 
-    def __init__(self, content, references={}, tool_calls=[], *args, **kwargs):
+    def __init__(self, content, references={}, tool_calls=[], file_request=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = content
         self.references = references
         self.tool_calls = tool_calls
+        self.file_request = file_request
 
     async def build_payloads(self, ctx, data):
         payload = {
@@ -65,6 +66,7 @@ class Message(Layer):
                 "content": self.content,
                 "references": self.references,
                 "tool_calls": self.tool_calls,
+                "file_request": self.file_request,
             }
         }
         yield [payload], True
@@ -74,11 +76,11 @@ class StreamingMessage(Layer):
     _type = "message_chunk"
     _streaming = True
 
-    def __init__(self, generator, references={}, *args, **kwargs):
+    def __init__(self, generator, references={}, file_request=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.generator = generator
         self.references = references
-
+        self.file_request = file_request
     async def build_payloads(self, ctx, data):
         async for chunk in self.generator:
             last_chunk = chunk.get("last_chunk", False)
@@ -91,6 +93,7 @@ class StreamingMessage(Layer):
                                 "content": chunk.get("content"),
                                 "references": self.references,
                                 "tool_calls": tool_calls,
+                                "file_request": self.file_request,
                             }
                         }
                     ],

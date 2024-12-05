@@ -22,5 +22,6 @@
     "showless": "Show Less",
     "sources": "sources",
     "source": "source",
-    "connectingtoserver": "Connecting to server..."
+    "connectingtoserver": "Connecting to server...",
+    "upload_file": "Upload file"
 }
