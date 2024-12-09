@@ -116,7 +116,7 @@ workers:
       host: docker.io
       registry: chatfaq
       repository: back-chatrag
-      tag: "production"
+      tag: "develop"
     envs: [ django, ray_worker ]
     instance_size: L
     command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"ai_components":100}' --block
