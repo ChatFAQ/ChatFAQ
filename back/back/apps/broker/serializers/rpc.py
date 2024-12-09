@@ -56,17 +56,22 @@ class RPCResultSerializer(serializers.Serializer):
                 "id": attrs["ctx"]["user_id"],
             }
 
+        # If it already has an upload_path, then we need to return a url to the file in the ctx so the client can download it
+        if attrs.get('upload_path'):
+            storage = select_private_storage()
+            attrs['ctx']['upload_url'] = storage.url(attrs['upload_path'])
+
         # Generate presigned URL if the message is a file request
         if attrs.get("file_request"):
             storage = select_private_storage()
 
-            upload_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
-
             # Generate presigned URL if using S3
             if not isinstance(storage, PrivateMediaLocalStorage):
-                attrs['presigned_url'] = storage.generate_presigned_url(upload_path, content_type="application/octet-stream")
+                upload_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
 
-            attrs['upload_path'] = upload_path
+                attrs['presigned_url'] = storage.generate_presigned_url(upload_path, content_type="application/octet-stream")
+                attrs['content_type'] = "application/octet-stream" # Add content type to the response
+                attrs['upload_path'] = upload_path
 
         return super().validate(attrs)
 

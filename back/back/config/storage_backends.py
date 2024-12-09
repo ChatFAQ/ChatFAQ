@@ -24,6 +24,7 @@ class PrivateMediaS3Storage(S3Boto3Storage):
             "put_object",
             Params={"Bucket": self.bucket_name, "Key": path, "ContentType": content_type},
             ExpiresIn=expires_in,
+            HttpMethod="PUT",
         )
 
 class PrivateMediaLocalStorage(FileSystemStorage):

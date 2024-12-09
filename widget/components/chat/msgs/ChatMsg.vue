@@ -16,6 +16,9 @@
                 'is-last': props.isLast,
                 'maximized': store.maximized
             }">
+            <div v-if="props.message.upload_path && !props.message.presigned_url" class="file-uploaded-indicator">
+                Placeholder for file {{ props.message.upload_path }}
+            </div>
             <div
                 class="stack-wrapper"
                 :class="{
@@ -55,7 +58,10 @@
                         </div>
                         <FileUpload 
                             v-if="showFileUpload"
-                            @fileSelected="handleFileSelected"
+                            :presigned-url="props.message.presigned_url"
+                            :content-type="props.message.content_type"
+                            :upload-path="props.message.upload_path"
+                            @uploadPath="handleFileUploaded"
                         />
                         <References
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
@@ -97,6 +103,8 @@ const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()));
 
 console.log('props.message', props.message);
 
+const emit = defineEmits(['uploadPath']);
+
 const showFileUpload = computed(() => {
     return props.message.file_request;
 });
@@ -131,8 +139,9 @@ watch(() => store.maximized, () => {
     }
 });
 
-function handleFileSelected(file) {
-    console.log('File selected:', file);
+function handleFileUploaded(uploadPath) {
+    console.log('File uploaded:', uploadPath);
+    emit('uploadPath', uploadPath);
 }
 
 </script>
@@ -291,5 +300,14 @@ $phone-breakpoint: 600px;
 }
 .no-padding {
     padding: 0 !important;
+}
+
+.file-uploaded-indicator {
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    color: #333;
 }
 </style>

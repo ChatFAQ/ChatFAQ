@@ -9,6 +9,7 @@
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
+                    @uploadPath="handleFileUploaded"
                 ></ChatMsg>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
@@ -324,6 +325,38 @@ const activeSend = computed(() => {
 const activeMicro = computed(() => {
     return !speechRecognitionRunning.value
 })
+
+function handleFileUploaded(uploadPath) {
+    if (store.waitingForResponse || store.disconnected || speechRecognitionRunning.value) {
+        return;
+    }
+
+    historyIndexHumanMsg = -1
+    const m = {
+        "sender": {
+            "type": "human",
+            "platform": "WS",
+        },
+        "stack": [{
+            "type": "message",
+            "payload": {
+                "content": "",
+            },
+        }],
+        "stack_id": "0",
+        "stack_group_id": "0",
+        "last": true,
+        "upload_path": uploadPath,
+    };
+    if (store.userId !== undefined)
+        m["sender"]["id"] = store.userId
+
+    store.messages.push(m);
+    ws.send(JSON.stringify(m));
+    chatInput.value.innerText = "";
+    thereIsContent.value = false
+    store.scrollToBottom += 1;
+}
 
 </script>
 <style scoped lang="scss">
