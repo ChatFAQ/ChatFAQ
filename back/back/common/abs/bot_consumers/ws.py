@@ -41,7 +41,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
             )
 
             if not await self.fsm.check_sdk_connection():
-                await self.close(4000, reason=f"No RPC worker {self.fsm.name} connected")  # no SDK connected
+                await self.close(4000, reason=f"No RPC worker {self.fsm_def.name} connected")  # no SDK connected
                 return
 
             # await self.fsm.next_state()
