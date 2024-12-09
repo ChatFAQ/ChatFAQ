@@ -98,7 +98,7 @@ const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()));
 console.log('props.message', props.message);
 
 const showFileUpload = computed(() => {
-    return props.message.stack[0]?.payload?.file_request;
+    return props.message.file_request;
 });
 
 function getFirstStackType() {

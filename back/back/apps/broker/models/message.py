@@ -232,7 +232,10 @@ class Message(ChangesMixin):
         Whether this message is the last one of the chunk
     status: JSONField
         The status of the FSM on that point on time
-
+    file_request: bool
+        Whether this message is a file request
+    upload_path: str
+        The path where the file is stored in S3.
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -255,6 +258,8 @@ class Message(ChangesMixin):
     stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
     last_chunk = models.BooleanField(default=False)
+    file_request = models.BooleanField(default=False)
+    upload_path = models.CharField(max_length=1024, null=True, blank=True)
 
     @property
     def completed_review(self):

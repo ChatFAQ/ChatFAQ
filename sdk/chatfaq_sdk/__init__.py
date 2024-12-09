@@ -259,7 +259,7 @@ class ChatFAQSDK:
             stack_group_id = str(uuid.uuid4())
             logger.info(f"[RPC]     |---> ::: {state_or_transition}")
 
-            async for res, stack_id, last_chunk, node_type, last_from_state_or_transition in self._run_state_or_transition(
+            async for res, stack_id, last_chunk, file_request, node_type, last_from_state_or_transition in self._run_state_or_transition(
                 state_or_transition, payload["ctx"]
             ):
                 _ctx = {**payload["ctx"]}
@@ -277,6 +277,7 @@ class ChatFAQSDK:
                                 "stack_id": stack_id,
                                 "stack": res,
                                 "last_chunk": last_chunk,
+                                "file_request": file_request,
                                 "last": index
                                 == len(self.rpcs[payload["name"]]) - 1
                                 and last_from_state_or_transition,
@@ -470,7 +471,7 @@ class ChatFAQSDK:
             async for results in self._layer_results(layer, data):
                 yield [*results, True]
                 return
-        yield [[], str(uuid.uuid4()), True, _last_result[3], True]
+        yield [[], str(uuid.uuid4()), True, False, _last_result[-1], True]
 
     async def _layer_results(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Condition):

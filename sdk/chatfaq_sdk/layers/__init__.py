@@ -1,8 +1,8 @@
 from logging import getLogger
 from typing import Dict, List
+from uuid import uuid4
 
 from pydantic import BaseModel
-from uuid import uuid4
 
 logger = getLogger(__name__)
 
@@ -15,10 +15,11 @@ class Layer:
     _type = None
     _streaming = False
 
-    def __init__(self, allow_feedback=True, state={}):
+    def __init__(self, allow_feedback=True, state={}, file_request=False):
         self.allow_feedback = allow_feedback
         self.state = state
         self.stack_id = str(uuid4())
+        self.file_request = file_request
 
     async def build_payloads(self, ctx, data) -> tuple[List[dict], bool]:
         """
@@ -43,7 +44,7 @@ class Layer:
                 r["state"] = self.state
                 if fsm_def_name:
                     r["fsm_definition"] = fsm_def_name
-            yield [_repr, self.stack_id, last_chunk]
+            yield [_repr, self.stack_id, last_chunk, self.file_request]
 
 
 class Message(Layer):
@@ -53,12 +54,11 @@ class Message(Layer):
 
     _type = "message"
 
-    def __init__(self, content, references={}, tool_calls=[], file_request=False, *args, **kwargs):
+    def __init__(self, content, references={}, tool_calls=[], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.content = content
         self.references = references
         self.tool_calls = tool_calls
-        self.file_request = file_request
 
     async def build_payloads(self, ctx, data):
         payload = {
@@ -66,7 +66,6 @@ class Message(Layer):
                 "content": self.content,
                 "references": self.references,
                 "tool_calls": self.tool_calls,
-                "file_request": self.file_request,
             }
         }
         yield [payload], True

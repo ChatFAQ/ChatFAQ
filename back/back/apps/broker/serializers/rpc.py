@@ -8,6 +8,10 @@ from back.apps.broker.consumers.message_types import (
     RPCNodeType,
 )
 from back.apps.broker.models.message import AgentType
+from back.config.storage_backends import (
+    PrivateMediaLocalStorage,
+    select_private_storage,
+)
 
 
 class CtxSerializer(serializers.Serializer):
@@ -40,6 +44,7 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last_chunk = serializers.BooleanField(default=False)
     last = serializers.BooleanField(default=False)
+    file_request = serializers.BooleanField(default=False)
 
     def validate(self, attrs):
         attrs["sender"] = {"type": AgentType.bot.value}
@@ -50,6 +55,19 @@ class RPCResultSerializer(serializers.Serializer):
                 "type": AgentType.human.value,
                 "id": attrs["ctx"]["user_id"],
             }
+
+        # Generate presigned URL if the message is a file request
+        if attrs.get("file_request"):
+            storage = select_private_storage()
+
+            upload_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
+
+            # Generate presigned URL if using S3
+            if not isinstance(storage, PrivateMediaLocalStorage):
+                attrs['presigned_url'] = storage.generate_presigned_url(upload_path, content_type="application/octet-stream")
+
+            attrs['upload_path'] = upload_path
+
         return super().validate(attrs)
 
 
