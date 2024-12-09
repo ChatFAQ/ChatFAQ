@@ -123,10 +123,10 @@ async function init() {
             if (jsonProps.indexOf(key) > -1) {
                 if (typeof data[key] == "string" && data[key].length > 0)
                     data[key] = JSON.parse(data[key] || "{}")
-                merged_data[key] = { ...server_data[key], ...data[key]}
+                merged_data[key] = {...data[key], ...server_data[key]}
             }
             else
-                merged_data[key] = server_data[key] || data[key]
+                merged_data[key] = data[key] || server_data[key]
         }
         for (const key in server_data) {
             if (data[key] === undefined)

@@ -20,24 +20,38 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
     """
 
     async def connect(self):
-        self.set_fsm_def(await self.gather_fsm_def())
+        await self.accept()
+        fsm_def, error = await self.gather_fsm_def()
+        if not fsm_def:  # FSM doesnt exist
+            await self.close(4000, reason=error or "Error retrieving FSM definition")
+            return
+        self.set_fsm_def(fsm_def)
         self.set_user_id(await self.gather_user_id())
 
         await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required)
         if not await self.authenticate():
-            await self.close()
+            await self.close(3000, reason="Authentication failed")
 
         self.fsm = await database_sync_to_async(CachedFSM.build_fsm)(self)
         # Join room group
         await self.channel_layer.group_add(self.get_group_name(), self.channel_name)
-        await self.accept()
         if self.fsm:
             logger.debug(
                 f"Continuing conversation ({self.conversation}), reusing cached conversation's FSM ({await database_sync_to_async(CachedFSM.get_conv_updated_date)(self)})"
             )
+
+            if not await self.fsm.check_sdk_connection():
+                await self.close(4000, reason=f"No RPC worker {self.fsm.name} connected")  # no SDK connected
+                return
+
             # await self.fsm.next_state()
         else:
             self.fsm = await database_sync_to_async(self.fsm_def.build_fsm)(self, None)
+
+            if not await self.fsm.check_sdk_connection():
+                await self.close(4000, reason=f"No RPC worker {self.fsm_def.name} connected")  # no SDK connected
+                return
+
             await self.fsm.start()
             logger.debug(
                 f"Starting new WS conversation (channel group: {self.get_group_name()}) and creating new FSM"

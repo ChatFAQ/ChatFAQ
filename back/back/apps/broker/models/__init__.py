@@ -12,6 +12,13 @@ class ConsumerRoundRobinQueue(ChangesMixin):
     rr_group_key = models.CharField(max_length=255)
 
     @classmethod
+    def check_sdk_connection(cls, layer_group_name):
+        """
+        This method is used to check if any RPC worker is connected.
+        """
+        return cls.objects.filter(layer_group_name=layer_group_name).exists()
+
+    @classmethod
     def get_next_consumer_group_name(cls, rr_group_key):
         """
         This method implements the Round Robin.
