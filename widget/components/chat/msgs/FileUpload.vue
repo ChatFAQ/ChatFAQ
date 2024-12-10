@@ -4,8 +4,8 @@
             <input 
                 type="file" 
                 @change="handleFileUpload"
-                accept=".pdf,.sgm,.sgml,.xml"
                 ref="fileInput"
+                :accept="acceptedFileExtensions"
             >
             <span class="button-text">{{ $t('upload_file') }}</span>
         </label>
@@ -20,39 +20,43 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const store = useGlobalStore();
 const fileInput = ref(null);
 const uploadProgress = ref(0);
 const uploadError = ref(null);
+const selectedFileExtension = ref(null);
 
 const props = defineProps({
-    presignedUrl: {
-        type: String,
-        required: false,
-    },
-    contentType: {
-        type: String,
-        required: false,
-    },
-    uploadPath: {
-        type: String,
-        required: false,
+    fileRequest: {
+        type: Object,
+        required: true,
     },
 });
 
 const emit = defineEmits(['fileSelected', 'uploadPath']);
 
+const acceptedFileExtensions = computed(() => {
+    return Object.keys(props.fileRequest).map(ext => '.' + ext).join(',');
+});
+
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            alert('El archivo no debe superar los 10MB');
+        selectedFileExtension.value = file.name.split('.').pop().toLowerCase();
+        if (!props.fileRequest[selectedFileExtension.value]) {
+            alert('Tipo de archivo no permitido.');
             fileInput.value.value = ''; // Clear the input
             return;
         }
-        if (props.presignedUrl) {
+        const { max_size } = props.fileRequest[selectedFileExtension.value];
+        if (file.size > max_size) { 
+            alert('El archivo no debe superar los ' + max_size / (1024 * 1024) + ' MB');
+            fileInput.value.value = ''; // Clear the input
+            return;
+        }
+        if (props.fileRequest[selectedFileExtension.value].presigned_url) {
             uploadFileToS3(file);
         } else {
             emit('fileSelected', file);
@@ -64,11 +68,12 @@ async function uploadFileToS3(file) {
     try {
         uploadProgress.value = 0;
         uploadError.value = null;
+        const { presigned_url, upload_path, content_type } = props.fileRequest[selectedFileExtension.value];
 
-        const response = await fetch(props.presignedUrl, {
+        const response = await fetch(presigned_url, {
             method: 'PUT',
             headers: {
-                'Content-Type': props.contentType,
+                'Content-Type': content_type,
             },
             body: file,
             onUploadProgress: (progressEvent) => { // TODO: fix this
@@ -81,8 +86,8 @@ async function uploadFileToS3(file) {
         if (!response.ok) {
             throw new Error('Error al subir el archivo a S3');
         }
-        console.log('File uploaded successfully to: ', props.uploadPath);
-        emit('uploadPath', props.uploadPath);
+        console.log('File uploaded successfully');
+        emit('uploadPath', upload_path);
     } catch (error) {
         console.error('Error uploading file:', error);
         uploadError.value = 'Error al subir el archivo. Por favor, inténtalo de nuevo.';

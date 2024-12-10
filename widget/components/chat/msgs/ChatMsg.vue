@@ -16,8 +16,8 @@
                 'is-last': props.isLast,
                 'maximized': store.maximized
             }">
-            <div v-if="props.message.upload_path && !props.message.presigned_url" class="file-uploaded-indicator">
-                Placeholder for file {{ props.message.upload_path }}
+            <div v-if="props.message.stack[0].payload.file" class="file-uploaded-indicator">
+                Placeholder for file {{ props.message.stack[0].payload.file.upload_path }}
             </div>
             <div
                 class="stack-wrapper"
@@ -58,9 +58,7 @@
                         </div>
                         <FileUpload 
                             v-if="showFileUpload"
-                            :presigned-url="props.message.presigned_url"
-                            :content-type="props.message.content_type"
-                            :upload-path="props.message.upload_path"
+                            :file-request="props.message.stack[0].payload.file_request"
                             @uploadPath="handleFileUploaded"
                         />
                         <References
@@ -106,7 +104,7 @@ console.log('props.message', props.message);
 const emit = defineEmits(['uploadPath']);
 
 const showFileUpload = computed(() => {
-    return props.message.file_request;
+    return props.message.stack[0].payload.file_request;
 });
 
 function getFirstStackType() {

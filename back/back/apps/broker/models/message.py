@@ -258,8 +258,6 @@ class Message(ChangesMixin):
     stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
     last_chunk = models.BooleanField(default=False)
-    file_request = models.BooleanField(default=False)
-    upload_path = models.CharField(max_length=1024, null=True, blank=True)
 
     @property
     def completed_review(self):

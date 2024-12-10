@@ -15,6 +15,10 @@ from back.apps.broker.models.message import AgentType, Satisfaction
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
 from back.apps.fsm.models import FSMDefinition
+from back.config.storage_backends import (
+    PrivateMediaLocalStorage,
+    select_private_storage
+)
 
 if TYPE_CHECKING:
     from back.apps.broker.models.message import Message
@@ -193,6 +197,14 @@ class MessageStackSerializer(serializers.Serializer):
     meta = serializers.JSONField(required=False)
     state = serializers.JSONField(required=False)
     fsm_definition = FSMDefinitionField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        # If it already has an upload_path, then we need to return a url to the file so the fsm can download it
+        if attrs.get('payload', {}).get('file'):
+            storage = select_private_storage()
+            if not isinstance(storage, PrivateMediaLocalStorage):
+                attrs['payload']['file']['url'] = storage.url(attrs.get('payload', {}).get('file', {}).get('upload_path'), expire=7200)
+        return attrs
 
 
 class MessageSerializer(serializers.ModelSerializer):

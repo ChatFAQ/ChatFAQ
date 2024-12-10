@@ -340,13 +340,15 @@ function handleFileUploaded(uploadPath) {
         "stack": [{
             "type": "message",
             "payload": {
-                "content": "",
+                "content": "The file can be downloaded in the path: " + uploadPath,
+                "file": {
+                    "upload_path": uploadPath,
+                },
             },
         }],
         "stack_id": "0",
         "stack_group_id": "0",
         "last": true,
-        "upload_path": uploadPath,
     };
     if (store.userId !== undefined)
         m["sender"]["id"] = store.userId

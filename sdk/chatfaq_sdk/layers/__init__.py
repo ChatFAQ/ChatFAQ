@@ -15,11 +15,10 @@ class Layer:
     _type = None
     _streaming = False
 
-    def __init__(self, allow_feedback=True, state={}, file_request=False):
+    def __init__(self, allow_feedback=True, state={}):
         self.allow_feedback = allow_feedback
         self.state = state
         self.stack_id = str(uuid4())
-        self.file_request = file_request
 
     async def build_payloads(self, ctx, data) -> tuple[List[dict], bool]:
         """
@@ -44,7 +43,7 @@ class Layer:
                 r["state"] = self.state
                 if fsm_def_name:
                     r["fsm_definition"] = fsm_def_name
-            yield [_repr, self.stack_id, last_chunk, self.file_request]
+            yield [_repr, self.stack_id, last_chunk]
 
 
 class Message(Layer):
@@ -54,11 +53,24 @@ class Message(Layer):
 
     _type = "message"
 
-    def __init__(self, content, references={}, tool_calls=[], *args, **kwargs):
+    def __init__(
+        self,
+        content,
+        references={},
+        tool_calls=[],
+        file_request=False,
+        file_extensions=[],
+        max_size=0,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.content = content
         self.references = references
         self.tool_calls = tool_calls
+        self.file_request = file_request
+        self.file_extensions = file_extensions
+        self.max_size = max_size
 
     async def build_payloads(self, ctx, data):
         payload = {
@@ -68,6 +80,13 @@ class Message(Layer):
                 "tool_calls": self.tool_calls,
             }
         }
+        if self.file_request:
+            payload["payload"]["file_request"] = {
+                file_extension: {
+                    "max_size": self.max_size,
+                }
+                for file_extension in self.file_extensions
+            }
         yield [payload], True
 
 
@@ -75,27 +94,42 @@ class StreamingMessage(Layer):
     _type = "message_chunk"
     _streaming = True
 
-    def __init__(self, generator, references={}, file_request=False, *args, **kwargs):
+    def __init__(
+        self,
+        generator,
+        references={},
+        file_request=False,
+        content_types=[],
+        max_size=0,
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.generator = generator
         self.references = references
         self.file_request = file_request
+        self.content_types = content_types
+        self.max_size = max_size
+
     async def build_payloads(self, ctx, data):
         async for chunk in self.generator:
             last_chunk = chunk.get("last_chunk", False)
             tool_calls = chunk.get("tool_calls", [])
             if last_chunk:  # now we send the references only in the final message
+                payload = {
+                    "payload": {
+                        "content": chunk.get("content"),
+                        "references": self.references,
+                        "tool_calls": tool_calls,
+                    }
+                }
+                if self.file_request:
+                    payload["payload"]["file_request"] = {
+                        "content_types": self.content_types,
+                        "max_size": self.max_size,
+                    }
                 yield (
-                    [
-                        {
-                            "payload": {
-                                "content": chunk.get("content"),
-                                "references": self.references,
-                                "tool_calls": tool_calls,
-                                "file_request": self.file_request,
-                            }
-                        }
-                    ],
+                    [payload],
                     last_chunk,
                 )
                 break
@@ -122,7 +156,5 @@ class GTMTag(Layer):
         self.tag = tag
 
     async def build_payloads(self, ctx, data):
-        payload = {
-            "payload": self.tag
-        }
+        payload = {"payload": self.tag}
         yield [payload], True

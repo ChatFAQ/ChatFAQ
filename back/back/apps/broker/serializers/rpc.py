@@ -1,4 +1,5 @@
 import time
+import mimetypes
 
 from rest_framework import serializers
 
@@ -44,7 +45,6 @@ class RPCResultSerializer(serializers.Serializer):
     stack = serializers.JSONField(default=dict)
     last_chunk = serializers.BooleanField(default=False)
     last = serializers.BooleanField(default=False)
-    file_request = serializers.BooleanField(default=False)
 
     def validate(self, attrs):
         attrs["sender"] = {"type": AgentType.bot.value}
@@ -62,17 +62,22 @@ class RPCResultSerializer(serializers.Serializer):
             attrs['ctx']['upload_url'] = storage.url(attrs['upload_path'])
 
         # Generate presigned URL if the message is a file request
-        if attrs.get("file_request"):
-            storage = select_private_storage()
+        for ndx, element in enumerate(attrs.get("stack", [])):
+            if element.get("payload", {}).get("file_request"):
+                storage = select_private_storage()
 
-            # Generate presigned URL if using S3
-            if not isinstance(storage, PrivateMediaLocalStorage):
-                upload_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
+                for file_extension in element.get("payload", {}).get("file_request", {}).keys():
 
-                attrs['presigned_url'] = storage.generate_presigned_url(upload_path, content_type="application/octet-stream")
-                attrs['content_type'] = "application/octet-stream" # Add content type to the response
-                attrs['upload_path'] = upload_path
+                    # Generate presigned URL if using S3
+                    if not isinstance(storage, PrivateMediaLocalStorage):
+                        upload_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
 
+                        # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
+                        content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
+                        attrs['stack'][ndx]['payload']['file_request'][file_extension]['presigned_url'] = storage.generate_presigned_url(upload_path, content_type=content_type)
+                        attrs['stack'][ndx]['payload']['file_request'][file_extension]['upload_path'] = upload_path
+                        attrs['stack'][ndx]['payload']['file_request'][file_extension]['content_type'] = content_type
+                    
         return super().validate(attrs)
 
 
