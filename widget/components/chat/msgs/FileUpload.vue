@@ -8,6 +8,7 @@
                 :accept="acceptedFileExtensions"
             >
             <span class="button-text">{{ $t('upload_file') }}</span>
+            <FileAttachment class="file-icon" />
         </label>
         <div v-if="uploadProgress > 0 && uploadProgress < 100" class="progress-bar">
             <div class="progress" :style="{ width: uploadProgress + '%' }"></div>
@@ -21,6 +22,8 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 import { ref, computed } from "vue";
+
+import FileAttachment from "~/components/icons/FileAttachment.vue";
 
 const store = useGlobalStore();
 const fileInput = ref(null);
@@ -102,11 +105,20 @@ async function uploadFileToS3(file) {
     margin: 12px 0;
     
     .upload-button {
-        display: inline-block;
+        display: flex;
+        align-items: center;
+        gap: 16px;
         background: $chatfaq-color-chatMessageReference-background-light;
-        border-radius: 4px;
-        padding: 6px 12px;
+        padding: 10px 16px;
         cursor: pointer;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 25, 120, 0.10);
+        // background: #FFF;
+        
+        .file-icon {
+            width: 16px;
+            height: 16px;
+        }
         
         &.dark-mode {
             background: $chatfaq-color-chatMessageReference-background-dark;
@@ -116,6 +128,21 @@ async function uploadFileToS3(file) {
         input[type="file"] {
             display: none;
         }
+    }
+
+    .button-text {
+        color: #001978;
+        font-feature-settings: 'liga' off, 'clig' off;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: 700;
+        line-height: 20px; /* 142.857% */
+        text-decoration-line: underline;
+        text-decoration-style: solid;
+        text-decoration-skip-ink: auto;
+        text-decoration-thickness: auto;
+        text-underline-offset: auto;
+        text-underline-position: from-font;
     }
 
     .file-requirements {
