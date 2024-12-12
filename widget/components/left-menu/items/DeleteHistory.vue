@@ -32,7 +32,7 @@ async function deleteConversation(id) {
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
 
-    await fetch(
+    await chatfaqFetch(
         store.chatfaqAPI + `/back/api/broker/conversations/${id}/`,
         {
             method: "DELETE",

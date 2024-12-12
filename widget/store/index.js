@@ -51,7 +51,7 @@ export const useGlobalStore = defineStore('globalStore', {
             if (this.authToken)
                 headers.Authorization = `Token ${this.authToken}`;
 
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`, { headers });
+            let response = await chatfaqFetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`, { headers });
             this.conversations = await response.json();
         },
         async renameConversationName(id, name) {
@@ -59,7 +59,7 @@ export const useGlobalStore = defineStore('globalStore', {
             if (this.authToken)
                 headers.Authorization = `Token ${this.authToken}`;
 
-            await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
+            await chatfaqFetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
                 method: 'PATCH',
                 headers,
                 body: JSON.stringify({ name: name })
@@ -72,7 +72,7 @@ export const useGlobalStore = defineStore('globalStore', {
                 headers.Authorization = `Token ${this.authToken}`;
 
             const conversationId = this.conversation(_selectedPlConversationId).id
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
+            let response = await chatfaqFetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
                 method: 'GET',
                 headers
             });

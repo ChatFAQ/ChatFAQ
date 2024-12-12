@@ -112,7 +112,7 @@ async function init() {
         if (props.authToken)
             headers.Authorization = `Token ${props.authToken}`;
 
-        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
+        const response = await chatfaqFetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
         let server_data = await response.json();
         // sneak case data keys to lowerCamelCase:
         server_data = Object.keys(server_data).reduce((acc, key) => {

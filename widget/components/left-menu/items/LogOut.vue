@@ -9,10 +9,10 @@
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 import Exit from "~/components/icons/Exit.vue";
 
-const event = new Event("chatfaq-logout");
+const logoutEvent = new Event("chatfaq-logout");
 
 function emitEventLogout() {
-    document.dispatchEvent(event);
+    document.dispatchEvent(logoutEvent);
 }
 
 
