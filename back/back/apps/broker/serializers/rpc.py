@@ -56,27 +56,22 @@ class RPCResultSerializer(serializers.Serializer):
                 "id": attrs["ctx"]["user_id"],
             }
 
-        # If it already has an upload_path, then we need to return a url to the file in the ctx so the client can download it
-        if attrs.get('upload_path'):
-            storage = select_private_storage()
-            attrs['ctx']['upload_url'] = storage.url(attrs['upload_path'])
-
         # Generate presigned URL if the message is a file request
         for ndx, element in enumerate(attrs.get("stack", [])):
-            if element.get("payload", {}).get("file_request"):
+            if element["type"] == "file_upload":
                 storage = select_private_storage()
 
-                for file_extension in element.get("payload", {}).get("file_request", {}).keys():
+                for file_extension in element["payload"].keys():
 
                     # Generate presigned URL if using S3
                     if not isinstance(storage, PrivateMediaLocalStorage):
-                        upload_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
+                        s3_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
 
                         # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
                         content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
-                        attrs['stack'][ndx]['payload']['file_request'][file_extension]['presigned_url'] = storage.generate_presigned_url(upload_path, content_type=content_type)
-                        attrs['stack'][ndx]['payload']['file_request'][file_extension]['upload_path'] = upload_path
-                        attrs['stack'][ndx]['payload']['file_request'][file_extension]['content_type'] = content_type
+                        attrs['stack'][ndx]['payload'][file_extension]['presigned_url'] = storage.generate_presigned_url(s3_path, content_type=content_type)
+                        attrs['stack'][ndx]['payload'][file_extension]['s3_path'] = s3_path
+                        attrs['stack'][ndx]['payload'][file_extension]['content_type'] = content_type
                     
         return super().validate(attrs)
 

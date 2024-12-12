@@ -232,10 +232,6 @@ class Message(ChangesMixin):
         Whether this message is the last one of the chunk
     status: JSONField
         The status of the FSM on that point on time
-    file_request: bool
-        Whether this message is a file request
-    upload_path: str
-        The path where the file is stored in S3.
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)

@@ -3,14 +3,24 @@
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
-                    v-if="renderable(message)"
+                    v-if="isMessageRenderable(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
-                    @uploadPath="handleFileUploaded"
+                    @s3Path="handleFileUploaded"
                 ></ChatMsg>
+                <FileUpload 
+                    v-if="isFileUploadRenderable(message)"
+                    :file-request="message.stack[0].payload"
+                    @s3Path="handleFileUploaded"
+                />
+                <FileDownload v-if="isFileDownloadRenderable(message)"
+                                :file-name="message.stack[0].payload.name"
+                                :file-type="getFileType(message.stack[0].payload.url)"
+                                :file-url="message.stack[0].payload.url"
+                />
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -52,7 +62,8 @@ import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
-
+import FileDownload from "~/components/chat/msgs/FileDownload.vue";
+import FileUpload from "~/components/chat/msgs/FileUpload.vue";
 const store = useGlobalStore();
 
 const chatInput = ref(null);
@@ -242,8 +253,22 @@ function sendMessage() {
     store.scrollToBottom += 1;
 }
 
-function renderable(message) {
-    return !notRenderableStackTypes.includes(message.stack[0]?.type)
+function isMessageRenderable(message) {
+    return message.stack[0]?.type === 'message'
+}
+
+function isFileDownloadRenderable(message) {
+    return message.stack[0]?.type === 'file_download'
+}
+
+function isFileUploadRenderable(message) {
+    return message.stack[0]?.type === 'file_upload'
+}
+
+function getFileType(filePath) {
+    return 'pdf';
+    const extension = filePath.split('.').pop();
+    return extension.toUpperCase();
 }
 
 function sendToGTM(msg) {
@@ -326,7 +351,7 @@ const activeMicro = computed(() => {
     return !speechRecognitionRunning.value
 })
 
-function handleFileUploaded(uploadPath) {
+function handleFileUploaded({ s3_path, file_name }) {
     if (store.waitingForResponse || store.disconnected || speechRecognitionRunning.value) {
         return;
     }
@@ -338,12 +363,11 @@ function handleFileUploaded(uploadPath) {
             "platform": "WS",
         },
         "stack": [{
-            "type": "message",
+            "type": "file_download",
             "payload": {
-                "content": "The file can be downloaded in the path: " + uploadPath,
-                "file": {
-                    "upload_path": uploadPath,
-                },
+                "s3_path": s3_path,
+                "name": file_name,
+                // We don't pass url because we don't have it yet
             },
         }],
         "stack_id": "0",

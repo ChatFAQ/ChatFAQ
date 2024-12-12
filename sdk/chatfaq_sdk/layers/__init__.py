@@ -58,9 +58,6 @@ class Message(Layer):
         content,
         references={},
         tool_calls=[],
-        file_request=False,
-        file_extensions=[],
-        max_size=0,
         *args,
         **kwargs,
     ):
@@ -68,9 +65,6 @@ class Message(Layer):
         self.content = content
         self.references = references
         self.tool_calls = tool_calls
-        self.file_request = file_request
-        self.file_extensions = file_extensions
-        self.max_size = max_size
 
     async def build_payloads(self, ctx, data):
         payload = {
@@ -80,13 +74,70 @@ class Message(Layer):
                 "tool_calls": self.tool_calls,
             }
         }
-        if self.file_request:
-            payload["payload"]["file_request"] = {
+        yield [payload], True
+
+
+class FileUpload(Layer):
+    """
+    A message layer that includes a file upload request.
+    """
+    _type = "file_upload"
+
+    def __init__(
+        self,
+        file_extensions=[],
+        max_size=0,
+        *args,
+        **kwargs,
+    ):
+        """
+        :param file_extensions: A list of file extensions to request. For example: ["pdf", "xml"]
+        :param max_size: The maximum size of the file to request in bytes. For example: 50 * 1024 * 1024 (50MB)
+        """
+        super().__init__(*args, **kwargs)
+        self.file_extensions = file_extensions
+        self.max_size = max_size
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
                 file_extension: {
                     "max_size": self.max_size,
                 }
                 for file_extension in self.file_extensions
+            },
+        }
+        yield [payload], True
+
+
+class FileDownload(Layer):
+    """
+    A message layer that includes a file download.
+    """
+    _type = "file_download"
+
+    def __init__(
+            self,
+            file_name: str,
+            file_url: str,
+            *args,
+            **kwargs,
+    ):
+        """
+        :param file_name: The name of the file. For example: "report.pdf"
+        :param file_url: The URL of the file where the user can download it or visualize it. For example: "https://example.com/report.pdf"
+        """
+        super().__init__(*args, **kwargs)
+        self.file_name = file_name
+        self.file_url = file_url
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                    "name": self.file_name,
+                    "url": self.file_url,
             }
+        }
         yield [payload], True
 
 
@@ -98,18 +149,12 @@ class StreamingMessage(Layer):
         self,
         generator,
         references={},
-        file_request=False,
-        content_types=[],
-        max_size=0,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.generator = generator
         self.references = references
-        self.file_request = file_request
-        self.content_types = content_types
-        self.max_size = max_size
 
     async def build_payloads(self, ctx, data):
         async for chunk in self.generator:
@@ -123,11 +168,6 @@ class StreamingMessage(Layer):
                         "tool_calls": tool_calls,
                     }
                 }
-                if self.file_request:
-                    payload["payload"]["file_request"] = {
-                        "content_types": self.content_types,
-                        "max_size": self.max_size,
-                    }
                 yield (
                     [payload],
                     last_chunk,

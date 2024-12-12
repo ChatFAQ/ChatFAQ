@@ -7,8 +7,8 @@
                 ref="fileInput"
                 :accept="acceptedFileExtensions"
             >
-            <span class="button-text">{{ $t('upload_file') }}</span>
-            <FileAttachment class="file-icon" />
+            <span class="button-text" :class="{ 'dark-mode': store.darkMode }">{{ $t('upload_file') }}</span>
+            <FileAttachment class="file-icon" :class="{ 'dark-mode': store.darkMode }" />
         </label>
         <div v-if="uploadProgress > 0 && uploadProgress < 100" class="progress-bar">
             <div class="progress" :style="{ width: uploadProgress + '%' }"></div>
@@ -30,6 +30,7 @@ const fileInput = ref(null);
 const uploadProgress = ref(0);
 const uploadError = ref(null);
 const selectedFileExtension = ref(null);
+const selectedFileName = ref(null);
 
 const props = defineProps({
     fileRequest: {
@@ -38,7 +39,9 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['fileSelected', 'uploadPath']);
+console.log('FileUpload', props);
+
+const emit = defineEmits(['fileSelected', 's3Path']);
 
 const acceptedFileExtensions = computed(() => {
     return Object.keys(props.fileRequest).map(ext => '.' + ext).join(',');
@@ -47,6 +50,7 @@ const acceptedFileExtensions = computed(() => {
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
+        selectedFileName.value = file.name;
         selectedFileExtension.value = file.name.split('.').pop().toLowerCase();
         if (!props.fileRequest[selectedFileExtension.value]) {
             alert('Tipo de archivo no permitido.');
@@ -71,7 +75,7 @@ async function uploadFileToS3(file) {
     try {
         uploadProgress.value = 0;
         uploadError.value = null;
-        const { presigned_url, upload_path, content_type } = props.fileRequest[selectedFileExtension.value];
+        const { presigned_url, s3_path, content_type } = props.fileRequest[selectedFileExtension.value];
 
         const response = await fetch(presigned_url, {
             method: 'PUT',
@@ -90,7 +94,7 @@ async function uploadFileToS3(file) {
             throw new Error('Error al subir el archivo a S3');
         }
         console.log('File uploaded successfully');
-        emit('uploadPath', upload_path);
+        emit('s3Path', { s3_path, file_name: selectedFileName.value });
     } catch (error) {
         console.error('Error uploading file:', error);
         uploadError.value = 'Error al subir el archivo. Por favor, inténtalo de nuevo.';
@@ -102,7 +106,10 @@ async function uploadFileToS3(file) {
 
 <style scoped lang="scss">
 .file-upload-wrapper {
-    margin: 12px 0;
+    // TODO: Fix this
+    margin-top: 8px;
+    margin-left: 24px;
+    width: 133px;
     
     .upload-button {
         display: flex;
@@ -111,13 +118,18 @@ async function uploadFileToS3(file) {
         background: $chatfaq-color-chatMessageReference-background-light;
         padding: 10px 16px;
         cursor: pointer;
-        border-radius: 10px;
+        border-radius: 4px;
         border: 1px solid rgba(0, 25, 120, 0.10);
         // background: #FFF;
         
         .file-icon {
-            width: 16px;
-            height: 16px;
+            stroke: $chatfaq-color-primary-500;
+            width: 18px;
+            height: 18px;
+
+            &.dark-mode {
+                stroke: $chatfaq-color-chatMessageReference-text-dark;
+            }
         }
         
         &.dark-mode {
@@ -131,18 +143,17 @@ async function uploadFileToS3(file) {
     }
 
     .button-text {
-        color: #001978;
+        color: $chatfaq-color-primary-500;
         font-feature-settings: 'liga' off, 'clig' off;
-        font-size: 14px;
+        font-family: "Open Sans";
+        font-size: 12px;
         font-style: normal;
-        font-weight: 700;
-        line-height: 20px; /* 142.857% */
-        text-decoration-line: underline;
-        text-decoration-style: solid;
-        text-decoration-skip-ink: auto;
-        text-decoration-thickness: auto;
-        text-underline-offset: auto;
-        text-underline-position: from-font;
+        font-weight: 600;
+        line-height: 18px; /* 150% */
+
+        &.dark-mode {
+            color: $chatfaq-color-chatMessageReference-text-dark;
+        }
     }
 
     .file-requirements {

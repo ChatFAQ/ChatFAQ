@@ -199,11 +199,11 @@ class MessageStackSerializer(serializers.Serializer):
     fsm_definition = FSMDefinitionField(required=False, allow_null=True)
 
     def validate(self, attrs):
-        # If it already has an upload_path, then we need to return a url to the file so the fsm can download it
-        if attrs.get('payload', {}).get('file'):
+        # If it is a file for download and doesn't have a url then we need to return a url to the file so the fsm can download it
+        if attrs['type'] == 'file_download' and not attrs.get('payload', {}).get('url') and attrs.get('payload', {}).get('s3_path'):
             storage = select_private_storage()
             if not isinstance(storage, PrivateMediaLocalStorage):
-                attrs['payload']['file']['url'] = storage.url(attrs.get('payload', {}).get('file', {}).get('upload_path'), expire=7200)
+                attrs['payload']['url'] = storage.url(attrs.get('payload', {}).get('s3_path'), expire=7200)
         return attrs
 
 

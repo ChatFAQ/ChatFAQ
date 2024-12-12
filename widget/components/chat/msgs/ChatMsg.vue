@@ -16,9 +16,6 @@
                 'is-last': props.isLast,
                 'maximized': store.maximized
             }">
-            <div v-if="props.message.stack[0].payload.file" class="file-uploaded-indicator">
-                Placeholder for file {{ props.message.stack[0].payload.file.upload_path }}
-            </div>
             <div
                 class="stack-wrapper"
                 :class="{
@@ -56,11 +53,6 @@
                         <div class="layer" v-for="layer in props.message.stack">
                             <Message :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
-                        <FileUpload 
-                            v-if="showFileUpload"
-                            :file-request="props.message.stack[0].payload.file_request"
-                            @uploadPath="handleFileUploaded"
-                        />
                         <References
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
                             :references="props.message.stack[0].payload.references"></References>
@@ -87,7 +79,6 @@ import { useGlobalStore } from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
 import Message from "~/components/chat/msgs/Message.vue";
 import References from "~/components/chat/msgs/References.vue";
-import FileUpload from "~/components/chat/msgs/FileUpload.vue";
 import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
@@ -99,13 +90,9 @@ const layersFinished = computed(() => props.message.last);
 const iframedWindow = ref(null);
 const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()));
 
-console.log('props.message', props.message);
 
-const emit = defineEmits(['uploadPath']);
+const emit = defineEmits(['s3Path']);
 
-const showFileUpload = computed(() => {
-    return props.message.stack[0].payload.file_request;
-});
 
 function getFirstStackType() {
     return props.message.stack[0].type;
@@ -137,10 +124,6 @@ watch(() => store.maximized, () => {
     }
 });
 
-function handleFileUploaded(uploadPath) {
-    console.log('File uploaded:', uploadPath);
-    emit('uploadPath', uploadPath);
-}
 
 </script>
 <style scoped lang="scss">
@@ -302,10 +285,6 @@ $phone-breakpoint: 600px;
 
 .file-uploaded-indicator {
     padding: 5px;
-    margin-bottom: 5px;
-    border-radius: 4px;
-    background-color: #f0f0f0;
-    font-size: 14px;
-    color: #333;
+
 }
 </style>
