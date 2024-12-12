@@ -24,7 +24,7 @@ class CustomWSBotConsumer(WSBotConsumer):
     async def gather_fsm_def(self):
         name = self.scope["url_route"]["kwargs"]["fsm_def"]
         fsm = await database_sync_to_async(FSMDefinition.objects.filter(name=name).first)()
-        return fsm, None if fsm else f"No FSM found with name {name}"
+        return fsm, None if fsm else f"`No FSM found with name {name}`"
 
     async def gather_user_id(self):
         return self.scope["url_route"]["kwargs"]["sender_id"]

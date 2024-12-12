@@ -41,6 +41,8 @@ export const useGlobalStore = defineStore('globalStore', {
             speechRecognitionAutoSend: false,
             allowAttachments: false,
             authToken: undefined,
+            disableDayNightMode: false,
+            enableLogout: false,
         }
     },
     actions: {

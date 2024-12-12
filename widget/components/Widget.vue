@@ -77,7 +77,9 @@ const props = defineProps({
     speechRecognition: Boolean,
     speechRecognitionAutoSend: Boolean,
     allowAttachments: Boolean,
-    authToken: String
+    authToken: String,
+    disableDayNightMode: Boolean,
+    enableLogout: Boolean,
 });
 
 const jsonProps = [
@@ -154,6 +156,8 @@ function initStore() {
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
     store.allowAttachments = data.allowAttachments
     store.authToken = data.authToken
+    store.disableDayNightMode = data.disableDayNightMode
+    store.enableLogout = data.enableLogout
 
     if (store.userId === undefined) {
         store.userId = getUserId()

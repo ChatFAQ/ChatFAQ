@@ -22,5 +22,6 @@
     "showless": "Mostrar Menos",
     "sources": "fuentes",
     "source": "fuente",
-    "connectingtoserver": "Conectando al servidor..."
+    "connectingtoserver": "Conectando al servidor...",
+    "logout": "Cerrar sesión"
 }

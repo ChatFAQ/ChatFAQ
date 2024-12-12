@@ -25,7 +25,7 @@ class TelegramBotConsumer(HTTPBotConsumer):
 
     async def gather_fsm_def(self, validated_data):
         fsm = await database_sync_to_async(FSMDefinition.objects.first)()
-        return fsm, None if fsm else f"No FSM found"
+        return fsm, None if fsm else f"`No FSM found`"
 
     @classmethod
     def platform_url_paths(self) -> str:
