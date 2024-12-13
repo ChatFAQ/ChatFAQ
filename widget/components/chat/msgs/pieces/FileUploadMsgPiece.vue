@@ -134,13 +134,16 @@ function handleFileUploaded(s3_path, file_name) {
 
 <style scoped lang="scss">
 .file-upload-wrapper {
+    display: flex;
+    flex-direction: column;
 
     .upload-button {
         display: flex;
+        align-self: start;
         align-items: center;
         gap: 8px;
         background: $chatfaq-color-chatMessageReference-background-light;
-        padding: 8px 16px;
+        padding: 8px 10px;
         cursor: pointer;
         border-radius: 4px;
         border: 1px solid rgba(0, 25, 120, 0.10);

@@ -50,7 +50,7 @@ function getFileTypeFromName(url) {
         align-items: center;
         gap: 16px;
         // background: $chatfaq-color-chatMessageReference-background-light;
-        padding: 10px 16px;
+        padding: 10px;
         border-radius: 10px;
         border: 1px solid rgba(0, 25, 120, 0.10);
         margin-top: 8px;
@@ -92,7 +92,6 @@ function getFileTypeFromName(url) {
         .file-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
 
             .file-name {
                 color: $chatfaq-color-neutral-black;
