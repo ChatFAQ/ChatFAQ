@@ -55,7 +55,8 @@ class Widget(models.Model):
     speech_recognition = models.BooleanField(default=False)
     speech_recognition_auto_send = models.BooleanField(default=False)
     allow_attachments = models.BooleanField(default=False)
-
+    disable_day_night_mode = models.BooleanField(default=False)
+    enable_logout = models.BooleanField(default=False)
     # integration
     fit_to_parent = models.BooleanField(default=False)
     # advanced

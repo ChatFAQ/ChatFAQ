@@ -87,6 +87,8 @@ Next we will explain all the widget's possible parameters:
 
 `fullScreen`: if the widget should be in full screen mode, by default the widget is a bottom right window, this mode will make the widget take the whole screen.
 
+`disableDayNightMode`: if the widget should disable the day/night mode, by default the widget has the day/night mode enabled.
+
 `onlyChat`: if the widget should only display the chat, by default the widget displays the header and the history besides the chat.
 
 `fitToParent`: if the widget should fit to the parent element, by default the widget will be positioned absolute to the window.
@@ -104,6 +106,8 @@ Next we will explain all the widget's possible parameters:
 `allowAttachments`: If the widget should allow the user to send attachments, by default it is disabled.
 
 `authToken`: The token to authenticate the user in case your FSM requires it.
+
+`enableLogout`: If the widget should display a logout button, by default it is disabled. When the user clicks on the logout button an 'chatfaq-logout' event will be emitted from the document. You can listen to this event and handle the logout as you wish.
 
 ```json
 {
@@ -155,6 +159,7 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
         startWithHistoryClosed: true,
         startSmallMode: true,
         fullScreen: true,
+        disableDayNightMode: true,
         onlyChat: true,
         fitToParent: true,
         stickInputPrompt: true,
@@ -173,7 +178,8 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
                 "noPadding": true
             }
         }),
-        authToken: "1234567890"
+        authToken: "1234567890",
+        enableLogout: true
     }
 
     const chatfaqWidget = new ChatfaqWidget(config);
@@ -212,6 +218,7 @@ If you declare data attributes and a config object and its keys collide, then th
     data-start-with-history-closed
     data-start-small-mode
     data-full-screen
+    data-disable-day-night-mode
     data-only-chat
     data-fit-to-parent
     data-stick-input-prompt
@@ -221,6 +228,8 @@ If you declare data attributes and a config object and its keys collide, then th
     data-initial-conversation-metadata='{"hello": "world"}'
     data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "mobileNoMargins": true, "desktopNoMargins": true, "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
     data-auth-token="1234567890"
+    data-enable-logout
+
 ></chatfaq-widget>
 ```
 

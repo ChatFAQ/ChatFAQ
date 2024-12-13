@@ -3,7 +3,6 @@ import os
 from typing import Dict, List, Union
 
 from pydantic import BaseModel
-from transformers import AutoConfig, AutoTokenizer
 
 from chat_rag.exceptions import (
     ModelNotFoundException,
@@ -11,6 +10,14 @@ from chat_rag.exceptions import (
     RequestException,
 )
 from chat_rag.llms import OpenAIChatModel
+
+# Check if transformers is installed
+HAS_TRANSFORMERS = False
+try:
+    from transformers import AutoConfig, AutoTokenizer
+    HAS_TRANSFORMERS = True
+except ImportError:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +38,8 @@ class VLLMModel(OpenAIChatModel):
             llm_name=llm_name, base_url=base_url, api_key="api_key",
         )  # vllm does not require an API key
 
-        self._load_tokenizer(llm_name, model_max_length)
+        if HAS_TRANSFORMERS:
+            self._load_tokenizer(llm_name, model_max_length)
 
     def _load_tokenizer(self, llm_name, model_max_length):
         """
@@ -118,7 +126,9 @@ class VLLMModel(OpenAIChatModel):
         str
             The generated text.
         """
-        messages = self.format_prompt(messages)
+
+        if HAS_TRANSFORMERS:
+            messages = self.format_prompt(messages)
 
         for chunk in super().stream(messages, temperature, max_tokens, seed):
             yield chunk
@@ -141,7 +151,8 @@ class VLLMModel(OpenAIChatModel):
         str
             The generated text.
         """
-        messages = self.format_prompt(messages)
+        if HAS_TRANSFORMERS:
+            messages = self.format_prompt(messages)
 
         async for chunk in super().astream(messages, temperature, max_tokens, seed):
             yield chunk
@@ -172,7 +183,8 @@ class VLLMModel(OpenAIChatModel):
         if tools and json_schema:
             raise ValueError("Cannot use both tools and json_schema at the same time")
 
-        messages = self.format_prompt(messages)
+        if HAS_TRANSFORMERS:
+            messages = self.format_prompt(messages)
 
         # Handle tools and json_schema kwargs
         extra_kwargs = {}
@@ -225,7 +237,8 @@ class VLLMModel(OpenAIChatModel):
         if tools and json_schema:
             raise ValueError("Cannot use both tools and json_schema at the same time")
 
-        messages = self.format_prompt(messages)
+        if HAS_TRANSFORMERS:
+            messages = self.format_prompt(messages)
 
         # Handle tools and json_schema kwargs
         extra_kwargs = {}

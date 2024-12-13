@@ -82,63 +82,65 @@
                 </template>
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :lazy="true" :label="$t('existingintents')" name="existing_intents">
-            <ReadWriteView :readableName="$t('intents')"
-                           apiUrl="/back/api/language-model/intents/"
-                           :tableProps="{
-                                'intent_name': {'name': $t('intentname')},
-                                'num_of_knowledge_items': {'name': $t('num_of_knowledge_items')},
-                                'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
-                                'intents': {'name': $t('knowledgeitems')},
-                           }"
-                           :filtersSchema="[
-                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
-                               {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
-                           ]"
-                           :defaultFilters="{'suggested_intent': false}"
-                           :textExplanation="$t('intentexplanation')"
-                           ref="suggestedIntentsView"
-                           readOnly
-            >
-                <template v-slot:intents="{row}">
-                    <span class="command-edit" @click="showKIsForIntent(row.id)">{{ $t("view") }}</span>
-                </template>
-                <template v-slot:extra-actions>
-                    <el-button class="extra-command" round plain @click="generateIntents(suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id)" :disabled="suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">
-                        <span v-if="suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
-                        <span v-else>{{ $t("generateintents") }}</span>
-                    </el-button>
-                </template>
-            </ReadWriteView>
-        </el-tab-pane>
-        <el-tab-pane :lazy="true" :label="$t('suggestedintents')" name="suggested_intents">
-            <ReadWriteView :readableName="$t('intents')"
-                           apiUrl="/back/api/language-model/intents/"
-                           :tableProps="{
-                                'intent_name': {'name': $t('intentname')},
-                                'num_of_messages': {'name': $t('messages')},
-                                'messages': {'name': $t('messages')},
-                           }"
-                           :filtersSchema="[
-                               {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
-                               {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
-                           ]"
-                           :defaultFilters="{'suggested_intent': true}"
-                           :textExplanation="$t('intentexplanation')"
-                           ref="generatedIntentsView"
-                           readOnly
-            >
-                <template v-slot:messages="{row}">
-                    <span class="command-edit" @click="showMessagesForIntent(row.id)">{{ $t("view") }}</span>
-                </template>
-                <template v-slot:extra-actions>
-                    <el-button class="extra-command" round plain @click="suggestIntents(generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id)" :disabled="generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">
-                        <span v-if="generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
-                        <span v-else>{{ $t("suggestintents") }}</span>
-                    </el-button>
-                </template>
-            </ReadWriteView>
-        </el-tab-pane>
+        <template v-if="$useRay">
+            <el-tab-pane :lazy="true" :label="$t('existingintents')" name="existing_intents">
+                <ReadWriteView :readableName="$t('intents')"
+                               apiUrl="/back/api/language-model/intents/"
+                               :tableProps="{
+                                    'intent_name': {'name': $t('intentname')},
+                                    'num_of_knowledge_items': {'name': $t('num_of_knowledge_items')},
+                                    'name_of_knowledge_base': {'name': $t('nameofknowledgebase')},
+                                    'intents': {'name': $t('knowledgeitems')},
+                               }"
+                               :filtersSchema="[
+                                   {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+                                   {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                               ]"
+                               :defaultFilters="{'suggested_intent': false}"
+                               :textExplanation="$t('intentexplanation')"
+                               ref="suggestedIntentsView"
+                               readOnly
+                >
+                    <template v-slot:intents="{row}">
+                        <span class="command-edit" @click="showKIsForIntent(row.id)">{{ $t("view") }}</span>
+                    </template>
+                    <template v-slot:extra-actions>
+                        <el-button class="extra-command" round plain @click="generateIntents(suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id)" :disabled="suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">
+                            <span v-if="suggestedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
+                            <span v-else>{{ $t("generateintents") }}</span>
+                        </el-button>
+                    </template>
+                </ReadWriteView>
+            </el-tab-pane>
+            <el-tab-pane :lazy="true" :label="$t('suggestedintents')" name="suggested_intents">
+                <ReadWriteView :readableName="$t('intents')"
+                               apiUrl="/back/api/language-model/intents/"
+                               :tableProps="{
+                                    'intent_name': {'name': $t('intentname')},
+                                    'num_of_messages': {'name': $t('messages')},
+                                    'messages': {'name': $t('messages')},
+                               }"
+                               :filtersSchema="[
+                                   {'type': 'search', 'placeholder': $t('name'), 'field': 'search'},
+                                   {'type': 'ref', 'placeholder': $t('knowledgebase'), 'field': 'knowledge_base__id', 'endpoint': '/back/api/language-model/knowledge-bases/'},
+                               ]"
+                               :defaultFilters="{'suggested_intent': true}"
+                               :textExplanation="$t('intentexplanation')"
+                               ref="generatedIntentsView"
+                               readOnly
+                >
+                    <template v-slot:messages="{row}">
+                        <span class="command-edit" @click="showMessagesForIntent(row.id)">{{ $t("view") }}</span>
+                    </template>
+                    <template v-slot:extra-actions>
+                        <el-button class="extra-command" round plain @click="suggestIntents(generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id)" :disabled="generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">
+                            <span v-if="generatedIntentsView?.readView?.filtersEl?.filters?.knowledge_base__id === undefined">{{ $t("selectaknowledgebase") }}</span>
+                            <span v-else>{{ $t("suggestintents") }}</span>
+                        </el-button>
+                    </template>
+                </ReadWriteView>
+            </el-tab-pane>
+        </template>
     </el-tabs>
     <el-dialog v-model="showingIntentRefs" :title="$t(intentKIsRefs ? 'knowledgeitems' : 'messages')" width="750" center>
         <el-table v-if="intentKIsRefs"

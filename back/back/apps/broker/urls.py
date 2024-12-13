@@ -17,7 +17,7 @@ router.register(
     r"admin-review", views.AdminReviewAPIViewSet, basename="admin-review"
 )
 router.register(
-    r"sdks", views.ConsumerRoundRobinQueueViewSet, basename="admin-review"
+    r"sdks", views.ConsumerRoundRobinQueueViewSet, basename="sdks"
 )
 
 

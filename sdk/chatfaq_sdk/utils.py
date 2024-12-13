@@ -5,6 +5,7 @@ def convert_mml_to_llm_format(mml):
     :param mml: List of messages in MML format
     :return: List of messages in LLM format {'role': 'user', 'content': '...'}
     """
+    print(f"MML: {mml}")
     roles_map = {
         "bot": "assistant",
         "human": "user",

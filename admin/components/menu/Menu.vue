@@ -12,7 +12,7 @@
         <!-- <MenuItem icon="DataBoard" :name="$t('sdkvisualizer')" page="/sdk_visualizer"/> -->
         <MenuItem icon="DataLine" :name="$t('stats')" page="/stats"/>
         <MenuItem icon="User" :name="$t('usermanagement')" page="/user_management"/>
-        <MenuItem icon="Clock" :name="$t('taskhistory')" page="/task_history"/>
+        <MenuItem v-if="$useRay" icon="Clock" :name="$t('taskhistory')" page="/task_history"/>
         <div class="menu-bottom">
             <div class="separator"></div>
             <LangSwitcher/>
@@ -26,6 +26,7 @@ import { useAuthStore } from '~/store/auth';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const { $useRay } = useNuxtApp()
 
 function logOut() {
     authStore.logout();

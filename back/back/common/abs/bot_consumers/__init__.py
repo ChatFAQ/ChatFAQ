@@ -1,6 +1,6 @@
 import asyncio
 from logging import getLogger
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Tuple
 
 from channels.db import database_sync_to_async
 from django.forms import model_to_dict
@@ -111,7 +111,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         logger.debug(
             f"Disconnecting from conversation ({self.conversation.pk}) (CODE: {code})"
             if self.conversation
-            else "Disconnecting... no conversation present, probably not authenticated..."
+            else f"Disconnecting... no conversation present, probably either not authenticated, wrong FSM name or no RPC worker connected... (CODE: {code})"
         )
         if self.fsm:
             while self.fsm.waiting_for_rpc:
@@ -133,7 +133,7 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             "Implement a method that creates/gathers the conversation id"
         )
 
-    async def gather_fsm_def(self, mml: "Message"):
+    async def gather_fsm_def(self, mml: "Message") -> Tuple["FSMDefinition", str]:
         raise NotImplemented("Implement a method that gathers the conversation id")
 
     async def gather_user_id(self, mml: "Message"):

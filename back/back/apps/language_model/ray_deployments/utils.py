@@ -1,8 +1,9 @@
 import ray
 from ray import serve
 
+from back.utils.ray_utils import ray_task
 
-@ray.remote(num_cpus=0.1, resources={"tasks": 1})
+@ray_task(num_cpus=0.1, resources={"tasks": 1})
 def delete_serve_app(deployment_name: str):
     if serve.status().applications:
         serve.delete(deployment_name)

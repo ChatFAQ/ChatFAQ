@@ -1,23 +1,64 @@
 [tool.poetry]
 name = "chat-rag"
-version = "0.1.80"
+version = "0.2.3"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
 packages = [{ include = "chat_rag" }]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
+python = "~3.11"
 python-dotenv = "^0.21.0"
 numpy = "1.26.0"
 pandas = "2.2.2"
 tqdm = "^4.65.0"
 pyarrow = "^12.0.0"
-pillow = "^10.1.0"
 certifi = "^2023.7.22"
 urllib3 = "^1.26.18"
 aiohttp = "^3.8.5"
 cryptography = "^41.0.4"
+openai = "^1.33.0"
+anthropic = "0.28.0"
+mistralai = "0.4.0"
+docstring-parser = "^0.16"
+pillow = {version = "^10.1.0", optional = true}
+torch = {version = "2.3.0", optional = true}
+transformers = {version = "^4.41.2", optional = true}
+sentence-transformers = {version = "^2.3.0", optional = true}
+einops = {version = "^0.6.1", optional = true}
+accelerate = {version = "^0.31.0", optional = true}
+unstructured = {extras = ["pdf"], version = "0.12.0", python = ">=3.10,<3.12", optional = true}
+unstructured-inference = {version = "0.7.21", optional = true}
+torchvision = {version = "0.18.0", optional = true}
+protobuf = {version = "3.20.2", optional = true}
+ragatouille = {version = "^0.0.8.post2", optional = true}
+hdbscan = {version = "^0.8.36", optional = true}
+umap-learn = {version = "^0.5.6", optional = true}
+bm25s = {version = "^0.1.7", optional = true}
+
+[tool.poetry.extras]
+full = [
+    "pillow",
+    "torch",
+    "transformers",
+    "sentence-transformers",
+    "einops",
+    "accelerate",
+    "unstructured",
+    "unstructured-inference",
+    "torchvision",
+    "protobuf",
+    "ragatouille",
+    "hdbscan",
+    "umap-learn",
+    "bm25s"
+]
+
+[tool.poetry.group.ml]
+optional = true
+
+[tool.poetry.group.ml.dependencies]
+pillow = "^10.1.0"
 torch = "2.3.0"
 transformers = "^4.41.2"
 sentence-transformers = "^2.3.0"
@@ -26,14 +67,10 @@ accelerate = "^0.31.0"
 unstructured = {extras = ["pdf"], version = "0.12.0", python = ">=3.10,<3.12"}
 unstructured-inference = "0.7.21"
 torchvision = "0.18.0"
-openai = "^1.33.0"
-anthropic = "0.28.0"
-mistralai = "0.4.0"
 protobuf = "3.20.2"
 ragatouille = "^0.0.8.post2"
 hdbscan = "^0.8.36"
 umap-learn = "^0.5.6"
-docstring-parser = "^0.16"
 bm25s = "^0.1.7"
 
 [build-system]
