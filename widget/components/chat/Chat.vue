@@ -2,14 +2,14 @@
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
-                <ChatMsg
+                <ChatMsgManager
                     v-if="isRenderableStackType(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
-                ></ChatMsg>
+                ></ChatMsgManager>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -47,7 +47,7 @@
 import {ref, watch, nextTick, onMounted, computed} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
-import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
+import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";

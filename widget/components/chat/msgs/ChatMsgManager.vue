@@ -52,25 +52,25 @@
                     </template>
                     <template v-if="getFirstStackType() === 'message'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <Message :data="layer" :is-last="isLastOfType && layersFinished" />
+                            <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
-                        <References
+                        <ReferencesMsgPiece
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
-                            :references="props.message.stack[0].payload.references"></References>
+                            :references="props.message.stack[0].payload.references"></ReferencesMsgPiece>
                     </template>
                     <template v-else-if="getFirstStackType() === 'file_upload'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <FileUpload :data="layer.payload" />
+                            <FileUploadMsgPiece :data="layer.payload" />
                         </div>
                     </template>
                     <template v-else-if="getFirstStackType() === 'file_uploaded'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <FileDownload :data="layer.payload" />
+                            <AttachmentMsgPiece :data="layer.payload" />
                         </div>
                     </template>
                     <template v-else-if="getFirstStackType() === 'file_download'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <FileDownload :data="layer.payload" />
+                            <AttachmentMsgPiece :data="layer.payload" />
                         </div>
                     </template>
                     <template v-else>
@@ -98,11 +98,11 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
-import Message from "~/components/chat/msgs/Message.vue";
-import References from "~/components/chat/msgs/References.vue";
+import ReferencesMsgPiece from "~/components/chat/msgs/pieces/ReferencesMsgPiece.vue";
 import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
-import FileDownload from "~/components/chat/msgs/FileDownload.vue";
-import FileUpload from "~/components/chat/msgs/FileUpload.vue";
+import TextMsgPiece from "~/components/chat/msgs/pieces/TextMsgPiece.vue";
+import AttachmentMsgPiece from "~/components/chat/msgs/pieces/AttachmentMsgPiece.vue";
+import FileUploadMsgPiece from "~/components/chat/msgs/pieces/FileUploadMsgPiece.vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
