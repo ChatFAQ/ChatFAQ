@@ -12,15 +12,16 @@
                     @s3Path="handleFileUploaded"
                 ></ChatMsg>
                 <FileUpload 
-                    v-if="isFileUploadRenderable(message)"
+                    v-else-if="isFileUploadRenderable(message)"
                     :file-request="message.stack[0].payload"
                     @s3Path="handleFileUploaded"
                 />
-                <FileDownload v-if="isFileDownloadRenderable(message)"
+                <FileDownload v-else-if="isFileDownloadRenderable(message)"
                                 :file-name="message.stack[0].payload.name"
                                 :file-type="getFileType(message.stack[0].payload.url)"
                                 :file-url="message.stack[0].payload.url"
                 />
+                <span v-else-if="!isSupportedAndNotRenderableStackType(message)">Not Supported</span>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -106,6 +107,9 @@ function animateFeedbackSent() {
     setTimeout(() => {
         feedbackSentDisabled.value = true
     }, 1500)
+}
+function isSupportedAndNotRenderableStackType(message) {
+    return notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 
