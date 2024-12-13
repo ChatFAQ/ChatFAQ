@@ -1,8 +1,9 @@
 <template>
     <div class="file-upload-wrapper">
+        <span>{{ props.data.content }}</span>
         <label class="upload-button" :class="{ 'dark-mode': store.darkMode }">
-            <input 
-                type="file" 
+            <input
+                type="file"
                 @change="handleFileUpload"
                 ref="fileInput"
                 :accept="acceptedFileExtensions"
@@ -33,7 +34,7 @@ const selectedFileExtension = ref(null);
 const selectedFileName = ref(null);
 
 const props = defineProps({
-    fileRequest: {
+    data: {
         type: Object,
         required: true,
     },
@@ -44,7 +45,7 @@ console.log('FileUpload', props);
 const emit = defineEmits(['fileSelected', 's3Path']);
 
 const acceptedFileExtensions = computed(() => {
-    return Object.keys(props.fileRequest).map(ext => '.' + ext).join(',');
+    return Object.keys(props.data.files).map(ext => '.' + ext).join(',');
 });
 
 function handleFileUpload(event) {
@@ -52,18 +53,18 @@ function handleFileUpload(event) {
     if (file) {
         selectedFileName.value = file.name;
         selectedFileExtension.value = file.name.split('.').pop().toLowerCase();
-        if (!props.fileRequest[selectedFileExtension.value]) {
+        if (!props.data.files[selectedFileExtension.value]) {
             alert('Tipo de archivo no permitido.');
             fileInput.value.value = ''; // Clear the input
             return;
         }
-        const { max_size } = props.fileRequest[selectedFileExtension.value];
-        if (file.size > max_size) { 
+        const { max_size } = props.data.files[selectedFileExtension.value];
+        if (file.size > max_size) {
             alert('El archivo no debe superar los ' + max_size / (1024 * 1024) + ' MB');
             fileInput.value.value = ''; // Clear the input
             return;
         }
-        if (props.fileRequest[selectedFileExtension.value].presigned_url) {
+        if (props.data.files[selectedFileExtension.value].presigned_url) {
             uploadFileToS3(file);
         } else {
             emit('fileSelected', file);
@@ -75,7 +76,7 @@ async function uploadFileToS3(file) {
     try {
         uploadProgress.value = 0;
         uploadError.value = null;
-        const { presigned_url, s3_path, content_type } = props.fileRequest[selectedFileExtension.value];
+        const { presigned_url, s3_path, content_type } = props.data.files[selectedFileExtension.value];
 
         const response = await fetch(presigned_url, {
             method: 'PUT',
@@ -94,7 +95,7 @@ async function uploadFileToS3(file) {
             throw new Error('Error al subir el archivo a S3');
         }
         console.log('File uploaded successfully');
-        emit('s3Path', { s3_path, file_name: selectedFileName.value });
+        handleFileUploaded(s3_path, selectedFileName.value);
     } catch (error) {
         console.error('Error uploading file:', error);
         uploadError.value = 'Error al subir el archivo. Por favor, inténtalo de nuevo.';
@@ -102,6 +103,33 @@ async function uploadFileToS3(file) {
         fileInput.value.value = ''; // Clear the input
     }
 }
+
+function handleFileUploaded(s3_path, file_name) {
+    const m = {
+        "sender": {
+            "type": "human",
+            "platform": "WS",
+        },
+        "stack": [{
+            "type": "file_download",
+            "payload": {
+                "s3_path": s3_path,
+                "name": file_name,
+                // We don't pass url because we don't have it yet
+            },
+        }],
+        "stack_id": "0",
+        "stack_group_id": "0",
+        "last": true,
+    };
+    if (store.userId !== undefined)
+        m["sender"]["id"] = store.userId
+
+    store.messagesToBeSent.push(m);
+    store.messagesToBeSentSignal += 1
+
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -110,7 +138,7 @@ async function uploadFileToS3(file) {
     margin-top: 8px;
     margin-left: 24px;
     width: 133px;
-    
+
     .upload-button {
         display: flex;
         align-items: center;
@@ -121,7 +149,7 @@ async function uploadFileToS3(file) {
         border-radius: 4px;
         border: 1px solid rgba(0, 25, 120, 0.10);
         // background: #FFF;
-        
+
         .file-icon {
             stroke: $chatfaq-color-primary-500;
             width: 18px;
@@ -131,12 +159,12 @@ async function uploadFileToS3(file) {
                 stroke: $chatfaq-color-chatMessageReference-text-dark;
             }
         }
-        
+
         &.dark-mode {
             background: $chatfaq-color-chatMessageReference-background-dark;
             color: $chatfaq-color-chatMessageReference-text-dark;
         }
-        
+
         input[type="file"] {
             display: none;
         }
@@ -161,7 +189,7 @@ async function uploadFileToS3(file) {
         color: $chatfaq-color-chatMessageReferenceTitle-text-light;
         margin-top: 4px;
         font-style: italic;
-        
+
         &.dark-mode {
             color: $chatfaq-color-chatMessageReferenceTitle-text-dark;
         }
@@ -188,4 +216,4 @@ async function uploadFileToS3(file) {
         margin-top: 4px;
     }
 }
-</style> 
+</style>

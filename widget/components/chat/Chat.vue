@@ -3,25 +3,13 @@
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
                 <ChatMsg
-                    v-if="isMessageRenderable(message)"
+                    v-if="isRenderableStackType(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
-                    @s3Path="handleFileUploaded"
                 ></ChatMsg>
-                <FileUpload 
-                    v-else-if="isFileUploadRenderable(message)"
-                    :file-request="message.stack[0].payload"
-                    @s3Path="handleFileUploaded"
-                />
-                <FileDownload v-else-if="isFileDownloadRenderable(message)"
-                                :file-name="message.stack[0].payload.name"
-                                :file-type="getFileType(message.stack[0].payload.url)"
-                                :file-url="message.stack[0].payload.url"
-                />
-                <span v-else-if="!isSupportedAndNotRenderableStackType(message)">Not Supported</span>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -63,8 +51,6 @@ import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
-import FileDownload from "~/components/chat/msgs/FileDownload.vue";
-import FileUpload from "~/components/chat/msgs/FileUpload.vue";
 const store = useGlobalStore();
 
 const chatInput = ref(null);
@@ -83,6 +69,7 @@ const speechRecognitionRunning = ref(false)
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 
 onMounted(async () => {
     await initializeConversation()
@@ -108,8 +95,8 @@ function animateFeedbackSent() {
         feedbackSentDisabled.value = true
     }, 1500)
 }
-function isSupportedAndNotRenderableStackType(message) {
-    return notRenderableStackTypes.includes(message.stack[0]?.type)
+function isRenderableStackType(message) {
+    return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 
@@ -226,13 +213,43 @@ function manageHotKeys(ev, cb) {
     }
 }
 
-function sendMessage() {
-    if (!thereIsContent.value || store.waitingForResponse || store.disconnected || speechRecognitionRunning.value)
+function sendMessage(_message) {
+    if (!canSend())
         return;
+    historyIndexHumanMsg = -1
+
+    const message = _message ? _message : createMessageFromInputPrompt()
+
+    if (!message)
+        return
+
+    store.messages.push(message);
+    ws.send(JSON.stringify(message));
+    store.scrollToBottom += 1;
+}
+
+function sendMessagesToBeSent() {
+    if(!canSend()) {
+        setTimeout(() => sendMessagesToBeSent(), 1000)
+        return
+    }
+
+    while (store.messagesToBeSent.length) {
+        sendMessage(store.messagesToBeSent.pop());
+    }
+
+}
+
+function canSend() {
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+}
+
+function createMessageFromInputPrompt() {
+    if (!thereIsContent.value)
+        return
 
     const user_message = chatInput.value.innerText.trim()
-    historyIndexHumanMsg = -1
-    const m = {
+    const message = {
         "sender": {
             "type": "human",
             "platform": "WS",
@@ -248,31 +265,10 @@ function sendMessage() {
         "last": true,
     };
     if (store.userId !== undefined)
-        m["sender"]["id"] = store.userId
+        message["sender"]["id"] = store.userId
 
-    store.messages.push(m);
-    ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
     thereIsContent.value = false
-    store.scrollToBottom += 1;
-}
-
-function isMessageRenderable(message) {
-    return message.stack[0]?.type === 'message'
-}
-
-function isFileDownloadRenderable(message) {
-    return message.stack[0]?.type === 'file_download'
-}
-
-function isFileUploadRenderable(message) {
-    return message.stack[0]?.type === 'file_upload'
-}
-
-function getFileType(filePath) {
-    return 'pdf';
-    const extension = filePath.split('.').pop();
-    return extension.toUpperCase();
 }
 
 function sendToGTM(msg) {
@@ -343,7 +339,7 @@ function speechToText() {
 }
 
 const availableSend = computed(() => {
-    return !store.speechRecognition || thereIsContent
+    return !store.speechRecognition || thereIsContent.value
 })
 const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
@@ -354,39 +350,6 @@ const activeSend = computed(() => {
 const activeMicro = computed(() => {
     return !speechRecognitionRunning.value
 })
-
-function handleFileUploaded({ s3_path, file_name }) {
-    if (store.waitingForResponse || store.disconnected || speechRecognitionRunning.value) {
-        return;
-    }
-
-    historyIndexHumanMsg = -1
-    const m = {
-        "sender": {
-            "type": "human",
-            "platform": "WS",
-        },
-        "stack": [{
-            "type": "file_download",
-            "payload": {
-                "s3_path": s3_path,
-                "name": file_name,
-                // We don't pass url because we don't have it yet
-            },
-        }],
-        "stack_id": "0",
-        "stack_group_id": "0",
-        "last": true,
-    };
-    if (store.userId !== undefined)
-        m["sender"]["id"] = store.userId
-
-    store.messages.push(m);
-    ws.send(JSON.stringify(m));
-    chatInput.value.innerText = "";
-    thereIsContent.value = false
-    store.scrollToBottom += 1;
-}
 
 </script>
 <style scoped lang="scss">

@@ -4,8 +4,7 @@ from chatfaq_sdk.layers import Message, FileDownload, FileUpload
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Message(content="Please upload a file", allow_feedback=False)
-    yield FileUpload(file_extensions=["pdf", "xml"], max_size=50*1024*1024)
+    yield FileUpload(content="Please upload a file", file_extensions=["pdf", "xml"], max_size=50*1024*1024)
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):

@@ -21,7 +21,8 @@
                 :class="{
                     'full-width': iframedMsg && iframedMsg.fullWidth,
                 }">
-                <div class="stack"
+                <!-- 'backgrounded': getFirstStackType() === 'message', -->
+                <div class="stack backgrounded"
                      :class="{
                         [props.message.sender.type]: true,
                         'dark-mode': store.darkMode,
@@ -29,7 +30,7 @@
                         'sources-first': store.sourcesFirst,
                         'feedbacking': feedbacking,
                         'full-width': iframedMsg && iframedMsg.fullWidth,
-                        'no-padding': iframedMsg && iframedMsg.noPadding
+                        'no-padding': iframedMsg && iframedMsg.noPadding,
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
@@ -49,13 +50,33 @@
                             :scrolling="iframedMsg.scrolling || 'auto'"
                         ></iframe>
                     </template>
-                    <template v-else>
+                    <template v-if="getFirstStackType() === 'message'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <Message :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
                         <References
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
                             :references="props.message.stack[0].payload.references"></References>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'file_upload'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <FileUpload
+                                :data="layer.payload"
+                            />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'file_download'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <FileDownload :file-name="layer.payload.name"
+                                            :file-type="getFileType(layer.payload.url)"
+                                            :file-url="layer.payload.url"
+                            />
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="layer">
+                            <span>Stack type not supported</span>
+                        </div>
                     </template>
                 </div>
                 <UserFeedback
@@ -80,6 +101,8 @@ import UserFeedback from "~/components/chat/UserFeedback.vue";
 import Message from "~/components/chat/msgs/Message.vue";
 import References from "~/components/chat/msgs/References.vue";
 import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
+import FileDownload from "~/components/chat/msgs/FileDownload.vue";
+import FileUpload from "~/components/chat/msgs/FileUpload.vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
@@ -116,6 +139,13 @@ function handleMessage(event) {
     if (iframedWindow.value && event.source === iframedWindow.value.contentWindow) {
         iframeHeight.value = event.data;
     }
+}
+
+
+function getFileType(filePath) {
+    return 'pdf';
+    const extension = filePath.split('.').pop();
+    return extension.toUpperCase();
 }
 
 watch(() => store.maximized, () => {
@@ -231,7 +261,7 @@ $phone-breakpoint: 600px;
         padding: 9px 15px 9px 15px;
         word-wrap: break-word;
 
-        &.bot {
+        &.bot.backgrounded {
             background-color: $chatfaq-color-chatMessageBot-background-light;
             color: $chatfaq-color-chatMessageBot-text-light;
 
@@ -245,7 +275,7 @@ $phone-breakpoint: 600px;
             }
         }
 
-        &.human {
+        &.human.backgrounded {
             border: none;
             background-color: $chatfaq-color-chatMessageHuman-background-light;
             color: $chatfaq-color-chatMessageHuman-text-light;

@@ -85,6 +85,7 @@ class FileUpload(Layer):
 
     def __init__(
         self,
+        content,
         file_extensions=[],
         max_size=0,
         *args,
@@ -95,19 +96,22 @@ class FileUpload(Layer):
         :param max_size: The maximum size of the file to request in bytes. For example: 50 * 1024 * 1024 (50MB)
         """
         super().__init__(*args, **kwargs)
+        self.content = content
         self.file_extensions = file_extensions
         self.max_size = max_size
 
     async def build_payloads(self, ctx, data):
-        payload = {
-            "payload": {
+        _payload = {
+            "content": self.content,
+            "files": {
                 file_extension: {
                     "max_size": self.max_size,
                 }
                 for file_extension in self.file_extensions
             },
         }
-        yield [payload], True
+
+        yield [{"payload": _payload}], True
 
 
 class FileDownload(Layer):
