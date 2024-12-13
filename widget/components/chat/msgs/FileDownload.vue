@@ -1,14 +1,15 @@
 <template>
     <div class="file-download-wrapper">
+        <span>{{ props.data.content }}</span>
         <div class="file-download" :class="{ 'dark-mode': store.darkMode }">
             <div class="file-icon-wrapper" :class="{ 'dark-mode': store.darkMode }">
                 <File class="file-icon" :class="{ 'dark-mode': store.darkMode }"/>
             </div>
             <div class="file-info">
-                <span class="file-name">{{ fileName }}</span>
-                <span class="file-type">{{ fileType }}</span>
+                <span class="file-name">{{ props.data.name }}</span>
+                <span v-if="props.data.name" class="file-type">{{ getFileTypeFromName(props.data.name) }}</span>
             </div>
-            <div class="file-download-icon" v-if="fileUrl" @click="downloadFile">
+            <div class="file-download-icon" v-if="props.data.url" @click="downloadFile">
                 <Download class="download-icon" :class="{ 'dark-mode': store.darkMode }"/>
             </div>
         </div>
@@ -23,23 +24,22 @@ import Download from "~/components/icons/Download.vue";
 const store = useGlobalStore();
 
 const props = defineProps({
-    fileName: {
-        type: String,
-        required: true
-    },
-    fileType: {
-        type: String,
-        required: true
-    },
-    fileUrl: {
-        type: String,
-        required: false
+    data: {
+        type: Object,
+        required: true,
     }
 });
 
 function downloadFile() {
-    window.open(props.fileUrl, '_blank');
+    window.open(props.data.url, '_blank');
 }
+
+function getFileTypeFromName(url) {
+    const extension = url.split('.').pop();
+    return extension.toUpperCase();
+}
+
+
 </script>
 
 <style scoped lang="scss">

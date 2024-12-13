@@ -20,9 +20,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     new_file_url = file_url
     ########################################
 
-    yield Message(content="Here is the processed file")
-    yield FileDownload(file_url=new_file_url, file_name=new_file_name)
-
+    yield FileDownload(content="Here is the processed file", file_url=new_file_url, file_name=new_file_name)
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

@@ -122,6 +122,7 @@ class FileDownload(Layer):
 
     def __init__(
             self,
+            content: str,
             file_name: str,
             file_url: str,
             *args,
@@ -132,12 +133,14 @@ class FileDownload(Layer):
         :param file_url: The URL of the file where the user can download it or visualize it. For example: "https://example.com/report.pdf"
         """
         super().__init__(*args, **kwargs)
+        self.content = content
         self.file_name = file_name
         self.file_url = file_url
 
     async def build_payloads(self, ctx, data):
         payload = {
             "payload": {
+                    "content": self.content,
                     "name": self.file_name,
                     "url": self.file_url,
             }

@@ -21,8 +21,7 @@
                 :class="{
                     'full-width': iframedMsg && iframedMsg.fullWidth,
                 }">
-                <!-- 'backgrounded': getFirstStackType() === 'message', -->
-                <div class="stack backgrounded"
+                <div class="stack"
                      :class="{
                         [props.message.sender.type]: true,
                         'dark-mode': store.darkMode,
@@ -31,6 +30,7 @@
                         'feedbacking': feedbacking,
                         'full-width': iframedMsg && iframedMsg.fullWidth,
                         'no-padding': iframedMsg && iframedMsg.noPadding,
+                        'backgrounded': getFirstStackType() !== 'file_download',
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
@@ -60,17 +60,12 @@
                     </template>
                     <template v-else-if="getFirstStackType() === 'file_upload'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <FileUpload
-                                :data="layer.payload"
-                            />
+                            <FileUpload :data="layer.payload" />
                         </div>
                     </template>
                     <template v-else-if="getFirstStackType() === 'file_download'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <FileDownload :file-name="layer.payload.name"
-                                            :file-type="getFileType(layer.payload.url)"
-                                            :file-url="layer.payload.url"
-                            />
+                            <FileDownload :data="layer.payload" />
                         </div>
                     </template>
                     <template v-else>
@@ -139,13 +134,6 @@ function handleMessage(event) {
     if (iframedWindow.value && event.source === iframedWindow.value.contentWindow) {
         iframeHeight.value = event.data;
     }
-}
-
-
-function getFileType(filePath) {
-    return 'pdf';
-    const extension = filePath.split('.').pop();
-    return extension.toUpperCase();
 }
 
 watch(() => store.maximized, () => {
