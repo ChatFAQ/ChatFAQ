@@ -134,10 +134,6 @@ function handleFileUploaded(s3_path, file_name) {
 
 <style scoped lang="scss">
 .file-upload-wrapper {
-    // TODO: Fix this
-    margin-top: 8px;
-    margin-left: 24px;
-    width: 133px;
 
     .upload-button {
         display: flex;
@@ -148,6 +144,8 @@ function handleFileUploaded(s3_path, file_name) {
         cursor: pointer;
         border-radius: 4px;
         border: 1px solid rgba(0, 25, 120, 0.10);
+        margin-top: 8px;
+        margin-bottom: 7px;
         // background: #FFF;
 
         .file-icon {

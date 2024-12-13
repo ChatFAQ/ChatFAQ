@@ -53,6 +53,8 @@ function getFileTypeFromName(url) {
         padding: 10px 16px;
         border-radius: 10px;
         border: 1px solid rgba(0, 25, 120, 0.10);
+        margin-top: 8px;
+        margin-bottom: 7px;
 
         &.dark-mode {
             background: $chatfaq-color-chatMessageReference-background-dark;
