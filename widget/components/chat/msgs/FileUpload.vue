@@ -111,7 +111,7 @@ function handleFileUploaded(s3_path, file_name) {
             "platform": "WS",
         },
         "stack": [{
-            "type": "file_download",
+            "type": "file_uploaded",
             "payload": {
                 "s3_path": s3_path,
                 "name": file_name,

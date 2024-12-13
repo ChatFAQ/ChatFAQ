@@ -30,7 +30,7 @@
                         'feedbacking': feedbacking,
                         'full-width': iframedMsg && iframedMsg.fullWidth,
                         'no-padding': iframedMsg && iframedMsg.noPadding,
-                        'backgrounded': getFirstStackType() !== 'file_download',
+                        'backgrounded': getFirstStackType() !== 'file_uploaded',
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
@@ -61,6 +61,11 @@
                     <template v-else-if="getFirstStackType() === 'file_upload'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <FileUpload :data="layer.payload" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'file_uploaded'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <FileDownload :data="layer.payload" />
                         </div>
                     </template>
                     <template v-else-if="getFirstStackType() === 'file_download'">
