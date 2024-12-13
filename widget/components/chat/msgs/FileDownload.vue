@@ -44,11 +44,6 @@ function downloadFile() {
 
 <style scoped lang="scss">
 .file-download-wrapper {
-    margin-top: 8px;
-    margin-left: 1950px;
-    width: 240px;
-
-
     .file-download {
         background-color: #FFFFFF;
         display: flex;
@@ -63,7 +58,7 @@ function downloadFile() {
             background: $chatfaq-color-chatMessageReference-background-dark;
             color: $chatfaq-color-chatMessageReference-text-dark;
         }
-        
+
         .file-icon-wrapper {
             background-color: $chatfaq-color-primary-500;
             display: flex;
@@ -119,7 +114,7 @@ function downloadFile() {
                 font-style: normal;
                 font-weight: 400;
                 line-height: 18px;
-                
+
                 .dark-mode & {
                     color: $chatfaq-color-chatMessageReferenceTitle-text-dark;
                 }
