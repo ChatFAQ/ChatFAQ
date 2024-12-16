@@ -35,6 +35,7 @@ from django.core.files.storage import default_storage
 class ConversationFilterSet(django_filters.FilterSet):
     reviewed = django_filters.CharFilter(method='filter_reviewed')
     fsm_def = django_filters.CharFilter(method='filter_fsm_def')
+    user_feedback_exists = django_filters.BooleanFilter(method='filter_user_feedback_exists')
 
     class Meta:
         model = Conversation
@@ -53,6 +54,9 @@ class ConversationFilterSet(django_filters.FilterSet):
         if val:
             return queryset.filter(message__adminreview__isnull=val).exclude(message__adminreview__isnull=not val).distinct()
         return queryset.filter(message__adminreview__isnull=val).distinct()
+
+    def filter_user_feedback_exists(self, queryset, name, value):
+        return queryset.filter(message__userfeedback__isnull=False).distinct()
 
 
 class ConversationAPIViewSet(
