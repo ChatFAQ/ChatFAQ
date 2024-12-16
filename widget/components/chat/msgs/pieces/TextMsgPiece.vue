@@ -28,6 +28,7 @@ import {useGlobalStore} from "~/store";
 import {computed, ref} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
+import { markdown } from "markdown";
 
 const store = useGlobalStore();
 
@@ -63,57 +64,7 @@ function replaceMarkedDownImagesByReferences() {
 const markedDown = computed(() => {
     let res = props.data.payload.content;
     res = replaceMarkedDownImagesByReferences(res)
-    const hightlight = store.darkMode ? hightlight_dark : hightlight_light
-    // regex for detecting and representing markdown bold text
-    const boldRegex = /\*\*([^\*]+)\*\*/g;
-    // regex for italic text with single underscore
-    const italicUnderscoreRegex = /_([^_]+)_/g;
-    // regex for italic text with single asterisk
-    const italicAsteriskRegex = /\*([^*]+)\*/g;
-    // regex for detecting markdown links
-    const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
-    const linksArray = [];
-
-    // Step 1: Replace links with placeholders
-    res = res.replace(linkRegex, (match, text, url) => {
-        // Step 2a: Process text for markdown styles (bold, italics)
-        text = text.replace(boldRegex, '<b>$1</b>');
-        text = text.replace(italicAsteriskRegex, '<i>$1</i>');
-        text = text.replace(italicUnderscoreRegex, '<i>$1</i>');
-
-        // Create placeholder for the link and store the processed text and URL
-        const placeholder = `[[LINK${linksArray.length}]]`;
-        linksArray.push({ placeholder, text, url });
-        return placeholder; // Replace markdown link with placeholder.
-    });
-
-    // Now continue with other markdown processing (lists, highlights, etc.)
-    const listRegex = /(?:^|\n)(?:\*|\-|\d+\.)\s/g;
-    res = res.replace(listRegex, '<br/>- ');
-    // regex for detecting and represent the character: ` highlighting ex: bla bla `bla` bla:
-    const highlightRegex = /`([^`]+)`/g;
-    res = res.replace(highlightRegex, '<span class="marked-down-highlight-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span>');
-    // regex for detecting and representing codeblocks with tab character:
-    const codeBlockRegex = /(?:^|\n)(?:\t)([^\n]+)/g;
-    const codeBlockRegex2 = /(?:^|\n)(?:    )([^\n]+)/g;
-    res = res.replace(codeBlockRegex, '<span class="marked-down-code-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
-    res = res.replace(codeBlockRegex2, '<span class="marked-down-code-block" style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
-
-    // regex for detecting and representing markdown bold text:
-    res = res.replace(boldRegex, '<b>$1</b>');
-    res = res.replace(italicAsteriskRegex, '<i>$1</i>');
-    res = res.replace(italicUnderscoreRegex, '<i>$1</i>');
-    // strikethrough
-    const strikethroughRegex = /~~([^~]+)~~/g;
-    res = res.replace(strikethroughRegex, '<del>$1</del>');
-
-    // Step 3: Restore links from placeholders with processed text
-    linksArray.forEach(link => {
-        const linkHtml = `<a target="_blank" href="${link.url}">${link.text}</a>`;
-        res = res.replace(link.placeholder, linkHtml);
-    });
-
-    return res;
+    return markdown.toHTML(res);
 });
 
 const getMarkedDownImages = computed(() => {

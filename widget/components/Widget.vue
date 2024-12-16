@@ -77,7 +77,9 @@ const props = defineProps({
     speechRecognition: Boolean,
     speechRecognitionAutoSend: Boolean,
     allowAttachments: Boolean,
-    authToken: String
+    authToken: String,
+    disableDayNightMode: Boolean,
+    enableLogout: Boolean,
 });
 
 const jsonProps = [
@@ -110,7 +112,7 @@ async function init() {
         if (props.authToken)
             headers.Authorization = `Token ${props.authToken}`;
 
-        const response = await fetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
+        const response = await chatfaqFetch(props.chatfaqApi + `/back/api/widget/widgets/${props.widgetConfigId}/`, { headers });
         let server_data = await response.json();
         // sneak case data keys to lowerCamelCase:
         server_data = Object.keys(server_data).reduce((acc, key) => {
@@ -123,10 +125,10 @@ async function init() {
             if (jsonProps.indexOf(key) > -1) {
                 if (typeof data[key] == "string" && data[key].length > 0)
                     data[key] = JSON.parse(data[key] || "{}")
-                merged_data[key] = { ...server_data[key], ...data[key]}
+                merged_data[key] = {...data[key], ...server_data[key]}
             }
             else
-                merged_data[key] = server_data[key] || data[key]
+                merged_data[key] = data[key] || server_data[key]
         }
         for (const key in server_data) {
             if (data[key] === undefined)
@@ -154,6 +156,8 @@ function initStore() {
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
     store.allowAttachments = data.allowAttachments
     store.authToken = data.authToken
+    store.disableDayNightMode = data.disableDayNightMode
+    store.enableLogout = data.enableLogout
 
     if (store.userId === undefined) {
         store.userId = getUserId()

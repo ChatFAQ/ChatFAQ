@@ -96,6 +96,9 @@ class FSM:
             self.current_state = self.get_initial_state()
         self.waiting_for_rpc = None
 
+    async def check_sdk_connection(self):
+        return await database_sync_to_async(ConsumerRoundRobinQueue.check_sdk_connection)(self.ctx.fsm_def.pk)
+
     async def start(self):
         await self.run_current_state_events()
         logger.debug(f"FSM start --> {self.current_state}")

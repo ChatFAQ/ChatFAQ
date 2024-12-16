@@ -23,5 +23,6 @@
     "sources": "fuentes",
     "source": "fuente",
     "connectingtoserver": "Conectando al servidor...",
-    "upload_file": "Subir archivo"
+    "upload_file": "Subir archivo",
+    "logout": "Cerrar sesión"
 }

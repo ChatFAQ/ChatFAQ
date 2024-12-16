@@ -149,6 +149,25 @@ function createConnection() {
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
+        if (e.code === 4000 || e.code === 3000) {  // SDK not existent or RPC worker not connected || Authentication error
+            let _msg = e.reason
+            store.addMessage({
+                "sender": {
+                    "type": "bot",
+                    "platform": "WS",
+                },
+                "stack": [{
+                    "type": "message",
+                    "payload": {
+                        "content": _msg
+                    },
+                }],
+                "stack_id": Math.random().toString(36).substring(7),
+                "stack_group_id": Math.random().toString(36).substring(7),
+                "last": true,
+            });
+            return;
+        }
         if (plConversationId !== store.selectedPlConversationId)
             return;
         store.disconnected = true;

@@ -75,6 +75,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
     fsm_defs = serializers.SerializerMethodField()
+    num_user_msgs = serializers.SerializerMethodField()
 
     class Meta:
         model = apps.get_model("broker", "Conversation")
@@ -86,6 +87,9 @@ class ConversationSerializer(serializers.ModelSerializer):
                 return msg.sender.get("id")
             if msg.receiver and msg.receiver.get("type") == AgentType.human.value:
                 return msg.receiver.get("id")
+
+    def get_num_user_msgs(self, obj):
+        return Message.objects.filter(conversation=obj, sender__type=AgentType.human.value).count()
 
     get_fsm_defs = _get_fsm_defs
 

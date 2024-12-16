@@ -32,6 +32,8 @@
                         'only_chat',
                         'start_small_mode',
                         'start_with_history_closed',
+                        'disable_day_night_mode',
+                        'enable_logout',
                         'hide_sources',
                         'sources_first',
                         'stick_input_prompt',

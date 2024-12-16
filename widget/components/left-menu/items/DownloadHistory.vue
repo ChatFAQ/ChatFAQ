@@ -33,7 +33,7 @@ async function downloadHistory() {
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
 
-    fetch(
+    chatfaqFetch(
         store.chatfaqAPI + `/back/api/broker/conversations/${ids}/download/`,
         {
             method: "POST",

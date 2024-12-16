@@ -23,5 +23,6 @@
     "sources": "sources",
     "source": "source",
     "connectingtoserver": "Connexion au serveur en cours...",
-    "upload_file": "Télécharger un fichier"
+    "upload_file": "Télécharger un fichier",
+    "logout": "Déconnexion"
 }

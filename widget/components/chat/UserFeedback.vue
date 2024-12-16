@@ -95,7 +95,7 @@ onMounted(async () => {
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
 
-    let response = await fetch(
+    let response = await chatfaqFetch(
         store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`, { headers }
     )
     response = await response.json();
@@ -143,7 +143,7 @@ async function sendUserFeedback(value, _collapse) {
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
 
-    const response = await fetch(store.chatfaqAPI + endpoint, {
+    const response = await chatfaqFetch(store.chatfaqAPI + endpoint, {
         method: method,
         headers,
         body: JSON.stringify(feedbackData)

@@ -23,7 +23,11 @@
         <div class="other-buttons">
             <Footer class="footer" :class="{'history': store.historyOpened}"/>
 
-            <div class="left-menu-item delete-history">
+            <div class="left-menu-item" v-if="store.enableLogout">
+                <LogOut/>
+            </div>
+
+            <div class="left-menu-item">
                 <DeleteHistory/>
             </div>
 
@@ -31,7 +35,7 @@
                 <DownloadHistory/>
             </div>
 
-            <div class="left-menu-item" v-if="!store.selectedConversations || !store.selectedConversations.length">
+            <div class="left-menu-item" v-if="!store.disableDayNightMode && (!store.selectedConversations || !store.selectedConversations.length)">
                 <LightMode/>
             </div>
         </div>
@@ -49,6 +53,7 @@ import Footer from "~/components/left-menu/items/Footer.vue";
 import BurgerMenu from "~/components/icons/BurgerMenu.vue";
 import DoubleArrowLeft from "~/components/icons/DoubleArrowLeft.vue";
 import {ref, watch} from "vue";
+import LogOut from "~/components/left-menu/items/LogOut.vue";
 
 const historyItems = ref(null)
 
@@ -137,7 +142,7 @@ $history-width: 220px;
             padding-top: 12px;
         }
 
-        > .delete-history {
+        > .left-menu-item:nth-child(2) {
             padding-bottom: 12px;
         }
 
