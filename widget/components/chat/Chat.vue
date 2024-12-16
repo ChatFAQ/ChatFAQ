@@ -269,6 +269,8 @@ function createMessageFromInputPrompt() {
 
     chatInput.value.innerText = "";
     thereIsContent.value = false
+
+    return message
 }
 
 function sendToGTM(msg) {
