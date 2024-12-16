@@ -55,6 +55,8 @@ class RPCResultSerializer(serializers.Serializer):
                 "type": AgentType.human.value,
                 "id": attrs["ctx"]["user_id"],
             }
+        if attrs.get("node_type") == RPCNodeType.condition.value:
+            return super().validate(attrs)
 
         # Generate presigned URL if the message is a file request
         for ndx, element in enumerate(attrs.get("stack", [])):
