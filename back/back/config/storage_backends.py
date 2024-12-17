@@ -15,7 +15,7 @@ class PrivateMediaS3Storage(S3Boto3Storage):
     file_overwrite = False
     custom_domain = False
 
-    def generate_presigned_url(self, path, content_type, expires_in=7200):
+    def generate_presigned_url(self, path, content_type, expires_in=3600):
         """
         Generate a presigned URL for a PUT request to the given path and content type.
         Expires in 2 hours by default.
