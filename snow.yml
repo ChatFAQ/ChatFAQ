@@ -43,6 +43,9 @@ resources:
   pg_clusters:
     - id: psql
       version: '15'
+  pg_databases:
+    - id: psql
+      cluster: psql
 
 envs:
   admin:
@@ -57,14 +60,14 @@ envs:
     SENTRY_ENVIRONMENT: '${{ deployment::env.name }}'
     SENTRY_DSN: '${{ vars::SENTRY_DSN_BACK }}'
     ENVIRONMENT: '${{ deployment::env.name }}'
-    DATABASE_URL: '${{ resources::pg_clusters.psql.url }}'
+    REDIS_URL: '${{ resources::redis_clusters.redis.url }}'
+    DATABASE_URL: '${{ resources::pg_databases.psql.url }}'
     AWS_ACCESS_KEY_ID: '${{ vars::AWS_ACCESS_KEY_ID }}'
     AWS_SECRET_ACCESS_KEY: '${{ secrets::AWS_SECRET_ACCESS_KEY }}'
     AWS_STORAGE_BUCKET_NAME: '${{ vars::AWS_STORAGE_BUCKET_NAME }}'
     AWS_S3_SIGNATURE_VERSION: 's3v4'
     STORAGES_MODE: 'do'
     STORAGE_MAKE_FILES_PUBLIC: 'no'
-    REDIS_URL: '${{ resources::pg_clusters.redis.url }}'
     DO_REGION: 'ams3'
     OPENAI_API_KEY: '${{ secrets::OPENAI_API_KEY }}'
     USE_RAY: 'False'
