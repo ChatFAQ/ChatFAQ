@@ -18,12 +18,12 @@ components:
 
 ingresses:
   - match:
-      prefix: '/__nope__/admin/'
+      prefix: '/'
     target:
       component: admin
       port: 3000
   - match:
-      prefix: '/__nope__/back/'
+      prefix: '/back/'
     target:
       component: back
       port: 8000
