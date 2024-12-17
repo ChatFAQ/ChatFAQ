@@ -1,9 +1,9 @@
 images:
   - id: admin
-    context: .
+    context: admin
     dockerfile: admin/Dockerfile
   - id: back
-    context: .
+    context: back
     dockerfile: back/Dockerfile
 
 components:
