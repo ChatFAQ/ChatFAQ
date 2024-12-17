@@ -49,7 +49,6 @@ class Migration(migrations.Migration):
             model_name="retrieverconfig",
             name="knowledge_base",
             field=models.ForeignKey(
-                default=1,
                 on_delete=django.db.models.deletion.CASCADE,
                 to="language_model.knowledgebase",
             ),
