@@ -22,6 +22,7 @@
                 'field': 'reviewed',
                 'choices': [{'value': 'completed', 'label': $t('completed')}, {'value': 'pending', 'label': $t('pending')}]
             },
+            {'type': 'bool', 'field': 'user_feedback_exists', 'placeholder': $t('withuserfeedback')},
         ]"
         :textExplanation="$t('labelingexplanation')"
         read-only

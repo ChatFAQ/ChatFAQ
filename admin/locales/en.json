@@ -300,5 +300,6 @@
     "generationfirst": "Generation First",
     "sourcesfirst": "Sources First",
     "messagelayout": "Message Layout",
-    "close": "Close"
+    "close": "Close",
+    "withuserfeedback": "With User Feedback"
 }
