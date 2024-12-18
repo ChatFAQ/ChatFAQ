@@ -1,0 +1,73 @@
+images:
+  - id: admin
+    context: admin
+    dockerfile: Dockerfile
+  - id: back
+    context: back
+    dockerfile: Dockerfile
+
+components:
+  - id: admin
+    image: admin
+    envs: [admin]
+    size_hint: ram >= 512m
+  - id: back
+    image: back
+    envs: [back]
+    size_hint: ram >= 1g
+
+ingresses:
+  - match:
+      prefix: '/'
+    target:
+      component: admin
+      port: 3000
+  - match:
+      prefix: '/back/'
+    target:
+      component: back
+      port: 8000
+
+hooks:
+  - when: 'pre-deploy'
+    component: chatfaq-migrate
+    run_command: modelw-docker run python manage.py migrate
+
+domains:
+  - id: back
+
+resources:
+  redis_clusters:
+    - id: redis
+      version: '7'
+  pg_clusters:
+    - id: psql
+      version: '15'
+  pg_databases:
+    - id: psql
+      cluster: psql
+
+envs:
+  admin:
+    NUXT_PROXY_OPTIONS_TARGET: '${{ components::back.private_url }}'
+    NUXT_API_URL: '${{ components::back.private_url }}'
+    NUXT_PUBLIC_CHATFAQ_WS: 'wss://${{ domains::back.name }'
+    SENTRY_DSN: '${{ vars::SENTRY_DSN_ADMIN }}'
+    SENTRY_ENVIRONMENT: '${{ deployment::env.name }}'
+  back:
+    BASE_URL: '${{ resources::app.url }}'
+    SECRET_KEY: '${{ secrets::SECRET_KEY }}'
+    SENTRY_ENVIRONMENT: '${{ deployment::env.name }}'
+    SENTRY_DSN: '${{ vars::SENTRY_DSN_BACK }}'
+    ENVIRONMENT: '${{ deployment::env.name }}'
+    REDIS_URL: '${{ resources::redis_clusters.redis.url }}'
+    DATABASE_URL: '${{ resources::pg_databases.psql.url }}'
+    AWS_ACCESS_KEY_ID: '${{ vars::AWS_ACCESS_KEY_ID }}'
+    AWS_SECRET_ACCESS_KEY: '${{ secrets::AWS_SECRET_ACCESS_KEY }}'
+    AWS_STORAGE_BUCKET_NAME: '${{ vars::AWS_STORAGE_BUCKET_NAME }}'
+    AWS_S3_SIGNATURE_VERSION: 's3v4'
+    STORAGES_MODE: 'do'
+    STORAGE_MAKE_FILES_PUBLIC: 'no'
+    DO_REGION: 'ams3'
+    OPENAI_API_KEY: '${{ secrets::OPENAI_API_KEY }}'
+    USE_RAY: 'False'
