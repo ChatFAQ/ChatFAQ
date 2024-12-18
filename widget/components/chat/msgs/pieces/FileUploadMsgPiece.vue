@@ -152,12 +152,12 @@ function handleFileUploaded(s3_path, file_name) {
         // background: #FFF;
 
         .file-icon {
-            stroke: $chatfaq-color-primary-500;
+            stroke: $chatfaq-prompt-button-background-color-light;
             width: 18px;
             height: 18px;
 
             &.dark-mode {
-                stroke: $chatfaq-color-chatMessageReference-text-dark;
+                stroke: $chatfaq-prompt-button-background-color-dark;
             }
         }
 
@@ -172,7 +172,7 @@ function handleFileUploaded(s3_path, file_name) {
     }
 
     .button-text {
-        color: $chatfaq-color-primary-500;
+        color: $chatfaq-prompt-button-background-color-light;
         font-feature-settings: 'liga' off, 'clig' off;
         font-family: "Open Sans";
         font-size: 12px;
@@ -181,7 +181,7 @@ function handleFileUploaded(s3_path, file_name) {
         line-height: 18px; /* 150% */
 
         &.dark-mode {
-            color: $chatfaq-color-chatMessageReference-text-dark;
+            color: $chatfaq-prompt-button-background-color-dark;
         }
     }
 
