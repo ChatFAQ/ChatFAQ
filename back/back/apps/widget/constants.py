@@ -423,6 +423,22 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "icons",
         "value": "#FFFFFF",  # Neutral White
     },
+    "chatfaq-file-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#FFFFFF",  # Neutral White
+            "dark": "#1A0438",   # Primary 900
+        }
+    },
+    "chatfaq-file-box-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#DFDAEA",   # Primary 200
+        }
+    },
 }
 
 THEME_DEFAULTS = {k: v["value"] for k, v in THEME_DEFAULTS_BY_SECTION.items()}
