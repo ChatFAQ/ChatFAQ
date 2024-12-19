@@ -66,6 +66,10 @@ envs:
     AWS_SECRET_ACCESS_KEY: '${{ secrets::AWS_SECRET_ACCESS_KEY }}'
     AWS_STORAGE_BUCKET_NAME: '${{ vars::AWS_STORAGE_BUCKET_NAME }}'
     AWS_S3_SIGNATURE_VERSION: 's3v4'
+    AWS_S3_REGION_NAME: 'ams3'
+    AWS_S3_CUSTOM_DOMAIN: 'lefebvre-chatfaq.ams3.digitaloceanspaces.com'  # Add this line
+
+
     STORAGES_MODE: 'do'
     STORAGE_MAKE_FILES_PUBLIC: 'no'
     DO_REGION: 'ams3'

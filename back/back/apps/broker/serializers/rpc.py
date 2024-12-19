@@ -1,4 +1,5 @@
 import time
+import mimetypes
 
 from rest_framework import serializers
 
@@ -8,6 +9,10 @@ from back.apps.broker.consumers.message_types import (
     RPCNodeType,
 )
 from back.apps.broker.models.message import AgentType
+from back.config.storage_backends import (
+    PrivateMediaLocalStorage,
+    select_private_storage,
+)
 
 
 class CtxSerializer(serializers.Serializer):
@@ -50,6 +55,26 @@ class RPCResultSerializer(serializers.Serializer):
                 "type": AgentType.human.value,
                 "id": attrs["ctx"]["user_id"],
             }
+        if attrs.get("node_type") == RPCNodeType.condition.value:
+            return super().validate(attrs)
+
+        # Generate presigned URL if the message is a file request
+        for ndx, element in enumerate(attrs.get("stack", [])):
+            if element["type"] == "file_upload":
+                storage = select_private_storage()
+
+                for file_extension in element["payload"]["files"].keys():
+
+                    # Generate presigned URL if using S3
+                    if not isinstance(storage, PrivateMediaLocalStorage):
+                        s3_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
+
+                        # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
+                        content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
+                        attrs['stack'][ndx]['payload']["files"][file_extension]['presigned_url'] = storage.generate_presigned_url(s3_path, content_type=content_type)
+                        attrs['stack'][ndx]['payload']["files"][file_extension]['s3_path'] = s3_path
+                        attrs['stack'][ndx]['payload']["files"][file_extension]['content_type'] = content_type
+
         return super().validate(attrs)
 
 

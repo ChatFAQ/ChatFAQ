@@ -309,9 +309,9 @@ class FileUploadView(APIView):
         file = request.FILES.get('file')
         if not file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
-
+        expire = request.data.get('expire', 3600)
         # Save the file
         file_name = default_storage.save(file.name, file)
-        file_url = default_storage.url(file_name)
+        file_url = default_storage.url(file_name, expire=expire)
 
         return Response({'url': file_url}, status=status.HTTP_201_CREATED)

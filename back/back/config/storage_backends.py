@@ -1,4 +1,5 @@
-import os
+import boto3
+from botocore.config import Config
 
 from django.conf import settings
 from storages.backends.s3boto3 import S3Boto3Storage
@@ -11,14 +12,28 @@ class PublicMediaS3Storage(S3Boto3Storage):
 
 
 class PrivateMediaS3Storage(S3Boto3Storage):
-    default_acl = "private"
-    file_overwrite = False
-    custom_domain = False
+    default_acl = "private"  # Set default ACL to 'private' for secure uploads
+    file_overwrite = False  # Prevent files with the same name from being overwritten
 
-
+    def generate_presigned_url(
+        self,
+        path: str,
+        content_type: str = "application/octet-stream",
+        expires_in: int = 3600,
+    ):
+        return self.connection.meta.client.generate_presigned_url(
+            "put_object",
+            Params={"Bucket": self.bucket_name, "Key": path, "ContentType": content_type},
+            ExpiresIn=expires_in,
+            HttpMethod="PUT",
+        )
 class PrivateMediaLocalStorage(FileSystemStorage):
     location = settings.MEDIA_ROOT
 
 
 def select_private_storage():
-    return PrivateMediaLocalStorage() if settings.LOCAL_STORAGE else PrivateMediaS3Storage()
+    return (
+        PrivateMediaLocalStorage()
+        if settings.LOCAL_STORAGE
+        else PrivateMediaS3Storage()
+    )
