@@ -2,14 +2,14 @@
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
-                <ChatMsg
-                    v-if="renderable(message)"
+                <ChatMsgManager
+                    v-if="isRenderableStackType(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
-                ></ChatMsg>
+                ></ChatMsgManager>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -47,11 +47,10 @@
 import {ref, watch, nextTick, onMounted, computed} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
-import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
+import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
-
 const store = useGlobalStore();
 
 const chatInput = ref(null);
@@ -70,6 +69,7 @@ const speechRecognitionRunning = ref(false)
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 
 onMounted(async () => {
     await initializeConversation()
@@ -94,6 +94,9 @@ function animateFeedbackSent() {
     setTimeout(() => {
         feedbackSentDisabled.value = true
     }, 1500)
+}
+function isRenderableStackType(message) {
+    return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 
@@ -229,13 +232,43 @@ function manageHotKeys(ev, cb) {
     }
 }
 
-function sendMessage() {
-    if (!thereIsContent.value || store.waitingForResponse || store.disconnected || speechRecognitionRunning.value)
+function sendMessage(_message) {
+    if (!canSend())
         return;
+    historyIndexHumanMsg = -1
+
+    const message = _message ? _message : createMessageFromInputPrompt()
+
+    if (!message)
+        return
+
+    store.messages.push(message);
+    ws.send(JSON.stringify(message));
+    store.scrollToBottom += 1;
+}
+
+function sendMessagesToBeSent() {
+    if(!canSend()) {
+        setTimeout(() => sendMessagesToBeSent(), 1000)
+        return
+    }
+
+    while (store.messagesToBeSent.length) {
+        sendMessage(store.messagesToBeSent.pop());
+    }
+
+}
+
+function canSend() {
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+}
+
+function createMessageFromInputPrompt() {
+    if (!thereIsContent.value)
+        return
 
     const user_message = chatInput.value.innerText.trim()
-    historyIndexHumanMsg = -1
-    const m = {
+    const message = {
         "sender": {
             "type": "human",
             "platform": "WS",
@@ -251,17 +284,12 @@ function sendMessage() {
         "last": true,
     };
     if (store.userId !== undefined)
-        m["sender"]["id"] = store.userId
+        message["sender"]["id"] = store.userId
 
-    store.messages.push(m);
-    ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
     thereIsContent.value = false
-    store.scrollToBottom += 1;
-}
 
-function renderable(message) {
-    return !notRenderableStackTypes.includes(message.stack[0]?.type)
+    return message
 }
 
 function sendToGTM(msg) {
@@ -332,7 +360,7 @@ function speechToText() {
 }
 
 const availableSend = computed(() => {
-    return !store.speechRecognition || thereIsContent
+    return !store.speechRecognition || thereIsContent.value
 })
 const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
