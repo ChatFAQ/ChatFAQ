@@ -71,7 +71,7 @@ class RPCResultSerializer(serializers.Serializer):
 
                         # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
                         content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
-                        attrs['stack'][ndx]['payload']["files"][file_extension]['presigned_url'] = storage.generate_presigned_url(s3_path, content_type=content_type)
+                        attrs['stack'][ndx]['payload']["files"][file_extension]['presigned_url'] = storage.generate_presigned_url_put(s3_path, content_type=content_type)
                         attrs['stack'][ndx]['payload']["files"][file_extension]['s3_path'] = s3_path
                         attrs['stack'][ndx]['payload']["files"][file_extension]['content_type'] = content_type
 

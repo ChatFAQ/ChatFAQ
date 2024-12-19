@@ -15,7 +15,7 @@ class PrivateMediaS3Storage(S3Boto3Storage):
     default_acl = "private"  # Set default ACL to 'private' for secure uploads
     file_overwrite = False  # Prevent files with the same name from being overwritten
 
-    def generate_presigned_url(
+    def generate_presigned_url_put(
         self,
         path: str,
         content_type: str = "application/octet-stream",
@@ -27,6 +27,22 @@ class PrivateMediaS3Storage(S3Boto3Storage):
             ExpiresIn=expires_in,
             HttpMethod="PUT",
         )
+    
+    def generate_presigned_url_get(
+        self,
+        path: str,
+        expires_in: int = 3600,
+    ):
+        return self.connection.meta.client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": self.bucket_name,
+                "Key": path,
+            },
+            ExpiresIn=expires_in,
+            HttpMethod="GET",
+        )
+    
 class PrivateMediaLocalStorage(FileSystemStorage):
     location = settings.MEDIA_ROOT
 

@@ -203,7 +203,7 @@ class MessageStackSerializer(serializers.Serializer):
         if attrs['type'] == 'file_uploaded' and not attrs.get('payload', {}).get('url') and attrs.get('payload', {}).get('s3_path'):
             storage = select_private_storage()
             if not isinstance(storage, PrivateMediaLocalStorage):
-                attrs['payload']['url'] = storage.url(attrs.get('payload', {}).get('s3_path'), expire=3600)
+                attrs['payload']['url'] = storage.generate_presigned_url_get(attrs.get('payload', {}).get('s3_path'), expire=3600)
         return attrs
 
 
