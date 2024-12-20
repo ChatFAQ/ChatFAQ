@@ -198,12 +198,20 @@ THEME_DEFAULTS_BY_SECTION = {
             "dark": "#4D4160",      # Neutral Purple
         }
     },
-        "chatfaq-file-box-color": {
+    "chatfaq-file-box-color": {
         "type": "color",
         "section": "colors",
         "value": {
             "light": "#463075",  # Primary 500
             "dark": "#DFDAEA",   # Primary 200
+        }
+    },
+    "chatfaq-message-file-attachment-text-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Neutral White
+            "dark": "#FFFFFF",   # Neutral White
         }
     },
 
@@ -439,6 +447,14 @@ THEME_DEFAULTS_BY_SECTION = {
             "dark": "#1A0438",   # Primary 900
         }
     },
+    "chatfaq-message-file-attachment-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    }
 }
 
 THEME_DEFAULTS = {k: v["value"] for k, v in THEME_DEFAULTS_BY_SECTION.items()}
