@@ -198,6 +198,14 @@ THEME_DEFAULTS_BY_SECTION = {
             "dark": "#4D4160",      # Neutral Purple
         }
     },
+        "chatfaq-file-box-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#DFDAEA",   # Primary 200
+        }
+    },
 
     # Gradients
     "chatfaq-color-bubbleButton-background-hover": {
@@ -429,14 +437,6 @@ THEME_DEFAULTS_BY_SECTION = {
         "value": {
             "light": "#FFFFFF",  # Neutral White
             "dark": "#1A0438",   # Primary 900
-        }
-    },
-    "chatfaq-file-box-color": {
-        "type": "color",
-        "section": "icons",
-        "value": {
-            "light": "#463075",  # Primary 500
-            "dark": "#DFDAEA",   # Primary 200
         }
     },
 }
