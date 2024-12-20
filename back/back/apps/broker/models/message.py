@@ -232,7 +232,6 @@ class Message(ChangesMixin):
         Whether this message is the last one of the chunk
     status: JSONField
         The status of the FSM on that point on time
-
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
