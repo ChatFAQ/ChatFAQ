@@ -70,6 +70,7 @@ const speechRecognitionRunning = ref(false)
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+watch(() => store.resendMsgId, resendMsg)
 
 onMounted(async () => {
     await initializeConversation()
@@ -258,6 +259,13 @@ function sendMessage() {
     chatInput.value.innerText = "";
     thereIsContent.value = false
     store.scrollToBottom += 1;
+}
+
+function resendMsg(msgId) {
+    if (store.disconnected)
+        return;
+    store.deleteMsgsAfter(msgId)
+    ws.send(JSON.stringify({reset: msgId}));
 }
 
 function renderable(message) {

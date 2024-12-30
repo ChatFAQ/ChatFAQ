@@ -43,6 +43,8 @@ export const useGlobalStore = defineStore('globalStore', {
             authToken: undefined,
             disableDayNightMode: false,
             enableLogout: false,
+            enableResend: false,
+            resendMsgId: undefined,
         }
     },
     actions: {
@@ -159,6 +161,17 @@ export const useGlobalStore = defineStore('globalStore', {
                     "platform_conversation_id": "725628099",
                     "name": "Consectetur adipiscing elit."
                 }]
+        },
+        deleteMsgsAfter(msgId) {
+            const msgsToDelete = []
+            for (let i = this.messages.length - 1; i >= 0; i--) {
+                if (this.messages[i].id === msgId) {
+                    this.messages[i].last = true;
+                    break;
+                }
+                msgsToDelete.push(this.messages[i].id)
+            }
+            this.messages = this.messages.filter(m => !msgsToDelete.includes(m.id))
         }
     },
     getters: {

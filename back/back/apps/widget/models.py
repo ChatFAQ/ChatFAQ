@@ -63,6 +63,7 @@ class Widget(models.Model):
     custom_css = models.TextField(null=True, blank=True)
     initial_conversation_metadata = JSONField(default=dict)
     custom_i_framed_msgs = JSONField(default=dict)
+    enable_resend = models.BooleanField(default=False)
 
     theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True)
     # ----------

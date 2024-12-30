@@ -69,6 +69,13 @@
                     @feedbacking="feedbacking = true"
                     @collapse="feedbacking = false"
                 ></UserFeedback>
+                <Resend
+                    v-if="
+                        props.message.sender.type === 'bot' &&
+                        store.enableResend
+                    "
+                    :msgId="props.message.id"
+                ></Resend>
             </div>
         </div>
     </div>
@@ -77,6 +84,7 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
+import Resend from "~/components/chat/Resend.vue";
 import Message from "~/components/chat/msgs/Message.vue";
 import References from "~/components/chat/msgs/References.vue";
 import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
