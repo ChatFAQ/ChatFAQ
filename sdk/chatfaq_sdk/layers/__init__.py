@@ -240,3 +240,34 @@ class StarRating(Layer):
             }
         }
         yield [payload], True
+
+
+class TextFeedback(Layer):
+    """
+    A message layer that includes a feedback text box.
+    """
+    _type = "text_feedback"
+
+    def __init__(
+        self,
+        content: str,
+        hint: str = None,
+        *args,
+        **kwargs,
+    ):
+        """
+        :param content: The content of the message.
+        :param hint: An optional hint to explain what to put in the text box. For example: "Please provide your feedback here"
+        """
+        super().__init__(*args, **kwargs)
+        self.content = content
+        self.hint = hint
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                "content": self.content,
+                "hint": self.hint,
+            }
+        }
+        yield [payload], True
