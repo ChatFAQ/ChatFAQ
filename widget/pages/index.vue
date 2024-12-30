@@ -12,6 +12,6 @@ const chatfaqWS = ref(conf.public.chatfaqWS)
 const chatfaqAPI = ref(conf.public.chatfaqAPI)
 const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
-const fsmDef = ref("file_fsm")
+const fsmDef = ref("feedbacks_fsm")
 
 </script>

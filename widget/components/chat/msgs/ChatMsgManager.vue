@@ -73,6 +73,11 @@
                             <AttachmentMsgPiece :data="layer.payload" />
                         </div>
                     </template>
+                    <template v-else-if="getFirstStackType() === 'star_rating'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <StarRatingMsgPiece :data="layer.payload" />
+                        </div>
+                    </template>
                     <template v-else>
                         <div class="layer">
                             <span>Stack type not supported</span>
@@ -103,6 +108,7 @@ import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 import TextMsgPiece from "~/components/chat/msgs/pieces/TextMsgPiece.vue";
 import AttachmentMsgPiece from "~/components/chat/msgs/pieces/AttachmentMsgPiece.vue";
 import FileUploadMsgPiece from "~/components/chat/msgs/pieces/FileUploadMsgPiece.vue";
+import StarRatingMsgPiece from "~/components/chat/msgs/pieces/StarRatingMsgPiece.vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();

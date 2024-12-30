@@ -205,3 +205,38 @@ class GTMTag(Layer):
     async def build_payloads(self, ctx, data):
         payload = {"payload": self.tag}
         yield [payload], True
+
+
+class StarRating(Layer):
+    """
+    A message layer that includes a star rating.
+    """
+    _type = "star_rating"
+
+    def __init__(
+        self,
+        content: str,
+        num_stars: int,
+        explanation: str = None,
+        *args,
+        **kwargs,
+    ):
+        """
+        :param content: The content of the message.
+        :param num_stars: The maximum number of stars. For example: 5
+        :param explanation: An optional explanation to explain the rating. For example: "1 is negative, 5 is positive"
+        """
+        super().__init__(*args, **kwargs)
+        self.content = content
+        self.num_stars = num_stars
+        self.explanation = explanation
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                "content": self.content,
+                "num_stars": self.num_stars,
+                "explanation": self.explanation,
+            }
+        }
+        yield [payload], True
