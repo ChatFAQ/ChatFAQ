@@ -99,8 +99,10 @@
     --chatfaq-bubble-button-close-icon-color: var(--chatfaq-color-neutral-white);
     --chatfaq-file-icon-color-light: var(--chatfaq-color-neutral-white);
     --chatfaq-file-icon-color-dark: var(--chatfaq-color-primary-900);
-    --chatfaq-message-file-attachment-text-color-light: var(--chatfaq-color-primary-500);
-    --chatfaq-message-file-attachment-text-color-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-message-file-attachment-icon-color-light: var(--chatfaq-color-primary-500);
+    --chatfaq-message-file-attachment-icon-color-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-file-download-icon-color-light: var(--chatfaq-color-primary-500);
+    --chatfaq-file-download-icon-color-dark: var(--chatfaq-color-neutral-white);
     
 
      /* Sizes */
@@ -168,8 +170,8 @@
     --chatfaq-prompt-button-background-color-dark: var(--chatfaq-color-primary-500);
     --chatfaq-file-box-color-light: var(--chatfaq-color-primary-500);
     --chatfaq-file-box-color-dark: var(--chatfaq-color-primary-200);
-    --chatfaq-message-file-attachment-icon-color-light: var(--chatfaq-color-primary-500);
-    --chatfaq-message-file-attachment-icon-color-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-message-file-attachment-text-color-light: var(--chatfaq-color-primary-500);
+    --chatfaq-message-file-attachment-text-color-dark: var(--chatfaq-color-neutral-white);
 }
 
 
@@ -299,6 +301,8 @@ $chatfaq-message-file-attachment-icon-color-light: var(--chatfaq-message-file-at
 $chatfaq-message-file-attachment-icon-color-dark: var(--chatfaq-message-file-attachment-icon-color-dark);
 $chatfaq-message-file-attachment-text-color-light: var(--chatfaq-message-file-attachment-text-color-light);
 $chatfaq-message-file-attachment-text-color-dark: var(--chatfaq-message-file-attachment-text-color-dark);
+$chatfaq-file-download-icon-color-light: var(--chatfaq-file-download-icon-color-light);
+$chatfaq-file-download-icon-color-dark: var(--chatfaq-file-download-icon-color-dark);
 
 $chatfaq-prompt-button-background-color-light: var(--chatfaq-prompt-button-background-color-light);
 $chatfaq-prompt-button-background-color-dark: var(--chatfaq-prompt-button-background-color-dark);

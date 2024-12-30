@@ -210,7 +210,7 @@ THEME_DEFAULTS_BY_SECTION = {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "#463075",  # Neutral White
+            "light": "#463075",  # Primary 500
             "dark": "#FFFFFF",   # Neutral White
         }
     },
@@ -448,6 +448,14 @@ THEME_DEFAULTS_BY_SECTION = {
         }
     },
     "chatfaq-message-file-attachment-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    },
+    "chatfaq-file-download-icon-color": {
         "type": "color",
         "section": "icons",
         "value": {

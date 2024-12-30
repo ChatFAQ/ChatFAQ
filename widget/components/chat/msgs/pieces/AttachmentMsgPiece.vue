@@ -74,7 +74,7 @@ function getFileTypeFromName(url) {
             border-radius: 4px;
 
             &.dark-mode {
-                background: $chatfaq-file-box-color-dark;
+                background-color: $chatfaq-file-box-color-dark;
             }
         }
 
@@ -124,14 +124,17 @@ function getFileTypeFromName(url) {
     }
 
     .file-download-icon {
-        color: $chatfaq-color-primary-500;
-        stroke: $chatfaq-color-primary-500;
+        stroke: $chatfaq-file-download-icon-color-light;
         width: 16px;
         height: 16px;
         cursor: pointer;
         align-self: start;
         padding-left: 10px;
         padding-top: 2px;
+
+        &.dark-mode {
+            stroke: $chatfaq-file-download-icon-color-dark;
+        }
     }
 }
 </style>
