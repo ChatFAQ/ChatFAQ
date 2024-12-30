@@ -198,7 +198,7 @@ THEME_DEFAULTS_BY_SECTION = {
             "dark": "#4D4160",      # Neutral Purple
         }
     },
-    "chatfaq-file-box-color": {
+    "chatfaq-file-background-color": {
         "type": "color",
         "section": "colors",
         "value": {

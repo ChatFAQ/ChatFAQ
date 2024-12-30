@@ -168,8 +168,8 @@
     --chatfaq-color-separator-light: var(--chatfaq-color-transparent-primary-20);
     --chatfaq-prompt-button-background-color-light: var(--chatfaq-color-primary-500);
     --chatfaq-prompt-button-background-color-dark: var(--chatfaq-color-primary-500);
-    --chatfaq-file-box-color-light: var(--chatfaq-color-primary-500);
-    --chatfaq-file-box-color-dark: var(--chatfaq-color-primary-200);
+    --chatfaq-file-background-color-light: var(--chatfaq-color-primary-500);
+    --chatfaq-file-background-color-dark: var(--chatfaq-color-primary-200);
     --chatfaq-message-file-attachment-text-color-light: var(--chatfaq-color-primary-500);
     --chatfaq-message-file-attachment-text-color-dark: var(--chatfaq-color-neutral-white);
 }
@@ -295,8 +295,8 @@ $chatfaq-sun-icon-color: var(--chatfaq-sun-icon-color);
 $chatfaq-trash-icon-color: var(--chatfaq-trash-icon-color);
 $chatfaq-file-icon-color-light: var(--chatfaq-file-icon-color-light);
 $chatfaq-file-icon-color-dark: var(--chatfaq-file-icon-color-dark);
-$chatfaq-file-box-color-light: var(--chatfaq-file-box-color-light);
-$chatfaq-file-box-color-dark: var(--chatfaq-file-box-color-dark);
+$chatfaq-file-background-color-light: var(--chatfaq-file-background-color-light);
+$chatfaq-file-background-color-dark: var(--chatfaq-file-background-color-dark);
 $chatfaq-message-file-attachment-icon-color-light: var(--chatfaq-message-file-attachment-icon-color-light);
 $chatfaq-message-file-attachment-icon-color-dark: var(--chatfaq-message-file-attachment-icon-color-dark);
 $chatfaq-message-file-attachment-text-color-light: var(--chatfaq-message-file-attachment-text-color-light);

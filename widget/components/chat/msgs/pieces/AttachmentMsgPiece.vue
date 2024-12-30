@@ -62,7 +62,7 @@ function getFileTypeFromName(url) {
         }
 
         .file-icon-wrapper {
-            background-color: $chatfaq-file-box-color-light;
+            background-color: $chatfaq-file-background-color-light;
             display: flex;
             width: 40px;
             height: 40px;
@@ -74,7 +74,7 @@ function getFileTypeFromName(url) {
             border-radius: 4px;
 
             &.dark-mode {
-                background-color: $chatfaq-file-box-color-dark;
+                background-color: $chatfaq-file-background-color-dark;
             }
         }
 
