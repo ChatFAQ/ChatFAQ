@@ -47,7 +47,7 @@ function manageEnterInput(ev, cb) {
     }
 }
 
-function sendFeedback() {
+async function sendFeedback() {
     if (feedbackSent.value || !feedbackInput.value) return;
     
     const feedback = feedbackInput.value.innerText.trim();
@@ -55,8 +55,39 @@ function sendFeedback() {
 
     console.log(feedback);
 
-    // TODO: send feedback
-    feedbackSent.value = true;
+    const messageId = store.messages.filter(msg => msg.stack.some(stack => stack.type === 'message' || stack.type === 'message_chunk')).slice(-1)[0]?.id
+    if (!messageId) {
+        console.error("No message found");
+        return;
+    }
+
+    const feedbackData = {
+        message: messageId,
+        feedback_comment: feedback,
+    }
+
+    const headers = { 'Content-Type': 'application/json' }
+    if (store.authToken)
+        headers.Authorization = `Token ${store.authToken}`;
+    
+    try {
+        const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(feedbackData)
+        });
+        if (response.ok) {
+            console.log("Feedback sent successfully");
+            feedbackSent.value = true;
+            store.feedbackSent += 1;
+            store.scrollToBottom += 1;
+        } else {
+            console.error('Failed to send feedback:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Error sending feedback:', error);
+    }
+
 }
 </script>
 

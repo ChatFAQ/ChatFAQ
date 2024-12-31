@@ -38,33 +38,43 @@ const props = defineProps({
 
 console.log("props", props);
 
-function handleRating(value) {
+async function handleRating(value) {
     rating.value = value;
-
     console.log("rating", rating.value);
-    
-    // const m = {
-    //     "sender": {
-    //         "type": "human",
-    //         "platform": "WS",
-    //     },
-    //     "stack": [{
-    //         "type": "star_rating_response",
-    //         "payload": {
-    //             "rating": value
-    //         },
-    //     }],
-    //     "stack_id": "0",
-    //     "stack_group_id": "0",
-    //     "last": true,
-    // };
-    
-    // if (store.userId !== undefined) {
-    //     m["sender"]["id"] = store.userId;
-    // }
 
-    // store.messagesToBeSent.push(m);
-    // store.messagesToBeSentSignal += 1;
+    const messageId = store.messages.filter(msg => msg.stack.some(stack => stack.type === 'message' || stack.type === 'message_chunk')).slice(-1)[0]?.id
+    if (!messageId) {
+        console.error("No message found");
+        return;
+    }
+
+    const feedbackData = {
+        message: messageId,
+        star_rating: rating.value,
+        star_rating_max: props.data.num_stars,
+    }
+
+    const headers = { 'Content-Type': 'application/json' }
+    if (store.authToken)
+        headers.Authorization = `Token ${store.authToken}`;
+    
+    try {
+        const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(feedbackData)
+        });
+
+        if (response.ok) {
+            store.feedbackSent += 1;
+            console.log("Feedback sent successfully");
+        } else {
+            console.error('Failed to send feedback:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Error sending feedback:', error);
+    }
+
 }
 </script>
 
