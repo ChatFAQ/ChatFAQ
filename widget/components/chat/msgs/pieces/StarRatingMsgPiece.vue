@@ -34,6 +34,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    msgId: {
+        type: String,
+        required: true,
+    },
 });
 
 console.log("props", props);
@@ -42,7 +46,14 @@ async function handleRating(value) {
     rating.value = value;
     console.log("rating", rating.value);
 
-    const messageId = store.messages.filter(msg => msg.stack.some(stack => stack.type === 'message' || stack.type === 'message_chunk')).slice(-1)[0]?.id
+    // Find the current message index
+    const currentMsgIndex = store.messages.findIndex(msg => msg.id === props.msgId);
+    // Search backwards from current message for the latest message/message_chunk
+    const messageId = store.messages
+        .slice(0, currentMsgIndex + 1)
+        .reverse()
+        .find(msg => msg.stack.some(stack => stack.type === 'message' || stack.type === 'message_chunk'))?.id;
+
     if (!messageId) {
         console.error("No message found");
         return;

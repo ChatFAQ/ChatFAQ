@@ -9,7 +9,7 @@ class MessageAdmin(admin.ModelAdmin):
     list_display = ["conversation_id", "id", "sender_type", "payload_text", "created_date"]
 
     def payload_text(self, obj):
-        payload = obj.stack[0]['payload']
+        payload = obj.stack[0]['payload'] if obj.stack else ''
         if 'content' in payload and isinstance(payload, dict):
             return payload['content']
         elif 'model_response' in payload and isinstance(payload, dict):

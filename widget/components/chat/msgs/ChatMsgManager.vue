@@ -75,12 +75,12 @@
                     </template>
                     <template v-else-if="getFirstStackType() === 'star_rating'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <StarRatingMsgPiece :data="layer.payload" />
+                            <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" />
                         </div>
                     </template>
                     <template v-else-if="getFirstStackType() === 'text_feedback'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <TextFeedbackMsgPiece :data="layer.payload" />
+                            <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
                         </div>
                     </template>
                     <template v-else>
