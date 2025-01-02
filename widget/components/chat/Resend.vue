@@ -1,9 +1,8 @@
 <template>
     <div class="resend" :class="{'dark-mode': store.darkMode}">
         <div class="feedback-top">
-            <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}</div>
             <div class="feedback-controls">
-                <ThumbUp class="control" :class="{'dark-mode': store.darkMode}" @click="resendMsg" />
+                <Repeat class="control" :class="{'dark-mode': store.darkMode}" @click="resendMsg" />
             </div>
         </div>
     </div>
@@ -12,8 +11,8 @@
 <script setup>
 import {useGlobalStore} from "~/store";
 import {useI18n} from 'vue-i18n'
-import {defineProps} from "vue";
-import ThumbUp from "~/components/icons/ThumbUp.vue";
+import {defineProps, nextTick} from "vue";
+import Repeat from "~/components/icons/Repeat.vue";
 const props = defineProps(["msgId"]);
 
 const store = useGlobalStore();
@@ -23,8 +22,10 @@ const {t} = useI18n()
 async function resendMsg(value, _collapse) {
     if (store.previewMode)
         return
-
-    store.resendMsgId = props.msgId
+    store.resendMsgId = undefined;
+    await nextTick(() => {
+        store.resendMsgId = props.msgId
+    })
 }
 
 </script>
@@ -66,10 +67,15 @@ async function resendMsg(value, _collapse) {
         &.dark-mode {
             color: $chatfaq-color-thumbs-and-clipboard-dark;
         }
-        &.collapse {
-            cursor: unset;
+        &:hover {
+            color: $chatfaq-color-chatMessageReference-text-light;
+            background: rgba(70, 48, 117, 0.1);
+            border-radius: 2px;
+            &.dark-mode {
+                background-color: $chatfaq-color-chatMessageReference-background-dark;
+                color: $chatfaq-color-chatMessageReference-text-dark;
+            }
         }
-
     }
 }
 

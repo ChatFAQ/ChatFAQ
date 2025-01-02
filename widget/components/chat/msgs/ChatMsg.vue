@@ -58,24 +58,26 @@
                             :references="props.message.stack[0].payload.references"></References>
                     </template>
                 </div>
-                <UserFeedback
-                    v-if="
-                        props.message.sender.type === 'bot' &&
-                        props.message.stack[props.message.stack.length - 1].meta &&
-                        props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
-                        props.message.last_chunk
-                    "
-                    :msgId="props.message.id"
-                    @feedbacking="feedbacking = true"
-                    @collapse="feedbacking = false"
-                ></UserFeedback>
-                <Resend
-                    v-if="
-                        props.message.sender.type === 'bot' &&
-                        store.enableResend
-                    "
-                    :msgId="props.message.id"
-                ></Resend>
+                <div class="msg-commands">
+                    <UserFeedback
+                        v-if="
+                            props.message.sender.type === 'bot' &&
+                            props.message.stack[props.message.stack.length - 1].meta &&
+                            props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
+                            props.message.last_chunk
+                        "
+                        :msgId="props.message.id"
+                        @feedbacking="feedbacking = true"
+                        @collapse="feedbacking = false"
+                    ></UserFeedback>
+                    <Resend
+                        v-if="
+                            props.message.sender.type === 'bot' &&
+                            store.enableResend
+                        "
+                        :msgId="props.message.id"
+                    ></Resend>
+                </div>
             </div>
         </div>
     </div>
@@ -222,6 +224,10 @@ $phone-breakpoint: 600px;
             margin-left: 5px;
             margin-right: 5px;
         }
+    }
+    .msg-commands {
+        display: flex;
+        float: right;
     }
 }
 

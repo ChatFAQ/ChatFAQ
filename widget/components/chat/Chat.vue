@@ -262,6 +262,8 @@ function sendMessage() {
 }
 
 function resendMsg(msgId) {
+    if (msgId === undefined)
+        return;
     if (store.disconnected)
         return;
     store.deleteMsgsAfter(msgId)
