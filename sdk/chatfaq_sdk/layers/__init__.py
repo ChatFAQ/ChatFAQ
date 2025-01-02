@@ -1,8 +1,8 @@
 from logging import getLogger
 from typing import Dict, List
+from uuid import uuid4
 
 from pydantic import BaseModel
-from uuid import uuid4
 
 logger = getLogger(__name__)
 
@@ -53,7 +53,14 @@ class Message(Layer):
 
     _type = "message"
 
-    def __init__(self, content, references={}, tool_calls=[], *args, **kwargs):
+    def __init__(
+        self,
+        content,
+        references={},
+        tool_calls=[],
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.content = content
         self.references = references
@@ -70,11 +77,88 @@ class Message(Layer):
         yield [payload], True
 
 
+class FileUpload(Layer):
+    """
+    A message layer that includes a file upload request.
+    """
+    _type = "file_upload"
+
+    def __init__(
+        self,
+        content,
+        file_extensions=[],
+        max_size=0,
+        *args,
+        **kwargs,
+    ):
+        """
+        :param file_extensions: A list of file extensions to request. For example: ["pdf", "xml"]
+        :param max_size: The maximum size of the file to request in bytes. For example: 50 * 1024 * 1024 (50MB)
+        """
+        super().__init__(*args, **kwargs)
+        self.content = content
+        self.file_extensions = file_extensions
+        self.max_size = max_size
+
+    async def build_payloads(self, ctx, data):
+        _payload = {
+            "content": self.content,
+            "files": {
+                file_extension: {
+                    "max_size": self.max_size,
+                }
+                for file_extension in self.file_extensions
+            },
+        }
+
+        yield [{"payload": _payload}], True
+
+
+class FileDownload(Layer):
+    """
+    A message layer that includes a file download.
+    """
+    _type = "file_download"
+
+    def __init__(
+            self,
+            content: str,
+            file_name: str,
+            file_url: str,
+            *args,
+            **kwargs,
+    ):
+        """
+        :param file_name: The name of the file. For example: "report.pdf"
+        :param file_url: The URL of the file where the user can download it or visualize it. For example: "https://example.com/report.pdf"
+        """
+        super().__init__(*args, **kwargs)
+        self.content = content
+        self.file_name = file_name
+        self.file_url = file_url
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                    "content": self.content,
+                    "name": self.file_name,
+                    "url": self.file_url,
+            }
+        }
+        yield [payload], True
+
+
 class StreamingMessage(Layer):
     _type = "message_chunk"
     _streaming = True
 
-    def __init__(self, generator, references={}, *args, **kwargs):
+    def __init__(
+        self,
+        generator,
+        references={},
+        *args,
+        **kwargs,
+    ):
         super().__init__(*args, **kwargs)
         self.generator = generator
         self.references = references
@@ -84,16 +168,15 @@ class StreamingMessage(Layer):
             last_chunk = chunk.get("last_chunk", False)
             tool_calls = chunk.get("tool_calls", [])
             if last_chunk:  # now we send the references only in the final message
+                payload = {
+                    "payload": {
+                        "content": chunk.get("content"),
+                        "references": self.references,
+                        "tool_calls": tool_calls,
+                    }
+                }
                 yield (
-                    [
-                        {
-                            "payload": {
-                                "content": chunk.get("content"),
-                                "references": self.references,
-                                "tool_calls": tool_calls,
-                            }
-                        }
-                    ],
+                    [payload],
                     last_chunk,
                 )
                 break
@@ -120,7 +203,5 @@ class GTMTag(Layer):
         self.tag = tag
 
     async def build_payloads(self, ctx, data):
-        payload = {
-            "payload": self.tag
-        }
+        payload = {"payload": self.tag}
         yield [payload], True
