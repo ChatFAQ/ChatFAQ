@@ -41,6 +41,8 @@ export const useGlobalStore = defineStore('globalStore', {
             speechRecognitionAutoSend: false,
             allowAttachments: false,
             authToken: undefined,
+            messagesToBeSentSignal: 0,
+            messagesToBeSent: [],
             disableDayNightMode: false,
             enableLogout: false,
             enableResend: false,

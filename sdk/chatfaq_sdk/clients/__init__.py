@@ -12,7 +12,7 @@ async def llm_request(
     llm_config_name: str,
     messages: List[Dict[str, str]] = None,
     temperature: float = 0.7,
-    max_tokens: int = 1024,
+    max_tokens: int = 4096,
     seed: int = 42,
     tools: List[BaseModel] = None,
     tool_choice: str = None,

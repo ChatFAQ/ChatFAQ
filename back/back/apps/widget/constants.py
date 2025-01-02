@@ -198,6 +198,22 @@ THEME_DEFAULTS_BY_SECTION = {
             "dark": "#4D4160",      # Neutral Purple
         }
     },
+    "chatfaq-file-background-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#DFDAEA",   # Primary 200
+        }
+    },
+    "chatfaq-message-file-attachment-text-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    },
 
     # Gradients
     "chatfaq-color-bubbleButton-background-hover": {
@@ -423,6 +439,30 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "icons",
         "value": "#FFFFFF",  # Neutral White
     },
+    "chatfaq-file-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#FFFFFF",  # Neutral White
+            "dark": "#1A0438",   # Primary 900
+        }
+    },
+    "chatfaq-message-file-attachment-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    },
+    "chatfaq-file-download-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    }
 }
 
 THEME_DEFAULTS = {k: v["value"] for k, v in THEME_DEFAULTS_BY_SECTION.items()}
