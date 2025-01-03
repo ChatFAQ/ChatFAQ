@@ -49,6 +49,7 @@ gunicorn = "^22.0.0"
 uvicorn = "^0.30.1"
 chat-rag = "0.2.3"
 channels-redis = "^4.2.1"
+PyMuPDF = "^1.25.1"
 
 
 [tool.poetry.group.dev.dependencies]

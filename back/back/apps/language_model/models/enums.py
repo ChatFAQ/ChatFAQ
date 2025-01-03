@@ -34,6 +34,7 @@ class LanguageChoices(models.TextChoices):
     FR = "fr", _("French")
 
 class StrategyChoices(models.TextChoices):
+    NO_PARSING = "no_parsing", _("No Parsing")  # Just extract text from PDF into a single KnowledgeItem
     AUTO = "auto", _("Auto")
     FAST = "fast", _("Fast")
     OCR_ONLY = "ocr_only", _("OCR Only")

@@ -166,7 +166,6 @@ async function deleteDataSource() {
 function getExcludedFields() {
     const excludedFields = ['knowledge_base'];
     if (!$useRay) {
-        excludedFields.push('original_pdf');
         excludedFields.push('original_url');
     }
     return excludedFields;

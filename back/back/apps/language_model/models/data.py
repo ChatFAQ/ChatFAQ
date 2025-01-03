@@ -1,30 +1,33 @@
+import base64
 import csv
+import os
 from io import StringIO
 from logging import getLogger
 from uuid import uuid4
-import base64
-import os
 
-from django.db import models
+import fitz  # PyMuPDF
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.apps import apps
 from django.core.files.base import ContentFile
+from django.db import models
+from pgvector.django import VectorField
 
-from back.apps.language_model.models.enums import LanguageChoices, StrategyChoices, SplittersChoices, IndexStatusChoices
 from back.apps.broker.models import RemoteSDKParsers
+from back.apps.language_model.models.enums import (
+    IndexStatusChoices,
+    LanguageChoices,
+    SplittersChoices,
+    StrategyChoices,
+)
 from back.apps.language_model.models.tasks import RayTaskState
 from back.apps.language_model.tasks import (
     parse_pdf_task,
     parse_url_task,
 )
 from back.common.models import ChangesMixin
-from pgvector.django import VectorField
-
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-
+from back.config.settings import USE_RAY
 from back.config.storage_backends import select_private_storage
-
-
 
 logger = getLogger(__name__)
 
@@ -109,7 +112,7 @@ class DataSource(ChangesMixin):
     role_index_col = models.IntegerField(default=4)
     page_number_index_col = models.IntegerField(default=5)
     # PDF parsing options
-    strategy = models.CharField(max_length=10, choices=StrategyChoices.choices, default=StrategyChoices.FAST)
+    strategy = models.CharField(max_length=10, choices=StrategyChoices.choices, default=StrategyChoices.NO_PARSING)
     # URL parsing options
     recursive = models.BooleanField(default=True)
     # PDF & URL parsing options
@@ -230,14 +233,37 @@ class DataSource(ChangesMixin):
             self.update_items_from_csv()
         elif self.original_pdf:
             logger.info("Updating items from PDF")
-            task_name = f"parse_pdf__{self.original_pdf.name}"
-            logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-            parse_pdf_task.options(name=task_name).remote(self.pk)
+            if USE_RAY and self.strategy != StrategyChoices.NO_PARSING:
+                task_name = f"parse_pdf__{self.original_pdf.name}"
+                logger.info(f"Submitting the {task_name} task to the Ray cluster...")
+                parse_pdf_task.options(name=task_name).remote(self.pk)
+            else:
+                logger.info("Updating items from PDF locally without parsing")
+                self.update_items_from_pdf_local()
         elif self.original_url:
             logger.info("Updating items from URL")
             task_name = f"parse_url__{self.original_url}"
             logger.info(f"Submitting the {task_name} task to the Ray cluster...")
             parse_url_task.options(name=task_name).remote(self.pk, self.original_url)
+
+    def update_items_from_pdf_local(self):
+        """Extract text from PDF using PyMuPDF and create a single KnowledgeItem."""
+        pdf_file = self.original_pdf.open("rb")
+        pdf_document = fitz.open(stream=pdf_file.read(), filetype="pdf")
+        text = ""
+        for page in pdf_document:
+            text += page.get_text()
+        pdf_file.close()
+        # Remove null characters
+        text = text.replace('\x00', '')
+        KnowledgeItem.objects.filter(data_source=self).delete()
+        KnowledgeItem.objects.create(
+            knowledge_base=self.knowledge_base,
+            data_source=self,
+            title=os.path.basename(self.original_pdf.name),
+            content=text,
+        )
+        logger.info(f"Updated {len(KnowledgeItem.objects.filter(data_source=self))} items from PDF")
 
 
 class KnowledgeItem(ChangesMixin):
