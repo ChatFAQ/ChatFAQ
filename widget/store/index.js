@@ -199,6 +199,12 @@ export const useGlobalStore = defineStore('globalStore', {
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
         },
+        getPrevMsg: (state) => (msg) => {
+            const index = state.messages.findIndex(m => m === msg)
+            if (index === -1 || index === 0)
+                return {}
+            return state.messages[index - 1]
+        },
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)
                 return state.customIFramedMsgs[id]
