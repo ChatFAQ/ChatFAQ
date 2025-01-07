@@ -7,5 +7,6 @@ def main():
         fsm_name="feedbacks_fsm",
         fsm_definition=fsm_definition,
         authentication_required=False,
+        overwrite_definition=True,
     )
     sdk.connect()
