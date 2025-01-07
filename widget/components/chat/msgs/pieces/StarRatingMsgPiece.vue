@@ -113,7 +113,7 @@ async function handleRating(value) {
             transition: color 0.2s ease;
 
             &.filled {
-                color: #FFD700;
+                color: $chatfaq-star-rating-icon-color-light;
             }
 
             /* Disable hover effects when the star is disabled */
@@ -125,7 +125,7 @@ async function handleRating(value) {
             /* Restrict hover-based color changes to non-disabled state */
             &:not(.disabled) {
                 .star-rating:hover & {
-                    color: #FFD700;
+                    color: $chatfaq-star-rating-icon-color-light;
                 }
 
                 .star-rating:hover & ~ .star {
@@ -137,7 +137,7 @@ async function handleRating(value) {
                 color: $chatfaq-color-chatMessageReference-background-dark;
 
                 &.filled {
-                    color: #FFD700;
+                    color: $chatfaq-star-rating-icon-color-dark;
                 }
             }
 
@@ -148,7 +148,7 @@ async function handleRating(value) {
                     color: inherit;
                     
                     &.filled {
-                        color: #FFD700;
+                        color: $chatfaq-star-rating-icon-color-light;
                     }
                 }
             }
