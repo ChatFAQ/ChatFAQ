@@ -257,6 +257,8 @@ function sendMessage(_message) {
     store.messages.push(message);
     ws.send(JSON.stringify(message));
     store.scrollToBottom += 1;
+    
+    chatInput.value?.blur(); // Remove focus from the input
 }
 
 function sendMessagesToBeSent() {
