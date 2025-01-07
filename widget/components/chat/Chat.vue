@@ -38,7 +38,18 @@
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
-            <div class="prompt-right-button" :class="{'dark-mode': store.darkMode}" @click="() => { if(availableMicro) { speechToText() } else if (availableSend) { sendMessage() }}">
+            <div class="prompt-right-button" 
+                 :class="{
+                     'dark-mode': store.darkMode,
+                     'disabled': isFinalFeedback
+                 }" 
+                 @click="() => { 
+                     if (!isFinalFeedback && availableMicro) { 
+                         speechToText() 
+                     } else if (!isFinalFeedback && availableSend) { 
+                         sendMessage() 
+                     }
+                 }">
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
                 <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
@@ -464,6 +475,12 @@ const activeMicro = computed(() => {
         background-color: $chatfaq-prompt-button-background-color-light;
         &.dark-mode {
             background-color: $chatfaq-prompt-button-background-color-dark;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
         }
     }
 }
