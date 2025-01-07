@@ -33,7 +33,6 @@
                     }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    contenteditable
                     :contenteditable="!isFinalFeedback"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
