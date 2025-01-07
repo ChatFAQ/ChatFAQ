@@ -26,10 +26,15 @@
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
-                    :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
+                    :class="{ 
+                        'dark-mode': store.darkMode, 
+                        'maximized': store.maximized,
+                        'disabled': isFinalFeedback 
+                    }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
                     contenteditable
+                    :contenteditable="!isFinalFeedback"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
@@ -58,6 +63,7 @@ const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", undefined]
+const isFinalFeedback = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
@@ -70,6 +76,9 @@ watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
+watch(() => store.selectedPlConversationId, () => {
+    isFinalFeedback.value = false
+})
 
 onMounted(async () => {
     await initializeConversation()
@@ -137,6 +146,8 @@ function createConnection() {
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
+        if (msg.stack[0]?.type === 'star_rating' || msg.stack[0]?.type === 'text_feedback')
+            isFinalFeedback.value = true
 
         sendToGTM(msg)
         store.addMessage(msg);
@@ -188,6 +199,7 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
+    isFinalFeedback.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
@@ -260,7 +272,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !isFinalFeedback.value
 }
 
 function createMessageFromInputPrompt() {
@@ -560,6 +572,12 @@ const activeMicro = computed(() => {
         &::placeholder {
             color: $chatfaq-color-chatInput-text-dark;
         }
+    }
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        pointer-events: none;
     }
 }
 
