@@ -26,21 +26,22 @@
                         <div>{{ conversation?.fsms ? conversation.fsms.join(",") : "" }}</div>
                         <div>{{formatDate(conversation.created_date)}}</div>
                     </div>
-                    <div v-for="msgs in getQAMessageGroups(conversation.msgs_chain)"
-                         @click="labeledQAGroup = msgs"
+                    <div v-for="msg in renderableMessages"
+                         @click="msg.sender.type === 'bot' && msg.stack?.length ? selectedMessage = msg : null"
                          class="qa-group"
                          :class="{
-                             'selected': (labeledQAGroup !== undefined && labeledQAGroup[labeledQAGroup.length - 1].id === msgs[msgs.length - 1].id),
-                             'reviewed': msgs[msgs.length - 1].reviewed
+                             'selected': (selectedMessage?.id === msg.id),
+                             'reviewed': msg.reviewed,
+                             'not-selectable': msg.sender.type === 'human' || !msg.stack?.length
                          }"
                     >
-                        <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true, 'hide': !renderableMsg(msg)}" >
-                            <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
+                        <div class="message" :class="[msg.sender.type]">
+                            <span v-if="msg.reviewed" class="reviewed-check">
                                 <el-icon>
                                     <CircleCheck/>
                                 </el-icon>
                             </span>
-                            <div v-if="renderableMsg(msg)" class="message-content" :class="{[msg.sender.type]: true}">
+                            <div class="message-content" :class="[msg.sender.type]">
                                 {{
                                     typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.content
                                 }}
@@ -51,19 +52,19 @@
                 <div class="labeling-tool-right-side">
                     <el-tabs model-value="knowledge-items" class="knowledge-items">
                         <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                            <KnowledgeItemReview v-if="labeledQAGroup !== undefined"
-                                                 :message="labeledQAGroup[labeledQAGroup.length - 1]"
-                                                 :references="referencesQAMessageGroup(labeledQAGroup)"
+                            <KnowledgeItemReview v-if="selectedMessage"
+                                                 :message="selectedMessage"
+                                                 :references="getMessageReferences(selectedMessage)"
                                                  ref="kiReviewer"
                             />
                             <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                         </el-tab-pane>
                         <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
-                            <GenerationReview v-if="labeledQAGroup !== undefined" :messageId="labeledQAGroup[labeledQAGroup.length - 1].id"/>
+                            <GenerationReview v-if="selectedMessage" :messageId="selectedMessage.id"/>
                             <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                         </el-tab-pane>
                         <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
-                            <UserFeedback v-if="labeledQAGroup !== undefined" :messageId="labeledQAGroup[labeledQAGroup.length - 1].id"/>
+                            <UserFeedback v-if="selectedMessage" :messageId="selectedMessage.id"/>
                             <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                         </el-tab-pane>
                     </el-tabs>
@@ -102,7 +103,7 @@ const router = useRouter()
 
 const {$axios} = useNuxtApp()
 
-const labeledQAGroup = ref(undefined)
+const selectedMessage = ref(undefined)
 const progressInfo = ref({"progress": 0, "total": 0})
 
 const props = defineProps({
@@ -120,6 +121,11 @@ const loadingConversation = ref(false)
 const thereIsNext = ref(true)
 const thereIsPrev = ref(true)
 let conversations = []
+
+const renderableMessages = computed(() => {
+    return conversation.value.msgs_chain?.filter(msg => msg.stack?.length > 0) || []
+})
+
 // get conversation async data
 async function initConversation() {
     loadingConversation.value = true
@@ -143,73 +149,34 @@ watch(itemId, async () => {
     selectFirstMessage()
 }, {immediate: true})
 
-function getQAMessageGroups(MMLChain) {
+function getMessageReferences(msg) {
+    let references = {}
+    for (const stack of msg.stack || []) {
+        if (stack.payload.references) {
+            references = {...references, ...stack.payload.references}
+        }
+    }
+    return references
+}
 
-    let groups = []
-    let group = []
-    if (!MMLChain)
-        return groups
-/*    for (let i = 0; i < MMLChain.length; i++) {
-        if (MMLChain[i].sender.type === 'bot') {
-            group.push(MMLChain[i])
-            groups.push(group)
-            group = []
-        } else {
-            group.push(MMLChain[i])
-        }
+function selectFirstMessage() {
+    if (conversation.value.msgs_chain?.length) {
+        selectedMessage.value = conversation.value.msgs_chain[0]
     }
- */
-    // If the MMLChain is like this [b, h, b, b, b, h, b, h, b, h, b, b]
-    // we should return [[b], [h, b, b, b, b], [h, b], [h, b], [h, b, b]]
-    // so that the first message of each group is a human message (in case a bot message is not the first of the conversation)
-    let i = 0
-    while (i < MMLChain.length) {
-        if (MMLChain[i].sender.type === 'human') {
-            group.push(MMLChain[i])
-            i++
-            while (i < MMLChain.length && MMLChain[i].sender.type === 'bot') {
-                group.push(MMLChain[i])
-                i++
-            }
-            groups.push(group)
-            group = []
-        } else {
-            group.push(MMLChain[i])
-            i++
-        }
-    }
-  return groups
 }
 
 async function pageConversation(direction) {
     loadingConversation.value = true
-    labeledQAGroup.value = undefined
+    selectedMessage.value = undefined
     const nextItem = await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, direction)
     if (nextItem !== undefined) {
         itemId.value = nextItem.id
     }
     loadingConversation.value = false
 }
-function selectFirstMessage() {
-    const qas = getQAMessageGroups(conversation.value.msgs_chain)
-    if (qas?.length)
-        labeledQAGroup.value = qas[0]
-}
-function referencesQAMessageGroup(msgsGroup) {
-    let references = {}
 
-    for (const msg of msgsGroup) {
-        // msg.stack[i...n].payload.references are a dict,obj
-        for (const stack of msg.stack || []) {
-            if (stack.payload.references) {
-                references = {...references, ...stack.payload.references}
-            }
-        }
-    }
-    return references
-}
 function renderableMsg(msg) {
-    return msg.stack && msg.stack.length
+    return msg.stack && msg.stack.length > 0
 }
 </script>
 
@@ -308,7 +275,6 @@ function renderableMsg(msg) {
                         max-width: 90%;
                         border-radius: 6px;
                         padding: 8px 12px 8px 12px;
-                        margin-bottom: 8px;
                         overflow-wrap: break-word;
 
                         &.bot {
@@ -460,6 +426,16 @@ function renderableMsg(msg) {
         padding-top: 16px;
         color: #545A64;
 
+    }
+}
+
+.qa-group {
+    &.not-selectable {
+        cursor: default !important;
+        
+        &:hover {
+            background: transparent !important;
+        }
     }
 }
 </style>

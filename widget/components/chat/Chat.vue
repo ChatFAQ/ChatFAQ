@@ -26,14 +26,29 @@
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
-                    :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
+                    :class="{ 
+                        'dark-mode': store.darkMode, 
+                        'maximized': store.maximized,
+                        'disabled': isFinalFeedback 
+                    }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    contenteditable
+                    :contenteditable="!isFinalFeedback"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
-            <div class="prompt-right-button" :class="{'dark-mode': store.darkMode}" @click="() => { if(availableMicro) { speechToText() } else if (availableSend) { sendMessage() }}">
+            <div class="prompt-right-button" 
+                 :class="{
+                     'dark-mode': store.darkMode,
+                     'disabled': isFinalFeedback
+                 }" 
+                 @click="() => { 
+                     if (!isFinalFeedback && availableMicro) { 
+                         speechToText() 
+                     } else if (!isFinalFeedback && availableSend) { 
+                         sendMessage() 
+                     }
+                 }">
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
                 <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
@@ -58,6 +73,7 @@ const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", undefined]
+const isFinalFeedback = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
@@ -71,6 +87,9 @@ watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 watch(() => store.resendMsgId, resendMsg)
 watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
+watch(() => store.selectedPlConversationId, () => {
+    isFinalFeedback.value = false
+})
 
 onMounted(async () => {
     await initializeConversation()
@@ -138,6 +157,8 @@ function createConnection() {
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
+        if (msg.stack[0]?.type === 'star_rating' || msg.stack[0]?.type === 'text_feedback')
+            isFinalFeedback.value = true
 
         sendToGTM(msg)
         store.addMessage(msg);
@@ -189,6 +210,7 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
+    isFinalFeedback.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
@@ -246,6 +268,8 @@ function sendMessage(_message) {
     store.messages.push(message);
     ws.send(JSON.stringify(message));
     store.scrollToBottom += 1;
+    
+    chatInput.value?.blur(); // Remove focus from the input
 }
 
 function sendMessagesToBeSent() {
@@ -261,7 +285,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !isFinalFeedback.value
 }
 
 function createMessageFromInputPrompt() {
@@ -460,6 +484,12 @@ const activeMicro = computed(() => {
         &.dark-mode {
             background-color: $chatfaq-prompt-button-background-color-dark;
         }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
+        }
     }
 }
 
@@ -569,6 +599,12 @@ const activeMicro = computed(() => {
         &::placeholder {
             color: $chatfaq-color-chatInput-text-dark;
         }
+    }
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        pointer-events: none;
     }
 }
 

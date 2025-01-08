@@ -9,7 +9,7 @@ class MessageAdmin(admin.ModelAdmin):
     list_display = ["conversation_id", "id", "sender_type", "payload_text", "created_date"]
 
     def payload_text(self, obj):
-        payload = obj.stack[0]['payload']
+        payload = obj.stack[0]['payload'] if obj.stack else ''
         if 'content' in payload and isinstance(payload, dict):
             return payload['content']
         elif 'model_response' in payload and isinstance(payload, dict):
@@ -22,7 +22,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 
 class UserFeedbackAdmin(admin.ModelAdmin):
-    list_display = ["id", "message_id", "value", "feedback_selection", "feedback_comment"]
+    list_display = ["id", "message_id", "value", "star_rating", "star_rating_max", "feedback_selection", "feedback_comment"]
 
 class AdminReviewAdmin(admin.ModelAdmin):
     list_display = ["id", "message_id", "gen_review_val", "gen_review_type", "ki_review_data"]
