@@ -103,6 +103,8 @@
     --chatfaq-message-file-attachment-icon-color-dark: var(--chatfaq-color-neutral-white);
     --chatfaq-file-download-icon-color-light: var(--chatfaq-color-primary-500);
     --chatfaq-file-download-icon-color-dark: var(--chatfaq-color-neutral-white);
+    --chatfaq-star-rating-icon-color-light: var(--chatfaq-color-primary-500);
+    --chatfaq-star-rating-icon-color-dark: var(--chatfaq-color-neutral-white);
     
 
      /* Sizes */
@@ -303,6 +305,8 @@ $chatfaq-message-file-attachment-text-color-light: var(--chatfaq-message-file-at
 $chatfaq-message-file-attachment-text-color-dark: var(--chatfaq-message-file-attachment-text-color-dark);
 $chatfaq-file-download-icon-color-light: var(--chatfaq-file-download-icon-color-light);
 $chatfaq-file-download-icon-color-dark: var(--chatfaq-file-download-icon-color-dark);
+$chatfaq-star-rating-icon-color-light: var(--chatfaq-star-rating-icon-color-light);
+$chatfaq-star-rating-icon-color-dark: var(--chatfaq-star-rating-icon-color-dark);
 
 $chatfaq-prompt-button-background-color-light: var(--chatfaq-prompt-button-background-color-light);
 $chatfaq-prompt-button-background-color-dark: var(--chatfaq-prompt-button-background-color-dark);

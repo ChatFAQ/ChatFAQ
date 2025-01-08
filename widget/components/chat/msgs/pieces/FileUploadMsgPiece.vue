@@ -40,7 +40,6 @@ const props = defineProps({
     },
 });
 
-console.log('FileUpload', props);
 
 const emit = defineEmits(['fileSelected', 's3Path']);
 

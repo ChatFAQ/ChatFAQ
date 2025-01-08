@@ -17,6 +17,8 @@ def make_chatfaq_sdk(
     chatfaq_http: str = os.getenv("CHATFAQ_BACKEND_HTTP"),
     token: str = os.getenv("CHATFAQ_TOKEN"),
     data_source_parsers: dict[str, DataSourceParser] = {},
+    authentication_required: bool = False,
+
 ):
     """
     This function is used to create a ChatFAQSDK instance with the given parameters
@@ -41,6 +43,7 @@ def make_chatfaq_sdk(
         fsm_definition=fsm_definition,
         overwrite_definition=overwrite_definition,
         data_source_parsers=data_source_parsers,
+        authentication_required=authentication_required,
     )
 
     return sdk
