@@ -65,7 +65,7 @@ async function sendFeedback() {
     const messageId = store.messages
         .slice(0, currentMsgIndex + 1)
         .reverse()
-        .find(msg => msg.stack.some(stack => stack.type === 'message' || stack.type === 'message_chunk'))?.id;
+        .find(msg => msg.stack.some(stack => ['message', 'message_chunk', 'file_uploaded', 'file_download'].includes(stack.type)))?.id;
     if (!messageId) {
         console.error("No message found");
         return;
