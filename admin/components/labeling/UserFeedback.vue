@@ -46,7 +46,6 @@ watch(() => props.messageId, async (_) => {
 
 async function initUserFeedback() {
     userFeedback.value = (await $axios.get("/back/api/broker/user-feedback/?message=" + props.messageId, { headers: authHeaders() })).data.results
-    console.log("User Feedback for message: ", props.messageId, userFeedback.value)
     if (userFeedback.value.length === 0) {
         userFeedback.value = { feedback: t("nofeedbackyet") }
     }

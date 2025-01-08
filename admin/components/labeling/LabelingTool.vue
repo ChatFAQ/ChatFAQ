@@ -176,10 +176,7 @@ async function pageConversation(direction) {
 }
 
 function renderableMsg(msg) {
-    console.log("msg stack", msg.stack)
-    const v = msg.stack && msg.stack.length > 0
-    console.log("renderableMsg", v)
-    return v
+    return msg.stack && msg.stack.length > 0
 }
 </script>
 

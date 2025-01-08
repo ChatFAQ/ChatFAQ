@@ -40,11 +40,9 @@ const props = defineProps({
     },
 });
 
-console.log("props", props);
 
 async function handleRating(value) {
     rating.value = value;
-    console.log("rating", rating.value);
 
     // Find the current message index
     const currentMsgIndex = store.messages.findIndex(msg => msg.id === props.msgId);
@@ -109,32 +107,37 @@ async function handleRating(value) {
         .star {
             font-size: 24px;
             cursor: pointer;
-            color: $chatfaq-color-chatMessageReference-background-light;
-            transition: color 0.2s ease;
+            color: $chatfaq-star-rating-icon-color-light;
+            opacity: 0.25;
+            transition: color 0.2s ease, opacity 0.2s ease;
 
             &.filled {
                 color: $chatfaq-star-rating-icon-color-light;
+                opacity: 1;
             }
 
             /* Disable hover effects when the star is disabled */
             &:not(.disabled):hover,
             &:not(.disabled):hover ~ .star {
                 color: inherit;
+                opacity: 1;
             }
             
             /* Restrict hover-based color changes to non-disabled state */
             &:not(.disabled) {
                 .star-rating:hover & {
                     color: $chatfaq-star-rating-icon-color-light;
+                    opacity: 1;
                 }
 
                 .star-rating:hover & ~ .star {
                     color: inherit;
+                    opacity: 0.25;
                 }
             }
 
             &.dark-mode {
-                color: $chatfaq-color-chatMessageReference-background-dark;
+                color: $chatfaq-star-rating-icon-color-dark;
 
                 &.filled {
                     color: $chatfaq-star-rating-icon-color-dark;

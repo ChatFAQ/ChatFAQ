@@ -57,7 +57,6 @@ async function sendFeedback() {
     const feedback = feedbackInput.value.innerText.trim();
     if (!feedback) return;
 
-    console.log(feedback);
 
     // Find the current message index
     const currentMsgIndex = store.messages.findIndex(msg => msg.id === props.msgId);
