@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.1.49",
+    "version": "0.1.50",
     "private": false,
     "main": "./dist/chatfaq-widget.umd.cjs",
     "module": "./dist/chatfaq-widget.mjs",
@@ -16,7 +16,7 @@
         "start": "nuxt start",
         "generate": "nuxt generate",
         "preview": "nuxt preview",
-        "package": "vite build && vue-tsc --emitDeclarationOnly"
+        "package": "vite build && vue-tsc"
     },
     "devDependencies": {
         "@babel/core": "^7.14.6",
