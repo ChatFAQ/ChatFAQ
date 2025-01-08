@@ -24,7 +24,7 @@ async function resendMsg(value, _collapse) {
         return
     store.resendMsgId = undefined;
     await nextTick(() => {
-        store.resendMsgId = props.msgId
+        store.resendMsgId = props.msgId;
     })
 }
 

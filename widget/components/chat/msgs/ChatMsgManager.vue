@@ -103,10 +103,10 @@
                     ></UserFeedback>
                     <Resend
                         v-if="
-                            props.message.sender.type === 'bot' &&
+                            props.message.sender.type === 'human' &&
                             store.enableResend
                         "
-                        :msgId="props.message.id"
+                        :msgId="store.getPrevMsg(props.message).id"
                     ></Resend>
                 </div>
             </div>
