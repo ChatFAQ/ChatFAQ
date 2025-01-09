@@ -379,7 +379,7 @@ class ChatFAQSDK:
             )
         )
 
-    async def query_kis(self, knowledge_base_name, query) -> List[KnowledgeItem]:
+    async def query_kis(self, knowledge_base_name, query: Optional[dict] = None) -> List[KnowledgeItem]:
         res = []
         offset = 0
         more = True
@@ -388,7 +388,7 @@ class ChatFAQSDK:
                 response = await client.get(
                     urllib.parse.urljoin(
                         self.chatfaq_http,
-                        f"back/api/language-model/knowledge-items/?knowledge_base_name={knowledge_base_name}&metadata={json.dumps(query)}&offset={offset}",
+                        f"back/api/language-model/knowledge-items/?knowledge_base__name={knowledge_base_name}&metadata={json.dumps(query)}&offset={offset}",
                     ),
                     headers={"Authorization": f"Token {self.token}"},
                 )
