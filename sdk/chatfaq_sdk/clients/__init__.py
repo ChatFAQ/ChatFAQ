@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 from pydantic import BaseModel
 from logging import getLogger
 from chatfaq_sdk import ChatFAQSDK
@@ -66,8 +66,8 @@ async def retrieve(
 
 async def query_kis(
     sdk: ChatFAQSDK,
-    knowledge_base_name: dict,
-    query: dict,
+    knowledge_base_name: str,
+    query: Optional[Dict] = None,
 ):
     return await sdk.query_kis(knowledge_base_name, query)
 
