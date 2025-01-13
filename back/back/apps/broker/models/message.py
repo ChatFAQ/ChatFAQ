@@ -255,6 +255,7 @@ class Message(ChangesMixin):
     stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
     last_chunk = models.BooleanField(default=False)
+    fsm_state = models.JSONField(null=True, blank=True)
 
     @property
     def completed_review(self):

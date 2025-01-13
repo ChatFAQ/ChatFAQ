@@ -115,6 +115,8 @@ class FSM:
         await database_sync_to_async(msg.save)()
         msgs = await database_sync_to_async(Message.objects.filter)(conversation=msg.conversation, created_date__gt=msg.created_date)
         await database_sync_to_async(msgs.delete)()
+
+        self.current_state = self.get_state_by_name(msg.fsm_state)
         # await self.next_state()
 
     async def next_state(self):
@@ -208,6 +210,7 @@ class FSM:
             msg = {**self.last_aggregated_msg}
             msg["conversation"] = msg["ctx"]["conversation_id"]
             msg["status"] = msg["ctx"]["status"]
+            msg["fsm_state"] = self.current_state.name
             serializer = self.MessageSerializer(data=msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             self.waiting_for_rpc = None
