@@ -1,14 +1,15 @@
 import os
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 from google import genai
 from google.genai.types import (
-    Part,
     Content,
+    CreateCachedContentConfig,
+    FunctionCallingConfig,
     GenerateContentConfig,
+    Part,
     Tool,
     ToolConfig,
-    FunctionCallingConfig,
 )
 from pydantic import BaseModel
 
@@ -92,11 +93,173 @@ class GeminiChatModel(LLM):
         """Map chat roles to Gemini roles."""
         return "model" if role == "assistant" else role
 
+    def _create_cache(
+        self,
+        messages: List[Dict[str, str]],
+        system_prompt: str = None,
+        cache_config: Dict = None,
+    ) -> str:
+        """
+        Create a cache for the given messages.
+        
+        Parameters
+        ----------
+        messages : List[Dict[str, str]]
+            The messages to cache
+        system_prompt : str, optional
+            The system prompt
+        cache_config : Dict
+            Configuration containing cache name and ttl
+        
+        Returns
+        -------
+        str
+            The cache name
+        """
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in messages
+        ]
+        
+        cached_content = self.client.caches.create(
+            model=self.llm_name,
+            config=CreateCachedContentConfig(
+                contents=contents,
+                system_instruction=system_prompt,
+                display_name=cache_config.get("name", "default_cache"),
+                ttl=f"{cache_config.get('ttl', 3600)}s",
+            ),
+        )
+        return cached_content.name
+
+    def _prepare_messages(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float,
+        max_tokens: int,
+        seed: int,
+        tools: List[Union[BaseModel, Dict]] = None,
+        tool_choice: str = None,
+    ) -> Tuple[str, List[Dict], List[Content], Dict]:
+        """
+        It prepares the messages for the Gemini client. In case there is caching, it splits the messages into messages to be cached and new messages to be sent to the model.
+        
+        Returns
+        -------
+        Tuple[str, List[Dict], List[Content], Dict]
+            system_prompt, cached_messages, content_messages, config_kwargs
+        """
+        # Extract system prompt if present
+        system_prompt = None
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)["content"]
+
+        # Find the last message with cache_control
+        cache_split_idx = 1
+        for idx, msg in enumerate(messages):
+            if msg.get("cache_control"):
+                cache_split_idx = idx + 1
+
+        # Split messages into cached and new
+        cached_messages = messages[:cache_split_idx] # These will be cached
+        new_messages = messages[cache_split_idx:] # These will be sent to the model
+
+        # Prepare contents for new messages
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in new_messages
+        ]
+
+        # Prepare tool configuration
+        tool_kwargs = {}
+        if tools:
+            tools_formatted, tool_choice = self._format_tools(tools, tool_choice)
+            tool_kwargs = {"tools": tools_formatted}
+            if tool_choice:
+                tool_kwargs["tool_config"] = tool_choice
+
+        config_kwargs = {
+            "temperature": temperature,
+            "max_output_tokens": max_tokens,
+            "seed": seed,
+            "system_instruction": system_prompt,
+            **tool_kwargs,
+        }
+
+        return system_prompt, cached_messages, contents, config_kwargs
+
     def stream(
         self,
         messages: List[Dict[str, str]],
         temperature: float = 1.0,
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,
+        seed: int = None,
+        cache_config: Dict = None,
+    ):
+        """
+        Generate text from a prompt using the model in streaming mode.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        cache_config: Dict
+            The cache configuration. This contains the cache name and ttl. 
+        Returns
+        -------
+        str
+            The generated text.
+        """
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, temperature, max_tokens, seed
+        )
+
+        # If we have messages to cache and cache_config
+        if cached_messages and cache_config:
+            try:
+                # First try with existing cache
+                config_kwargs["cached_content"] = cache_config["name"]
+                response = self.client.models.generate_content_stream(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
+            except Exception as e:
+                if "Cache not found" in str(e):
+                    # Create cache and retry
+                    cache_name = self._create_cache(
+                        cached_messages, system_prompt, cache_config
+                    )
+                    config_kwargs["cached_content"] = cache_name
+                    response = self.client.models.generate_content_stream(
+                        model=self.llm_name,
+                        contents=contents,
+                        config=GenerateContentConfig(**config_kwargs),
+                    )
+                else:
+                    raise e
+        else:
+            # No caching needed
+            response = self.client.models.generate_content_stream(
+                model=self.llm_name,
+                contents=contents,
+                config=GenerateContentConfig(**config_kwargs),
+            )
+
+        for chunk in response:
+            if chunk.text is not None:
+                yield chunk.text
+
+    async def astream(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 1.0,
+        max_tokens: int = 4096,
         seed: int = None,
         cache_config: Dict = None,
     ):
@@ -111,66 +274,42 @@ class GeminiChatModel(LLM):
         str
             The generated text.
         """
-        system_prompt = None
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
-        contents = [
-            Content(
-                parts=[Part(text=message["content"])],
-                role=self._map_role(message["role"]),
-            )
-            for message in messages
-        ]
-
-        response = self.client.models.generate_content_stream(
-            model=self.llm_name,
-            contents=contents,
-            config=GenerateContentConfig(
-                system_instruction=system_prompt,
-                temperature=temperature,
-                max_output_tokens=max_tokens,
-                seed=seed,
-            ),
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, temperature, max_tokens, seed
         )
-        for chunk in response:
-            if chunk.text is not None:
-                yield chunk.text  # return the delta text message
 
-    async def astream(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 1.0,
-        max_tokens: int = 1024,
-        seed: int = None,
-    ):
-        """
-        Generate text from a prompt using the model in streaming mode.
-        Parameters
-        ----------
-        messages : List[Tuple[str, str]]
-            The messages to use for the prompt. Pair of (role, message).
-        Returns
-        -------
-        str
-            The generated text.
-        """
-        contents = [
-            Content(
-                parts=[Part(text=message["content"])],
-                role=self._map_role(message["role"]),
+        # If we have messages to cache and cache_config
+        if cached_messages and cache_config:
+            try:
+                # First try with existing cache
+                config_kwargs["cached_content"] = cache_config["name"]
+                response = await self.client.aio.models.generate_content_stream(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
+            except Exception as e:
+                if "Cache not found" in str(e):
+                    # Create cache and retry
+                    cache_name = self._create_cache(
+                        cached_messages, system_prompt, cache_config
+                    )
+                    config_kwargs["cached_content"] = cache_name
+                    response = await self.client.aio.models.generate_content_stream(
+                        model=self.llm_name,
+                        contents=contents,
+                        config=GenerateContentConfig(**config_kwargs),
+                    )
+                else:
+                    raise e
+        else:
+            # No caching needed
+            response = self.client.aio.models.generate_content_stream(
+                model=self.llm_name,
+                contents=contents,
+                config=GenerateContentConfig(**config_kwargs),
             )
-            for message in messages
-        ]
 
-        response = self.client.aio.models.generate_content_stream(
-            model=self.llm_name,
-            contents=contents,
-            config=GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens,
-                seed=seed,
-            ),
-        )
         async for chunk in response:
             if chunk.text is not None:
                 yield chunk.text
@@ -179,10 +318,11 @@ class GeminiChatModel(LLM):
         self,
         messages: List[Dict[str, str]],
         temperature: float = 1.0,
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        cache_config: Dict = None,
     ) -> str | List:
         """
         Generate text from a prompt using the model.
@@ -195,34 +335,45 @@ class GeminiChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
-        contents = [
-            Content(
-                parts=[Part(text=message["content"])],
-                role=self._map_role(message["role"]),
-            )
-            for message in messages
-        ]
-        tool_kwargs = {}
-        if tools:
-            tools, tool_choice = self._format_tools(tools, tool_choice)
-            tool_kwargs = {"tools": tools}
-            if tool_choice:
-                tool_kwargs["tool_config"] = tool_choice
-
-        response = self.client.models.generate_content(
-            model=self.llm_name,
-            contents=contents,
-            config=GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens,
-                seed=seed,
-                **tool_kwargs,
-            ),
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, temperature, max_tokens, seed, tools, tool_choice
         )
 
+        # If we have messages to cache and cache_config
+        if cached_messages and cache_config:
+            try:
+                # First try with existing cache
+                config_kwargs["cached_content"] = cache_config["name"]
+                response = self.client.models.generate_content(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
+            except Exception as e:
+                if "Cache not found" in str(e) or "contents are required." in str(e):
+                    # Create cache and retry
+                    cache_name = self._create_cache(
+                        cached_messages, system_prompt, cache_config
+                    )
+                    config_kwargs["cached_content"] = cache_name
+                    response = self.client.models.generate_content(
+                        model=self.llm_name,
+                        contents=contents,
+                        config=GenerateContentConfig(**config_kwargs),
+                    )
+                else:
+                    raise e
+        else:
+            # No caching needed
+            response = self.client.models.generate_content(
+                model=self.llm_name,
+                contents=contents,
+                config=GenerateContentConfig(**config_kwargs),
+            )
+        print(response)
         if response.candidates:
             message = response.candidates[0].content
-            if any([hasattr(part, "function_call") for part in message.parts]):
+            if any([part.function_call is not None for part in message.parts]):
                 return self._extract_tool_info(message)
             text = ""
             for part in message.parts:
@@ -234,10 +385,11 @@ class GeminiChatModel(LLM):
         self,
         messages: List[Dict[str, str]],
         temperature: float = 1.0,
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        cache_config: Dict = None,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -250,34 +402,45 @@ class GeminiChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
-        contents = [
-            Content(
-                parts=[Part(text=message["content"])],
-                role=self._map_role(message["role"]),
-            )
-            for message in messages
-        ]
-        tool_kwargs = {}
-        if tools:
-            tools, tool_choice = self._format_tools(tools, tool_choice)
-            tool_kwargs = {"tools": tools}
-            if tool_choice:
-                tool_kwargs["tool_config"] = tool_choice
-
-        response = await self.client.aio.models.generate_content(
-            model=self.llm_name,
-            contents=contents,
-            config=GenerateContentConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens,
-                seed=seed,
-                **tool_kwargs,
-            ),
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, temperature, max_tokens, seed, tools, tool_choice
         )
+
+        # If we have messages to cache and cache_config
+        if cached_messages and cache_config:
+            try:
+                # First try with existing cache
+                config_kwargs["cached_content"] = cache_config["name"]
+                response = await self.client.aio.models.generate_content(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
+            except Exception as e:
+                if "Cache not found" in str(e):
+                    # Create cache and retry
+                    cache_name = self._create_cache(
+                        cached_messages, system_prompt, cache_config
+                    )
+                    config_kwargs["cached_content"] = cache_name
+                    response = await self.client.aio.models.generate_content(
+                        model=self.llm_name,
+                        contents=contents,
+                        config=GenerateContentConfig(**config_kwargs),
+                    )
+                else:
+                    raise e
+        else:
+            # No caching needed
+            response = await self.client.aio.models.generate_content(
+                model=self.llm_name,
+                contents=contents,
+                config=GenerateContentConfig(**config_kwargs),
+            )
 
         if response.candidates:
             message = response.candidates[0].content
-            if any([hasattr(part, "function_call") for part in message.parts]):
+            if any([part.function_call is not None for part in message.parts]):
                 return self._extract_tool_info(message)
             text = ""
             for part in message.parts:
