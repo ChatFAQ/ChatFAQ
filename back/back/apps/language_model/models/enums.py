@@ -24,6 +24,7 @@ class LLMChoices(models.TextChoices):
     CLAUDE = "claude", _("Claude Model")
     MISTRAL = "mistral", _("Mistral Model")
     TOGETHER = "together", _("Together Model")
+    GEMINI = "gemini", _("Gemini Model")
     # Deprecated for now
     # LOCAL_CPU = 'local_cpu', _('Local CPU Model')
     # LOCAL_GPU = 'local_gpu', _('Local GPU Model')

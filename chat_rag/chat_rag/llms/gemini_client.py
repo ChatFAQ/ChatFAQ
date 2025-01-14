@@ -2,7 +2,14 @@ import os
 from typing import Dict, List, Union
 
 from google import genai
-from google.genai.types import Part, Content, GenerateContentConfig, Tool, ToolConfig, FunctionCallingConfig
+from google.genai.types import (
+    Part,
+    Content,
+    GenerateContentConfig,
+    Tool,
+    ToolConfig,
+    FunctionCallingConfig,
+)
 from pydantic import BaseModel
 
 from chat_rag.llms.base_llm import LLM
@@ -13,7 +20,6 @@ class GeminiChatModel(LLM):
     def __init__(
         self,
         llm_name: str = "gemini-1.5-flash-002",
-        api_key: str = os.getenv("GOOGLE_API_KEY"),
         vertexai: bool = False,
         project: str = None,
         location: str = None,
@@ -23,8 +29,16 @@ class GeminiChatModel(LLM):
         Initialize the GeminiChatModel. Only provide the project and location if using VertexAI.
         """
         if vertexai:
-            assert project is not None and location is not None, "Project and location must be provided if vertexai is True"
-        self.client = genai.Client(api_key=api_key, vertexai=vertexai, project=project, location=location)
+            assert project is not None and location is not None, (
+                "Project and location must be provided if vertexai is True"
+            )
+
+        self.client = genai.Client(
+            api_key=os.getenv("GOOGLE_API_KEY", None), 
+            vertexai=vertexai, 
+            project=project, 
+            location=location
+        )
         self.llm_name = llm_name
 
     def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
@@ -34,15 +48,27 @@ class GeminiChatModel(LLM):
         tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.GEMINI_TOOLS)
-        tools_formatted = [Tool(function_declarations=[tool]) for tool in tools_formatted]
+        tools_formatted = [
+            Tool(function_declarations=[tool]) for tool in tools_formatted
+        ]
 
         # If the tool_choice is a named tool, then apply correct formatting
-        if tool_choice in [tool['title'] for tool in tools]:
-            tool_choice = ToolConfig(function_calling_config=FunctionCallingConfig(mode="ANY", allowed_function_names=[tool_choice]))
+        if tool_choice in [tool["title"] for tool in tools]:
+            tool_choice = ToolConfig(
+                function_calling_config=FunctionCallingConfig(
+                    mode="ANY", allowed_function_names=[tool_choice]
+                )
+            )
         elif tool_choice == "required":
-            tool_choice = ToolConfig(function_calling_config=FunctionCallingConfig(mode="ANY", allowed_function_names=[tool['title'] for tool in tools]))
+            tool_choice = ToolConfig(
+                function_calling_config=FunctionCallingConfig(
+                    mode="ANY", allowed_function_names=[tool["title"] for tool in tools]
+                )
+            )
         elif tool_choice == "auto":
-            tool_choice = ToolConfig(function_calling_config=FunctionCallingConfig(mode="AUTO"))
+            tool_choice = ToolConfig(
+                function_calling_config=FunctionCallingConfig(mode="AUTO")
+            )
         return tools_formatted, tool_choice
 
     def _extract_tool_info(self, message) -> List[Dict]:
@@ -72,6 +98,7 @@ class GeminiChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        cache_config: Dict = None,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -87,7 +114,13 @@ class GeminiChatModel(LLM):
         system_prompt = None
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
-        contents = [Content(parts=[Part(text=message["content"])], role=self._map_role(message["role"])) for message in messages]
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in messages
+        ]
 
         response = self.client.models.generate_content_stream(
             model=self.llm_name,
@@ -121,7 +154,13 @@ class GeminiChatModel(LLM):
         str
             The generated text.
         """
-        contents = [Content(parts=[Part(text=message["content"])], role=self._map_role(message["role"])) for message in messages]
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in messages
+        ]
 
         response = self.client.aio.models.generate_content_stream(
             model=self.llm_name,
@@ -156,7 +195,13 @@ class GeminiChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
-        contents = [Content(parts=[Part(text=message["content"])], role=self._map_role(message["role"])) for message in messages]
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in messages
+        ]
         tool_kwargs = {}
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
@@ -205,7 +250,13 @@ class GeminiChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
-        contents = [Content(parts=[Part(text=message["content"])], role=self._map_role(message["role"])) for message in messages]
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in messages
+        ]
         tool_kwargs = {}
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
