@@ -122,9 +122,51 @@ class GeminiChatModel(LLM):
                 role=self._map_role(message["role"]),
             )
             for message in messages
-        ]
+        ] if messages else None
         
         cached_content = self.client.caches.create(
+            model=self.llm_name,
+            config=CreateCachedContentConfig(
+                contents=contents,
+                system_instruction=system_prompt,
+                display_name=cache_config.get("name", "default_cache"),
+                ttl=f"{cache_config.get('ttl', 3600)}s",
+            ),
+        )
+        return cached_content.name
+
+    async def _acreate_cache(
+        self,
+        messages: List[Dict[str, str]],
+        system_prompt: str = None,
+        cache_config: Dict = None,
+    ) -> str:
+        """
+        Create a cache for the given messages.
+        
+        Parameters
+        ----------
+        messages : List[Dict[str, str]]
+            The messages to cache
+        system_prompt : str, optional
+            The system prompt
+        cache_config : Dict
+            Configuration containing cache name and ttl
+        
+        Returns
+        -------
+        str
+            The cache name
+        """
+        contents = [
+            Content(
+                parts=[Part(text=message["content"])],
+                role=self._map_role(message["role"]),
+            )
+            for message in messages
+        ] if messages else None
+        
+        cached_content = await self.client.aio.caches.create(
             model=self.llm_name,
             config=CreateCachedContentConfig(
                 contents=contents,
@@ -158,7 +200,7 @@ class GeminiChatModel(LLM):
             system_prompt = messages.pop(0)["content"]
 
         # Find the last message with cache_control
-        cache_split_idx = 1
+        cache_split_idx = 0
         for idx, msg in enumerate(messages):
             if msg.get("cache_control"):
                 cache_split_idx = idx + 1
@@ -188,7 +230,6 @@ class GeminiChatModel(LLM):
             "temperature": temperature,
             "max_output_tokens": max_tokens,
             "seed": seed,
-            "system_instruction": system_prompt,
             **tool_kwargs,
         }
 
@@ -220,30 +261,36 @@ class GeminiChatModel(LLM):
         )
 
         # If we have messages to cache and cache_config
-        if cached_messages and cache_config:
-            try:
-                # First try with existing cache
-                config_kwargs["cached_content"] = cache_config["name"]
+        if (cached_messages and cache_config) or (system_prompt and cache_config):
+            # List through all caches to find the real cache name
+            caches = self.client.caches.list()
+            name = None
+            for cache in caches:
+                if cache.display_name == cache_config["name"]:
+                    name = cache.name
+                    break
+                    
+            if name:  # If the cache exists, use it
+                config_kwargs["cached_content"] = name
                 response = self.client.models.generate_content_stream(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
                 )
-            except Exception as e:
-                if "Cache not found" in str(e):
-                    # Create cache and retry
-                    cache_name = self._create_cache(
-                        cached_messages, system_prompt, cache_config
-                    )
-                    config_kwargs["cached_content"] = cache_name
-                    response = self.client.models.generate_content_stream(
-                        model=self.llm_name,
-                        contents=contents,
-                        config=GenerateContentConfig(**config_kwargs),
-                    )
-                else:
-                    raise e
+            else:
+                # Create cache and retry
+                cache_name = self._create_cache(
+                    cached_messages, system_prompt, cache_config
+                )
+                config_kwargs["cached_content"] = cache_name
+                response = self.client.models.generate_content_stream(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
         else:
+            # Add system prompt to the config
+            config_kwargs["system_instruction"] = system_prompt
             # No caching needed
             response = self.client.models.generate_content_stream(
                 model=self.llm_name,
@@ -279,30 +326,36 @@ class GeminiChatModel(LLM):
         )
 
         # If we have messages to cache and cache_config
-        if cached_messages and cache_config:
-            try:
-                # First try with existing cache
-                config_kwargs["cached_content"] = cache_config["name"]
-                response = await self.client.aio.models.generate_content_stream(
+        if (cached_messages and cache_config) or (system_prompt and cache_config):
+            # List through all caches to find the real cache name
+            caches = self.client.caches.list()
+            name = None
+            for cache in caches:
+                if cache.display_name == cache_config["name"]:
+                    name = cache.name
+                    break
+
+            if name:  # If the cache exists, use it
+                config_kwargs["cached_content"] = name
+                response = self.client.aio.models.generate_content_stream(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
                 )
-            except Exception as e:
-                if "Cache not found" in str(e):
-                    # Create cache and retry
-                    cache_name = self._create_cache(
-                        cached_messages, system_prompt, cache_config
-                    )
-                    config_kwargs["cached_content"] = cache_name
-                    response = await self.client.aio.models.generate_content_stream(
-                        model=self.llm_name,
-                        contents=contents,
-                        config=GenerateContentConfig(**config_kwargs),
-                    )
-                else:
-                    raise e
+            else:
+                # Create cache and retry
+                cache_name = self._create_cache(
+                    cached_messages, system_prompt, cache_config
+                )
+                config_kwargs["cached_content"] = cache_name
+                response = self.client.aio.models.generate_content_stream(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
         else:
+            # Add system prompt to the config
+            config_kwargs["system_instruction"] = system_prompt
             # No caching needed
             response = self.client.aio.models.generate_content_stream(
                 model=self.llm_name,
@@ -340,37 +393,41 @@ class GeminiChatModel(LLM):
         )
 
         # If we have messages to cache and cache_config
-        if cached_messages and cache_config:
-            try:
-                # First try with existing cache
-                config_kwargs["cached_content"] = cache_config["name"]
+        if (cached_messages and cache_config) or (system_prompt and cache_config):
+            # List through all caches is not optimal, it adds almost a second to the response time but it's the only way to get the real cache name for now
+            caches = self.client.caches.list() 
+            name = None
+            for cache in caches:
+                if cache.display_name == cache_config["name"]:
+                    name = cache.name
+                    break
+            if name: # If the cache exists, use it
+                config_kwargs["cached_content"] = name
                 response = self.client.models.generate_content(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
                 )
-            except Exception as e:
-                if "Cache not found" in str(e) or "contents are required." in str(e):
-                    # Create cache and retry
-                    cache_name = self._create_cache(
-                        cached_messages, system_prompt, cache_config
-                    )
-                    config_kwargs["cached_content"] = cache_name
-                    response = self.client.models.generate_content(
-                        model=self.llm_name,
-                        contents=contents,
-                        config=GenerateContentConfig(**config_kwargs),
-                    )
-                else:
-                    raise e
+            else:
+                # Create cache and retry
+                cache_name = self._create_cache(
+                    cached_messages, system_prompt, cache_config
+                )
+                config_kwargs["cached_content"] = cache_name
+                response = self.client.models.generate_content(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
         else:
+            # Add system prompt to the config
+            config_kwargs["system_instruction"] = system_prompt
             # No caching needed
             response = self.client.models.generate_content(
                 model=self.llm_name,
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
             )
-        print(response)
         if response.candidates:
             message = response.candidates[0].content
             if any([part.function_call is not None for part in message.parts]):
@@ -407,37 +464,41 @@ class GeminiChatModel(LLM):
         )
 
         # If we have messages to cache and cache_config
-        if cached_messages and cache_config:
-            try:
-                # First try with existing cache
-                config_kwargs["cached_content"] = cache_config["name"]
+        if (cached_messages and cache_config) or (system_prompt and cache_config):
+            # List through all caches is not optimal but it's the only way to get the real cache name for now
+            caches = await self.client.aio.caches.list() 
+            name = None
+            for cache in caches:
+                if cache.display_name == cache_config["name"]:
+                    name = cache.name
+                    break
+            if name: # If the cache exists, use it
+                config_kwargs["cached_content"] = name
                 response = await self.client.aio.models.generate_content(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
                 )
-            except Exception as e:
-                if "Cache not found" in str(e):
-                    # Create cache and retry
-                    cache_name = self._create_cache(
-                        cached_messages, system_prompt, cache_config
-                    )
-                    config_kwargs["cached_content"] = cache_name
-                    response = await self.client.aio.models.generate_content(
-                        model=self.llm_name,
-                        contents=contents,
-                        config=GenerateContentConfig(**config_kwargs),
-                    )
-                else:
-                    raise e
+            else:
+                # Create cache and retry
+                cache_name = await self._acreate_cache(
+                    cached_messages, system_prompt, cache_config
+                )
+                config_kwargs["cached_content"] = cache_name
+                response = await self.client.aio.models.generate_content(
+                    model=self.llm_name,
+                    contents=contents,
+                    config=GenerateContentConfig(**config_kwargs),
+                )
         else:
+            # Add system prompt to the config
+            config_kwargs["system_instruction"] = system_prompt
             # No caching needed
             response = await self.client.aio.models.generate_content(
                 model=self.llm_name,
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
             )
-
         if response.candidates:
             message = response.candidates[0].content
             if any([part.function_call is not None for part in message.parts]):

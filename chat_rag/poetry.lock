@@ -1472,13 +1472,13 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
 name = "google-genai"
-version = "0.4.0"
+version = "0.5.0"
 description = "GenAI Python SDK"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "google_genai-0.4.0-py3-none-any.whl", hash = "sha256:2cbfea3cb47d4ac54ee3d3f9ecd79ff72298cac13e150828afdc5ed62768ed00"},
-    {file = "google_genai-0.4.0.tar.gz", hash = "sha256:d14ce2e941063092cfc98726aeabcae44f179456e3a4906ee5f28dc91b0663fb"},
+    {file = "google_genai-0.5.0-py3-none-any.whl", hash = "sha256:9b30c6f1a9208da0378ca2ba03d3c0ed7ac49a264622a54d19e0e6adc16464ec"},
+    {file = "google_genai-0.5.0.tar.gz", hash = "sha256:69ded0313f35a0cb624a4dee22ae2448068a87105859c6fc338e52e9ac26ecc2"},
 ]
 
 [package.dependencies]
@@ -6495,4 +6495,4 @@ full = ["accelerate", "bm25s", "einops", "hdbscan", "pillow", "protobuf", "ragat
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "1aa938aae1ffea6c2e793f3e1fcacd0f6d04b86f77eda99842c69fda8ffdab34"
+content-hash = "f4e39464354746ff7c75e3a12d5c8bf5c0cf9a8719a89bc34941ebc49edb4deb"
