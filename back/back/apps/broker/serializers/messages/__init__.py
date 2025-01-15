@@ -15,6 +15,10 @@ from back.apps.broker.models.message import AgentType, Satisfaction
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
 from back.apps.fsm.models import FSMDefinition
+from back.config.storage_backends import (
+    PrivateMediaLocalStorage,
+    select_private_storage
+)
 
 if TYPE_CHECKING:
     from back.apps.broker.models.message import Message
@@ -194,6 +198,14 @@ class MessageStackSerializer(serializers.Serializer):
     state = serializers.JSONField(required=False)
     fsm_definition = FSMDefinitionField(required=False, allow_null=True)
 
+    def validate(self, attrs):
+        # If it is a file for download and doesn't have a url then we need to return a url to the file so the fsm can download it
+        if attrs['type'] == 'file_uploaded' and not attrs.get('payload', {}).get('url') and attrs.get('payload', {}).get('s3_path'):
+            storage = select_private_storage()
+            if not isinstance(storage, PrivateMediaLocalStorage):
+                attrs['payload']['url'] = storage.generate_presigned_url_get(attrs.get('payload', {}).get('s3_path'), expires_in=3600)
+        return attrs
+
 
 class MessageSerializer(serializers.ModelSerializer):
     stack = serializers.ListField(child=MessageStackSerializer())
@@ -206,6 +218,7 @@ class MessageSerializer(serializers.ModelSerializer):
     send_time = JSTimestampField()
     reviewed = serializers.SerializerMethodField()
     status = serializers.JSONField(required=False, allow_null=True)
+    fsm_state = serializers.JSONField(required=False, allow_null=True)
 
     class Meta:
         from back.apps.broker.models.message import Message  # TODO: CI

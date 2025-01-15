@@ -3,6 +3,7 @@ from enum import Enum
 from logging import getLogger
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -232,7 +233,6 @@ class Message(ChangesMixin):
         Whether this message is the last one of the chunk
     status: JSONField
         The status of the FSM on that point on time
-
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -255,6 +255,7 @@ class Message(ChangesMixin):
     stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
     last_chunk = models.BooleanField(default=False)
+    fsm_state = models.JSONField(null=True, blank=True)
 
     @property
     def completed_review(self):
@@ -333,13 +334,27 @@ class UserFeedback(ChangesMixin):
         ("positive", "Positive"),
         ("negative", "Negative"),
     )
-    message = models.OneToOneField(
-        Message, null=True, unique=True, on_delete=models.SET_NULL
+    message = models.ForeignKey(
+        Message, null=True, on_delete=models.SET_NULL
     )
-    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
-
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES, null=True, blank=True)
+    star_rating = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+    )
+    star_rating_max = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+    )
     feedback_selection = ArrayField(models.TextField(), null=True, blank=True)
     feedback_comment = models.TextField(null=True, blank=True)
+
+    def clean(self):
+        if self.star_rating and self.star_rating_max:
+            if self.star_rating > self.star_rating_max:
+                raise ValidationError("Star rating cannot be greater than maximum stars")
 
 
 class AdminReview(ChangesMixin):

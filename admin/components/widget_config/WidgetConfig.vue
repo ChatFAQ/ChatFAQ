@@ -47,6 +47,7 @@
                         'custom_css',
                         'initial_conversation_metadata',
                         'custom_i_framed_msgs',
+                        'enable_resend',
                     ],
                 [$t('theme')]: [
                         'theme'

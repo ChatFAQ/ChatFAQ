@@ -80,6 +80,7 @@ const props = defineProps({
     authToken: String,
     disableDayNightMode: Boolean,
     enableLogout: Boolean,
+    enableResend: Boolean,
 });
 
 const jsonProps = [
@@ -158,6 +159,7 @@ function initStore() {
     store.authToken = data.authToken
     store.disableDayNightMode = data.disableDayNightMode
     store.enableLogout = data.enableLogout
+    store.enableResend = data.enableResend
 
     if (store.userId === undefined) {
         store.userId = getUserId()

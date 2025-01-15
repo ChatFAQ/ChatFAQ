@@ -41,8 +41,12 @@ export const useGlobalStore = defineStore('globalStore', {
             speechRecognitionAutoSend: false,
             allowAttachments: false,
             authToken: undefined,
+            messagesToBeSentSignal: 0,
+            messagesToBeSent: [],
             disableDayNightMode: false,
             enableLogout: false,
+            enableResend: false,
+            resendMsgId: undefined,
         }
     },
     actions: {
@@ -159,6 +163,17 @@ export const useGlobalStore = defineStore('globalStore', {
                     "platform_conversation_id": "725628099",
                     "name": "Consectetur adipiscing elit."
                 }]
+        },
+        deleteMsgsAfter(msgId) {
+            const msgsToDelete = []
+            for (let i = this.messages.length - 1; i >= 0; i--) {
+                if (this.messages[i].id === msgId) {
+                    this.messages[i].last = true;
+                    break;
+                }
+                msgsToDelete.push(this.messages[i])
+            }
+            this.messages = this.messages.filter(msg => !msgsToDelete.includes(msg))
         }
     },
     getters: {
@@ -183,6 +198,12 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
+        },
+        getPrevMsg: (state) => (msg) => {
+            const index = state.messages.findIndex(m => m === msg)
+            if (index === -1 || index === 0)
+                return {}
+            return state.messages[index - 1]
         },
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)

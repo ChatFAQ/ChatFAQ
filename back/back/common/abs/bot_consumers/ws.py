@@ -67,6 +67,10 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
                     # here, since this is trigger quite often, lets see if this try catch solves de reconnection
                     logger.error(f" --------------------- Error on ping: {e}")
             return
+        if content.get("reset"):
+            await self.fsm.reset(content["reset"])
+            return
+
         serializer = self.serializer_class(data=content)
         mml = await database_sync_to_async(serializer.to_mml)(self)
         if not mml:

@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import MenuItem from "~/components/left-menu/items/abs/MenuItem.vue";
 import { useGlobalStore } from "~/store";
 import Checkbox from "~/components/generic/Checkbox.vue";

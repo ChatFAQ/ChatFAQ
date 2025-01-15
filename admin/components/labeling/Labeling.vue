@@ -5,10 +5,10 @@
         :readableName="$t('conversation')"
         apiUrl="/back/api/broker/conversations/"
         :tableProps="{
-            'name': {'name': $t('name')},
             'fsm_defs': {'name': $t('fsms')},
             'created_date': {'name': $t('created_date'), 'sortable': true},
             'user_id': {'name': $t('userid')},
+            'num_user_msgs': {'name': $t('num_user_msgs')},
             'view': {'name': '', 'width': $t('view').length * 20, 'align': 'center'},
         }"
         :defaultSort="{'prop': 'created_date', 'order': 'descending'}"
@@ -22,6 +22,7 @@
                 'field': 'reviewed',
                 'choices': [{'value': 'completed', 'label': $t('completed')}, {'value': 'pending', 'label': $t('pending')}]
             },
+            {'type': 'bool', 'field': 'user_feedback_exists', 'placeholder': $t('withuserfeedback')},
         ]"
         :textExplanation="$t('labelingexplanation')"
         read-only

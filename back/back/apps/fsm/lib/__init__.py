@@ -104,6 +104,21 @@ class FSM:
         logger.debug(f"FSM start --> {self.current_state}")
         await self.save_cache()
 
+    async def reset(self, msg_id):
+        """
+        It will reset the FSM to the initial state and delete all the messages that were sent after the message with
+        id = msg_id
+        """
+        # get the creation date of the msg_id:
+        msg = await database_sync_to_async(Message.objects.prefetch_related("conversation").get)(id=msg_id)
+        msg.last = True
+        await database_sync_to_async(msg.save)()
+        msgs = await database_sync_to_async(Message.objects.filter)(conversation=msg.conversation, created_date__gt=msg.created_date)
+        await database_sync_to_async(msgs.delete)()
+
+        self.current_state = self.get_state_by_name(msg.fsm_state)
+        # await self.next_state()
+
     async def next_state(self):
         """
         It will cycle to the next state based on which transition returns a higher probability, once the next state
@@ -195,6 +210,7 @@ class FSM:
             msg = {**self.last_aggregated_msg}
             msg["conversation"] = msg["ctx"]["conversation_id"]
             msg["status"] = msg["ctx"]["status"]
+            msg["fsm_state"] = self.current_state.name
             serializer = self.MessageSerializer(data=msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             self.waiting_for_rpc = None

@@ -35,6 +35,7 @@ from django.core.files.storage import default_storage
 class ConversationFilterSet(django_filters.FilterSet):
     reviewed = django_filters.CharFilter(method='filter_reviewed')
     fsm_def = django_filters.CharFilter(method='filter_fsm_def')
+    user_feedback_exists = django_filters.BooleanFilter(method='filter_user_feedback_exists')
 
     class Meta:
         model = Conversation
@@ -53,6 +54,9 @@ class ConversationFilterSet(django_filters.FilterSet):
         if val:
             return queryset.filter(message__adminreview__isnull=val).exclude(message__adminreview__isnull=not val).distinct()
         return queryset.filter(message__adminreview__isnull=val).distinct()
+
+    def filter_user_feedback_exists(self, queryset, name, value):
+        return queryset.filter(message__userfeedback__isnull=False).distinct()
 
 
 class ConversationAPIViewSet(
@@ -305,9 +309,9 @@ class FileUploadView(APIView):
         file = request.FILES.get('file')
         if not file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
-
+        expire = request.data.get('expire', 3600)
         # Save the file
         file_name = default_storage.save(file.name, file)
-        file_url = default_storage.url(file_name)
+        file_url = default_storage.url(file_name, expire=expire)
 
         return Response({'url': file_url}, status=status.HTTP_201_CREATED)

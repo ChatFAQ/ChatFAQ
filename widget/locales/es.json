@@ -13,7 +13,7 @@
     "additionalfeedback": "Por favor, proporciona tus comentarios",
     "whatwastheissue": "¿Cuál fue el problema con esta respuesta?",
     "whatdidyoulike": "¿Qué te gustó de la respuesta?",
-    "submitfeedback": "Enviar comentarios",
+    "submitfeedback": "Enviar",
     "feedbacksent": "¡Comentarios enviados exitosamente!",
     "reason1": "La respuesta es peligrosa",
     "reason2": "La respuesta es errónea",
@@ -23,5 +23,6 @@
     "sources": "fuentes",
     "source": "fuente",
     "connectingtoserver": "Conectando al servidor...",
+    "upload_file": "Subir archivo",
     "logout": "Cerrar sesión"
 }

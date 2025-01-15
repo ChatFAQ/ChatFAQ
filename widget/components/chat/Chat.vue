@@ -2,14 +2,14 @@
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
-                <ChatMsg
-                    v-if="renderable(message)"
+                <ChatMsgManager
+                    v-if="isRenderableStackType(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
-                ></ChatMsg>
+                ></ChatMsgManager>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -26,14 +26,29 @@
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
-                    :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
+                    :class="{ 
+                        'dark-mode': store.darkMode, 
+                        'maximized': store.maximized,
+                        'disabled': isFinalFeedback 
+                    }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    contenteditable
+                    :contenteditable="!isFinalFeedback"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
-            <div class="prompt-right-button" :class="{'dark-mode': store.darkMode}" @click="() => { if(availableMicro) { speechToText() } else if (availableSend) { sendMessage() }}">
+            <div class="prompt-right-button" 
+                 :class="{
+                     'dark-mode': store.darkMode,
+                     'disabled': isFinalFeedback
+                 }" 
+                 @click="() => { 
+                     if (!isFinalFeedback && availableMicro) { 
+                         speechToText() 
+                     } else if (!isFinalFeedback && availableSend) { 
+                         sendMessage() 
+                     }
+                 }">
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
                 <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
@@ -47,11 +62,10 @@
 import {ref, watch, nextTick, onMounted, computed} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
-import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
+import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
-
 const store = useGlobalStore();
 
 const chatInput = ref(null);
@@ -59,6 +73,7 @@ const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", undefined]
+const isFinalFeedback = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
@@ -70,6 +85,11 @@ const speechRecognitionRunning = ref(false)
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+watch(() => store.resendMsgId, resendMsg)
+watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
+watch(() => store.selectedPlConversationId, () => {
+    isFinalFeedback.value = false
+})
 
 onMounted(async () => {
     await initializeConversation()
@@ -94,6 +114,9 @@ function animateFeedbackSent() {
     setTimeout(() => {
         feedbackSentDisabled.value = true
     }, 1500)
+}
+function isRenderableStackType(message) {
+    return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 
@@ -134,6 +157,8 @@ function createConnection() {
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
+        if (msg.stack[0]?.type === 'star_rating' || msg.stack[0]?.type === 'text_feedback')
+            isFinalFeedback.value = true
 
         sendToGTM(msg)
         store.addMessage(msg);
@@ -185,6 +210,7 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
+    isFinalFeedback.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
@@ -229,13 +255,45 @@ function manageHotKeys(ev, cb) {
     }
 }
 
-function sendMessage() {
-    if (!thereIsContent.value || store.waitingForResponse || store.disconnected || speechRecognitionRunning.value)
+function sendMessage(_message) {
+    if (!canSend())
         return;
+    historyIndexHumanMsg = -1
+
+    const message = _message ? _message : createMessageFromInputPrompt()
+
+    if (!message)
+        return
+
+    store.messages.push(message);
+    ws.send(JSON.stringify(message));
+    store.scrollToBottom += 1;
+    
+    chatInput.value?.blur(); // Remove focus from the input
+}
+
+function sendMessagesToBeSent() {
+    if(!canSend()) {
+        setTimeout(() => sendMessagesToBeSent(), 1000)
+        return
+    }
+
+    while (store.messagesToBeSent.length) {
+        sendMessage(store.messagesToBeSent.pop());
+    }
+
+}
+
+function canSend() {
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !isFinalFeedback.value
+}
+
+function createMessageFromInputPrompt() {
+    if (!thereIsContent.value)
+        return
 
     const user_message = chatInput.value.innerText.trim()
-    historyIndexHumanMsg = -1
-    const m = {
+    const message = {
         "sender": {
             "type": "human",
             "platform": "WS",
@@ -251,17 +309,20 @@ function sendMessage() {
         "last": true,
     };
     if (store.userId !== undefined)
-        m["sender"]["id"] = store.userId
+        message["sender"]["id"] = store.userId
 
-    store.messages.push(m);
-    ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
     thereIsContent.value = false
-    store.scrollToBottom += 1;
+    return message
 }
 
-function renderable(message) {
-    return !notRenderableStackTypes.includes(message.stack[0]?.type)
+function resendMsg(msgId) {
+    if (msgId === undefined)
+        return;
+    if (store.disconnected)
+        return;
+    store.deleteMsgsAfter(msgId)
+    ws.send(JSON.stringify({reset: msgId}));
 }
 
 function sendToGTM(msg) {
@@ -332,7 +393,7 @@ function speechToText() {
 }
 
 const availableSend = computed(() => {
-    return !store.speechRecognition || thereIsContent
+    return !store.speechRecognition || thereIsContent.value
 })
 const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
@@ -422,6 +483,12 @@ const activeMicro = computed(() => {
         background-color: $chatfaq-prompt-button-background-color-light;
         &.dark-mode {
             background-color: $chatfaq-prompt-button-background-color-dark;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
         }
     }
 }
@@ -532,6 +599,12 @@ const activeMicro = computed(() => {
         &::placeholder {
             color: $chatfaq-color-chatInput-text-dark;
         }
+    }
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        pointer-events: none;
     }
 }
 

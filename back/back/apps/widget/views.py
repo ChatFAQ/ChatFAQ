@@ -32,13 +32,6 @@ class ThemeAPIViewSet(viewsets.ModelViewSet):
     serializer_class = ThemeSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id"]
-    permission_classes = []
-
-    def check_object_permissions(self, request, obj):
-        if obj.authentication_required:
-            if not request.user.is_authenticated:
-                raise exceptions.NotAuthenticated()
-        return super().check_object_permissions(request, obj)
 
 
 # create ThemeDefaultsAPIViewSet generic apiview just with one method: get

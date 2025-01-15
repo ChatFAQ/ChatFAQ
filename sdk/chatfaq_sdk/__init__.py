@@ -470,7 +470,7 @@ class ChatFAQSDK:
             async for results in self._layer_results(layer, data):
                 yield [*results, True]
                 return
-        yield [[], str(uuid.uuid4()), True, _last_result[3], True]
+        yield [[], str(uuid.uuid4()), True, _last_result[-1], True]
 
     async def _layer_results(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Condition):

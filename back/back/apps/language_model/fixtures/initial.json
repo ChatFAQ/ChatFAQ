@@ -29,17 +29,6 @@
         }
     },
     {
-        "model": "language_model.promptconfig",
-        "pk": 1,
-        "fields": {
-            "created_date": "2023-10-06T11:58:11.040",
-            "updated_date": "2023-10-06T11:58:11.042",
-            "name": "default",
-            "system_prompt": "- You are a helpful assistant chatbot.\r\n- You respond in the same language as the user question.\r\n- You answer questions with the context provided.\r\n- You are excited to be able to help the user, but will refuse to do anything that could be considered harmful to the user",
-            "n_contexts_to_use": 5
-        }
-    },
-    {
         "model": "language_model.generationconfig",
         "pk": 1,
         "fields": {
