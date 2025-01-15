@@ -39,15 +39,17 @@
                         'stick_input_prompt',
                         'fit_to_parent',
                         'stick_input_prompt',
-                        'speech_recognition',
-                        'speech_recognition_auto_send',
                         'allow_attachments',
+                        'speech_synthesis',
                     ],
                 [$t('advanced')]: [
                         'custom_css',
                         'initial_conversation_metadata',
                         'custom_i_framed_msgs',
                         'enable_resend',
+                        'speech_recognition',
+                        'speech_recognition_auto_send',
+                        'speech_synthesis',
                     ],
                 [$t('theme')]: [
                         'theme'
@@ -89,6 +91,14 @@
                             type="textarea"
                         />
                     </el-form-item>
+                </template>
+                <template v-slot:write-speech_synthesis="{fieldName, form, formServerErrors}">
+                        <el-checkbox
+                            v-model="form[fieldName]" :label="$t(fieldName)"
+                        />
+                        <div v-if="form[fieldName]">
+                            asd
+                        </div>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
