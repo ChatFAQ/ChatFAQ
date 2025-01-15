@@ -73,6 +73,16 @@
                             <AttachmentMsgPiece :data="layer.payload" />
                         </div>
                     </template>
+                    <template v-else-if="getFirstStackType() === 'star_rating'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'text_feedback'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                        </div>
+                    </template>
                     <template v-else>
                         <div class="layer">
                             <span>Stack type not supported</span>
@@ -93,10 +103,10 @@
                     ></UserFeedback>
                     <Resend
                         v-if="
-                            props.message.sender.type === 'bot' &&
+                            props.message.sender.type === 'human' &&
                             store.enableResend
                         "
-                        :msgId="props.message.id"
+                        :msgId="store.getPrevMsg(props.message).id"
                     ></Resend>
                 </div>
             </div>
@@ -113,6 +123,8 @@ import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
 import TextMsgPiece from "~/components/chat/msgs/pieces/TextMsgPiece.vue";
 import AttachmentMsgPiece from "~/components/chat/msgs/pieces/AttachmentMsgPiece.vue";
 import FileUploadMsgPiece from "~/components/chat/msgs/pieces/FileUploadMsgPiece.vue";
+import StarRatingMsgPiece from "~/components/chat/msgs/pieces/StarRatingMsgPiece.vue";
+import TextFeedbackMsgPiece from "~/components/chat/msgs/pieces/TextFeedbackMsgPiece.vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();

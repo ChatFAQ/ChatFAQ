@@ -107,15 +107,13 @@ function openInNewTab(url) {
 <style lang="scss">
 
 .marked-down-content {
-    white-space: pre-wrap;
+    // white-space: pre-wrap;
     display: inline;
 
-    * {
-        display: inline;
-    }
 
     p {
         margin: 0;
+        line-height: 1.2em;
     }
 
     a {
@@ -132,6 +130,15 @@ function openInNewTab(url) {
             color: $chatfaq-color-chatMessageReference-text-dark;
         }
     }
+
+    ol {
+        padding-left: 1.5em;
+    }
+
+    ul {
+        padding-left: 1.5em;
+    }
+
 }
 
 .reference-index {

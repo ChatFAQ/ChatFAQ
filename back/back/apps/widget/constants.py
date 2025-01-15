@@ -462,6 +462,14 @@ THEME_DEFAULTS_BY_SECTION = {
             "light": "#463075",  # Primary 500
             "dark": "#FFFFFF",   # Neutral White
         }
+    },
+    "chatfaq-star-rating-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
     }
 }
 

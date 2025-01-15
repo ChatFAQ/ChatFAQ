@@ -171,9 +171,9 @@ export const useGlobalStore = defineStore('globalStore', {
                     this.messages[i].last = true;
                     break;
                 }
-                msgsToDelete.push(this.messages[i].id)
+                msgsToDelete.push(this.messages[i])
             }
-            this.messages = this.messages.filter(m => !msgsToDelete.includes(m.id))
+            this.messages = this.messages.filter(msg => !msgsToDelete.includes(msg))
         }
     },
     getters: {
@@ -198,6 +198,12 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
+        },
+        getPrevMsg: (state) => (msg) => {
+            const index = state.messages.findIndex(m => m === msg)
+            if (index === -1 || index === 0)
+                return {}
+            return state.messages[index - 1]
         },
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)
