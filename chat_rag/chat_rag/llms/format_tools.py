@@ -16,6 +16,7 @@ class Mode(enum.Enum):
     TOOLS = "tool_call"
     MISTRAL_TOOLS = "mistral_tools"
     ANTHROPIC_TOOLS = "anthropic_tools"
+    GEMINI_TOOLS = "gemini_tools"
 
 
 def openai_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
@@ -70,8 +71,38 @@ def anthropic_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
     return {
         "name": schema["name"],
         "description": schema["description"],
-        "input_schema": model.model_json_schema(),
+        "input_schema": model.model_json_schema() if isinstance(model, BaseModel) else model,
     }
+
+def gemini_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
+    """
+    Return the schema in the format of Gemini's schema
+    """
+    schema = openai_schema(model)
+    parameters = schema["parameters"]
+    parameters = uppercase_types_recursively(parameters)
+    schema = {
+        "name": schema["name"],
+        "description": schema["description"],
+        "parameters": parameters,
+    }
+    return schema
+
+def uppercase_types_recursively(schema: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Recursively uppercase the type values in the schema and remove the title attribute to match the Open API 3.0 spec that the google genai library requires.
+    """
+    if isinstance(schema, dict):
+        if "type" in schema:
+            schema["type"] = schema["type"].upper()
+        if "title" in schema:
+            del schema["title"]
+        for key, value in schema.items():
+            schema[key] = uppercase_types_recursively(value)
+    elif isinstance(schema, list):
+        for i, item in enumerate(schema):
+            schema[i] = uppercase_types_recursively(item)
+    return schema
 
 
 def format_tools(tools: List[Union[BaseModel, Dict]], mode: Mode) -> List[Dict[str, Any]]:
@@ -100,6 +131,11 @@ def format_tools(tools: List[Union[BaseModel, Dict]], mode: Mode) -> List[Dict[s
     elif mode == Mode.ANTHROPIC_TOOLS:
         for tool in tools:
             schema = anthropic_schema(tool)
+            tools_formatted.append(schema)
+
+    elif mode == Mode.GEMINI_TOOLS:
+        for tool in tools:
+            schema = gemini_schema(tool)
             tools_formatted.append(schema)
 
     else:
