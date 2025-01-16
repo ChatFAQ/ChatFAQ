@@ -1,6 +1,6 @@
 import asyncio
 from logging import getLogger
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Tuple
 
 from channels.db import database_sync_to_async
 from django.forms import model_to_dict
@@ -8,6 +8,7 @@ from django.urls import re_path
 
 from back.apps.broker.models.message import Conversation, Message
 from back.utils.custom_channels import CustomAsyncConsumer
+from django.contrib.auth.models import AnonymousUser
 
 if TYPE_CHECKING:
     from back.apps.fsm.lib import FSM
@@ -48,7 +49,6 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
 
         self.conversation: Union[Conversation, None] = None
         self.user_id: Union[str, None] = None
-        self.initial_conversation_metadata: dict = {}
 
         self.fsm_def: "FSMDefinition" = None
         self.message_buffer = []
@@ -68,7 +68,8 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         return f"bot_{conversation_id}"
 
     def get_group_name(self):
-        return self.create_group_name(self.conversation.pk)
+        if self.conversation:
+            return self.create_group_name(self.conversation.pk)
 
     async def rpc_response(self, data: dict):
         """
@@ -109,8 +110,12 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
     async def disconnect(self, code=None):
         logger.debug(
             f"Disconnecting from conversation ({self.conversation.pk}) (CODE: {code})"
+            if self.conversation
+            else f"Disconnecting... no conversation present, probably either not authenticated, wrong FSM name or no RPC worker connected... (CODE: {code})"
         )
-        # Leave room group
+        if self.fsm:
+            while self.fsm.waiting_for_rpc:
+                await asyncio.sleep(1)
         await self.channel_layer.group_discard(self.get_group_name(), self.channel_name)
 
     async def send_response(self, stack: list):
@@ -128,25 +133,34 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             "Implement a method that creates/gathers the conversation id"
         )
 
-    async def gather_fsm_def(self, mml: "Message"):
+    async def gather_fsm_def(self, mml: "Message") -> Tuple["FSMDefinition", str]:
         raise NotImplemented("Implement a method that gathers the conversation id")
 
     async def gather_user_id(self, mml: "Message"):
         return None
 
-    async def set_conversation(self, platform_conversation_id):
-        self.conversation, _ = await Conversation.objects.aget_or_create(
+    async def authenticate(self):
+        if not self.conversation.authentication_required:
+            return True
+        return (
+            self.scope.get("user")
+            and not isinstance(self.scope["user"], AnonymousUser)
+        )
+
+    async def set_conversation(self, platform_conversation_id, initial_conversation_metadata, authentication_required):
+        self.conversation, created = await Conversation.objects.aget_or_create(
             platform_conversation_id=platform_conversation_id
         )
+        if created:
+            self.conversation.initial_conversation_metadata = initial_conversation_metadata
+            self.conversation.authentication_required = authentication_required
+            await database_sync_to_async(self.conversation.save)()
 
     def set_fsm_def(self, fsm_def):
         self.fsm_def = fsm_def
 
     def set_user_id(self, user_id):
         self.user_id = user_id
-
-    def set_initial_conversation_metadata(self, initial_conversation_metadata):
-        self.initial_conversation_metadata = initial_conversation_metadata
 
     async def serialize(self):
         """
@@ -172,14 +186,16 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             for key, value in initial_state_values.items():
                 if key not in last_state_values:
                     last_state_values[key] = value
+        status = await database_sync_to_async(conv.get_last_status)()
 
         return {
-            "initial_conversation_metadata": self.initial_conversation_metadata,
             "conversation_id": self.conversation.pk,
+            "initial_conversation_metadata": self.conversation.initial_conversation_metadata,
             "user_id": self.user_id,
             "conv_mml": conv_mml,
             "bot_channel_name": self.channel_name,
-            "state": last_state_values
+            "state": last_state_values,
+            "status": status,
         }
 
     # ---------- Broker methods ----------

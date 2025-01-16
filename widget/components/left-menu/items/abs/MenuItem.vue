@@ -12,6 +12,7 @@
 
 .menu-item {
     display: flex;
+    align-items: center;
     padding: 8px 8px;
     margin: 4px 0px;
     letter-spacing: 0.5px;

@@ -91,7 +91,13 @@ onMounted(async () => {
     if (store.previewMode)
         return
 
-    let response = await fetch(store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`)
+    const headers = {}
+    if (store.authToken)
+        headers.Authorization = `Token ${store.authToken}`;
+
+    let response = await chatfaqFetch(
+        store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`, { headers }
+    )
     response = await response.json();
     if (response.results && response.results.length) {
         const userFeedback = response.results[0]
@@ -132,11 +138,14 @@ async function sendUserFeedback(value, _collapse) {
         method = "PATCH"
         endpoint = `${endpoint}${feedbackData["id"]}/`
     }
-    const response = await fetch(store.chatfaqAPI + endpoint, {
+
+    const headers = { 'Content-Type': 'application/json' }
+    if (store.authToken)
+        headers.Authorization = `Token ${store.authToken}`;
+
+    const response = await chatfaqFetch(store.chatfaqAPI + endpoint, {
         method: method,
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify(feedbackData)
     })
 

@@ -141,9 +141,9 @@ async function remoteSearch(query) {
         if (props.filterSchema.type === "ref")
             ref = true
     } else {
-        url = itemsStore.getPathFromSchemaName(props.schema.properties[props.fieldName].$ref.split("/").pop())
+        let ref = props.schema.properties[props.fieldName].$ref || props.schema.properties[props.fieldName].items.$ref
+        url = itemsStore.getPathFromSchemaName(ref.split("/").pop())
         resultHolder = props.schema.properties[props.fieldName].choices
-        ref = true
     }
     if (!url) {
         loading.value = false

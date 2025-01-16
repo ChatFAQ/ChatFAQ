@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, exceptions
 from django.http import JsonResponse
 
 from back.apps.widget.constants import THEME_DEFAULTS_BY_SECTION
@@ -20,14 +20,18 @@ class WidgetAPIViewSet(viewsets.ModelViewSet):
     filterset_fields = ["id"]
     permission_classes = [IsAuthenticatedOrWidgetOriginHostPermission]
 
+    def check_object_permissions(self, request, obj):
+        if obj.authentication_required:
+            if not request.user.is_authenticated:
+                raise exceptions.NotAuthenticated()
+        return super().check_object_permissions(request, obj)
+
 
 class ThemeAPIViewSet(viewsets.ModelViewSet):
     queryset = Theme.objects.all()
     serializer_class = ThemeSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id"]
-    authentication_classes = []
-    permission_classes = []
 
 
 # create ThemeDefaultsAPIViewSet generic apiview just with one method: get

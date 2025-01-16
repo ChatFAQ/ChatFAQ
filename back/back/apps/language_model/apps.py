@@ -4,6 +4,8 @@ from logging import getLogger
 from ray import serve
 from ray.serve.config import ProxyLocation
 
+from back.config import settings
+
 
 logger = getLogger(__name__)
 
@@ -24,6 +26,9 @@ class DatasetConfig(AppConfig):
 
         RetrieverConfig = self.get_model("RetrieverConfig")
         LLMConfig = self.get_model("LLMConfig")
+
+        if not settings.USE_RAY:
+            return # Skip launching ray serve and deployments if Ray is disabled
 
         if not serve.status().applications:
             serve.start(

@@ -4,9 +4,11 @@ import ray
 
 from logging import getLogger
 
+from back.utils.ray_utils import ray_task
+
 logger = getLogger(__name__)
 
-@ray.remote(num_cpus=0.001)
+@ray_task(num_cpus=0.001)
 def get_filesystem(storages_mode):
     """
     For Digital Ocean, we need to provide a custom filesystem object to write the index to the cloud storage
@@ -34,7 +36,7 @@ def get_filesystem(storages_mode):
     return None
 
 
-@ray.remote(num_cpus=1)
+@ray_task(num_cpus=1)
 def read_s3_index(index_path, storages_mode):
     """
     If the index_path is an S3 path, read the index from object storage and write it to the local storage.
@@ -98,7 +100,7 @@ def read_s3_index(index_path, storages_mode):
     return index_path
 
 
-@ray.remote(num_cpus=1, resources={"tasks": 1})
+@ray_task(num_cpus=1, resources={"tasks": 1})
 def test_task(argument_one):
     from logging import getLogger
     import django

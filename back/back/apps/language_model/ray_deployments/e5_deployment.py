@@ -7,6 +7,8 @@ from aiohttp import ClientSession
 import ray
 from ray import serve
 
+from back.utils.ray_utils import ray_task
+
 
 @serve.deployment(
     name="retriever_deployment",
@@ -86,7 +88,7 @@ class E5Deployment:
         return await self.batch_handler(query, top_k)
 
 
-@ray.remote(num_cpus=0.1, resources={"tasks": 1})
+@ray_task(num_cpus=0.1, resources={"tasks": 1})
 def launch_e5_deployment(retriever_deploy_name, model_name, use_cpu, retriever_id, lang, num_replicas):
     print(f"Launching E5 deployment with name: {retriever_deploy_name}")
     num_gpus = 0.3 if not use_cpu else 0 # Arbitrary number to avoid that one model takes a whole GPU, this probably should be configurable somewhere.

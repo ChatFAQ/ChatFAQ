@@ -298,5 +298,6 @@
     "generationfirst": "Génération en premier",
     "sourcesfirst": "Sources en premier",
     "messagelayout": "Mise en page du message",
-    "close": "Fermer"
+    "close": "Fermer",
+    "withuserfeedback": "Avec le commentaire de l'utilisateur"
 }

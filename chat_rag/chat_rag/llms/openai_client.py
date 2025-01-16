@@ -15,16 +15,6 @@ class OpenAIChatModel(LLM):
         api_key: str = None,
         **kwargs,
     ):
-        # If provided a base_url, then use the Together API key
-        api_key = (
-            (
-                os.environ.get("TOGETHER_API_KEY")
-                if base_url
-                else os.environ.get("OPENAI_API_KEY")
-            )
-            if api_key is None
-            else api_key
-        )
 
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.aclient = AsyncOpenAI(api_key=api_key, base_url=base_url)

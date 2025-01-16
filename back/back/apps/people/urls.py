@@ -7,7 +7,7 @@ from . import views
 router = DefaultRouter()
 router.register(r"people", views.MeViewSet, basename="people")
 router.register(r"users", views.UserAPIViewSet, basename="users")
-router.register(r"groups", views.GroupAPIViewSet, basename="users")
+router.register(r"groups", views.GroupAPIViewSet, basename="groups")
 router.register(r"permissions", views.PermissionAPIViewSet, basename="permissions")
 router.register(r"content-types", views.ContentTypeAPIViewSet, basename="content-types")
 

@@ -44,6 +44,7 @@ class ChatFAQSDK:
         fsm_definition: Optional[FSMDefinition] = None,
         overwrite_definition: Optional[bool] = False,
         data_source_parsers: Optional[dict[str, DataSourceParser]] = None,
+        authentication_required: bool = False
     ):
         """
         Parameters
@@ -80,6 +81,7 @@ class ChatFAQSDK:
         self.fsm_def = fsm_definition
         self.overwrite_definition = overwrite_definition
         self.data_source_parsers = data_source_parsers
+        self.authentication_required = authentication_required
         self.rpcs = {}
         # _rpcs is just an auxiliary variable to register the rpcs without the decorator function just so we know if we
         # already registered that rpc under that name and avoid duplicates
@@ -89,6 +91,7 @@ class ChatFAQSDK:
         self.llm_request_msg_buffer = {}
         self.retriever_request_futures = {}
         self.prompt_request_futures = {}
+
         if self.fsm_def is not None:
             self.fsm_def.register_rpcs(self)
 
@@ -105,7 +108,6 @@ class ChatFAQSDK:
             if self.sentry:
                 sentry_sdk.capture_exception(e)
             raise e
-
 
     async def connexions(self):
         setattr(self, f"ws_{WSType.rpc.value}", None)
@@ -168,8 +170,8 @@ class ChatFAQSDK:
                     await self._consume_loop(
                         consumer_route
                     )  # <----- "infinite" Connection Loop
-            except (websockets.WebSocketException, ConnectionRefusedError):
-                logger.info(f"{consumer_route.upper()} Connection error, retrying...")
+            except (websockets.WebSocketException, ConnectionRefusedError) as e:
+                logger.info(f"{consumer_route.upper()} Connection error: {e}, retrying...")
                 await asyncio.sleep(1)
 
     async def _consume_loop(self, consumer_route):
@@ -218,6 +220,7 @@ class ChatFAQSDK:
                             "name": self.fsm_name,
                             "definition": self.fsm_def.to_dict_repr(),
                             "overwrite": self.overwrite_definition,
+                            "authentication_required": self.authentication_required,
                         },
                     }
                 )
@@ -247,6 +250,11 @@ class ChatFAQSDK:
 
     async def rpc_request_callback(self, payload):
         logger.info(f"[RPC] Executing ::: {payload['name']}")
+        status = {}
+        if self.fsm_def.status_class:
+            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"]["status"])
+        payload["ctx"]["status"] = status
+
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
             stack_group_id = str(uuid.uuid4())
             logger.info(f"[RPC]     |---> ::: {state_or_transition}")
@@ -254,12 +262,16 @@ class ChatFAQSDK:
             async for res, stack_id, last_chunk, node_type, last_from_state_or_transition in self._run_state_or_transition(
                 state_or_transition, payload["ctx"]
             ):
+                _ctx = {**payload["ctx"]}
+                if _ctx["status"]:
+                    _ctx["status"] = _ctx["status"].serialize()
+
                 await getattr(self, f"ws_{WSType.rpc.value}").send(
                     json.dumps(
                         {
                             "type": MessageType.rpc_result.value,
                             "data": {
-                                "ctx": payload["ctx"],
+                                "ctx": _ctx,
                                 "node_type": node_type,
                                 "stack_group_id": stack_group_id,
                                 "stack_id": stack_id,
@@ -367,19 +379,41 @@ class ChatFAQSDK:
             )
         )
 
-    async def query_kis(self, knowledge_base_name, query) -> List[KnowledgeItem]:
+    async def query_kis(self, knowledge_base_name, query: Optional[dict] = None) -> List[KnowledgeItem]:
+        res = []
+        offset = 0
+        more = True
+        while more:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    urllib.parse.urljoin(
+                        self.chatfaq_http,
+                        f"back/api/language-model/knowledge-items/?knowledge_base__name={knowledge_base_name}&metadata={json.dumps(query)}&offset={offset}",
+                    ),
+                    headers={"Authorization": f"Token {self.token}"},
+                )
+                response.raise_for_status()
+                _results = response.json()["results"]
+                _total = response.json()["count"]
+                res += _results
+                offset = len(res)
+                more = offset < _total
+
+        return [KnowledgeItem(**r) for r in res]
+
+    async def query_prompt(self, prompt_name) -> List[KnowledgeItem]:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 urllib.parse.urljoin(
                     self.chatfaq_http,
-                    f"back/api/language-model/knowledge-items/?knowledge_base_name={knowledge_base_name}&metadata={json.dumps(query)}",
+                    f"back/api/language-model/prompt-configs/?name={prompt_name}",
                 ),
                 headers={"Authorization": f"Token {self.token}"},
             )
             response.raise_for_status()
             results = response.json()["results"]
-
-            return [KnowledgeItem(**res) for res in results]
+            if results:
+                return results[0]["prompt"]
 
     async def send_prompt_request(self, prompt_config_name, bot_channel_name):
         logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")
@@ -424,25 +458,19 @@ class ChatFAQSDK:
         return outer
 
     async def _run_state_or_transition(self, state_or_transition, data):
-        async_func = state_or_transition(self, data)
-        if inspect.isasyncgen(async_func):
-            is_last = False
-            layer = await anext(async_func)
-
-            while not is_last:
-                _layer = None
-                try:
-                    _layer = await anext(async_func)
-                except StopAsyncIteration:
-                    is_last = True
-
+        _state_or_transition = state_or_transition(self, data)
+        _last_result = None
+        if inspect.isasyncgen(_state_or_transition):
+            async for layer in _state_or_transition:
                 async for results in self._layer_results(layer, data):
-                    yield [*results, is_last]
-                layer = _layer
+                    _last_result = results
+                    yield [*results, False]
         else:
-            layer = await async_func
+            layer = await _state_or_transition
             async for results in self._layer_results(layer, data):
                 yield [*results, True]
+                return
+        yield [[], str(uuid.uuid4()), True, _last_result[-1], True]
 
     async def _layer_results(self, layer, data):
         if not isinstance(layer, Layer) and not isinstance(layer, Condition):

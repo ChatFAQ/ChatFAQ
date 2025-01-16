@@ -29,7 +29,8 @@
                         'sources-first': store.sourcesFirst,
                         'feedbacking': feedbacking,
                         'full-width': iframedMsg && iframedMsg.fullWidth,
-                        'no-padding': iframedMsg && iframedMsg.noPadding
+                        'no-padding': iframedMsg && iframedMsg.noPadding,
+                        'backgrounded': getFirstStackType() !== 'file_uploaded',
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
@@ -49,26 +50,65 @@
                             :scrolling="iframedMsg.scrolling || 'auto'"
                         ></iframe>
                     </template>
-                    <template v-else>
+                    <template v-if="getFirstStackType() === 'message' || getFirstStackType() === 'message_chunk'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <Message :data="layer" :is-last="isLastOfType && layersFinished" />
+                            <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
-                        <References
+                        <ReferencesMsgPiece
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
-                            :references="props.message.stack[0].payload.references"></References>
+                            :references="props.message.stack[0].payload.references"></ReferencesMsgPiece>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'file_upload'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <FileUploadMsgPiece :data="layer.payload" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'file_uploaded'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <AttachmentMsgPiece :data="layer.payload" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'file_download'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <AttachmentMsgPiece :data="layer.payload" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'star_rating'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstStackType() === 'text_feedback'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="layer">
+                            <span>Stack type not supported</span>
+                        </div>
                     </template>
                 </div>
-                <UserFeedback
-                    v-if="
-                        props.message.sender.type === 'bot' &&
-                        props.message.stack[props.message.stack.length - 1].meta &&
-                        props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
-                        props.message.last
-                    "
-                    :msgId="props.message.id"
-                    @feedbacking="feedbacking = true"
-                    @collapse="feedbacking = false"
-                ></UserFeedback>
+                <div class="msg-commands">
+                    <UserFeedback
+                        v-if="
+                            props.message.sender.type === 'bot' &&
+                            props.message.stack[props.message.stack.length - 1].meta &&
+                            props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
+                            props.message.last_chunk
+                        "
+                        :msgId="props.message.id"
+                        @feedbacking="feedbacking = true"
+                        @collapse="feedbacking = false"
+                    ></UserFeedback>
+                    <Resend
+                        v-if="
+                            props.message.sender.type === 'human' &&
+                            store.enableResend
+                        "
+                        :msgId="store.getPrevMsg(props.message).id"
+                    ></Resend>
+                </div>
             </div>
         </div>
     </div>
@@ -77,9 +117,14 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 import UserFeedback from "~/components/chat/UserFeedback.vue";
-import Message from "~/components/chat/msgs/Message.vue";
-import References from "~/components/chat/msgs/References.vue";
+import Resend from "~/components/chat/Resend.vue";
+import ReferencesMsgPiece from "~/components/chat/msgs/pieces/ReferencesMsgPiece.vue";
 import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
+import TextMsgPiece from "~/components/chat/msgs/pieces/TextMsgPiece.vue";
+import AttachmentMsgPiece from "~/components/chat/msgs/pieces/AttachmentMsgPiece.vue";
+import FileUploadMsgPiece from "~/components/chat/msgs/pieces/FileUploadMsgPiece.vue";
+import StarRatingMsgPiece from "~/components/chat/msgs/pieces/StarRatingMsgPiece.vue";
+import TextFeedbackMsgPiece from "~/components/chat/msgs/pieces/TextFeedbackMsgPiece.vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
@@ -89,6 +134,10 @@ const iframeHeight = ref(40);
 const layersFinished = computed(() => props.message.last);
 const iframedWindow = ref(null);
 const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()));
+
+
+const emit = defineEmits(['s3Path']);
+
 
 function getFirstStackType() {
     return props.message.stack[0].type;
@@ -119,6 +168,7 @@ watch(() => store.maximized, () => {
         iframedWindow.value.contentWindow.postMessage('heightRequest', '*');
     }
 });
+
 
 </script>
 <style scoped lang="scss">
@@ -215,6 +265,10 @@ $phone-breakpoint: 600px;
             margin-right: 5px;
         }
     }
+    .msg-commands {
+        display: flex;
+        float: right;
+    }
 }
 
 .stack-wrapper {
@@ -226,7 +280,7 @@ $phone-breakpoint: 600px;
         padding: 9px 15px 9px 15px;
         word-wrap: break-word;
 
-        &.bot {
+        &.bot.backgrounded {
             background-color: $chatfaq-color-chatMessageBot-background-light;
             color: $chatfaq-color-chatMessageBot-text-light;
 
@@ -240,7 +294,7 @@ $phone-breakpoint: 600px;
             }
         }
 
-        &.human {
+        &.human.backgrounded {
             border: none;
             background-color: $chatfaq-color-chatMessageHuman-background-light;
             color: $chatfaq-color-chatMessageHuman-text-light;
@@ -276,5 +330,10 @@ $phone-breakpoint: 600px;
 }
 .no-padding {
     padding: 0 !important;
+}
+
+.file-uploaded-indicator {
+    padding: 5px;
+
 }
 </style>

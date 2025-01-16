@@ -27,6 +27,11 @@
                              @change="submitFilters"
                 />
             </div>
+            <div class="filter" v-else-if="filterInfo.type === 'bool'">
+                <el-checkbox v-model="form[filterInfo.field]"
+                          @input="submitFiltersDebounce" :label="filterInfo.placeholder"
+                ></el-checkbox>
+            </div>
         </div>
     </div>
 </template>
@@ -88,7 +93,7 @@ async function submitFilters() {
                 _filters[key + "__gte"] = value[0].toISOString().split('T')[0]
                 _filters[key + "__lte"] = value[1].toISOString().split('T')[0]
             }
-        } else if (value !== undefined && !ignoreParams.includes(key)) {
+        } else if (value !== undefined && value !== false && !ignoreParams.includes(key)) {
             _filters[key] = value
         }
     }

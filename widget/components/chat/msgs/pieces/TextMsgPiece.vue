@@ -28,6 +28,7 @@ import {useGlobalStore} from "~/store";
 import {computed, ref} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
+import { markdown } from "markdown";
 
 const store = useGlobalStore();
 
@@ -63,26 +64,7 @@ function replaceMarkedDownImagesByReferences() {
 const markedDown = computed(() => {
     let res = props.data.payload.content;
     res = replaceMarkedDownImagesByReferences(res)
-    const hightlight = store.darkMode ? hightlight_dark : hightlight_light
-    // regex for detecting and represent markdown links:
-    const linkRegex = /\[([^\]]+)\][ \n]*\(([^\)]+)\)/g;
-    res = res.replace(linkRegex, '<a target="_blank" href="$2">$1</a>');
-    // regex for detecting and represent markdown lists:
-    const listRegex = /(?:^|\n)(?:\*|\-|\d+\.)\s/g;
-    res = res.replace(listRegex, '<br/>- ');
-    // regex for detecting and represent the character: ` highlighting ex: bla bla `bla` bla:
-    const highlightRegex = /`([^`]+)`/g;
-    res = res.replace(highlightRegex, '<span style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span>');
-    // regex for detecting and representing codeblocks with tab  character:
-    const codeBlockRegex = /(?:^|\n)(?:\t)([^\n]+)/g;
-    const codeBlockRegex2 = /(?:^|\n)(?:    )([^\n]+)/g;
-    res = res.replace(codeBlockRegex, '<span style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
-    res = res.replace(codeBlockRegex2, '<span style="background-color: ' + hightlight + '; padding: 0px 3px 0px 3px; border-radius: 2px;">$1</span><br/>');
-    // regex for detecting and representing markdown bold text:
-    const boldRegex = /\*\*([^\*]+)\*\*/g;
-    res = res.replace(boldRegex, '<b>$1</b>');
-
-    return res
+    return markdown.toHTML(res);
 });
 
 const getMarkedDownImages = computed(() => {
@@ -125,15 +107,13 @@ function openInNewTab(url) {
 <style lang="scss">
 
 .marked-down-content {
-    white-space: pre-wrap;
+    // white-space: pre-wrap;
     display: inline;
 
-    * {
-        display: inline;
-    }
 
     p {
         margin: 0;
+        line-height: 1.2em;
     }
 
     a {
@@ -150,6 +130,15 @@ function openInNewTab(url) {
             color: $chatfaq-color-chatMessageReference-text-dark;
         }
     }
+
+    ol {
+        padding-left: 1.5em;
+    }
+
+    ul {
+        padding-left: 1.5em;
+    }
+
 }
 
 .reference-index {
@@ -239,5 +228,10 @@ function openInNewTab(url) {
         margin-right: 4px;
     }
 }
+
+.marked-down-content {
+    -webkit-font-smoothing: antialiased;
+}
+
 </style>
 

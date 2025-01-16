@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.1.13",
+    "version": "0.1.51",
     "private": false,
     "main": "./dist/chatfaq-widget.umd.cjs",
     "module": "./dist/chatfaq-widget.mjs",
@@ -16,7 +16,7 @@
         "start": "nuxt start",
         "generate": "nuxt generate",
         "preview": "nuxt preview",
-        "package": "vite build && vue-tsc --emitDeclarationOnly"
+        "package": "vite build && vue-tsc"
     },
     "devDependencies": {
         "@babel/core": "^7.14.6",
@@ -27,7 +27,9 @@
         "@vue/compiler-sfc": "^3.0.11",
         "cross-env": "^7.0.3",
         "nuxt": "^3.1.1",
-        "vue-i18n": "^9.2.2"
+        "typescript": "^5.7.2",
+        "vue-i18n": "^9.2.2",
+        "vue-tsc": "^2.2.0"
     },
     "dependencies": {
         "@babel/traverse": "^7.23.2",
@@ -36,6 +38,7 @@
         "ejs": "^3.1.9",
         "json5": "^2.2.3",
         "loader-utils": "^3.2.1",
+        "markdown": "^0.5.0",
         "node-forge": "^1.3.1",
         "pinia": "^2.0.32",
         "postcss": "^8.4.31",

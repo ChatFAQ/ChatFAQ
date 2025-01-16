@@ -49,15 +49,19 @@ This will run a node server which will serve an empty webpage with just the Widg
 
 Next we will explain all the widget's possible parameters:
 
-`element`<span style="color:red;">*</span>: string selector or HTMLElement to which the widget will be attached.
+<span style="color:red;">*</span> → mandatory
+
+<span style="color:orange;">*</span> → mandatory if not using an admin's widget configuration
 
 `chatfaqApi`<span style="color:red;">*</span>: url of the chatfaq-api.
 
-`chatfaqWs`<span style="color:red;">*</span>: url of the chatfaq-ws.
+`element`<span style="color:red;">*</span> (only mandatory [with JS integration](#js-library)): string selector or HTMLElement to which the widget will be attached.
 
-`fsmDef`<span style="color:red;">*</span>: name of the FSM definition to use.
+`chatfaqWs`<span style="color:orange;">*</span>: url of the chatfaq-ws.
 
-`widgetConfigId`<span style="color:red;">*</span>: id of the widget configuration to use, firstly you need to create a widget configuration on the admin.
+`fsmDef`<span style="color:orange;">*</span>: name of the FSM definition to use.
+
+`widgetConfigId` is the ID of the widget configuration to use. First, you need to create a widget configuration in the admin panel. If provided, the attributes explicitly defined on the element will override those in the admin's widget configuration, **except for boolean attributes**, which will be set to `true` if either the admin's widget configuration or the element's attributes have them set to `true`.
 
 `conversationId`: id of the conversation to use, if not provided a new conversation will be created.
 
@@ -83,6 +87,8 @@ Next we will explain all the widget's possible parameters:
 
 `fullScreen`: if the widget should be in full screen mode, by default the widget is a bottom right window, this mode will make the widget take the whole screen.
 
+`disableDayNightMode`: if the widget should disable the day/night mode, by default the widget has the day/night mode enabled.
+
 `onlyChat`: if the widget should only display the chat, by default the widget displays the header and the history besides the chat.
 
 `fitToParent`: if the widget should fit to the parent element, by default the widget will be positioned absolute to the window.
@@ -92,6 +98,18 @@ Next we will explain all the widget's possible parameters:
 `initialConversationMetadata`: stringify JSON object with arbitrary metadata that will be sent and accessible in the SDK's FSM
 
 `customIFramedMsgs`: It is possible to customize the messages coming from the SDK's FSM, you can pass a JSON object with the following structure:
+
+`speechRecognition`: It enables the speech recognition feature, by default it is disabled.
+
+`speechRecognitionAutoSend`: If speech recognition should automatically send the recognized text once it detect the user stopped talking, by default it is disabled.
+
+`allowAttachments`: If the widget should allow the user to send attachments, by default it is disabled.
+
+`authToken`: The token to authenticate the user in case your FSM requires it.
+
+`enableLogout`: If the widget should display a logout button, by default it is disabled. When the user clicks on the logout button an 'chatfaq-logout' event will be emitted from the document. You can listen to this event and handle the logout as you wish.
+
+`enableResend`: If enabled, the widget will display a reset button on some messages that will allow the user to resend the message. This feature is under development and not fully implemented yet.
 
 ```json
 {
@@ -143,9 +161,13 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
         startWithHistoryClosed: true,
         startSmallMode: true,
         fullScreen: true,
+        disableDayNightMode: true,
         onlyChat: true,
         fitToParent: true,
         stickInputPrompt: true,
+        speechRecognition: true,
+        speechRecognitionAutoSend: true,
+        allowAttachments: true,
         initialConversationMetadata: JSON.stringify({"hello": "world"}),
         customIFramedMsgs: JSON.stringify({
             "iframe": {
@@ -157,7 +179,10 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
                 "scrolling": "np",
                 "noPadding": true
             }
-        })
+        }),
+        authToken: "1234567890",
+        enableLogout: true,
+        enableResend: true
     }
 
     const chatfaqWidget = new ChatfaqWidget(config);
@@ -196,11 +221,18 @@ If you declare data attributes and a config object and its keys collide, then th
     data-start-with-history-closed
     data-start-small-mode
     data-full-screen
+    data-disable-day-night-mode
     data-only-chat
     data-fit-to-parent
     data-stick-input-prompt
+    data-speech-recognition
+    data-speech-recognition-auto-send
+    data-allow-attachments
     data-initial-conversation-metadata='{"hello": "world"}'
     data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "mobileNoMargins": true, "desktopNoMargins": true, "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
+    data-auth-token="1234567890"
+    data-enable-logout
+    data-enable-resend
 ></chatfaq-widget>
 ```
 

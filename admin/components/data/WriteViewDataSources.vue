@@ -10,7 +10,7 @@
                     :commandButtons="false"
                     :leaveAfterSave="false"
                     :order="['original_pdf', 'original_csv', 'original_url', 'parser']"
-                    :excludeFields="['knowledge_base']"
+                    :excludeFields="getExcludedFields()"
                     :conditionalIncludedFields="{
                         'original_pdf': [
                             'parser',
@@ -38,6 +38,7 @@
                         ]
                     }"
                     ref="dataSourceForms"
+                    content-type="multipart/form-data"
                 >
                 </WriteView>
                 <template #title>
@@ -75,6 +76,8 @@ import { useItemsStore } from "~/store/items.js";
 
 import {useI18n} from "vue-i18n";
 const { t } = useI18n();
+const { $useRay } = useNuxtApp()
+
 
 const endpoint = ref("/back/api/language-model/data-sources/")
 const itemsStore = useItemsStore()
@@ -158,6 +161,14 @@ async function deleteDataSource() {
         dataSources.value.splice(deletingIndex.value, 1)
         deleteDialogVisible.value = false
     }
+}
+
+function getExcludedFields() {
+    const excludedFields = ['knowledge_base'];
+    if (!$useRay) {
+        excludedFields.push('original_url');
+    }
+    return excludedFields;
 }
 
 </script>

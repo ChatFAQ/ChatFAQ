@@ -100,7 +100,7 @@ class CustomPreset(ModelWDjango):
             address = channel_layers_config[1]["default"]["CONFIG"]["hosts"][0]
             channel_layers_config[1]["default"]["CONFIG"]["hosts"] = [
                 {
-                    "address": address,
+                    **address,
                     "health_check_interval": 10,
                     "retry_on_timeout": True,
                     "socket_keepalive": True,
@@ -289,6 +289,7 @@ with EnvManager(model_w_django) as env:
     if LOCAL_STORAGE:
         MEDIA_URL = '/local_storage/'
         MEDIA_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "local_storage")
+        HOSTNAME = os.getenv('HOSTNAME', 'http://localhost:8000')
     else:
         # --------------------------- S3 ---------------------------
         AWS_S3_OBJECT_PARAMETERS = {
@@ -301,6 +302,9 @@ with EnvManager(model_w_django) as env:
         AWS_S3_SIGNATURE_VERSION = env.get("AWS_S3_SIGNATURE_VERSION", default=None)
         AWS_S3_REGION_NAME = env.get("AWS_S3_REGION_NAME", default=None)
 
+        AWS_S3_CUSTOM_DOMAIN = env.get("AWS_S3_CUSTOM_DOMAIN", default=None)
+        AWS_S3_ADDRESSING_STYLE = env.get("AWS_S3_ADDRESSING_STYLE", default=None)
+
     # --------------------------- LLM APIs ---------------------------
     VLLM_ENDPOINT_URL = env.get("VLLM_ENDPOINT_URL", default=None)
 
@@ -310,7 +314,9 @@ with EnvManager(model_w_django) as env:
     MISTRAL_API_KEY = env.get("MISTRAL_API_KEY", default=None)
     TOGETHER_API_KEY = env.get("TOGETHER_API_KEY", default=None)
 
+    USE_RAY = env.get("USE_RAY", default=True) in ["True", True, "yes", "Yes"]
+
     # --------------------------- RAY ---------------------------
-    if not ray.is_initialized() and is_server_process():
+    if USE_RAY and not ray.is_initialized() and is_server_process():
         ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 

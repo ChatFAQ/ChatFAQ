@@ -1,7 +1,9 @@
+import uuid
 from enum import Enum
 from logging import getLogger
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
@@ -38,6 +40,8 @@ class Conversation(ChangesMixin):
 
     platform_conversation_id = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
+    initial_conversation_metadata = models.JSONField(default=dict)
+    authentication_required = models.BooleanField(default=False)
 
     def get_first_msg(self):
         return Message.objects.filter(
@@ -74,6 +78,17 @@ class Conversation(ChangesMixin):
         if last_message:
             return last_message.stack[0]["state"]
         return None
+
+    def get_last_status(self):
+        # order the messages by created_date, then keep the messages that contain a state in the stack
+        # and return the last one
+        last_message = (Message.objects.filter(conversation=self)
+            .filter(status__isnull=False)
+            .order_by("-created_date")
+            .first())
+        if last_message:
+            return last_message.status
+        return {}
 
     def get_conv_mml(self):
         messages = self.get_msgs_chain()
@@ -180,10 +195,6 @@ class Message(ChangesMixin):
          There is no Conversation model, instead, a conversation is represented by the group of
          messages that share the same 'conversation' value, and their order is determined by
          the 'prev' attribute.
-    conversation_name: str
-        A name that describes the conversation. Since a conversation is a virtual concept
-         that does not have its own entity, this property is held by the first message in the
-         conversation, which has 'prev' set to null.
     send_time: str
         The moment at which this message was sent.
     confidence: float
@@ -218,6 +229,10 @@ class Message(ChangesMixin):
         The id of the stack to which this message belongs to. This is used to group stacks
     last: bool
         Whether this message is the last one of the stack_group_id
+    last_chunk: bool
+        Whether this message is the last one of the chunk
+    status: JSONField
+        The status of the FSM on that point on time
     """
 
     conversation = models.ForeignKey("Conversation", on_delete=models.CASCADE)
@@ -234,10 +249,13 @@ class Message(ChangesMixin):
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
     )
     meta = models.JSONField(null=True)
+    status = models.JSONField(null=True, blank=True)
     stack = models.JSONField(null=True)
     stack_id = models.CharField(max_length=255, null=True)
     stack_group_id = models.CharField(max_length=255, null=True)
     last = models.BooleanField(default=False)
+    last_chunk = models.BooleanField(default=False)
+    fsm_state = models.JSONField(null=True, blank=True)
 
     @property
     def completed_review(self):
@@ -286,6 +304,25 @@ class Message(ChangesMixin):
 
         return f"{send_time} {sender['type']}: {stack_text}"
 
+    @classmethod
+    def template_server_error_message(cls, conversation_id):
+        conversation = Conversation.objects.get(pk=conversation_id)
+        return cls.objects.create(
+            conversation=conversation,
+            sender={"type": AgentType.bot.value},
+            receiver={"type": AgentType.human.value},
+            stack=[{
+                "type": "server_error",
+                "payload": {
+                    "content": "An error occurred while processing the request. Please try again later."
+                },
+            }],
+            send_time=conversation.get_last_msg().send_time,
+            last=True,
+            stack_id=str(uuid.uuid4()),
+            stack_group_id=str(uuid.uuid4()),
+        )
+
     def save(self, *args, **kwargs):
         if not self.prev:  # avoid setting prev to itself if model is being updated
             self.prev = self.conversation.get_last_msg()
@@ -297,13 +334,27 @@ class UserFeedback(ChangesMixin):
         ("positive", "Positive"),
         ("negative", "Negative"),
     )
-    message = models.OneToOneField(
-        Message, null=True, unique=True, on_delete=models.SET_NULL
+    message = models.ForeignKey(
+        Message, null=True, on_delete=models.SET_NULL
     )
-    value = models.CharField(max_length=255, choices=VALUE_CHOICES)
-
+    value = models.CharField(max_length=255, choices=VALUE_CHOICES, null=True, blank=True)
+    star_rating = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+    )
+    star_rating_max = models.IntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+    )
     feedback_selection = ArrayField(models.TextField(), null=True, blank=True)
     feedback_comment = models.TextField(null=True, blank=True)
+
+    def clean(self):
+        if self.star_rating and self.star_rating_max:
+            if self.star_rating > self.star_rating_max:
+                raise ValidationError("Star rating cannot be greater than maximum stars")
 
 
 class AdminReview(ChangesMixin):

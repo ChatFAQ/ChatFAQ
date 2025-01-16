@@ -7,7 +7,7 @@ from django.db.models import Avg, Count, Q
 from django.db.models.functions import Trunc
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, exceptions
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
@@ -35,6 +35,7 @@ from django.core.files.storage import default_storage
 class ConversationFilterSet(django_filters.FilterSet):
     reviewed = django_filters.CharFilter(method='filter_reviewed')
     fsm_def = django_filters.CharFilter(method='filter_fsm_def')
+    user_feedback_exists = django_filters.BooleanFilter(method='filter_user_feedback_exists')
 
     class Meta:
         model = Conversation
@@ -53,6 +54,9 @@ class ConversationFilterSet(django_filters.FilterSet):
         if val:
             return queryset.filter(message__adminreview__isnull=val).exclude(message__adminreview__isnull=not val).distinct()
         return queryset.filter(message__adminreview__isnull=val).distinct()
+
+    def filter_user_feedback_exists(self, queryset, name, value):
+        return queryset.filter(message__userfeedback__isnull=False).distinct()
 
 
 class ConversationAPIViewSet(
@@ -78,14 +82,31 @@ class ConversationAPIViewSet(
             return [AllowAny(), ]
         return super(ConversationAPIViewSet, self).get_permissions()
 
-    @action(methods=("get",), detail=False, authentication_classes=[], permission_classes=[AllowAny])
+    @staticmethod
+    def _instance_permissions(instance, request):
+        if instance and instance.authentication_required:
+            if not request.user.is_authenticated:
+                return JsonResponse(
+                    {"error": "Authentication required"},
+                    status=401,
+                )
+
+    def instance_permissions(self, request):
+        return self._instance_permissions(self.get_object(), request)
+
+    @action(methods=("get",), detail=False, permission_classes=[AllowAny])
     def from_sender(self, request, *args, **kwargs):
         if not request.query_params.get("sender"):
             return JsonResponse(
                 {"error": "sender is required"},
                 status=400,
             )
-        results = [ConversationSerializer(c).data for c in Conversation.conversations_from_sender(request.query_params.get("sender"))]
+        results = []
+        for c in Conversation.conversations_from_sender(request.query_params.get("sender")):
+            if error := self._instance_permissions(c, request):
+                return error
+            results.append(ConversationSerializer(c).data)
+
         return JsonResponse(
             results,
             safe=False,
@@ -94,12 +115,15 @@ class ConversationAPIViewSet(
     @action(methods=("get",), detail=True)
     def review_progress(self, request, pk=None):
         conv = Conversation.objects.get(pk=pk)
+        if error := self._instance_permissions(conv, request):
+            return error
+
         return JsonResponse(
             conv.get_review_progress(),
             safe=False,
         )
 
-    @action(methods=("post",), detail=True, authentication_classes=[], permission_classes=[AllowAny])
+    @action(methods=("post",), detail=True, permission_classes=[AllowAny])
     def download(self, request, *args, **kwargs):
         """
         A view to download all the knowledge base's items as a csv file:
@@ -107,6 +131,8 @@ class ConversationAPIViewSet(
         ids = kwargs["pk"].split(",")
         if len(ids) == 1:
             conv = Conversation.objects.get(pk=ids[0])
+            if error := self._instance_permissions(conv, request):
+                return error
             content = conv.conversation_to_text()
             filename = f"{conv.created_date.strftime('%Y-%m-%d_%H-%M-%S')}.txt"
             content_type = "text/plain"
@@ -115,6 +141,8 @@ class ConversationAPIViewSet(
             with ZipFile(zip_content, "w") as _zip:
                 for _id in ids:
                     conv = Conversation.objects.get(pk=_id)
+                    if error := self._instance_permissions(conv, request):
+                        return error
                     _content = conv.conversation_to_text()
                     _zip.writestr(
                         conv.get_first_msg().created_date.strftime("%Y-%m-%d_%H-%M-%S")
@@ -131,6 +159,21 @@ class ConversationAPIViewSet(
         response["Access-Control-Expose-Headers"] = "Content-Disposition"
         return response
 
+    def retrieve(self, request, *args, **kwargs):
+        if error := self.instance_permissions(request):
+            return error
+        return super().retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if error := self.instance_permissions(request):
+            return error
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if error := self.instance_permissions(request):
+            return error
+        return super().destroy(request, *args, **kwargs)
+
 
 class MessageView(viewsets.ModelViewSet):
     queryset = Message.objects.all()
@@ -145,6 +188,12 @@ class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id", "message"]
+
+    def check_object_permissions(self, request, obj):
+        if obj.message.conversation.authentication_required:
+            if not request.user.is_authenticated:
+                raise exceptions.NotAuthenticated()
+        return super().check_object_permissions(request, obj)
 
 
 class AdminReviewAPIViewSet(viewsets.ModelViewSet):
@@ -260,9 +309,9 @@ class FileUploadView(APIView):
         file = request.FILES.get('file')
         if not file:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
-
+        expire = request.data.get('expire', 3600)
         # Save the file
         file_name = default_storage.save(file.name, file)
-        file_url = default_storage.url(file_name)
+        file_url = default_storage.url(file_name, expire=expire)
 
         return Response({'url': file_url}, status=status.HTTP_201_CREATED)

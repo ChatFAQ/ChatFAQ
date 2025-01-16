@@ -36,27 +36,49 @@ export const useGlobalStore = defineStore('globalStore', {
             downloading: false,
             isPhone: false,
             initialConversationMetadata: {},
-            customIFramedMsgs: {}
+            customIFramedMsgs: {},
+            speechRecognition: false,
+            speechRecognitionAutoSend: false,
+            allowAttachments: false,
+            authToken: undefined,
+            messagesToBeSentSignal: 0,
+            messagesToBeSent: [],
+            disableDayNightMode: false,
+            enableLogout: false,
+            enableResend: false,
+            resendMsgId: undefined,
         }
     },
     actions: {
         async gatherConversations() {
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`);
+            const headers = {}
+            if (this.authToken)
+                headers.Authorization = `Token ${this.authToken}`;
+
+            let response = await chatfaqFetch(this.chatfaqAPI + `/back/api/broker/conversations/from_sender/?sender=${this.userId}`, { headers });
             this.conversations = await response.json();
         },
         async renameConversationName(id, name) {
-            await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
+            const headers = { 'Content-Type': 'application/json' }
+            if (this.authToken)
+                headers.Authorization = `Token ${this.authToken}`;
+
+            await chatfaqFetch(this.chatfaqAPI + `/back/api/broker/conversations/${id}/`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 body: JSON.stringify({ name: name })
             });
             this.conversations.find((conversation) => conversation.id === id).name = name;
         },
         async openConversation(_selectedPlConversationId) {
+            const headers = { 'Content-Type': 'application/json' }
+            if (this.authToken)
+                headers.Authorization = `Token ${this.authToken}`;
+
             const conversationId = this.conversation(_selectedPlConversationId).id
-            let response = await fetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
+            let response = await chatfaqFetch(this.chatfaqAPI + `/back/api/broker/conversations/${conversationId}/`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' }
+                headers
             });
             response = await response.json();
             this.messages = response.msgs_chain
@@ -141,6 +163,17 @@ export const useGlobalStore = defineStore('globalStore', {
                     "platform_conversation_id": "725628099",
                     "name": "Consectetur adipiscing elit."
                 }]
+        },
+        deleteMsgsAfter(msgId) {
+            const msgsToDelete = []
+            for (let i = this.messages.length - 1; i >= 0; i--) {
+                if (this.messages[i].id === msgId) {
+                    this.messages[i].last = true;
+                    break;
+                }
+                msgsToDelete.push(this.messages[i])
+            }
+            this.messages = this.messages.filter(msg => !msgsToDelete.includes(msg))
         }
     },
     getters: {
@@ -165,6 +198,12 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
+        },
+        getPrevMsg: (state) => (msg) => {
+            const index = state.messages.findIndex(m => m === msg)
+            if (index === -1 || index === 0)
+                return {}
+            return state.messages[index - 1]
         },
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)

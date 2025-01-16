@@ -72,5 +72,5 @@ class PromptConfigAPIViewSet(viewsets.ModelViewSet):
     queryset = PromptConfig.objects.all()
     serializer_class = PromptConfigSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["id"]
+    filterset_fields = ["id", "name"]
     search_fields = ['name']

@@ -21,4 +21,5 @@ urlpatterns = router.urls
 
 urlpatterns += [
     path("tasks/", back.apps.language_model.views.tasks.ListTasksAPI.as_view()),
+    path("ray-status/", back.apps.language_model.views.tasks.RayStatusAPI.as_view()),
 ]

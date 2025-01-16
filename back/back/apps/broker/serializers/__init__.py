@@ -37,12 +37,6 @@ class AdminReviewSerializer(serializers.ModelSerializer):
         model = apps.get_model("broker", "AdminReview")
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = apps.get_model("broker", "Message")
-        fields = "__all__"
-
-
 def _get_fsm_defs(_, obj):
     """Returns the FSM definitions name"""
     fsm_def_ids = Message.objects.filter(conversation=obj).values_list("stack__0__fsm_definition", flat=True).distinct()
@@ -58,6 +52,12 @@ def _get_fsm_defs(_, obj):
     return defs
 
 
+class _MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = apps.get_model("broker", "Message")
+        exclude = ["status"]
+
+
 class ConversationMessagesSerializer(serializers.ModelSerializer):
     msgs_chain = serializers.SerializerMethodField()
     fsm_defs = serializers.SerializerMethodField()
@@ -67,7 +67,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_msgs_chain(self, obj):
-        return [MessageSerializer(m).data for m in obj.get_msgs_chain()]
+        return [_MessageSerializer(m).data for m in obj.get_msgs_chain()]
 
     get_fsm_defs = _get_fsm_defs
 
@@ -75,6 +75,7 @@ class ConversationMessagesSerializer(serializers.ModelSerializer):
 class ConversationSerializer(serializers.ModelSerializer):
     user_id = serializers.SerializerMethodField()
     fsm_defs = serializers.SerializerMethodField()
+    num_user_msgs = serializers.SerializerMethodField()
 
     class Meta:
         model = apps.get_model("broker", "Conversation")
@@ -86,6 +87,9 @@ class ConversationSerializer(serializers.ModelSerializer):
                 return msg.sender.get("id")
             if msg.receiver and msg.receiver.get("type") == AgentType.human.value:
                 return msg.receiver.get("id")
+
+    def get_num_user_msgs(self, obj):
+        return Message.objects.filter(conversation=obj, sender__type=AgentType.human.value).count()
 
     get_fsm_defs = _get_fsm_defs
 

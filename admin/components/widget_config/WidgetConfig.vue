@@ -32,18 +32,28 @@
                         'only_chat',
                         'start_small_mode',
                         'start_with_history_closed',
+                        'disable_day_night_mode',
+                        'enable_logout',
                         'hide_sources',
                         'sources_first',
                         'stick_input_prompt',
-                        'fit_to_parent'
+                        'fit_to_parent',
+                        'stick_input_prompt',
+                        'speech_recognition',
+                        'speech_recognition_auto_send',
+                        'allow_attachments',
                     ],
                 [$t('advanced')]: [
                         'custom_css',
                         'initial_conversation_metadata',
                         'custom_i_framed_msgs',
+                        'enable_resend',
                     ],
                 [$t('theme')]: [
                         'theme'
+                    ],
+                [$t('authentication')]: [
+                        'authentication_required'
                     ],
                 [$t('script')]: [
                         'script',
@@ -106,6 +116,8 @@
                             :data-subtitle="subtitle"
                             data-preview-mode
                             data-start-small-mode
+                            data-speech-recognition
+                            allow-attachments
                         ></chatfaq-widget>
                     </teleport>
                 </template>

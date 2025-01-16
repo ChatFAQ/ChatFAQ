@@ -2,14 +2,14 @@
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
             <div class="stacks" v-for="(message, index) in store.messages">
-                <ChatMsg
-                    v-if="renderable(message)"
+                <ChatMsgManager
+                    v-if="isRenderableStackType(message)"
                     :message="message"
                     :key="message.stack_id"
                     :is-last-of-type="isLastOfType(index)"
                     :is-first="index === 0"
                     :is-last="index === store.messages.length - 1"
-                ></ChatMsg>
+                ></ChatMsgManager>
             </div>
             <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
         </div>
@@ -22,44 +22,74 @@
         </div>
         <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt, 'fit-to-parent-prompt': store.fitToParent }">
             <div class="chat-prompt-outer">
+                <Attach v-if="store.allowAttachments" class="attach-buttom"/>
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
-                    :class="{ 'dark-mode': store.darkMode, 'maximized': store.maximized }"
+                    :class="{ 
+                        'dark-mode': store.darkMode, 
+                        'maximized': store.maximized,
+                        'disabled': isFinalFeedback 
+                    }"
                     ref="chatInput"
-                    @keydown="(ev) => manageEnterInput(ev, sendMessage)"
-                    contenteditable
-                    oninput="if(this.innerHTML.trim()==='<br>')this.innerHTML=''"
-                    @input="($event)=>thereIsContent = $event.target.innerHTML.length !== 0"
-                    @paste="managePaste"
+                    @keydown="(ev) => manageHotKeys(ev, sendMessage)"
+                    :contenteditable="!isFinalFeedback"
+                    @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
-                <Send class="chat-send-button" :class="{'dark-mode': store.darkMode, 'active': thereIsContent && !store.waitingForResponse}" @click="sendMessage"/>
+            </div>
+            <div class="prompt-right-button" 
+                 :class="{
+                     'dark-mode': store.darkMode,
+                     'disabled': isFinalFeedback
+                 }" 
+                 @click="() => { 
+                     if (!isFinalFeedback && availableMicro) { 
+                         speechToText() 
+                     } else if (!isFinalFeedback && availableSend) { 
+                         sendMessage() 
+                     }
+                 }">
+                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
+                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
+                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
+                <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, watch, nextTick, onMounted} from "vue";
+import {ref, watch, nextTick, onMounted, computed} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
-import ChatMsg from "~/components/chat/msgs/ChatMsg.vue";
+import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
+import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
-
+import Attach from "~/components/icons/Attach.vue";
 const store = useGlobalStore();
 
 const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
-const notRenderableStackTypes = ["gtm_tag"]
+const notRenderableStackTypes = ["gtm_tag", undefined]
+const isFinalFeedback = ref(false)
 
 let ws = undefined
-let heartbeatTimeout = undefined
+let historyIndexHumanMsg = -1
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const speechRecognition = ref(new SpeechRecognition())
+const speechRecognitionRunning = ref(false)
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+watch(() => store.resendMsgId, resendMsg)
+watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
+watch(() => store.selectedPlConversationId, () => {
+    isFinalFeedback.value = false
+})
 
 onMounted(async () => {
     await initializeConversation()
@@ -67,12 +97,6 @@ onMounted(async () => {
 
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
-}
-
-function managePaste(ev) {
-    ev.preventDefault()
-    const text = ev.clipboardData.getData('text/plain').replace(/\n\r?/g, "<br>");
-    ev.target.innerHTML = text
 }
 
 function scrollConversationDown() {
@@ -91,19 +115,8 @@ function animateFeedbackSent() {
         feedbackSentDisabled.value = true
     }, 1500)
 }
-
-function createHeartbeat(ws) {
-    ws.send(JSON.stringify({
-        "heartbeat": true
-    }));
-    heartbeatTimeout = setTimeout(() => {
-        createHeartbeat(ws)
-    }, 5000)
-
-}
-
-function deleteHeartbeat() {
-    clearTimeout(heartbeatTimeout)
+function isRenderableStackType(message) {
+    return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 
@@ -118,6 +131,12 @@ function createConnection() {
     if (store.initialConversationMetadata)
         queryParams = `?metadata=${JSON.stringify(store.initialConversationMetadata)}`
 
+    if (store.authToken && store.authToken.length) {
+        if (queryParams.length) queryParams += "&"
+        else queryParams = "?"
+        queryParams += `token=${encodeURIComponent(store.authToken)}`
+    }
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
@@ -127,7 +146,7 @@ function createConnection() {
         + "/"
         + (store.userId ? `${store.userId}/${queryParams}` : "")
     );
-    ws.onmessage = function (e) {
+    ws.onmessage = async function (e) {
         const msg = JSON.parse(e.data);
         if (msg.status === 400) {
             console.error(`Error in message from WS: ${msg.payload}`)
@@ -138,18 +157,39 @@ function createConnection() {
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
+        if (msg.stack[0]?.type === 'star_rating' || msg.stack[0]?.type === 'text_feedback')
+            isFinalFeedback.value = true
 
         sendToGTM(msg)
         store.addMessage(msg);
+        if(store.messages.length === 1)
+            await store.gatherConversations()
     };
     ws.onopen = async function () {
         store.disconnected = false;
-        createHeartbeat(ws)
-        await store.gatherConversations()
+        // await store.gatherConversations()
     };
     const plConversationId = store.selectedPlConversationId
     ws.onclose = function (e) {
-        deleteHeartbeat();
+        if (e.code === 4000 || e.code === 3000) {  // SDK not existent or RPC worker not connected || Authentication error
+            let _msg = e.reason
+            store.addMessage({
+                "sender": {
+                    "type": "bot",
+                    "platform": "WS",
+                },
+                "stack": [{
+                    "type": "message",
+                    "payload": {
+                        "content": _msg
+                    },
+                }],
+                "stack_id": Math.random().toString(36).substring(7),
+                "stack_group_id": Math.random().toString(36).substring(7),
+                "last": true,
+            });
+            return;
+        }
         if (plConversationId !== store.selectedPlConversationId)
             return;
         store.disconnected = true;
@@ -170,21 +210,90 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
+    isFinalFeedback.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
-function manageEnterInput(ev, cb) {
+function manageHotKeys(ev, cb) {
+    const _s = window.getSelection()
+    const _r = window.getSelection().getRangeAt(0)
+    const atTheBeginning = _r.endOffset === 0 && !_r.previousSibling;
+    const atTheEnd = _r.endOffset === _s.focusNode.length && !_r.endContainer.nextSibling;
+
     if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault()
         cb();
     }
-};
+    else if (ev.key === 'ArrowUp' && atTheBeginning) {
+        // Search for the previous human message from the index historyIndexHumanMsg
+        if (historyIndexHumanMsg === -1)
+            historyIndexHumanMsg = store.messages.length
+        ev.preventDefault()
+        if (store.messages) {
+            for (let i = historyIndexHumanMsg - 1; i >= 0; i--) {
+                if (store.messages[i].sender.type === 'human') {
+                    chatInput.value.innerText = store.messages[i].stack[0].payload.content
+                    historyIndexHumanMsg = i
+                    break
+                }
+            }
+        }
+    }
+    else if (ev.key === 'ArrowDown' && atTheEnd) { // Searcg for the next human message from the index historyIndexHumanMsg
+        ev.preventDefault()
+        if (historyIndexHumanMsg === -1)
+            historyIndexHumanMsg = store.messages.length
+        if (store.messages) {
+            for (let i = historyIndexHumanMsg + 1; i < store.messages.length; i++) {
+                if (store.messages[i].sender.type === 'human') {
+                    chatInput.value.innerText = store.messages[i].stack[0].payload.content
+                    historyIndexHumanMsg = i
+                    break
+                }
+            }
+        }
+    }
+}
 
-function sendMessage() {
-    const user_message = chatInput.value.innerText.trim()
-    if (!user_message.length || store.waitingForResponse || store.disconnected)
+function sendMessage(_message) {
+    if (!canSend())
         return;
-    const m = {
+    historyIndexHumanMsg = -1
+
+    const message = _message ? _message : createMessageFromInputPrompt()
+
+    if (!message)
+        return
+
+    store.messages.push(message);
+    ws.send(JSON.stringify(message));
+    store.scrollToBottom += 1;
+    
+    chatInput.value?.blur(); // Remove focus from the input
+}
+
+function sendMessagesToBeSent() {
+    if(!canSend()) {
+        setTimeout(() => sendMessagesToBeSent(), 1000)
+        return
+    }
+
+    while (store.messagesToBeSent.length) {
+        sendMessage(store.messagesToBeSent.pop());
+    }
+
+}
+
+function canSend() {
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !isFinalFeedback.value
+}
+
+function createMessageFromInputPrompt() {
+    if (!thereIsContent.value)
+        return
+
+    const user_message = chatInput.value.innerText.trim()
+    const message = {
         "sender": {
             "type": "human",
             "platform": "WS",
@@ -200,16 +309,20 @@ function sendMessage() {
         "last": true,
     };
     if (store.userId !== undefined)
-        m["sender"]["id"] = store.userId
+        message["sender"]["id"] = store.userId
 
-    store.messages.push(m);
-    ws.send(JSON.stringify(m));
     chatInput.value.innerText = "";
-    store.scrollToBottom += 1;
+    thereIsContent.value = false
+    return message
 }
 
-function renderable(message) {
-    return !notRenderableStackTypes.includes(message.stack[0].type)
+function resendMsg(msgId) {
+    if (msgId === undefined)
+        return;
+    if (store.disconnected)
+        return;
+    store.deleteMsgsAfter(msgId)
+    ws.send(JSON.stringify({reset: msgId}));
 }
 
 function sendToGTM(msg) {
@@ -220,6 +333,77 @@ function sendToGTM(msg) {
             console.warn("GTM tag received but no dataLayer found")
     }
 }
+
+function speechToText() {
+    const sr = speechRecognition.value;
+    if (speechRecognitionRunning.value) {
+        sr.stop()
+        return
+    }
+
+    sr.lang = 'en-US';
+    sr.continuous = false;
+    sr.interimResults = true;
+    sr.maxAlternatives = 1;
+
+    sr.onaudioend = () => {
+        sr.stop();
+    }
+    sr.soundend = () => {
+        sr.stop();
+    }
+    sr.onresult = (event) => {
+        const speechToText = event.results[0][0].transcript;
+        chatInput.value.innerText += speechToText;
+        sr.stop();
+    }
+    sr.onresult = (event) => {
+        var final = "";
+        var interim = "";
+
+        for (let i = 0; i < event.results.length; ++i) {
+            if (event.results[i].final) {
+                final += event.results[i][0].transcript;
+            } else {
+                interim += event.results[i][0].transcript;
+            }
+        }
+        if (event.results[0].final)
+            chatInput.value.innerText = final;
+        else
+            chatInput.value.innerText = interim;
+    }
+    sr.onspeechend = () => {
+        sr.stop();
+    }
+    sr.onerror = (event) => {
+        console.error('Error occurred in the speech recognition: ' + event.error);
+        sr.stop();
+    }
+    sr.onstart = () => {
+        speechRecognitionRunning.value = true;
+    }
+    sr.onend = () => {
+        speechRecognitionRunning.value = false;
+        thereIsContent.value = chatInput.value.innerText.length !== 0
+        if (store.speechRecognitionAutoSend)
+            sendMessage();
+    }
+    sr.start();
+}
+
+const availableSend = computed(() => {
+    return !store.speechRecognition || thereIsContent.value
+})
+const availableMicro = computed(() => {
+    return store.speechRecognition && !thereIsContent.value
+})
+const activeSend = computed(() => {
+    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+})
+const activeMicro = computed(() => {
+    return !speechRecognitionRunning.value
+})
 
 </script>
 <style scoped lang="scss">
@@ -254,24 +438,58 @@ function sendToGTM(msg) {
 
 .chat-prompt-wrapper {
     padding: 24px;
+    display: flex;
+    background-color: $chatfaq-color-chat-background-light;
+    &.dark-mode {
+        background-color: $chatfaq-color-chat-background-dark;
+    }
+
     &.fit-to-parent-prompt {
         border-radius: inherit;
     }
     .chat-prompt-outer {
+        width: 100%;
         display: flex;
         border-radius: 4px;
         border: 1px solid $chatfaq-color-chatInput-border-light !important;
         box-shadow: 0px 4px 4px $chatfaq-box-shadows-color;
+
+        .attach-buttom {
+            margin-top: auto;
+            margin-bottom: auto;
+            line-height: 100%;
+            margin-left: 16px;
+            cursor: pointer;
+            color: $chatfaq-attach-icon-color-light;
+            &.dark-mode {
+                color: $chatfaq-attach-icon-color-dark;
+            }
+
+        }
     }
 
     &.stick-input-prompt {
         position: sticky;
         bottom: 0px;
     }
-    background-color: $chatfaq-color-chat-background-light;
-    &.dark-mode {
-        background-color: $chatfaq-color-chatInput-background-dark;
-        border: 1px solid $chatfaq-color-chatInput-border-dark !important;
+    .prompt-right-button {
+        position: relative;
+        flex: 0 0 40px;
+        height: 40px;
+        margin-left: 8px;
+        border-radius: 4px;
+        display: flex;
+        cursor: pointer;
+        background-color: $chatfaq-prompt-button-background-color-light;
+        &.dark-mode {
+            background-color: $chatfaq-prompt-button-background-color-dark;
+        }
+
+        &.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            pointer-events: none;
+        }
     }
 }
 
@@ -382,23 +600,82 @@ function sendToGTM(msg) {
             color: $chatfaq-color-chatInput-text-dark;
         }
     }
+
+    &.disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        pointer-events: none;
+    }
 }
 
-.chat-send-button, .chat-send-button:focus, .chat-send-button:hover {
-    margin: 11px 16px;
+.chat-prompt-button, .chat-prompt-button:focus, .chat-prompt-button:hover {
     cursor: pointer;
     height: 16px;
     align-self: end;
     opacity: 0.6;
-    color: $chatfaq-send-icon-color-light;
+    margin: auto;
+    z-index: 1;
 
-    &.dark-mode {
-        color: $chatfaq-send-icon-color-dark;
+    &.send {
+        color: $chatfaq-send-icon-color-light;
+        &.dark-mode {
+            color: $chatfaq-send-icon-color-dark;
+        }
+    }
+    &.micro {
+        color: $chatfaq-microphone-icon-color-light;
+        &.dark-mode {
+            color: $chatfaq-microphone-icon-color-dark;
+        }
     }
 
     &.active {
         opacity: 1;
     }
+}
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes smallScale {
+    0% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.has-scale-animation {
+    animation: smallScale 1.7s infinite
+}
+
+.has-delay-short {
+    animation-delay: 0.5s
+}
+
+.micro-anim-elm {
+    position: absolute;
+    background: $chatfaq-prompt-button-background-color-light;
+
+    &.dark-mode {
+        background: $chatfaq-prompt-button-background-color-dark;
+    }
+
+    border-radius: 4px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
 }
 
 </style>

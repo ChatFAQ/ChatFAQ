@@ -5,6 +5,8 @@ from back.apps.language_model.models import RayTaskState
 from back.apps.language_model.serializers.tasks import RayTaskStateSerializer
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
+from django.conf import settings
+
 
 
 def get_paginated_response(data, limit, offset, count):
@@ -37,6 +39,10 @@ class ListTasksAPI(APIView):
             return Response({'error': 'Invalid limit or offset.'}, status=status.HTTP_400_BAD_REQUEST)
 
         data = RayTaskState.get_all_ray_and_parse_tasks_serialized()
+
+        if not data:
+            return get_paginated_response([], limit, offset, 0)
+
         if sort_key:
             # if starts with "-" then sort in descending order
             sort_order = 'desc' if sort_key.startswith('-') else 'asc'
@@ -55,3 +61,17 @@ class ListTasksAPI(APIView):
             page = [task for task in page if task.get('task_id') == task_id]
 
         return get_paginated_response(page, limit, offset, len(data))
+    
+
+class RayStatusAPI(APIView):
+    @extend_schema(
+        description="Get the Ray cluster availability status",
+        responses={200: {"type": "object", "properties": {"ray_enabled": {"type": "boolean"}}}}
+    )
+    def get(self, request):
+        """
+        Return whether Ray cluster is enabled and available.
+        """
+        use_ray = getattr(settings, 'USE_RAY', False)
+        print('Sending Ray status:', use_ray)
+        return Response({'use_ray': use_ray})

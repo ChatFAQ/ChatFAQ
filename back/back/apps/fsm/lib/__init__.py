@@ -7,7 +7,7 @@ from channels.layers import get_channel_layer
 
 from back.apps.broker.consumers.message_types import RPCNodeType
 from back.apps.broker.models import ConsumerRoundRobinQueue
-from back.apps.language_model.models import LLMConfig
+from back.apps.broker.models.message import Message
 from back.common.abs.bot_consumers import BotConsumer
 from back.utils import WSStatusCodes
 
@@ -68,7 +68,6 @@ class FSM:
         states: List[State],
         transitions: List[Transition],
         current_state: State = None,
-        initial_conversation_metadata: dict = {},
     ):
         """
         Parameters
@@ -91,16 +90,34 @@ class FSM:
         self.states = states
         self.transitions = transitions
         self.rpc_result_future: Union[asyncio.Future, None] = None
-        self.initial_conversation_metadata = initial_conversation_metadata
 
         self.current_state = current_state
         if not current_state:
             self.current_state = self.get_initial_state()
+        self.waiting_for_rpc = None
+
+    async def check_sdk_connection(self):
+        return await database_sync_to_async(ConsumerRoundRobinQueue.check_sdk_connection)(self.ctx.fsm_def.pk)
 
     async def start(self):
         await self.run_current_state_events()
         logger.debug(f"FSM start --> {self.current_state}")
         await self.save_cache()
+
+    async def reset(self, msg_id):
+        """
+        It will reset the FSM to the initial state and delete all the messages that were sent after the message with
+        id = msg_id
+        """
+        # get the creation date of the msg_id:
+        msg = await database_sync_to_async(Message.objects.prefetch_related("conversation").get)(id=msg_id)
+        msg.last = True
+        await database_sync_to_async(msg.save)()
+        msgs = await database_sync_to_async(Message.objects.filter)(conversation=msg.conversation, created_date__gt=msg.created_date)
+        await database_sync_to_async(msgs.delete)()
+
+        self.current_state = self.get_state_by_name(msg.fsm_state)
+        # await self.next_state()
 
     async def next_state(self):
         """
@@ -125,7 +142,6 @@ class FSM:
 
         await self.save_cache()
 
-
     async def run_current_state_events(self, transition_data=None):
         """
         It will call the RPC server, the procedure name is the event name declared in the fsm definition for the
@@ -140,6 +156,7 @@ class FSM:
             transition_data = {}
 
         for event_name in self.current_state.events:
+            self.waiting_for_rpc = event_name
             group_name = await database_sync_to_async(ConsumerRoundRobinQueue.get_next_consumer_group_name)(self.ctx.fsm_def.pk)
 
             data = {
@@ -163,30 +180,55 @@ class FSM:
         """
         It will be called by the RPC Consumer when it receives a response from the RPC worker
         """
+        if data.get("rpc_died"):
+            logger.error(
+                f"RPC Worker died while running RPC {self.waiting_for_rpc}. This will probably cause a inconsistent conversation state."
+            )
+            await self.fix_inconsistent_last()
+            return
         if data["node_type"] == RPCNodeType.action.value:
             self.manage_last_llm_msg(data)
-            id = await self.save_if_last_chunk(data)
-            data["id"] = id
-            await self.ctx.send_response(data)
+            msg_to_platform = {**data, "id": await self.save_if_last_chunk()}
+            if msg_to_platform.get("ctx", {}):
+                del msg_to_platform["ctx"]  # This data should be visible only on the FSM not the client
+            await self.ctx.send_response(msg_to_platform)
         else:
             self.rpc_result_future.set_result(data)
 
     def manage_last_llm_msg(self, _new):
         _old = self.last_aggregated_msg
 
-        if _new['stack'][0]["streaming"]:
+        if _new['stack'] and _new['stack'][0]["streaming"]:
             if _new["stack_id"] == _old.get("stack_id"):
                 more_content = _new["stack"][0]["payload"]["content"]
                 old_payload = _old["stack"][0]["payload"]["content"]
                 _new["stack"][0]['payload']['content'] = old_payload + more_content
         self.last_aggregated_msg = _new
 
-    async def save_if_last_chunk(self, _new):
+    async def save_if_last_chunk(self):
         if self.last_aggregated_msg.get("last_chunk"):
-            self.last_aggregated_msg["conversation"] = self.last_aggregated_msg["ctx"]["conversation_id"]
-            serializer = self.MessageSerializer(data=self.last_aggregated_msg)
+            msg = {**self.last_aggregated_msg}
+            msg["conversation"] = msg["ctx"]["conversation_id"]
+            msg["status"] = msg["ctx"]["status"]
+            msg["fsm_state"] = self.current_state.name
+            serializer = self.MessageSerializer(data=msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
+            self.waiting_for_rpc = None
             return (await database_sync_to_async(serializer.save)()).id
+
+    async def fix_inconsistent_last(self):
+        if self.waiting_for_rpc is None:
+            return
+        self.waiting_for_rpc = None  # Let's t least close the disconnect loop in the BotConsumer
+        if self.last_aggregated_msg and not self.last_aggregated_msg.get("last"):
+            msg = {**self.last_aggregated_msg, "last": True}
+            msg["conversation"] = msg["ctx"]["conversation_id"]
+            msg["status"] = msg["ctx"]["status"]
+            serializer = self.MessageSerializer(data=msg)
+            await database_sync_to_async(serializer.is_valid)(raise_exception=True)
+            await database_sync_to_async(serializer.save)()
+        template_server_error_message = await database_sync_to_async(Message.template_server_error_message)(self.ctx.conversation.pk)
+        await database_sync_to_async(template_server_error_message.save)()
 
     def get_initial_state(self):
         for state in self.states:
@@ -252,6 +294,7 @@ class FSM:
         logger.debug(f"Waiting for RCP call {condition_name} (condition)...")
         payload = await self.rpc_result_future
         logger.debug(f"...Receive RCP call {condition_name} (condition)")
+        self.waiting_for_rpc = None
         return payload["stack"]["score"], payload["stack"]["data"]
 
     async def save_cache(self):

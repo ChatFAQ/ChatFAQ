@@ -52,13 +52,21 @@ class Widget(models.Model):
     start_with_history_closed = models.BooleanField(default=False)
     sources_first = models.BooleanField(default=False)
     stick_input_prompt = models.BooleanField(default=False)
+    speech_recognition = models.BooleanField(default=False)
+    speech_recognition_auto_send = models.BooleanField(default=False)
+    allow_attachments = models.BooleanField(default=False)
+    disable_day_night_mode = models.BooleanField(default=False)
+    enable_logout = models.BooleanField(default=False)
     # integration
     fit_to_parent = models.BooleanField(default=False)
     # advanced
     custom_css = models.TextField(null=True, blank=True)
     initial_conversation_metadata = JSONField(default=dict)
     custom_i_framed_msgs = JSONField(default=dict)
+    enable_resend = models.BooleanField(default=False)
 
     theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True)
+    # ----------
+    authentication_required = models.BooleanField(default=False)
     # ----------
     history = HistoricalRecords()

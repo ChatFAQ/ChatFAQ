@@ -13,7 +13,7 @@
     "additionalfeedback": "Please provide additional feedback",
     "whatwastheissue": "What was the issue with this response?",
     "whatdidyoulike": "What do you like about the response?",
-    "submitfeedback": "Submit feedback",
+    "submitfeedback": "Submit",
     "feedbacksent" : "Feedback sent succesfully!",
     "reason1": "This is harmful/unsafe",
     "reason2": "This is not true",
@@ -22,5 +22,7 @@
     "showless": "Show Less",
     "sources": "sources",
     "source": "source",
-    "connectingtoserver": "Connecting to server..."
+    "connectingtoserver": "Connecting to server...",
+    "upload_file": "Upload file",
+    "logout": "Logout"
 }

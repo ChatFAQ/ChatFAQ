@@ -21,7 +21,7 @@
                 :defaultSort="{'prop': 'name'}">
             </ReadWriteView>
         </el-tab-pane>
-        <el-tab-pane :lazy="true" :label="$t('retriever')" name="retriever-configs">
+        <el-tab-pane v-if="$useRay" :lazy="true" :label="$t('retriever')" name="retriever-configs">
             <ReadWriteView :readableName="$t('retriever')" apiUrl="/back/api/language-model/retriever-configs/"
                            :cardProps="{
                     'model_name': $t('modelname'),
@@ -41,7 +41,8 @@
                     'enabled': {'name': $t('enabled')},
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
-                :defaultSort="{'prop': 'name'}">
+                :defaultSort="{'prop': 'name'}"
+                >
                 <template v-slot:extra-card-bottom="{item}">
                     <el-button class="bottom-card-button" @click="callRetrieverReindex(item.id, $t)"
                             :disabled="item.index_status === 'up_to_date'">
@@ -104,8 +105,9 @@ import {callRetrieverReindex} from "~/utils/index.js";
 
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()
-const itemType = ref("retriever-configs")
+const itemType = ref("llm-configs")
 await itemsStore.loadSchema()
+const { $useRay } = useNuxtApp()
 
 </script>
 

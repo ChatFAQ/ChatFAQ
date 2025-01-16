@@ -12,9 +12,9 @@ on:
     branches:
       - "production"
       - "develop"
-      - "feature/**caps**"
-      - "feature/**withmadrid**"
-      - "feature/**chatf**"
+      # - "feature/**caps**"
+      # - "feature/**withmadrid**"
+      # - "feature/**chatf**"
   workflow_dispatch:
 
 jobs:

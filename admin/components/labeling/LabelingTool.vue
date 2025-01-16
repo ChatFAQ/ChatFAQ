@@ -26,21 +26,22 @@
                         <div>{{ conversation?.fsms ? conversation.fsms.join(",") : "" }}</div>
                         <div>{{formatDate(conversation.created_date)}}</div>
                     </div>
-                    <div v-for="msgs in getQAMessageGroups(conversation.msgs_chain)"
-                         @click="msgLabeled = msgs[msgs.length - 1]"
+                    <div v-for="msg in renderableMessages"
+                         @click="msg.sender.type === 'bot' && msg.stack?.length ? selectedMessage = msg : null"
                          class="qa-group"
                          :class="{
-                             'selected': (msgLabeled !== undefined && msgLabeled.id === msgs[msgs.length - 1].id),
-                             'reviewed': msgs[msgs.length - 1].reviewed
+                             'selected': (selectedMessage?.id === msg.id),
+                             'reviewed': msg.reviewed,
+                             'not-selectable': msg.sender.type === 'human' || !msg.stack?.length
                          }"
                     >
-                        <div v-for="(msg, index) in msgs" class="message" :class="{[msg.sender.type]: true}">
-                            <span v-if="!index && msgs[msgs.length - 1].reviewed" class="reviewed-check">
+                        <div class="message" :class="[msg.sender.type]">
+                            <span v-if="msg.reviewed" class="reviewed-check">
                                 <el-icon>
                                     <CircleCheck/>
                                 </el-icon>
                             </span>
-                            <div class="message-content" :class="{[msg.sender.type]: true}">
+                            <div class="message-content" :class="[msg.sender.type]">
                                 {{
                                     typeof (msg.stack[0].payload) === 'string' ? msg.stack[0].payload : msg.stack[0].payload.content
                                 }}
@@ -51,18 +52,19 @@
                 <div class="labeling-tool-right-side">
                     <el-tabs model-value="knowledge-items" class="knowledge-items">
                         <el-tab-pane :lazy="true" :label="$t('knowledgeitems')" name="knowledge-items">
-                            <KnowledgeItemReview v-if="msgLabeled !== undefined"
-                                                 :message="msgLabeled"
+                            <KnowledgeItemReview v-if="selectedMessage"
+                                                 :message="selectedMessage"
+                                                 :references="getMessageReferences(selectedMessage)"
                                                  ref="kiReviewer"
                             />
                             <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                         </el-tab-pane>
                         <el-tab-pane :lazy="true" :label="$t('givefeedback')" name="give-feedback">
-                            <GenerationReview v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
+                            <GenerationReview v-if="selectedMessage" :messageId="selectedMessage.id"/>
                             <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                         </el-tab-pane>
                         <el-tab-pane :lazy="true" :label="$t('usersfeedback')" name="users-feedback">
-                            <UserFeedback v-if="msgLabeled !== undefined" :messageId="msgLabeled.id"/>
+                            <UserFeedback v-if="selectedMessage" :messageId="selectedMessage.id"/>
                             <div class="no-answer-selected" v-else>{{ $t('selectananswertolabel') }}</div>
                         </el-tab-pane>
                     </el-tabs>
@@ -101,7 +103,7 @@ const router = useRouter()
 
 const {$axios} = useNuxtApp()
 
-const msgLabeled = ref(undefined)
+const selectedMessage = ref(undefined)
 const progressInfo = ref({"progress": 0, "total": 0})
 
 const props = defineProps({
@@ -119,10 +121,15 @@ const loadingConversation = ref(false)
 const thereIsNext = ref(true)
 const thereIsPrev = ref(true)
 let conversations = []
+
+const renderableMessages = computed(() => {
+    return conversation.value.msgs_chain?.filter(msg => msg.stack?.length > 0) || []
+})
+
 // get conversation async data
 async function initConversation() {
     loadingConversation.value = true
-    conversation.value = (await $axios.get("/back/api/broker/conversations/" + itemId.value + "/")).data
+    conversation.value = (await $axios.get("/back/api/broker/conversations/" + itemId.value + "/", { headers: authHeaders() })).data
     conversations = await itemsStore.retrieveItems("/back/api/broker/conversations/")
     thereIsNext.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, 1)) !== undefined
     thereIsPrev.value = (await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, -1)) !== undefined
@@ -142,40 +149,34 @@ watch(itemId, async () => {
     selectFirstMessage()
 }, {immediate: true})
 
-function getQAMessageGroups(MMLChain) {
-    let groups = []
-    let group = []
-    if (!MMLChain)
-        return groups
-    for (let i = 0; i < MMLChain.length; i++) {
-        if (MMLChain[i].sender.type === 'bot') {
-            group.push(MMLChain[i])
-            groups.push(group)
-            group = []
-        } else {
-            group.push(MMLChain[i])
+function getMessageReferences(msg) {
+    let references = {}
+    for (const stack of msg.stack || []) {
+        if (stack.payload.references) {
+            references = {...references, ...stack.payload.references}
         }
     }
-    return groups
+    return references
+}
+
+function selectFirstMessage() {
+    if (conversation.value.msgs_chain?.length) {
+        selectedMessage.value = conversation.value.msgs_chain[0]
+    }
 }
 
 async function pageConversation(direction) {
     loadingConversation.value = true
-    msgLabeled.value = undefined
+    selectedMessage.value = undefined
     const nextItem = await itemsStore.getNextItem(conversations, "/back/api/broker/conversations/", itemId.value, direction)
     if (nextItem !== undefined) {
         itemId.value = nextItem.id
     }
     loadingConversation.value = false
 }
-function selectFirstMessage() {
-    const qas = getQAMessageGroups(conversation.value.msgs_chain)
-    for (let i = 0; i < qas.length; i++) {
-        if (qas[i].length === 2) {
-            msgLabeled.value = qas[i][qas[i].length - 1]
-            return
-        }
-    }
+
+function renderableMsg(msg) {
+    return msg.stack && msg.stack.length > 0
 }
 </script>
 
@@ -265,13 +266,15 @@ function selectFirstMessage() {
                     width: 100%;
 
                     display: block;
+                    &.hide {
+                        display: none;
+                    }
                     overflow: auto;
 
                     .message-content {
                         max-width: 90%;
                         border-radius: 6px;
                         padding: 8px 12px 8px 12px;
-                        margin-bottom: 8px;
                         overflow-wrap: break-word;
 
                         &.bot {
@@ -423,6 +426,16 @@ function selectFirstMessage() {
         padding-top: 16px;
         color: #545A64;
 
+    }
+}
+
+.qa-group {
+    &.not-selectable {
+        cursor: default !important;
+        
+        &:hover {
+            background: transparent !important;
+        }
     }
 }
 </style>

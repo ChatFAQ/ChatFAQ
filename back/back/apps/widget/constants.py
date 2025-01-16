@@ -1,5 +1,8 @@
 THEME_DEFAULTS_BY_SECTION = {
-    # Title
+    # Fonts
+    ## Title
+    # Add any title fonts here if needed
+
     # Body
     "chatfaq-font-body-xl": {
         "type": "font",
@@ -26,6 +29,7 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "body",
         "value": "normal normal 400 14px/19px 'Open Sans'",
     },
+
     # Caption
     "chatfaq-font-caption-md": {
         "type": "font",
@@ -37,12 +41,14 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "captions",
         "value": "normal normal 400 12px/16px 'Open Sans'",
     },
+
     # Button
     "chatfaq-font-button": {
         "type": "font",
         "section": "buttons",
         "value": "normal normal 600 14px/17px 'Montserrat'",
     },
+
     # Sizes
     "chatfaq-size-bubbleButton": {
         "type": "font",
@@ -54,13 +60,14 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "body",
         "value": "16px",
     },
-    # Specific Colors
+
+    # Colors
     "chatfaq-color-alertMessage-text": {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "#545a64",  # Greyscale 800
-            "dark": "#e7e8e9",   # Greyscale 200
+            "light": "#545a64",  # Grey Scale 800
+            "dark": "#e7e8e9",   # Grey Scale 200
         }
     },
     "chatfaq-color-chat-background": {
@@ -83,7 +90,7 @@ THEME_DEFAULTS_BY_SECTION = {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "#9a8eb5",  # Neutral Purple Light
+            "light": "#9c99a4",  # Neutral Purple Light
             "dark": "#1A0438",   # Primary 900
         }
     },
@@ -132,7 +139,7 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "colors",
         "value": {
             "light": "#4630751a",  # Transparent Primary 10
-            "dark": "#1A0438",                 # Primary 900
+            "dark": "#1A0438",     # Primary 900
         }
     },
     "chatfaq-color-chatMessageReference-text": {
@@ -148,7 +155,7 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "colors",
         "value": {
             "light": "#9a8eb5",  # Neutral Purple Light
-            "dark": "#aaafb5",   # Greyscale 500
+            "dark": "#aaafb5",   # Grey Scale 500
         }
     },
     "chatfaq-color-chatPlaceholder-text": {
@@ -156,15 +163,15 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "colors",
         "value": {
             "light": "#020c1c99",  # Transparent Neutral Black 60
-            "dark": "#dfdaea",               # Primary 200
+            "dark": "#dfdaea",     # Primary 200
         }
     },
     "chatfaq-color-thumbs-and-clipboard": {
         "type": "color",
         "section": "colors",
         "value": {
-            "light": "#9a8eb5",  # Neutral Purple Light
-            "dark": "#cac2da",   # Primary 300
+            "light": "#9a8eb5",   # Neutral Purple Light
+            "dark": "#cac2da",    # Primary 300
         }
     },
     "chatfaq-color-loader": {
@@ -188,9 +195,27 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "colors",
         "value": {
             "light": "#46307533",  # Transparent Primary 20
-            "dark": "#4D4160",                # Neutral Purple
+            "dark": "#4D4160",      # Neutral Purple
         }
     },
+    "chatfaq-file-background-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#DFDAEA",   # Primary 200
+        }
+    },
+    "chatfaq-message-file-attachment-text-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    },
+
+    # Gradients
     "chatfaq-color-bubbleButton-background-hover": {
         "type": "gradient",
         "section": "colors",
@@ -201,11 +226,21 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "colors",
         "value": "linear-gradient(135deg, #CE0578 0%, #463075 100%)",  # Gradient Pink
     },
+    "chatfaq-prompt-button-background-color": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#463075",  # Transparent Primary 20
+            "dark": "#463075",      # Neutral Purple
+        }
+    },
     "chatfaq-color-menu-background": {
         "type": "gradient",
         "section": "colors",
         "value": "linear-gradient(135deg, #463075 0%, #220D44 100%)",  # Gradient Purple
     },
+
+    # Menu Properties
     "chatfaq-color-menu-border": {
         "type": "color",
         "section": "colors",
@@ -241,16 +276,22 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "colors",
         "value": "#9FFFFF",  # Tertiary Blue 500
     },
+
+    # Shadows
     "chatfaq-box-shadows-color": {
         "type": "color",
         "section": "colors",
         "value": "#4630751a",  # Transparent Primary 10
     },
+
+    # Filters
     "chatfaq-color-darkFilter": {
         "type": "color",
         "section": "colors",
         "value": "#020c1cb3",  # Neutral Black
     },
+
+    # Icon Colors
     "chatfaq-arrow-down-icon-color": {
         "type": "color",
         "section": "icons",
@@ -266,15 +307,13 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "icons",
         "value": "#FFFFFF",  # Neutral White
     },
-    "chatfaq-check-icon-color-light": {
+    "chatfaq-check-icon-color": {
         "type": "color",
         "section": "icons",
-        "value": "#FFFFFF",  # Neutral White
-    },
-    "chatfaq-check-icon-color-dark": {
-        "type": "color",
-        "section": "icons",
-        "value": "#FFFFFF",  # Neutral White
+        "value": {
+            "light": "#FFFFFF",  # Transparent Primary 20
+            "dark": "#FFFFFF",      # Neutral Purple
+        }
     },
     "chatfaq-checkbox-checked-icon-color": {
         "type": "color",
@@ -366,15 +405,29 @@ THEME_DEFAULTS_BY_SECTION = {
         "section": "icons",
         "value": "#FFFFFF",  # Neutral White
     },
-    "chatfaq-send-icon-color-dark": {
+    "chatfaq-send-icon-color": {
         "type": "color",
         "section": "icons",
-        "value": "#FFFFFF",  # Neutral White
+        "value": {
+            "light": "#FFFFFF",  # Neutral White
+            "dark": "#FFFFFF",   # Primary 500
+        }
     },
-    "chatfaq-send-icon-color-light": {
+    "chatfaq-microphone-icon-color": {
         "type": "color",
         "section": "icons",
-        "value": "#1A0438",  # Primary 900
+        "value": {
+            "light": "#FFFFFF",  # Neutral White
+            "dark": "#FFFFFF",   # Primary 500
+        }
+    },
+    "chatfaq-attach-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#9c99a4",  # Neutral White
+            "dark": "#9c99a4",   # Primary 500
+        }
     },
     "chatfaq-sun-icon-color": {
         "type": "color",
@@ -385,6 +438,38 @@ THEME_DEFAULTS_BY_SECTION = {
         "type": "color",
         "section": "icons",
         "value": "#FFFFFF",  # Neutral White
+    },
+    "chatfaq-file-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#FFFFFF",  # Neutral White
+            "dark": "#1A0438",   # Primary 900
+        }
+    },
+    "chatfaq-message-file-attachment-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    },
+    "chatfaq-file-download-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
+    },
+    "chatfaq-star-rating-icon-color": {
+        "type": "color",
+        "section": "icons",
+        "value": {
+            "light": "#463075",  # Primary 500
+            "dark": "#FFFFFF",   # Neutral White
+        }
     }
 }
 
