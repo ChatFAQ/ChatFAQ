@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
 
 @dataclass
@@ -71,3 +71,14 @@ class WSType(Enum):
     rpc = "rpc"
     ai = "ai"
     parse = "parse"
+
+
+@dataclass
+class CacheConfig:
+    """
+    Configuration for caching LLM responses. For now it's only needed for Gemini.
+    :param name: The name of the cache.
+    :param ttl: The time to live for the cache in seconds.
+    """
+    name: str
+    ttl: int = 3600  # Default TTL of 1 hour in seconds
