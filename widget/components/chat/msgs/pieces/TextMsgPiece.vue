@@ -113,7 +113,6 @@ function openInNewTab(url) {
 
     p {
         margin: 0;
-        line-height: 1.2em;
     }
 
     a {
