@@ -252,7 +252,7 @@ class StarRating(UserFeedback):
         """
         :param num_stars: The maximum number of stars. For example: 5
         """
-        super().__init__(*args, **kwargs, merge_to_prev=True)
+        super().__init__(*args, **kwargs, merge_to_prev=False)
         self.placeholder = placeholder
         self.num_stars = num_stars
 
@@ -303,7 +303,7 @@ class TextFeedback(UserFeedback):
         """
         :param placeholder: The placeholder text inside the text box. For example: "Please provide your feedback here"
         """
-        super().__init__(*args, **kwargs, merge_to_prev=True)
+        super().__init__(*args, **kwargs, merge_to_prev=False)
         self.placeholder = placeholder
 
     async def build_payloads(self, ctx, data):
