@@ -50,7 +50,7 @@
                             :scrolling="iframedMsg.scrolling || 'auto'"
                         ></iframe>
                     </template>
-                    <template v-if="getFirstStackType() === 'message' || getFirstStackType() === 'message_chunk'">
+                    <template v-else-if="getFirstStackType() === 'message' || getFirstStackType() === 'message_chunk'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
@@ -83,11 +83,11 @@
                             <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
                         </div>
                     </template>
-                    <template v-else>
+                    <!-- <template v-else>
                         <div class="layer">
                             <span>Stack type not supported</span>
                         </div>
-                    </template>
+                    </template> -->
                 </div>
                 <div class="msg-commands">
                     <UserFeedback
