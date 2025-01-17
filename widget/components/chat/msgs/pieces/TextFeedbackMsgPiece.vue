@@ -1,10 +1,10 @@
 <template>
     <div class="text-feedback-wrapper">
-        <div class="content">{{ props.data.content }}</div>
+        <div class="content">{{ props.data.hint }}</div>
         <div v-if="!feedbackSent">
             <div class="feedback-input-wrapper" :class="{ 'dark-mode': store.darkMode }">
                 <div
-                    :placeholder="props.data.hint || $t('typeyourfeedback')"
+                    :placeholder="props.data.placeholder || $t('typeyourfeedback')"
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
                     ref="feedbackInput"
@@ -53,7 +53,7 @@ function manageEnterInput(ev, cb) {
 
 async function sendFeedback() {
     if (feedbackSent.value || !feedbackInput.value) return;
-    
+
     const feedback = feedbackInput.value.innerText.trim();
     if (!feedback) return;
 
@@ -78,7 +78,7 @@ async function sendFeedback() {
     const headers = { 'Content-Type': 'application/json' }
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
-    
+
     try {
         const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
             method: 'POST',

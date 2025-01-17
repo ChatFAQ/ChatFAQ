@@ -30,7 +30,7 @@
                         'feedbacking': feedbacking,
                         'full-width': iframedMsg && iframedMsg.fullWidth,
                         'no-padding': iframedMsg && iframedMsg.noPadding,
-                        'backgrounded': getFirstStackType() !== 'file_uploaded',
+                        'backgrounded': getFirstLayerType() !== 'file_uploaded',
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
@@ -50,7 +50,7 @@
                             :scrolling="iframedMsg.scrolling || 'auto'"
                         ></iframe>
                     </template>
-                    <template v-if="getFirstStackType() === 'message' || getFirstStackType() === 'message_chunk'">
+                    <template v-if="getFirstLayerType() === 'message' || getFirstLayerType() === 'message_chunk'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>
@@ -58,29 +58,43 @@
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"
                             :references="props.message.stack[0].payload.references"></ReferencesMsgPiece>
                     </template>
-                    <template v-else-if="getFirstStackType() === 'file_upload'">
+                    <template v-else-if="getFirstLayerType() === 'file_upload'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <FileUploadMsgPiece :data="layer.payload" />
                         </div>
                     </template>
-                    <template v-else-if="getFirstStackType() === 'file_uploaded'">
+                    <template v-else-if="getFirstLayerType() === 'file_uploaded'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <AttachmentMsgPiece :data="layer.payload" />
                         </div>
                     </template>
-                    <template v-else-if="getFirstStackType() === 'file_download'">
+                    <template v-else-if="getFirstLayerType() === 'file_download'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <AttachmentMsgPiece :data="layer.payload" />
                         </div>
                     </template>
-                    <template v-else-if="getFirstStackType() === 'star_rating'">
+                    <template v-else-if="getFirstLayerType() === 'star_rating'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message).id">
+                                <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                            </Teleport>
+                            <StarRatingMsgPiece v-else :data="layer.payload" :msgId="props.message.id" />
                         </div>
                     </template>
-                    <template v-else-if="getFirstStackType() === 'text_feedback'">
+                    <template v-else-if="getFirstLayerType() === 'text_feedback'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message).id">
+                                <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                            </Teleport>
+                            <TextFeedbackMsgPiece v-else :data="layer.payload" :msgId="props.message.id" />
+                        </div>
+                    </template>
+                    <template v-else-if="getFirstLayerType() === 'thumbs_rating'">
+                        <div class="layer" v-for="layer in props.message.stack">
+                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message).id">
+                                <UserFeedback :msgId="props.message.id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
+                            </Teleport>
+                            <UserFeedback v-else :msgId="props.message.id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
                         </div>
                     </template>
                     <template v-else>
@@ -89,18 +103,7 @@
                         </div>
                     </template>
                 </div>
-                <div class="msg-commands">
-                    <UserFeedback
-                        v-if="
-                            props.message.sender.type === 'bot' &&
-                            props.message.stack[props.message.stack.length - 1].meta &&
-                            props.message.stack[props.message.stack.length - 1].meta.allow_feedback &&
-                            props.message.last_chunk
-                        "
-                        :msgId="props.message.id"
-                        @feedbacking="feedbacking = true"
-                        @collapse="feedbacking = false"
-                    ></UserFeedback>
+                <div class="msg-commands" :id="'msg-commands-' + props.message.id">
                     <Resend
                         v-if="
                             props.message.sender.type === 'human' &&
@@ -133,14 +136,17 @@ const iframeHeight = ref(40);
 
 const layersFinished = computed(() => props.message.last);
 const iframedWindow = ref(null);
-const iframedMsg = computed(() => store.customIFramedMsg(getFirstStackType()));
+const iframedMsg = computed(() => store.customIFramedMsg(getFirstLayerType()));
 
 
 const emit = defineEmits(['s3Path']);
 
 
-function getFirstStackType() {
+function getFirstLayerType() {
     return props.message.stack[0].type;
+}
+function getFirstLayerMergeToPrev() {
+    return props.message?.stack[0]?.payload.merge_to_prev;
 }
 function addingQueryParamStack(url) {
     if (!url) return;

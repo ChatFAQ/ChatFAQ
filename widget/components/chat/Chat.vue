@@ -1,7 +1,7 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
-            <div class="stacks" v-for="(message, index) in store.messages">
+            <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}" v-for="(message, index) in store.messages">
                 <ChatMsgManager
                     v-if="isRenderableStackType(message)"
                     :message="message"
@@ -26,10 +26,10 @@
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
-                    :class="{ 
-                        'dark-mode': store.darkMode, 
+                    :class="{
+                        'dark-mode': store.darkMode,
                         'maximized': store.maximized,
-                        'disabled': isFinalFeedback 
+                        'disabled': isFinalFeedback
                     }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
@@ -37,16 +37,16 @@
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
-            <div class="prompt-right-button" 
+            <div class="prompt-right-button"
                  :class="{
                      'dark-mode': store.darkMode,
                      'disabled': isFinalFeedback
-                 }" 
-                 @click="() => { 
-                     if (!isFinalFeedback && availableMicro) { 
-                         speechToText() 
-                     } else if (!isFinalFeedback && availableSend) { 
-                         sendMessage() 
+                 }"
+                 @click="() => {
+                     if (!isFinalFeedback && availableMicro) {
+                         speechToText()
+                     } else if (!isFinalFeedback && availableSend) {
+                         sendMessage()
                      }
                  }">
                 <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
@@ -98,7 +98,9 @@ onMounted(async () => {
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
 }
-
+function getFirstLayerMergeToPrev(message) {
+    return message?.stack[0]?.payload.merge_to_prev;
+}
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
@@ -268,7 +270,7 @@ function sendMessage(_message) {
     store.messages.push(message);
     ws.send(JSON.stringify(message));
     store.scrollToBottom += 1;
-    
+
     chatInput.value?.blur(); // Remove focus from the input
 }
 
@@ -677,5 +679,7 @@ const activeMicro = computed(() => {
     height: 100%;
     width: 100%;
 }
-
+.merge-to-prev {
+    display: none;
+}
 </style>
