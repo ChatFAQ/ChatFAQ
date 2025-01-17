@@ -22,8 +22,7 @@ class UserInfo(BaseModel):
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
     yield Message(
-        "I will extract the name and age of an user description, please input the description",
-        ,
+        "I will extract the name and age of an user description, please input the description"
     )
 
 
@@ -46,7 +45,7 @@ async def send_info(sdk: ChatFAQSDK, ctx: dict):
         bot_channel_name=ctx["bot_channel_name"],
         use_conversation_context=True,
     ):
-        yield Message(f"Here is the extracted information: {json.dumps(res)}", )
+        yield Message(f"Here is the extracted information: {json.dumps(res)}")
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 

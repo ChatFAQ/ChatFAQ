@@ -4,7 +4,7 @@ from chatfaq_sdk.layers import Message
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Message("How can we help you?", )
+    yield Message("How can we help you?")
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):

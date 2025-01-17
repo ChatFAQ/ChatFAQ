@@ -14,7 +14,7 @@ async def is_saying_goodbye(sdk: ChatFAQSDK, ctx: dict):
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
     yield Message("Hello!")
-    yield Message("How are you?", )
+    yield Message("How are you?")
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
@@ -26,7 +26,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_goodbye(sdk: ChatFAQSDK, ctx: dict):
-    yield Message("Byeeeeeeee!", )
+    yield Message("Byeeeeeeee!")
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

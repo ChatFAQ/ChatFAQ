@@ -20,7 +20,7 @@ class SubmitBudget(BaseModel):
 
 async def send_places(sdk: ChatFAQSDK, ctx: dict):
     # yield Message(
-    #     "Hi, let’s find a great destination for your next trip",
+    #     "Hi, let’s find a great destination for your next trip"
     # )
 
     state = ctx["state"] if ctx["state"] else {}
@@ -46,9 +46,9 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
         response += chunk["content"]
 
     response = response.split("<question>")[1].split("</question>")[0].strip()
-    yield Message(response, )
+    yield Message(response)
 
-    # yield Message("To continue, please provide a description of your ideal travel experience", )
+    # yield Message("To continue, please provide a description of your ideal travel experience")
 
 
 async def collect_place(sdk: ChatFAQSDK, ctx: dict):
@@ -86,7 +86,7 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     # Start the state and submit it so other states can access it
     state = {"place": place}
 
-    yield Message(f"Great! Then {place} is the best destination. What budget are you willing to go?", , state=state)
+    yield Message(f"Great! Then {place} is the best destination. What budget are you willing to go?", state=state)
 
 
 async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
@@ -117,7 +117,7 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
 
     state["budget"] = budget
 
-    yield Message(f"Great. Let me find vacations in {state['place']} with budget {budget}", , state=state)
+    yield Message(f"Great. Let me find vacations in {state['place']} with budget {budget}", state=state)
 
 
 places_options_state = State(name="Greeting", events=[send_places], initial=True)
