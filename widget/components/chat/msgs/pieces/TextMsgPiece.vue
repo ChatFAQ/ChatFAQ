@@ -25,7 +25,7 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
-import {computed, ref} from "vue";
+import {computed, ref, watch} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
 import { markdown } from "markdown";
@@ -102,6 +102,32 @@ function openInNewTab(url) {
     const win = window.open(url, '_blank');
     win.focus();
 }
+
+watch(() => props.data, (newMessage) => {
+    console.log("store.speechSynthesisEnabled", store.speechSynthesisEnabled)
+    console.log("store.speechSynthesisSupported", store.speechSynthesisSupported)
+    if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
+        const utterance = new SpeechSynthesisUtterance(newMessage.payload.content);
+        
+        // Check for valid pitch and rate values
+        if (isFinite(store.speechSynthesPitch)) {
+            utterance.pitch = store.speechSynthesPitch;
+        }
+        if (isFinite(store.speechSynthesRate)) {
+            utterance.rate = store.speechSynthesRate;
+        }
+        
+        if (store.speechSynthesisVoice) {
+            const voices = speechSynthesis.getVoices();
+            const selectedVoice = voices.find(voice => voice.name === store.speechSynthesVoice);
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+        }
+        
+        speechSynthesis.speak(utterance);
+    }
+}, { immediate: false });
 
 </script>
 <style lang="scss">

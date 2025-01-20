@@ -38,6 +38,10 @@
             <div class="left-menu-item" v-if="!store.disableDayNightMode && (!store.selectedConversations || !store.selectedConversations.length)">
                 <LightMode/>
             </div>
+
+            <div class="left-menu-item" v-if="store.speechSynthesisSupported">
+                <SpeechSynthesisButton/>
+            </div>
         </div>
     </div>
 </template>
@@ -54,6 +58,7 @@ import BurgerMenu from "~/components/icons/BurgerMenu.vue";
 import DoubleArrowLeft from "~/components/icons/DoubleArrowLeft.vue";
 import {ref, watch} from "vue";
 import LogOut from "~/components/left-menu/items/LogOut.vue";
+import SpeechSynthesisButton from "~/components/left-menu/items/SpeechSynthesisButton.vue";
 
 const historyItems = ref(null)
 

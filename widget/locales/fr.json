@@ -24,5 +24,7 @@
     "source": "source",
     "connectingtoserver": "Connexion au serveur en cours...",
     "upload_file": "Télécharger un fichier",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "enablespeech": "Activer la voix",
+    "disablespeech": "Désactiver la voix"
 }
