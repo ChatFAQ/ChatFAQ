@@ -33,7 +33,6 @@ import { markdown } from "markdown";
 const store = useGlobalStore();
 
 const props = defineProps(["data", "isLast", "isLastChunk"]);
-console.log("props", props.data.payload.content)
 const hightlight_light = "#4630751a"
 const hightlight_dark = "#1A0438"
 
@@ -120,7 +119,6 @@ onMounted(() => {
 
 // Watch for streaming messages
 watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
-    // console.log('Full message: ', newMessage.payload.content);
     if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
         const newContent = newMessage.payload.content;
         
@@ -132,26 +130,21 @@ watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: new
 
         // Split buffer into complete sentences and remaining text
         const { sentences, remaining } = splitIntoSentences(speechBuffer.value);
-        console.log("sentences", sentences)
-        console.log("remaining", remaining)
 
         // Speak each complete sentence
         if (sentences.length > 0) {
             sentences.forEach(sentence => {
                 const utterance = new SpeechSynthesisUtterance(sentence);
                 configureUtterance(utterance);
-                console.log("utterance", utterance.text)
                 speechSynthesis.speak(utterance);
             });
             speechBuffer.value = remaining; // Keep remaining text in buffer
         }
         
-        console.log("isLastChunk", isLastChunk)
         // Speak remaining text when it's the last message
         if (isLastChunk && speechBuffer.value.trim().length > 0) {
             const utterance = new SpeechSynthesisUtterance(speechBuffer.value);
             configureUtterance(utterance);
-            console.log("Last utterance", utterance.text)
             speechSynthesis.speak(utterance);
             speechBuffer.value = ''; // Clear buffer after speaking
         }
@@ -159,18 +152,22 @@ watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: new
 }, { immediate: false });
 
 function splitIntoSentences(text) {
-    const sentenceRegex = /([^.!?]*[.!?])\s*/g;
-    const sentences = [];
-    let match;
-    let lastIndex = 0;
+    // Regex that handles abbreviations and sentence endings
+    const sentenceRegex = /\b(\w\.\w\.|[A-Z][a-z]{1,2}\.)|([.?!])\s+(?=[A-Za-z])/g;
     
-    while ((match = sentenceRegex.exec(text)) !== null) {
-        const sentence = match[0].trim();
-        sentences.push(sentence);
-        lastIndex = match.index + match[0].length;
-    }
+    // Replace sentence endings with a marker, preserving abbreviations
+    const markedText = text.replace(sentenceRegex, (match, g1, g2) => {
+        return g1 ? g1 : g2 + "\n";
+    });
     
-    const remaining = text.slice(lastIndex).trim();
+    // Split into sentences and filter out empty strings
+    const sentences = markedText.split("\n")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    
+    // The remaining text is the last element if it doesn't end with a sentence marker
+    const remaining = sentences.pop() || '';
+    
     return { sentences, remaining };
 }
 
