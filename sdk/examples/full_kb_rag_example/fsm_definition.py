@@ -3,6 +3,7 @@ from chatfaq_sdk.clients import llm_request, query_kis
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import Message, StreamingMessage
 from chatfaq_sdk.utils import convert_mml_to_llm_format
+from chatfaq_sdk.types import CacheConfig
 
 
 """
@@ -20,7 +21,7 @@ async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
 
     # Get all the knowledge items from the knowledge base
     # TODO: Replace with actual knowledge base name.
-    knowledge_base = "example_kb"
+    knowledge_base = "deepseek_v3_paper"
     knowledge_items = await query_kis(sdk, knowledge_base)
 
     # Create system prompt with context
@@ -35,20 +36,30 @@ If you cannot answer the question based on the provided information, say so."""
     else:
         system_prompt += "\n\nNo relevant information found."
 
-    # Prepare messages for LLM
-    messages.insert(0, {"role": "system", "content": system_prompt})
+    # Prepare messages for LLM and until which message we want to cache
+    messages.insert(
+        0,
+        {
+            "role": "system",
+            "content": system_prompt,
+            "cache_control": {"type": "ephemeral"},
+        },
+    )
 
     # Generate response
     generator = llm_request(
         sdk,
-        "gpt-4o",  # TODO: Replace with your actual LLM config name
+        "gemini-1.5-flash",  # TODO: Replace with your actual LLM config name
         use_conversation_context=False,
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
         messages=messages,
+        cache_config=CacheConfig(name="deepseek_v3_paper", ttl=3600),  # 1 hour
     )
 
-    yield StreamingMessage(generator, references=knowledge_items)
+    references = {"knowledge_items": [ki.dict() for ki in knowledge_items]}
+
+    yield StreamingMessage(generator, references=references)
 
 
 # Define states

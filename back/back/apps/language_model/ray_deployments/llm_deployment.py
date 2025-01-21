@@ -39,6 +39,7 @@ class LLMDeployment:
         seed: int,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        cache_config: Dict = None,
     ):
         if tools:  # LLM doesn't support tools in stream mode
             yield await self.llm.agenerate(
@@ -48,6 +49,7 @@ class LLMDeployment:
                 seed=seed,
                 tools=tools,
                 tool_choice=tool_choice,
+                cache_config=cache_config,
             )
         else:
             async for res in self.llm.astream(
@@ -55,6 +57,7 @@ class LLMDeployment:
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
+                cache_config=cache_config,
             ):
                 yield res
 

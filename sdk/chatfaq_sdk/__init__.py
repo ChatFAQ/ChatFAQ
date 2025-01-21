@@ -4,14 +4,14 @@ import inspect
 import json
 import os
 import queue
-import sentry_sdk
 import urllib.parse
 import uuid
 from functools import wraps
 from logging import getLogger
-from typing import Callable, Optional, Union, List
+from typing import Callable, List, Optional, Union
 
 import httpx
+import sentry_sdk
 import websockets
 
 from chatfaq_sdk import settings
@@ -19,7 +19,7 @@ from chatfaq_sdk.conditions import Condition
 from chatfaq_sdk.data_source_parsers import DataSourceParser
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
-from chatfaq_sdk.types import DataSource, WSType, KnowledgeItem
+from chatfaq_sdk.types import DataSource, KnowledgeItem, WSType
 from chatfaq_sdk.types.messages import MessageType, RPCNodeType
 
 settings.configure()
@@ -333,6 +333,7 @@ class ChatFAQSDK:
         conversation_id,
         bot_channel_name,
         use_conversation_context,
+        cache_config,
     ):
         logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
         self.llm_request_futures[bot_channel_name] = (
@@ -353,6 +354,7 @@ class ChatFAQSDK:
                         "tools": tools,
                         "tool_choice": tool_choice,
                         "use_conversation_context": use_conversation_context,
+                        "cache_config": cache_config.__dict__ if cache_config else None,
                     },
                 }
             )
