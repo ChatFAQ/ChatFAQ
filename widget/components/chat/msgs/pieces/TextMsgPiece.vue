@@ -25,7 +25,7 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
-import {computed, ref, watch, onMounted} from "vue";
+import {computed, ref, watch, onMounted, onBeforeUnmount} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
 import { markdown } from "markdown";
@@ -188,6 +188,14 @@ function configureUtterance(utterance) {
         }
     }
 }
+
+onBeforeUnmount(() => {
+    if (speechSynthesis) {
+        speechSynthesis.cancel(); // Stop any ongoing speech
+        speechBuffer.value = ''; // Clear the speech buffer
+        receivedContent.value = ''; // Reset received content
+    }
+});
 
 </script>
 <style lang="scss">
