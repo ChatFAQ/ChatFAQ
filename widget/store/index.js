@@ -49,9 +49,9 @@ export const useGlobalStore = defineStore('globalStore', {
             resendMsgId: undefined,
             speechSynthesisSupported: 'speechSynthesis' in window,
             speechSynthesisEnabled: false,
-            speechSynthesPitch: 1,
-            speechSynthesRate: 1,
-            speechSynthesVoice: '',
+            speechSynthesisPitch: 1,
+            speechSynthesisRate: 1,
+            speechSynthesisVoice: '',
         }
     },
     actions: {

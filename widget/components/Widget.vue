@@ -82,9 +82,9 @@ const props = defineProps({
     enableLogout: Boolean,
     enableResend: Boolean,
     speechSynthesis: Boolean,
-    speechSynthesPitch: Number,
-    speechSynthesRate: Number,
-    speechSynthesVoice: String,
+    speechSynthesisPitch: Number,
+    speechSynthesisRate: Number,
+    speechSynthesisVoice: String,
 });
 
 const jsonProps = [
@@ -165,9 +165,9 @@ function initStore() {
     store.enableLogout = data.enableLogout
     store.enableResend = data.enableResend
     store.speechSynthesis = data.speechSynthesis
-    store.speechSynthesPitch = data.speechSynthesPitch
-    store.speechSynthesRate = data.speechSynthesRate
-    store.speechSynthesVoice = data.speechSynthesVoice
+    store.speechSynthesisPitch = data.speechSynthesisPitch
+    store.speechSynthesisRate = data.speechSynthesisRate
+    store.speechSynthesisVoice = data.speechSynthesisVoice
 
     if (store.userId === undefined) {
         store.userId = getUserId()

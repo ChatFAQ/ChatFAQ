@@ -30,6 +30,8 @@ import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
 import { markdown } from "markdown";
 
+const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
+const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
 const store = useGlobalStore();
 
 const props = defineProps(["data", "isLast", "isLastChunk"]);
@@ -172,15 +174,15 @@ function splitIntoSentences(text) {
 }
 
 function configureUtterance(utterance) {
-    if (isFinite(store.speechSynthesPitch)) {
-        utterance.pitch = store.speechSynthesPitch;
+    if (isFinite(store.speechSynthesisPitch)) {
+        utterance.pitch = store.speechSynthesisPitch;
     }
-    if (isFinite(store.speechSynthesRate)) {
-        utterance.rate = store.speechSynthesRate;
+    if (isFinite(store.speechSynthesisRate)) {
+        utterance.rate = store.speechSynthesisRate;
     }
     if (store.speechSynthesisVoice) {
         const voices = speechSynthesis.getVoices();
-        const selectedVoice = voices.find(voice => voice.name === store.speechSynthesisVoice);
+        const selectedVoice = voices.find(voice => voice.voiceURI === store.speechSynthesisVoice);
         if (selectedVoice) {
             utterance.voice = selectedVoice;
         }
