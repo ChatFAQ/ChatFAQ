@@ -92,6 +92,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using the model.
@@ -128,6 +129,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using the model.
@@ -166,6 +168,7 @@ class ClaudeChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -211,6 +214,7 @@ class ClaudeChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.

@@ -75,6 +75,7 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -110,6 +111,7 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using the model in streaming mode.
@@ -147,6 +149,7 @@ class MistralChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using a model.
@@ -191,6 +194,7 @@ class MistralChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using a model.
