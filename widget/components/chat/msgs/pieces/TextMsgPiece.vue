@@ -25,7 +25,7 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
-import {computed, ref, watch} from "vue";
+import {computed, ref, watch, onMounted} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
 import { markdown } from "markdown";
@@ -106,6 +106,19 @@ function openInNewTab(url) {
     win.focus();
 }
 
+// For non-streaming messages, speak the entire message on initial mount
+onMounted(() => {
+    if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
+        const content = props.data.payload.content;
+        if (content && props.isLastChunk) {
+            const utterance = new SpeechSynthesisUtterance(content);
+            configureUtterance(utterance);
+            speechSynthesis.speak(utterance);
+        }
+    }
+});
+
+// Watch for streaming messages
 watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
     // console.log('Full message: ', newMessage.payload.content);
     if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
