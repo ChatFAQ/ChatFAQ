@@ -14,7 +14,7 @@ components:
   - id: back
     image: back
     envs: [back]
-    size_hint: ram >= 1g
+    size_hint: ram >= 512m
 
 ingresses:
   - match:
