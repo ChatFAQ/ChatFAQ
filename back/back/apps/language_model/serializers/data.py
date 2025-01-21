@@ -28,7 +28,7 @@ class DataSourceSerializer(serializers.ModelSerializer):
 
     # extra step when validating CSVs: the file must contain the following columns: title, content, url
     def validate(self, data):
-        if data.get('original_csv') is not None:
+        if data.get('original_csv') is not None and not data.get('parser'):
             title_index, content_index, url_index = data.get("title_index_col"), data.get("content_index_col"), data.get("url_index_col")
             if title_index is None or content_index is None or url_index is None:
                 errors = {}
