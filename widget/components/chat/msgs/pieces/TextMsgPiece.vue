@@ -32,11 +32,14 @@ import { markdown } from "markdown";
 
 const store = useGlobalStore();
 
-const props = defineProps(["data", "isLast"]);
+const props = defineProps(["data", "isLast", "isLastChunk"]);
+console.log("props", props.data.payload.content)
 const hightlight_light = "#4630751a"
 const hightlight_dark = "#1A0438"
 
 const displayAllImgRef = ref(false);
+const speechBuffer = ref(''); // Buffer to accumulate unspoken text
+const receivedContent = ref(''); // Track the entire received content
 
 const minImgRefs = computed(() => {
     if (store.isPhone)
@@ -103,31 +106,76 @@ function openInNewTab(url) {
     win.focus();
 }
 
-watch(() => props.data, (newMessage) => {
-    console.log("store.speechSynthesisEnabled", store.speechSynthesisEnabled)
-    console.log("store.speechSynthesisSupported", store.speechSynthesisSupported)
+watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
+    // console.log('Full message: ', newMessage.payload.content);
     if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
-        const utterance = new SpeechSynthesisUtterance(newMessage.payload.content);
+        const newContent = newMessage.payload.content;
         
-        // Check for valid pitch and rate values
-        if (isFinite(store.speechSynthesPitch)) {
-            utterance.pitch = store.speechSynthesPitch;
-        }
-        if (isFinite(store.speechSynthesRate)) {
-            utterance.rate = store.speechSynthesRate;
+        // Calculate delta from the last received content
+        const delta = newContent.slice(receivedContent.value.length);
+        receivedContent.value = newContent; // Update the received content
+        
+        speechBuffer.value += delta; // Append delta to the buffer
+
+        // Split buffer into complete sentences and remaining text
+        const { sentences, remaining } = splitIntoSentences(speechBuffer.value);
+        console.log("sentences", sentences)
+        console.log("remaining", remaining)
+
+        // Speak each complete sentence
+        if (sentences.length > 0) {
+            sentences.forEach(sentence => {
+                const utterance = new SpeechSynthesisUtterance(sentence);
+                configureUtterance(utterance);
+                console.log("utterance", utterance.text)
+                speechSynthesis.speak(utterance);
+            });
+            speechBuffer.value = remaining; // Keep remaining text in buffer
         }
         
-        if (store.speechSynthesisVoice) {
-            const voices = speechSynthesis.getVoices();
-            const selectedVoice = voices.find(voice => voice.name === store.speechSynthesVoice);
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-            }
+        console.log("isLastChunk", isLastChunk)
+        // Speak remaining text when it's the last message
+        if (isLastChunk && speechBuffer.value.trim().length > 0) {
+            const utterance = new SpeechSynthesisUtterance(speechBuffer.value);
+            configureUtterance(utterance);
+            console.log("Last utterance", utterance.text)
+            speechSynthesis.speak(utterance);
+            speechBuffer.value = ''; // Clear buffer after speaking
         }
-        
-        speechSynthesis.speak(utterance);
     }
 }, { immediate: false });
+
+function splitIntoSentences(text) {
+    const sentenceRegex = /([^.!?]*[.!?])\s*/g;
+    const sentences = [];
+    let match;
+    let lastIndex = 0;
+    
+    while ((match = sentenceRegex.exec(text)) !== null) {
+        const sentence = match[0].trim();
+        sentences.push(sentence);
+        lastIndex = match.index + match[0].length;
+    }
+    
+    const remaining = text.slice(lastIndex).trim();
+    return { sentences, remaining };
+}
+
+function configureUtterance(utterance) {
+    if (isFinite(store.speechSynthesPitch)) {
+        utterance.pitch = store.speechSynthesPitch;
+    }
+    if (isFinite(store.speechSynthesRate)) {
+        utterance.rate = store.speechSynthesRate;
+    }
+    if (store.speechSynthesisVoice) {
+        const voices = speechSynthesis.getVoices();
+        const selectedVoice = voices.find(voice => voice.name === store.speechSynthesisVoice);
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        }
+    }
+}
 
 </script>
 <style lang="scss">
