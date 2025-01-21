@@ -11,15 +11,11 @@ def delete_null_knowledge_base_configs(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("language_model", "0064_delete_null_knowledge_base_configs"),
+        ("language_model", "0063_alter_knowledgeitem_data_source"),
     ]
     operations = [
-        migrations.AlterField(
-            model_name="retrieverconfig",
-            name="knowledge_base",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                to="language_model.knowledgebase",
-            ),
+        migrations.RunPython(
+            delete_null_knowledge_base_configs,
+            reverse_code=migrations.RunPython.noop
         ),
     ]
