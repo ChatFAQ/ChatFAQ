@@ -119,7 +119,7 @@
 
 <script setup>
 import { useGlobalStore } from "~/store";
-import UserFeedback from "~/components/chat/UserFeedback.vue";
+import UserFeedback from "~/components/chat/msgs/pieces/UserFeedback.vue";
 import Resend from "~/components/chat/Resend.vue";
 import ReferencesMsgPiece from "~/components/chat/msgs/pieces/ReferencesMsgPiece.vue";
 import {ref, computed, onMounted, onBeforeUnmount, watch} from "vue";
