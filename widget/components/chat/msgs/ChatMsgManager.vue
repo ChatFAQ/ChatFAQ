@@ -75,26 +75,26 @@
                     </template>
                     <template v-else-if="getFirstLayerType() === 'star_rating'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message).id">
-                                <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message, messageIsNotFeedback).id">
+                                <StarRatingMsgPiece :data="layer.payload" :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" />
                             </Teleport>
-                            <StarRatingMsgPiece v-else :data="layer.payload" :msgId="props.message.id" />
+                            <StarRatingMsgPiece v-else :data="layer.payload" :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" />
                         </div>
                     </template>
                     <template v-else-if="getFirstLayerType() === 'text_feedback'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message).id">
-                                <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" />
+                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message, messageIsNotFeedback).id">
+                                <TextFeedbackMsgPiece :data="layer.payload" :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" />
                             </Teleport>
-                            <TextFeedbackMsgPiece v-else :data="layer.payload" :msgId="props.message.id" />
+                            <TextFeedbackMsgPiece v-else :data="layer.payload" :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" />
                         </div>
                     </template>
                     <template v-else-if="getFirstLayerType() === 'thumbs_rating'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message).id">
-                                <UserFeedback :msgId="props.message.id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
+                            <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message, messageIsNotFeedback).id">
+                                <UserFeedback :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
                             </Teleport>
-                            <UserFeedback v-else :msgId="props.message.id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
+                            <UserFeedback v-else :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
                         </div>
                     </template>
                     <template v-else>
@@ -147,6 +147,9 @@ function getFirstLayerType() {
 }
 function getFirstLayerMergeToPrev() {
     return props.message?.stack[0]?.payload.merge_to_prev;
+}
+function messageIsNotFeedback(message) {
+    return !message.stack.some(layer => ['text_feedback', 'star_rating', 'thumbs_rating'].includes(layer.type));
 }
 function addingQueryParamStack(url) {
     if (!url) return;

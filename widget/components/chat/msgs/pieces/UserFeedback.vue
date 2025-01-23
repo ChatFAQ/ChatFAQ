@@ -67,7 +67,7 @@ import {ref, defineProps, onMounted} from "vue";
 import ThumbUp from "~/components/icons/ThumbUp.vue";
 import ThumbDown from "~/components/icons/ThumbDown.vue";
 
-const props = defineProps(["msgId"]);
+const props = defineProps(["msgId", "msgTargetId"]);
 
 const store = useGlobalStore();
 const feedbacked = ref(null)
@@ -114,29 +114,32 @@ async function sendUserFeedback(value, _collapse) {
         return
     feedbackValue.value = value
 
-    const feedbackData = {
-        message: props.msgId,
-        value: value,
+    const feedbackPayload = {
+        messageSource: props.msgId,
+        messageTarget: props.msgTargetId,
+        feedbackData: {
+            "thumbValue": value
+        },
     };
-    if (feedbackInput.value) {
-        const feedback = feedbackInput.value.innerText.trim()
-        if (feedback)
-            feedbackData["feedback_comment"] = feedback
+    if (feedbackPayload.feedbackData) {
+        const feedbackComment = feedbackInput.value.innerText.trim()
+        if (feedbackComment)
+            feedbackPayload.feedbackData["feedback_comment"] = feedbackComment
     }
-    feedbackData["feedback_selection"] = []
+    feedbackPayload.feedbackData["feedback_selection"] = []
     if (quickAnswer1.value)
-        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason1")]
+        feedbackPayload.feedbackData["feedback_comment_selection"] = [...feedbackPayload.feedbackData["feedback_comment_selection"], t("reason1")]
     if (quickAnswer2.value)
-        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason2")]
+        feedbackPayload.feedbackData["feedback_comment_selection"] = [...feedbackPayload.feedbackData["feedback_comment_selection"], t("reason2")]
     if (quickAnswer3.value)
-        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason3")]
+        feedbackPayload.feedbackData["feedback_comment_selection"] = [...feedbackPayload.feedbackData["feedback_comment_selection"], t("reason3")]
 
     let method = "POST"
     let endpoint = '/back/api/broker/user-feedback/'
     if (feedbacked.value) {
-        feedbackData["id"] = feedbacked.value
+        feedbackPayload["id"] = feedbacked.value
         method = "PATCH"
-        endpoint = `${endpoint}${feedbackData["id"]}/`
+        endpoint = `${endpoint}${feedbackPayload["id"]}/`
     }
 
     const headers = { 'Content-Type': 'application/json' }
@@ -146,7 +149,7 @@ async function sendUserFeedback(value, _collapse) {
     const response = await chatfaqFetch(store.chatfaqAPI + endpoint, {
         method: method,
         headers,
-        body: JSON.stringify(feedbackData)
+        body: JSON.stringify(feedbackPayload)
     })
 
     const res = await response.json();

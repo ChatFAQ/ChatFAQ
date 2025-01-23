@@ -38,6 +38,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    msgTargetId: {
+        type: String,
+        required: true,
+    },
 });
 
 
@@ -57,10 +61,13 @@ async function handleRating(value) {
         return;
     }
 
-    const feedbackData = {
-        message: messageId,
-        star_rating: rating.value,
-        star_rating_max: props.data.num_stars,
+    const feedbackPayload = {
+        messageSource: props.msgId,
+        messageTarget: props.msgTargetId,
+        messageData: {
+            "star_rating": rating.value,
+            "star_rating_max": props.data.num_stars,
+        },
     }
 
     const headers = { 'Content-Type': 'application/json' }
@@ -71,7 +78,7 @@ async function handleRating(value) {
         const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
             method: 'POST',
             headers,
-            body: JSON.stringify(feedbackData)
+            body: JSON.stringify(feedbackPayload)
         });
 
         if (response.ok) {

@@ -42,6 +42,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    msgTargetId: {
+        type: String,
+        required: true,
+    },
 });
 
 function manageEnterInput(ev, cb) {
@@ -60,19 +64,13 @@ async function sendFeedback() {
 
     // Find the current message index
     const currentMsgIndex = store.messages.findIndex(msg => msg.id === props.msgId);
-    // Search backwards from current message for the latest message/message_chunk
-    const messageId = store.messages
-        .slice(0, currentMsgIndex + 1)
-        .reverse()
-        .find(msg => msg.stack.some(stack => ['message', 'message_chunk', 'file_uploaded', 'file_download'].includes(stack.type)))?.id;
-    if (!messageId) {
-        console.error("No message found");
-        return;
-    }
 
-    const feedbackData = {
-        message: messageId,
-        feedback_comment: feedback,
+    const feedbackPayload = {
+        messageSource: props.msgId,
+        messageTarget: props.msgTargetId,
+        feedbackData: {
+            "feedback_comment": feedback,
+        }
     }
 
     const headers = { 'Content-Type': 'application/json' }
@@ -83,7 +81,7 @@ async function sendFeedback() {
         const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
             method: 'POST',
             headers,
-            body: JSON.stringify(feedbackData)
+            body: JSON.stringify(feedbackPayload)
         });
         if (response.ok) {
             console.log("Feedback sent successfully");
