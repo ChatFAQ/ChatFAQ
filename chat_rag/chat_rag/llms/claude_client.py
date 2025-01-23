@@ -5,6 +5,8 @@ from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
 from pydantic import BaseModel
 
+from chat_rag.llms import Content, Message, ToolUse, Usage
+
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
 
@@ -19,7 +21,9 @@ class ClaudeChatModel(LLM):
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str, messages: List[Dict[str, str]]):
+    def _format_tools(
+        self, tools: List[BaseModel], tool_choice: str, messages: List[Dict[str, str]]
+    ):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
@@ -34,61 +38,97 @@ class ClaudeChatModel(LLM):
 
         if tool_choice:
             # If the tool_choice is a named tool, then apply correct formatting
-            if tool_choice in [tool['title'] for tool in tools]:
+            if tool_choice in [tool["title"] for tool in tools]:
                 tool_choice = {"type": "tool", "name": tool_choice}
-            else: # if it's required or auto, then apply the correct formatting
+            else:  # if it's required or auto, then apply the correct formatting
                 tool_choice = (
-                    {"type": "any"} if tool_choice == "required" else {"type": tool_choice}
+                    {"type": "any"}
+                    if tool_choice == "required"
+                    else {"type": tool_choice}
                 )  # map "required" to "any"
 
         return tools_formatted, tool_choice
 
-    def _extract_tool_info(self, content: List) -> List[Dict]:
-        """
-        Format the tool information from the anthropic response to a standard format.
-        Claude only calls one tool at a time but we return a list for consistency.
-        """
-        tool = {}
-        for block in content:
-            if block.type == "tool_use":
-                tool["id"] = block.id
-                tool["name"] = block.name
-                tool["args"] = block.input
-            elif block.type == "text":
-                tool["text"] = block.text
-        return [tool]
-
-    def _format_messages(messages: List[Dict[str, str]]) -> List[Dict]:
+    def _format_messages(self, messages: List[Union[Dict, Message]]) -> List[Dict]:
         """
         Convert standard chat messages to Anthropic's format.
-        
-        Input format:
-        {"role": "user", "content": "hello", "cache_control": {"type": "ephemeral"}}
-        
-        Output format:
-        {"role": "user", "content": [{"type": "text", "text": "hello", "cache_control": {"type": "ephemeral"}}]}
         """
-        def format_content(message):
-            content = message["content"]
-            part = {"type": "text", "text": content}
-            
+
+        def format_content(message: Message):
+            if isinstance(message.content, str):
+                content_list = [{"type": "text", "text": message.content}]
+            else:
+                content_list = []
+                for content in message.content:
+                    if content.type == "text":
+                        part = {"type": content.type, "text": content.text}
+                    elif content.type == "tool_use":
+                        part = {
+                            "type": content.type,
+                            "id": content.tool_use.id,
+                            "name": content.tool_use.name,
+                            "input": content.tool_use.args,
+                        }
+                    elif content.type == "tool_result":
+                        part = {
+                            "type": content.type,
+                            "tool_use_id": content.tool_result.id,
+                            "content": content.tool_result.response,
+                        }
+                    content_list.append(part)
+
             # Add cache_control if present in original message
-            if "cache_control" in message:
-                part["cache_control"] = message["cache_control"]
-                
-            return [part]
+            if message.cache_control:
+                content_list[-1]["cache_control"] = {"type": "ephemeral"}
+
+            return content_list
+
+        system_prompt = NOT_GIVEN
+        # Add system message if present
+        if messages[0]["role"] == "system":
+            system_prompt = messages.pop(0)["content"][0]["text"]
 
         return [
-            {
-                "role": message["role"],
-                "content": format_content(message)
-            }
+            {"role": message["role"], "content": format_content(message)}
             for message in messages
-        ]
+        ], system_prompt
+
+    def _map_anthropic_message(self, message) -> Message:
+        """
+        Convert Anthropic's message format to our Message format.
+        """
+        content_list = []
+        for part in message.content:
+            if part.type == "text":
+                content_list.append(
+                    Content(
+                        type="text",
+                        text=part.text,
+                    )
+                )
+            elif part.type == "tool_use":
+                content_list.append(
+                    Content(
+                        type="tool_use",
+                        tool_use=ToolUse(id=part.id, name=part.name, args=part.input),
+                    )
+                )
+
+        return Message(
+            role="assistant",
+            content=content_list,
+            stop_reason=message.stop_reason,
+            usage=Usage(
+                input_tokens=message.usage.input_tokens,
+                output_tokens=message.usage.output_tokens,
+                cache_creation_input_tokens=message.usage.cache_creation_input_tokens,
+                cache_creation_read_tokens=message.usage.cache_creation_read_tokens,
+            ),
+        )
 
     def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -105,10 +145,7 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        messages = self._format_messages(messages)
-        system_prompt = NOT_GIVEN
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
+        messages, system_prompt = self._format_messages(messages)
 
         stream = self.client.messages.create(
             model=self.llm_name,
@@ -125,7 +162,7 @@ class ClaudeChatModel(LLM):
 
     async def astream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -142,10 +179,7 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        messages = self._format_messages(messages)
-        system_prompt = NOT_GIVEN
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
+        messages, system_prompt = self._format_messages(messages)
 
         stream = await self.aclient.messages.create(
             model=self.llm_name,
@@ -162,14 +196,14 @@ class ClaudeChatModel(LLM):
 
     def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -186,10 +220,7 @@ class ClaudeChatModel(LLM):
             tools, tool_choice = self._format_tools(tools, tool_choice, messages)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
-        messages = self._format_messages(messages)
-        system_prompt = NOT_GIVEN
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
+        messages, system_prompt = self._format_messages(messages)
 
         message = self.client.messages.create(
             model=self.llm_name,
@@ -200,15 +231,11 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         )
 
-        content = message.content
-        if any([x.type == "tool_use" for x in content]):
-            return self._extract_tool_info(content)
-
-        return content[0].text
+        return self._map_anthropic_message(message)
 
     async def agenerate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -232,10 +259,7 @@ class ClaudeChatModel(LLM):
             tools, tool_choice = self._format_tools(tools, tool_choice, messages)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
-        messages = self._format_messages(messages)
-        system_prompt = NOT_GIVEN
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
+        messages, system_prompt = self._format_messages(messages)
 
         message = await self.aclient.messages.create(
             model=self.llm_name,
@@ -246,7 +270,4 @@ class ClaudeChatModel(LLM):
             **tool_kwargs,
         )
 
-        content = message.content
-        if any([x.type == "tool_use" for x in content]):
-            return self._extract_tool_info(content)
-        return message.content[0].text
+        return self._map_anthropic_message(message)
