@@ -335,12 +335,12 @@ class UserFeedback(ChangesMixin):
         ("negative", "Negative"),
     )
     message_source = models.ForeignKey(
-        Message, null=True, on_delete=models.SET_NULL
+        Message, null=True, on_delete=models.SET_NULL, related_name="source_userfeedback_set"
     )
     message_target = models.ForeignKey(
-        Message, null=True, on_delete=models.SET_NULL
+        Message, null=True, on_delete=models.SET_NULL, related_name="target_userfeedback_set"
     )
-    feedbackData = models.JSONField(null=True, blank=True)
+    feedback_data = models.JSONField(null=True, blank=True)
 
     def clean(self):
         if self.star_rating and self.star_rating_max:
