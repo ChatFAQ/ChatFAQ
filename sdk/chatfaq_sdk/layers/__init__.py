@@ -1,8 +1,7 @@
 from logging import getLogger
-from typing import Dict, List
+from typing import List
 from uuid import uuid4
 
-from pydantic import BaseModel
 
 logger = getLogger(__name__)
 

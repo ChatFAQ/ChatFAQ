@@ -50,7 +50,7 @@
                             :scrolling="iframedMsg.scrolling || 'auto'"
                         ></iframe>
                     </template>
-                    <template v-if="getFirstLayerType() === 'message' || getFirstLayerType() === 'message_chunk'">
+                    <template v-else-if="getFirstLayerType() === 'message' || getFirstLayerType() === 'message_chunk'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" />
                         </div>

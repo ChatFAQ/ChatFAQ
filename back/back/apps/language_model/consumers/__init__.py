@@ -1,7 +1,7 @@
 import json
 import uuid
 from logging import getLogger
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -12,20 +12,19 @@ from back.apps.broker.consumers.message_types import RPCMessageType
 from back.apps.broker.models.message import AgentType, Conversation
 from back.apps.broker.serializers.rpc import (
     RPCLLMRequestSerializer,
-    RPCRetrieverRequestSerializer,
-    RPCResponseSerializer,
     RPCPromptRequestSerializer,
+    RPCResponseSerializer,
+    RPCRetrieverRequestSerializer,
 )
 from back.apps.language_model.models import (
     KnowledgeItem,
     LLMConfig,
-    RetrieverConfig,
     PromptConfig,
+    RetrieverConfig,
 )
+from back.config import settings
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
-from back.config import settings
-
 
 logger = getLogger(__name__)
 
@@ -113,6 +112,7 @@ async def query_llm(
     tool_choice: str = None,
     streaming: bool = True,
     use_conversation_context: bool = True,
+    cache_config: Optional[Dict] = None,
 ):
     try:
         llm_config = await database_sync_to_async(LLMConfig.enabled_objects.get)(
@@ -162,7 +162,8 @@ async def query_llm(
                     max_tokens,
                     seed,
                     tools,
-                    tool_choice
+                    tool_choice,
+                    cache_config,
                 )
 
                 async for res in response:
@@ -185,7 +186,9 @@ async def query_llm(
                     "last_chunk": True,
                 }
             else:
-                from chat_rag.llms import load_llm # The first time this is imported it will take a few seconds.
+                from chat_rag.llms import (
+                    load_llm,  # The first time this is imported it will take a few seconds.
+                )
                 llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
 
                 if tools:
@@ -196,6 +199,7 @@ async def query_llm(
                         seed=seed,
                         tools=tools,
                         tool_choice=tool_choice,
+                        cache_config=cache_config,
                     )
                     if isinstance(response, list):
                         yield {
@@ -214,6 +218,7 @@ async def query_llm(
                         temperature=temperature,
                         max_tokens=max_tokens,
                         seed=seed,
+                        cache_config=cache_config,
                     )
                     async for res in response:
                         yield {
@@ -331,6 +336,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("tool_choice"),
             data.get("streaming"),
             data.get("use_conversation_context"),
+            data.get("cache_config"),
         ):
             await self.send(
                 json.dumps(

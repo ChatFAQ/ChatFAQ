@@ -19,13 +19,18 @@ class ClaudeChatModel(LLM):
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
         )
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str):
+    def _format_tools(self, tools: List[BaseModel], tool_choice: str, messages: List[Dict[str, str]]):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
         tools, tool_choice = self._check_tool_choice(tools, tool_choice)
 
         tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
+
+        # If any messages have cache_control, add cache_control to the last tool so they are cached also
+        if any(message.get("cache_control") for message in messages):
+            if tools_formatted:
+                tools_formatted[-1]["cache_control"] = {"type": "ephemeral"}
 
         if tool_choice:
             # If the tool_choice is a named tool, then apply correct formatting
@@ -53,12 +58,41 @@ class ClaudeChatModel(LLM):
                 tool["text"] = block.text
         return [tool]
 
+    def _format_messages(messages: List[Dict[str, str]]) -> List[Dict]:
+        """
+        Convert standard chat messages to Anthropic's format.
+        
+        Input format:
+        {"role": "user", "content": "hello", "cache_control": {"type": "ephemeral"}}
+        
+        Output format:
+        {"role": "user", "content": [{"type": "text", "text": "hello", "cache_control": {"type": "ephemeral"}}]}
+        """
+        def format_content(message):
+            content = message["content"]
+            part = {"type": "text", "text": content}
+            
+            # Add cache_control if present in original message
+            if "cache_control" in message:
+                part["cache_control"] = message["cache_control"]
+                
+            return [part]
+
+        return [
+            {
+                "role": message["role"],
+                "content": format_content(message)
+            }
+            for message in messages
+        ]
+
     def stream(
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using the model.
@@ -71,6 +105,7 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
+        messages = self._format_messages(messages)
         system_prompt = NOT_GIVEN
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
@@ -94,6 +129,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        **kwargs,
     ):
         """
         Generate text from a prompt using the model.
@@ -106,6 +142,7 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
+        messages = self._format_messages(messages)
         system_prompt = NOT_GIVEN
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
@@ -131,6 +168,7 @@ class ClaudeChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -143,12 +181,12 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-
         tool_kwargs = {}
         if tools:
-            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tools, tool_choice = self._format_tools(tools, tool_choice, messages)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
+        messages = self._format_messages(messages)
         system_prompt = NOT_GIVEN
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]
@@ -176,6 +214,7 @@ class ClaudeChatModel(LLM):
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
+        **kwargs,
     ) -> str:
         """
         Generate text from a prompt using the model.
@@ -188,12 +227,12 @@ class ClaudeChatModel(LLM):
         str
             The generated text.
         """
-        
         tool_kwargs = {}
         if tools:
-            tools, tool_choice = self._format_tools(tools, tool_choice)
+            tools, tool_choice = self._format_tools(tools, tool_choice, messages)
             tool_kwargs = {"tools": tools, "tool_choice": tool_choice}
 
+        messages = self._format_messages(messages)
         system_prompt = NOT_GIVEN
         if messages[0]["role"] == "system":
             system_prompt = messages.pop(0)["content"]

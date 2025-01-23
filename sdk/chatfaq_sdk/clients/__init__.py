@@ -1,8 +1,10 @@
-from typing import Dict, List
-from pydantic import BaseModel
 from logging import getLogger
-from chatfaq_sdk import ChatFAQSDK
+from typing import Dict, List, Optional
 
+from pydantic import BaseModel
+
+from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.types import CacheConfig
 
 logger = getLogger(__name__)
 
@@ -19,6 +21,7 @@ async def llm_request(
     conversation_id: str = None,
     bot_channel_name: str = None,
     use_conversation_context: bool = True,
+    cache_config: Optional[CacheConfig] = None,
 ):
     if tools:
         tools = [tool.model_json_schema() for tool in tools]
@@ -34,6 +37,7 @@ async def llm_request(
         conversation_id,
         bot_channel_name,
         use_conversation_context,
+        cache_config,
     )
 
     logger.debug("[LLMRequest] Waiting for LLM req...")
@@ -66,8 +70,8 @@ async def retrieve(
 
 async def query_kis(
     sdk: ChatFAQSDK,
-    knowledge_base_name: dict,
-    query: dict,
+    knowledge_base_name: str,
+    query: Optional[Dict] = None,
 ):
     return await sdk.query_kis(knowledge_base_name, query)
 
