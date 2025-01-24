@@ -313,3 +313,13 @@ class TextFeedback(UserFeedback):
             }
         }
         yield [payload], True
+
+
+class CloseConversation(Layer):
+    """
+    A message layer that includes a close conversation request.
+    """
+    _type = "close_conversation"
+
+    async def build_payloads(self, ctx, data):
+        yield [{"payload": {}}], True

@@ -66,9 +66,9 @@ async function sendFeedback() {
     const currentMsgIndex = store.messages.findIndex(msg => msg.id === props.msgId);
 
     const feedbackPayload = {
-        messageSource: props.msgId,
-        messageTarget: props.msgTargetId,
-        feedbackData: {
+        message_source: props.msgId,
+        message_target: props.msgTargetId,
+        feedback_data: {
             "feedback_comment": feedback,
         }
     }

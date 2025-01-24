@@ -96,7 +96,7 @@ onMounted(async () => {
         headers.Authorization = `Token ${store.authToken}`;
 
     let response = await chatfaqFetch(
-        store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`, { headers }
+        store.chatfaqAPI + `/back/api/broker/user-feedback/?message_source=${props.msgId}`, { headers }
     )
     response = await response.json();
     if (response.results && response.results.length) {
@@ -115,24 +115,24 @@ async function sendUserFeedback(value, _collapse) {
     feedbackValue.value = value
 
     const feedbackPayload = {
-        messageSource: props.msgId,
-        messageTarget: props.msgTargetId,
-        feedbackData: {
-            "thumbValue": value
+        message_source: props.msgId,
+        message_target: props.msgTargetId,
+        feedback_data: {
+            "thumb_value": value
         },
     };
-    if (feedbackPayload.feedbackData) {
+    if (feedbackInput.value) {
         const feedbackComment = feedbackInput.value.innerText.trim()
         if (feedbackComment)
-            feedbackPayload.feedbackData["feedback_comment"] = feedbackComment
+            feedbackPayload.feedback_data["feedback_comment"] = feedbackComment
     }
-    feedbackPayload.feedbackData["feedback_selection"] = []
+    feedbackPayload.feedback_data["feedback_comment_selection"] = []
     if (quickAnswer1.value)
-        feedbackPayload.feedbackData["feedback_comment_selection"] = [...feedbackPayload.feedbackData["feedback_comment_selection"], t("reason1")]
+        feedbackPayload.feedback_data["feedback_comment_selection"] = [...feedbackPayload.feedback_data["feedback_comment_selection"], t("reason1")]
     if (quickAnswer2.value)
-        feedbackPayload.feedbackData["feedback_comment_selection"] = [...feedbackPayload.feedbackData["feedback_comment_selection"], t("reason2")]
+        feedbackPayload.feedback_data["feedback_comment_selection"] = [...feedbackPayload.feedback_data["feedback_comment_selection"], t("reason2")]
     if (quickAnswer3.value)
-        feedbackPayload.feedbackData["feedback_comment_selection"] = [...feedbackPayload.feedbackData["feedback_comment_selection"], t("reason3")]
+        feedbackPayload.feedback_data["feedback_comment_selection"] = [...feedbackPayload.feedback_data["feedback_comment_selection"], t("reason3")]
 
     let method = "POST"
     let endpoint = '/back/api/broker/user-feedback/'

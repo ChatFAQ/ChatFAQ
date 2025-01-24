@@ -72,7 +72,7 @@ const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
-const notRenderableStackTypes = ["gtm_tag", undefined]
+const notRenderableStackTypes = ["gtm_tag", "close_conversation",undefined]
 const isFinalFeedback = ref(false)
 
 let ws = undefined
@@ -159,7 +159,7 @@ function createConnection() {
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
-        if (msg.stack[0]?.type === 'star_rating' || msg.stack[0]?.type === 'text_feedback')
+        if (msg.stack[0]?.type === 'close_conversation')
             isFinalFeedback.value = true
 
         sendToGTM(msg)

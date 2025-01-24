@@ -62,9 +62,9 @@ async function handleRating(value) {
     }
 
     const feedbackPayload = {
-        messageSource: props.msgId,
-        messageTarget: props.msgTargetId,
-        messageData: {
+        message_source: props.msgId,
+        message_target: props.msgTargetId,
+        feedback_data: {
             "star_rating": rating.value,
             "star_rating_max": props.data.num_stars,
         },

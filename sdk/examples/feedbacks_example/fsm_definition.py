@@ -1,6 +1,6 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import Message, StarRating, TextFeedback, ThumbsRating
+from chatfaq_sdk.layers import Message, StarRating, TextFeedback, ThumbsRating, CloseConversation
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
@@ -12,7 +12,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     yield Message(content="Some response")
     yield StarRating(hint="Please rate the service", num_stars=5, placeholder="1 is negative, 5 is positive")
     yield TextFeedback(hint="Could you please provide more details?", placeholder="Please provide your feedback here")
-
+    yield CloseConversation()
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
