@@ -211,7 +211,7 @@ class ChatFAQSDK:
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting exisitng definition if already exists." if self.overwrite_definition else "")
+            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting existing definition if already exists." if self.overwrite_definition else "")
             await getattr(self, f"ws_{WSType.rpc.value}").send(
                 json.dumps(
                     {

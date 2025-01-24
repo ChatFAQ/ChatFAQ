@@ -47,6 +47,11 @@ export const useGlobalStore = defineStore('globalStore', {
             enableLogout: false,
             enableResend: false,
             resendMsgId: undefined,
+            speechSynthesisSupported: 'speechSynthesis' in window,
+            speechSynthesisEnabled: false,
+            speechSynthesisPitch: 1,
+            speechSynthesisRate: 1,
+            speechSynthesisVoice: '',
         }
     },
     actions: {

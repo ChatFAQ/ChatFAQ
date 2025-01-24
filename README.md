@@ -43,3 +43,14 @@ Or chat with us on [Discord](https://discord.gg/MTWF4SRc3M) for any requests or 
 <div align="center">
   <img src="https://assets-global.website-files.com/649164df52b043f1d5307b14/660d2f3981e7b29eba28b6e0_CONBANDERA_KITDIGITAL%20(1)-p-1600.png" alt="logo_redes">
 </div>
+
+### Examples
+
+Here are some examples of how to use the ChatFAQ SDK to build different types of conversational solutions:
+
+- **LLM Example**: This example demonstrates a simple chatbot using an LLM to generate responses. [fsm_definition.py](sdk/examples/llm_example/fsm_definition.py)
+- **RAG Example**: This example shows how to build a chatbot that uses Retrieval-Augmented Generation (RAG) to provide more informed answers. [fsm_definition.py](sdk/examples/rag_example/fsm_definition.py)
+- **Feedbacks Example**: This example shows how to collect user feedback using star ratings and text inputs. [fsm_definition.py](sdk/examples/feedbacks_example/fsm_definition.py)
+- **Full KB RAG Example**: This example demonstrates how to use the entire knowledge base for RAG and prompt caching, which can be useful given that context windows are large and we don't have to deploy a retriever. [fsm_definition.py](sdk/examples/full_kb_rag_example/fsm_definition.py)
+- **Retrieve Example**: This example shows how to use the `retrieve` function to fetch relevant information from a knowledge base. [fsm_definition.py](sdk/examples/retrieve_example/fsm_definition.py)
+- **Structured Generation Example**: This example shows how to use the LLM to extract structured information from user input. [fsm_definition.py](sdk/examples/structured_generation/fsm_definition.py)

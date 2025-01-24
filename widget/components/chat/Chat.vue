@@ -29,11 +29,11 @@
                     :class="{
                         'dark-mode': store.darkMode,
                         'maximized': store.maximized,
-                        'disabled': isFinalFeedback
+                        'disabled': conversationClosed
                     }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    :contenteditable="!isFinalFeedback"
+                    :contenteditable="!conversationClosed"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
@@ -43,9 +43,9 @@
                      'disabled': isFinalFeedback
                  }"
                  @click="() => {
-                     if (!isFinalFeedback && availableMicro) {
+                     if (!conversationClosed && availableMicro) {
                          speechToText()
-                     } else if (!isFinalFeedback && availableSend) {
+                     } else if (!conversationClosed && availableSend) {
                          sendMessage()
                      }
                  }">
@@ -73,7 +73,7 @@ const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", "close_conversation",undefined]
-const isFinalFeedback = ref(false)
+const conversationClosed = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
@@ -88,7 +88,7 @@ watch(() => store.feedbackSent, animateFeedbackSent)
 watch(() => store.resendMsgId, resendMsg)
 watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 watch(() => store.selectedPlConversationId, () => {
-    isFinalFeedback.value = false
+    conversationClosed.value = false
 })
 
 onMounted(async () => {
@@ -160,7 +160,7 @@ function createConnection() {
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
         if (msg.stack[0]?.type === 'close_conversation')
-            isFinalFeedback.value = true
+            conversationClosed.value = true
 
         sendToGTM(msg)
         store.addMessage(msg);
@@ -212,7 +212,7 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
-    isFinalFeedback.value = false
+    conversationClosed.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 }
 
@@ -287,7 +287,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !isFinalFeedback.value
+    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !conversationClosed.value
 }
 
 function createMessageFromInputPrompt() {

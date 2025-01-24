@@ -52,7 +52,7 @@
                     </template>
                     <template v-else-if="getFirstLayerType() === 'message' || getFirstLayerType() === 'message_chunk'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" />
+                            <TextMsgPiece :data="layer" :is-last="isLastOfType && layersFinished" :is-last-chunk="props.message.last_chunk"/>
                         </div>
                         <ReferencesMsgPiece
                             v-if="!store.hideSources && props.message.stack && props.message.stack[0].payload?.references?.knowledge_items?.length && isLastOfType && (layersFinished || store.sourcesFirst)"

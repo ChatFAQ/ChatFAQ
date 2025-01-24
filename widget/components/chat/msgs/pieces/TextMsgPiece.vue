@@ -25,18 +25,22 @@
 
 <script setup>
 import {useGlobalStore} from "~/store";
-import {computed, ref} from "vue";
+import {computed, ref, watch, onMounted, onBeforeUnmount} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
 import { markdown } from "markdown";
 
+const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
+const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
 const store = useGlobalStore();
 
-const props = defineProps(["data", "isLast"]);
+const props = defineProps(["data", "isLast", "isLastChunk"]);
 const hightlight_light = "#4630751a"
 const hightlight_dark = "#1A0438"
 
 const displayAllImgRef = ref(false);
+const speechBuffer = ref(''); // Buffer to accumulate unspoken text
+const receivedContent = ref(''); // Track the entire received content
 
 const minImgRefs = computed(() => {
     if (store.isPhone)
@@ -102,6 +106,96 @@ function openInNewTab(url) {
     const win = window.open(url, '_blank');
     win.focus();
 }
+
+// For non-streaming messages, speak the entire message on initial mount
+onMounted(() => {
+    if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
+        const content = props.data.payload.content;
+        if (content && props.isLastChunk) {
+            const utterance = new SpeechSynthesisUtterance(content);
+            configureUtterance(utterance);
+            speechSynthesis.speak(utterance);
+        }
+    }
+});
+
+// Watch for streaming messages
+watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
+    if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
+        const newContent = newMessage.payload.content;
+        
+        // Calculate delta from the last received content
+        const delta = newContent.slice(receivedContent.value.length);
+        receivedContent.value = newContent; // Update the received content
+        
+        speechBuffer.value += delta; // Append delta to the buffer
+
+        // Split buffer into complete sentences and remaining text
+        const { sentences, remaining } = splitIntoSentences(speechBuffer.value);
+
+        // Speak each complete sentence
+        if (sentences.length > 0) {
+            sentences.forEach(sentence => {
+                const utterance = new SpeechSynthesisUtterance(sentence);
+                configureUtterance(utterance);
+                speechSynthesis.speak(utterance);
+            });
+            speechBuffer.value = remaining; // Keep remaining text in buffer
+        }
+        
+        // Speak remaining text when it's the last message
+        if (isLastChunk && speechBuffer.value.trim().length > 0) {
+            const utterance = new SpeechSynthesisUtterance(speechBuffer.value);
+            configureUtterance(utterance);
+            speechSynthesis.speak(utterance);
+            speechBuffer.value = ''; // Clear buffer after speaking
+        }
+    }
+}, { immediate: false });
+
+function splitIntoSentences(text) {
+    // Regex that handles abbreviations and sentence endings
+    const sentenceRegex = /\b(\w\.\w\.|[A-Z][a-z]{1,2}\.)|([.?!])\s+(?=[A-Za-z])/g;
+    
+    // Replace sentence endings with a marker, preserving abbreviations
+    const markedText = text.replace(sentenceRegex, (match, g1, g2) => {
+        return g1 ? g1 : g2 + "\n";
+    });
+    
+    // Split into sentences and filter out empty strings
+    const sentences = markedText.split("\n")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    
+    // The remaining text is the last element if it doesn't end with a sentence marker
+    const remaining = sentences.pop() || '';
+    
+    return { sentences, remaining };
+}
+
+function configureUtterance(utterance) {
+    if (isFinite(store.speechSynthesisPitch)) {
+        utterance.pitch = store.speechSynthesisPitch;
+    }
+    if (isFinite(store.speechSynthesisRate)) {
+        utterance.rate = store.speechSynthesisRate;
+    }
+    if (store.speechSynthesisVoice) {
+        const voices = speechSynthesis.getVoices();
+        const selectedVoice = voices.find(voice => voice.voiceURI === store.speechSynthesisVoice);
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        }
+    }
+}
+
+onBeforeUnmount(() => {
+    if (speechSynthesis) {
+        speechSynthesis.cancel(); // Stop any ongoing speech
+        speechBuffer.value = ''; // Clear the speech buffer
+        receivedContent.value = ''; // Reset received content
+    }
+});
 
 </script>
 <style lang="scss">

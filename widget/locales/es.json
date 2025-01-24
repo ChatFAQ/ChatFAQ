@@ -24,5 +24,7 @@
     "source": "fuente",
     "connectingtoserver": "Conectando al servidor...",
     "upload_file": "Subir archivo",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "enablespeech": "Activar voz",
+    "disablespeech": "Desactivar voz"
 }
