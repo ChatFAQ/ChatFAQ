@@ -45,6 +45,13 @@ const props = defineProps({
 });
 
 
+
+onMounted(async () => {
+    const feedbackData = await store.getFeedbackData(props.msgId)
+    if (feedbackData) {
+        rating.value = feedbackData.star_rating
+    }
+})
 async function handleRating(value) {
     rating.value = value;
 

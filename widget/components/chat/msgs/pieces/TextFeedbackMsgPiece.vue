@@ -48,6 +48,14 @@ const props = defineProps({
     },
 });
 
+onMounted(async () => {
+    const feedbackData = await store.getFeedbackData(props.msgId)
+    if (feedbackData) {
+        feedbackInput.value = feedbackData.feedback_comment
+        feedbackSent.value = true
+    }
+})
+
 function manageEnterInput(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault();

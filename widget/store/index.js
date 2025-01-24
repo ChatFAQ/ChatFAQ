@@ -216,6 +216,22 @@ export const useGlobalStore = defineStore('globalStore', {
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)
                 return state.customIFramedMsgs[id]
+        },
+        getFeedbackData: (state) => async (msgSourceId) => {
+            if (state.previewMode)
+                return
+
+            const headers = {}
+            if (state.authToken)
+                headers.Authorization = `Token ${state.authToken}`;
+
+            let response = await chatfaqFetch(
+                state.chatfaqAPI + `/back/api/broker/user-feedback/?message_source=${msgSourceId}`, { headers }
+            )
+            response = await response.json();
+            if (response.results && response.results.length) {
+                return response.results[0].feedback_data
+            }
         }
     }
 })

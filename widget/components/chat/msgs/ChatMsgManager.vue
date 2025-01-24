@@ -92,9 +92,9 @@
                     <template v-else-if="getFirstLayerType() === 'thumbs_rating'">
                         <div class="layer" v-for="layer in props.message.stack">
                             <Teleport v-if="getFirstLayerMergeToPrev()" :to="'#msg-commands-' + store.getPrevMsg(props.message, messageIsNotFeedback).id">
-                                <UserFeedback :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
+                                <UserFeedback :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" @feedbacking="feedbacking = true" @disabled="feedbacking = false"/>
                             </Teleport>
-                            <UserFeedback v-else :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" @feedbacking="feedbacking = true" @collapse="feedbacking = false"/>
+                            <UserFeedback v-else :msgId="props.message.id" :msgTargetId="store.getPrevMsg(props.message, messageIsNotFeedback).id" @feedbacking="feedbacking = true" @disabled="feedbacking = false"/>
                         </div>
                     </template>
                     <template v-else>

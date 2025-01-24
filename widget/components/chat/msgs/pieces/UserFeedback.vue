@@ -1,17 +1,17 @@
 <template>
     <div class="voting"
-         :class="{'feedbacked': feedbacked && !collapse, 'dark-mode': store.darkMode}">
-        <div class="separator-line" v-if="feedbacked && !collapse" :class="{ 'dark-mode': store.darkMode }"></div>
+         :class="{'feedbacked': feedbacked && !disabled, 'dark-mode': store.darkMode}">
+        <div class="separator-line" v-if="feedbacked && !disabled" :class="{ 'dark-mode': store.darkMode }"></div>
         <div class="feedback-top">
-            <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}</div>
+            <div class="feedback-top-text" v-if="feedbacked && !disabled">{{ $t('additionalfeedback') }}</div>
             <!-- <div v-else-if="feedbacked">{{ $t('feedbacksent') }}:</div> -->
             <div class="feedback-controls">
-                <ThumbUp class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('positive')" />
-                <ThumbDown class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('negative')"/>
+                <ThumbUp class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'disabled': disabled}" @click="sendUserFeedback('positive')" />
+                <ThumbDown class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'disabled': disabled}" @click="sendUserFeedback('negative')"/>
                 <CopyToClipboard :msg-id="msgId"/>
             </div>
         </div>
-        <div v-if="feedbacked && !collapse">
+        <div v-if="feedbacked && !disabled">
             <div class="feedback-input-wrapper" :class="{ 'dark-mode': store.darkMode }">
                 <div
                     v-if="feedbackValue === 'negative'"
@@ -72,12 +72,12 @@ const props = defineProps(["msgId", "msgTargetId"]);
 const store = useGlobalStore();
 const feedbacked = ref(null)
 const feedbackInput = ref(null);
-const collapse = ref(false)
+const disabled = ref(false)
 const feedbackValue = ref(null)
 const quickAnswer1 = ref(false);
 const quickAnswer2 = ref(false);
 const quickAnswer3 = ref(false);
-const emit = defineEmits(['feedbacking', 'collapse'])
+const emit = defineEmits(['feedbacking', 'disabled'])
 const {t} = useI18n()
 
 function manageEnterInput(ev, cb) {
@@ -88,30 +88,20 @@ function manageEnterInput(ev, cb) {
 };
 
 onMounted(async () => {
-    if (store.previewMode)
-        return
-
-    const headers = {}
-    if (store.authToken)
-        headers.Authorization = `Token ${store.authToken}`;
-
-    let response = await chatfaqFetch(
-        store.chatfaqAPI + `/back/api/broker/user-feedback/?message_source=${props.msgId}`, { headers }
-    )
-    response = await response.json();
-    if (response.results && response.results.length) {
-        const userFeedback = response.results[0]
-        collapse.value = true
-        feedbackValue.value = userFeedback.value
+    const feedbackData = await store.getFeedbackData(props.msgId)
+    if (feedbackData) {
+        disabled.value = true
+        feedbackValue.value = feedbackData.thumb_value
     }
 })
 
-async function sendUserFeedback(value, _collapse) {
+async function sendUserFeedback(value, _disabled) {
     if (store.previewMode)
         return
 
-    if (collapse.value)
+    if (disabled.value)
         return
+
     feedbackValue.value = value
 
     const feedbackPayload = {
@@ -155,9 +145,9 @@ async function sendUserFeedback(value, _collapse) {
     const res = await response.json();
     feedbacked.value = res["id"]
     emit('feedbacking')
-    if (_collapse) {
-        collapse.value = true
-        emit("collapse")
+    if (_disabled) {
+        disabled.value = true
+        emit("disabled")
         store.feedbackSent += 1;
     }
     store.scrollToBottom += 1;
@@ -294,13 +284,13 @@ async function sendUserFeedback(value, _collapse) {
         &.dark-mode {
             color: $chatfaq-color-thumbs-and-clipboard-dark;
         }
-        &.collapse {
+        &.disabled {
             cursor: unset;
         }
 
     }
 
-    .selected, .control:not(.collapse):hover {
+    .selected, .control:not(.disabled):hover {
         color: $chatfaq-color-chatMessageReference-text-light;
         background: rgba(70, 48, 117, 0.1);
         border-radius: 2px;
