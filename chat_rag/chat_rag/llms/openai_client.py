@@ -4,6 +4,8 @@ from typing import Dict, List, Union
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
+from chat_rag.llms import Content, Message, ToolUse, Usage
+
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
 
@@ -53,6 +55,67 @@ class OpenAIChatModel(LLM):
             )
 
         return tools
+    
+    def _format_messages(self, messages: List[Union[Dict, Message]]) -> List[Dict]:
+        """
+        Convert standard chat messages to OpenAI's format.
+        """
+        def format_content(message: Message):
+            content_list = []
+            tool_calls = []
+            tool_results = []
+            if isinstance(message.content, str):
+                content_list = [{"type": "text", "text": message.content}]
+            else:
+                for content in message.content:
+                    if content.type == "text":
+                        content_list.append({"type": content.type, "text": content.text})
+                    elif content.type == "tool_use":
+                        part = {
+                            "type": "function",
+                            "id": content.tool_use.id,
+                            "function": {
+                                "name": content.tool_use.name,
+                                "arguments": content.tool_use.args,
+                            },
+                        }
+                        tool_calls.append(part)
+                    elif content.type == "tool_result":
+                        tool_results.append(
+                            {
+                                "id": content.tool_result.id,
+                                "output": content.tool_result.output,
+                            }
+                        )
+
+            return content_list, tool_calls, tool_results
+
+        messages = []
+        for message in messages:
+            content, tool_calls, tool_results = format_content(message)
+            role = message.role if not tool_results else "tool"
+            messages.append(
+                {
+                    "role": role,
+                    "content": content if content else None,
+                    "tool_calls": tool_calls if tool_calls else None,
+                }
+            )
+        return messages
+    
+    def _map_openai_message(self, message) -> Message:
+        """
+        Map the OpenAI message to the standard message format.
+        """
+        content_list = []
+        content = message.choices[0].message
+        if content.content:
+            content_list = [Content(type="text", text=content.content)]
+        if content.tool_calls:
+            content_list = [Content(type="tool_use", tool_use=ToolUse(id=content.tool_calls[0].id, name=content.tool_calls[0].function.name, args=content.tool_calls[0].function.arguments))]
+
+        usage = Usage(input_tokens=message.usage.prompt_tokens, output_tokens=content.usage.completion_tokens)
+        return Message(role=content.role, content=content_list, tool_calls=content.tool_calls, usage=usage)
 
     def stream(
         self,
@@ -73,6 +136,7 @@ class OpenAIChatModel(LLM):
         str
             The generated text.
         """
+        messages = self._format_messages(messages)
 
         response = self.client.chat.completions.create(
             model=self.llm_name,
@@ -91,7 +155,7 @@ class OpenAIChatModel(LLM):
 
     async def astream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
@@ -108,7 +172,7 @@ class OpenAIChatModel(LLM):
         str
             The generated text.
         """
-
+        messages = self._format_messages(messages)
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
             messages=messages,
@@ -126,7 +190,7 @@ class OpenAIChatModel(LLM):
 
     def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
@@ -148,6 +212,8 @@ class OpenAIChatModel(LLM):
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
+        messages = self._format_messages(messages)
+
         response = self.client.chat.completions.create(
             model=self.llm_name,
             messages=messages,
@@ -168,7 +234,7 @@ class OpenAIChatModel(LLM):
 
     async def agenerate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
@@ -187,6 +253,8 @@ class OpenAIChatModel(LLM):
         str | List
             The generated text or a list of tool calls.
         """
+        messages = self._format_messages(messages)
+
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
 
