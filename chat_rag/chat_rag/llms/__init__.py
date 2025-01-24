@@ -73,9 +73,9 @@ class ToolResult(BaseModel):
         default=None,
         description="The name of the tool called."
     )
-    response: Optional[Union[Dict, str]] = Field(
+    result: Optional[Union[Dict, str]] = Field(
         default=None,
-        description="The tool response in JSON object or string format."
+        description="The tool result in JSON object or string format."
     )
 
 class Content(BaseModel):

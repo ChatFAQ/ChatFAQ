@@ -73,7 +73,7 @@ class ClaudeChatModel(LLM):
                         part = {
                             "type": content.type,
                             "tool_use_id": content.tool_result.id,
-                            "content": content.tool_result.response,
+                            "content": content.tool_result.result,
                         }
                     content_list.append(part)
 

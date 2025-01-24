@@ -39,22 +39,6 @@ class OpenAIChatModel(LLM):
                 },
             }
         return tools_formatted, tool_choice
-
-    def _extract_tool_info(self, message) -> List[Dict]:
-        """
-        Format the tool information from the anthropic response to a standard format.
-        """
-        tools = []
-        for tool in message.tool_calls:
-            tools.append(
-                {
-                    "id": tool.id,
-                    "name": tool.function.name,
-                    "args": tool.function.arguments,
-                }
-            )
-
-        return tools
     
     def _format_messages(self, messages: List[Union[Dict, Message]]) -> List[Dict]:
         """
@@ -84,7 +68,7 @@ class OpenAIChatModel(LLM):
                         tool_results.append(
                             {
                                 "id": content.tool_result.id,
-                                "output": content.tool_result.output,
+                                "output": content.tool_result.result,
                             }
                         )
 
@@ -112,9 +96,9 @@ class OpenAIChatModel(LLM):
         if content.content:
             content_list = [Content(type="text", text=content.content)]
         if content.tool_calls:
-            content_list = [Content(type="tool_use", tool_use=ToolUse(id=content.tool_calls[0].id, name=content.tool_calls[0].function.name, args=content.tool_calls[0].function.arguments))]
+            content_list = [Content(type="tool_use", tool_use=ToolUse(id=tool_call.id, name=tool_call.function.name, args=tool_call.function.arguments)) for tool_call in content.tool_calls]
 
-        usage = Usage(input_tokens=message.usage.prompt_tokens, output_tokens=content.usage.completion_tokens)
+        usage = Usage(input_tokens=message.usage.prompt_tokens, output_tokens=content.usage.completion_tokens, cache_creation_read_tokens=message.usage.prompt_tokens_details.cached_tokens)
         return Message(role=content.role, content=content_list, tool_calls=content.tool_calls, usage=usage)
 
     def stream(
@@ -226,11 +210,7 @@ class OpenAIChatModel(LLM):
             stream=False,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-
-        return message.content
+        return self._map_openai_message(response)
 
     async def agenerate(
         self,
@@ -270,8 +250,4 @@ class OpenAIChatModel(LLM):
             stream=False,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-
-        return message.content
+        return self._map_openai_message(response)
