@@ -3,16 +3,20 @@ from typing import Dict, List, Tuple, Union
 
 from google import genai
 from google.genai.types import (
-    Content,
+    Content as GeminiContent,
     CreateCachedContentConfig,
     FunctionCallingConfig,
     GenerateContentConfig,
     Part,
     Tool,
     ToolConfig,
+    GenerateContentResponse,
+    FunctionCall,
+    FunctionResponse,
 )
 from pydantic import BaseModel
 
+from chat_rag.llms import Message, Usage, Content, ToolUse, ToolResult
 from chat_rag.llms.base_llm import LLM
 from chat_rag.llms.format_tools import Mode, format_tools
 
@@ -92,7 +96,40 @@ class GeminiChatModel(LLM):
     def _map_role(self, role: str) -> str:
         """Map chat roles to Gemini roles."""
         return "model" if role == "assistant" else role
+    
+    def _map_gemini_message(self, response: GenerateContentResponse) -> Message:
+        """
+        Maps a Gemini Content object to a chat_rag Message object.
+        """
+        contents: List[Content] = []
+        if response.candidates[0].content.parts:
+            for part in response.candidates[0].content.parts:
+                if part.text:
+                    contents.append(Content(type="text", text=part.text))
+                elif part.function_call:
+                    contents.append(
+                        Content(
+                            type="tool_use",
+                            tool_use=ToolUse(
+                                name=part.function_call.name,
+                                args=part.function_call.args,
+                            ),
+                        )
+                    )
 
+        usage = response.usage_metadata
+        return Message(
+            role="assistant",
+            content=contents if contents else "", # if no parts, set content to empty string
+            usage=Usage(
+                input_tokens=usage.prompt_token_count if usage else 0,
+                output_tokens=usage.candidates_token_count if usage else 0,
+                cache_creation_input_tokens=usage.total_token_count if usage else 0,
+                cache_creation_read_tokens=0
+            ),
+            stop_reason=response.candidates[0].finish_reason,
+        )
+    
     def _create_cache(
         self,
         messages: List[Dict[str, str]],
@@ -117,7 +154,7 @@ class GeminiChatModel(LLM):
             The cache name
         """
         contents = [
-            Content(
+            GeminiContent(
                 parts=[Part(text=message["content"])],
                 role=self._map_role(message["role"]),
             )
@@ -159,7 +196,7 @@ class GeminiChatModel(LLM):
             The cache name
         """
         contents = [
-            Content(
+            GeminiContent(
                 parts=[Part(text=message["content"])],
                 role=self._map_role(message["role"]),
             )
@@ -179,7 +216,7 @@ class GeminiChatModel(LLM):
 
     def _prepare_messages(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float,
         max_tokens: int,
         seed: int,
@@ -194,15 +231,31 @@ class GeminiChatModel(LLM):
         Tuple[str, List[Dict], List[Content], Dict]
             system_prompt, cached_messages, content_messages, config_kwargs
         """
+        def format_content(message: Message):
+            parts = []
+            tool_calls = []
+            tool_results = []
+            if isinstance(message.content, str):
+                parts = [Part(text=message.content)]
+            else:
+                for content in message.content:
+                    if content.type == "text":
+                        parts.append(Part(text=content.text))
+                    elif content.type == "tool_use":
+                        tool_calls.append(Part(function_call=FunctionCall(id=content.tool_use.id, name=content.tool_use.name, args=content.tool_use.args)))
+                    elif content.type == "tool_result":
+                        tool_results.append(Part(function_response=FunctionResponse(id=content.tool_result.id, name=content.tool_result.name, response=content.tool_result.result)))
+            return parts
+
         # Extract system prompt if present
         system_prompt = None
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
+        if messages[0].role == "system":
+            system_prompt = messages.pop(0).content
 
         # Find the last message with cache_control
         cache_split_idx = 0
         for idx, msg in enumerate(messages):
-            if msg.get("cache_control"):
+            if msg.cache_control:
                 cache_split_idx = idx + 1
 
         # Split messages into cached and new
@@ -211,11 +264,19 @@ class GeminiChatModel(LLM):
 
         # Prepare contents for new messages
         contents = [
-            Content(
-                parts=[Part(text=message["content"])],
-                role=self._map_role(message["role"]),
+            GeminiContent(
+                parts=format_content(message),
+                role=self._map_role(message.role),
             )
             for message in new_messages
+        ]
+
+        cached_contents = [
+            GeminiContent(
+                parts=format_content(message),
+                role=self._map_role(message.role),
+            )
+            for message in cached_messages
         ]
 
         # Prepare tool configuration
@@ -233,11 +294,11 @@ class GeminiChatModel(LLM):
             **tool_kwargs,
         }
 
-        return system_prompt, cached_messages, contents, config_kwargs
+        return system_prompt, cached_contents, contents, config_kwargs
 
     def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
@@ -304,7 +365,7 @@ class GeminiChatModel(LLM):
 
     async def astream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
@@ -369,14 +430,14 @@ class GeminiChatModel(LLM):
 
     def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
         tools: List[Union[BaseModel, Dict]] = None,
         tool_choice: str = None,
         cache_config: Dict = None,
-    ) -> str | List:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -385,8 +446,8 @@ class GeminiChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
             messages, temperature, max_tokens, seed, tools, tool_choice
@@ -428,19 +489,11 @@ class GeminiChatModel(LLM):
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
             )
-        if response.candidates:
-            message = response.candidates[0].content
-            if any([part.function_call is not None for part in message.parts]):
-                return self._extract_tool_info(message)
-            text = ""
-            for part in message.parts:
-                text += part.text if part.text else ""
-            return text
-        return None
+        return self._map_gemini_message(response)
 
     async def agenerate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
@@ -499,12 +552,4 @@ class GeminiChatModel(LLM):
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
             )
-        if response.candidates:
-            message = response.candidates[0].content
-            if any([part.function_call is not None for part in message.parts]):
-                return self._extract_tool_info(message)
-            text = ""
-            for part in message.parts:
-                text += part.text if part.text else ""
-            return text
-        return None
+        return self._map_gemini_message(response)
