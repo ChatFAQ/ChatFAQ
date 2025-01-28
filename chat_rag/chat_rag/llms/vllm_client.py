@@ -1,8 +1,6 @@
 import logging
 import os
-from typing import Dict, List, Union
-
-from pydantic import BaseModel
+from typing import Callable, Dict, List, Union
 
 from chat_rag.exceptions import (
     ModelNotFoundException,
@@ -165,7 +163,7 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         json_schema: Dict = None,
         ):
@@ -175,7 +173,7 @@ class VLLMModel(OpenAIChatModel):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        tools : List[Union[BaseModel, Dict]], optional
+        tools : List[Union[Callable, Dict]], optional
             Tools for function calling. Cannot be used with json_schema.
         tool_choice : str, optional
             The tool choice to use for tool use.
@@ -217,7 +215,7 @@ class VLLMModel(OpenAIChatModel):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         json_schema: Dict = None,
     ):
@@ -227,7 +225,7 @@ class VLLMModel(OpenAIChatModel):
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        tools : List[Union[BaseModel, Dict]], optional
+        tools : List[Union[Callable, Dict]], optional
             Tools for function calling. Cannot be used with json_schema.
         tool_choice : str, optional
             The tool choice to use for tool use.

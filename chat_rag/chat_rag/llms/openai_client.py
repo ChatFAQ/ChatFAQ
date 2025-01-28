@@ -1,8 +1,6 @@
-import os
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Union
 
 from openai import AsyncOpenAI, OpenAI
-from pydantic import BaseModel
 
 from chat_rag.llms import Content, Message, ToolUse, Usage
 
@@ -22,13 +20,13 @@ class OpenAIChatModel(LLM):
         self.aclient = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.llm_name = llm_name
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
+    def _format_tools(self, tools: List[Union[Callable, Dict]], tool_choice: str = None):
         """
-        Format the tools from a generic BaseModel to the OpenAI format.
+        Format the tools from a openai dict or a callable function to the OpenAI format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
+        tools_formatted = format_tools(tools, mode=Mode.OPENAI_TOOLS)
+        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
 
-        tools_formatted = format_tools(tools, mode=Mode.TOOLS)
 
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool['title'] for tool in tools]:
@@ -178,7 +176,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
     ) -> str | List:
@@ -218,7 +216,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
     ) -> str:

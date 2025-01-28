@@ -1,92 +1,101 @@
-# This file contains code adapted from the instructor package given that the package is incompatible with the version of rich that is required by ChatFAQ current environment.
-# Original author: Jason Liu
-# Source: https://github.com/jxnl/instructor
-# License: MIT (https://github.com/jxnl/instructor/blob/main/LICENSE)
-
 import enum
-from typing import Any, Dict, List, Union
+import inspect
+from typing import Any, Callable, Dict, List, Union
 
-from docstring_parser import parse
-from pydantic import BaseModel
+
+def function_to_json(func) -> dict:
+    """
+    Converts a Python function into a JSON-serializable dictionary
+    that describes the function's signature, including its name,
+    description, and parameters.
+    Function from https://github.com/openai/swarm
+
+    Args:
+        func: The function to be converted.
+
+    Returns:
+        A dictionary representing the function's signature in JSON format.
+    """
+    type_map = {
+        str: "string",
+        int: "integer",
+        float: "number",
+        bool: "boolean",
+        list: "array",
+        dict: "object",
+        type(None): "null",
+    }
+
+    try:
+        signature = inspect.signature(func)
+    except ValueError as e:
+        raise ValueError(
+            f"Failed to get signature for function {func.__name__}: {str(e)}"
+        )
+
+    parameters = {}
+    for param in signature.parameters.values():
+        try:
+            param_type = type_map.get(param.annotation, "string")
+        except KeyError as e:
+            raise KeyError(
+                f"Unknown type annotation {param.annotation} for parameter {param.name}: {str(e)}"
+            )
+        parameters[param.name] = {"type": param_type}
+
+    required = [
+        param.name
+        for param in signature.parameters.values()
+        if param.default == inspect._empty
+    ]
+
+    return {
+        "type": "function",
+        "function": {
+            "name": func.__name__,
+            "description": func.__doc__ or "",
+            "parameters": {
+                "type": "object",
+                "properties": parameters,
+                "required": required,
+            },
+        },
+    }
 
 
 class Mode(enum.Enum):
     """The mode to use for patching the client"""
 
-    TOOLS = "tool_call"
+    OPENAI_TOOLS = "openai_tools"
     MISTRAL_TOOLS = "mistral_tools"
     ANTHROPIC_TOOLS = "anthropic_tools"
     GEMINI_TOOLS = "gemini_tools"
 
 
-def openai_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
-    """
-    Return the schema in the format of OpenAI's schema as jsonschema
-
-    Note:
-        Its important to add a docstring to describe how to best use this class, it will be included in the description attribute and be part of the prompt.
-
-    Returns:
-        model_json_schema (dict): A dictionary in the format of OpenAI's schema as jsonschema
-    """
-    if not isinstance(model, Dict): # 
-        schema = model.model_json_schema()
-    else:
-        schema = model
-
-    docstring = parse(model.__doc__ or "")
-    parameters = {k: v for k, v in schema.items() if k not in ("title", "description")}
-    for param in docstring.params:
-        if (name := param.arg_name) in parameters["properties"] and (
-            description := param.description
-        ):
-            if "description" not in parameters["properties"][name]:
-                parameters["properties"][name]["description"] = description
-
-    parameters["required"] = sorted(
-        k for k, v in parameters["properties"].items() if "default" not in v
-    )
-
-    if "description" not in schema:
-        if docstring.short_description:
-            schema["description"] = docstring.short_description
-        else:
-            schema["description"] = (
-                f"Correctly extracted `{model.__name__}` with all "
-                f"the required parameters with correct types"
-            )
-
-    return {
-        "name": schema["title"],
-        "description": schema["description"],
-        "parameters": parameters,
-    }
-
-
-def anthropic_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
+def anthropic_schema(schema: Dict) -> Dict[str, Any]:
     """
     Return the schema in the format of Anthropic's schema
     """
-    schema = openai_schema(model)
+    schema = schema["function"]
     return {
         "name": schema["name"],
         "description": schema["description"],
-        "input_schema": model.model_json_schema() if isinstance(model, BaseModel) else model,
+        "input_schema": schema["parameters"],
     }
 
-def gemini_schema(model: Union[BaseModel, Dict]) -> Dict[str, Any]:
+
+def gemini_schema(schema: Dict) -> Dict[str, Any]:
     """
     Return the schema in the format of Gemini's schema
     """
-    schema = openai_schema(model)
-    parameters = schema["parameters"]
-    parameters = uppercase_types_recursively(parameters)
+    schema = schema["function"]
     schema = {
         "name": schema["name"],
         "description": schema["description"],
-        "parameters": parameters,
+        "parameters": uppercase_types_recursively(schema["parameters"]),
     }
     return schema
+
 
 def uppercase_types_recursively(schema: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -105,13 +114,15 @@ def uppercase_types_recursively(schema: Dict[str, Any]) -> Dict[str, Any]:
     return schema
 
 
-def format_tools(tools: List[Union[BaseModel, Dict]], mode: Mode) -> List[Dict[str, Any]]:
+def format_tools(
+    tools: List[Union[Callable, Dict]], mode: Mode
+) -> List[Dict[str, Any]]:
     """
-    Given a series of Pydantic models, return the JSON schema required by each LLM provider.
+    Given a series of functions, return the JSON schema required by each LLM provider.
     Parameters
     ----------
-    tools : List[Union[BaseModel, Dict]]
-        A list of Pydantic models or theirs model_json_schema
+    tools : List[Union[Callable, Dict]]
+        A list of tools in the OpenAI JSON format or a callable function.
     mode : Mode
         The LLM provider to format the tools for
     Returns
@@ -119,14 +130,12 @@ def format_tools(tools: List[Union[BaseModel, Dict]], mode: Mode) -> List[Dict[s
     List[Dict[str, Any]]
         A list of JSON schemas for each tool
     """
+    # first convert to the openai dict format if they are a callable
+    tools = [function_to_json(tool) if callable(tool) else tool for tool in tools]
     tools_formatted = []
-    if mode in {Mode.TOOLS, Mode.MISTRAL_TOOLS}:
+    if mode in {Mode.OPENAI_TOOLS, Mode.MISTRAL_TOOLS}:
         for tool in tools:
-            schema = {
-                "type": "function",
-                "function": openai_schema(tool),
-            }
-            tools_formatted.append(schema)
+            tools_formatted.append(tool)
 
     elif mode == Mode.ANTHROPIC_TOOLS:
         for tool in tools:
@@ -137,7 +146,6 @@ def format_tools(tools: List[Union[BaseModel, Dict]], mode: Mode) -> List[Dict[s
         for tool in tools:
             schema = gemini_schema(tool)
             tools_formatted.append(schema)
-
     else:
         raise ValueError(f"Unknown mode {mode}")
 

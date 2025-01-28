@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Tuple, Union
+from typing import Callable, Dict, List, Tuple, Union
 
 from google import genai
 from google.genai.types import (
@@ -14,7 +14,6 @@ from google.genai.types import (
     FunctionCall,
     FunctionResponse,
 )
-from pydantic import BaseModel
 
 from chat_rag.llms import Message, Usage, Content, ToolUse, ToolResult
 from chat_rag.llms.base_llm import LLM
@@ -46,13 +45,13 @@ class GeminiChatModel(LLM):
         )
         self.llm_name = llm_name
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
+    def _format_tools(self, tools: List[Union[Callable, Dict]], tool_choice: str = None):
         """
         Format the tools from a generic BaseModel to the Gemini format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
-
         tools_formatted = format_tools(tools, mode=Mode.GEMINI_TOOLS)
+        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
+
         tools_formatted = [
             Tool(function_declarations=[tool]) for tool in tools_formatted
         ]
@@ -220,7 +219,7 @@ class GeminiChatModel(LLM):
         temperature: float,
         max_tokens: int,
         seed: int,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
     ) -> Tuple[str, List[Dict], List[Content], Dict]:
         """
@@ -434,7 +433,7 @@ class GeminiChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         cache_config: Dict = None,
     ) -> Message:
@@ -497,7 +496,7 @@ class GeminiChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         cache_config: Dict = None,
     ) -> str:

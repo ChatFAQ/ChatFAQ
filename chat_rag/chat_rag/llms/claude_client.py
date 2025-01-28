@@ -1,9 +1,8 @@
 import os
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Union
 
 from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
-from pydantic import BaseModel
 
 from chat_rag.llms import Content, Message, ToolUse, Usage
 
@@ -22,14 +21,14 @@ class ClaudeChatModel(LLM):
         )
 
     def _format_tools(
-        self, tools: List[BaseModel], tool_choice: str, messages: List[Dict[str, str]]
+        self, tools: List[Union[Callable, Dict]], tool_choice: str, messages: List[Dict[str, str]]
     ):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
-
         tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
+        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
+
 
         # If any messages have cache_control, add cache_control to the last tool so they are cached also
         if any(message.get("cache_control") for message in messages):
@@ -200,7 +199,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
     ) -> Message:
@@ -239,7 +238,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
     ) -> str:
