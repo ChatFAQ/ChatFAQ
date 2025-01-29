@@ -109,7 +109,7 @@ workers:
   - name: fsm_llm
     image: sdk
     envs: [ sdk ]
-    instance_size: XSS
+    instance_size: XS
 
 #  - name: ray
 #    image:
