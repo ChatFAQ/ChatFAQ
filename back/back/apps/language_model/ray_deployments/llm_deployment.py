@@ -3,7 +3,7 @@ from typing import Dict, List, Union
 import ray
 from pydantic import BaseModel
 from ray import serve
-
+from chat_rag.llms import Message
 from back.utils.ray_utils import ray_task
 
 
@@ -41,6 +41,7 @@ class LLMDeployment:
         tool_choice: str = None,
         cache_config: Dict = None,
     ):
+        messages = [Message.from_dict(msg) for msg in messages]
         if tools:  # LLM doesn't support tools in stream mode
             yield await self.llm.agenerate(
                 messages=messages,
