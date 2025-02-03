@@ -176,7 +176,6 @@ async def query_llm(
                         }
                         return
 
-
                     yield {
                         "content": res,
                         "last_chunk": False,
@@ -186,10 +185,23 @@ async def query_llm(
                     "last_chunk": True,
                 }
             else:
-                from chat_rag.llms import (
-                    load_llm,  # The first time this is imported it will take a few seconds.
+                from chat_rag.llms import load_llm
+
+                # Decrypt the API key from the LLMConfig if available.
+                api_key = None
+                if llm_config.api_key:
+                    from back.utils import get_light_bringer
+                    lb = get_light_bringer()
+                    api_key = llm_config.api_key.decrypt(lb)
+
+                # Now pass the decrypted API key into the LLM.
+                llm = load_llm(
+                    llm_config.llm_type,
+                    llm_config.llm_name,
+                    base_url=llm_config.base_url,
+                    model_max_length=llm_config.model_max_length,
+                    api_key=api_key,
                 )
-                llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
 
                 if tools:
                     response = await llm.agenerate(
@@ -229,7 +241,6 @@ async def query_llm(
                         "content": "",
                         "last_chunk": True,
                     }
-            
 
         else:
             pass

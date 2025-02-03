@@ -1,28 +1,27 @@
 import uuid
+from logging import getLogger
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from pgvector.django import MaxInnerProduct
-
 from simple_history.models import HistoricalRecords
 
-from back.apps.language_model.models.enums import (
-    IndexStatusChoices,
-    DeviceChoices,
-    RetrieverTypeChoices,
-    LLMChoices,
-)
 from back.apps.language_model.models.data import KnowledgeBase, KnowledgeItem
-from back.common.models import ChangesMixin
-
-from back.apps.language_model.tasks import index_task
+from back.apps.language_model.models.enums import (
+    DeviceChoices,
+    IndexStatusChoices,
+    LLMChoices,
+    RetrieverTypeChoices,
+)
 from back.apps.language_model.ray_deployments import (
-    launch_llm_deployment,
+    delete_serve_app,
     launch_colbert_deployment,
     launch_e5_deployment,
-    delete_serve_app,
 )
-
-from logging import getLogger
+from back.apps.language_model.tasks import index_task
+from back.common.models import ChangesMixin
+from back.utils import NissaStringField
 
 logger = getLogger(__name__)
 
@@ -246,17 +245,18 @@ class LLMConfig(ChangesMixin):
          The name of the LLM to use. It can be a HuggingFace repo id, an OpenAI model id, etc.
      base_url: str
          The base url where the model is hosted. It is used for vLLM deployments and Together LLM Endpoints.
-    model_max_length: int
+     model_max_length: int
          The maximum length of the model.
+     api_key: str (encrypted)
+         Optional API key for the LLM. Will be stored encrypted in the database.
      enabled: bool
          Whether the LLM is enabled.
      num_replicas: int
          The number of replicas to deploy in the Ray cluster.
     """
 
-    objects = models.Manager()  # The default manager.
-
-    enabled_objects = EnabledLLMConfigManager()  # The Dahl-specific manager.
+    objects = models.Manager()
+    enabled_objects = EnabledLLMConfigManager()
 
     name = models.CharField(max_length=255, unique=True)
     llm_type = models.CharField(
@@ -265,92 +265,32 @@ class LLMConfig(ChangesMixin):
     llm_name = models.CharField(max_length=100, default="gpt-4o")
     base_url = models.CharField(max_length=255, blank=True, null=True)
     model_max_length = models.IntegerField(blank=True, null=True)
+    api_key = NissaStringField(
+        blank=True,
+        null=True,
+        help_text="Optional API key for the LLM. This value will be stored encrypted. Note: API keys can only be saved when encryption is properly configured."
+    )
     enabled = models.BooleanField(default=False)
     num_replicas = models.IntegerField(default=1)
 
     history = HistoricalRecords()
+
+    def clean(self):
+        super().clean()
+        if self.api_key and not settings.AZOR_PRIVATE_KEY:
+            raise ValidationError({
+                'api_key': 'Cannot save API key when encryption is not configured. Please configure AZOR_PRIVATE_KEY first.'
+            })
+
+    def save(self, *args, **kwargs):
+        self.clean()  # Run validation before saving
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
     def get_llm_type(self):
         return LLMChoices(self.llm_type)
-
-    def get_deploy_name(self):
-        return f"llm_{self.name}"
-
-    def trigger_deploy(self):
-        """Deploys should be automatically triggered when the LLM is saved, but this method is here for manual triggering if needed."""
-        if self.enabled:
-            task_name = f"launch_llm_deployment_{self.name}"
-            print(f"Submitting the {task_name} task to the Ray cluster...")
-            launch_llm_deployment.options(name=task_name).remote(
-                self.get_deploy_name(),
-                self.get_llm_type(),
-                self.llm_name,
-                self.base_url,
-                self.model_max_length,
-                self.num_replicas,
-            )
-        else:
-            logger.info(f"LLM {self.name} is not enabled, skipping deploy")
-
-    def save(self, *args, **kwargs):
-        redeploy_llm = False
-        shutdown_llm = False
-
-        if self.pk is not None:
-            old_llm = LLMConfig.objects.get(pk=self.pk)
-
-            if (
-                self.llm_name != old_llm.llm_name
-                or self.get_llm_type() != old_llm.get_llm_type()
-                or self.base_url != old_llm.base_url
-                or self.model_max_length != old_llm.model_max_length
-            ):
-                redeploy_llm = True
-
-            if old_llm.enabled and not self.enabled:
-                shutdown_llm = True
-                logger.info(
-                    f"LLM config {self.name} changed to disabled. Shutting down the LLM deployment..."
-                )
-
-            if not old_llm.enabled and self.enabled:
-                redeploy_llm = True
-                logger.info(
-                    f"LLM config {self.name} changed to enabled. Launching the LLM deployment..."
-                )
-
-        super().save(*args, **kwargs)
-
-        if redeploy_llm and self.enabled:
-
-            def on_commit_callback():
-                deployment_name = self.get_deploy_name()
-                task_name = f"launch_llm_deployment_{deployment_name}"
-                print(f"Submitting the {task_name} task to the Ray cluster...")
-                launch_llm_deployment.options(name=task_name).remote(
-                    deployment_name,
-                    self.get_llm_type(),
-                    self.llm_name,
-                    self.base_url,
-                    self.model_max_length,
-                    self.num_replicas,
-                )
-
-            # Schedule the task to run after the transaction is committed
-            transaction.on_commit(on_commit_callback)
-
-        if shutdown_llm and not self.enabled:
-
-            def on_commit_callback():
-                deployment_name = self.get_deploy_name()
-                task_name = f"delete_serve_app_{deployment_name}"
-                print(f"Submitting the {task_name} task to the Ray cluster...")
-                delete_serve_app.options(name=task_name).remote(deployment_name)
-
-            transaction.on_commit(on_commit_callback)
 
 
 # ============================================================
