@@ -40,7 +40,6 @@
             <div class="prompt-right-button"
                  :class="{
                      'dark-mode': store.darkMode,
-                     'disabled': isFinalFeedback
                  }"
                  @click="() => {
                      if (!conversationClosed && availableMicro) {
