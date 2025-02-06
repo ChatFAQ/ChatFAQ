@@ -67,8 +67,9 @@ function replaceMarkedDownImagesByReferences() {
 
 const markedDown = computed(() => {
     let res = props.data.payload.content;
+    res = markdown.toHTML(res);
     res = replaceMarkedDownImagesByReferences(res)
-    return markdown.toHTML(res);
+    return res;
 });
 
 const getMarkedDownImages = computed(() => {
@@ -99,7 +100,7 @@ const getMarkedDownImagesTotal = computed(() => {
 })
 
 const imageUrls = computed(() => {
-    return props.data.payload.references.knowledge_item_images || {}
+    return props.data.payload.references?.knowledge_item_images || {};
 })
 
 function openInNewTab(url) {
