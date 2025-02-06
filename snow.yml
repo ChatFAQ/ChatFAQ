@@ -14,7 +14,7 @@ components:
   - id: back
     image: back
     envs: [back]
-    size_hint: ram >= 1g
+    size_hint: ram >= 512m
 
 ingresses:
   - match:
@@ -67,7 +67,6 @@ envs:
     AWS_STORAGE_BUCKET_NAME: '${{ vars::AWS_STORAGE_BUCKET_NAME }}'
     AWS_S3_SIGNATURE_VERSION: 's3v4'
     AWS_S3_REGION_NAME: '${{ vars::AWS_S3_REGION_NAME }}'
-    AWS_S3_CUSTOM_DOMAIN: '${{ vars::AWS_S3_CUSTOM_DOMAIN }}'
     STORAGES_MODE: 'do'
     STORAGE_MAKE_FILES_PUBLIC: 'no'
     DO_REGION: '${{ vars::AWS_S3_REGION_NAME }}'

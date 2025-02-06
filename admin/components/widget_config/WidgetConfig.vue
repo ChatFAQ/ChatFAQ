@@ -16,7 +16,6 @@
                 'fsm_def': {'name': $t('fsmdef')},
                 }"
                 @submitFormStart="submitMessageLayout"
-                @initializedFormValues="initializedFormValues"
                 :sections="{
                 [$t('general')]: [
                         'name',
@@ -158,20 +157,6 @@ await itemsStore.loadSchema()
 
 function submitFieldData() {
     fieldData.value.submit()
-}
-function initializedFormValues(form) {
-    if(form.custom_i_framed_msgs)
-        form.custom_i_framed_msgs = JSON.stringify(form.custom_i_framed_msgs, null, 4)
-    if(form.initial_conversation_metadata)
-        form.initial_conversation_metadata = JSON.stringify(form.initial_conversation_metadata, null, 4)
-    // displayingOrder.value = form.sources_first
-    // elementsShown.value = form.display_generation.toString()[0] + form.display_sources.toString()[0]
-}
-function submitMessageLayout(_, form) {
-    return
-    form.display_generation = elementsShown.value[0] === 't'
-    form.display_sources = elementsShown.value[1] === 't'
-    form.sources_first = displayingOrder.value
 }
 
 function getCss(formObj) {
