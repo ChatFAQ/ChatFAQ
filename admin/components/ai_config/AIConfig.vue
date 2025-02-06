@@ -19,6 +19,9 @@
                     'updated_date': {'name': $t('updateddate'), 'sortable': true},
                 }"
                 :defaultSort="{'prop': 'name'}">
+                <template v-slot:write-api_key="props">
+                    <SecretInput :form="props.form" fieldName="api_key" placeholder="Please input API Key"/>
+                </template>
             </ReadWriteView>
         </el-tab-pane>
         <el-tab-pane v-if="$useRay" :lazy="true" :label="$t('retriever')" name="retriever-configs">
@@ -102,6 +105,7 @@ import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import {useItemsStore} from "~/store/items.js";
 import {useI18n} from "vue-i18n";
 import {callRetrieverReindex} from "~/utils/index.js";
+import SecretInput from "~/components/generic/fields/SecretInput.vue";
 
 const {$axios} = useNuxtApp();
 const itemsStore = useItemsStore()

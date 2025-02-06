@@ -31,7 +31,7 @@
                 }"
             >
                 <template v-slot:write-password="props">
-                    <Password :form="props.form" :fieldName="props.fieldName" ref="password"/>
+                    <SecretInput :form="props.form" fieldName="password" placeholder="Please input password"/>
                 </template>
             </ReadWriteView>
         </el-tab-pane>
@@ -50,7 +50,7 @@
 <script setup>
 import ReadWriteView from "~/components/generic/ReadWriteView.vue";
 import { useItemsStore } from "~/store/items.js";
-import Password from "~/components/user_management/fields/Password.vue";
+import SecretInput from "~/components/generic/fields/SecretInput.vue";
 
 const password = ref(null)
 

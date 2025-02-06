@@ -301,5 +301,6 @@
     "sourcesfirst": "Sources First",
     "messagelayout": "Message Layout",
     "close": "Close",
-    "withuserfeedback": "With User Feedback"
+    "withuserfeedback": "With User Feedback",
+    "api_key": "API Key"
 }
