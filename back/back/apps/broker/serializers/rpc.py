@@ -105,8 +105,6 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         The seed to use in the LLM
     streaming: bool
         Whether the LLM response should be streamed or not
-    cache_config: dict
-        The cache configuration for the LLM request
     """
 
     llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
@@ -122,7 +120,6 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
     streaming = serializers.BooleanField(default=True)
     use_conversation_context = serializers.BooleanField(default=True)
-    cache_config = CacheConfigSerializer(required=False, allow_null=True)
 
     def validate(self, attrs):
         if not attrs.get("messages") and not attrs.get("use_conversation_context"):

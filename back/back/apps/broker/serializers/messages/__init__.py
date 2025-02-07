@@ -2,22 +2,19 @@ from io import StringIO
 from logging import getLogger
 from typing import TYPE_CHECKING
 
-from drf_spectacular.utils import (
-    PolymorphicProxySerializer,
-    extend_schema_field,
-)
+from drf_spectacular.utils import PolymorphicProxySerializer, extend_schema_field
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from back.apps.broker.models.message import AgentType, Satisfaction
+from back.apps.fsm.models import FSMDefinition
 from back.common.abs.bot_consumers import BotConsumer
 from back.common.serializer_fields import JSTimestampField
-from back.apps.fsm.models import FSMDefinition
 from back.config.storage_backends import (
     PrivateMediaLocalStorage,
-    select_private_storage
+    select_private_storage,
 )
 
 if TYPE_CHECKING:
@@ -110,18 +107,10 @@ class Reference(serializers.Serializer):
     knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
-class ToolUse(serializers.Serializer):
-    id = serializers.CharField(required=True)
-    name = serializers.CharField(required=True)
-    args = serializers.JSONField(required=True)
-    text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-
-
 class MessagePayload(serializers.Serializer):
     class _MessagePayload(serializers.Serializer):
-        content = serializers.CharField(trim_whitespace=False, allow_blank=True)
+        content = serializers.ListField(child=serializers.DictField())
         references = Reference(required=False, allow_null=True)
-        tool_use = ToolUse(many=True, required=False, allow_null=True, allow_empty=True)
 
     payload = _MessagePayload()
 

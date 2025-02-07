@@ -164,5 +164,31 @@ class Message(BaseModel):
         
         return v
 
+    @classmethod
+    def from_dict(cls, data: Dict) -> "Message":
+        """
+        Create a Message instance from a dictionary.
+        
+        Args:
+            data (Dict): Dictionary containing message data
+            
+        Returns:
+            Message: A new Message instance
+        """
+        # First create a basic instance without content validation
+        instance = cls.model_construct(**data)
+        
+        # Now process the content with role already set as this is necessary for content validation
+        if isinstance(data.get('content'), list):
+            content_list = []
+            for content_item in data['content']:
+                content_list.append(Content(**content_item))
+            instance.content = content_list
+        else:
+            instance.content = data.get('content')
+            
+        # Validate the complete instance
+        return cls.model_validate(instance)
+
     class Config:
         validate_assignment = True

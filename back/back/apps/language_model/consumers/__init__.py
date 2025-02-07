@@ -26,6 +26,8 @@ from back.config import settings
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
 
+from chat_rag.llms import load_llm, Message
+
 logger = getLogger(__name__)
 
 
@@ -104,7 +106,7 @@ async def resolve_references(reference_kis, retriever_config):
 async def query_llm(
     llm_config_name: str,
     conversation_id: int,
-    messages: List[Dict[str, str]] = None,
+    messages: List[Dict] = None,
     temperature: float = 0.7,
     max_tokens: int = 1024,
     seed: int = 42,
