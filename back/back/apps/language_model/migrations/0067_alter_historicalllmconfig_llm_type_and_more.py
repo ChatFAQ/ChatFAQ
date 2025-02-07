@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('language_model', '0065_alter_datasource_strategy'),
+        ('language_model', '0066_alter_datasource_strategy'),
     ]
 
     operations = [

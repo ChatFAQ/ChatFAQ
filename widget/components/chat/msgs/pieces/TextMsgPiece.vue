@@ -67,8 +67,9 @@ function replaceMarkedDownImagesByReferences() {
 
 const markedDown = computed(() => {
     let res = props.data.payload.content;
-    res = replaceMarkedDownImagesByReferences(res)
-    return markdown.toHTML(res);
+    res = markdown.toHTML(res);
+    // res = replaceMarkedDownImagesByReferences(res)
+    return res;
 });
 
 const getMarkedDownImages = computed(() => {
@@ -99,7 +100,7 @@ const getMarkedDownImagesTotal = computed(() => {
 })
 
 const imageUrls = computed(() => {
-    return props.data.payload.references.knowledge_item_images || {}
+    return props.data.payload.references?.knowledge_item_images || {};
 })
 
 function openInNewTab(url) {
@@ -123,11 +124,11 @@ onMounted(() => {
 watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
     if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
         const newContent = newMessage.payload.content;
-        
+
         // Calculate delta from the last received content
         const delta = newContent.slice(receivedContent.value.length);
         receivedContent.value = newContent; // Update the received content
-        
+
         speechBuffer.value += delta; // Append delta to the buffer
 
         // Split buffer into complete sentences and remaining text
@@ -142,7 +143,7 @@ watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: new
             });
             speechBuffer.value = remaining; // Keep remaining text in buffer
         }
-        
+
         // Speak remaining text when it's the last message
         if (isLastChunk && speechBuffer.value.trim().length > 0) {
             const utterance = new SpeechSynthesisUtterance(speechBuffer.value);
@@ -156,20 +157,20 @@ watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: new
 function splitIntoSentences(text) {
     // Regex that handles abbreviations and sentence endings
     const sentenceRegex = /\b(\w\.\w\.|[A-Z][a-z]{1,2}\.)|([.?!])\s+(?=[A-Za-z])/g;
-    
+
     // Replace sentence endings with a marker, preserving abbreviations
     const markedText = text.replace(sentenceRegex, (match, g1, g2) => {
         return g1 ? g1 : g2 + "\n";
     });
-    
+
     // Split into sentences and filter out empty strings
     const sentences = markedText.split("\n")
         .map(s => s.trim())
         .filter(s => s.length > 0);
-    
+
     // The remaining text is the last element if it doesn't end with a sentence marker
     const remaining = sentences.pop() || '';
-    
+
     return { sentences, remaining };
 }
 

@@ -2,23 +2,23 @@
     <div class="user-feedback-wrapper">
         <div class="feedback-list" v-if="userFeedback.length">
             <div v-for="feedback in userFeedback" :key="feedback.id" class="feedback-item">
-                <div v-if="feedback.value === 'positive'" class="vote-icon thumb-up"></div>
-                <div v-else-if="feedback.value === 'negative'" class="vote-icon thumb-down"></div>
-                <div v-if="feedback.star_rating" class="star-rating">
+                <div v-if="feedback.feedback_data.thumb_value === 'positive'" class="vote-icon thumb-up"></div>
+                <div v-else-if="feedback.feedback_data.thumb_value === 'negative'" class="vote-icon thumb-down"></div>
+                <div v-if="feedback.feedback_data.star_rating" class="star-rating">
                     <div class="stars">
-                        <div v-for="star in feedback.star_rating_max" :key="star" class="star" :class="{
-                            'filled': feedback.star_rating_max - star < feedback.star_rating
+                        <div v-for="star in feedback.feedback_data.star_rating_max" :key="star" class="star" :class="{
+                            'filled': feedback.feedback_data.star_rating_max - star < feedback.feedback_data.star_rating
                         }">
                             ★
                         </div>
                     </div>
-                    <span class="rating-text">{{ feedback.star_rating }}/{{ feedback.star_rating_max }}</span>
+                    <span class="rating-text">{{ feedback.feedback_data.star_rating }}/{{ feedback.feedback_data.star_rating_max }}</span>
                 </div>
-                <div v-if="feedback.feedback_comment" class="user-feedback">
-                    {{ $t("comment:") }} {{ feedback.feedback_comment }}
+                <div v-if="feedback.feedback_data.feedback_comment" class="user-feedback">
+                    {{ $t("comment:") }} {{ feedback.feedback_data.feedback_comment }}
                 </div>
-                <div v-if="feedback.feedback_selection && feedback.feedback_selection.length" class="user-feedback">
-                    {{$t(". selections:")}} {{ feedback.feedback_selection.join(", ") }}
+                <div v-if="feedback.feedback_data.feedback_selection && feedback.feedback_data.feedback_selection.length" class="user-feedback">
+                    {{$t(". selections:")}} {{ feedback.feedback_data.feedback_selection.join(", ") }}
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@ watch(() => props.messageId, async (_) => {
 }, { immediate: true })
 
 async function initUserFeedback() {
-    userFeedback.value = (await $axios.get("/back/api/broker/user-feedback/?message=" + props.messageId, { headers: authHeaders() })).data.results
+    userFeedback.value = (await $axios.get("/back/api/broker/user-feedback/?message_target=" + props.messageId, { headers: authHeaders() })).data.results
     if (userFeedback.value.length === 0) {
         userFeedback.value = { feedback: t("nofeedbackyet") }
     }

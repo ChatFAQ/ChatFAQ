@@ -1,10 +1,10 @@
 <template>
     <div class="text-feedback-wrapper">
-        <div class="content">{{ props.data.content }}</div>
+        <div class="content">{{ props.data.hint }}</div>
         <div v-if="!feedbackSent">
             <div class="feedback-input-wrapper" :class="{ 'dark-mode': store.darkMode }">
                 <div
-                    :placeholder="props.data.hint || $t('typeyourfeedback')"
+                    :placeholder="props.data.placeholder || $t('typeyourfeedback')"
                     class="feedback-input"
                     :class="{ 'dark-mode': store.darkMode }"
                     ref="feedbackInput"
@@ -42,7 +42,19 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    msgTargetId: {
+        type: String,
+        required: true,
+    },
 });
+
+onMounted(async () => {
+    const feedbackData = await store.getFeedbackData(props.msgId)
+    if (feedbackData) {
+        feedbackInput.value = feedbackData.feedback_comment
+        feedbackSent.value = true
+    }
+})
 
 function manageEnterInput(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
@@ -53,37 +65,31 @@ function manageEnterInput(ev, cb) {
 
 async function sendFeedback() {
     if (feedbackSent.value || !feedbackInput.value) return;
-    
+
     const feedback = feedbackInput.value.innerText.trim();
     if (!feedback) return;
 
 
     // Find the current message index
     const currentMsgIndex = store.messages.findIndex(msg => msg.id === props.msgId);
-    // Search backwards from current message for the latest message/message_chunk
-    const messageId = store.messages
-        .slice(0, currentMsgIndex + 1)
-        .reverse()
-        .find(msg => msg.stack.some(stack => ['message', 'message_chunk', 'file_uploaded', 'file_download'].includes(stack.type)))?.id;
-    if (!messageId) {
-        console.error("No message found");
-        return;
-    }
 
-    const feedbackData = {
-        message: messageId,
-        feedback_comment: feedback,
+    const feedbackPayload = {
+        message_source: props.msgId,
+        message_target: props.msgTargetId,
+        feedback_data: {
+            "feedback_comment": feedback,
+        }
     }
 
     const headers = { 'Content-Type': 'application/json' }
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
-    
+
     try {
         const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
             method: 'POST',
             headers,
-            body: JSON.stringify(feedbackData)
+            body: JSON.stringify(feedbackPayload)
         });
         if (response.ok) {
             console.log("Feedback sent successfully");

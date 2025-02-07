@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('language_model', '0064_alter_retrieverconfig_knowledge_base'),
+        ('language_model', '0065_alter_retrieverconfig_knowledge_base'),
     ]
 
     operations = [

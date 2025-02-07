@@ -204,15 +204,39 @@ export const useGlobalStore = defineStore('globalStore', {
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
         },
-        getPrevMsg: (state) => (msg) => {
+        getPrevMsg: (state) => (msg, condition) => {
             const index = state.messages.findIndex(m => m === msg)
             if (index === -1 || index === 0)
                 return {}
-            return state.messages[index - 1]
+            // return the message previously that satisfies the condition if
+            if (condition) {
+                for (let i = index - 1; i >= 0; i--) {
+                    if (condition(state.messages[i]))
+                        return state.messages[i]
+                }
+            } else {
+                return state.messages[index - 1]
+            }
         },
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)
                 return state.customIFramedMsgs[id]
+        },
+        getFeedbackData: (state) => async (msgSourceId) => {
+            if (state.previewMode)
+                return
+
+            const headers = {}
+            if (state.authToken)
+                headers.Authorization = `Token ${state.authToken}`;
+
+            let response = await chatfaqFetch(
+                state.chatfaqAPI + `/back/api/broker/user-feedback/?message_source=${msgSourceId}`, { headers }
+            )
+            response = await response.json();
+            if (response.results && response.results.length) {
+                return response.results[0].feedback_data
+            }
         }
     }
 })

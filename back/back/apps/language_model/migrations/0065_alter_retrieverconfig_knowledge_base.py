@@ -11,13 +11,9 @@ def delete_null_knowledge_base_configs(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("language_model", "0063_alter_knowledgeitem_data_source"),
+        ("language_model", "0064_delete_null_knowledge_base_configs"),
     ]
     operations = [
-        migrations.RunPython(
-            delete_null_knowledge_base_configs,
-            reverse_code=migrations.RunPython.noop
-        ),
         migrations.AlterField(
             model_name="retrieverconfig",
             name="knowledge_base",

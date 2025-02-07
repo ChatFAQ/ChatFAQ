@@ -6,7 +6,7 @@ from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Message("How can we help you?", allow_feedback=False)
+    yield Message("How can we help you?")
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
