@@ -149,34 +149,54 @@ async def query_llm(
 
     try:
         if streaming:
-            if settings.USE_RAY:
-                print("USING RAY LLM DEPLOYMENT")
-                llm_deploy_name = llm_config.get_deploy_name()
-                handle = get_deployment_handle(
-                    deployment_name=llm_deploy_name, app_name=llm_deploy_name
-                ).options(stream=True)
+            from chat_rag.llms import load_llm
 
-                response = handle.remote(
-                    new_messages,
-                    temperature,
-                    max_tokens,
-                    seed,
-                    tools,
-                    tool_choice,
-                    cache_config,
+            # Decrypt the API key from the LLMConfig if available.
+            api_key = None
+            if llm_config.api_key:
+                from back.utils import get_light_bringer
+                lb = get_light_bringer()
+                api_key = llm_config.api_key.decrypt(lb)
+
+            # Now pass the decrypted API key into the LLM.
+            llm = load_llm(
+                llm_config.llm_type,
+                llm_config.llm_name,
+                base_url=llm_config.base_url,
+                model_max_length=llm_config.model_max_length,
+                api_key=api_key,
+            )
+
+            if tools:
+                response = await llm.agenerate(
+                    messages=new_messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    seed=seed,
+                    tools=tools,
+                    tool_choice=tool_choice,
+                    cache_config=cache_config,
                 )
-
+                if isinstance(response, list):
+                    yield {
+                        "content": "",
+                        "tool_use": response,
+                        "last_chunk": True,
+                    }
+                    return
+                yield {
+                    "content": response,
+                    "last_chunk": True,
+                }
+            else:
+                response = llm.astream(
+                    messages=new_messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    seed=seed,
+                    cache_config=cache_config,
+                )
                 async for res in response:
-                    # if res is a list then it's a tool response and it's not streamed, it returns the full response
-                    if isinstance(res, list):
-                        yield {
-                            "content": "",
-                            "tool_use": res,
-                            "last_chunk": True,
-                        }
-                        return
-
-
                     yield {
                         "content": res,
                         "last_chunk": False,
@@ -185,51 +205,6 @@ async def query_llm(
                     "content": "",
                     "last_chunk": True,
                 }
-            else:
-                from chat_rag.llms import (
-                    load_llm,  # The first time this is imported it will take a few seconds.
-                )
-                llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
-
-                if tools:
-                    response = await llm.agenerate(
-                        messages=new_messages,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        seed=seed,
-                        tools=tools,
-                        tool_choice=tool_choice,
-                        cache_config=cache_config,
-                    )
-                    if isinstance(response, list):
-                        yield {
-                            "content": "",
-                            "tool_use": response,
-                            "last_chunk": True,
-                        }
-                        return
-                    yield {
-                        "content": response,
-                        "last_chunk": True,
-                    }
-                else:
-                    response = llm.astream(
-                        messages=new_messages,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        seed=seed,
-                        cache_config=cache_config,
-                    )
-                    async for res in response:
-                        yield {
-                            "content": res,
-                            "last_chunk": False,
-                        }
-                    yield {
-                        "content": "",
-                        "last_chunk": True,
-                    }
-            
 
         else:
             pass

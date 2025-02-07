@@ -30,10 +30,9 @@ LLM_CLASSES = {
     "gemini": GeminiChatModel,
 }
 
-def load_llm(llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None) -> LLM:
+def load_llm(llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None, api_key: str = None) -> LLM:
     
     # For Together model, set the fixed TOGETHER url
-    api_key = None
     if llm_type == "together":
         base_url = "https://api.together.xyz/v1"
         api_key = os.environ.get("TOGETHER_API_KEY")
