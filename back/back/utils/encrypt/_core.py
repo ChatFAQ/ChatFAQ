@@ -10,6 +10,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
+
 from back.config import settings
 
 
@@ -17,7 +18,6 @@ def _encrypt(public_key: RSAPublicKey, data: bytes) -> list[bytes]:
     """
     Encrypts the given data using the public key.
     """
-
     padding_algorithm = padding.OAEP(
         mgf=padding.MGF1(algorithm=hashes.SHA512()),
         algorithm=hashes.SHA512(),
@@ -34,7 +34,6 @@ def _decrypt(private_key: RSAPrivateKey, data: bytes) -> bytes:
     """
     Decrypts the given data using the private key.
     """
-
     return private_key.decrypt(
         data,
         padding.OAEP(
@@ -101,7 +100,6 @@ class LightBringer:
         Encrypts the given string and returns a NissaString instance that can
         be used to decrypt it later.
         """
-
         return NissaString(
             bits=_encrypt(self.public_key, value.encode("utf-8")),
             public_key=self.public_key,
@@ -204,7 +202,6 @@ class NissaString:
         """
         Decrypts the secret and returns it as a string.
         """
-
         return DecryptedNissaString(
             b"".join(_decrypt(lb.private_key, bit) for bit in self.bits).decode("utf-8")
         )
