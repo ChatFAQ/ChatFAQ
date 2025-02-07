@@ -7,7 +7,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('language_model', '0066_alter_historicalllmconfig_llm_type_and_more'),
+        ('language_model', '0067_alter_historicalllmconfig_llm_type_and_more'),
     ]
 
     operations = [
