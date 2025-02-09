@@ -107,12 +107,36 @@ class Reference(serializers.Serializer):
     knowledge_base_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
-class MessagePayload(serializers.Serializer):
-    class _MessagePayload(serializers.Serializer):
-        content = serializers.ListField(child=serializers.DictField())
-        references = Reference(required=False, allow_null=True)
+class ToolUse(serializers.Serializer):
+    id = serializers.CharField(required=True)
+    name = serializers.CharField(required=True)
+    args = serializers.JSONField(required=True)
+    text = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
-    payload = _MessagePayload()
+
+class ToolResult(serializers.Serializer):
+    id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    name = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    result = serializers.CharField(required=True)
+
+
+class MessagePayload(serializers.Serializer):
+    content = serializers.SerializerMethodField()
+    references = Reference(required=False, allow_null=True)
+
+    @extend_schema_field(
+        PolymorphicProxySerializer(
+            component_name="MessageContent",
+            serializers=[
+                serializers.CharField,
+                ToolUse,
+                ToolResult
+            ],
+        )
+    )
+    def get_content(self, obj):
+        return obj
+
 
 class HTMLPayload(serializers.Serializer):
     @staticmethod
