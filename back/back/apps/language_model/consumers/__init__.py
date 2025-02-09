@@ -25,42 +25,144 @@ from back.apps.language_model.models import (
 from back.config import settings
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
-
-from chat_rag.llms import load_llm, Message
+from chat_rag.llms import Content, Message, ToolResult, ToolUse, load_llm
 
 logger = getLogger(__name__)
 
 
-def format_msgs_chain_to_llm_context(msgs_chain) -> List[Dict[str, str]]:
+def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
     """
-    Returns a list of messages using the OpenAI standard format for LLMs.
+    Returns a list of chat_rag Message objects representing the conversation context.
+    Consecutive messages coming from the same sender type are concatenated into one Message.
+    The content of each Message is a list of chat_rag Content objects, which can include plain text,
+    tool calls (tool_use) and tool results (tool_result).
+
     Parameters
     ----------
     msgs_chain :
         A list of messages in the broker format.
-    message_types : List[str]
-        The types of messages to extract from the broker message stack.
+        
+    Returns
+    -------
+    List[Message]
+        A list of chat_rag Message objects with messages concatenated by sender.
     """
-    messages = []
+    aggregated_messages = []
+    current_role = None  # "user" for human and "assistant" for bot
+    aggregated_contents = []  # list of Content objects for the current group
+
+    def process_stack(stack) -> List[Content]:
+        """
+        Process a single stack item into a list of chat_rag Content objects.
+        It checks for text content, tool calls, and tool results.
+        """
+        contents = []
+        payload = stack.get("payload", {})
+
+        # Create a text content if available.
+        text = payload.get("content")
+        if text:
+            contents.append(Content(text=text, type="text"))
+
+        # Check if this stack represents a tool call (tool use).
+        if payload.get("tool_use"):
+            try:
+                tool_use_obj = ToolUse(**payload["tool_use"])
+                contents.append(Content(tool_use=tool_use_obj, type="tool_use"))
+            except Exception as e:
+                # If it fails to parse tool_use, we simply skip it.
+                pass
+
+        # Check if this stack represents a tool result.
+        if payload.get("tool_result"):
+            try:
+                tool_result_obj = ToolResult(**payload["tool_result"])
+                contents.append(Content(tool_result=tool_result_obj, type="tool_result"))
+            except Exception as e:
+                # If it fails to parse tool_result, we simply skip it.
+                pass
+
+        return contents
+
+    def process_msg(msg) -> List[Content]:
+        """
+        Process each broker message into a list of chat_rag Content objects by iterating over its stacks.
+        """
+        contents = []
+        for stack in msg.stack:
+            contents.extend(process_stack(stack))
+        return contents
+
+    def merge_contents(existing: List[Content], new: List[Content]) -> List[Content]:
+        """
+        Merge two lists of chat_rag Content objects.
+        If the last element of the existing list and the first element of the new list are both text,
+        then they are concatenated.
+        """
+        if not existing:
+            return new
+        if not new:
+            return existing
+
+        merged = existing.copy()
+        # If the last and first items are text, merge them.
+        if merged and new and merged[-1].type == "text" and new[0].type == "text":
+            merged[-1].text = merged[-1].text.strip() + " " + new[0].text.strip()
+            merged.extend(new[1:])
+        else:
+            merged.extend(new)
+        return merged
+
+    # Iterate over each message in the msgs_chain, grouping contiguous messages by sender type.
     for msg in msgs_chain:
-        if msg.sender["type"] == AgentType.human.value:
-            text = ""
-            for stack in msg.stack:
-                if stack["payload"].get("content") is not None:
-                    text += stack["payload"]["content"]
+        # Map sender type to LLM context role.
+        sender_type = msg.sender.get("type")
+        if sender_type == AgentType.human.value:
+            role = "user"
+        elif sender_type == AgentType.bot.value:
+            role = "assistant"
+        else:
+            # Skip messages that are not from a human or bot.
+            continue
 
-            if text:
-                messages.append({"role": "user", "content": text})
-        elif msg.sender["type"] == AgentType.bot.value:
-            text = ""
-            for stack in msg.stack:
-                if stack["payload"].get("content") is not None:
-                    text += stack["payload"]["content"]
+        # Process the message stacks to obtain its list of Content objects.
+        msg_contents = process_msg(msg)
+        if not msg_contents:
+            continue
 
-            if text:
-                messages.append({"role": "assistant", "content": text})
+        if current_role is None:
+            # Start a new group.
+            current_role = role
+            aggregated_contents = msg_contents
+        elif current_role == role:
+            # Same role: merge new contents with the existing group.
+            aggregated_contents = merge_contents(aggregated_contents, msg_contents)
+        else:
+            # Role changed, so package the current group into a Message.
+            aggregated_messages.append(
+                Message(
+                    role=current_role,
+                    content=aggregated_contents,
+                    usage=None,
+                    stop_reason="end_turn"
+                )
+            )
+            # Start a new group for the new role.
+            current_role = role
+            aggregated_contents = msg_contents
 
-    return messages
+    # Append any remaining aggregated messages.
+    if current_role is not None and aggregated_contents:
+        aggregated_messages.append(
+            Message(
+                role=current_role,
+                content=aggregated_contents,
+                usage=None,
+                stop_reason="end_turn"
+            )
+        )
+
+    return aggregated_messages
 
 
 async def resolve_references(reference_kis, retriever_config):
@@ -151,7 +253,6 @@ async def query_llm(
 
     try:
         if streaming:
-            from chat_rag.llms import load_llm
 
             # Decrypt the API key from the LLMConfig if available.
             api_key = None
