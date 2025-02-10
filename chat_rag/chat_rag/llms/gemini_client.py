@@ -290,6 +290,7 @@ class GeminiChatModel(LLM):
             "temperature": temperature,
             "max_output_tokens": max_tokens,
             "seed": seed,
+            "automatic_function_calling": {"disable": True},
             **tool_kwargs,
         }
 
