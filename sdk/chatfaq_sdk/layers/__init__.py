@@ -244,7 +244,7 @@ class StarRating(UserFeedback):
     def __init__(
         self,
         num_stars: int,
-        placeholder: str,
+        explanation: str,
         *args,
         **kwargs,
     ):
@@ -252,7 +252,7 @@ class StarRating(UserFeedback):
         :param num_stars: The maximum number of stars. For example: 5
         """
         super().__init__(*args, **kwargs, merge_to_prev=False)
-        self.placeholder = placeholder
+        self.explanation = explanation
         self.num_stars = num_stars
 
     async def build_payloads(self, ctx, data):
@@ -260,6 +260,7 @@ class StarRating(UserFeedback):
             "payload": {
                 **self._build_payloads(),
                 "num_stars": self.num_stars,
+                "explanation": self.explanation,
             }
         }
         yield [payload], True
