@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, Union, Tuple, Callable
+from chat_rag.llms.types import Message
 
 class LLM:
 
@@ -40,7 +41,7 @@ class LLM:
         seed: int = None,
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
-    ) -> Optional[str | List[str]]:
+    ) -> Message:
         pass
 
     async def agenerate(
@@ -51,5 +52,5 @@ class LLM:
         seed: int = None,
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
-    ) -> Optional[str | List[str]]:
+    ) -> Message:
         pass

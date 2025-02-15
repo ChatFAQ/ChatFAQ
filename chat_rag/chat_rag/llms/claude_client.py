@@ -4,7 +4,7 @@ from typing import Callable, Dict, List, Union
 from anthropic import Anthropic, AsyncAnthropic
 from anthropic._types import NOT_GIVEN
 
-from chat_rag.llms import Content, Message, ToolUse, Usage
+from chat_rag.llms.types import Content, Message, ToolUse, Usage
 
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
@@ -53,7 +53,11 @@ class ClaudeChatModel(LLM):
         Convert standard chat messages to Anthropic's format.
         """
 
-        def format_content(message: Message):
+        def format_content(message: Union[Dict, Message]):
+
+            if isinstance(message, Dict):
+                message = Message(**message)
+
             if isinstance(message.content, str):
                 content_list = [{"type": "text", "text": message.content}]
             else:
@@ -82,15 +86,17 @@ class ClaudeChatModel(LLM):
 
             return content_list
 
-        system_prompt = NOT_GIVEN
-        # Add system message if present
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"][0]["text"]
-
-        return [
+        messages_formatted = [
             {"role": message["role"], "content": format_content(message)}
             for message in messages
-        ], system_prompt
+        ]
+
+        system_prompt = NOT_GIVEN
+        # Add system message if present
+        if messages_formatted[0]["role"] == "system":
+            system_prompt = messages_formatted.pop(0)["content"][0]["text"]
+
+        return messages_formatted, system_prompt
 
     def _map_anthropic_message(self, message) -> Message:
         """
@@ -211,8 +217,8 @@ class ClaudeChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str
-            The generated text.
+        Message
+            The generated message.
         """
         tool_kwargs = {}
         if tools:
@@ -241,7 +247,7 @@ class ClaudeChatModel(LLM):
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -250,8 +256,8 @@ class ClaudeChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str
-            The generated text.
+        Message
+            The generated message.
         """
         tool_kwargs = {}
         if tools:

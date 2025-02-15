@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 async def llm_request(
     sdk: ChatFAQSDK,
     llm_config_name: str,
-    messages: List[Dict[str, str]] = None,
+    messages: List[Dict] = None,
     temperature: float = 0.7,
     max_tokens: int = 4096,
     seed: int = 42,
@@ -22,6 +22,7 @@ async def llm_request(
     bot_channel_name: str = None,
     use_conversation_context: bool = True,
     cache_config: Optional[CacheConfig] = None,
+    stream: bool = False,
 ):
     if tools:
         tools = [tool.model_json_schema() for tool in tools]
@@ -38,6 +39,7 @@ async def llm_request(
         bot_channel_name,
         use_conversation_context,
         cache_config,
+        stream,
     )
 
     logger.debug("[LLMRequest] Waiting for LLM req...")

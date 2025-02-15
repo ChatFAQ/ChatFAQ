@@ -7,8 +7,8 @@ from chat_rag.exceptions import (
     PromptTooLongException,
     RequestException,
 )
-from chat_rag.llms import OpenAIChatModel
-from chat_rag.llms import Message
+from chat_rag.llms.openai_client import OpenAIChatModel
+from chat_rag.llms.types import Message
 
 
 # Check if transformers is installed
@@ -166,7 +166,7 @@ class VLLMModel(OpenAIChatModel):
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         json_schema: Dict = None,
-        ):
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -218,7 +218,7 @@ class VLLMModel(OpenAIChatModel):
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         json_schema: Dict = None,
-    ):
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters

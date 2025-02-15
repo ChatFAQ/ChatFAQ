@@ -2,7 +2,7 @@ from typing import Callable, Dict, List, Union
 
 from openai import AsyncOpenAI, OpenAI
 
-from chat_rag.llms import Content, Message, ToolUse, Usage
+from chat_rag.llms.types import Content, Message, ToolUse, Usage
 
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
@@ -42,10 +42,13 @@ class OpenAIChatModel(LLM):
         """
         Convert standard chat messages to OpenAI's format.
         """
-        def format_content(message: Message):
+        def format_content(message: Union[Dict, Message]):
             content_list = []
             tool_calls = []
             tool_results = []
+            if isinstance(message, Dict):
+                message = Message(**message)
+
             if isinstance(message.content, str):
                 content_list = [{"type": "text", "text": message.content}]
             else:
@@ -72,18 +75,18 @@ class OpenAIChatModel(LLM):
 
             return content_list, tool_calls, tool_results
 
-        messages = []
+        messages_formatted = []
         for message in messages:
             content, tool_calls, tool_results = format_content(message)
             role = message.role if not tool_results else "tool"
-            messages.append(
+            messages_formatted.append(
                 {
                     "role": role,
                     "content": content if content else None,
                     "tool_calls": tool_calls if tool_calls else None,
                 }
             )
-        return messages
+        return messages_formatted
     
     def _map_openai_message(self, message) -> Message:
         """
@@ -101,7 +104,7 @@ class OpenAIChatModel(LLM):
 
     def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
@@ -179,7 +182,7 @@ class OpenAIChatModel(LLM):
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
-    ) -> str | List:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -188,8 +191,8 @@ class OpenAIChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
@@ -219,7 +222,7 @@ class OpenAIChatModel(LLM):
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
-    ) -> str:
+    ) -> Message | List:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -228,8 +231,8 @@ class OpenAIChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message | List
+            The generated message.
         """
         messages = self._format_messages(messages)
 

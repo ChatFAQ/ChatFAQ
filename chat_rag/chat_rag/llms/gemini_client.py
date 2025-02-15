@@ -15,7 +15,7 @@ from google.genai.types import (
     FunctionResponse,
 )
 
-from chat_rag.llms import Message, Usage, Content, ToolUse, ToolResult
+from chat_rag.llms.types import Message, Usage, Content, ToolUse, ToolResult
 from chat_rag.llms.base_llm import LLM
 from chat_rag.llms.format_tools import Mode, format_tools
 
@@ -245,6 +245,8 @@ class GeminiChatModel(LLM):
                     elif content.type == "tool_result":
                         tool_results.append(Part(function_response=FunctionResponse(id=content.tool_result.id, name=content.tool_result.name, response=content.tool_result.result)))
             return parts
+
+        messages = [Message(**m) if isinstance(m, Dict) else m for m in messages]
 
         # Extract system prompt if present
         system_prompt = None
@@ -500,7 +502,7 @@ class GeminiChatModel(LLM):
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         cache_config: Dict = None,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -509,8 +511,8 @@ class GeminiChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
             messages, temperature, max_tokens, seed, tools, tool_choice

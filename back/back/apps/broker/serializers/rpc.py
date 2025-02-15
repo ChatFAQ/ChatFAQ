@@ -103,7 +103,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         The maximum number of tokens to generate
     seed: int
         The seed to use in the LLM
-    streaming: bool
+    stream: bool
         Whether the LLM response should be streamed or not
     """
 
@@ -118,7 +118,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
     )
     tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
-    streaming = serializers.BooleanField(default=True)
+    stream = serializers.BooleanField(default=False)
     use_conversation_context = serializers.BooleanField(default=True)
 
     def validate(self, attrs):
