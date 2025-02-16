@@ -55,6 +55,13 @@ class RPCResultSerializer(serializers.Serializer):
                 "type": AgentType.human.value,
                 "id": attrs["ctx"]["user_id"],
             }
+
+        # Tool results are categorized as human messages although not exactly true
+        if attrs.get('stack', []) and attrs['stack'][0].get('type') == 'tool_result':
+            attrs['sender'] = {
+                "type": AgentType.human.value,
+            }
+            
         if attrs.get("node_type") == RPCNodeType.condition.value:
             return super().validate(attrs)
 
@@ -110,7 +117,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
-    messages = serializers.ListField(child=serializers.DictField())
+    messages = serializers.ListField(child=serializers.DictField(), allow_empty=True, required=False, allow_null=True)
     temperature = serializers.FloatField(default=0.7, required=False)
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)

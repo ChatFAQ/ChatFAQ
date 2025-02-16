@@ -62,8 +62,8 @@ class Usage(BaseModel):
 
     input_tokens: int
     output_tokens: int
-    cache_creation_input_tokens: int
-    cache_creation_read_tokens: int
+    cache_creation_input_tokens: Optional[int] = Field(default=None, description="Cache creation input tokens")
+    cache_creation_read_tokens: Optional[int] = Field(default=None, description="Cache creation read tokens")
 
 
 class CacheConfig(BaseModel):

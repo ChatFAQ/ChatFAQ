@@ -1,4 +1,5 @@
 from typing import Callable, Dict, List, Union
+import json
 
 from openai import AsyncOpenAI, OpenAI
 
@@ -6,6 +7,7 @@ from chat_rag.llms.types import Content, Message, ToolUse, Usage
 
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
+
 
 class OpenAIChatModel(LLM):
     def __init__(
@@ -15,12 +17,13 @@ class OpenAIChatModel(LLM):
         api_key: str = None,
         **kwargs,
     ):
-
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.aclient = AsyncOpenAI(api_key=api_key, base_url=base_url)
         self.llm_name = llm_name
 
-    def _format_tools(self, tools: List[Union[Callable, Dict]], tool_choice: str = None):
+    def _format_tools(
+        self, tools: List[Union[Callable, Dict]], tool_choice: str = None
+    ):
         """
         Format the tools from a openai dict or a callable function to the OpenAI format.
         """
@@ -28,7 +31,7 @@ class OpenAIChatModel(LLM):
         tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
 
         # If the tool_choice is a named tool, then apply correct formatting
-        if tool_choice in [tool['title'] for tool in tools]:
+        if tool_choice in [tool["function"]["name"] for tool in tools_formatted]:
             tool_choice = {
                 "type": "function",
                 "function": {
@@ -36,39 +39,41 @@ class OpenAIChatModel(LLM):
                 },
             }
         return tools_formatted, tool_choice
-    
+
     def _format_messages(self, messages: List[Union[Dict, Message]]) -> List[Dict]:
         """
         Convert standard chat messages to OpenAI's format.
         """
-        def format_content(message: Union[Dict, Message]):
+
+        def format_content(message: Message):
             content_list = []
             tool_calls = []
             tool_results = []
-            if isinstance(message, Dict):
-                message = Message(**message)
 
             if isinstance(message.content, str):
                 content_list = [{"type": "text", "text": message.content}]
             else:
                 for content in message.content:
                     if content.type == "text":
-                        content_list.append({"type": content.type, "text": content.text})
+                        content_list.append(
+                            {"type": content.type, "text": content.text}
+                        )
                     elif content.type == "tool_use":
                         part = {
                             "type": "function",
                             "id": content.tool_use.id,
                             "function": {
                                 "name": content.tool_use.name,
-                                "arguments": content.tool_use.args,
+                                "arguments": str(content.tool_use.args),
                             },
                         }
                         tool_calls.append(part)
                     elif content.type == "tool_result":
                         tool_results.append(
                             {
-                                "id": content.tool_result.id,
-                                "output": content.tool_result.result,
+                                "tool_call_id": content.tool_result.id,
+                                "role": "tool",
+                                "content": content.tool_result.result,
                             }
                         )
 
@@ -76,17 +81,22 @@ class OpenAIChatModel(LLM):
 
         messages_formatted = []
         for message in messages:
+            if isinstance(message, Dict):
+                message = Message(**message)
             content, tool_calls, tool_results = format_content(message)
-            role = message.role if not tool_results else "tool"
-            messages_formatted.append(
-                {
-                    "role": role,
-                    "content": content if content else None,
-                    "tool_calls": tool_calls if tool_calls else None,
-                }
-            )
+            # If there are tool results, then there are only tool results and no content or tool calls for this turn
+            if tool_results:
+                messages_formatted.extend(tool_results)
+            else:
+                messages_formatted.append(
+                    {
+                        "role": message.role,
+                        "content": content if content else None,
+                        "tool_calls": tool_calls if tool_calls else None,
+                    }
+                )
         return messages_formatted
-    
+
     def _map_openai_message(self, message) -> Message:
         """
         Map the OpenAI message to the standard message format.
@@ -96,10 +106,29 @@ class OpenAIChatModel(LLM):
         if content.content:
             content_list = [Content(type="text", text=content.content)]
         if content.tool_calls:
-            content_list = [Content(type="tool_use", tool_use=ToolUse(id=tool_call.id, name=tool_call.function.name, args=tool_call.function.arguments)) for tool_call in content.tool_calls]
+            content_list = [
+                Content(
+                    type="tool_use",
+                    tool_use=ToolUse(
+                        id=tool_call.id,
+                        name=tool_call.function.name,
+                        args=json.loads(tool_call.function.arguments),
+                    ),
+                )
+                for tool_call in content.tool_calls
+            ]
 
-        usage = Usage(input_tokens=message.usage.prompt_tokens, output_tokens=content.usage.completion_tokens, cache_creation_read_tokens=message.usage.prompt_tokens_details.cached_tokens)
-        return Message(role=content.role, content=content_list, tool_calls=content.tool_calls, usage=usage)
+        usage = Usage(
+            input_tokens=message.usage.prompt_tokens,
+            output_tokens=message.usage.completion_tokens,
+            cache_creation_read_tokens=message.usage.prompt_tokens_details.cached_tokens,
+        )
+        return Message(
+            role=content.role,
+            content=content_list,
+            tool_calls=content.tool_calls,
+            usage=usage,
+        )
 
     def stream(
         self,
@@ -237,7 +266,6 @@ class OpenAIChatModel(LLM):
 
         if tools:
             tools, tool_choice = self._format_tools(tools, tool_choice)
-
         response = await self.aclient.chat.completions.create(
             model=self.llm_name,
             messages=messages,

@@ -217,7 +217,7 @@ async def query_llm(
         )
     except LLMConfig.DoesNotExist:
         yield {
-            "content": f"LLM config with name: {llm_config_name} does not exist.",
+            "content": [{"type": "text", "text": f"LLM config with name: {llm_config_name} does not exist."}],
             "last_chunk": True,
         }
         return
@@ -232,17 +232,34 @@ async def query_llm(
 
         if messages: # In case the fsm sends messages
             if messages[0]["role"] == AgentType.system.value:
-                if prev_messages[0]["role"] == AgentType.system.value:
-                    new_messages[0] = messages[0]  # replace the original system message with the new one from the fsm
+                if prev_messages[0].role == AgentType.system.value:
+                    new_messages[0] = Message(**messages[0])  # replace the original system message with the new one from the fsm
                 else:
-                    new_messages.insert(0, messages[0])  # or add the fsm system message
+                    new_messages.insert(0, Message(**messages[0]))  # or add the fsm system message
 
                 # pop the system message
                 messages = messages[1:]
-
-        new_messages.extend(messages)
+        elif not prev_messages:
+            yield {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Error: No previous messages and no messages provided.",
+                    }
+                ],
+                "last_chunk": True,
+            }
+            return
+        if messages:
+            new_messages.extend(messages)
     else:
         new_messages = messages
+        if new_messages is None:
+            yield {
+                "content": [{"type": "text", "text": "Error: No messages provided."}],
+                "last_chunk": True,
+            }
+            return
 
     try:
         # Decrypt the API key from the LLMConfig if available.
@@ -290,14 +307,16 @@ async def query_llm(
                 cache_config=cache_config,
             )
             yield {
-                "content": response_message.model_dump(),
+                "content": [content.model_dump() for content in response_message.content], # Make it serializable
+                "usage": response_message.usage.model_dump(),
+                "stop_reason": response_message.stop_reason,
                 "last_chunk": True,
             }
 
     except Exception as e:
         logger.error("Error during LLM query", exc_info=e)
         yield {
-            "content": "There was an error generating the response. Please try again or contact the administrator.",
+            "content": [{"type": "text", "text": "There was an error generating the response. Please try again or contact the administrator."}],
             "last_chunk": True,
         }
         return
@@ -394,7 +413,6 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("seed"),
             data.get("tools"),
             data.get("tool_choice"),
-            data.get("streaming"),
             data.get("use_conversation_context"),
             data.get("cache_config"),
             data.get("stream"),
