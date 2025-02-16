@@ -135,6 +135,7 @@ def format_tools(
     tools_formatted = []
     if mode in {Mode.OPENAI_TOOLS, Mode.MISTRAL_TOOLS}:
         for tool in tools:
+            # As it is already in the openai format, we can just append it
             tools_formatted.append(tool)
 
     elif mode == Mode.ANTHROPIC_TOOLS:

@@ -25,8 +25,8 @@ from back.apps.language_model.models import (
 from back.config import settings
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
-from chat_rag.llms.types import Content, Message, ToolResult, ToolUse
 from chat_rag.llms import load_llm
+from chat_rag.llms.types import Content, Message, ToolResult, ToolUse
 
 logger = getLogger(__name__)
 
@@ -59,29 +59,21 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
         """
         contents = []
         payload = stack.get("payload", {})
+        type = stack.get("type")
 
         # Create a text content if available.
-        text = payload.get("content")
-        if text:
-            contents.append(Content(text=text, type="text"))
+        if type == "message":
+            contents.append(Content(text=payload.get("content"), type="text"))
 
         # Check if this stack represents a tool call (tool use).
-        if payload.get("tool_use"):
-            try:
-                tool_use_obj = ToolUse(**payload["tool_use"])
-                contents.append(Content(tool_use=tool_use_obj, type="tool_use"))
-            except Exception as e:
-                # If it fails to parse tool_use, we simply skip it.
-                pass
+        if type == "tool_use":
+            tool_use_obj = ToolUse(**payload)
+            contents.append(Content(tool_use=tool_use_obj, type="tool_use"))
 
         # Check if this stack represents a tool result.
-        if payload.get("tool_result"):
-            try:
-                tool_result_obj = ToolResult(**payload["tool_result"])
-                contents.append(Content(tool_result=tool_result_obj, type="tool_result"))
-            except Exception as e:
-                # If it fails to parse tool_result, we simply skip it.
-                pass
+        if type == "tool_result":
+            tool_result_obj = ToolResult(**payload)
+            contents.append(Content(tool_result=tool_result_obj, type="tool_result"))
 
         return contents
 

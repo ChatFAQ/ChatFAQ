@@ -356,14 +356,14 @@ class ToolResult(Layer):
         super().__init__()
         self.id = id
         self.name = name
-        self.result = result
+        self.tool_result = result
 
     async def build_payloads(self, ctx, data):
         payload = {
             "payload": {
                 "id": self.id,
                 "name": self.name,
-                "result": self.result,
+                "result": self.tool_result,
             }
         }
         yield [payload], True

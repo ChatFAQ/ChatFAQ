@@ -27,7 +27,6 @@ class OpenAIChatModel(LLM):
         tools_formatted = format_tools(tools, mode=Mode.OPENAI_TOOLS)
         tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
 
-
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool['title'] for tool in tools]:
             tool_choice = {
