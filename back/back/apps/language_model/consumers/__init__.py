@@ -154,7 +154,7 @@ async def query_llm(
             # Decrypt the API key from the LLMConfig if available.
             api_key = None
             if llm_config.api_key:
-                from back.utils import get_light_bringer
+                from back.utils.encrypt import get_light_bringer
                 lb = get_light_bringer()
                 api_key = llm_config.api_key.decrypt(lb)
 

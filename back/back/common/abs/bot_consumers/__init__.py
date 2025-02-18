@@ -156,11 +156,6 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         self.conversation, created = await Conversation.objects.aget_or_create(
             platform_conversation_id=platform_conversation_id
         )
-        print("#"*100)
-        print("initial_conversation_metadata", initial_conversation_metadata)
-        print("authentication_required", authentication_required)
-        print("fsm_state_overwrite", fsm_state_overwrite)
-        print("#"*100)
         if created:
             self.conversation.initial_conversation_metadata = initial_conversation_metadata
             self.conversation.authentication_required = authentication_required
