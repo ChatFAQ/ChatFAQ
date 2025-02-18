@@ -127,6 +127,11 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
         raise NotImplemented(
             "Implement a method that creates/gathers the conversation covnersation metadata"
         )
+    
+    def gather_fsm_state_overwrite(self, mml: "Message"):
+        raise NotImplemented(
+            "Implement a method that gathers the fsm state overwrite"
+        )
 
     def gather_conversation_id(self, mml: "Message"):
         raise NotImplemented(
@@ -147,13 +152,19 @@ class BotConsumer(CustomAsyncConsumer, metaclass=BrokerMetaClass):
             and not isinstance(self.scope["user"], AnonymousUser)
         )
 
-    async def set_conversation(self, platform_conversation_id, initial_conversation_metadata, authentication_required):
+    async def set_conversation(self, platform_conversation_id, initial_conversation_metadata, authentication_required, fsm_state_overwrite=None):
         self.conversation, created = await Conversation.objects.aget_or_create(
             platform_conversation_id=platform_conversation_id
         )
+        print("#"*100)
+        print("initial_conversation_metadata", initial_conversation_metadata)
+        print("authentication_required", authentication_required)
+        print("fsm_state_overwrite", fsm_state_overwrite)
+        print("#"*100)
         if created:
             self.conversation.initial_conversation_metadata = initial_conversation_metadata
             self.conversation.authentication_required = authentication_required
+            self.conversation.fsm_state_overwrite = fsm_state_overwrite
             await database_sync_to_async(self.conversation.save)()
 
     def set_fsm_def(self, fsm_def):

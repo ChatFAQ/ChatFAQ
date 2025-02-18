@@ -28,7 +28,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         self.set_fsm_def(fsm_def)
         self.set_user_id(await self.gather_user_id())
 
-        await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required)
+        await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required, await self.gather_fsm_state_overwrite())
         if not await self.authenticate():
             await self.close(3000, reason="`Authentication failed`")
 
