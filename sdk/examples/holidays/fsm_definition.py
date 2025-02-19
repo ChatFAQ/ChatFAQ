@@ -3,19 +3,28 @@ from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import Message
 from chatfaq_sdk.clients import llm_request
 from .prompts import travel_place_q, collect_place_p, collect_budget_p
-from pydantic import BaseModel, Field
-import json
 
 
 DEFAULT_PLACES = ["Madrid", "Paris", "Rome"]
 
 
-class SubmitBudget(BaseModel):
-    budget: str = Field(
-        ...,
-        title="Budget",
-        description="The user's budget for their planned holiday."
-    )
+
+def submit_budget(budget: str):
+    """
+    Submit the user's budget for their planned holiday.
+    :param budget: The user's budget for their planned holiday.
+    :return: The user's budget for their planned holiday.
+    """
+    return {"budget": budget}
+
+
+def submit_place(place: str):
+    """
+    Submit the user's place for their planned holiday.
+    :param place: The user's place for their planned holiday.
+    :return: The user's place for their planned holiday.
+    """
+    return {"place": place}
 
 
 async def send_places(sdk: ChatFAQSDK, ctx: dict):
@@ -29,7 +38,7 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
     # Very expensive to generate this each time a conversation is started, we should cache this
     # and regenerate it only when the list of places changes
     response = ""
-    generator = llm_request(
+    response = await llm_request(
         sdk,
         "gpt-4o",
         use_conversation_context=False,
@@ -42,8 +51,7 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
             }
         ],
     )
-    async for chunk in generator:
-        response += chunk["content"]
+    response = response['content'][0]['text']
 
     response = response.split("<question>")[1].split("</question>")[0].strip()
     yield Message(response)
@@ -54,21 +62,14 @@ async def send_places(sdk: ChatFAQSDK, ctx: dict):
 async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     places = ctx["state"]["places"] if "places" in ctx["state"] else DEFAULT_PLACES
 
-    class SubmitPlace(BaseModel):
-        place: str = Field(
-            ...,
-            title="Place",
-            description=f"The place that most closely matches the description between {', '.join(places)}",
-        )
-
-    generator = llm_request(
+    response = await llm_request(
         sdk,
         "gpt-4o",
         use_conversation_context=True, # Here we let the backend append all the previous messages to send to the LLM
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
-        tools=[SubmitPlace],
-        tool_choice="SubmitPlace",
+        tools=[submit_place],
+        tool_choice="submit_place",
         messages=[
             {
                 "role": "system",
@@ -78,10 +79,10 @@ async def collect_place(sdk: ChatFAQSDK, ctx: dict):
     )
 
     place = None
-    async for place in generator:
-        args = place['tool_use'][0]['args']
-        args = json.loads(args)
-        place = args['place']
+    for part in response['content']:
+        if part['type'] == 'tool_use':
+            place = part['tool_use']['args']['place']
+            break
 
     # Start the state and submit it so other states can access it
     state = {"place": place}
@@ -93,14 +94,14 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
     user_budget = ctx["conv_mml"][-1]["stack"][0]["payload"]["content"]
     state = ctx["state"]
 
-    generator = llm_request(
+    response = await llm_request(
         sdk,
         "gpt-4o",
         use_conversation_context=False, # Here we control exactly which messages are sent to the LLM
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
-        tools=[SubmitBudget],
-        tool_choice="SubmitBudget",
+        tools=[submit_budget],
+        tool_choice="submit_budget",
         messages=[
             {
                 "role": "user",
@@ -110,10 +111,10 @@ async def collect_budget(sdk: ChatFAQSDK, ctx: dict):
     )
 
     budget = None
-    async for budget in generator:
-        args = budget['tool_use'][0]['args']
-        args = json.loads(args)
-        budget = args['budget']
+    for part in response['content']:
+        if part['type'] == 'tool_use':
+            budget = part['tool_use']['args']['budget']
+            break
 
     state["budget"] = budget
 

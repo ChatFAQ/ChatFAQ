@@ -55,6 +55,7 @@ If you cannot answer the question based on the provided information, say so."""
         bot_channel_name=ctx["bot_channel_name"],
         messages=messages,
         cache_config=CacheConfig(name="deepseek_v3_paper", ttl=3600),  # 1 hour
+        stream=True,
     )
 
     references = {"knowledge_items": [ki.dict() for ki in knowledge_items]}

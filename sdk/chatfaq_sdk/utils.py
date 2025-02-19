@@ -27,7 +27,7 @@ def convert_mml_to_llm_format(mml: List[Dict]) -> List[Dict]:
         contents = []
         type = stack.get("type")
 
-        if type == "message":
+        if type == "message" or type == "message_chunk":
             contents.append(
                 {
                     "type": "text",

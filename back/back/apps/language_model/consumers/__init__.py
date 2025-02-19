@@ -62,7 +62,7 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
         type = stack.get("type")
 
         # Create a text content if available.
-        if type == "message":
+        if type == "message" or type == "message_chunk":
             contents.append(Content(text=payload.get("content"), type="text"))
 
         # Check if this stack represents a tool call (tool use).
