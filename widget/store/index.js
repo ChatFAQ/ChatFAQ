@@ -52,7 +52,9 @@ export const useGlobalStore = defineStore('globalStore', {
             speechSynthesisEnabled: false,
             speechSynthesisPitch: 1,
             speechSynthesisRate: 1,
-            speechSynthesisVoice: '',
+            speechSynthesisVoices: undefined,
+            speechRecognitionAlwaysOn: false,
+            speechRecognitionLang: 'en-US'
         }
     },
     actions: {

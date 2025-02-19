@@ -223,6 +223,9 @@ async function initializeConversation() {
     }
     conversationClosed.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
+
+    if (store.speechRecognitionAlwaysOn)
+        speechToText()
 }
 
 function manageHotKeys(ev, cb) {
@@ -352,7 +355,7 @@ function speechToText() {
         return
     }
 
-    sr.lang = 'en-US';
+    sr.lang = store.speechRecognitionLang;
     sr.continuous = false;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
@@ -399,6 +402,9 @@ function speechToText() {
         thereIsContent.value = chatInput.value.innerText.length !== 0
         if (store.speechRecognitionAutoSend)
             sendMessage();
+        if(store.speechRecognitionAlwaysOn)
+            speechToText()
+
     }
     sr.start();
 }

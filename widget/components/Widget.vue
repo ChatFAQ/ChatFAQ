@@ -76,7 +76,9 @@ const props = defineProps({
     customIFramedMsgs: String,
     stickInputPrompt: Boolean,
     speechRecognition: Boolean,
+    speechRecognitionLang: String,
     speechRecognitionAutoSend: Boolean,
+    speechRecognitionAlwaysOn: Boolean,
     allowAttachments: Boolean,
     authToken: String,
     disableDayNightMode: Boolean,
@@ -85,7 +87,8 @@ const props = defineProps({
     speechSynthesis: Boolean,
     speechSynthesisPitch: Number,
     speechSynthesisRate: Number,
-    speechSynthesisVoice: String,
+    speechSynthesisVoices: String,
+    speechSynthesisEnabledByDefault: Boolean,
 });
 
 const jsonProps = [
@@ -160,6 +163,8 @@ function initStore() {
     store.initialSelectedPlConversationId = data.conversationId
     store.stickInputPrompt = data.stickInputPrompt
     store.speechRecognition = data.speechRecognition
+    store.speechRecognitionLang = data.speechRecognitionLang || store.speechRecognitionLang
+    store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
     store.allowAttachments = data.allowAttachments
     store.authToken = data.authToken
@@ -167,9 +172,10 @@ function initStore() {
     store.enableLogout = data.enableLogout
     store.enableResend = data.enableResend
     store.speechSynthesis = data.speechSynthesis
+    store.speechSynthesisEnabled = store.speechSynthesisSupported && data.speechSynthesisEnabledByDefault
     store.speechSynthesisPitch = data.speechSynthesisPitch
     store.speechSynthesisRate = data.speechSynthesisRate
-    store.speechSynthesisVoice = data.speechSynthesisVoice
+    store.speechSynthesisVoices = data.speechSynthesisVoices
 
     if (store.userId === undefined) {
         store.userId = getUserId()

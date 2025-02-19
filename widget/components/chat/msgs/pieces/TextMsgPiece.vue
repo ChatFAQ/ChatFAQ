@@ -110,7 +110,7 @@ function openInNewTab(url) {
 
 // For non-streaming messages, speak the entire message on initial mount
 onMounted(() => {
-    if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
+    if (store.speechSynthesisEnabled) {
         const content = props.data.payload.content;
         if (content && props.isLastChunk) {
             const utterance = new SpeechSynthesisUtterance(content);
@@ -122,7 +122,7 @@ onMounted(() => {
 
 // Watch for streaming messages
 watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
-    if (store.speechSynthesisEnabled && store.speechSynthesisSupported) {
+    if (store.speechSynthesisEnabled) {
         const newContent = newMessage.payload.content;
 
         // Calculate delta from the last received content
@@ -181,11 +181,12 @@ function configureUtterance(utterance) {
     if (isFinite(store.speechSynthesisRate)) {
         utterance.rate = store.speechSynthesisRate;
     }
-    if (store.speechSynthesisVoice) {
+    if (store.speechSynthesisVoices) {
         const voices = speechSynthesis.getVoices();
-        const selectedVoice = voices.find(voice => voice.voiceURI === store.speechSynthesisVoice);
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
+        const voiceURIs = store.speechSynthesisVoices.split(',');
+        const voice = voices.find(voice => voiceURIs.includes(voice.voiceURI));
+        if (voice) {
+            utterance.voice = voice;
         }
     }
 }
