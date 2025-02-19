@@ -45,6 +45,7 @@
                         'speech_recognition_lang',
                         'speech_recognition_auto_send',
                         'speech_recognition_always_on',
+                        'speech_recognition_phrase_activation',
                         'speech_synthesis',
                         'speech_synthesis_pitch',
                         'speech_synthesis_rate',

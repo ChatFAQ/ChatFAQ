@@ -40,6 +40,9 @@ export const useGlobalStore = defineStore('globalStore', {
             customIFramedMsgs: {},
             speechRecognition: false,
             speechRecognitionAutoSend: false,
+            speechRecognitionAlwaysOn: false,
+            speechRecognitionLang: 'en-US',
+            speechRecognitionPhraseActivation: undefined,
             allowAttachments: false,
             authToken: undefined,
             messagesToBeSentSignal: 0,
@@ -53,8 +56,6 @@ export const useGlobalStore = defineStore('globalStore', {
             speechSynthesisPitch: 1,
             speechSynthesisRate: 1,
             speechSynthesisVoices: undefined,
-            speechRecognitionAlwaysOn: false,
-            speechRecognitionLang: 'en-US'
         }
     },
     actions: {
@@ -240,6 +241,11 @@ export const useGlobalStore = defineStore('globalStore', {
             if (response.results && response.results.length) {
                 return response.results[0].feedback_data
             }
+        },
+        activeActivationPhrase: (state) => {
+            if (state.speechRecognitionPhraseActivation)
+                return state.speechRecognitionPhraseActivation.length > 0
+            return false
         }
     }
 })

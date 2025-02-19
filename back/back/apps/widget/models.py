@@ -61,6 +61,7 @@ class Widget(models.Model):
     speech_recognition = models.BooleanField(default=False)
     speech_recognition_lang = models.CharField(max_length=255, default='en-US')
     speech_recognition_auto_send = models.BooleanField(default=False)
+    speech_recognition_phrase_activation = models.CharField(max_length=255, null=True, blank=True)
     # # out
     speech_synthesis = models.BooleanField(default=False)
     speech_synthesis_pitch = models.FloatField(default=1.0, validators=[MinValueValidator(0.0), MaxValueValidator(2.0)])

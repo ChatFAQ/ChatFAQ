@@ -42,15 +42,17 @@
                      'dark-mode': store.darkMode,
                  }"
                  @click="() => {
-                     if (!conversationClosed && availableMicro) {
+                     if (store.activeActivationPhrase) {
+                         speechRecognitionPhraseActivated = true
+                     } else if (!conversationClosed && availableMicro) {
                          speechToText()
                      } else if (!conversationClosed && availableSend) {
                          sendMessage()
                      }
                  }">
-                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
-                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
-                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
+                <div v-if="speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
+                <div v-if="speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
+                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !speechRecognitionTranscribing}"/>
                 <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
             </div>
         </div>
@@ -73,6 +75,7 @@ const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", "close_conversation",undefined]
 const conversationClosed = ref(false)
+const speechRecognitionPhraseActivated = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
@@ -224,7 +227,7 @@ async function initializeConversation() {
     conversationClosed.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 
-    if (store.speechRecognitionAlwaysOn)
+    if (_speechRecognitionAlwaysOn)
         speechToText()
 }
 
@@ -382,10 +385,21 @@ function speechToText() {
                 interim += event.results[i][0].transcript;
             }
         }
-        if (event.results[0].final)
-            chatInput.value.innerText = final;
-        else
-            chatInput.value.innerText = interim;
+        if (
+            !speechRecognitionPhraseActivated.value &&
+            store.activeActivationPhrase
+        ) {
+            if (
+                matchActivationPhrase(final + interim)
+            ) {
+                speechRecognitionPhraseActivated.value = true
+            }
+        } else {
+            if (event.results[0].final)
+                chatInput.value.innerText = trimFromActivationPhraseForwards(final);
+            else
+                chatInput.value.innerText = trimFromActivationPhraseForwards(interim);
+        }
     }
     sr.onspeechend = () => {
         sr.stop();
@@ -402,8 +416,10 @@ function speechToText() {
         thereIsContent.value = chatInput.value.innerText.length !== 0
         if (store.speechRecognitionAutoSend)
             sendMessage();
-        if(store.speechRecognitionAlwaysOn)
-            speechToText()
+        if(_speechRecognitionAlwaysOn) {
+            speechRecognitionPhraseActivated.value = false
+            speechToText();
+        }
 
     }
     sr.start();
@@ -418,9 +434,25 @@ const availableMicro = computed(() => {
 const activeSend = computed(() => {
     return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
 })
-const activeMicro = computed(() => {
-    return !speechRecognitionRunning.value
+const _speechRecognitionAlwaysOn = computed(() => {
+    return store.speechRecognitionAlwaysOn || (store.activeActivationPhrase)
 })
+const speechRecognitionTranscribing = computed(() => {
+    return speechRecognitionRunning.value && (
+        (speechRecognitionPhraseActivated.value || !store.activeActivationPhrase)
+    )
+})
+
+function matchActivationPhrase(text) {
+    return text.toLowerCase().includes(store.speechRecognitionPhraseActivation.toLowerCase())
+}
+function trimFromActivationPhraseForwards(text) {
+    if (!store.activeActivationPhrase)
+        return text
+    if (text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) > -1)
+        return text.substring(text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) + store.speechRecognitionPhraseActivation.length)
+    return text
+}
 
 </script>
 <style scoped lang="scss">
