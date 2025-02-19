@@ -79,6 +79,7 @@ const props = defineProps({
     speechRecognitionLang: String,
     speechRecognitionAutoSend: Boolean,
     speechRecognitionAlwaysOn: Boolean,
+    speechRecognitionBeep: Boolean,
     speechRecognitionPhraseActivation: String,
     allowAttachments: Boolean,
     authToken: String,
@@ -168,6 +169,7 @@ function initStore() {
     store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn
     store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
     store.speechRecognitionPhraseActivation = data.speechRecognitionPhraseActivation
+    store.speechRecognitionBeep = data.speechRecognitionBeep
     store.allowAttachments = data.allowAttachments
     store.authToken = data.authToken
     store.disableDayNightMode = data.disableDayNightMode

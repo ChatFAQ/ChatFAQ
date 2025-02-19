@@ -43,6 +43,7 @@ export const useGlobalStore = defineStore('globalStore', {
             speechRecognitionAlwaysOn: false,
             speechRecognitionLang: 'en-US',
             speechRecognitionPhraseActivation: undefined,
+            speechRecognitionBeep: false,
             allowAttachments: false,
             authToken: undefined,
             messagesToBeSentSignal: 0,

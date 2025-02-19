@@ -67,6 +67,8 @@ import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
+import beepAudio from '~/assets/audio/beep.mp3';
+
 const store = useGlobalStore();
 
 const chatInput = ref(null);
@@ -83,6 +85,7 @@ let historyIndexHumanMsg = -1
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechRecognition = ref(new SpeechRecognition())
 const speechRecognitionRunning = ref(false)
+const audio = new Audio(beepAudio);
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
@@ -92,7 +95,11 @@ watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 watch(() => store.selectedPlConversationId, () => {
     conversationClosed.value = false
 })
-
+watch(speechRecognitionPhraseActivated, (val) => {
+    if (store.speechRecognitionBeep && val) {
+        audio.play();
+    }
+})
 onMounted(async () => {
     await initializeConversation()
 })
