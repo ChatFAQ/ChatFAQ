@@ -1,8 +1,6 @@
 from logging import getLogger
 from typing import Callable, Dict, List, Optional, Union
 
-from pydantic import BaseModel
-
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.types import CacheConfig
 from chatfaq_sdk.utils import function_to_json
