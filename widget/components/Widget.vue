@@ -72,6 +72,7 @@ const props = defineProps({
     previewMode: Boolean,
     customCss: String,
     initialConversationMetadata: String,
+    stateOverwrite: String,
     customIFramedMsgs: String,
     stickInputPrompt: Boolean,
     speechRecognition: Boolean,
@@ -89,6 +90,7 @@ const props = defineProps({
 
 const jsonProps = [
     "initialConversationMetadata",
+    "stateOverwrite",
     "customIFramedMsgs"
 ]
 
@@ -174,6 +176,7 @@ function initStore() {
     }
     store.customIFramedMsgs = data.customIFramedMsgs
     store.initialConversationMetadata = data.initialConversationMetadata
+    store.stateOverwrite = data.stateOverwrite
 
     store.fsmDef = data.fsmDef;
     store.title = data.title;

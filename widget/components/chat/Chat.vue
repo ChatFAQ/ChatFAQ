@@ -138,6 +138,16 @@ function createConnection() {
         queryParams += `token=${encodeURIComponent(store.authToken)}`
     }
 
+
+    if (store.stateOverwrite) {
+        if (queryParams.length) {
+            queryParams += "&"
+        } else {
+            queryParams = "?"
+        }
+        queryParams += `state_overwrite=${encodeURIComponent(store.stateOverwrite)}`
+    }
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
