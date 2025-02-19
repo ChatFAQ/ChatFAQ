@@ -21,6 +21,7 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     agent = Agent(
         sdk=sdk,
+        model_name=MODEL_NAME,
         tools=[get_weather],
         system_instruction="You are a knowledgeable weather assistant. Use provided tools when necessary."
     )

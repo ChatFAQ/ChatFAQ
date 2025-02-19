@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional, Union, Tuple, Callable
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
 from chat_rag.llms.types import Message
 
 
@@ -43,3 +44,18 @@ class LLM:
         tool_choice: str = None,
     ) -> Message:
         pass
+
+    def parse(
+        self,
+        messages: List[Dict[str, str]],
+        schema: Dict,
+    ) -> Message:
+        raise NotImplementedError("This LLM does not support enforced structured output.")
+
+    async def aparse(
+        self,
+        messages: List[Dict[str, str]],
+        schema: Dict,
+    ) -> Message:
+        raise NotImplementedError("This LLM does not support enforced structured output.")
+    

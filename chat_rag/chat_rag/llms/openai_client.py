@@ -1,7 +1,8 @@
-from typing import Callable, Dict, List, Union
 import json
+from typing import Callable, Dict, List, Union
 
 from openai import AsyncOpenAI, OpenAI
+from openai.lib._pydantic import _ensure_strict_json_schema
 
 from chat_rag.llms.types import Content, Message, ToolUse, Usage
 
@@ -27,7 +28,9 @@ class OpenAIChatModel(LLM):
         """
         Format the tools from a openai dict or a callable function to the OpenAI format.
         """
-        tools_formatted, tool_choice = format_tools(tools, tool_choice, mode=Mode.OPENAI_TOOLS)
+        tools_formatted, tool_choice = format_tools(
+            tools, tool_choice, mode=Mode.OPENAI_TOOLS
+        )
 
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool["function"]["name"] for tool in tools_formatted]:
@@ -278,3 +281,67 @@ class OpenAIChatModel(LLM):
         )
 
         return self._map_openai_message(response)
+
+    def parse(
+        self,
+        messages: List[Union[Dict, Message]],
+        schema: Dict,
+        **kwargs,
+    ) -> Message:
+        """
+        Parse the response from the model into a structured format.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        schema : Dict
+            The schema to use for the response. It must be a pydantic model json schema, it can be generated using the `model_json_schema` method of the pydantic model.
+        Returns
+        -------
+        Message
+            The parsed message.
+        """
+        messages = self._format_messages(messages)
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "schema": _ensure_strict_json_schema(schema, path=(), root=schema),
+                "name": schema["title"],
+                "strict": True,
+            },
+        }
+
+        response = self.client.beta.chat.completions.parse(
+            model=self.llm_name,
+            messages=messages,
+            response_format=response_format,
+        )
+
+        return json.loads(response.choices[0].message.content)
+    
+    async def aparse(
+        self,
+        messages: List[Union[Dict, Message]],
+        schema: Dict,
+        **kwargs,
+    ) -> Message:
+        """
+        Parse the response from the model into a structured format.
+        """
+        messages = self._format_messages(messages)
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {
+                "schema": _ensure_strict_json_schema(schema, path=(), root=schema),
+                "name": schema["title"],
+                "strict": True,
+            },
+        }
+
+        response = await self.aclient.beta.chat.completions.parse(
+            model=self.llm_name,
+            messages=messages,
+            response_format=response_format,
+        )
+
+        return json.loads(response.choices[0].message.content)
