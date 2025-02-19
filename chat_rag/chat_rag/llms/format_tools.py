@@ -1,6 +1,6 @@
 import enum
 import inspect
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 
 def function_to_json(func) -> dict:
@@ -114,15 +114,33 @@ def uppercase_types_recursively(schema: Dict[str, Any]) -> Dict[str, Any]:
     return schema
 
 
+def _check_tool_choice(tools: List[Dict], tool_choice: str) -> str:
+    """
+    Adhere to the tool_choice parameter requirements.
+    """
+
+    if tool_choice:
+        tool_choices = ["required", "auto"] + [
+            tool["function"]["name"] for tool in tools
+        ]
+        assert tool_choice in tool_choices, (
+            f"tool_choice must be one of {tool_choices}"
+        )
+
+    return tool_choice
+
+
 def format_tools(
-    tools: List[Union[Callable, Dict]], mode: Mode
-) -> List[Dict[str, Any]]:
+    tools: List[Union[Callable, Dict]], tool_choice: str, mode: Mode
+) -> Tuple[List[Dict[str, Any]], str]:
     """
     Given a series of functions, return the JSON schema required by each LLM provider.
     Parameters
     ----------
     tools : List[Union[Callable, Dict]]
         A list of tools in the OpenAI JSON format or a callable function.
+    tool_choice : str
+        The tool_choice parameter to use for the LLM provider
     mode : Mode
         The LLM provider to format the tools for
     Returns
@@ -132,6 +150,7 @@ def format_tools(
     """
     # first convert to the openai dict format if they are a callable
     tools = [function_to_json(tool) if callable(tool) else tool for tool in tools]
+    tool_choice = _check_tool_choice(tools, tool_choice)
     tools_formatted = []
     if mode in {Mode.OPENAI_TOOLS, Mode.MISTRAL_TOOLS}:
         for tool in tools:
@@ -150,4 +169,4 @@ def format_tools(
     else:
         raise ValueError(f"Unknown mode {mode}")
 
-    return tools_formatted
+    return tools_formatted, tool_choice

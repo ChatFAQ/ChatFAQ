@@ -26,9 +26,7 @@ class ClaudeChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the OpenAI format.
         """
-        tools_formatted = format_tools(tools, mode=Mode.ANTHROPIC_TOOLS)
-        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
-
+        tools_formatted, tool_choice = format_tools(tools, tool_choice, mode=Mode.ANTHROPIC_TOOLS)
 
         # If any messages have cache_control, add cache_control to the last tool so they are cached also
         if any(message.get("cache_control") for message in messages):
@@ -37,7 +35,7 @@ class ClaudeChatModel(LLM):
 
         if tool_choice:
             # If the tool_choice is a named tool, then apply correct formatting
-            if tool_choice in [tool["title"] for tool in tools]:
+            if tool_choice in [tool["name"] for tool in tools_formatted]:
                 tool_choice = {"type": "tool", "name": tool_choice}
             else:  # if it's required or auto, then apply the correct formatting
                 tool_choice = (
@@ -127,7 +125,7 @@ class ClaudeChatModel(LLM):
                 input_tokens=message.usage.input_tokens,
                 output_tokens=message.usage.output_tokens,
                 cache_creation_input_tokens=message.usage.cache_creation_input_tokens,
-                cache_creation_read_tokens=message.usage.cache_creation_read_tokens,
+                cache_creation_read_tokens=message.usage.cache_read_input_tokens,
             ),
         )
 

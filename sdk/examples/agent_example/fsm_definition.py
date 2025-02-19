@@ -5,6 +5,8 @@ from chatfaq_sdk.layers import Message, StreamingMessage, ToolUse, ToolResult
 from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 
+MODEL_NAME = "gemini-2.0-flash"
+
 def get_weather(location: str) -> str:
     """
     Get current temperature for a given location.
@@ -24,7 +26,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
 
     response = await llm_request(
         sdk,
-        "gpt-4o",
+        MODEL_NAME,
         use_conversation_context=False,
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
@@ -66,7 +68,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
         
         response = await llm_request(
             sdk,
-            "gpt-4o",
+            MODEL_NAME,
             messages=messages,
             use_conversation_context=False,
             conversation_id=ctx["conversation_id"],

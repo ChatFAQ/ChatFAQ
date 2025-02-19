@@ -49,15 +49,14 @@ class GeminiChatModel(LLM):
         """
         Format the tools from a generic BaseModel to the Gemini format.
         """
-        tools_formatted = format_tools(tools, mode=Mode.GEMINI_TOOLS)
-        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
+        tools_formatted, tool_choice = format_tools(tools, tool_choice, mode=Mode.GEMINI_TOOLS)
 
         tools_formatted = [
             Tool(function_declarations=[tool]) for tool in tools_formatted
         ]
 
         # If the tool_choice is a named tool, then apply correct formatting
-        if tool_choice in [tool["title"] for tool in tools]:
+        if tool_choice in [tool.function_declarations[0].name for tool in tools_formatted]:
             tool_choice = ToolConfig(
                 function_calling_config=FunctionCallingConfig(
                     mode="ANY", allowed_function_names=[tool_choice]
@@ -66,7 +65,7 @@ class GeminiChatModel(LLM):
         elif tool_choice == "required":
             tool_choice = ToolConfig(
                 function_calling_config=FunctionCallingConfig(
-                    mode="ANY", allowed_function_names=[tool["title"] for tool in tools]
+                    mode="ANY", allowed_function_names=[tool.function_declarations[0].name for tool in tools_formatted]
                 )
             )
         elif tool_choice == "auto":
@@ -232,8 +231,6 @@ class GeminiChatModel(LLM):
         """
         def format_content(message: Message):
             parts = []
-            tool_calls = []
-            tool_results = []
             if isinstance(message.content, str):
                 parts = [Part(text=message.content)]
             else:
@@ -241,9 +238,13 @@ class GeminiChatModel(LLM):
                     if content.type == "text":
                         parts.append(Part(text=content.text))
                     elif content.type == "tool_use":
-                        tool_calls.append(Part(function_call=FunctionCall(id=content.tool_use.id, name=content.tool_use.name, args=content.tool_use.args)))
+                        parts.append(Part(function_call=FunctionCall(id=content.tool_use.id, name=content.tool_use.name, args=content.tool_use.args)))
                     elif content.type == "tool_result":
-                        tool_results.append(Part(function_response=FunctionResponse(id=content.tool_result.id, name=content.tool_result.name, response=content.tool_result.result)))
+                        result = content.tool_result.result
+                        if isinstance(result, str):
+                            result = {"content": result}
+                        parts.append(Part(function_response=FunctionResponse(id=content.tool_result.id, name=content.tool_result.name, response=result)))
+
             return parts
 
         messages = [Message(**m) if isinstance(m, Dict) else m for m in messages]

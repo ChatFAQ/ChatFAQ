@@ -27,8 +27,7 @@ class OpenAIChatModel(LLM):
         """
         Format the tools from a openai dict or a callable function to the OpenAI format.
         """
-        tools_formatted = format_tools(tools, mode=Mode.OPENAI_TOOLS)
-        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
+        tools_formatted, tool_choice = format_tools(tools, tool_choice, mode=Mode.OPENAI_TOOLS)
 
         # If the tool_choice is a named tool, then apply correct formatting
         if tool_choice in [tool["function"]["name"] for tool in tools_formatted]:

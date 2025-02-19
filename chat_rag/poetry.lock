@@ -1472,20 +1472,19 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [[package]]
 name = "google-genai"
-version = "0.5.0"
+version = "1.2.0"
 description = "GenAI Python SDK"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "google_genai-0.5.0-py3-none-any.whl", hash = "sha256:9b30c6f1a9208da0378ca2ba03d3c0ed7ac49a264622a54d19e0e6adc16464ec"},
-    {file = "google_genai-0.5.0.tar.gz", hash = "sha256:69ded0313f35a0cb624a4dee22ae2448068a87105859c6fc338e52e9ac26ecc2"},
+    {file = "google_genai-1.2.0-py3-none-any.whl", hash = "sha256:609d61bee73f1a6ae5b47e9c7dd4b469d50318f050c5ceacf835b0f80f79d2d9"},
 ]
 
 [package.dependencies]
 google-auth = ">=2.14.1,<3.0.0dev"
-pillow = ">=10.0.0,<12.0.0"
 pydantic = ">=2.0.0,<3.0.0dev"
 requests = ">=2.28.1,<3.0.0dev"
+typing-extensions = ">=4.11.0,<5.0.0dev"
 websockets = ">=13.0,<15.0dev"
 
 [[package]]
@@ -6495,4 +6494,4 @@ full = ["accelerate", "bm25s", "einops", "hdbscan", "pillow", "protobuf", "ragat
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "f4e39464354746ff7c75e3a12d5c8bf5c0cf9a8719a89bc34941ebc49edb4deb"
+content-hash = "39c423892d1b09bb60ecbaf6de4d4daca51006ec284a773f7e0b250507a37839"
