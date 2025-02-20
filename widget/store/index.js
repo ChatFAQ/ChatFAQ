@@ -265,8 +265,6 @@ function initializeSpeechVoices(state) {
         const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
 
         function populateVoiceList() {
-            console.log("YAY!")
-            console.log(state)
             if (typeof speechSynthesis === "undefined")
                 return;
             state.speechSynthesisVoices = speechSynthesis.getVoices();
