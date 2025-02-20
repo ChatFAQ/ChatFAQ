@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useGlobalStore = defineStore('globalStore', {
     state: () => {
-        return {
+        const _state = {
             fsmDef: undefined,
             chatfaqWS: undefined,
             chatfaqAPI: undefined,
@@ -52,12 +52,15 @@ export const useGlobalStore = defineStore('globalStore', {
             enableLogout: false,
             enableResend: false,
             resendMsgId: undefined,
-            speechSynthesisSupported: 'speechSynthesis' in window,
+            speechSynthesisSupported: 'speechSynthesis' in window || 'webkitSpeechSynthesis' in window,
             speechSynthesisEnabled: false,
             speechSynthesisPitch: 1,
             speechSynthesisRate: 1,
-            speechSynthesisVoices: undefined,
+            speechSynthesisVoices: [],
+            speechVoicesInitialized: false,
         }
+        initializeSpeechVoices(_state)
+        return _state
     },
     actions: {
         async gatherConversations() {
@@ -247,6 +250,32 @@ export const useGlobalStore = defineStore('globalStore', {
             if (state.speechRecognitionPhraseActivation)
                 return state.speechRecognitionPhraseActivation.length > 0
             return false
+        },
+        getSpeechSynthesisVoice: (state) => (voiceURI) => {
+            if (state.speechSynthesisVoices.length === 0)
+                return
+            return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
         }
     }
 })
+
+
+function initializeSpeechVoices(state) {
+    if ('speechSynthesis' in window || 'webkitSpeechSynthesis' in window) {
+        const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+
+        function populateVoiceList() {
+            console.log("YAY!")
+            console.log(state)
+            if (typeof speechSynthesis === "undefined")
+                return;
+            state.speechSynthesisVoices = speechSynthesis.getVoices();
+            state.speechVoicesInitialized = true;
+        }
+
+        if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+    }
+    return false
+}

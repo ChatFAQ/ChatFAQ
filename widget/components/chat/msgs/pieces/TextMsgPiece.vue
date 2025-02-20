@@ -32,15 +32,12 @@ import { markdown } from "markdown";
 
 const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
 const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+
 const store = useGlobalStore();
 
 const props = defineProps(["data", "isLast", "isLastChunk"]);
-const hightlight_light = "#4630751a"
-const hightlight_dark = "#1A0438"
 
 const displayAllImgRef = ref(false);
-const speechBuffer = ref(''); // Buffer to accumulate unspoken text
-const receivedContent = ref(''); // Track the entire received content
 
 const minImgRefs = computed(() => {
     if (store.isPhone)
@@ -108,21 +105,46 @@ function openInNewTab(url) {
     win.focus();
 }
 
-// For non-streaming messages, speak the entire message on initial mount
-onMounted(() => {
-    if (store.speechSynthesisEnabled) {
-        const content = props.data.payload.content;
-        if (content && props.isLastChunk) {
-            const utterance = new SpeechSynthesisUtterance(content);
-            configureUtterance(utterance);
-            speechSynthesis.speak(utterance);
-        }
-    }
-});
 
-// Watch for streaming messages
-watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: newMessage, isLastChunk }) => {
-    if (store.speechSynthesisEnabled) {
+function splitIntoSentences(text) {
+    // Regex that handles abbreviations and sentence endings
+    const sentenceRegex = /\b(\w\.\w\.|[A-Z][a-z]{1,2}\.)|([.?!])\s+(?=[A-Za-z])/g;
+
+    // Replace sentence endings with a marker, preserving abbreviations
+    const markedText = text.replace(sentenceRegex, (match, g1, g2) => {
+        return g1 ? g1 : g2 + "\n";
+    });
+
+    // Split into sentences and filter out empty strings
+    const sentences = markedText.split("\n")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+    // The remaining text is the last element if it doesn't end with a sentence marker
+    const remaining = sentences.pop() || '';
+
+    return { sentences, remaining };
+}
+
+// ---------------------------------------- Speech logic ----------------------------------------
+
+const speechBuffer = ref(''); // Buffer to accumulate unspoken text
+const receivedContent = ref(''); // Track the entire received content
+
+// ------- non-streaming messages -------
+onMounted(() => {
+    speechIt({ data: props.data, isLastChunk: props.isLastChunk })
+});
+// ------- streaming messages -------
+watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), speechIt, { immediate: false });
+
+watch (() => store.speechVoicesInitialized, (val) => {
+    if (val)
+        speechIt({ data: props.data, isLastChunk: props.isLastChunk })
+})
+
+function speechIt ({ data: newMessage, isLastChunk }) {
+    if (store.speechSynthesisEnabled && store.speechVoicesInitialized) {
         const newContent = newMessage.payload.content;
 
         // Calculate delta from the last received content
@@ -152,26 +174,6 @@ watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), ({ data: new
             speechBuffer.value = ''; // Clear buffer after speaking
         }
     }
-}, { immediate: false });
-
-function splitIntoSentences(text) {
-    // Regex that handles abbreviations and sentence endings
-    const sentenceRegex = /\b(\w\.\w\.|[A-Z][a-z]{1,2}\.)|([.?!])\s+(?=[A-Za-z])/g;
-
-    // Replace sentence endings with a marker, preserving abbreviations
-    const markedText = text.replace(sentenceRegex, (match, g1, g2) => {
-        return g1 ? g1 : g2 + "\n";
-    });
-
-    // Split into sentences and filter out empty strings
-    const sentences = markedText.split("\n")
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-
-    // The remaining text is the last element if it doesn't end with a sentence marker
-    const remaining = sentences.pop() || '';
-
-    return { sentences, remaining };
 }
 
 function configureUtterance(utterance) {
