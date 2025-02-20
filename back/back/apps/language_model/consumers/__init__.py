@@ -1,7 +1,7 @@
 import json
 import uuid
 from logging import getLogger
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable, Awaitable
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -210,16 +210,19 @@ async def query_llm(
     cache_config: Optional[Dict] = None,
     response_schema: Optional[Dict] = None,
     stream: bool = False,
+    error_handler: Callable[[dict], Awaitable[None]] = None,
 ):
     try:
         llm_config = await database_sync_to_async(LLMConfig.enabled_objects.get)(
             name=llm_config_name
         )
     except LLMConfig.DoesNotExist:
-        yield {
-            "content": [{"type": "text", "text": f"LLM config with name: {llm_config_name} does not exist."}],
-            "last_chunk": True,
-        }
+        await error_handler({
+            "payload": {
+                "errors": f"LLM config with name: {llm_config_name} does not exist.",
+                "request_info": {"llm_config_name": llm_config_name},
+            }
+        })
         return
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
@@ -238,25 +241,24 @@ async def query_llm(
                 # pop the system message
                 messages = messages[1:]
         elif not prev_messages:
-            yield {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Error: No previous messages and no messages provided.",
-                    }
-                ],
-                "last_chunk": True,
-            }
+            await error_handler({
+                "payload": {
+                    "errors": "Error: No previous messages and no messages provided.",
+                    "request_info": {"conversation_id": conversation_id},
+                }
+            })
             return
         if messages:
             new_messages.extend(messages)
     else:
         new_messages = messages
         if new_messages is None:
-            yield {
-                "content": [{"type": "text", "text": "Error: No messages provided."}],
-                "last_chunk": True,
-            }
+            await error_handler({
+                "payload": {
+                    "errors": "Error: No messages provided.",
+                    "request_info": {"conversation_id": conversation_id},
+                }
+            })
             return
 
     try:
@@ -323,10 +325,12 @@ async def query_llm(
 
     except Exception as e:
         logger.error("Error during LLM query", exc_info=e)
-        yield {
-            "content": [{"type": "text", "text": "There was an error generating the response. Please try again or contact the administrator."}],
-            "last_chunk": True,
-        }
+        await error_handler({
+            "payload": {
+                "errors": "There was an error generating the response. Please try again or contact the administrator.",
+                "request_info": {"conversation_id": conversation_id},
+            }
+        })
         return
 
 
@@ -425,6 +429,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("cache_config"),
             data.get("response_schema"),
             data.get("stream"),
+            error_handler=self.error_response,
         ):
             await self.send(
                 json.dumps(

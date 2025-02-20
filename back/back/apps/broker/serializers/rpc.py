@@ -128,6 +128,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     stream = serializers.BooleanField(default=False)
     use_conversation_context = serializers.BooleanField(default=True)
     response_schema = serializers.JSONField(default=dict, required=False, allow_null=True)
+    cache_config = CacheConfigSerializer(required=False, allow_null=True)
     
     def validate(self, attrs):
         if not attrs.get("messages") and not attrs.get("use_conversation_context"):

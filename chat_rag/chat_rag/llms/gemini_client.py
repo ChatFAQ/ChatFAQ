@@ -402,7 +402,7 @@ class GeminiChatModel(LLM):
 
             if name:  # If the cache exists, use it
                 config_kwargs["cached_content"] = name
-                response = self.client.aio.models.generate_content_stream(
+                response = await self.client.aio.models.generate_content_stream(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
@@ -413,7 +413,7 @@ class GeminiChatModel(LLM):
                     cached_messages, system_prompt, cache_config
                 )
                 config_kwargs["cached_content"] = cache_name
-                response = self.client.aio.models.generate_content_stream(
+                response = await self.client.aio.models.generate_content_stream(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
@@ -422,7 +422,7 @@ class GeminiChatModel(LLM):
             # Add system prompt to the config
             config_kwargs["system_instruction"] = system_prompt
             # No caching needed
-            response = self.client.aio.models.generate_content_stream(
+            response = await self.client.aio.models.generate_content_stream(
                 model=self.llm_name,
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),

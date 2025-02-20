@@ -13,7 +13,7 @@ growing for some uses cases we may not need to do retrieval and just pass the wh
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Message("How can I help you today?", allow_feedback=False)
+    yield Message("How can I help you today?")
 
 
 async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
