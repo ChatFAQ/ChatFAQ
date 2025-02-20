@@ -127,12 +127,25 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
     stream = serializers.BooleanField(default=False)
     use_conversation_context = serializers.BooleanField(default=True)
-
+    response_schema = serializers.JSONField(default=dict, required=False, allow_null=True)
+    
     def validate(self, attrs):
         if not attrs.get("messages") and not attrs.get("use_conversation_context"):
             raise serializers.ValidationError(
                 "If there are no messages then use_conversation_context should be always True"
             )
+
+        if attrs.get("tools") and attrs.get("response_schema"):
+            raise serializers.ValidationError(
+                "There cannot be tools and response schema at the same time"
+            )
+
+        if attrs.get("tools") and attrs.get("stream"):
+            raise serializers.ValidationError("ChatFAQ doesn't support streaming when using tools")
+        
+        if attrs.get("response_schema") and attrs.get("stream"):
+            raise serializers.ValidationError("ChatFAQ doesn't support structured output when streaming")
+
         return attrs
 
 

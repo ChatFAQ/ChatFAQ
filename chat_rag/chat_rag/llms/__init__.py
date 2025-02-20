@@ -6,8 +6,16 @@ from chat_rag.llms.format_tools import Mode, format_tools
 from chat_rag.llms.gemini_client import GeminiChatModel
 from chat_rag.llms.mistral_client import MistralChatModel
 from chat_rag.llms.openai_client import OpenAIChatModel
+from chat_rag.llms.together_client import TogetherChatModel
+from chat_rag.llms.types import (
+    CacheConfig,
+    Content,
+    Message,
+    ToolResult,
+    ToolUse,
+    Usage,
+)
 from chat_rag.llms.vllm_client import VLLMModel
-from chat_rag.llms.types import Message, CacheConfig, Usage, Content, ToolResult, ToolUse
 
 __all__ = [
     "LLM",
@@ -24,6 +32,7 @@ __all__ = [
     "Content",
     "ToolResult",
     "ToolUse",
+    "TogetherChatModel",
 ]
 
 
@@ -32,16 +41,11 @@ LLM_CLASSES = {
     "mistral": MistralChatModel,
     "openai": OpenAIChatModel,
     "vllm": VLLMModel,
-    "together": OpenAIChatModel,
+    "together": TogetherChatModel,
     "gemini": GeminiChatModel,
 }
 
 def load_llm(llm_type: str, llm_name: str, base_url: str = None, model_max_length: int = None, api_key: str = None) -> LLM:
-    
-    # For Together model, set the fixed TOGETHER url
-    if llm_type == "together":
-        base_url = "https://api.together.xyz/v1"
-        api_key = os.environ.get("TOGETHER_API_KEY")
 
     llm = LLM_CLASSES[llm_type](
         llm_name,

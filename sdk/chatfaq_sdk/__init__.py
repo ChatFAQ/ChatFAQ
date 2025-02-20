@@ -334,6 +334,7 @@ class ChatFAQSDK:
         bot_channel_name,
         use_conversation_context,
         cache_config,
+        response_schema,
         stream,
     ):
         logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
@@ -356,6 +357,7 @@ class ChatFAQSDK:
                         "tool_choice": tool_choice,
                         "use_conversation_context": use_conversation_context,
                         "cache_config": cache_config.__dict__ if cache_config else None,
+                        "response_schema": response_schema,
                         "stream": stream,
                     },
                 }

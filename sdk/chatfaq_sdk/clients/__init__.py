@@ -21,6 +21,7 @@ def llm_request(
     bot_channel_name: str = None,
     use_conversation_context: bool = True,
     cache_config: Optional[CacheConfig] = None,
+    response_schema: Optional[Dict] = None,
     stream: bool = False,
 ):
     """
@@ -48,6 +49,7 @@ def llm_request(
             bot_channel_name,
             use_conversation_context,
             cache_config,
+            response_schema,
             stream,
         )
     else:
@@ -64,6 +66,7 @@ def llm_request(
             bot_channel_name,
             use_conversation_context,
             cache_config,
+            response_schema,
             stream,
         )
 
@@ -81,6 +84,7 @@ async def _llm_request_non_streaming(
     bot_channel_name: str = None,
     use_conversation_context: bool = True,
     cache_config: Optional[CacheConfig] = None,
+    response_schema: Optional[Dict] = None,
     stream: bool = False,  # always False in this branch
 ):
     if tools:
@@ -98,6 +102,7 @@ async def _llm_request_non_streaming(
         bot_channel_name,
         use_conversation_context,
         cache_config,
+        response_schema,
         stream,
     )
 
@@ -121,6 +126,7 @@ async def _llm_request_streaming(
     bot_channel_name: str = None,
     use_conversation_context: bool = True,
     cache_config: Optional[CacheConfig] = None,
+    response_schema: Optional[Dict] = None,
     stream: bool = True,  # always True in this branch
 ):
     if tools:
@@ -138,6 +144,7 @@ async def _llm_request_streaming(
         bot_channel_name,
         use_conversation_context,
         cache_config,
+        response_schema,
         stream,
     )
 

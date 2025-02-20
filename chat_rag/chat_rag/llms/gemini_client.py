@@ -1,4 +1,5 @@
 import os
+import json
 from typing import Callable, Dict, List, Tuple, Union
 
 from google import genai
@@ -15,7 +16,7 @@ from google.genai.types import (
     FunctionResponse,
 )
 
-from chat_rag.llms.types import Message, Usage, Content, ToolUse, ToolResult
+from chat_rag.llms.types import Message, Usage, Content, ToolUse
 from chat_rag.llms.base_llm import LLM
 from chat_rag.llms.format_tools import Mode, format_tools
 
@@ -556,3 +557,43 @@ class GeminiChatModel(LLM):
                 config=GenerateContentConfig(**config_kwargs),
             )
         return self._map_gemini_message(response)
+    
+    def parse(self, messages: List[Dict | Message], schema: Dict) -> Dict:
+        """
+        Parse the response from the model into a structured format.
+        """
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, 1.0, 4096, None, None, None
+        )
+        if cached_messages:
+            raise ValueError("Cached messages are not supported for structured output.")
+        
+        config_kwargs["system_instruction"] = system_prompt
+        config_kwargs["response_schema"] = schema
+        config_kwargs["response_mime_type"] = "application/json"
+        response = self.client.models.generate_content(
+            model=self.llm_name,
+            contents=contents,
+            config=GenerateContentConfig(**config_kwargs),
+        )
+        return json.loads(response.text)
+
+    async def aparse(self, messages: List[Dict | Message], schema: Dict) -> Dict:
+        """
+        Parse the response from the model into a structured format.
+        """
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, 1.0, 4096, None, None, None
+        )
+        if cached_messages:
+            raise ValueError("Cached messages are not supported for structured output.")
+        
+        config_kwargs["system_instruction"] = system_prompt
+        config_kwargs["response_schema"] = schema
+        config_kwargs["response_mime_type"] = "application/json"
+        response = await self.client.aio.models.generate_content(
+            model=self.llm_name,
+            contents=contents,
+            config=GenerateContentConfig(**config_kwargs),
+        )
+        return json.loads(response.text)

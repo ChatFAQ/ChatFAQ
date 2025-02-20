@@ -105,7 +105,6 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
         else:
             merged.extend(new)
         return merged
-
     # Iterate over each message in the msgs_chain, grouping contiguous messages by sender type.
     for msg in msgs_chain:
         # Map sender type to LLM context role.
@@ -209,6 +208,7 @@ async def query_llm(
     tool_choice: str = None,
     use_conversation_context: bool = True,
     cache_config: Optional[Dict] = None,
+    response_schema: Optional[Dict] = None,
     stream: bool = False,
 ):
     try:
@@ -223,13 +223,11 @@ async def query_llm(
         return
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-
     if use_conversation_context:
         prev_messages = format_msgs_chain_to_llm_context(
             await database_sync_to_async(list)(conv.get_msgs_chain())
         )
         new_messages = prev_messages.copy()
-
         if messages: # In case the fsm sends messages
             if messages[0]["role"] == AgentType.system.value:
                 if prev_messages[0].role == AgentType.system.value:
@@ -277,8 +275,18 @@ async def query_llm(
             model_max_length=llm_config.model_max_length,
             api_key=api_key,
         )
+
+        if response_schema:
+            response_message = await llm.aparse(
+                messages=new_messages,
+                schema=response_schema,
+            )
+            yield {
+                "content": response_message,
+                "last_chunk": True,
+            }
         # chat_rag models don't support streaming when using tools
-        if stream and not tools:
+        elif stream:
             response = llm.astream(
                 messages=new_messages,
                 temperature=temperature,
@@ -415,6 +423,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("tool_choice"),
             data.get("use_conversation_context"),
             data.get("cache_config"),
+            data.get("response_schema"),
             data.get("stream"),
         ):
             await self.send(

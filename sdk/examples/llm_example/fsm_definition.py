@@ -10,16 +10,16 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
-    messages = convert_mml_to_llm_format(ctx["conv_mml"][1:]) # skip the greeting message
-    messages.insert(0, {"role": "system", "content": "You are a helpful assistant."})
+    # messages = convert_mml_to_llm_format(ctx["conv_mml"][1:]) # skip the greeting message
+    # messages.insert(0, {"role": "system", "content": "You are a helpful assistant."})
 
     generator = llm_request(
         sdk,
         "gpt-4o",
-        use_conversation_context=True,
+        use_conversation_context=True, # If this is true the backend will send the previous messages to the LLM. Otherwise, the fsm manages the conversation.
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
-        messages=messages,
+        # messages=messages,
         stream=True,
     )
 
