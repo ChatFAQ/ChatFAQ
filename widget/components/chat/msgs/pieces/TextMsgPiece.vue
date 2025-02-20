@@ -142,6 +142,10 @@ watch (() => store.speechVoicesInitialized, (val) => {
     if (val)
         speechIt({ data: props.data, isLastChunk: props.isLastChunk })
 })
+watch(() => store.speechRecognitionTranscribing, (val) => {
+    if (val)
+        cancelSynthesis();
+})
 
 function speechIt ({ data: newMessage, isLastChunk }) {
     if (store.speechSynthesisEnabled && store.speechVoicesInitialized) {
@@ -193,13 +197,17 @@ function configureUtterance(utterance) {
     }
 }
 
-onBeforeUnmount(() => {
+
+function cancelSynthesis() {
     if (speechSynthesis) {
         speechSynthesis.cancel(); // Stop any ongoing speech
         speechBuffer.value = ''; // Clear the speech buffer
         receivedContent.value = ''; // Reset received content
     }
-});
+}
+
+onBeforeUnmount(cancelSynthesis);
+
 
 </script>
 <style lang="scss">

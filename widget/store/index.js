@@ -43,6 +43,8 @@ export const useGlobalStore = defineStore('globalStore', {
             speechRecognitionAlwaysOn: false,
             speechRecognitionLang: 'en-US',
             speechRecognitionPhraseActivation: undefined,
+            speechRecognitionRunning: false,
+            speechRecognitionPhraseActivated: false,
             speechRecognitionBeep: false,
             allowAttachments: false,
             authToken: undefined,
@@ -255,6 +257,9 @@ export const useGlobalStore = defineStore('globalStore', {
             if (state.speechSynthesisVoices.length === 0)
                 return
             return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
+        },
+        speechRecognitionTranscribing: (state) => {
+            return state.speechRecognitionRunning && (state.speechRecognitionPhraseActivated || !state.activeActivationPhrase)
         }
     }
 })

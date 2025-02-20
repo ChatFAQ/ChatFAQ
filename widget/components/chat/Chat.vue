@@ -43,16 +43,16 @@
                  }"
                  @click="() => {
                      if (store.activeActivationPhrase) {
-                         speechRecognitionPhraseActivated = true
+                         store.speechRecognitionPhraseActivated = true
                      } else if (!conversationClosed && availableMicro) {
                          speechToText()
                      } else if (!conversationClosed && availableSend) {
                          sendMessage()
                      }
                  }">
-                <div v-if="speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
-                <div v-if="speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
-                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !speechRecognitionTranscribing}"/>
+                <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
+                <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
+                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !store.speechRecognitionTranscribing}"/>
                 <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
             </div>
         </div>
@@ -77,14 +77,12 @@ const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
 const notRenderableStackTypes = ["gtm_tag", "close_conversation",undefined]
 const conversationClosed = ref(false)
-const speechRecognitionPhraseActivated = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechRecognition = ref(new SpeechRecognition())
-const speechRecognitionRunning = ref(false)
 const audio = new Audio(beepAudio);
 
 watch(() => store.scrollToBottom, scrollConversationDown)
@@ -95,7 +93,7 @@ watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 watch(() => store.selectedPlConversationId, () => {
     conversationClosed.value = false
 })
-watch(speechRecognitionPhraseActivated, (val) => {
+watch(() => store.speechRecognitionPhraseActivated, (val) => {
     if (store.speechRecognitionBeep && val) {
         audio.play();
     }
@@ -309,7 +307,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !conversationClosed.value
+    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning && !conversationClosed.value
 }
 
 function createMessageFromInputPrompt() {
@@ -360,7 +358,7 @@ function sendToGTM(msg) {
 
 function speechToText() {
     const sr = speechRecognition.value;
-    if (speechRecognitionRunning.value) {
+    if (store.speechRecognitionRunning) {
         sr.stop()
         return
     }
@@ -393,13 +391,13 @@ function speechToText() {
             }
         }
         if (
-            !speechRecognitionPhraseActivated.value &&
+            !store.speechRecognitionPhraseActivated &&
             store.activeActivationPhrase
         ) {
             if (
                 matchActivationPhrase(final + interim)
             ) {
-                speechRecognitionPhraseActivated.value = true
+                store.speechRecognitionPhraseActivated = true
             }
         } else {
             if (event.results[0].final)
@@ -416,15 +414,15 @@ function speechToText() {
         sr.stop();
     }
     sr.onstart = () => {
-        speechRecognitionRunning.value = true;
+        store.speechRecognitionRunning = true;
     }
     sr.onend = () => {
-        speechRecognitionRunning.value = false;
+        store.speechRecognitionRunning = false;
         thereIsContent.value = chatInput.value.innerText.length !== 0
         if (store.speechRecognitionAutoSend)
             sendMessage();
         if(_speechRecognitionAlwaysOn) {
-            speechRecognitionPhraseActivated.value = false
+            store.speechRecognitionPhraseActivated = false
             speechToText();
         }
 
@@ -439,15 +437,10 @@ const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
 })
 const activeSend = computed(() => {
-    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning
 })
 const _speechRecognitionAlwaysOn = computed(() => {
     return store.speechRecognitionAlwaysOn || (store.activeActivationPhrase)
-})
-const speechRecognitionTranscribing = computed(() => {
-    return speechRecognitionRunning.value && (
-        (speechRecognitionPhraseActivated.value || !store.activeActivationPhrase)
-    )
 })
 
 function matchActivationPhrase(text) {
