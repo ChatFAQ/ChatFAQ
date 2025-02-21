@@ -42,6 +42,7 @@ class Conversation(ChangesMixin):
     name = models.CharField(max_length=255, null=True, blank=True)
     initial_conversation_metadata = models.JSONField(default=dict)
     authentication_required = models.BooleanField(default=False)
+    fsm_state_override = models.TextField(null=True, blank=True)
 
     def get_first_msg(self):
         return Message.objects.filter(

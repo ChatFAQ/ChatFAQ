@@ -1,4 +1,5 @@
 from base64 import b64decode, b64encode
+from logging import getLogger
 
 from django import forms
 from django.conf import settings
@@ -8,6 +9,8 @@ from django.utils.encoding import force_bytes
 from django.utils.translation import gettext_lazy as _
 
 from ._core import NissaString, get_light_bringer
+
+logger = getLogger(__name__)
 
 
 class NissaStringField(models.BinaryField):
@@ -37,8 +40,9 @@ class NissaStringField(models.BinaryField):
         if value is None:
             return value
 
-        return NissaString.from_bytes(force_bytes(value))
-
+        ns = NissaString.from_bytes(force_bytes(value))
+        return ns
+    
     def to_python(self, value):
         """
         Making sure the value is always a NissaString
@@ -48,6 +52,7 @@ class NissaStringField(models.BinaryField):
 
         if isinstance(value, str):
             if not settings.AZOR_PRIVATE_KEY:
+                logger.warning("AZOR_PRIVATE_KEY is not set, returning None.")
                 return None
             lb = get_light_bringer()
             return lb.securize(value)
@@ -63,6 +68,7 @@ class NissaStringField(models.BinaryField):
 
         if isinstance(value, str):
             if not settings.AZOR_PRIVATE_KEY:
+                logger.warning("AZOR_PRIVATE_KEY is not set, returning None.")
                 return None
             lb = get_light_bringer()
             return lb.securize(value).to_bytes()
@@ -81,5 +87,14 @@ class NissaStringField(models.BinaryField):
             kwargs['widget'] = forms.TextInput(attrs={'disabled': 'disabled'})
             kwargs['help_text'] = _("API key storage is not available - encryption is not configured")
         return super().formfield(**kwargs)
+
+    def value_from_object(self, obj):
+        """
+        Returns the bytes representation of the NissaString.
+        """
+        value = super().value_from_object(obj)
+        if value is None:
+            return None
+        return value.to_bytes()
 
 

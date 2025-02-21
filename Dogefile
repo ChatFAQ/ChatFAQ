@@ -4,13 +4,13 @@ name: ChatFAQ
 # for now, we share the database cluster between envs
 databases:
   - name: psql
-    cluster_name: 'chatfaq-psql-{{ production("dev", default="dev") }}'
+    cluster_name: 'chatfaq-psql-{{ production("prod", default="dev") }}'
     db_name: "{{ deployment_key }}"
     db_user: "{{ deployment_key }}"
     engine: pg
     version: "15"
   - name: redis
-    cluster_name: 'chatfaq-redis-{{ production("dev", default="dev") }}'
+    cluster_name: 'chatfaq-redis-{{ production("prod", default="dev") }}'
     engine: redis
     version: "7"
 
@@ -40,14 +40,14 @@ env:
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
       SENTRY_DSN: '{{ secret("SENTRY_DSN_BACK") }}'
-      USE_RAY: 'True'
-  - name: ray_worker
-    variables:
-      BACKEND_HOST: "{{ back.PRIVATE_URL }}"
-      BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
-  - name: ray_build
-    variables:
-      INSTALL_CHAT_RAG: 'true'
+      USE_RAY: 'False'
+#  - name: ray_worker
+#    variables:
+#      BACKEND_HOST: "{{ back.PRIVATE_URL }}"
+#      BACKEND_TOKEN: '{{ secret("CHATFAQ_TOKEN") }}'
+#  - name: ray_build
+#    variables:
+#      INSTALL_CHAT_RAG: 'true'
   - name: widget
     variables:
       BASE_URL: "/demo"
@@ -101,7 +101,7 @@ services:
     envs: [ django ]
     port: 8000
     internal_ports: [8265, 6375, 9090]
-    instance_size: M
+    instance_size: XXS
     route_prefixes:
       - "/back"
 

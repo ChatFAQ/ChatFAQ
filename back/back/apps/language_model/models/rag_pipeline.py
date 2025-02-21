@@ -21,7 +21,7 @@ from back.apps.language_model.ray_deployments import (
 )
 from back.apps.language_model.tasks import index_task
 from back.common.models import ChangesMixin
-from back.utils import NissaStringField
+from back.utils.encrypt import NissaStringField
 
 logger = getLogger(__name__)
 

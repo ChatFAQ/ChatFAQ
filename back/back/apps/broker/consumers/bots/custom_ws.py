@@ -33,6 +33,11 @@ class CustomWSBotConsumer(WSBotConsumer):
         params = parse_qs(self.scope["query_string"])
         _meta = params.get(b"metadata", [b"{}"])
         return json.loads(_meta[0])
+    
+    async def gather_fsm_state_overwrite(self):
+        params = parse_qs(self.scope["query_string"])
+        state = params.get(b"state_overwrite", "")
+        return state[0].decode('utf-8') if state else None
 
     @classmethod
     def platform_url_paths(cls) -> str:

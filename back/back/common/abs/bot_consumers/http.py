@@ -69,7 +69,8 @@ class HTTPBotConsumer(BotConsumer, AsyncHttpConsumer):
         await self.set_conversation(
             self.gather_conversation_id(serializer.validated_data),
             await self.gather_initial_conversation_metadata(serializer.validated_data),
-            self.fsm_def.authentication_required
+            self.fsm_def.authentication_required,
+            await self.gather_fsm_state_overwrite(serializer.validated_data)
         )
 
         mml = await database_sync_to_async(serializer.to_mml)(self)
