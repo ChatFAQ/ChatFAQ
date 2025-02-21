@@ -1,7 +1,7 @@
 import json
 import uuid
 from logging import getLogger
-from typing import Dict, List, Optional, Callable, Awaitable
+from typing import Awaitable, Callable, Dict, List, Optional
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -22,6 +22,7 @@ from back.apps.language_model.models import (
     PromptConfig,
     RetrieverConfig,
 )
+from back.apps.language_model.models.enums import LLMChoices
 from back.config import settings
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
@@ -216,6 +217,14 @@ async def query_llm(
         llm_config = await database_sync_to_async(LLMConfig.enabled_objects.get)(
             name=llm_config_name
         )
+        # if the llm config is mistral then return an error that mistral is not supported yet
+        if llm_config.llm_type == LLMChoices.MISTRAL.value:
+            await error_handler({
+                "payload": {
+                    "errors": "Error: Mistral is temporarily unavailable. We're working to add support for it soon. For now, please select a different model like OpenAI.",
+                    "request_info": {"llm_config_name": llm_config_name},
+                }
+            })
     except LLMConfig.DoesNotExist:
         await error_handler({
             "payload": {
