@@ -47,7 +47,7 @@
                      } else if (!conversationClosed && availableMicro) {
                          speechToText()
                      } else if (!conversationClosed && availableSend) {
-                         sendMessage()
+                        sendMessage()
                      }
                  }">
                 <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
@@ -358,7 +358,7 @@ function sendToGTM(msg) {
 
 function speechToText() {
     const sr = speechRecognition.value;
-    if (store.speechRecognitionRunning) {
+    if (store.speechRecognitionRunning || !store.speechRecognition) {
         sr.stop()
         return
     }
@@ -410,8 +410,14 @@ function speechToText() {
         sr.stop();
     }
     sr.onerror = (event) => {
-        console.error('Error occurred in the speech recognition: ' + event.error);
-        sr.stop();
+        console.log('Error occurred in the speech recognition:', event.error)
+        store.speechRecognitionRunning = false;
+        // Don't restart if we got a not-allowed error, usually because the user has not granted permission
+        if (event.error === 'not-allowed') {
+            store.speechRecognition = false;  // Disable speech recognition entirely
+            _speechRecognitionAlwaysOn.value = false;  // Ensure we don't retry
+            return;
+        }
     }
     sr.onstart = () => {
         store.speechRecognitionRunning = true;
@@ -419,9 +425,11 @@ function speechToText() {
     sr.onend = () => {
         store.speechRecognitionRunning = false;
         thereIsContent.value = chatInput.value.innerText.length !== 0
-        if (store.speechRecognitionAutoSend)
+        if (store.speechRecognitionAutoSend){
             sendMessage();
-        if(_speechRecognitionAlwaysOn) {
+        }
+        // Only restart if we have permission and speech recognition is enabled
+        if (_speechRecognitionAlwaysOn.value && store.speechRecognition) {
             store.speechRecognitionPhraseActivated = false
             speechToText();
         }
