@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq_sdk"
-version = "0.1.45b1"
+version = "0.1.45"
 description = "ChatFAQ SDK"
 authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 readme = "README.md"
