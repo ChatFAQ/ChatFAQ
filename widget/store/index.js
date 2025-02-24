@@ -59,7 +59,7 @@ export const useGlobalStore = defineStore('globalStore', {
             speechSynthesisEnabled: false,
             speechSynthesisPitch: 1,
             speechSynthesisRate: 1,
-            speechSynthesisVoices: [],
+            speechSynthesisVoices: "",
             speechVoicesInitialized: false,
         }
         initializeSpeechVoices(_state)
