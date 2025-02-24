@@ -356,7 +356,7 @@ function sendToGTM(msg) {
 
 function speechToText() {
     const sr = speechRecognition.value;
-    if (store.speechRecognitionRunning) {
+    if (store.speechRecognitionRunning || !store.speechRecognition) {
         sr.stop()
         return
     }
@@ -410,21 +410,27 @@ function speechToText() {
         sr.stop();
     }
     sr.onerror = (event) => {
-        console.error('Error occurred in the speech recognition: ' + event.error);
-        sr.stop();
+        console.log('Error occurred in the speech recognition:', event.error)
+        store.speechRecognitionRunning = false;
+        // Don't restart if we got a not-allowed error, usually because the user has not granted permission
+        if (event.error === 'not-allowed') {
+            store.speechRecognition = false;  // Disable speech recognition entirely
+            _speechRecognitionAlwaysOn.value = false;  // Ensure we don't retry
+            return;
+        }
     }
     sr.onstart = () => {
         store.speechRecognitionRunning = true;
     }
     sr.onend = () => {
-        if(store.speechRecognitionPhraseActivated) { // that means we programmatically ended the SR because we detected the activation phrase
+        if(store.speechRecognitionPhraseActivated && store.speechRecognition) { // that means we programmatically ended the SR because we detected the activation phrase
             store.speechRecognitionPhraseActivated = false
             store._speechRecognitionTranscribing = true
 
             sr.continuous = false;
             sr.start();
 
-        } else {
+        } else if (store.speechRecognition) {
             store.speechRecognitionRunning = false;
             thereIsContent.value = chatInput.value.innerText.length !== 0
             if (store.speechRecognitionAutoSend)
