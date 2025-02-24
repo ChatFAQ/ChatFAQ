@@ -28,7 +28,20 @@ import {useGlobalStore} from "~/store";
 import {computed, ref, watch, onMounted, onBeforeUnmount} from "vue";
 import ArrowUpCircle from "~/components/icons/ArrowUpCircle.vue";
 import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
-import { markdown } from "markdown";
+import MarkdownIt from "markdown-it";
+import hljs from 'highlight.js';
+import 'highlight.js/styles/github.css'; // You can choose a different style
+
+const md = new MarkdownIt({
+    highlight: function (str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return hljs.highlight(str, { language: lang }).value;
+            } catch (__) {}
+        }
+        return ''; // use external default escaping
+    }
+});
 
 const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
 const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
@@ -64,8 +77,7 @@ function replaceMarkedDownImagesByReferences() {
 
 const markedDown = computed(() => {
     let res = props.data.payload.content;
-    res = markdown.toHTML(res);
-    // res = replaceMarkedDownImagesByReferences(res)
+    res = md.render(res);
     return res;
 });
 
