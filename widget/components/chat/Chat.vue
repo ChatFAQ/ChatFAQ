@@ -68,6 +68,7 @@ import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
 import beepAudio from '~/assets/audio/beep.mp3';
+import beepOutAudio from '~/assets/audio/beepOut.mp3';
 
 const store = useGlobalStore();
 
@@ -83,7 +84,8 @@ let historyIndexHumanMsg = -1
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechRecognition = ref(new SpeechRecognition())
-const audio = new Audio(beepAudio);
+const audioBeep = new Audio(beepAudio);
+const audioBeepOut = new Audio(beepOutAudio);
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
@@ -95,9 +97,17 @@ watch(() => store.selectedPlConversationId, () => {
 })
 watch(() => store.speechRecognitionPhraseActivated, (val) => {
     if (store.speechRecognitionBeep && val) {
-        audio.play();
+        audioBeep.play();
     }
 })
+
+watch(() => store._speechRecognitionTranscribing, (val) => {
+    if (store.speechRecognitionBeep && store.activeActivationPhrase && !val) {
+        audioBeepOut.play();
+    }
+})
+
+
 onMounted(async () => {
     await initializeConversation()
 })
