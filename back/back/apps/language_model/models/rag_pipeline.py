@@ -281,6 +281,8 @@ class LLMConfig(ChangesMixin):
             raise ValidationError({
                 'api_key': 'Cannot save API key when encryption is not configured. Please configure AZOR_PRIVATE_KEY first.'
             })
+        if self.llm_type == LLMChoices.MISTRAL:
+            raise ValidationError({'llm_type': "Mistral is temporarily unavailable. We're working to add support for it soon. For now, please select a different model."})
 
     def save(self, *args, **kwargs):
         self.clean()  # Run validation before saving
