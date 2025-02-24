@@ -245,8 +245,7 @@ function manageHotKeys(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault()
         cb();
-    }
-    else if (ev.key === 'ArrowUp' && atTheBeginning) {
+    } else if (ev.key === 'ArrowUp' && atTheBeginning) {
         // Search for the previous human message from the index historyIndexHumanMsg
         if (historyIndexHumanMsg === -1)
             historyIndexHumanMsg = store.messages.length
@@ -260,8 +259,7 @@ function manageHotKeys(ev, cb) {
                 }
             }
         }
-    }
-    else if (ev.key === 'ArrowDown' && atTheEnd) { // Searcg for the next human message from the index historyIndexHumanMsg
+    } else if (ev.key === 'ArrowDown' && atTheEnd) { // Search for the next human message from the index historyIndexHumanMsg
         ev.preventDefault()
         if (historyIndexHumanMsg === -1)
             historyIndexHumanMsg = store.messages.length
@@ -364,7 +362,7 @@ function speechToText() {
     }
 
     sr.lang = store.speechRecognitionLang;
-    sr.continuous = false;
+    sr.continuous = _speechRecognitionAlwaysOn;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
 
@@ -375,8 +373,8 @@ function speechToText() {
         sr.stop();
     }
     sr.onresult = (event) => {
-        const speechToText = event.results[0][0].transcript;
-        chatInput.value.innerText += speechToText;
+        const text = event.results[0][0].transcript;
+        chatInput.value.innerText += text;
         sr.stop();
     }
     sr.onresult = (event) => {
@@ -392,12 +390,14 @@ function speechToText() {
         }
         if (
             !store.speechRecognitionPhraseActivated &&
+            !store._speechRecognitionTranscribing &&
             store.activeActivationPhrase
         ) {
             if (
                 matchActivationPhrase(final + interim)
             ) {
                 store.speechRecognitionPhraseActivated = true
+                sr.stop()
             }
         } else {
             if (event.results[0].final)
@@ -417,15 +417,25 @@ function speechToText() {
         store.speechRecognitionRunning = true;
     }
     sr.onend = () => {
-        store.speechRecognitionRunning = false;
-        thereIsContent.value = chatInput.value.innerText.length !== 0
-        if (store.speechRecognitionAutoSend)
-            sendMessage();
-        if(_speechRecognitionAlwaysOn) {
+        if(store.speechRecognitionPhraseActivated) { // that means we programmatically ended the SR because we detected the activation phrase
             store.speechRecognitionPhraseActivated = false
-            speechToText();
-        }
+            store._speechRecognitionTranscribing = true
 
+            sr.continuous = false;
+            sr.start();
+
+        } else {
+            store.speechRecognitionRunning = false;
+            thereIsContent.value = chatInput.value.innerText.length !== 0
+            if (store.speechRecognitionAutoSend)
+                sendMessage();
+
+            sr.continuous = _speechRecognitionAlwaysOn;
+            if (store.activeActivationPhrase) {
+                store._speechRecognitionTranscribing = false
+                sr.start();
+            }
+        }
     }
     sr.start();
 }
