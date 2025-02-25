@@ -1,18 +1,22 @@
 import os
-from typing import Dict, List, Tuple, Union
+import json
+from typing import Callable, Dict, List, Tuple, Union
 
 from google import genai
 from google.genai.types import (
-    Content,
+    Content as GeminiContent,
     CreateCachedContentConfig,
     FunctionCallingConfig,
     GenerateContentConfig,
     Part,
     Tool,
     ToolConfig,
+    GenerateContentResponse,
+    FunctionCall,
+    FunctionResponse,
 )
-from pydantic import BaseModel
 
+from chat_rag.llms.types import Message, Usage, Content, ToolUse
 from chat_rag.llms.base_llm import LLM
 from chat_rag.llms.format_tools import Mode, format_tools
 
@@ -42,19 +46,18 @@ class GeminiChatModel(LLM):
         )
         self.llm_name = llm_name
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
+    def _format_tools(self, tools: List[Union[Callable, Dict]], tool_choice: str = None):
         """
         Format the tools from a generic BaseModel to the Gemini format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
+        tools_formatted, tool_choice = format_tools(tools, tool_choice, mode=Mode.GEMINI_TOOLS)
 
-        tools_formatted = format_tools(tools, mode=Mode.GEMINI_TOOLS)
         tools_formatted = [
             Tool(function_declarations=[tool]) for tool in tools_formatted
         ]
 
         # If the tool_choice is a named tool, then apply correct formatting
-        if tool_choice in [tool["title"] for tool in tools]:
+        if tool_choice in [tool.function_declarations[0].name for tool in tools_formatted]:
             tool_choice = ToolConfig(
                 function_calling_config=FunctionCallingConfig(
                     mode="ANY", allowed_function_names=[tool_choice]
@@ -63,7 +66,7 @@ class GeminiChatModel(LLM):
         elif tool_choice == "required":
             tool_choice = ToolConfig(
                 function_calling_config=FunctionCallingConfig(
-                    mode="ANY", allowed_function_names=[tool["title"] for tool in tools]
+                    mode="ANY", allowed_function_names=[tool.function_declarations[0].name for tool in tools_formatted]
                 )
             )
         elif tool_choice == "auto":
@@ -92,7 +95,40 @@ class GeminiChatModel(LLM):
     def _map_role(self, role: str) -> str:
         """Map chat roles to Gemini roles."""
         return "model" if role == "assistant" else role
+    
+    def _map_gemini_message(self, response: GenerateContentResponse) -> Message:
+        """
+        Maps a Gemini Content object to a chat_rag Message object.
+        """
+        contents: List[Content] = []
+        if response.candidates[0].content.parts:
+            for part in response.candidates[0].content.parts:
+                if part.text:
+                    contents.append(Content(type="text", text=part.text))
+                elif part.function_call:
+                    contents.append(
+                        Content(
+                            type="tool_use",
+                            tool_use=ToolUse(
+                                name=part.function_call.name,
+                                args=part.function_call.args,
+                            ),
+                        )
+                    )
 
+        usage = response.usage_metadata
+        return Message(
+            role="assistant",
+            content=contents if contents else "", # if no parts, set content to empty string
+            usage=Usage(
+                input_tokens=usage.prompt_token_count if usage else 0,
+                output_tokens=usage.candidates_token_count if usage else 0,
+                cache_creation_input_tokens=usage.total_token_count if usage else 0,
+                cache_creation_read_tokens=0
+            ),
+            stop_reason=response.candidates[0].finish_reason,
+        )
+    
     def _create_cache(
         self,
         messages: List[Dict[str, str]],
@@ -117,7 +153,7 @@ class GeminiChatModel(LLM):
             The cache name
         """
         contents = [
-            Content(
+            GeminiContent(
                 parts=[Part(text=message["content"])],
                 role=self._map_role(message["role"]),
             )
@@ -159,7 +195,7 @@ class GeminiChatModel(LLM):
             The cache name
         """
         contents = [
-            Content(
+            GeminiContent(
                 parts=[Part(text=message["content"])],
                 role=self._map_role(message["role"]),
             )
@@ -179,11 +215,11 @@ class GeminiChatModel(LLM):
 
     def _prepare_messages(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float,
         max_tokens: int,
         seed: int,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
     ) -> Tuple[str, List[Dict], List[Content], Dict]:
         """
@@ -194,15 +230,35 @@ class GeminiChatModel(LLM):
         Tuple[str, List[Dict], List[Content], Dict]
             system_prompt, cached_messages, content_messages, config_kwargs
         """
+        def format_content(message: Message):
+            parts = []
+            if isinstance(message.content, str):
+                parts = [Part(text=message.content)]
+            else:
+                for content in message.content:
+                    if content.type == "text":
+                        parts.append(Part(text=content.text))
+                    elif content.type == "tool_use":
+                        parts.append(Part(function_call=FunctionCall(id=content.tool_use.id, name=content.tool_use.name, args=content.tool_use.args)))
+                    elif content.type == "tool_result":
+                        result = content.tool_result.result
+                        if isinstance(result, str):
+                            result = {"content": result}
+                        parts.append(Part(function_response=FunctionResponse(id=content.tool_result.id, name=content.tool_result.name, response=result)))
+
+            return parts
+
+        messages = [Message(**m) if isinstance(m, Dict) else m for m in messages]
+
         # Extract system prompt if present
         system_prompt = None
-        if messages[0]["role"] == "system":
-            system_prompt = messages.pop(0)["content"]
+        if messages[0].role == "system":
+            system_prompt = messages.pop(0).content
 
         # Find the last message with cache_control
         cache_split_idx = 0
         for idx, msg in enumerate(messages):
-            if msg.get("cache_control"):
+            if msg.cache_control:
                 cache_split_idx = idx + 1
 
         # Split messages into cached and new
@@ -211,11 +267,19 @@ class GeminiChatModel(LLM):
 
         # Prepare contents for new messages
         contents = [
-            Content(
-                parts=[Part(text=message["content"])],
-                role=self._map_role(message["role"]),
+            GeminiContent(
+                parts=format_content(message),
+                role=self._map_role(message.role),
             )
             for message in new_messages
+        ]
+
+        cached_contents = [
+            GeminiContent(
+                parts=format_content(message),
+                role=self._map_role(message.role),
+            )
+            for message in cached_messages
         ]
 
         # Prepare tool configuration
@@ -230,14 +294,15 @@ class GeminiChatModel(LLM):
             "temperature": temperature,
             "max_output_tokens": max_tokens,
             "seed": seed,
+            "automatic_function_calling": {"disable": True},
             **tool_kwargs,
         }
 
-        return system_prompt, cached_messages, contents, config_kwargs
+        return system_prompt, cached_contents, contents, config_kwargs
 
     def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
@@ -304,7 +369,7 @@ class GeminiChatModel(LLM):
 
     async def astream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
@@ -337,7 +402,7 @@ class GeminiChatModel(LLM):
 
             if name:  # If the cache exists, use it
                 config_kwargs["cached_content"] = name
-                response = self.client.aio.models.generate_content_stream(
+                response = await self.client.aio.models.generate_content_stream(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
@@ -348,7 +413,7 @@ class GeminiChatModel(LLM):
                     cached_messages, system_prompt, cache_config
                 )
                 config_kwargs["cached_content"] = cache_name
-                response = self.client.aio.models.generate_content_stream(
+                response = await self.client.aio.models.generate_content_stream(
                     model=self.llm_name,
                     contents=contents,
                     config=GenerateContentConfig(**config_kwargs),
@@ -357,7 +422,7 @@ class GeminiChatModel(LLM):
             # Add system prompt to the config
             config_kwargs["system_instruction"] = system_prompt
             # No caching needed
-            response = self.client.aio.models.generate_content_stream(
+            response = await self.client.aio.models.generate_content_stream(
                 model=self.llm_name,
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
@@ -369,14 +434,14 @@ class GeminiChatModel(LLM):
 
     def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         cache_config: Dict = None,
-    ) -> str | List:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -385,8 +450,8 @@ class GeminiChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
             messages, temperature, max_tokens, seed, tools, tool_choice
@@ -428,26 +493,18 @@ class GeminiChatModel(LLM):
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
             )
-        if response.candidates:
-            message = response.candidates[0].content
-            if any([part.function_call is not None for part in message.parts]):
-                return self._extract_tool_info(message)
-            text = ""
-            for part in message.parts:
-                text += part.text if part.text else ""
-            return text
-        return None
+        return self._map_gemini_message(response)
 
     async def agenerate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 1.0,
         max_tokens: int = 4096,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         cache_config: Dict = None,
-    ) -> str:
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
@@ -456,8 +513,8 @@ class GeminiChatModel(LLM):
             The messages to use for the prompt. Pair of (role, message).
         Returns
         -------
-        str | List
-            The generated text or a list of tool calls.
+        Message
+            The generated message.
         """
         system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
             messages, temperature, max_tokens, seed, tools, tool_choice
@@ -499,12 +556,44 @@ class GeminiChatModel(LLM):
                 contents=contents,
                 config=GenerateContentConfig(**config_kwargs),
             )
-        if response.candidates:
-            message = response.candidates[0].content
-            if any([part.function_call is not None for part in message.parts]):
-                return self._extract_tool_info(message)
-            text = ""
-            for part in message.parts:
-                text += part.text if part.text else ""
-            return text
-        return None
+        return self._map_gemini_message(response)
+    
+    def parse(self, messages: List[Dict | Message], schema: Dict) -> Dict:
+        """
+        Parse the response from the model into a structured format.
+        """
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, 1.0, 4096, None, None, None
+        )
+        if cached_messages:
+            raise ValueError("Cached messages are not supported for structured output.")
+        
+        config_kwargs["system_instruction"] = system_prompt
+        config_kwargs["response_schema"] = schema
+        config_kwargs["response_mime_type"] = "application/json"
+        response = self.client.models.generate_content(
+            model=self.llm_name,
+            contents=contents,
+            config=GenerateContentConfig(**config_kwargs),
+        )
+        return json.loads(response.text)
+
+    async def aparse(self, messages: List[Dict | Message], schema: Dict) -> Dict:
+        """
+        Parse the response from the model into a structured format.
+        """
+        system_prompt, cached_messages, contents, config_kwargs = self._prepare_messages(
+            messages, 1.0, 4096, None, None, None
+        )
+        if cached_messages:
+            raise ValueError("Cached messages are not supported for structured output.")
+        
+        config_kwargs["system_instruction"] = system_prompt
+        config_kwargs["response_schema"] = schema
+        config_kwargs["response_mime_type"] = "application/json"
+        response = await self.client.aio.models.generate_content(
+            model=self.llm_name,
+            contents=contents,
+            config=GenerateContentConfig(**config_kwargs),
+        )
+        return json.loads(response.text)
