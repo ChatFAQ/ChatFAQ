@@ -31,51 +31,9 @@ import ArrowDownCircle from "~/components/icons/ArrowDownCircle.vue";
 import MarkdownIt from "markdown-it";
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css'; // You can choose a different style
+import { useI18n } from "vue-i18n";
 
-// Create custom renderer for code blocks with top bar and copy button
-const md = new MarkdownIt({
-    highlight: function (str, lang) {
-        // SVG for copy icon
-        const copyIconSvg = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
-            <g opacity="0.4">
-            <path d="M8.66667 14L2.66667 14C2.29848 14 2 13.7015 2 13.3333L2 4.66667C2 4.29848 2.29848 4 2.66667 4L6.39053 4C6.56734 4 6.73691 4.07024 6.86193 4.19526L9.13807 6.4714C9.2631 6.59643 9.33334 6.766 9.33334 6.94281V13.3333C9.33334 13.7015 9.03486 14 8.66667 14Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M6.66602 4L6.66602 2.66667C6.66602 2.29848 6.96449 2 7.33268 2L11.0565 2C11.2334 2 11.4029 2.07024 11.5279 2.19526L13.8041 4.4714C13.9291 4.59643 13.9994 4.766 13.9994 4.94281V11.3333C13.9994 11.7015 13.7009 12 13.3327 12L9.33268 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9.33333 7.33333L6.66667 7.33333C6.29848 7.33333 6 7.03486 6 6.66667L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M13.9993 5.33333L11.3327 5.33333C10.9645 5.33333 10.666 5.03486 10.666 4.66667L10.666 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </g>
-        </svg>`;
-
-        if (lang && hljs.getLanguage(lang)) {
-            try {
-                const highlighted = hljs.highlight(str, { language: lang }).value;
-                // Create a container with top bar and copy button
-                return `<div class="code-block-container">
-                    <div class="code-block-header${store.darkMode ? ' dark-mode' : ''}">
-                        <span class="code-language">${lang}</span>
-                        <button class="copy-code-button" data-code="${encodeURIComponent(str)}">
-                            ${copyIconSvg}<span>Copy</span>
-                        </button>
-                    </div>
-                    <pre class="hljs language-${lang}${store.darkMode ? ' hljs-dark' : ' hljs-light'}"><code>${highlighted}</code></pre>
-                </div>`;
-            } catch (__) {}
-        }
-        
-        // If language is not specified or not found, render without language indication
-        return `<div class="code-block-container">
-            <div class="code-block-header${store.darkMode ? ' dark-mode' : ''}">
-                <span class="code-language">code</span>
-                <button class="copy-code-button" data-code="${encodeURIComponent(str)}">
-                    ${copyIconSvg}<span>Copy</span>
-                </button>
-            </div>
-            <pre class="hljs${store.darkMode ? ' hljs-dark' : ' hljs-light'}"><code>${md.utils.escapeHtml(str)}</code></pre>
-        </div>`;
-    }
-});
-
-const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
-const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+const { t } = useI18n();
 
 const store = useGlobalStore();
 
@@ -112,7 +70,54 @@ const markedDown = computed(() => {
     return res;
 });
 
-// Function to handle code copying
+// Create custom renderer for code blocks with top bar and copy button
+const md = new MarkdownIt({
+    highlight: function (str, lang) {
+        // SVG for copy icon
+        const copyIconSvg = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 4px;">
+            <g opacity="0.4">
+            <path d="M8.66667 14L2.66667 14C2.29848 14 2 13.7015 2 13.3333L2 4.66667C2 4.29848 2.29848 4 2.66667 4L6.39053 4C6.56734 4 6.73691 4.07024 6.86193 4.19526L9.13807 6.4714C9.2631 6.59643 9.33334 6.766 9.33334 6.94281V13.3333C9.33334 13.7015 9.03486 14 8.66667 14Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6.66602 4L6.66602 2.66667C6.66602 2.29848 6.96449 2 7.33268 2L11.0565 2C11.2334 2 11.4029 2.07024 11.5279 2.19526L13.8041 4.4714C13.9291 4.59643 13.9994 4.766 13.9994 4.94281V11.3333C13.9994 11.7015 13.7009 12 13.3327 12L9.33268 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9.33333 7.33333L6.66667 7.33333C6.29848 7.33333 6 7.03486 6 6.66667L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M13.9993 5.33333L11.3327 5.33333C10.9645 5.33333 10.666 5.03486 10.666 4.66667L10.666 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+        </svg>`;
+
+        // Store the i18n reference
+        const i18nCopy = t('copy');
+        
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                const highlighted = hljs.highlight(str, { language: lang }).value;
+                // Create a container with top bar and copy button
+                return `<div class="code-block-container">
+                    <div class="code-block-header${store.darkMode ? ' dark-mode' : ''}">
+                        <span class="code-language">${lang}</span>
+                        <button class="copy-code-button" data-code="${encodeURIComponent(str)}">
+                            ${copyIconSvg}<span>${i18nCopy}</span>
+                        </button>
+                    </div>
+                    <pre class="hljs language-${lang}${store.darkMode ? ' hljs-dark' : ' hljs-light'}"><code>${highlighted}</code></pre>
+                </div>`;
+            } catch (__) {}
+        }
+        
+        // If language is not specified or not found, render without language indication
+        return `<div class="code-block-container">
+            <div class="code-block-header${store.darkMode ? ' dark-mode' : ''}">
+                <span class="code-language">code</span>
+                <button class="copy-code-button" data-code="${encodeURIComponent(str)}">
+                    ${copyIconSvg}<span>${i18nCopy}</span>
+                </button>
+            </div>
+            <pre class="hljs${store.darkMode ? ' hljs-dark' : ' hljs-light'}"><code>${md.utils.escapeHtml(str)}</code></pre>
+        </div>`;
+    }
+});
+
+const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
+const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+
 function copyCode(event) {
     // Find the button element (might be the SVG or span that was clicked)
     let button = event.target;
@@ -131,7 +136,7 @@ function copyCode(event) {
         
         // Save original text and update
         const originalText = textSpan.textContent;
-        textSpan.textContent = 'Copied!';
+        textSpan.textContent = t('copied');
         
         setTimeout(() => {
             textSpan.textContent = originalText;
@@ -468,7 +473,7 @@ onBeforeUnmount(cancelSynthesis);
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: #f8f8f8;
+    background-color: $chatfaq-color-primary-200; /* Light mode background matching theme */
     display: flex;
     flex-direction: column;
     
@@ -494,16 +499,17 @@ onBeforeUnmount(cancelSynthesis);
     justify-content: space-between;
     align-items: center;
     padding: 4px 12px;
-    background-color: #e8e8e8;
+    background-color: #b5aec2; /* Manually darkened version of primary-300 (#cac2da) */
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     font-family: sans-serif;
     font-size: 0.8em;
     min-height: 28px;
     flex-shrink: 0;
+    color: $chatfaq-color-neutral-black;
     
     &.dark-mode {
-        background-color: #2d2d2d;
-        color: #e0e0e0;
+        background-color: $chatfaq-color-primary-900; /* Using a darker existing color */
+        color: $chatfaq-color-neutral-white;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 }
@@ -511,10 +517,10 @@ onBeforeUnmount(cancelSynthesis);
 .code-language {
     font-weight: bold;
     font-size: 0.85em;
-    color: #666;
+    color: $chatfaq-color-neutral-black;
     
     .dark-mode & {
-        color: #b0b0b0;
+        color: $chatfaq-color-primary-200;
     }
 }
 
@@ -532,6 +538,7 @@ onBeforeUnmount(cancelSynthesis);
     display: flex;
     align-items: center;
     justify-content: center;
+    color: $chatfaq-color-neutral-black;
     
     svg {
         color: currentColor;
@@ -543,7 +550,8 @@ onBeforeUnmount(cancelSynthesis);
     }
     
     &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
+        background-color: rgba(0, 0, 0, 0.1);
+        border-color: $chatfaq-color-neutral-black;
     }
     
     &:active {
@@ -552,14 +560,15 @@ onBeforeUnmount(cancelSynthesis);
     
     .dark-mode & {
         border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #e0e0e0;
+        color: $chatfaq-color-neutral-white;
         
         svg g {
             opacity: 0.7;
         }
         
         &:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: $chatfaq-color-primary-200;
         }
     }
 }
