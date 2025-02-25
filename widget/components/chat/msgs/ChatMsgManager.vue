@@ -61,21 +61,21 @@
                     </template>
                     <template v-else-if="getFirstLayerType() === 'tool_use'">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <TextMsgPiece 
-                                :data="formatToolUseLayer(layer)" 
-                                :is-last="isLastOfType && layersFinished" 
-                                :is-last-chunk="stackFinished"
+                            <ToolUseMsgPiece 
+                                :data="layer" 
+                                :resultData="findToolResult(layer.payload.name, layer.payload.id)"
                             />
                         </div>
                     </template>
                     <template v-else-if="getFirstLayerType() === 'tool_result'">
-                        <div class="layer" v-for="layer in props.message.stack">
+                        <div v-if="!hasMatchingToolUse(props.message.stack[0])" class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece 
                                 :data="formatToolResultLayer(layer)" 
                                 :is-last="isLastOfType && layersFinished" 
                                 :is-last-chunk="stackFinished"
                             />
                         </div>
+                        <div v-else class="hidden-layer"></div>
                     </template>
                     <template v-else-if="getFirstLayerType() === 'file_upload'">
                         <div class="layer" v-for="layer in props.message.stack">
@@ -147,6 +147,7 @@ import AttachmentMsgPiece from "~/components/chat/msgs/pieces/AttachmentMsgPiece
 import FileUploadMsgPiece from "~/components/chat/msgs/pieces/FileUploadMsgPiece.vue";
 import StarRatingMsgPiece from "~/components/chat/msgs/pieces/StarRatingMsgPiece.vue";
 import TextFeedbackMsgPiece from "~/components/chat/msgs/pieces/TextFeedbackMsgPiece.vue";
+import ToolUseMsgPiece from "~/components/chat/msgs/pieces/ToolUseMsgPiece.vue";
 
 const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
@@ -221,6 +222,29 @@ function getMessageType() {
         return 'bot';
     }
     return props.message.sender.type;
+}
+
+function findToolResult(toolName, toolId) {
+    // First, try to find by tool ID if available
+    if (toolId) {
+        const result = store.findMessageByToolId(toolId, 'tool_result');
+        if (result) return result.stack[0];
+    }
+    
+    // Fall back to finding by tool name (less precise)
+    const result = store.findMessageByToolName(toolName, 'tool_result');
+    return result ? result.stack[0] : null;
+}
+
+function hasMatchingToolUse(toolResultLayer) {
+    // If we have an ID, try to match by ID first
+    if (toolResultLayer.payload.id) {
+        const matchingUse = store.findMessageByToolResultId(toolResultLayer.payload.id, 'tool_use');
+        if (matchingUse) return true;
+    }
+    
+    // Fall back to matching by name
+    return store.findMessageByToolName(toolResultLayer.payload.name, 'tool_use') !== null;
 }
 
 </script>
@@ -388,5 +412,13 @@ $phone-breakpoint: 600px;
 .file-uploaded-indicator {
     padding: 5px;
 
+}
+
+.layer {
+    width: 100%;
+}
+
+.hidden-layer {
+    display: none;
 }
 </style>

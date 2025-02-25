@@ -1,6 +1,7 @@
 import os
 import json
 from typing import Callable, Dict, List, Tuple, Union
+import uuid
 
 from google import genai
 from google.genai.types import (
@@ -75,23 +76,6 @@ class GeminiChatModel(LLM):
             )
         return tools_formatted, tool_choice
 
-    def _extract_tool_info(self, message) -> List[Dict]:
-        """
-        Format the tool information from the gemini response to a standard format.
-        """
-        tools = []
-        if message.parts:
-            for part in message.parts:
-                if hasattr(part, "function_call"):
-                    tools.append(
-                        {
-                            "id": None,  # Gemini doesn't provide an ID
-                            "name": part.function_call.name,
-                            "args": part.function_call.args,
-                        }
-                    )
-        return tools
-
     def _map_role(self, role: str) -> str:
         """Map chat roles to Gemini roles."""
         return "model" if role == "assistant" else role
@@ -106,12 +90,15 @@ class GeminiChatModel(LLM):
                 if part.text:
                     contents.append(Content(type="text", text=part.text))
                 elif part.function_call:
+                    print('part.function_call', part.function_call)
+                    tool_use_id = str(uuid.uuid4()) if part.function_call.id is None else part.function_call.id
                     contents.append(
                         Content(
                             type="tool_use",
                             tool_use=ToolUse(
                                 name=part.function_call.name,
                                 args=part.function_call.args,
+                                id=tool_use_id
                             ),
                         )
                     )

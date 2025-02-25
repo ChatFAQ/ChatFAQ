@@ -260,7 +260,64 @@ export const useGlobalStore = defineStore('globalStore', {
         },
         speechRecognitionTranscribing: (state) => {
             return state.speechRecognitionRunning && (state.speechRecognitionPhraseActivated || !state.activeActivationPhrase)
-        }
+        },
+        findMessageByToolName: (state) => (toolName, messageType) => {
+            if (!state.messages || !state.messages.length) return null;
+            
+            for (let i = state.messages.length - 1; i >= 0; i--) {
+                const message = state.messages[i];
+                
+                if (message.stack && message.stack.length > 0) {
+                    const firstLayer = message.stack[0];
+                    
+                    if (firstLayer.type === messageType && 
+                        firstLayer.payload && 
+                        firstLayer.payload.name === toolName) {
+                        return message;
+                    }
+                }
+            }
+            
+            return null;
+        },
+        findMessageByToolId: (state) => (toolId, messageType) => {
+            if (!state.messages || !state.messages.length || !toolId) return null;
+            
+            for (let i = state.messages.length - 1; i >= 0; i--) {
+                const message = state.messages[i];
+                
+                if (message.stack && message.stack.length > 0) {
+                    const firstLayer = message.stack[0];
+                    
+                    if (firstLayer.type === messageType && 
+                        firstLayer.payload && 
+                        firstLayer.payload.id === toolId) {
+                        return message;
+                    }
+                }
+            }
+            
+            return null;
+        },
+        findMessageByToolResultId: (state) => (resultId, messageType) => {
+            if (!state.messages || !state.messages.length || !resultId) return null;
+            
+            for (let i = state.messages.length - 1; i >= 0; i--) {
+                const message = state.messages[i];
+                
+                if (message.stack && message.stack.length > 0) {
+                    const firstLayer = message.stack[0];
+                    
+                    if (firstLayer.type === messageType && 
+                        firstLayer.payload && 
+                        firstLayer.payload.id === resultId) {
+                        return message;
+                    }
+                }
+            }
+            
+            return null;
+        },
     }
 })
 
