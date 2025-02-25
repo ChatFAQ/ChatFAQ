@@ -54,7 +54,8 @@ class OpenAIChatModel(LLM):
             tool_results = []
 
             if isinstance(message.content, str):
-                content_list = [{"type": "text", "text": message.content}]
+                # Send it as a string to maintain compatibility with the old format that some companies use for their openai api
+                return message.content, [], [] 
             else:
                 for content in message.content:
                     if content.type == "text":
@@ -120,12 +121,14 @@ class OpenAIChatModel(LLM):
                 )
                 for tool_call in content.tool_calls
             ]
-
-        usage = Usage(
-            input_tokens=message.usage.prompt_tokens,
-            output_tokens=message.usage.completion_tokens,
-            cache_creation_read_tokens=message.usage.prompt_tokens_details.cached_tokens,
-        )
+        
+        usage = None
+        if message.usage:
+            usage = Usage(
+                input_tokens=message.usage.prompt_tokens,
+                output_tokens=message.usage.completion_tokens,
+                cache_creation_read_tokens=message.usage.prompt_tokens_details.cached_tokens,
+            )
         return Message(
             role=content.role,
             content=content_list,

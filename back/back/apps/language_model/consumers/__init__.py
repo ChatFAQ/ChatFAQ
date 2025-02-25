@@ -327,7 +327,7 @@ async def query_llm(
             )
             yield {
                 "content": [content.model_dump() for content in response_message.content], # Make it serializable
-                "usage": response_message.usage.model_dump(),
+                "usage": response_message.usage.model_dump() if response_message.usage else None,
                 "stop_reason": response_message.stop_reason,
                 "last_chunk": True,
             }
