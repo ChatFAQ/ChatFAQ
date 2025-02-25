@@ -26,5 +26,7 @@
     "upload_file": "Subir archivo",
     "logout": "Cerrar sesión",
     "enablespeech": "Activar voz",
-    "disablespeech": "Desactivar voz"
+    "disablespeech": "Desactivar voz",
+    "copy": "Copiar",
+    "copied": "¡Copiado!"
 }
