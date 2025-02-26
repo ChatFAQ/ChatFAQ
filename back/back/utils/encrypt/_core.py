@@ -68,6 +68,9 @@ class LightBringer:
     """
 
     def __init__(self, private_key_pem: str):
+        # Temporary fix because the private key is being loaded with two backslashes and this breaks the loading
+        private_key_pem = private_key_pem.replace('\\n', '\n')
+        
         self.private_key: RSAPrivateKey = serialization.load_pem_private_key(
             private_key_pem.encode("utf-8"),
             password=None,
