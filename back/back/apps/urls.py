@@ -6,4 +6,5 @@ urlpatterns = [
     re_path(r"people/", include("back.apps.people.urls")),
     re_path(r"language-model/", include("back.apps.language_model.urls")),
     re_path(r"widget/", include("back.apps.widget.urls")),
+    re_path(r"_/ht/", include("back.apps.health.urls")),
 ]

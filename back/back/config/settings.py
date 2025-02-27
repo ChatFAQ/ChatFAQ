@@ -154,6 +154,7 @@ with EnvManager(model_w_django) as env:
         "back.apps.fsm",
         "back.apps.language_model",
         "back.apps.widget",
+        "back.apps.health",
     ]
     # if not env.get("REDIS_URL"):
     #     INSTALLED_APPS += [
