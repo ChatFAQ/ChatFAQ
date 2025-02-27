@@ -277,7 +277,7 @@ function initializeSpeechVoices(state) {
             state.speechVoicesInitialized = true;
         }
 
-        if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
+        if (typeof speechSynthesis !== "undefined") {
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
     }
