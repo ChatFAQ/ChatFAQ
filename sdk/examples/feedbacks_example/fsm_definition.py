@@ -10,7 +10,7 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     yield Message(content="Some response")
-    yield StarRating(hint="Please rate the service", num_stars=5, placeholder="1 is negative, 5 is positive")
+    yield StarRating(hint="Please rate the service", num_stars=5, explanation="1 is negative, 5 is positive")
     yield TextFeedback(hint="Could you please provide more details?", placeholder="Please provide your feedback here")
     yield CloseConversation()
 

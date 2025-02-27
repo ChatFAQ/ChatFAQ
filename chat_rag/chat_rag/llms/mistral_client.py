@@ -1,10 +1,9 @@
 import os
-from typing import Dict, List, Union
+from typing import Callable, Dict, List, Union
 
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
-from pydantic import BaseModel
 
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
@@ -33,13 +32,12 @@ class MistralChatModel(LLM):
 
         return final_messages
 
-    def _format_tools(self, tools: List[BaseModel], tool_choice: str = None):
+    def _format_tools(self, tools: List[Union[Callable, Dict]], tool_choice: str = None):
         """
-        Format the tools from a generic BaseModel to the OpenAI format.
+        Format the tools from a openai dict or a callable function to the Mistral format.
         """
-        tools, tool_choice = self._check_tool_choice(tools, tool_choice)
-
-        tools_formatted = format_tools(tools, mode=Mode.TOOLS)
+        tools_formatted = format_tools(tools, mode=Mode.MISTRAL_TOOLS)
+        tool_choice = self._check_tool_choice(tools_formatted, tool_choice)
 
         if tool_choice:
             if tool_choice not in ["required", "auto"]:
@@ -147,7 +145,7 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
     ):
@@ -192,7 +190,7 @@ class MistralChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
     ):

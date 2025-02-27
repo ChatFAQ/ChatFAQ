@@ -26,5 +26,7 @@
     "upload_file": "Télécharger un fichier",
     "logout": "Déconnexion",
     "enablespeech": "Activer la voix",
-    "disablespeech": "Désactiver la voix"
+    "disablespeech": "Désactiver la voix",
+    "copy": "Copier",
+    "copied": "Copié !"
 }

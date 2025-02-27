@@ -125,22 +125,28 @@ class FSM:
         is reached it makes sure everything is saved and cached into the DB to keep the system stateful
         """
         transitions = self.get_current_state_transitions()
-        best_score = 0
-        best_transition = None
-        transition_data = {}
-        for t in transitions:
-            score, _data = await self.check_transition_condition(t)
-            if score > best_score:
-                best_transition = t
-                best_score = score
-                transition_data = _data
-        if best_transition:
+        state_overwrite = self.get_state_by_name(self.ctx.conversation.fsm_state_overwrite)
+        if state_overwrite:
+            logger.debug("Overriding FSM state")
             logger.debug(f"FSM from ---> {self.current_state}")
-            self.current_state = self.get_state_by_name(best_transition.dest)
+            self.current_state = state_overwrite
             logger.debug(f"FSM to -----> {self.current_state}")
-            await self.run_current_state_events(transition_data)
-
-        await self.save_cache()
+            await self.run_current_state_events()
+        else:
+            best_score = 0
+            best_transition = None
+            transition_data = {}
+            for t in transitions:
+                score, _data = await self.check_transition_condition(t)
+                if score > best_score:
+                    best_transition = t
+                    best_score = score
+                    transition_data = _data
+            if best_transition:
+                logger.debug(f"FSM from ---> {self.current_state}")
+                self.current_state = self.get_state_by_name(best_transition.dest)
+                logger.debug(f"FSM to -----> {self.current_state}")
+                await self.run_current_state_events(transition_data)
 
     async def run_current_state_events(self, transition_data=None):
         """

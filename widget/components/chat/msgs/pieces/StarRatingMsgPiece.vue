@@ -17,13 +17,13 @@
             </div>
         </div>
         <div v-if="props.data.explanation" class="explanation" :class="{ 'dark-mode': store.darkMode }">
-            {{ props.data.placeholder }}
+            {{ props.data.explanation }}
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
@@ -43,8 +43,6 @@ const props = defineProps({
         required: true,
     },
 });
-
-
 
 onMounted(async () => {
     const feedbackData = await store.getFeedbackData(props.msgId)

@@ -2,7 +2,6 @@ from logging import getLogger
 from typing import List
 from uuid import uuid4
 
-
 logger = getLogger(__name__)
 
 
@@ -244,7 +243,7 @@ class StarRating(UserFeedback):
     def __init__(
         self,
         num_stars: int,
-        placeholder: str,
+        explanation: str,
         *args,
         **kwargs,
     ):
@@ -252,7 +251,7 @@ class StarRating(UserFeedback):
         :param num_stars: The maximum number of stars. For example: 5
         """
         super().__init__(*args, **kwargs, merge_to_prev=False)
-        self.placeholder = placeholder
+        self.explanation = explanation
         self.num_stars = num_stars
 
     async def build_payloads(self, ctx, data):
@@ -260,6 +259,7 @@ class StarRating(UserFeedback):
             "payload": {
                 **self._build_payloads(),
                 "num_stars": self.num_stars,
+                "explanation": self.explanation,
             }
         }
         yield [payload], True
@@ -323,3 +323,48 @@ class CloseConversation(Layer):
 
     async def build_payloads(self, ctx, data):
         yield [{"payload": {}}], True
+
+
+class ToolUse(Layer):
+    """
+    A message layer that includes a tool use request.
+    """
+    _type = "tool_use"
+
+    def __init__(self, name: str = None, id: str = None, args: dict = None):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.args = args
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                "id": self.id,
+                "name": self.name,
+                "args": self.args,
+            }
+        }
+        yield [payload], True
+
+class ToolResult(Layer):
+    """
+    A message layer that includes a tool result.
+    """
+    _type = "tool_result"
+
+    def __init__(self, id: str = None, name: str = None, result: dict = None):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.tool_result = result
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                "id": self.id,
+                "name": self.name,
+                "result": self.tool_result,
+            }
+        }
+        yield [payload], True

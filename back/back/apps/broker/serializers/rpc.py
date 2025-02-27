@@ -55,6 +55,13 @@ class RPCResultSerializer(serializers.Serializer):
                 "type": AgentType.human.value,
                 "id": attrs["ctx"]["user_id"],
             }
+
+        # Tool results are categorized as human messages although not exactly true
+        if attrs.get('stack', []) and attrs['stack'][0].get('type') == 'tool_result':
+            attrs['sender'] = {
+                "type": AgentType.human.value,
+            }
+            
         if attrs.get("node_type") == RPCNodeType.condition.value:
             return super().validate(attrs)
 
@@ -103,16 +110,14 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         The maximum number of tokens to generate
     seed: int
         The seed to use in the LLM
-    streaming: bool
+    stream: bool
         Whether the LLM response should be streamed or not
-    cache_config: dict
-        The cache configuration for the LLM request
     """
 
     llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
-    messages = serializers.ListField(child=serializers.DictField())
+    messages = serializers.ListField(child=serializers.DictField(), allow_empty=True, required=False, allow_null=True)
     temperature = serializers.FloatField(default=0.7, required=False)
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)
@@ -120,15 +125,28 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
     )
     tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
-    streaming = serializers.BooleanField(default=True)
+    stream = serializers.BooleanField(default=False)
     use_conversation_context = serializers.BooleanField(default=True)
+    response_schema = serializers.JSONField(default=dict, required=False, allow_null=True)
     cache_config = CacheConfigSerializer(required=False, allow_null=True)
-
+    
     def validate(self, attrs):
         if not attrs.get("messages") and not attrs.get("use_conversation_context"):
             raise serializers.ValidationError(
                 "If there are no messages then use_conversation_context should be always True"
             )
+
+        if attrs.get("tools") and attrs.get("response_schema"):
+            raise serializers.ValidationError(
+                "There cannot be tools and response schema at the same time"
+            )
+
+        if attrs.get("tools") and attrs.get("stream"):
+            raise serializers.ValidationError("ChatFAQ doesn't support streaming when using tools")
+        
+        if attrs.get("response_schema") and attrs.get("stream"):
+            raise serializers.ValidationError("ChatFAQ doesn't support structured output when streaming")
+
         return attrs
 
 

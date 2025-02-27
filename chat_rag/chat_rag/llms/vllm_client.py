@@ -1,15 +1,15 @@
 import logging
 import os
-from typing import Dict, List, Union
-
-from pydantic import BaseModel
+from typing import Callable, Dict, List, Union
 
 from chat_rag.exceptions import (
     ModelNotFoundException,
     PromptTooLongException,
     RequestException,
 )
-from chat_rag.llms import OpenAIChatModel
+from chat_rag.llms.openai_client import OpenAIChatModel
+from chat_rag.llms.types import Message
+
 
 # Check if transformers is installed
 HAS_TRANSFORMERS = False
@@ -110,7 +110,7 @@ class VLLMModel(OpenAIChatModel):
 
     def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -135,7 +135,7 @@ class VLLMModel(OpenAIChatModel):
 
     async def astream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -159,21 +159,21 @@ class VLLMModel(OpenAIChatModel):
 
     def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         json_schema: Dict = None,
-        ):
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        tools : List[Union[BaseModel, Dict]], optional
+        tools : List[Union[Callable, Dict]], optional
             Tools for function calling. Cannot be used with json_schema.
         tool_choice : str, optional
             The tool choice to use for tool use.
@@ -182,6 +182,8 @@ class VLLMModel(OpenAIChatModel):
         """
         if tools and json_schema:
             raise ValueError("Cannot use both tools and json_schema at the same time")
+
+        messages = self._format_messages(messages)
 
         if HAS_TRANSFORMERS:
             messages = self.format_prompt(messages)
@@ -205,29 +207,25 @@ class VLLMModel(OpenAIChatModel):
             **extra_kwargs,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-
-        return message.content
+        return self._map_openai_message(response)
 
     async def agenerate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Union[Dict, Message]],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         json_schema: Dict = None,
-    ):
+    ) -> Message:
         """
         Generate text from a prompt using the model.
         Parameters
         ----------
         messages : List[Tuple[str, str]]
             The messages to use for the prompt. Pair of (role, message).
-        tools : List[Union[BaseModel, Dict]], optional
+        tools : List[Union[Callable, Dict]], optional
             Tools for function calling. Cannot be used with json_schema.
         tool_choice : str, optional
             The tool choice to use for tool use.
@@ -239,6 +237,8 @@ class VLLMModel(OpenAIChatModel):
 
         if HAS_TRANSFORMERS:
             messages = self.format_prompt(messages)
+
+        messages = self._format_messages(messages)
 
         # Handle tools and json_schema kwargs
         extra_kwargs = {}
@@ -259,11 +259,7 @@ class VLLMModel(OpenAIChatModel):
             **extra_kwargs,
         )
 
-        message = response.choices[0].message
-        if message.tool_calls:
-            return self._extract_tool_info(message)
-        
-        return message.content
+        return self._map_openai_message(response)
 
 def return_openai_error(e):
     logger.error(f"Error with the request to the vLLM OpenAI server: {e}")

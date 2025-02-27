@@ -38,9 +38,20 @@
                         'stick_input_prompt',
                         'fit_to_parent',
                         'stick_input_prompt',
-                        'speech_recognition',
-                        'speech_recognition_auto_send',
                         'allow_attachments',
+                    ],
+                [$t('interfacing')]: [
+                        'speech_recognition',
+                        'speech_recognition_lang',
+                        'speech_recognition_auto_send',
+                        'speech_recognition_always_on',
+                        'speech_recognition_phrase_activation',
+                        'speech_recognition_beep',
+                        'speech_synthesis',
+                        'speech_synthesis_pitch',
+                        'speech_synthesis_rate',
+                        'speech_synthesis_voices',
+                        'speech_synthesis_enabled_by_default'
                     ],
                 [$t('advanced')]: [
                         'custom_css',

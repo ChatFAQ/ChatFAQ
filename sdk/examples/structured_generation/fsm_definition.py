@@ -30,22 +30,26 @@ async def send_info(sdk: ChatFAQSDK, ctx: dict):
     print('The last MML is:')
     print(ctx["conv_mml"][-1])
     logger.info("Extracting user info...")
-    async for res in llm_request(
+    response = await llm_request(
         sdk,
-        "gpt-4o",
+        "gemini-2.0-flash",
         messages=[
             {
                 "role": "system",
-                "content": "You are an assistant that extracts the user information from a description.",
+                "content": "You are an assistant that extracts the user name and age from a description into a json object.",
             },
         ],
-        tools=[UserInfo],
-        tool_choice="UserInfo",
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
         use_conversation_context=True,
-    ):
-        yield Message(f"Here is the extracted information: {json.dumps(res)}")
+        response_schema=UserInfo.model_json_schema(),
+    )
+
+    data = response.get("content", None)
+    if data:
+        yield Message(f"Here is the extracted information: {json.dumps(data)}.")
+    else:
+        yield Message("No information extracted")
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 

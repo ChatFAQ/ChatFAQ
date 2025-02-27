@@ -39,7 +39,7 @@
                 <LightMode/>
             </div>
 
-            <div class="left-menu-item" v-if="store.speechSynthesisSupported">
+            <div class="left-menu-item" v-if="store.speechSynthesis && store.speechSynthesisSupported">
                 <SpeechSynthesisButton/>
             </div>
         </div>

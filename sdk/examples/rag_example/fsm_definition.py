@@ -32,6 +32,7 @@ async def send_rag_answer(sdk: ChatFAQSDK, ctx: dict):
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
         messages=messages,
+        stream=True,
     )
 
     yield StreamingMessage(generator, references=contexts)
