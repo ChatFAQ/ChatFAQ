@@ -1,12 +1,18 @@
+import asyncio
+import json
+import os
+import random
+import uuid
 from typing import Mapping, Sequence
 
+import requests
+import websockets
+from django.core.files.storage import default_storage
 from health_check.cache.backends import CacheBackend
-
 from health_check.contrib.psutil.backends import MemoryUsage
 from health_check.db.backends import DatabaseBackend
 
 from .base import DjangoHealthCheckWrapper, HealthCheck, Outcome, Status
-from .models import Event
 
 
 def disp_window(window: Mapping[str, int]) -> str:
@@ -163,3 +169,375 @@ entry in the cache.
     def suggest_reboot(self, outcome: Outcome) -> Sequence[str]:
         return ["redis"]
 
+
+class ModuleSimulationBase(HealthCheck):
+    """
+    Base class for module simulation health checks.
+    Provides common WebSocket communication and file processing methods.
+    """
+    
+    # Configuration parameters that should be overridden by subclasses
+    MODULE_NUMBER = None
+    FILE_NAME = None
+    FSM_DEF = "lefebvre_fsm"
+    STATE_OVERWRITE = None
+    HANDSHAKE_TIMEOUT = 10.0
+    FILE_PROCESSING_TIMEOUT = 300.0
+    
+    def get_name(self) -> str:
+        if self.MODULE_NUMBER is None:
+            raise NotImplementedError("Subclasses must define MODULE_NUMBER")
+        return f"Module {self.MODULE_NUMBER} Simulation"
+    
+    async def _receive_json_message(self, websocket, timeout=10.0, timeout_message=None):
+        """
+        Helper method to receive a JSON message from the websocket.
+        """
+        message_text = ""
+        try:
+            message_text = await asyncio.wait_for(websocket.recv(), timeout)
+            msg = json.loads(message_text)
+            return msg
+        except asyncio.TimeoutError:
+            if timeout_message:
+                raise asyncio.TimeoutError(timeout_message + ". Last message: " + message_text)
+            else:
+                raise asyncio.TimeoutError("Timeout waiting for message from server. Last message: " + message_text)
+        except json.JSONDecodeError:
+            raise ValueError("Invalid JSON response from server. Last message: " + message_text)
+    
+    async def _wait_for_initial_messages(self, websocket, num_messages=3):
+        """
+        Waits for initial messages, throwing an error if any indicate a problem.
+        """
+        for _ in range(num_messages):
+            response = await self._receive_json_message(websocket, timeout=self.HANDSHAKE_TIMEOUT)
+            if response.get("status") == 400:
+                raise ValueError(f"Error in initial message from WS: {response.get('payload')}")
+    
+    async def _run_module(self, module_file_name, file_url, user_id, fsm_def=None, state_overwrite=None):
+        """
+        Runs a file generation simulation.
+        """
+        # Use default values if not provided
+        fsm_def = fsm_def or self.FSM_DEF
+        state_overwrite = state_overwrite or self.STATE_OVERWRITE
+        
+        conversation_id = int(random.random() * 1000000000)
+
+        auth_token = os.getenv("BACKEND_TOKEN", "")
+        query_params = ""
+        
+        if auth_token:
+            query_params = f"?token={auth_token}"
+            if state_overwrite:
+                query_params += f"&state_overwrite={state_overwrite}"
+        elif state_overwrite:
+            query_params = f"?state_overwrite={state_overwrite}"
+            
+        query_params += f'&metadata={{"module":"Module{self.MODULE_NUMBER}"}}'
+
+        uri = (
+            os.getenv("INTERNAL_WS_URL")
+            + "/back/ws/broker/"
+            + str(conversation_id)
+            + "/"
+            + fsm_def
+            + "/"
+            + (f"{user_id}/" if user_id else "")
+            + query_params
+        )
+
+        try:
+            async with websockets.connect(uri, close_timeout=1000) as websocket:
+                # Process the initial handshake responses.
+                await self._wait_for_initial_messages(websocket)
+
+                # Build and send the message payload.
+                message = {
+                    "sender": {
+                        "type": "human",
+                        "platform": "WS",
+                        "id": user_id, 
+                    },
+                    "stack": [
+                        {
+                            "type": "file_uploaded",
+                            "payload": {
+                                        "name": module_file_name.split('/')[-1], # just send the file name
+                                        "url": file_url,
+                            }
+                        }
+                    ],
+                    "stack_id": "0",
+                    "stack_group_id": "0",
+                    "last": True
+                }
+                await websocket.send(json.dumps(message))
+
+                # Process responses after sending the message.
+                first_response = await self._receive_json_message(websocket, timeout=self.HANDSHAKE_TIMEOUT)
+                if first_response.get("status") == 400:
+                    return False, f"Error in initial response from WS: {first_response.get('payload')}"
+
+                new_file_response = await self._receive_json_message(websocket, timeout=self.FILE_PROCESSING_TIMEOUT, timeout_message="Timeout waiting for file processing") # Increase timeout for file processing, if it takes longer than 5 minutes then there may be an issue
+                new_file_url = (
+                    new_file_response.get("stack", [{}])[0]
+                    .get("payload", {})
+                    .get("url", "")
+                )
+
+                # Try to download the newly created file
+                if new_file_url:
+                    try:
+                        response = requests.get(new_file_url, timeout=10)
+                        response.raise_for_status()  # Raise an exception for 4XX/5XX responses
+                        # Successfully downloaded the file
+                    except requests.exceptions.RequestException as e:
+                        return False, f"Failed to download the generated file: {str(e)}"
+                else:
+                    return False, "No file URL was provided in the response"
+            
+                return True, "Everything is working correctly"
+        except websockets.exceptions.ConnectionClosedError as e:
+            return False, f"WebSocket connection closed unexpectedly: {e.code} {e.reason}"
+        except Exception as e:
+            return False, f"An unexpected error occurred: {type(e).__name__} - {e}"
+
+    async def get_status(self) -> Outcome:
+        """
+        Performs the module simulation to determine system health.
+        """
+        try:
+            if self.FILE_NAME is None:
+                raise ValueError("Subclasses must define FILE_NAME")
+                
+            file_name = f'health_check_files/{self.FILE_NAME}'
+            if default_storage.exists(file_name):
+                file_url = default_storage.url(file_name)
+                success, message = await self._run_module(file_name, file_url, 
+                                                        user_id="a9936490-d8d9-4b9e-8b3f-dbcefae13277")
+            else:
+                success = False
+                message = f"File does not exist in the storage. Please upload the file {file_name} to the Digital Ocean bucket."
+        except Exception as e:
+            return Outcome(
+                instance=self,
+                status=Status.ERROR,
+                message=f"Module {self.MODULE_NUMBER} failed: {e}",
+            )
+        
+        if success:
+            return Outcome(
+                instance=self,
+                status=Status.OK,
+                message=f"Module {self.MODULE_NUMBER} successful",
+            )
+        else:
+            return Outcome(
+                instance=self,
+                status=Status.ERROR,
+                message=f"Module {self.MODULE_NUMBER} failed: {message}",
+            )
+
+    def get_resolving_actions(self, outcome: Outcome) -> str:
+        return f"""# __CODE__ &mdash; Module {self.MODULE_NUMBER} failed
+
+This check simulates a file generation with the chatbot via WebSocket to verify:
+- The WebSocket server is reachable.
+- The FSM works correctly.
+- The FastAPI modules server is reachable.
+- The file generation LLM is reachable.
+- The file storage is reachable.
+"""
+
+    def suggest_reboot(self, outcome: Outcome) -> Sequence[str]:
+        return []
+
+
+class Module1Simulation(ModuleSimulationBase):
+    """
+    Simulates a file generation with module 1 of the chatbot to check if 
+    WebSocket connection, message processing and file generation are working correctly.
+    """
+    MODULE_NUMBER = 1
+    FILE_NAME = "module1.xml"
+    STATE_OVERWRITE = "M1"
+
+
+class Module2Simulation(ModuleSimulationBase):
+    """
+    Simulates a file generation with module 2 of the chatbot to check if 
+    WebSocket connection, message processing and file generation are working correctly.
+    """
+    MODULE_NUMBER = 2
+    FILE_NAME = "module2.xml"
+    STATE_OVERWRITE = "M2"
+
+
+class Module3Simulation(ModuleSimulationBase):
+    """
+    Simulates a file generation with module 3 of the chatbot to check if 
+    WebSocket connection, message processing and file generation are working correctly.
+    """
+    MODULE_NUMBER = 3
+    FILE_NAME = "module3.xml"
+    STATE_OVERWRITE = "M3"
+
+
+class LLMQuestionSimulation(HealthCheck):
+    """
+    Simulates a LLM question with the chatbot to check if the WebSocket
+    connection, message processing and LLM response generation are working correctly.
+    """
+
+    def get_name(self) -> str:
+        return "LLM Question Simulation"
+    
+    async def _receive_json_message(self, websocket, timeout=10.0, timeout_message=None):
+        """
+        Helper method to receive a JSON message from the websocket.
+        """
+        message_text = ""
+        try:
+            message_text = await asyncio.wait_for(websocket.recv(), timeout)
+            msg = json.loads(message_text)
+            print(f"Received message: {msg}")  # Log received message
+            return msg
+        except asyncio.TimeoutError:
+            if timeout_message:
+                raise asyncio.TimeoutError(timeout_message + ". Last message: " + message_text)
+            else:
+                raise asyncio.TimeoutError("Timeout waiting for message from server. Last message: " + message_text)
+        except json.JSONDecodeError:
+            raise ValueError("Invalid JSON response from server. Last message: " + message_text)
+    
+    async def _wait_for_initial_messages(self, websocket, num_messages=3):
+        """
+        Waits for three initial messages, throwing an error if any indicate a problem.
+        """
+        for _ in range(num_messages):
+            response = await self._receive_json_message(websocket)
+            if response.get("status") == 400:
+                raise ValueError(f"Error in initial message from WS: {response.get('payload')}")
+    
+    async def _wait_for_llm_response(self, websocket):
+        """
+        Waits for LLM response chunks until the final chunk (with last_chunk=True)
+        is received.
+        """
+        prev_response = None
+        while True:
+            response = await self._receive_json_message(websocket)
+            if response.get("last", False):
+                return prev_response # We return the previous response because the last one is empty
+            prev_response = response
+
+    async def _run_module(self, user_id, fsm_def="lefebvre_fsm"):
+        """
+        Runs an LLM question simulation.
+        """
+        conversation_id = int(random.random() * 1000000000)
+        print(f"Starting _run_module. conversation_id: {conversation_id}")  # Log start
+
+        auth_token = os.getenv("BACKEND_TOKEN", "")
+        query_params = f"?token={auth_token}&state_overwrite=M3" if auth_token else ""
+        query_params += '&metadata={"module":"ColAgreeSumXia"}'
+
+        uri = (
+            os.getenv("INTERNAL_WS_URL")
+            + "/back/ws/broker/"
+            + str(conversation_id)
+            + "/"
+            + fsm_def
+            + "/"
+            + (f"{user_id}/" if user_id else "")
+            + query_params
+        )
+
+        print(f'uri = {uri}')
+
+        try:
+            async with websockets.connect(uri, close_timeout=1000) as websocket:
+                # Process the initial handshake responses.
+                await self._wait_for_initial_messages(websocket)
+                print("Initial handshake successful.")  # Log handshake
+
+                # Build and send the message payload.
+                message = {
+                    "sender": {
+                        "type": "human",
+                        "platform": "WS",
+                        "id": user_id, 
+                    },
+                    "stack": [
+                        {
+                            "type": "message",
+                            "payload": {
+                                "content": "Qué tipos de documentos puedo subir?"
+                            },
+                        }
+                    ],
+                    "stack_id": "0",
+                    "stack_group_id": "0",
+                    "last": True
+                }
+                await websocket.send(json.dumps(message))
+                print(f"Message sent: {message}")  # Log sent message
+
+                # Process responses after sending the message.
+                first_response = await self._receive_json_message(websocket)
+                if first_response.get("status") == 400:
+                    return False, f"Error in initial response from WS: {first_response.get('payload')}"
+                print(f"First response received: {first_response}")  # Log first response
+
+                llm_response = await self._wait_for_llm_response(websocket)
+                response_content = (
+                    llm_response.get("stack", [{}])[0]
+                    .get("payload", {})
+                    .get("content", "")
+                )
+
+                return True, f"LLM responded: {response_content}"
+            
+        except websockets.exceptions.ConnectionClosedError as e:
+            print(f"WebSocket connection closed: {e.code} {e.reason}")  # Log WS close
+            return False, f"WebSocket connection closed unexpectedly: {e.code} {e.reason}"
+        except Exception as e:
+            print(f"Unexpected error: {type(e).__name__} - {e}")  # Log other errors
+            return False, f"An unexpected error occurred: {type(e).__name__} - {e}"
+
+    async def get_status(self) -> Outcome:
+        try:
+            success, message = await self._run_module(user_id=os.getenv("USER_ID"))
+        except Exception as e:
+            return Outcome(
+                instance=self,
+                status=Status.ERROR,
+                message=f"LLM question simulation failed: {e}",
+            )
+        if success:
+            return Outcome(
+                instance=self,
+                status=Status.OK,
+                message=f"LLM question simulation successful. The message was: {message}",
+            )
+        else:
+            return Outcome(
+                instance=self,
+                status=Status.ERROR,
+                message=f"LLM question simulation failed: {message}",
+            )
+
+    def get_resolving_actions(self, outcome: Outcome) -> str:
+        return """# __CODE__ &mdash; Module failed
+
+This check simulates a LLM question with the chatbot via WebSocket to verify:
+- The WebSocket server is reachable.
+- The FSM works correctly.
+- The FastAPI modules server is reachable.
+- The LLM is reachable.
+"""
+
+    def suggest_reboot(self, outcome: Outcome) -> Sequence[str]:
+        return []
