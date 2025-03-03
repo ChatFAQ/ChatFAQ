@@ -178,16 +178,18 @@ class ModuleSimulationBase(HealthCheck):
     
     # Configuration parameters that should be overridden by subclasses
     MODULE_NUMBER = None
+    MODULE_NAME = None
     FILE_NAME = None
     FSM_DEF = "lefebvre_fsm"
     STATE_OVERWRITE = None
     HANDSHAKE_TIMEOUT = 10.0
     FILE_PROCESSING_TIMEOUT = 300.0
+    USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3" # Random UUID for the health check
     
     def get_name(self) -> str:
-        if self.MODULE_NUMBER is None:
-            raise NotImplementedError("Subclasses must define MODULE_NUMBER")
-        return f"Module {self.MODULE_NUMBER} Simulation"
+        if self.MODULE_NAME is None:
+            raise NotImplementedError("Subclasses must define MODULE_NAME")
+        return f"{self.MODULE_NAME} Simulation"
     
     async def _receive_json_message(self, websocket, timeout=10.0, timeout_message=None):
         """
@@ -215,7 +217,7 @@ class ModuleSimulationBase(HealthCheck):
             if response.get("status") == 400:
                 raise ValueError(f"Error in initial message from WS: {response.get('payload')}")
     
-    async def _run_module(self, module_file_name, file_url, user_id, fsm_def=None, state_overwrite=None):
+    async def _run_module(self, module_file_name, file_url, fsm_def=None, state_overwrite=None):
         """
         Runs a file generation simulation.
         """
@@ -235,7 +237,7 @@ class ModuleSimulationBase(HealthCheck):
         elif state_overwrite:
             query_params = f"?state_overwrite={state_overwrite}"
             
-        query_params += f'&metadata={{"module":"Module{self.MODULE_NUMBER}"}}'
+        query_params += f'&metadata={{"module":"{self.MODULE_NAME}"}}'
 
         uri = (
             os.getenv("INTERNAL_WS_URL")
@@ -244,7 +246,7 @@ class ModuleSimulationBase(HealthCheck):
             + "/"
             + fsm_def
             + "/"
-            + (f"{user_id}/" if user_id else "")
+            + f"{self.USER_ID}/" 
             + query_params
         )
 
@@ -258,7 +260,7 @@ class ModuleSimulationBase(HealthCheck):
                     "sender": {
                         "type": "human",
                         "platform": "WS",
-                        "id": user_id, 
+                        "id": self.USER_ID, 
                     },
                     "stack": [
                         {
@@ -311,15 +313,14 @@ class ModuleSimulationBase(HealthCheck):
         try:
             if self.FILE_NAME is None:
                 raise ValueError("Subclasses must define FILE_NAME")
-                
+            
             file_name = f'health_check_files/{self.FILE_NAME}'
             if default_storage.exists(file_name):
                 file_url = default_storage.url(file_name)
-                success, message = await self._run_module(file_name, file_url, 
-                                                        user_id="a9936490-d8d9-4b9e-8b3f-dbcefae13277")
+                success, message = await self._run_module(file_name, file_url)
             else:
                 success = False
-                message = f"File does not exist in the storage. Please upload the file {file_name} to the Digital Ocean bucket."
+                message = f"The base document to test module {self.MODULE_NUMBER} does not exist in the storage. Please upload the file {file_name} to the Digital Ocean bucket."
         except Exception as e:
             return Outcome(
                 instance=self,
@@ -341,7 +342,7 @@ class ModuleSimulationBase(HealthCheck):
             )
 
     def get_resolving_actions(self, outcome: Outcome) -> str:
-        return f"""# __CODE__ &mdash; Module {self.MODULE_NUMBER} failed
+        return f"""# __CODE__ &mdash; {self.MODULE_NAME} failed
 
 This check simulates a file generation with the chatbot via WebSocket to verify:
 - The WebSocket server is reachable.
@@ -361,7 +362,8 @@ class Module1Simulation(ModuleSimulationBase):
     WebSocket connection, message processing and file generation are working correctly.
     """
     MODULE_NUMBER = 1
-    FILE_NAME = "module1.xml"
+    MODULE_NAME = "Info2ArticleXia"
+    FILE_NAME = "module1.pdf"
     STATE_OVERWRITE = "M1"
 
 
@@ -371,7 +373,8 @@ class Module2Simulation(ModuleSimulationBase):
     WebSocket connection, message processing and file generation are working correctly.
     """
     MODULE_NUMBER = 2
-    FILE_NAME = "module2.xml"
+    MODULE_NAME = "TopicsIndexGenXia"
+    FILE_NAME = "module2.sgm"
     STATE_OVERWRITE = "M2"
 
 
@@ -381,6 +384,7 @@ class Module3Simulation(ModuleSimulationBase):
     WebSocket connection, message processing and file generation are working correctly.
     """
     MODULE_NUMBER = 3
+    MODULE_NAME = "ColAgreeSumXia"
     FILE_NAME = "module3.xml"
     STATE_OVERWRITE = "M3"
 
@@ -390,6 +394,8 @@ class LLMQuestionSimulation(HealthCheck):
     Simulates a LLM question with the chatbot to check if the WebSocket
     connection, message processing and LLM response generation are working correctly.
     """
+
+    USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3" # Random UUID for the health check
 
     def get_name(self) -> str:
         return "LLM Question Simulation"
@@ -433,12 +439,11 @@ class LLMQuestionSimulation(HealthCheck):
                 return prev_response # We return the previous response because the last one is empty
             prev_response = response
 
-    async def _run_module(self, user_id, fsm_def="lefebvre_fsm"):
+    async def _run_module(self, fsm_def="lefebvre_fsm"):
         """
         Runs an LLM question simulation.
         """
         conversation_id = int(random.random() * 1000000000)
-        print(f"Starting _run_module. conversation_id: {conversation_id}")  # Log start
 
         auth_token = os.getenv("BACKEND_TOKEN", "")
         query_params = f"?token={auth_token}&state_overwrite=M3" if auth_token else ""
@@ -451,11 +456,9 @@ class LLMQuestionSimulation(HealthCheck):
             + "/"
             + fsm_def
             + "/"
-            + (f"{user_id}/" if user_id else "")
+            + f"{self.USER_ID}/"
             + query_params
         )
-
-        print(f'uri = {uri}')
 
         try:
             async with websockets.connect(uri, close_timeout=1000) as websocket:
@@ -468,7 +471,7 @@ class LLMQuestionSimulation(HealthCheck):
                     "sender": {
                         "type": "human",
                         "platform": "WS",
-                        "id": user_id, 
+                        "id": self.USER_ID, 
                     },
                     "stack": [
                         {
@@ -509,7 +512,7 @@ class LLMQuestionSimulation(HealthCheck):
 
     async def get_status(self) -> Outcome:
         try:
-            success, message = await self._run_module(user_id=os.getenv("USER_ID"))
+            success, message = await self._run_module()
         except Exception as e:
             return Outcome(
                 instance=self,

@@ -4,7 +4,7 @@ from typing import Mapping, MutableMapping, Optional, Sequence
 
 import networkx as nx
 from sentry_sdk import capture_exception
-
+import asyncio
 from .checks import *
 from .models import StatusHistory
 
@@ -132,6 +132,8 @@ class Resolver:
             # noinspection PyBroadException
             try:
                 status = instance.check.get_status()
+                if asyncio.iscoroutine(status):
+                    status = asyncio.run(status)
             except Exception:
                 capture_exception()
                 traceback.print_exc()
