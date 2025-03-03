@@ -301,7 +301,7 @@ class FSM:
         payload = await self.rpc_result_future
         logger.debug(f"...Receive RCP call {condition_name} (condition)")
         self.waiting_for_rpc = None
-        return payload["stack"]["score"], payload["stack"]["data"]
+        return payload["stack"][0]["score"], payload["stack"][0]["data"] # Stack is a list of dicts, so only access the first one
 
     async def save_cache(self):
         from back.apps.fsm.models import CachedFSM  # TODO: Resolve CI

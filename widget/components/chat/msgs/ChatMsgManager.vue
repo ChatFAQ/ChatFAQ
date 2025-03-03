@@ -7,6 +7,7 @@
             'maximized': store.maximized,
             'mobile-no-margins': iframedMsg && iframedMsg.mobileNoMargins,
             'desktop-no-margins': iframedMsg && iframedMsg.desktopNoMargins,
+            'hidden': shouldHideMessage()
         }">
         <div
             class="message"
@@ -59,7 +60,7 @@
                             :references="props.message.stack[0].payload.references"
                         ></ReferencesMsgPiece>
                     </template>
-                    <template v-else-if="getFirstLayerType() === 'tool_use'">
+                    <template v-else-if="getFirstLayerType() === 'tool_use' && !store.hideToolMessages">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece 
                                 :data="formatToolUseLayer(layer)" 
@@ -68,7 +69,7 @@
                             />
                         </div>
                     </template>
-                    <template v-else-if="getFirstLayerType() === 'tool_result'">
+                    <template v-else-if="getFirstLayerType() === 'tool_result' && !store.hideToolMessages">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece 
                                 :data="formatToolResultLayer(layer)" 
@@ -178,6 +179,12 @@ function addingQueryParamStack(url) {
     return urlObj.toString();
 }
 
+function shouldHideMessage() {
+    if (!store.hideToolMessages) return false;
+    const messageType = getFirstLayerType();
+    return messageType === 'tool_use' || messageType === 'tool_result';
+}
+
 onMounted(() => {
     window.addEventListener('message', handleMessage);
 });
@@ -250,6 +257,10 @@ $phone-breakpoint: 600px;
                 // margin-left: 35vw;
             }
         }
+    }
+
+    &.hidden {
+        display: none;
     }
 
     .content {

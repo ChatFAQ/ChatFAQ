@@ -46,6 +46,14 @@
     --chatfaq-color-transparent-primary-20: rgba(70, 48, 117, .2);
     --chatfaq-color-full-transparent: transparent;
 
+    /* Code Block Colors */
+    --chatfaq-color-codeBlock-header-background-light: #b5aec2;
+    --chatfaq-color-codeBlock-header-background-dark: var(--chatfaq-color-primary-800);
+    --chatfaq-color-codeBlock-body-background-light: var(--chatfaq-color-primary-200);
+    --chatfaq-color-codeBlock-body-background-dark: #1e1e1e;
+    --chatfaq-color-codeBlock-text-light: var(--chatfaq-color-neutral-black);
+    --chatfaq-color-codeBlock-text-dark: #dcdcdc;
+
      /* Fonts */
 
     // Title
@@ -313,3 +321,10 @@ $chatfaq-prompt-button-background-color-dark: var(--chatfaq-prompt-button-backgr
 
 $chatfaq-bubble-button-open-icon-color: var(--chatfaq-bubble-button-open-icon-color);
 $chatfaq-bubble-button-close-icon-color: var(--chatfaq-bubble-button-close-icon-color);
+
+$chatfaq-color-codeBlock-header-background-light: var(--chatfaq-color-codeBlock-header-background-light);
+$chatfaq-color-codeBlock-header-background-dark: var(--chatfaq-color-codeBlock-header-background-dark);
+$chatfaq-color-codeBlock-body-background-light: var(--chatfaq-color-codeBlock-body-background-light);
+$chatfaq-color-codeBlock-body-background-dark: var(--chatfaq-color-codeBlock-body-background-dark);
+$chatfaq-color-codeBlock-header-text-light: var(--chatfaq-color-codeBlock-header-text-light);
+$chatfaq-color-codeBlock-header-text-dark: var(--chatfaq-color-codeBlock-header-text-dark);

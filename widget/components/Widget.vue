@@ -65,6 +65,7 @@ const props = defineProps({
     conversationId: String,
     widgetConfigId: String,
     hideSources: Boolean,
+    hideToolMessages: Boolean,
     sourcesFirst: Boolean,
     onlyChat: Boolean,
     fitToParent: Boolean,
@@ -195,6 +196,7 @@ function initStore() {
     store.fullScreen = data.fullScreen
     store.sourcesFirst = data.sourcesFirst
     store.hideSources = data.hideSources
+    store.hideToolMessages = data.hideToolMessages
 
     if (store.fullScreen) {
         store.opened = true

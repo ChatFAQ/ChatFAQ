@@ -16,6 +16,7 @@ export const useGlobalStore = defineStore('globalStore', {
             fullScreen: false,
             sourcesFirst: false,
             hideSources: false,
+            hideToolMessages: true,
             noHeader: false,
             previewMode: false,
             opened: false,
