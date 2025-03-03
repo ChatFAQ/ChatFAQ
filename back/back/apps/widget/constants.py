@@ -470,6 +470,30 @@ THEME_DEFAULTS_BY_SECTION = {
             "light": "#463075",  # Primary 500
             "dark": "#FFFFFF",   # Neutral White
         }
+    },
+    "chatfaq-color-codeBlock-header-background": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#b5aec2",  # Manually darkened version of primary-300
+            "dark": "#3c2d52",   # Primary 800
+        }
+    },
+    "chatfaq-color-codeBlock-header-text": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#020C1C",  # Neutral Black
+            "dark": "#dcdcdc",   # Light gray text for dark mode
+        }
+    },
+    "chatfaq-color-codeBlock-body-background": {
+        "type": "color",
+        "section": "colors",
+        "value": {
+            "light": "#dfdaea",  # Primary 200
+            "dark": "#1e1e1e",   # Dark code background
+        }
     }
 }
 
