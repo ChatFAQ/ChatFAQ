@@ -298,6 +298,14 @@ def build_resolver() -> Resolver:
         )
     )
 
+    resolver.register(
+        Instance(
+            code="M004",
+            check=LLMQuestionSimulation(),
+            depends_on=[],
+        )
+    )
+
     resolver.build_graph()
 
     return resolver
