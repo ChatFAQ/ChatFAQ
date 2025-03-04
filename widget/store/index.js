@@ -16,6 +16,7 @@ export const useGlobalStore = defineStore('globalStore', {
             fullScreen: false,
             sourcesFirst: false,
             hideSources: false,
+            hideToolMessages: true,
             noHeader: false,
             previewMode: false,
             opened: false,
@@ -39,6 +40,7 @@ export const useGlobalStore = defineStore('globalStore', {
             stateOverwrite: undefined,
             customIFramedMsgs: {},
             speechRecognition: false,
+            _speechRecognitionTranscribing: false,
             speechRecognitionAutoSend: false,
             speechRecognitionAlwaysOn: false,
             speechRecognitionLang: 'en-US',
@@ -58,7 +60,7 @@ export const useGlobalStore = defineStore('globalStore', {
             speechSynthesisEnabled: false,
             speechSynthesisPitch: 1,
             speechSynthesisRate: 1,
-            speechSynthesisVoices: [],
+            speechSynthesisVoices: "",
             speechVoicesInitialized: false,
         }
         initializeSpeechVoices(_state)
@@ -259,7 +261,7 @@ export const useGlobalStore = defineStore('globalStore', {
             return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
         },
         speechRecognitionTranscribing: (state) => {
-            return state.speechRecognitionRunning && (state.speechRecognitionPhraseActivated || !state.activeActivationPhrase)
+            return state.speechRecognitionRunning && (state._speechRecognitionTranscribing || !state.activeActivationPhrase)
         }
     }
 })
@@ -276,7 +278,7 @@ function initializeSpeechVoices(state) {
             state.speechVoicesInitialized = true;
         }
 
-        if (typeof speechSynthesis !== "undefined" && speechSynthesis.onvoiceschanged !== undefined) {
+        if (typeof speechSynthesis !== "undefined") {
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
     }

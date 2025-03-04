@@ -41,6 +41,7 @@ env:
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
       SENTRY_DSN: '{{ secret("SENTRY_DSN_BACK") }}'
       USE_RAY: 'False'
+      AZOR_PRIVATE_KEY: '{{ secret("AZOR_PRIVATE_KEY") }}'
 #  - name: ray_worker
 #    variables:
 #      BACKEND_HOST: "{{ back.PRIVATE_URL }}"

@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 from importlib import metadata
@@ -323,5 +324,15 @@ with EnvManager(model_w_django) as env:
         ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
 
     # --------------------------- AZOR ---------------------------
-    AZOR_PRIVATE_KEY = env.get("AZOR_PRIVATE_KEY", default=None)
+    raw_key = env.get("AZOR_PRIVATE_KEY", default=None)
+    if raw_key:
+        try:
+            # Decode the Base64-encoded key
+            AZOR_PRIVATE_KEY = base64.b64decode(raw_key).decode('utf-8')
+        except (ValueError, base64.binascii.Error) as e:
+            # Log an error if the key is not properly Base64 encoded
+            logging.error("AZOR_PRIVATE_KEY is not properly Base64 encoded. Please encode your private key with 'cat private_key.pem | base64 -w 0'")
+            raise e
+    else:
+        AZOR_PRIVATE_KEY = None
 

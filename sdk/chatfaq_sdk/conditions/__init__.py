@@ -21,4 +21,4 @@ class Condition:
         self.data = data
 
     async def result(self, *args, fsm_def_name: str = None):
-        yield [{"score": self.score, "data": self.data}, 0, True]
+        yield [[{"score": self.score, "data": self.data}], 0, True]

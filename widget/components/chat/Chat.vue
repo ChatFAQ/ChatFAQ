@@ -47,7 +47,7 @@
                      } else if (!conversationClosed && availableMicro) {
                          speechToText()
                      } else if (!conversationClosed && availableSend) {
-                        sendMessage()
+                         sendMessage()
                      }
                  }">
                 <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
@@ -68,6 +68,7 @@ import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
 import beepAudio from '~/assets/audio/beep.mp3';
+import beepOutAudio from '~/assets/audio/beepOut.mp3';
 
 const store = useGlobalStore();
 
@@ -83,7 +84,8 @@ let historyIndexHumanMsg = -1
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechRecognition = ref(new SpeechRecognition())
-const audio = new Audio(beepAudio);
+const audioBeep = new Audio(beepAudio);
+const audioBeepOut = new Audio(beepOutAudio);
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
@@ -95,9 +97,17 @@ watch(() => store.selectedPlConversationId, () => {
 })
 watch(() => store.speechRecognitionPhraseActivated, (val) => {
     if (store.speechRecognitionBeep && val) {
-        audio.play();
+        audioBeep.play();
     }
 })
+
+watch(() => store._speechRecognitionTranscribing, (val) => {
+    if (store.speechRecognitionBeep && store.activeActivationPhrase && !val) {
+        audioBeepOut.play();
+    }
+})
+
+
 onMounted(async () => {
     await initializeConversation()
 })
@@ -245,8 +255,7 @@ function manageHotKeys(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault()
         cb();
-    }
-    else if (ev.key === 'ArrowUp' && atTheBeginning) {
+    } else if (ev.key === 'ArrowUp' && atTheBeginning) {
         // Search for the previous human message from the index historyIndexHumanMsg
         if (historyIndexHumanMsg === -1)
             historyIndexHumanMsg = store.messages.length
@@ -260,8 +269,7 @@ function manageHotKeys(ev, cb) {
                 }
             }
         }
-    }
-    else if (ev.key === 'ArrowDown' && atTheEnd) { // Searcg for the next human message from the index historyIndexHumanMsg
+    } else if (ev.key === 'ArrowDown' && atTheEnd) { // Search for the next human message from the index historyIndexHumanMsg
         ev.preventDefault()
         if (historyIndexHumanMsg === -1)
             historyIndexHumanMsg = store.messages.length
@@ -364,7 +372,7 @@ function speechToText() {
     }
 
     sr.lang = store.speechRecognitionLang;
-    sr.continuous = false;
+    sr.continuous = _speechRecognitionAlwaysOn;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
 
@@ -375,8 +383,8 @@ function speechToText() {
         sr.stop();
     }
     sr.onresult = (event) => {
-        const speechToText = event.results[0][0].transcript;
-        chatInput.value.innerText += speechToText;
+        const text = event.results[0][0].transcript;
+        chatInput.value.innerText += text;
         sr.stop();
     }
     sr.onresult = (event) => {
@@ -392,12 +400,14 @@ function speechToText() {
         }
         if (
             !store.speechRecognitionPhraseActivated &&
+            !store._speechRecognitionTranscribing &&
             store.activeActivationPhrase
         ) {
             if (
                 matchActivationPhrase(final + interim)
             ) {
                 store.speechRecognitionPhraseActivated = true
+                sr.stop()
             }
         } else {
             if (event.results[0].final)
@@ -423,17 +433,25 @@ function speechToText() {
         store.speechRecognitionRunning = true;
     }
     sr.onend = () => {
-        store.speechRecognitionRunning = false;
-        thereIsContent.value = chatInput.value.innerText.length !== 0
-        if (store.speechRecognitionAutoSend){
-            sendMessage();
-        }
-        // Only restart if we have permission and speech recognition is enabled
-        if (_speechRecognitionAlwaysOn.value && store.speechRecognition) {
+        if(store.speechRecognitionPhraseActivated && store.speechRecognition) { // that means we programmatically ended the SR because we detected the activation phrase
             store.speechRecognitionPhraseActivated = false
-            speechToText();
-        }
+            store._speechRecognitionTranscribing = true
 
+            sr.continuous = false;
+            sr.start();
+
+        } else if (store.speechRecognition) {
+            store.speechRecognitionRunning = false;
+            thereIsContent.value = chatInput.value.innerText.length !== 0
+            if (store.speechRecognitionAutoSend)
+                sendMessage();
+
+            sr.continuous = _speechRecognitionAlwaysOn;
+            if (store.activeActivationPhrase) {
+                store._speechRecognitionTranscribing = false
+                sr.start();
+            }
+        }
     }
     sr.start();
 }
