@@ -40,7 +40,7 @@ env:
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
       SENTRY_DSN: '{{ secret("SENTRY_DSN_BACK") }}'
-      USE_RAY: 'False'
+      USE_RAY: 'True'
       AZOR_PRIVATE_KEY: '{{ secret("AZOR_PRIVATE_KEY") }}'
 #  - name: ray_worker
 #    variables:
