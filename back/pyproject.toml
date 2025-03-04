@@ -40,7 +40,7 @@ scrapy-playwright = "^0.0.28"
 undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
-ray = {extras = ["data", "serve"], version = "^2.32.0"}
+ray = {extras = ["data", "serve"], version = "2.40.0"}
 pillow = "^11.1.0"
 redis = "~5.1"
 fastapi = "0.111"
