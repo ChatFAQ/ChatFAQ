@@ -73,3 +73,5 @@ envs:
     DO_REGION: '${{ vars::AWS_S3_REGION_NAME }}'
     OPENAI_API_KEY: '${{ secrets::OPENAI_API_KEY }}'
     USE_RAY: 'False'
+    INTERNAL_WS_URL: '${{ vars::INTERNAL_WS_URL }}'
+    BACKEND_TOKEN: '${{ secrets::BACKEND_TOKEN }}'
