@@ -301,9 +301,9 @@ class ModuleSimulationBase(HealthCheck):
                         response.raise_for_status()  # Raise an exception for 4XX/5XX responses
                         # Successfully downloaded the file
                     except requests.exceptions.RequestException as e:
-                        return False, f"Failed to download the generated file: {str(e)}"
+                        return False, f"Failed to download the generated file: {str(e)}. Full response: {str(new_file_response)}"
                 else:
-                    return False, "No file URL was provided in the response"
+                    return False, "No file URL was provided in the response. Full response: " + str(new_file_response)
             
                 return True, "Everything is working correctly"
         except websockets.exceptions.ConnectionClosedError as e:
