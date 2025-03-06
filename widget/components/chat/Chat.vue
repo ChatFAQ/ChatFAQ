@@ -430,7 +430,8 @@ function speechToText() {
         }
     }
     sr.onstart = () => {
-        store.speechRecognitionRunning = true;
+        if (store.speechRecognition && store.speechRecognitionAlwaysOn)
+            store.speechRecognitionRunning = true;
     }
     sr.onend = () => {
         if(store.speechRecognitionPhraseActivated && store.speechRecognition) { // that means we programmatically ended the SR because we detected the activation phrase
