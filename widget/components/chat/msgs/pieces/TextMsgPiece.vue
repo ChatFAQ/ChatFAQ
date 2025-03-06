@@ -473,7 +473,7 @@ onBeforeUnmount(cancelSynthesis);
     border-radius: 6px;
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.1);
-    background-color: $chatfaq-color-primary-200; /* Light mode background matching theme */
+    background-color: $chatfaq-color-codeBlock-body-background-light;
     display: flex;
     flex-direction: column;
     
@@ -499,17 +499,17 @@ onBeforeUnmount(cancelSynthesis);
     justify-content: space-between;
     align-items: center;
     padding: 4px 12px;
-    background-color: #b5aec2; /* Manually darkened version of primary-300 (#cac2da) */
+    background-color: $chatfaq-color-codeBlock-header-background-light;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     font-family: sans-serif;
     font-size: 0.8em;
     min-height: 28px;
     flex-shrink: 0;
-    color: $chatfaq-color-neutral-black;
+    color: $chatfaq-color-codeBlock-header-text-light;
     
     &.dark-mode {
-        background-color: $chatfaq-color-primary-900; /* Using a darker existing color */
-        color: $chatfaq-color-neutral-white;
+        background-color: $chatfaq-color-codeBlock-header-background-dark;
+        color: $chatfaq-color-codeBlock-header-text-dark;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 }
@@ -576,13 +576,13 @@ onBeforeUnmount(cancelSynthesis);
 /* Update existing hljs styles for dark mode */
 .dark-mode {
     .hljs {
-        background-color: #1e1e1e;
-        color: #dcdcdc;
+        background-color: $chatfaq-color-codeBlock-body-background-dark;
+        color: $chatfaq-color-codeBlock-header-text-dark;
     }
     
     .code-block-container {
         border: 1px solid rgba(255, 255, 255, 0.1);
-        background-color: #1e1e1e;
+        background-color: $chatfaq-color-codeBlock-body-background-dark;
         
         pre {
             background-color: inherit;
