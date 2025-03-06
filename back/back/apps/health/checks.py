@@ -7,6 +7,7 @@ from typing import Mapping, Sequence
 
 import requests
 import websockets
+from django.conf import settings
 from django.core.files.storage import default_storage
 from health_check.cache.backends import CacheBackend
 from health_check.contrib.psutil.backends import MemoryUsage
@@ -227,7 +228,11 @@ class ModuleSimulationBase(HealthCheck):
         
         conversation_id = int(random.random() * 1000000000)
 
-        auth_token = os.getenv("BACKEND_TOKEN", "")
+        auth_token = settings.BACKEND_TOKEN
+        internal_ws_url = settings.INTERNAL_WS_URL
+        if not auth_token or not internal_ws_url:
+            return False, "BACKEND_TOKEN or INTERNAL_WS_URL is not set"
+        
         query_params = ""
         
         if auth_token:
@@ -240,7 +245,7 @@ class ModuleSimulationBase(HealthCheck):
         query_params += f'&metadata={{"module":"{self.MODULE_NAME}"}}'
 
         uri = (
-            os.getenv("INTERNAL_WS_URL")
+            internal_ws_url
             + "/back/ws/broker/"
             + str(conversation_id)
             + "/"
@@ -445,12 +450,16 @@ class LLMQuestionSimulation(HealthCheck):
         """
         conversation_id = int(random.random() * 1000000000)
 
-        auth_token = os.getenv("BACKEND_TOKEN", "")
+        auth_token = settings.BACKEND_TOKEN
+        internal_ws_url = settings.INTERNAL_WS_URL
+        if not auth_token or not internal_ws_url:
+            return False, "BACKEND_TOKEN or INTERNAL_WS_URL is not set"
+        
         query_params = f"?token={auth_token}&state_overwrite=M3" if auth_token else ""
         query_params += '&metadata={"module":"ColAgreeSumXia"}'
 
         uri = (
-            os.getenv("INTERNAL_WS_URL")
+            internal_ws_url
             + "/back/ws/broker/"
             + str(conversation_id)
             + "/"
