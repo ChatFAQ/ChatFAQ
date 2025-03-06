@@ -12,6 +12,7 @@ from django.core.files.storage import default_storage
 from health_check.cache.backends import CacheBackend
 from health_check.contrib.psutil.backends import MemoryUsage
 from health_check.db.backends import DatabaseBackend
+from back.config.storage_backends import select_private_storage
 
 from .base import DjangoHealthCheckWrapper, HealthCheck, Outcome, Status
 
@@ -186,6 +187,7 @@ class ModuleSimulationBase(HealthCheck):
     HANDSHAKE_TIMEOUT = 10.0
     FILE_PROCESSING_TIMEOUT = 300.0
     USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3" # Random UUID for the health check
+    STORAGE = select_private_storage()
     
     def get_name(self) -> str:
         if self.MODULE_NAME is None:
@@ -320,8 +322,8 @@ class ModuleSimulationBase(HealthCheck):
                 raise ValueError("Subclasses must define FILE_NAME")
             
             file_name = f'health_check_files/{self.FILE_NAME}'
-            if default_storage.exists(file_name):
-                file_url = default_storage.url(file_name)
+            if self.STORAGE.exists(file_name):
+                file_url = self.STORAGE.generate_presigned_url_get(file_name)
                 success, message = await self._run_module(file_name, file_url)
             else:
                 success = False
