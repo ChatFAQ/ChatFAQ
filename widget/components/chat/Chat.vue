@@ -242,8 +242,9 @@ async function initializeConversation() {
     conversationClosed.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
 
-    if (_speechRecognitionAlwaysOn)
-        speechToText()
+    if (_speechRecognitionAlwaysOn.value) {
+        speechToText();
+    }
 }
 
 function manageHotKeys(ev, cb) {
@@ -372,7 +373,7 @@ function speechToText() {
     }
 
     sr.lang = store.speechRecognitionLang;
-    sr.continuous = _speechRecognitionAlwaysOn;
+    sr.continuous = _speechRecognitionAlwaysOn.value;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
 
@@ -425,7 +426,7 @@ function speechToText() {
         // Don't restart if we got a not-allowed error, usually because the user has not granted permission
         if (event.error === 'not-allowed') {
             store.speechRecognition = false;  // Disable speech recognition entirely
-            _speechRecognitionAlwaysOn.value = false;  // Ensure we don't retry
+            store.speechRecognitionAlwaysOn = false;  // Ensure we don't retry
             return;
         }
     }
@@ -447,7 +448,7 @@ function speechToText() {
             if (store.speechRecognitionAutoSend)
                 sendMessage();
 
-            sr.continuous = _speechRecognitionAlwaysOn;
+            sr.continuous = _speechRecognitionAlwaysOn.value;
             if (store.activeActivationPhrase) {
                 store._speechRecognitionTranscribing = false
                 sr.start();
