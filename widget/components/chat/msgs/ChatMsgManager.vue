@@ -35,6 +35,7 @@
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
+                        width: iframedMsg && iframeWidth ? iframeWidth + 'px' : undefined,
                     }"
                 >
                     <template v-if="iframedMsg">
@@ -43,6 +44,7 @@
                             style="border: 0;"
                             :style="{
                                 height: iframeHeight + 'px',
+                                width: iframeWidth && iframeWidth + 'px',
                             }"
                             :src="addingQueryParamStack(iframedMsg.src)"
                             :class="{
@@ -153,6 +155,7 @@ const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null);
 const iframeHeight = ref(40);
+const iframeWidth = ref(undefined);
 
 const layersFinished = computed(() => props.message.last);
 const stackFinished = computed(() => props.message.last_chunk);
@@ -195,7 +198,8 @@ onBeforeUnmount(() => {
 
 function handleMessage(event) {
     if (iframedWindow.value && event.source === iframedWindow.value.contentWindow) {
-        iframeHeight.value = event.data;
+        iframeHeight.value = event.data.height;
+        iframeWidth.value = event.data.width;
     }
 }
 
