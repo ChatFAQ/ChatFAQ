@@ -157,13 +157,13 @@ function createConnection() {
     }
 
 
-    if (store.stateOverwrite) {
+    if (store.stateOverride) {
         if (queryParams.length) {
             queryParams += "&"
         } else {
             queryParams = "?"
         }
-        queryParams += `state_overwrite=${encodeURIComponent(store.stateOverwrite)}`
+        queryParams += `state_override=${encodeURIComponent(store.stateOverride)}`
     }
 
     ws = new WebSocket(
