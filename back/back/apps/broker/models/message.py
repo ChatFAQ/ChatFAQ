@@ -93,7 +93,7 @@ class Conversation(ChangesMixin):
 
     def get_conv_mml(self):
         messages = self.get_msgs_chain()
-        conv_mml = [model_to_dict(message, fields=["stack", "sender"]) if message else None for message in messages]
+        conv_mml = [model_to_dict(message, fields=["id", "stack", "sender"]) if message else None for message in messages]
         return conv_mml
 
     def get_last_human_mml(self):
