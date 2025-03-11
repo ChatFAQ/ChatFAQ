@@ -37,7 +37,7 @@ export const useGlobalStore = defineStore('globalStore', {
             downloading: false,
             isPhone: false,
             initialConversationMetadata: {},
-            stateOverwrite: undefined,
+            stateOverride: undefined,
             customIFramedMsgs: {},
             speechRecognition: false,
             _speechRecognitionTranscribing: false,

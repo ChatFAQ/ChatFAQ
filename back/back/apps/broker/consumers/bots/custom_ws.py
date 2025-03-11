@@ -34,9 +34,9 @@ class CustomWSBotConsumer(WSBotConsumer):
         _meta = params.get(b"metadata", [b"{}"])
         return json.loads(_meta[0])
     
-    async def gather_fsm_state_overwrite(self):
+    async def gather_fsm_state_override(self):
         params = parse_qs(self.scope["query_string"])
-        state = params.get(b"state_overwrite", "")
+        state = params.get(b"state_override", "")
         return state[0].decode('utf-8') if state else None
 
     @classmethod
