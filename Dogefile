@@ -39,6 +39,7 @@ env:
       MISTRAL_API_KEY: '{{ secret("MISTRAL_API_KEY") }}'
       OPENAI_API_KEY: '{{ secret("OPENAI_API_KEY") }}'
       TOGETHER_API_KEY: '{{ secret("TOGETHER_API_KEY") }}'
+      GOOGLE_API_KEY: ''{{ secret("GOOGLE_API_KEY") }}'
       SENTRY_DSN: '{{ secret("SENTRY_DSN_BACK") }}'
       USE_RAY: 'False'
       AZOR_PRIVATE_KEY: '{{ secret("AZOR_PRIVATE_KEY") }}'
