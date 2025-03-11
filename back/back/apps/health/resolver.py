@@ -303,7 +303,7 @@ def build_resolver() -> Resolver:
     resolver.register(
         Instance(
             code="M004",
-            check=LLMQuestionSimulation(),
+            check=LLMCheck(),
             depends_on=[],
         )
     )

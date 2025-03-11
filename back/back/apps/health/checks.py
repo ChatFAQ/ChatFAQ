@@ -15,6 +15,8 @@ from health_check.db.backends import DatabaseBackend
 from back.config.storage_backends import select_private_storage
 
 from .base import DjangoHealthCheckWrapper, HealthCheck, Outcome, Status
+from .models import Event
+
 
 
 def disp_window(window: Mapping[str, int]) -> str:
@@ -396,162 +398,47 @@ class Module3Simulation(ModuleSimulationBase):
     STATE_OVERWRITE = "M3"
 
 
-class LLMQuestionSimulation(HealthCheck):
+class LLMCheck(HealthCheck):
     """
-    Simulates a LLM question with the chatbot to check if the WebSocket
-    connection, message processing and LLM response generation are working correctly.
+    Validates that the enabled LLM are working correctly.
     """
 
-    USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3" # Random UUID for the health check
+    # WINDOW = dict(minutes=2)
+    WINDOW = dict(hours=1)
 
     def get_name(self) -> str:
-        return "LLM Question Simulation"
-    
-    async def _receive_json_message(self, websocket, timeout=10.0, timeout_message=None):
-        """
-        Helper method to receive a JSON message from the websocket.
-        """
-        message_text = ""
-        try:
-            message_text = await asyncio.wait_for(websocket.recv(), timeout)
-            msg = json.loads(message_text)
-            print(f"Received message: {msg}")  # Log received message
-            return msg
-        except asyncio.TimeoutError:
-            if timeout_message:
-                raise asyncio.TimeoutError(timeout_message + ". Last message: " + message_text)
-            else:
-                raise asyncio.TimeoutError("Timeout waiting for message from server. Last message: " + message_text)
-        except json.JSONDecodeError:
-            raise ValueError("Invalid JSON response from server. Last message: " + message_text)
-    
-    async def _wait_for_initial_messages(self, websocket, num_messages=3):
-        """
-        Waits for three initial messages, throwing an error if any indicate a problem.
-        """
-        for _ in range(num_messages):
-            response = await self._receive_json_message(websocket)
-            if response.get("status") == 400:
-                raise ValueError(f"Error in initial message from WS: {response.get('payload')}")
-    
-    async def _wait_for_llm_response(self, websocket):
-        """
-        Waits for LLM response chunks until the final chunk (with last_chunk=True)
-        is received.
-        """
-        prev_response = None
-        while True:
-            response = await self._receive_json_message(websocket)
-            if response.get("last", False):
-                return prev_response # We return the previous response because the last one is empty
-            prev_response = response
+        return "LLM Check"
 
-    async def _run_module(self, fsm_def="lefebvre_fsm"):
-        """
-        Runs an LLM question simulation.
-        """
-        conversation_id = int(random.random() * 1000000000)
+    def get_status(self) -> Outcome:
+        events = Event.objects.types(["llm_call_complete", "llm_call_start"]).within(**self.WINDOW)
+        stats = events.stats()
+        stats_str = disp_stats(stats)
 
-        auth_token = settings.BACKEND_TOKEN
-        internal_ws_url = settings.INTERNAL_WS_URL
-        if not auth_token or not internal_ws_url:
-            return False, "BACKEND_TOKEN or INTERNAL_WS_URL is not set"
-        
-        query_params = f"?token={auth_token}&state_overwrite=M3" if auth_token else ""
-        query_params += '&metadata={"module":"ColAgreeSumXia"}'
-
-        uri = (
-            internal_ws_url
-            + "/back/ws/broker/"
-            + str(conversation_id)
-            + "/"
-            + fsm_def
-            + "/"
-            + f"{self.USER_ID}/"
-            + query_params
-        )
-
-        try:
-            async with websockets.connect(uri, close_timeout=1000) as websocket:
-                # Process the initial handshake responses.
-                await self._wait_for_initial_messages(websocket)
-                print("Initial handshake successful.")  # Log handshake
-
-                # Build and send the message payload.
-                message = {
-                    "sender": {
-                        "type": "human",
-                        "platform": "WS",
-                        "id": self.USER_ID, 
-                    },
-                    "stack": [
-                        {
-                            "type": "message",
-                            "payload": {
-                                "content": "Qué tipos de documentos puedo subir?"
-                            },
-                        }
-                    ],
-                    "stack_id": "0",
-                    "stack_group_id": "0",
-                    "last": True
-                }
-                await websocket.send(json.dumps(message))
-                print(f"Message sent: {message}")  # Log sent message
-
-                # Process responses after sending the message.
-                first_response = await self._receive_json_message(websocket)
-                if first_response.get("status") == 400:
-                    return False, f"Error in initial response from WS: {first_response.get('payload')}"
-                print(f"First response received: {first_response}")  # Log first response
-
-                llm_response = await self._wait_for_llm_response(websocket)
-                response_content = (
-                    llm_response.get("stack", [{}])[0]
-                    .get("payload", {})
-                    .get("content", "")
-                )
-
-                return True, f"LLM responded: {response_content}"
-            
-        except websockets.exceptions.ConnectionClosedError as e:
-            print(f"WebSocket connection closed: {e.code} {e.reason}")  # Log WS close
-            return False, f"WebSocket connection closed unexpectedly: {e.code} {e.reason}"
-        except Exception as e:
-            print(f"Unexpected error: {type(e).__name__} - {e}")  # Log other errors
-            return False, f"An unexpected error occurred: {type(e).__name__} - {e}"
-
-    async def get_status(self) -> Outcome:
-        try:
-            success, message = await self._run_module()
-        except Exception as e:
+        if stats["failure"]:
+            errors = [e.data for e in events.filter(is_success=False)]
             return Outcome(
                 instance=self,
                 status=Status.ERROR,
-                message=f"LLM question simulation failed: {e}",
-            )
-        if success:
-            return Outcome(
-                instance=self,
-                status=Status.OK,
-                message=f"LLM question simulation successful. The message was: {message}",
+                message=f"{stats_str} in the last {disp_window(self.WINDOW)}",
+                extra={"errors": errors},
             )
         else:
             return Outcome(
                 instance=self,
-                status=Status.ERROR,
-                message=f"LLM question simulation failed: {message}",
+                status=Status.OK,
+                message=f"{stats_str} in the last {disp_window(self.WINDOW)}",
             )
 
     def get_resolving_actions(self, outcome: Outcome) -> str:
-        return """# __CODE__ &mdash; Module failed
+        return """# __CODE__ &mdash; LLM failed
 
-This check simulates a LLM question with the chatbot via WebSocket to verify:
-- The WebSocket server is reachable.
-- The FSM works correctly.
-- The FastAPI modules server is reachable.
-- The LLM is reachable.
+This check validates that the enabled LLM are working correctly.
+
+## Possible causes
+
+- The API key is invalid.
+- The defined endpoint url is invalid.
+- The model provider is down.
 """
-
     def suggest_reboot(self, outcome: Outcome) -> Sequence[str]:
         return []

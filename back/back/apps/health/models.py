@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from django.db import models
 from django.db.transaction import atomic
 from django.utils.timezone import now
+
 from .base import Status
 from .itertools2 import n_uple
 
@@ -28,6 +29,18 @@ class EventQuerySet(models.QuerySet):
         """
 
         return self.filter(event_type=event_type)
+
+    def types(self, event_types):
+        """
+        Filters by multiple event types
+
+        Parameters
+        ----------
+        event_types
+            List of event types to filter by
+        """
+        
+        return self.filter(event_type__in=event_types)
 
     def within(
         self,
