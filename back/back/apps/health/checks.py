@@ -1,22 +1,20 @@
 import asyncio
 import json
-import os
 import random
-import uuid
 from typing import Mapping, Sequence
 
 import requests
 import websockets
+from channels.db import database_sync_to_async
 from django.conf import settings
-from django.core.files.storage import default_storage
 from health_check.cache.backends import CacheBackend
 from health_check.contrib.psutil.backends import MemoryUsage
 from health_check.db.backends import DatabaseBackend
+
 from back.config.storage_backends import select_private_storage
 
 from .base import DjangoHealthCheckWrapper, HealthCheck, Outcome, Status
 from .models import Event
-
 
 
 def disp_window(window: Mapping[str, int]) -> str:
@@ -190,6 +188,8 @@ class ModuleSimulationBase(HealthCheck):
     FILE_PROCESSING_TIMEOUT = 300.0
     USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3" # Random UUID for the health check
     STORAGE = select_private_storage()
+    # This is a heavy health check, so run it once per 6 hours
+    WINDOW = dict(hours=6)
     
     def get_name(self) -> str:
         if self.MODULE_NAME is None:
@@ -318,7 +318,21 @@ class ModuleSimulationBase(HealthCheck):
     async def get_status(self) -> Outcome:
         """
         Performs the module simulation to determine system health.
+        Only runs the actual check once per hour, using cached results in between.
         """
+        # Check if we have a successful run within the last hour
+        event_type = f"module_{self.MODULE_NUMBER}_simulation"
+        last_event = await database_sync_to_async(Event.objects.type(event_type).within(**self.WINDOW).filter(is_success=True).first, thread_sensitive=False)()
+        
+        # If we have a successful check in the last hour, return a cached result
+        if last_event:
+            return Outcome(
+                instance=self,
+                status=Status.OK,
+                message=f"Module {self.MODULE_NUMBER} successful (cached result from {last_event.date_created.strftime('%H:%M:%S')})",
+            )
+            
+        # Otherwise run the simulation
         try:
             if self.FILE_NAME is None:
                 raise ValueError("Subclasses must define FILE_NAME")
@@ -330,7 +344,20 @@ class ModuleSimulationBase(HealthCheck):
             else:
                 success = False
                 message = f"The base document to test module {self.MODULE_NUMBER} does not exist in the storage. Please upload the file {file_name} to the Digital Ocean bucket."
+                
+            # Record this check result as an event
+            await database_sync_to_async(Event.objects.create, thread_sensitive=False)(
+                event_type=event_type,
+                is_success=success,
+                data={"message": message} if not success else {}
+            )
         except Exception as e:
+            # Record failure event
+            await database_sync_to_async(Event.objects.create, thread_sensitive=False)(
+                event_type=event_type,
+                is_success=False,
+                data={"error": str(e)}
+            )
             return Outcome(
                 instance=self,
                 status=Status.ERROR,
