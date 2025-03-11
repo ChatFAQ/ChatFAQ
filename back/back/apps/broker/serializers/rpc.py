@@ -57,11 +57,11 @@ class RPCResultSerializer(serializers.Serializer):
             }
 
         # Tool results are categorized as human messages although not exactly true
-        if attrs.get('stack', []) and attrs['stack'][0].get('type') == 'tool_result':
+        if attrs.get('node_type') == RPCNodeType.action.value and attrs.get('stack', []) and attrs['stack'][0].get('type') == 'tool_result':
             attrs['sender'] = {
                 "type": AgentType.human.value,
             }
-            
+
         if attrs.get("node_type") == RPCNodeType.condition.value:
             return super().validate(attrs)
 
@@ -129,7 +129,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     use_conversation_context = serializers.BooleanField(default=True)
     response_schema = serializers.JSONField(default=dict, required=False, allow_null=True)
     cache_config = CacheConfigSerializer(required=False, allow_null=True)
-    
+
     def validate(self, attrs):
         if not attrs.get("messages") and not attrs.get("use_conversation_context"):
             raise serializers.ValidationError(
@@ -143,7 +143,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
 
         if attrs.get("tools") and attrs.get("stream"):
             raise serializers.ValidationError("ChatFAQ doesn't support streaming when using tools")
-        
+
         if attrs.get("response_schema") and attrs.get("stream"):
             raise serializers.ValidationError("ChatFAQ doesn't support structured output when streaming")
 

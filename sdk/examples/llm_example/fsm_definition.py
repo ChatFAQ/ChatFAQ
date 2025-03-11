@@ -1,6 +1,6 @@
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import Message, StreamingMessage
+from chatfaq_sdk.layers import Message, StreamingMessage, TextFeedback, ThumbsRating
 from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.utils import convert_mml_to_llm_format
 
@@ -24,6 +24,8 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     )
 
     yield StreamingMessage(generator)
+    yield ThumbsRating()
+    yield TextFeedback(placeholder="What did you think of this answer?")
 
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)

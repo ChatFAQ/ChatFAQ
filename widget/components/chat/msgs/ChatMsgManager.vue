@@ -35,6 +35,7 @@
                     }"
                     :style="{
                         height: iframedMsg ? iframeHeight + 'px' : undefined,
+                        width: iframedMsg && iframeWidth ? iframeWidth + 'px' : undefined,
                     }"
                 >
                     <template v-if="iframedMsg">
@@ -43,6 +44,7 @@
                             style="border: 0;"
                             :style="{
                                 height: iframeHeight + 'px',
+                                width: iframeWidth && iframeWidth + 'px',
                             }"
                             :src="addingQueryParamStack(iframedMsg.src)"
                             :class="{
@@ -62,18 +64,18 @@
                     </template>
                     <template v-else-if="getFirstLayerType() === 'tool_use' && !store.hideToolMessages">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <TextMsgPiece 
-                                :data="formatToolUseLayer(layer)" 
-                                :is-last="isLastOfType && layersFinished" 
+                            <TextMsgPiece
+                                :data="formatToolUseLayer(layer)"
+                                :is-last="isLastOfType && layersFinished"
                                 :is-last-chunk="stackFinished"
                             />
                         </div>
                     </template>
                     <template v-else-if="getFirstLayerType() === 'tool_result' && !store.hideToolMessages">
                         <div class="layer" v-for="layer in props.message.stack">
-                            <TextMsgPiece 
-                                :data="formatToolResultLayer(layer)" 
-                                :is-last="isLastOfType && layersFinished" 
+                            <TextMsgPiece
+                                :data="formatToolResultLayer(layer)"
+                                :is-last="isLastOfType && layersFinished"
                                 :is-last-chunk="stackFinished"
                             />
                         </div>
@@ -153,6 +155,7 @@ const props = defineProps(["message", "isLast", "isLastOfType", "isFirst"]);
 const store = useGlobalStore();
 const feedbacking = ref(null);
 const iframeHeight = ref(40);
+const iframeWidth = ref(undefined);
 
 const layersFinished = computed(() => props.message.last);
 const stackFinished = computed(() => props.message.last_chunk);
@@ -174,7 +177,7 @@ function messageIsNotFeedback(message) {
 }
 function addingQueryParamStack(url) {
     if (!url) return;
-    const urlObj = new URL(url);
+    const urlObj = new URL(url, window.location.origin);
     urlObj.searchParams.set("stack", JSON.stringify(props.message.stack));
     return urlObj.toString();
 }
@@ -195,7 +198,8 @@ onBeforeUnmount(() => {
 
 function handleMessage(event) {
     if (iframedWindow.value && event.source === iframedWindow.value.contentWindow) {
-        iframeHeight.value = event.data;
+        iframeHeight.value = event.data.height;
+        iframeWidth.value = event.data.width;
     }
 }
 

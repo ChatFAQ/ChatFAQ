@@ -2,7 +2,7 @@
     <client-only>
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :title="title"
                 :subtitle="subtitle" enable-logout :allow-attachments="true" 
-                :hideSources="hideSources" :stateOverwrite="stateOverwrite"
+                :hideSources="hideSources" :stateOverride="stateOverride" :widgetConfigId="widgetId"
         />
     </client-only>
 </template>
@@ -17,10 +17,11 @@ const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
 const fsmDef = ref("llm_fsm")
 const hideSources = ref(false)
-const stateOverwrite = ref(null)
+const stateOverride = ref(null)
+const widgetId = ref("6a5fb833-cdcf-468a-ac22-8f1c2b7b1672")
 
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    stateOverwrite.value = urlParams.get('state');
+    stateOverride.value = urlParams.get('state_override');
 })
 </script>
