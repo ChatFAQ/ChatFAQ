@@ -1,7 +1,7 @@
 import json
 from typing import Callable, Dict, List, Union
 
-from openai import AsyncOpenAI, OpenAI
+from openai import AsyncOpenAI, OpenAI, NOT_GIVEN
 from openai.lib._pydantic import _ensure_strict_json_schema
 
 from chat_rag.llms.types import Content, Message, ToolUse, Usage
@@ -142,6 +142,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: str = NOT_GIVEN,
         **kwargs,
     ):
         """
@@ -161,10 +162,11 @@ class OpenAIChatModel(LLM):
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             seed=seed,
             n=1,
             stream=True,
+            reasoning_effort=thinking,
         )
         for chunk in response:
             if chunk.choices[0].finish_reason == "stop":
@@ -178,6 +180,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: str = NOT_GIVEN,
         **kwargs,
     ):
         """
@@ -196,10 +199,11 @@ class OpenAIChatModel(LLM):
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             seed=seed,
             n=1,
             stream=True,
+            reasoning_effort=thinking,
         )
         async for chunk in response:
             if chunk.choices[0].finish_reason == "stop":
@@ -213,6 +217,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: str = NOT_GIVEN,
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
@@ -237,8 +242,9 @@ class OpenAIChatModel(LLM):
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             seed=seed,
+            reasoning_effort=thinking,
             n=1,
             tools=tools,
             tool_choice=tool_choice,
@@ -253,6 +259,7 @@ class OpenAIChatModel(LLM):
         temperature: float = 1.0,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: str = NOT_GIVEN,
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
@@ -276,8 +283,9 @@ class OpenAIChatModel(LLM):
             model=self.llm_name,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens,
+            max_completion_tokens=max_tokens,
             seed=seed,
+            reasoning_effort=thinking,
             n=1,
             tools=tools,
             tool_choice=tool_choice,

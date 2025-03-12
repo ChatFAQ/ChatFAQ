@@ -1,7 +1,7 @@
 import json
 import uuid
 from logging import getLogger
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Optional, Union
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -205,6 +205,7 @@ async def query_llm(
     temperature: float = 0.7,
     max_tokens: int = 1024,
     seed: int = 42,
+    thinking: Union[str, Dict] = None,
     tools: List[Dict] = None,
     tool_choice: str = None,
     use_conversation_context: bool = True,
@@ -303,6 +304,7 @@ async def query_llm(
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
+                thinking=thinking,
                 cache_config=cache_config,
             )
             async for res in response:
@@ -321,6 +323,7 @@ async def query_llm(
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
+                thinking=thinking,
                 tools=tools,
                 tool_choice=tool_choice,
                 cache_config=cache_config,
@@ -432,6 +435,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("temperature"),
             data.get("max_tokens"),
             data.get("seed"),
+            data.get("thinking"),
             data.get("tools"),
             data.get("tool_choice"),
             data.get("use_conversation_context"),

@@ -11,7 +11,7 @@ from .format_tools import Mode, format_tools
 
 
 class ClaudeChatModel(LLM):
-    def __init__(self, llm_name: str = "claude-3-opus-20240229", **kwargs) -> None:
+    def __init__(self, llm_name: str = "claude-3-7-sonnet-latest", **kwargs) -> None:
         self.llm_name = llm_name
         self.client = Anthropic(
             api_key=os.environ.get("ANTHROPIC_API_KEY"),
@@ -85,7 +85,7 @@ class ClaudeChatModel(LLM):
             return content_list
 
         messages_formatted = [
-            {"role": message["role"], "content": format_content(message)}
+            {"role": message["role"] if isinstance(message, Dict) else message.role, "content": format_content(message)}
             for message in messages
         ]
 
@@ -102,6 +102,7 @@ class ClaudeChatModel(LLM):
         """
         content_list = []
         for part in message.content:
+            # TODO: Handle thinking output block types
             if part.type == "text":
                 content_list.append(
                     Content(
@@ -135,6 +136,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: dict = None,
         **kwargs,
     ):
         """
@@ -157,11 +159,16 @@ class ClaudeChatModel(LLM):
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
+            thinking=thinking if thinking else NOT_GIVEN,
         )
 
         for event in stream:
             if event.type == "content_block_delta":
-                yield event.delta.text
+                if event.delta.type == "thinking_delta":
+                    pass # Pass for now until I figure out a common interface for thinking
+                    # yield event.delta.thinking
+                elif event.delta.type == "text_delta":
+                    yield event.delta.text
 
     async def astream(
         self,
@@ -169,6 +176,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: dict = None,
         **kwargs,
     ):
         """
@@ -191,11 +199,16 @@ class ClaudeChatModel(LLM):
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
+            thinking=thinking if thinking else NOT_GIVEN,
         )
 
         async for event in stream:
             if event.type == "content_block_delta":
-                yield event.delta.text
+                if event.delta.type == "thinking_delta":
+                    pass # Pass for now until I figure out a common interface for thinking
+                    # yield event.delta.thinking
+                elif event.delta.type == "text_delta":
+                    yield event.delta.text
 
     def generate(
         self,
@@ -203,6 +216,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: dict = None,
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
@@ -232,6 +246,7 @@ class ClaudeChatModel(LLM):
             temperature=temperature,
             max_tokens=max_tokens,
             **tool_kwargs,
+            thinking=thinking if thinking else NOT_GIVEN,
         )
 
         return self._map_anthropic_message(message)
@@ -242,6 +257,7 @@ class ClaudeChatModel(LLM):
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
+        thinking: dict = None,
         tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
         **kwargs,
@@ -271,6 +287,7 @@ class ClaudeChatModel(LLM):
             temperature=temperature,
             max_tokens=max_tokens,
             **tool_kwargs,
+            thinking=thinking if thinking else NOT_GIVEN,
         )
 
         return self._map_anthropic_message(message)

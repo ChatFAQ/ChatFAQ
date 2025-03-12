@@ -1,5 +1,5 @@
 import inspect
-
+from typing import Dict
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.layers import Message, ToolUse, ToolResult
@@ -19,7 +19,7 @@ class Agent:
         self.system_instruction = system_instruction
         self.model_name = model_name
 
-    async def run(self, ctx: dict):
+    async def run(self, ctx: dict, thinking: str | Dict = None, temperature: float = 0.7, max_tokens: int = 4096):
         messages = convert_mml_to_llm_format(ctx["conv_mml"][1:])  # Skip the greeting message
         if self.system_instruction:
             messages.insert(0, {"role": "system", "content": self.system_instruction})
@@ -35,6 +35,9 @@ class Agent:
                 tools=self.tools,
                 tool_choice="auto",
                 stream=False,
+                thinking=thinking,
+                temperature=temperature,
+                max_tokens=max_tokens,
             )
             tool_results = []
             for content in response["content"]:
