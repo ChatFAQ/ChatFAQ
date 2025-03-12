@@ -187,10 +187,10 @@ class UserFeedbackAPIViewSet(viewsets.ModelViewSet):
     queryset = UserFeedback.objects.all()
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["id", "message"]
+    filterset_fields = ["id", "message_source", "message_target"]
 
     def check_object_permissions(self, request, obj):
-        if obj.message.conversation.authentication_required:
+        if obj.message_source.conversation.authentication_required:
             if not request.user.is_authenticated:
                 raise exceptions.NotAuthenticated()
         return super().check_object_permissions(request, obj)

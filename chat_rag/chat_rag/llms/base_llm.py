@@ -1,27 +1,13 @@
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Callable, Dict, List, Optional, Union
 
-from pydantic import BaseModel
+from chat_rag.llms.types import Message
 
 
 class LLM:
 
-    def _check_tool_choice(self, tools: List[Union[BaseModel, Dict]], tool_choice: str) -> Tuple[Dict, str]:
-        """
-        Adhere to the tool_choice parameter requirements.
-        """
-        if isinstance(tools[0], BaseModel):
-            tools = [tool.model_json_schema() for tool in tools]
-
-        if tool_choice:
-            tool_choices = ["required", "auto"] + [tool['title'] for tool in tools]
-            assert tool_choice in tool_choices, f"tool_choice must be one of {tool_choices}"
-
-        return tools, tool_choice
-            
-
     def stream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Dict | Message],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -30,7 +16,7 @@ class LLM:
 
     async def astream(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Dict | Message],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
@@ -39,22 +25,53 @@ class LLM:
 
     def generate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Dict | Message],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
-    ) -> Optional[str | List[str]]:
+    ) -> Message:
         pass
 
     async def agenerate(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Dict | Message],
         temperature: float = 0.2,
         max_tokens: int = 1024,
         seed: int = None,
-        tools: List[Union[BaseModel, Dict]] = None,
+        tools: List[Union[Callable, Dict]] = None,
         tool_choice: str = None,
-    ) -> Optional[str | List[str]]:
+    ) -> Message:
         pass
+
+    def parse(
+        self,
+        messages: List[Dict | Message],
+        schema: Dict,
+    ) -> Dict:
+        """
+        Parse the response from the model into a structured format.
+        Parameters
+        ----------
+        messages : List[Tuple[str, str]]
+            The messages to use for the prompt. Pair of (role, message).
+        schema : Dict
+            The schema to use for the response. It must be a pydantic model json schema, it can be generated using the `model_json_schema` method of the pydantic model.
+        Returns
+        -------
+        Dict
+            The parsed message.
+        """
+        raise NotImplementedError("This LLM does not support enforced structured output or it has not been implemented.")
+
+    async def aparse(
+        self,
+        messages: List[Dict | Message],
+        schema: Dict,
+    ) -> Dict:
+        """
+        Parse the response from the model into a structured format.
+        """
+        raise NotImplementedError("This LLM does not support enforced structured output or it has not been implemented.")
+    

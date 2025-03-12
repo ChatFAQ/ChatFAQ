@@ -1,0 +1,141 @@
+{% extends "health/base.html" %}
+{% load markdown %}
+
+{% block title %}___project_name__natural___ Health Check{% endblock %}
+
+{% block head %}
+<script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true });
+</script>
+{% endblock head %}
+
+{% block content %}
+    <header>
+        <hgroup>
+            <h1>___project_name__natural___ Health Check</h1>
+            <h2>This informs you about the health status of the app</h2>
+        </hgroup>
+    </header>
+
+    <main>
+        {% if root_cause %}
+            <article>
+                {{ root_cause.resolving_actions|markdown }}
+
+                <footer>
+                    See the flow and table below for more details
+                </footer>
+            </article>
+        {% endif %}
+
+        <h1>System Flow</h1>
+
+        <p>
+            This is the dependency graph of tests and basically the data flow.
+        </p>
+
+        <pre class="mermaid" style="background: transparent">
+        {{ resolver.mermaid_graph }}
+        </pre>
+
+        <h1>Recap</h1>
+
+        <p>
+            Here is the exhaustive list of tests and their status, matching
+            the flow from above.
+        </p>
+
+        <table>
+            <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Message</th>
+            </tr>
+
+            {% for cause in resolver.get_all_tests %}
+                <tr>
+                    <td>{{ cause.code }}</td>
+                    <td>{{ cause.name }}</td>
+                    <td>
+                        {% if cause.outcome %}
+                        {{ cause.outcome.status.value }}
+                        {% else %}
+                        UNKNOWN
+                        {% endif %}
+                    </td>
+                    <td>{{ cause.message }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h1>Uptime</h1>
+
+        <p>
+            Uptime is a measure, from this probe's perspective, of the
+            percentage of time during which the service was fully functional.
+        </p>
+
+        <table>
+            <tr>
+                <th>Period</th>
+                <th>Uptime</th>
+            </tr>
+
+            <tr>
+                <td>1 day</td>
+                <td>{{ uptime_1 | floatformat:4 }}&nbsp;%</td>
+            </tr>
+
+            <tr>
+                <td>7 days</td>
+                <td>{{ uptime_7 | floatformat:4 }}&nbsp;%</td>
+            </tr>
+
+            <tr>
+                <td>30 days</td>
+                <td>{{ uptime_30 | floatformat:4 }}&nbsp;%</td>
+            </tr>
+
+            <tr>
+                <td>365 days</td>
+                <td>{{ uptime_365 | floatformat:4 }}&nbsp;%</td>
+            </tr>
+        </table>
+
+        <h1>Status History</h1>
+
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Root Cause</th>
+                <th>Message</th>
+            </tr>
+
+            {% for status in status_history %}
+                <tr>
+                    <td>{{ status.date_created | date:"Y M d P e" }}</td>
+                    <td>{{ status.status }}</td>
+                    <td>{{ status.root_cause_code }}</td>
+                    <td>{{ status.root_cause_message }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <h1>Details</h1>
+
+        {% for cause in resolver.get_all_tests %}
+            <hgroup>
+                <h2>{{ cause.code }} &mdash; {{ cause.name }}</h2>
+                <h3>{{ cause.message }}</h3>
+            </hgroup>
+
+
+            {% if cause.details %}
+                {{ cause.details | markdown }}
+            {% endif %}
+        {% endfor %}
+    </main>
+{% endblock %}

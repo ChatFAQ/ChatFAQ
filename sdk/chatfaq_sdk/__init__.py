@@ -4,14 +4,14 @@ import inspect
 import json
 import os
 import queue
-import sentry_sdk
 import urllib.parse
 import uuid
 from functools import wraps
 from logging import getLogger
-from typing import Callable, Optional, Union, List
+from typing import Callable, List, Optional, Union
 
 import httpx
+import sentry_sdk
 import websockets
 
 from chatfaq_sdk import settings
@@ -19,7 +19,7 @@ from chatfaq_sdk.conditions import Condition
 from chatfaq_sdk.data_source_parsers import DataSourceParser
 from chatfaq_sdk.fsm import FSMDefinition
 from chatfaq_sdk.layers import Layer
-from chatfaq_sdk.types import DataSource, WSType, KnowledgeItem
+from chatfaq_sdk.types import DataSource, KnowledgeItem, WSType
 from chatfaq_sdk.types.messages import MessageType, RPCNodeType
 
 settings.configure()
@@ -211,7 +211,7 @@ class ChatFAQSDK:
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting exisitng definition if already exists." if self.overwrite_definition else "")
+            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting existing definition if already exists." if self.overwrite_definition else "")
             await getattr(self, f"ws_{WSType.rpc.value}").send(
                 json.dumps(
                     {
@@ -333,6 +333,9 @@ class ChatFAQSDK:
         conversation_id,
         bot_channel_name,
         use_conversation_context,
+        cache_config,
+        response_schema,
+        stream,
     ):
         logger.info(f"[LLM] Requesting LLM ({llm_config_name})")
         self.llm_request_futures[bot_channel_name] = (
@@ -353,6 +356,9 @@ class ChatFAQSDK:
                         "tools": tools,
                         "tool_choice": tool_choice,
                         "use_conversation_context": use_conversation_context,
+                        "cache_config": cache_config.__dict__ if cache_config else None,
+                        "response_schema": response_schema,
+                        "stream": stream,
                     },
                 }
             )
@@ -379,7 +385,7 @@ class ChatFAQSDK:
             )
         )
 
-    async def query_kis(self, knowledge_base_name, query) -> List[KnowledgeItem]:
+    async def query_kis(self, knowledge_base_name, query: Optional[dict] = None) -> List[KnowledgeItem]:
         res = []
         offset = 0
         more = True
@@ -388,7 +394,7 @@ class ChatFAQSDK:
                 response = await client.get(
                     urllib.parse.urljoin(
                         self.chatfaq_http,
-                        f"back/api/language-model/knowledge-items/?knowledge_base_name={knowledge_base_name}&metadata={json.dumps(query)}&offset={offset}",
+                        f"back/api/language-model/knowledge-items/?knowledge_base__name={knowledge_base_name}&metadata={json.dumps(query)}&offset={offset}",
                     ),
                     headers={"Authorization": f"Token {self.token}"},
                 )

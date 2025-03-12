@@ -179,19 +179,9 @@ class RetrieverConfigAdmin(SimpleHistoryAdmin):
             "s3_index_path",
         )
 
-
-def run_llm_deploy_task(modeladmin, request, queryset):
-    for llm_config in queryset:
-        llm_config.trigger_deploy()
-        modeladmin.message_user(
-            request, f"Deploy task started for {llm_config.name}", messages.SUCCESS
-        )
-
 class LLMConfigAdmin(SimpleHistoryAdmin):
     list_display = ["name", "enabled"]
     list_filter = ["enabled"]
-    actions = [run_llm_deploy_task]
-
 
 
 class MessageKnowledgeItemAdmin(admin.ModelAdmin):

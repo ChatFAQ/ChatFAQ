@@ -299,5 +299,6 @@
     "sourcesfirst": "Fuentes Primero",
     "messagelayout": "Diseño de Mensaje",
     "close": "Cerrar",
-    "withuserfeedback": "Con comentario de Usuario"
+    "withuserfeedback": "Con comentario de Usuario",
+    "api_key": "API Key"
 }

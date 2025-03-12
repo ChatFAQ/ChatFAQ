@@ -1,8 +1,6 @@
 from logging import getLogger
-from typing import Dict, List
+from typing import List
 from uuid import uuid4
-
-from pydantic import BaseModel
 
 logger = getLogger(__name__)
 
@@ -15,8 +13,7 @@ class Layer:
     _type = None
     _streaming = False
 
-    def __init__(self, allow_feedback=True, state={}):
-        self.allow_feedback = allow_feedback
+    def __init__(self, state={}):
         self.state = state
         self.stack_id = str(uuid4())
 
@@ -39,7 +36,6 @@ class Layer:
                 r["type"] = self._type
                 r["streaming"] = self._streaming
                 r["meta"] = {}
-                r["meta"]["allow_feedback"] = self.allow_feedback
                 r["state"] = self.state
                 if fsm_def_name:
                     r["fsm_definition"] = fsm_def_name
@@ -199,7 +195,7 @@ class GTMTag(Layer):
     _type = "gtm_tag"
 
     def __init__(self, tag):
-        super().__init__(allow_feedback=False)
+        super().__init__()
         self.tag = tag
 
     async def build_payloads(self, ctx, data):
@@ -207,7 +203,38 @@ class GTMTag(Layer):
         yield [payload], True
 
 
-class StarRating(Layer):
+class UserFeedback(Layer):
+    """
+    An abstract class to inherit from for feedback layers representing common feedback elements.
+    """
+
+    def __init__(
+        self,
+        hint: str = None,
+        merge_to_prev: bool = False,
+        full_conversation: bool = False,
+        *args,
+        **kwargs,
+    ):
+        """
+        :param hint: A text to explain the rating. For example: "Please rate the service"
+        :param merge_to_prev: It controls whether the feedback should be merged (UI wise) with the previous message (default: False)
+        :param full_conversation: Feedback reference always the last not feedback message from the bot, but they could reference to the whole conversation (default: False)
+        """
+        super().__init__(*args, **kwargs)
+        self.hint = hint
+        self.merge_to_prev = merge_to_prev
+        self.full_conversation = full_conversation
+
+    def _build_payloads(self):
+        return {
+            "hint": self.hint,
+            "merge_to_prev": self.merge_to_prev,
+            "full_conversation": self.full_conversation,
+        }
+
+
+class StarRating(UserFeedback):
     """
     A message layer that includes a star rating.
     """
@@ -215,26 +242,22 @@ class StarRating(Layer):
 
     def __init__(
         self,
-        content: str,
         num_stars: int,
-        explanation: str = None,
+        explanation: str,
         *args,
         **kwargs,
     ):
         """
-        :param content: The content of the message.
         :param num_stars: The maximum number of stars. For example: 5
-        :param explanation: An optional explanation to explain the rating. For example: "1 is negative, 5 is positive"
         """
-        super().__init__(*args, **kwargs)
-        self.content = content
-        self.num_stars = num_stars
+        super().__init__(*args, **kwargs, merge_to_prev=False)
         self.explanation = explanation
+        self.num_stars = num_stars
 
     async def build_payloads(self, ctx, data):
         payload = {
             "payload": {
-                "content": self.content,
+                **self._build_payloads(),
                 "num_stars": self.num_stars,
                 "explanation": self.explanation,
             }
@@ -242,7 +265,29 @@ class StarRating(Layer):
         yield [payload], True
 
 
-class TextFeedback(Layer):
+class ThumbsRating(UserFeedback):
+    """
+    A message layer that includes a thumbs rating.
+    """
+    _type = "thumbs_rating"
+
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs, merge_to_prev=True)
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                **self._build_payloads(),
+            }
+        }
+        yield [payload], True
+
+
+class TextFeedback(UserFeedback):
     """
     A message layer that includes a feedback text box.
     """
@@ -250,24 +295,76 @@ class TextFeedback(Layer):
 
     def __init__(
         self,
-        content: str,
-        hint: str = None,
+        placeholder: str,
         *args,
         **kwargs,
     ):
         """
-        :param content: The content of the message.
-        :param hint: An optional hint to explain what to put in the text box. For example: "Please provide your feedback here"
+        :param placeholder: The placeholder text inside the text box. For example: "Please provide your feedback here"
         """
-        super().__init__(*args, **kwargs)
-        self.content = content
-        self.hint = hint
+        super().__init__(*args, **kwargs, merge_to_prev=False)
+        self.placeholder = placeholder
 
     async def build_payloads(self, ctx, data):
         payload = {
             "payload": {
-                "content": self.content,
-                "hint": self.hint,
+                **self._build_payloads(),
+                "placeholder": self.placeholder,
+            }
+        }
+        yield [payload], True
+
+
+class CloseConversation(Layer):
+    """
+    A message layer that includes a close conversation request.
+    """
+    _type = "close_conversation"
+
+    async def build_payloads(self, ctx, data):
+        yield [{"payload": {}}], True
+
+
+class ToolUse(Layer):
+    """
+    A message layer that includes a tool use request.
+    """
+    _type = "tool_use"
+
+    def __init__(self, name: str = None, id: str = None, args: dict = None):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.args = args
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                "id": self.id,
+                "name": self.name,
+                "args": self.args,
+            }
+        }
+        yield [payload], True
+
+class ToolResult(Layer):
+    """
+    A message layer that includes a tool result.
+    """
+    _type = "tool_result"
+
+    def __init__(self, id: str = None, name: str = None, result: dict = None):
+        super().__init__()
+        self.id = id
+        self.name = name
+        self.tool_result = result
+
+    async def build_payloads(self, ctx, data):
+        payload = {
+            "payload": {
+                "id": self.id,
+                "name": self.name,
+                "result": self.tool_result,
             }
         }
         yield [payload], True

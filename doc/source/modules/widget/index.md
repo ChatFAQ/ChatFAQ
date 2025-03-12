@@ -109,6 +109,8 @@ Next we will explain all the widget's possible parameters:
 
 `enableLogout`: If the widget should display a logout button, by default it is disabled. When the user clicks on the logout button an 'chatfaq-logout' event will be emitted from the document. You can listen to this event and handle the logout as you wish.
 
+`enableResend`: If enabled, the widget will display a reset button on some messages that will allow the user to resend the message. This feature is under development and not fully implemented yet.
+
 ```json
 {
     "<MESSAGE_TYPE>": {
@@ -179,7 +181,8 @@ The widget will intercept any message with the type `<MESSAGE_TYPE>` and will re
             }
         }),
         authToken: "1234567890",
-        enableLogout: true
+        enableLogout: true,
+        enableResend: true
     }
 
     const chatfaqWidget = new ChatfaqWidget(config);
@@ -229,7 +232,7 @@ If you declare data attributes and a config object and its keys collide, then th
     data-custom-iframed-msgs='{"iframe": {"src": "https://localhost:3000/iframed-msg", "mobileNoMargins": true, "desktopNoMargins": true, "fullWidth": true, "dynamicHeight": true, "scrolling": "np", "noPadding": true}}'
     data-auth-token="1234567890"
     data-enable-logout
-
+    data-enable-resend
 ></chatfaq-widget>
 ```
 

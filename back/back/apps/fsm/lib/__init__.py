@@ -104,28 +104,49 @@ class FSM:
         logger.debug(f"FSM start --> {self.current_state}")
         await self.save_cache()
 
+    async def reset(self, msg_id):
+        """
+        It will reset the FSM to the initial state and delete all the messages that were sent after the message with
+        id = msg_id
+        """
+        # get the creation date of the msg_id:
+        msg = await database_sync_to_async(Message.objects.prefetch_related("conversation").get)(id=msg_id)
+        msg.last = True
+        await database_sync_to_async(msg.save)()
+        msgs = await database_sync_to_async(Message.objects.filter)(conversation=msg.conversation, created_date__gt=msg.created_date)
+        await database_sync_to_async(msgs.delete)()
+
+        self.current_state = self.get_state_by_name(msg.fsm_state)
+        # await self.next_state()
+
     async def next_state(self):
         """
         It will cycle to the next state based on which transition returns a higher probability, once the next state
         is reached it makes sure everything is saved and cached into the DB to keep the system stateful
         """
         transitions = self.get_current_state_transitions()
-        best_score = 0
-        best_transition = None
-        transition_data = {}
-        for t in transitions:
-            score, _data = await self.check_transition_condition(t)
-            if score > best_score:
-                best_transition = t
-                best_score = score
-                transition_data = _data
-        if best_transition:
+        
+        if state_override := self.get_state_by_name(self.ctx.conversation.fsm_state_override):
+            logger.debug("Overriding FSM state")
             logger.debug(f"FSM from ---> {self.current_state}")
-            self.current_state = self.get_state_by_name(best_transition.dest)
+            self.current_state = state_override
             logger.debug(f"FSM to -----> {self.current_state}")
-            await self.run_current_state_events(transition_data)
-
-        await self.save_cache()
+            await self.run_current_state_events()
+        else:
+            best_score = 0
+            best_transition = None
+            transition_data = {}
+            for t in transitions:
+                score, _data = await self.check_transition_condition(t)
+                if score > best_score:
+                    best_transition = t
+                    best_score = score
+                    transition_data = _data
+            if best_transition:
+                logger.debug(f"FSM from ---> {self.current_state}")
+                self.current_state = self.get_state_by_name(best_transition.dest)
+                logger.debug(f"FSM to -----> {self.current_state}")
+                await self.run_current_state_events(transition_data)
 
     async def run_current_state_events(self, transition_data=None):
         """
@@ -195,6 +216,7 @@ class FSM:
             msg = {**self.last_aggregated_msg}
             msg["conversation"] = msg["ctx"]["conversation_id"]
             msg["status"] = msg["ctx"]["status"]
+            msg["fsm_state"] = self.current_state.name
             serializer = self.MessageSerializer(data=msg)
             await database_sync_to_async(serializer.is_valid)(raise_exception=True)
             self.waiting_for_rpc = None
@@ -279,7 +301,7 @@ class FSM:
         payload = await self.rpc_result_future
         logger.debug(f"...Receive RCP call {condition_name} (condition)")
         self.waiting_for_rpc = None
-        return payload["stack"]["score"], payload["stack"]["data"]
+        return payload["stack"][0]["score"], payload["stack"][0]["data"] # Stack is a list of dicts, so only access the first one
 
     async def save_cache(self):
         from back.apps.fsm.models import CachedFSM  # TODO: Resolve CI

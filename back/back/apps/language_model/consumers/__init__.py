@@ -1,7 +1,9 @@
 import json
+import time
+import traceback
 import uuid
 from logging import getLogger
-from typing import Dict, List
+from typing import Awaitable, Callable, Dict, List, Optional
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -12,54 +14,150 @@ from back.apps.broker.consumers.message_types import RPCMessageType
 from back.apps.broker.models.message import AgentType, Conversation
 from back.apps.broker.serializers.rpc import (
     RPCLLMRequestSerializer,
-    RPCRetrieverRequestSerializer,
-    RPCResponseSerializer,
     RPCPromptRequestSerializer,
+    RPCResponseSerializer,
+    RPCRetrieverRequestSerializer,
 )
+from back.apps.health.models import Event
 from back.apps.language_model.models import (
     KnowledgeItem,
     LLMConfig,
-    RetrieverConfig,
     PromptConfig,
+    RetrieverConfig,
 )
+from back.apps.language_model.models.enums import LLMChoices
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
-from back.config import settings
-
+from chat_rag.llms import load_llm
+from chat_rag.llms.types import Content, Message, ToolResult, ToolUse
 
 logger = getLogger(__name__)
 
 
-def format_msgs_chain_to_llm_context(msgs_chain) -> List[Dict[str, str]]:
+def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
     """
-    Returns a list of messages using the OpenAI standard format for LLMs.
+    Returns a list of chat_rag Message objects representing the conversation context.
+    Consecutive messages coming from the same sender type are concatenated into one Message.
+    The content of each Message is a list of chat_rag Content objects, which can include plain text,
+    tool calls (tool_use) and tool results (tool_result).
+
     Parameters
     ----------
     msgs_chain :
         A list of messages in the broker format.
-    message_types : List[str]
-        The types of messages to extract from the broker message stack.
+        
+    Returns
+    -------
+    List[Message]
+        A list of chat_rag Message objects with messages concatenated by sender.
     """
-    messages = []
+    aggregated_messages = []
+    current_role = None  # "user" for human and "assistant" for bot
+    aggregated_contents = []  # list of Content objects for the current group
+
+    def process_stack(stack) -> List[Content]:
+        """
+        Process a single stack item into a list of chat_rag Content objects.
+        It checks for text content, tool calls, and tool results.
+        """
+        contents = []
+        payload = stack.get("payload", {})
+        type = stack.get("type")
+
+        # Create a text content if available.
+        if type == "message" or type == "message_chunk":
+            contents.append(Content(text=payload.get("content"), type="text"))
+
+        # Check if this stack represents a tool call (tool use).
+        if type == "tool_use":
+            tool_use_obj = ToolUse(**payload)
+            contents.append(Content(tool_use=tool_use_obj, type="tool_use"))
+
+        # Check if this stack represents a tool result.
+        if type == "tool_result":
+            tool_result_obj = ToolResult(**payload)
+            contents.append(Content(tool_result=tool_result_obj, type="tool_result"))
+
+        return contents
+
+    def process_msg(msg) -> List[Content]:
+        """
+        Process each broker message into a list of chat_rag Content objects by iterating over its stacks.
+        """
+        contents = []
+        for stack in msg.stack:
+            contents.extend(process_stack(stack))
+        return contents
+
+    def merge_contents(existing: List[Content], new: List[Content]) -> List[Content]:
+        """
+        Merge two lists of chat_rag Content objects.
+        If the last element of the existing list and the first element of the new list are both text,
+        then they are concatenated.
+        """
+        if not existing:
+            return new
+        if not new:
+            return existing
+
+        merged = existing.copy()
+        # If the last and first items are text, merge them.
+        if merged and new and merged[-1].type == "text" and new[0].type == "text":
+            merged[-1].text = merged[-1].text.strip() + " " + new[0].text.strip()
+            merged.extend(new[1:])
+        else:
+            merged.extend(new)
+        return merged
+    # Iterate over each message in the msgs_chain, grouping contiguous messages by sender type.
     for msg in msgs_chain:
-        if msg.sender["type"] == AgentType.human.value:
-            text = ""
-            for stack in msg.stack:
-                if stack["payload"].get("content") is not None:
-                    text += stack["payload"]["content"]
+        # Map sender type to LLM context role.
+        sender_type = msg.sender.get("type")
+        if sender_type == AgentType.human.value:
+            role = "user"
+        elif sender_type == AgentType.bot.value:
+            role = "assistant"
+        else:
+            # Skip messages that are not from a human or bot.
+            continue
 
-            if text:
-                messages.append({"role": "user", "content": text})
-        elif msg.sender["type"] == AgentType.bot.value:
-            text = ""
-            for stack in msg.stack:
-                if stack["payload"].get("content") is not None:
-                    text += stack["payload"]["content"]
+        # Process the message stacks to obtain its list of Content objects.
+        msg_contents = process_msg(msg)
+        if not msg_contents:
+            continue
 
-            if text:
-                messages.append({"role": "assistant", "content": text})
+        if current_role is None:
+            # Start a new group.
+            current_role = role
+            aggregated_contents = msg_contents
+        elif current_role == role:
+            # Same role: merge new contents with the existing group.
+            aggregated_contents = merge_contents(aggregated_contents, msg_contents)
+        else:
+            # Role changed, so package the current group into a Message.
+            aggregated_messages.append(
+                Message(
+                    role=current_role,
+                    content=aggregated_contents,
+                    usage=None,
+                    stop_reason="end_turn"
+                )
+            )
+            # Start a new group for the new role.
+            current_role = role
+            aggregated_contents = msg_contents
 
-    return messages
+    # Append any remaining aggregated messages.
+    if current_role is not None and aggregated_contents:
+        aggregated_messages.append(
+            Message(
+                role=current_role,
+                content=aggregated_contents,
+                usage=None,
+                stop_reason="end_turn"
+            )
+        )
+
+    return aggregated_messages
 
 
 async def resolve_references(reference_kis, retriever_config):
@@ -102,139 +200,219 @@ async def resolve_references(reference_kis, retriever_config):
     }
 
 
+async def log_llm_event(
+    event_type: str, 
+    is_success: bool, 
+    data: dict
+):
+    """
+    Async function to log LLM-related events to the Event model.
+    
+    Parameters:
+    -----------
+    event_type : str
+        Type of event (e.g., 'llm_call_start', 'llm_call_complete')
+    is_success : bool
+        Whether the event represents a successful operation
+    llm_call_id : str
+        Unique identifier for the LLM call
+    llm_config_name : str
+        Name of the LLM configuration
+    conversation_id : int
+        ID of the conversation
+    start_time : float
+        Start time of the LLM call (used to calculate duration for 'complete' events)
+    additional_data : dict, optional
+        Any additional data to include in the event
+    """
+
+    # Create the event asynchronously
+    await database_sync_to_async(Event.objects.create)(
+        event_type=event_type,
+        is_success=is_success,
+        data=data
+    )
+
+
 async def query_llm(
     llm_config_name: str,
     conversation_id: int,
-    messages: List[Dict[str, str]] = None,
+    messages: List[Dict] = None,
     temperature: float = 0.7,
     max_tokens: int = 1024,
     seed: int = 42,
     tools: List[Dict] = None,
     tool_choice: str = None,
-    streaming: bool = True,
     use_conversation_context: bool = True,
-):
+    cache_config: Optional[Dict] = None,
+    response_schema: Optional[Dict] = None,
+    stream: bool = False,
+    error_handler: Callable[[dict], Awaitable[None]] = None,
+):  
     try:
         llm_config = await database_sync_to_async(LLMConfig.enabled_objects.get)(
             name=llm_config_name
         )
+        # if the llm config is mistral then return an error that mistral is not supported yet
+        if llm_config.llm_type == LLMChoices.MISTRAL.value:
+            await error_handler({
+                    "errors": "Error: Mistral is temporarily unavailable. We're working to add support for it soon. For now, please select a different model provider like OpenAI.",
+                    "llm_config_name": llm_config_name,
+                    "conversation_id": conversation_id
+                },
+                event_type="llm_config_not_found"
+            )
     except LLMConfig.DoesNotExist:
-        yield {
-            "content": f"LLM config with name: {llm_config_name} does not exist.",
-            "last_chunk": True,
-        }
+        await error_handler({
+                "errors": f"LLM config with name: {llm_config_name} does not exist.",
+                "llm_config_name": llm_config_name,
+                "conversation_id": conversation_id
+            },
+            event_type="llm_config_not_found"
+        )
         return
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
-
     if use_conversation_context:
         prev_messages = format_msgs_chain_to_llm_context(
             await database_sync_to_async(list)(conv.get_msgs_chain())
         )
         new_messages = prev_messages.copy()
-
         if messages: # In case the fsm sends messages
             if messages[0]["role"] == AgentType.system.value:
-                if prev_messages[0]["role"] == AgentType.system.value:
-                    new_messages[0] = messages[0]  # replace the original system message with the new one from the fsm
+                if prev_messages[0].role == AgentType.system.value:
+                    new_messages[0] = Message(**messages[0])  # replace the original system message with the new one from the fsm
                 else:
-                    new_messages.insert(0, messages[0])  # or add the fsm system message
+                    new_messages.insert(0, Message(**messages[0]))  # or add the fsm system message
 
                 # pop the system message
                 messages = messages[1:]
-
-        new_messages.extend(messages)
+        elif not prev_messages:
+            await error_handler({
+                "errors": "Error: No previous messages and no messages provided.",
+                "conversation_id": conversation_id,
+            },
+            )
+            return
+        if messages:
+            new_messages.extend(messages)
     else:
         new_messages = messages
+        if new_messages is None:
+            await error_handler({
+                "errors": "Error: No messages provided.",
+                "conversation_id": conversation_id,
+            },
+            )
+            return
 
     try:
-        if streaming:
-            if settings.USE_RAY:
-                print("USING RAY LLM DEPLOYMENT")
-                llm_deploy_name = llm_config.get_deploy_name()
-                handle = get_deployment_handle(
-                    deployment_name=llm_deploy_name, app_name=llm_deploy_name
-                ).options(stream=True)
+        # Decrypt the API key from the LLMConfig if available.
+        api_key = None
+        if llm_config.api_key:
+            from back.utils.encrypt import get_light_bringer
+            lb = get_light_bringer()
+            api_key = llm_config.api_key.decrypt(lb)
 
-                response = handle.remote(
-                    new_messages,
-                    temperature,
-                    max_tokens,
-                    seed,
-                    tools,
-                    tool_choice
-                )
+        # Now pass the decrypted API key into the LLM.
+        llm = load_llm(
+            llm_config.llm_type,
+            llm_config.llm_name,
+            base_url=llm_config.base_url,
+            model_max_length=llm_config.model_max_length,
+            api_key=api_key,
+        )
 
-                async for res in response:
-                    # if res is a list then it's a tool response and it's not streamed, it returns the full response
-                    if isinstance(res, list):
-                        yield {
-                            "content": "",
-                            "tool_use": res,
-                            "last_chunk": True,
-                        }
-                        return
+            # Generate a unique ID for this LLM call
+        llm_call_id = str(uuid.uuid4())
+        start_time = time.perf_counter()
 
+        await log_llm_event(
+            event_type="llm_call_start",
+            is_success=True,
+            data={
+                "llm_call_id": llm_call_id,
+                "llm_config_name": llm_config_name,
+                "conversation_id": conversation_id,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "seed": seed,
+                "tools": tools,
+                "tool_choice": tool_choice,
+                "messages": new_messages,
+                "schema": response_schema,
+                "cache_config": cache_config,
+                "stream": stream,
+            }
+        )
 
-                    yield {
-                        "content": res,
-                        "last_chunk": False,
-                    }
+        if response_schema:
+            response_message = await llm.aparse(
+                messages=new_messages,
+                schema=response_schema,
+            )
+            yield {
+                "content": response_message,
+                "last_chunk": True,
+            }
+        # chat_rag models don't support streaming when using tools
+        elif stream:
+            response = llm.astream(
+                messages=new_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                seed=seed,
+                cache_config=cache_config,
+            )
+            async for res in response:
                 yield {
-                    "content": "",
-                    "last_chunk": True,
+                    "content": res,
+                    "last_chunk": False,
                 }
-            else:
-                from chat_rag.llms import load_llm # The first time this is imported it will take a few seconds.
-                llm = load_llm(llm_config.llm_type, llm_config.llm_name, base_url=llm_config.base_url, model_max_length=llm_config.model_max_length)
-
-                if tools:
-                    response = await llm.agenerate(
-                        messages=new_messages,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        seed=seed,
-                        tools=tools,
-                        tool_choice=tool_choice,
-                    )
-                    if isinstance(response, list):
-                        yield {
-                            "content": "",
-                            "tool_use": response,
-                            "last_chunk": True,
-                        }
-                        return
-                    yield {
-                        "content": response,
-                        "last_chunk": True,
-                    }
-                else:
-                    response = llm.astream(
-                        messages=new_messages,
-                        temperature=temperature,
-                        max_tokens=max_tokens,
-                        seed=seed,
-                    )
-                    async for res in response:
-                        yield {
-                            "content": res,
-                            "last_chunk": False,
-                        }
-                    yield {
-                        "content": "",
-                        "last_chunk": True,
-                    }
-            
+            yield {
+                "content": "",
+                "last_chunk": True,
+            }
 
         else:
-            pass
+            response_message = await llm.agenerate(
+                messages=new_messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                seed=seed,
+                tools=tools,
+                tool_choice=tool_choice,
+                cache_config=cache_config,
+            )
+            yield {
+                "content": [content.model_dump() for content in response_message.content], # Make it serializable
+                "usage": response_message.usage.model_dump() if response_message.usage else None,
+                "stop_reason": response_message.stop_reason,
+                "last_chunk": True,
+            }
+
+        await log_llm_event(
+            event_type="llm_call_complete",
+            is_success=True,
+            data={
+                "llm_call_id": llm_call_id,
+                "duration_seconds": time.perf_counter() - start_time,
+            }
+        )
 
     except Exception as e:
-        logger.error("Error during LLM query", exc_info=e)
-        yield {
-            "content": "There was an error generating the response. Please try again or contact the administrator.",
-            "last_chunk": True,
-        }
+        logger.exception(f"Error during llm call: {e}")
+        await error_handler(
+            {
+                "errors": "There was an error generating the response. Please try again or contact the administrator.",
+                "error_message": str(e),
+                "llm_config_name": llm_config_name,
+                "conversation_id": conversation_id,
+                "llm_call_id": llm_call_id,
+                "duration_seconds": time.perf_counter() - start_time,
+            },
+            event_type="llm_call_complete",
+        )
         return
 
 
@@ -320,6 +498,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
 
         lm_msg_id = str(uuid.uuid4())
         data = serializer.validated_data
+        
         async for chunk in query_llm(
             data["llm_config_name"],
             data["conversation_id"],
@@ -329,8 +508,11 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("seed"),
             data.get("tools"),
             data.get("tool_choice"),
-            data.get("streaming"),
             data.get("use_conversation_context"),
+            data.get("cache_config"),
+            data.get("response_schema"),
+            data.get("stream"),
+            error_handler=self.llm_error_response,
         ):
             await self.send(
                 json.dumps(
@@ -422,9 +604,24 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                 }
             )
 
-
-
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value
         data["type"] = RPCMessageType.error.value
         await self.send(json.dumps(data))
+
+    async def llm_error_response(self, data: dict, event_type: str = None):
+        if event_type:
+            await log_llm_event(
+                event_type=event_type,
+                is_success=False,
+                data=data
+            )
+        # This is info sent to the SDK, so don't send a detailed error message for now.
+        return await self.error_response(
+            {
+                "payload": {
+                    "errors": data["errors"],
+                    "request_info": {"conversation_id": data["conversation_id"], "llm_config_name": data["llm_config_name"]},
+                }
+            }
+        )

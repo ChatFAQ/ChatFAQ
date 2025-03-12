@@ -20,12 +20,8 @@ class DatasetConfig(AppConfig):
             return
         from back.apps.language_model.signals import on_retriever_config_change  # noqa
         from back.apps.language_model.models.enums import IndexStatusChoices
-        from back.apps.language_model.ray_deployments import (
-            launch_llm_deployment,
-        )
 
         RetrieverConfig = self.get_model("RetrieverConfig")
-        LLMConfig = self.get_model("LLMConfig")
 
         if not settings.USE_RAY:
             return # Skip launching ray serve and deployments if Ray is disabled
@@ -44,6 +40,3 @@ class DatasetConfig(AppConfig):
                 task_name = f"launch_retriever_deployment_{retriever_config.name}"
                 logger.info(f"Submitting the {task_name} task to the Ray cluster...")
                 retriever_config.trigger_deploy()
-
-        for llm_config in LLMConfig.enabled_objects.all():
-            llm_config.trigger_deploy()

@@ -5,15 +5,15 @@ from chatfaq_sdk.clients import retrieve
 
 
 async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
-    yield Message("How can we help you?", allow_feedback=False)
+    yield Message("How can we help you?")
 
 
 async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     results = await retrieve(sdk, 'active_seed_e5_small', 'Pure ActiveSeed?', top_k=3, bot_channel_name=ctx["bot_channel_name"])
-    
+
     yield Message(
         'This is a test',
-        references=results,
+        references=results
     )
 
 

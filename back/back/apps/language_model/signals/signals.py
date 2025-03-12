@@ -24,10 +24,3 @@ def on_retriever_config_change(instance, *args, **kwargs):
     task_name = f"delete_retriever_deployment_{instance.name}"
     logger.info(f"Submitting the {task_name} task to the Ray cluster...")
     delete_serve_app.options(name=task_name).remote(retriever_deploy_name)
-
-
-@receiver(post_delete, sender=LLMConfig)
-def on_llm_config_change(instance, *args, **kwargs):
-    task_name = f"delete_serve_app_{instance.name}"
-    logger.info(f"Submitting the {task_name} task to the Ray cluster...")
-    delete_serve_app.options(name=task_name).remote(instance.get_deploy_name())

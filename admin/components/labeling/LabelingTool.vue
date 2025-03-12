@@ -121,9 +121,10 @@ const loadingConversation = ref(false)
 const thereIsNext = ref(true)
 const thereIsPrev = ref(true)
 let conversations = []
+const notRenderableStackTypes = ["gtm_tag", "close_conversation", "thumbs_rating", "text_feedback", "star_rating", undefined]
 
 const renderableMessages = computed(() => {
-    return conversation.value.msgs_chain?.filter(msg => msg.stack?.length > 0) || []
+    return conversation.value.msgs_chain?.filter(msg => msg.stack?.length > 0 && !notRenderableStackTypes.includes(msg.stack[0]?.type)) || []
 })
 
 // get conversation async data
@@ -432,7 +433,7 @@ function renderableMsg(msg) {
 .qa-group {
     &.not-selectable {
         cursor: default !important;
-        
+
         &:hover {
             background: transparent !important;
         }

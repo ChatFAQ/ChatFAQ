@@ -6,6 +6,9 @@
 }
 
 @mixin scroll-style($color: $chatfaq-color-scrollBar-light) {
+    scrollbar-color: $color transparent;
+    scrollbar-width: thin;
+
     &::-webkit-scrollbar {
         width: 6px;
     }

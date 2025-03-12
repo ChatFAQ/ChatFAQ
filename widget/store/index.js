@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useGlobalStore = defineStore('globalStore', {
     state: () => {
-        return {
+        const _state = {
             fsmDef: undefined,
             chatfaqWS: undefined,
             chatfaqAPI: undefined,
@@ -16,6 +16,7 @@ export const useGlobalStore = defineStore('globalStore', {
             fullScreen: false,
             sourcesFirst: false,
             hideSources: false,
+            hideToolMessages: true,
             noHeader: false,
             previewMode: false,
             opened: false,
@@ -36,16 +37,34 @@ export const useGlobalStore = defineStore('globalStore', {
             downloading: false,
             isPhone: false,
             initialConversationMetadata: {},
+            stateOverride: undefined,
             customIFramedMsgs: {},
             speechRecognition: false,
+            _speechRecognitionTranscribing: false,
             speechRecognitionAutoSend: false,
+            speechRecognitionAlwaysOn: false,
+            speechRecognitionLang: 'en-US',
+            speechRecognitionPhraseActivation: undefined,
+            speechRecognitionRunning: false,
+            speechRecognitionPhraseActivated: false,
+            speechRecognitionBeep: false,
             allowAttachments: false,
             authToken: undefined,
             messagesToBeSentSignal: 0,
             messagesToBeSent: [],
             disableDayNightMode: false,
             enableLogout: false,
+            enableResend: false,
+            resendMsgId: undefined,
+            speechSynthesisSupported: 'speechSynthesis' in window || 'webkitSpeechSynthesis' in window,
+            speechSynthesisEnabled: false,
+            speechSynthesisPitch: 1,
+            speechSynthesisRate: 1,
+            speechSynthesisVoices: "",
+            speechVoicesInitialized: false,
         }
+        initializeSpeechVoices(_state)
+        return _state
     },
     actions: {
         async gatherConversations() {
@@ -161,6 +180,17 @@ export const useGlobalStore = defineStore('globalStore', {
                     "platform_conversation_id": "725628099",
                     "name": "Consectetur adipiscing elit."
                 }]
+        },
+        deleteMsgsAfter(msgId) {
+            const msgsToDelete = []
+            for (let i = this.messages.length - 1; i >= 0; i--) {
+                if (this.messages[i].id === msgId) {
+                    this.messages[i].last = true;
+                    break;
+                }
+                msgsToDelete.push(this.messages[i])
+            }
+            this.messages = this.messages.filter(msg => !msgsToDelete.includes(msg))
         }
     },
     getters: {
@@ -186,9 +216,71 @@ export const useGlobalStore = defineStore('globalStore', {
         getMessageById: (state) => (id) => {
             return state.messages.find(m => m.id === id)
         },
+        getPrevMsg: (state) => (msg, condition) => {
+            const index = state.messages.findIndex(m => m === msg)
+            if (index === -1 || index === 0)
+                return {}
+            // return the message previously that satisfies the condition if
+            if (condition) {
+                for (let i = index - 1; i >= 0; i--) {
+                    if (condition(state.messages[i]))
+                        return state.messages[i]
+                }
+            } else {
+                return state.messages[index - 1]
+            }
+        },
         customIFramedMsg: (state) => (id) => {
             if (state.customIFramedMsgs)
                 return state.customIFramedMsgs[id]
+        },
+        getFeedbackData: (state) => async (msgSourceId) => {
+            if (state.previewMode)
+                return
+
+            const headers = {}
+            if (state.authToken)
+                headers.Authorization = `Token ${state.authToken}`;
+
+            let response = await chatfaqFetch(
+                state.chatfaqAPI + `/back/api/broker/user-feedback/?message_source=${msgSourceId}`, { headers }
+            )
+            response = await response.json();
+            if (response.results && response.results.length) {
+                return response.results[0].feedback_data
+            }
+        },
+        activeActivationPhrase: (state) => {
+            if (state.speechRecognitionPhraseActivation)
+                return state.speechRecognitionPhraseActivation.length > 0
+            return false
+        },
+        getSpeechSynthesisVoice: (state) => (voiceURI) => {
+            if (state.speechSynthesisVoices.length === 0)
+                return
+            return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
+        },
+        speechRecognitionTranscribing: (state) => {
+            return state.speechRecognitionRunning && (state._speechRecognitionTranscribing || !state.activeActivationPhrase)
         }
     }
 })
+
+
+function initializeSpeechVoices(state) {
+    if ('speechSynthesis' in window || 'webkitSpeechSynthesis' in window) {
+        const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+
+        function populateVoiceList() {
+            if (typeof speechSynthesis === "undefined")
+                return;
+            state.speechSynthesisVoices = speechSynthesis.getVoices();
+            state.speechVoicesInitialized = true;
+        }
+
+        if (typeof speechSynthesis !== "undefined") {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+    }
+    return false
+}

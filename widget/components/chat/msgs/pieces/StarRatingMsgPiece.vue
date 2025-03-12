@@ -1,9 +1,9 @@
 <template>
     <div class="star-rating-wrapper">
-        <div class="content">{{ props.data.content }}</div>
+        <div class="content">{{ props.data.hint }}</div>
         <div class="star-rating" :class="{ 'dark-mode': store.darkMode }">
-            <div 
-                v-for="star in props.data.num_stars" 
+            <div
+                v-for="star in props.data.num_stars"
                 :key="star"
                 class="star"
                 :class="{
@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useGlobalStore } from "~/store";
 
 const store = useGlobalStore();
@@ -38,9 +38,18 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    msgTargetId: {
+        type: String,
+        required: true,
+    },
 });
 
-
+onMounted(async () => {
+    const feedbackData = await store.getFeedbackData(props.msgId)
+    if (feedbackData) {
+        rating.value = feedbackData.star_rating
+    }
+})
 async function handleRating(value) {
     rating.value = value;
 
@@ -57,21 +66,24 @@ async function handleRating(value) {
         return;
     }
 
-    const feedbackData = {
-        message: messageId,
-        star_rating: rating.value,
-        star_rating_max: props.data.num_stars,
+    const feedbackPayload = {
+        message_source: props.msgId,
+        message_target: props.msgTargetId,
+        feedback_data: {
+            "star_rating": rating.value,
+            "star_rating_max": props.data.num_stars,
+        },
     }
 
     const headers = { 'Content-Type': 'application/json' }
     if (store.authToken)
         headers.Authorization = `Token ${store.authToken}`;
-    
+
     try {
         const response = await chatfaqFetch(store.chatfaqAPI + '/back/api/broker/user-feedback/', {
             method: 'POST',
             headers,
-            body: JSON.stringify(feedbackData)
+            body: JSON.stringify(feedbackPayload)
         });
 
         if (response.ok) {
@@ -122,7 +134,7 @@ async function handleRating(value) {
                 color: inherit;
                 opacity: 1;
             }
-            
+
             /* Restrict hover-based color changes to non-disabled state */
             &:not(.disabled) {
                 .star-rating:hover & {
@@ -146,10 +158,10 @@ async function handleRating(value) {
 
             &.disabled {
                 cursor: default;
-                
+
                 &:hover {
                     color: inherit;
-                    
+
                     &.filled {
                         color: $chatfaq-star-rating-icon-color-light;
                     }

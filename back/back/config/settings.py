@@ -1,13 +1,15 @@
+import base64
+import logging
 import os
 from importlib import metadata
-import logging
-
 from urllib.parse import quote as urlquote
+
+import ray
+from dotenv import load_dotenv
 from model_w.env_manager import EnvManager
 from model_w.preset.django import ModelWDjango
-from dotenv import load_dotenv
-import ray
 from ray.runtime_env import RuntimeEnv
+
 from back.utils import is_server_process
 
 load_dotenv()
@@ -21,9 +23,10 @@ def django_setup():
     """
     Setup Django environment for Ray workers.
     """
-    import django
     import os
     import time
+
+    import django
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "back.config.settings")
 
     t1 = time.perf_counter()
@@ -152,6 +155,7 @@ with EnvManager(model_w_django) as env:
         "back.apps.fsm",
         "back.apps.language_model",
         "back.apps.widget",
+        "back.apps.health",
     ]
     # if not env.get("REDIS_URL"):
     #     INSTALLED_APPS += [
@@ -319,4 +323,21 @@ with EnvManager(model_w_django) as env:
     # --------------------------- RAY ---------------------------
     if USE_RAY and not ray.is_initialized() and is_server_process():
         ray_context = ray.init(address='localhost:6375', ignore_reinit_error=True, namespace="back-end", runtime_env=RuntimeEnv(worker_process_setup_hook=django_setup))
+
+    # --------------------------- AZOR ---------------------------
+    raw_key = env.get("AZOR_PRIVATE_KEY", default=None)
+    if raw_key:
+        try:
+            # Decode the Base64-encoded key
+            AZOR_PRIVATE_KEY = base64.b64decode(raw_key).decode('utf-8')
+        except (ValueError, base64.binascii.Error) as e:
+            # Log an error if the key is not properly Base64 encoded
+            logging.error("AZOR_PRIVATE_KEY is not properly Base64 encoded. Please encode your private key with 'cat private_key.pem | base64 -w 0'")
+            raise e
+    else:
+        AZOR_PRIVATE_KEY = None
+
+    # Health check settings
+    INTERNAL_WS_URL = env.get("INTERNAL_WS_URL", default="ws://localhost:8000")
+    BACKEND_TOKEN = env.get("BACKEND_TOKEN", default="")
 

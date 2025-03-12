@@ -1,17 +1,17 @@
 <template>
     <div class="voting"
-         :class="{'feedbacked': feedbacked && !collapse, 'dark-mode': store.darkMode}">
-        <div class="separator-line" v-if="feedbacked && !collapse" :class="{ 'dark-mode': store.darkMode }"></div>
+         :class="{'feedbacked': feedbacked && !disabled, 'dark-mode': store.darkMode}">
+        <div class="separator-line" v-if="feedbacked && !disabled" :class="{ 'dark-mode': store.darkMode }"></div>
         <div class="feedback-top">
-            <div class="feedback-top-text" v-if="feedbacked && !collapse">{{ $t('additionalfeedback') }}</div>
+            <div class="feedback-top-text" v-if="feedbacked && !disabled">{{ $t('additionalfeedback') }}</div>
             <!-- <div v-else-if="feedbacked">{{ $t('feedbacksent') }}:</div> -->
             <div class="feedback-controls">
-                <ThumbUp class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('positive')" />
-                <ThumbDown class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'collapse': collapse}" @click="sendUserFeedback('negative')"/>
+                <ThumbUp class="control" :class="{'selected': feedbackValue === 'positive', 'dark-mode': store.darkMode, 'disabled': disabled}" @click="sendUserFeedback('positive')" />
+                <ThumbDown class="control" :class="{'selected': feedbackValue === 'negative', 'dark-mode': store.darkMode, 'disabled': disabled}" @click="sendUserFeedback('negative')"/>
                 <CopyToClipboard :msg-id="msgId"/>
             </div>
         </div>
-        <div v-if="feedbacked && !collapse">
+        <div v-if="feedbacked && !disabled">
             <div class="feedback-input-wrapper" :class="{ 'dark-mode': store.darkMode }">
                 <div
                     v-if="feedbackValue === 'negative'"
@@ -67,17 +67,17 @@ import {ref, defineProps, onMounted} from "vue";
 import ThumbUp from "~/components/icons/ThumbUp.vue";
 import ThumbDown from "~/components/icons/ThumbDown.vue";
 
-const props = defineProps(["msgId"]);
+const props = defineProps(["msgId", "msgTargetId"]);
 
 const store = useGlobalStore();
 const feedbacked = ref(null)
 const feedbackInput = ref(null);
-const collapse = ref(false)
+const disabled = ref(false)
 const feedbackValue = ref(null)
 const quickAnswer1 = ref(false);
 const quickAnswer2 = ref(false);
 const quickAnswer3 = ref(false);
-const emit = defineEmits(['feedbacking', 'collapse'])
+const emit = defineEmits(['feedbacking', 'disabled'])
 const {t} = useI18n()
 
 function manageEnterInput(ev, cb) {
@@ -88,55 +88,48 @@ function manageEnterInput(ev, cb) {
 };
 
 onMounted(async () => {
-    if (store.previewMode)
-        return
-
-    const headers = {}
-    if (store.authToken)
-        headers.Authorization = `Token ${store.authToken}`;
-
-    let response = await chatfaqFetch(
-        store.chatfaqAPI + `/back/api/broker/user-feedback/?message=${props.msgId}`, { headers }
-    )
-    response = await response.json();
-    if (response.results && response.results.length) {
-        const userFeedback = response.results[0]
-        collapse.value = true
-        feedbackValue.value = userFeedback.value
+    const feedbackData = await store.getFeedbackData(props.msgId)
+    if (feedbackData) {
+        disabled.value = true
+        feedbackValue.value = feedbackData.thumb_value
     }
 })
 
-async function sendUserFeedback(value, _collapse) {
+async function sendUserFeedback(value, _disabled) {
     if (store.previewMode)
         return
 
-    if (collapse.value)
+    if (disabled.value)
         return
+
     feedbackValue.value = value
 
-    const feedbackData = {
-        message: props.msgId,
-        value: value,
+    const feedbackPayload = {
+        message_source: props.msgId,
+        message_target: props.msgTargetId,
+        feedback_data: {
+            "thumb_value": value
+        },
     };
     if (feedbackInput.value) {
-        const feedback = feedbackInput.value.innerText.trim()
-        if (feedback)
-            feedbackData["feedback_comment"] = feedback
+        const feedbackComment = feedbackInput.value.innerText.trim()
+        if (feedbackComment)
+            feedbackPayload.feedback_data["feedback_comment"] = feedbackComment
     }
-    feedbackData["feedback_selection"] = []
+    feedbackPayload.feedback_data["feedback_comment_selection"] = []
     if (quickAnswer1.value)
-        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason1")]
+        feedbackPayload.feedback_data["feedback_comment_selection"] = [...feedbackPayload.feedback_data["feedback_comment_selection"], t("reason1")]
     if (quickAnswer2.value)
-        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason2")]
+        feedbackPayload.feedback_data["feedback_comment_selection"] = [...feedbackPayload.feedback_data["feedback_comment_selection"], t("reason2")]
     if (quickAnswer3.value)
-        feedbackData["feedback_selection"] = [...feedbackData["feedback_selection"], t("reason3")]
+        feedbackPayload.feedback_data["feedback_comment_selection"] = [...feedbackPayload.feedback_data["feedback_comment_selection"], t("reason3")]
 
     let method = "POST"
     let endpoint = '/back/api/broker/user-feedback/'
     if (feedbacked.value) {
-        feedbackData["id"] = feedbacked.value
+        feedbackPayload["id"] = feedbacked.value
         method = "PATCH"
-        endpoint = `${endpoint}${feedbackData["id"]}/`
+        endpoint = `${endpoint}${feedbackPayload["id"]}/`
     }
 
     const headers = { 'Content-Type': 'application/json' }
@@ -146,15 +139,15 @@ async function sendUserFeedback(value, _collapse) {
     const response = await chatfaqFetch(store.chatfaqAPI + endpoint, {
         method: method,
         headers,
-        body: JSON.stringify(feedbackData)
+        body: JSON.stringify(feedbackPayload)
     })
 
     const res = await response.json();
     feedbacked.value = res["id"]
     emit('feedbacking')
-    if (_collapse) {
-        collapse.value = true
-        emit("collapse")
+    if (_disabled) {
+        disabled.value = true
+        emit("disabled")
         store.feedbackSent += 1;
     }
     store.scrollToBottom += 1;
@@ -291,13 +284,13 @@ async function sendUserFeedback(value, _collapse) {
         &.dark-mode {
             color: $chatfaq-color-thumbs-and-clipboard-dark;
         }
-        &.collapse {
+        &.disabled {
             cursor: unset;
         }
 
     }
 
-    .selected, .control:not(.collapse):hover {
+    .selected, .control:not(.disabled):hover {
         color: $chatfaq-color-chatMessageReference-text-light;
         background: rgba(70, 48, 117, 0.1);
         border-radius: 2px;

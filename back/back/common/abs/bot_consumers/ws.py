@@ -28,7 +28,7 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
         self.set_fsm_def(fsm_def)
         self.set_user_id(await self.gather_user_id())
 
-        await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required)
+        await self.set_conversation(self.gather_conversation_id(), await self.gather_initial_conversation_metadata(), self.fsm_def.authentication_required, await self.gather_fsm_state_override())
         if not await self.authenticate():
             await self.close(3000, reason="`Authentication failed`")
 
@@ -67,6 +67,10 @@ class WSBotConsumer(BotConsumer, AsyncJsonWebsocketConsumer):
                     # here, since this is trigger quite often, lets see if this try catch solves de reconnection
                     logger.error(f" --------------------- Error on ping: {e}")
             return
+        if content.get("reset"):
+            await self.fsm.reset(content["reset"])
+            return
+
         serializer = self.serializer_class(data=content)
         mml = await database_sync_to_async(serializer.to_mml)(self)
         if not mml:

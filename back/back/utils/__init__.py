@@ -1,12 +1,14 @@
 import json
-import sys
 import os
+import sys
 import tempfile
 from enum import Enum
 from logging import getLogger
+
 import requests
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.forms import widgets
+
 
 logger = getLogger(__name__)
 

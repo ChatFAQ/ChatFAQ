@@ -85,7 +85,7 @@ Declare the 3 possible states of our FSM:
 ```python
 def send_greeting(ctx: dict):
     yield Message("Hello!")
-    yield Message("How are you?", allow_feedback=False)
+    yield Message("How are you?")
 
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
@@ -104,7 +104,7 @@ answering_state = State(
 
 
 def send_goodbye(ctx: dict):
-    yield Message("Byeeeeeeee!", allow_feedback=False)
+    yield Message("Byeeeeeeee!")
 
 goodbye_state = State(
     name="Goodbye",

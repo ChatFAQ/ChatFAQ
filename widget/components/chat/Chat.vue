@@ -1,7 +1,7 @@
 <template>
     <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
         <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
-            <div class="stacks" v-for="(message, index) in store.messages">
+            <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}" v-for="(message, index) in store.messages">
                 <ChatMsgManager
                     v-if="isRenderableStackType(message)"
                     :message="message"
@@ -26,32 +26,33 @@
                 <div
                     :placeholder="$t('writeaquestionhere')"
                     class="chat-prompt"
-                    :class="{ 
-                        'dark-mode': store.darkMode, 
+                    :class="{
+                        'dark-mode': store.darkMode,
                         'maximized': store.maximized,
-                        'disabled': isFinalFeedback 
+                        'disabled': conversationClosed
                     }"
                     ref="chatInput"
                     @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    :contenteditable="!isFinalFeedback"
+                    :contenteditable="!conversationClosed"
                     @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
                 />
             </div>
-            <div class="prompt-right-button" 
+            <div class="prompt-right-button"
                  :class="{
                      'dark-mode': store.darkMode,
-                     'disabled': isFinalFeedback
-                 }" 
-                 @click="() => { 
-                     if (!isFinalFeedback && availableMicro) { 
-                         speechToText() 
-                     } else if (!isFinalFeedback && availableSend) { 
-                         sendMessage() 
+                 }"
+                 @click="() => {
+                     if (store.activeActivationPhrase) {
+                         store.speechRecognitionPhraseActivated = true
+                     } else if (!conversationClosed && availableMicro) {
+                         speechToText()
+                     } else if (!conversationClosed && availableSend) {
+                         sendMessage()
                      }
                  }">
-                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation"></div>
-                <div v-if="speechRecognitionRunning" class="micro-anim-elm has-scale-animation has-delay-short"></div>
-                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': activeMicro}"/>
+                <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
+                <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
+                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !store.speechRecognitionTranscribing}"/>
                 <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
             </div>
         </div>
@@ -66,29 +67,46 @@ import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import Microphone from "~/components/icons/Microphone.vue";
 import Send from "~/components/icons/Send.vue";
 import Attach from "~/components/icons/Attach.vue";
+import beepAudio from '~/assets/audio/beep.mp3';
+import beepOutAudio from '~/assets/audio/beepOut.mp3';
+
 const store = useGlobalStore();
 
 const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
 const thereIsContent = ref(false)
-const notRenderableStackTypes = ["gtm_tag", undefined]
-const isFinalFeedback = ref(false)
+const notRenderableStackTypes = ["gtm_tag", "close_conversation",undefined]
+const conversationClosed = ref(false)
 
 let ws = undefined
 let historyIndexHumanMsg = -1
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechRecognition = ref(new SpeechRecognition())
-const speechRecognitionRunning = ref(false)
+const audioBeep = new Audio(beepAudio);
+const audioBeepOut = new Audio(beepOutAudio);
 
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
+watch(() => store.resendMsgId, resendMsg)
 watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 watch(() => store.selectedPlConversationId, () => {
-    isFinalFeedback.value = false
+    conversationClosed.value = false
 })
+watch(() => store.speechRecognitionPhraseActivated, (val) => {
+    if (store.speechRecognitionBeep && val) {
+        audioBeep.play();
+    }
+})
+
+watch(() => store._speechRecognitionTranscribing, (val) => {
+    if (store.speechRecognitionBeep && store.activeActivationPhrase && !val) {
+        audioBeepOut.play();
+    }
+})
+
 
 onMounted(async () => {
     await initializeConversation()
@@ -97,7 +115,9 @@ onMounted(async () => {
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
 }
-
+function getFirstLayerMergeToPrev(message) {
+    return message?.stack[0]?.payload.merge_to_prev;
+}
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
@@ -136,6 +156,16 @@ function createConnection() {
         queryParams += `token=${encodeURIComponent(store.authToken)}`
     }
 
+
+    if (store.stateOverride) {
+        if (queryParams.length) {
+            queryParams += "&"
+        } else {
+            queryParams = "?"
+        }
+        queryParams += `state_override=${encodeURIComponent(store.stateOverride)}`
+    }
+
     ws = new WebSocket(
         store.chatfaqWS
         + "/back/ws/broker/"
@@ -156,8 +186,8 @@ function createConnection() {
             store.scrollToBottom += 1;
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
-        if (msg.stack[0]?.type === 'star_rating' || msg.stack[0]?.type === 'text_feedback')
-            isFinalFeedback.value = true
+        if (msg.stack[0]?.type === 'close_conversation')
+            conversationClosed.value = true
 
         sendToGTM(msg)
         store.addMessage(msg);
@@ -209,8 +239,12 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
-    isFinalFeedback.value = false
+    conversationClosed.value = false
     store.createNewConversation(store.initialSelectedPlConversationId);
+
+    if (_speechRecognitionAlwaysOn.value) {
+        speechToText();
+    }
 }
 
 function manageHotKeys(ev, cb) {
@@ -222,8 +256,7 @@ function manageHotKeys(ev, cb) {
     if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault()
         cb();
-    }
-    else if (ev.key === 'ArrowUp' && atTheBeginning) {
+    } else if (ev.key === 'ArrowUp' && atTheBeginning) {
         // Search for the previous human message from the index historyIndexHumanMsg
         if (historyIndexHumanMsg === -1)
             historyIndexHumanMsg = store.messages.length
@@ -237,8 +270,7 @@ function manageHotKeys(ev, cb) {
                 }
             }
         }
-    }
-    else if (ev.key === 'ArrowDown' && atTheEnd) { // Searcg for the next human message from the index historyIndexHumanMsg
+    } else if (ev.key === 'ArrowDown' && atTheEnd) { // Search for the next human message from the index historyIndexHumanMsg
         ev.preventDefault()
         if (historyIndexHumanMsg === -1)
             historyIndexHumanMsg = store.messages.length
@@ -267,7 +299,7 @@ function sendMessage(_message) {
     store.messages.push(message);
     ws.send(JSON.stringify(message));
     store.scrollToBottom += 1;
-    
+
     chatInput.value?.blur(); // Remove focus from the input
 }
 
@@ -284,7 +316,7 @@ function sendMessagesToBeSent() {
 }
 
 function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value && !isFinalFeedback.value
+    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning && !conversationClosed.value
 }
 
 function createMessageFromInputPrompt() {
@@ -312,8 +344,16 @@ function createMessageFromInputPrompt() {
 
     chatInput.value.innerText = "";
     thereIsContent.value = false
-
     return message
+}
+
+function resendMsg(msgId) {
+    if (msgId === undefined)
+        return;
+    if (store.disconnected)
+        return;
+    store.deleteMsgsAfter(msgId)
+    ws.send(JSON.stringify({reset: msgId}));
 }
 
 function sendToGTM(msg) {
@@ -327,13 +367,13 @@ function sendToGTM(msg) {
 
 function speechToText() {
     const sr = speechRecognition.value;
-    if (speechRecognitionRunning.value) {
+    if (store.speechRecognitionRunning || !store.speechRecognition) {
         sr.stop()
         return
     }
 
-    sr.lang = 'en-US';
-    sr.continuous = false;
+    sr.lang = store.speechRecognitionLang;
+    sr.continuous = _speechRecognitionAlwaysOn.value;
     sr.interimResults = true;
     sr.maxAlternatives = 1;
 
@@ -344,8 +384,8 @@ function speechToText() {
         sr.stop();
     }
     sr.onresult = (event) => {
-        const speechToText = event.results[0][0].transcript;
-        chatInput.value.innerText += speechToText;
+        const text = event.results[0][0].transcript;
+        chatInput.value.innerText += text;
         sr.stop();
     }
     sr.onresult = (event) => {
@@ -359,26 +399,61 @@ function speechToText() {
                 interim += event.results[i][0].transcript;
             }
         }
-        if (event.results[0].final)
-            chatInput.value.innerText = final;
-        else
-            chatInput.value.innerText = interim;
+        if (
+            !store.speechRecognitionPhraseActivated &&
+            !store._speechRecognitionTranscribing &&
+            store.activeActivationPhrase
+        ) {
+            if (
+                matchActivationPhrase(final + interim)
+            ) {
+                store.speechRecognitionPhraseActivated = true
+                sr.stop()
+            }
+        } else {
+            if (event.results[0].final)
+                chatInput.value.innerText = trimFromActivationPhraseForwards(final);
+            else
+                chatInput.value.innerText = trimFromActivationPhraseForwards(interim);
+        }
     }
     sr.onspeechend = () => {
         sr.stop();
     }
     sr.onerror = (event) => {
-        console.error('Error occurred in the speech recognition: ' + event.error);
-        sr.stop();
+        console.log('Error occurred in the speech recognition:', event.error)
+        store.speechRecognitionRunning = false;
+        // Don't restart if we got a not-allowed error, usually because the user has not granted permission
+        if (event.error === 'not-allowed') {
+            store.speechRecognition = false;  // Disable speech recognition entirely
+            store.speechRecognitionAlwaysOn = false;  // Ensure we don't retry
+            return;
+        }
     }
     sr.onstart = () => {
-        speechRecognitionRunning.value = true;
+        if (store.speechRecognition && store.speechRecognitionAlwaysOn)
+            store.speechRecognitionRunning = true;
     }
     sr.onend = () => {
-        speechRecognitionRunning.value = false;
-        thereIsContent.value = chatInput.value.innerText.length !== 0
-        if (store.speechRecognitionAutoSend)
-            sendMessage();
+        if(store.speechRecognitionPhraseActivated && store.speechRecognition) { // that means we programmatically ended the SR because we detected the activation phrase
+            store.speechRecognitionPhraseActivated = false
+            store._speechRecognitionTranscribing = true
+
+            sr.continuous = false;
+            sr.start();
+
+        } else if (store.speechRecognition) {
+            store.speechRecognitionRunning = false;
+            thereIsContent.value = chatInput.value.innerText.length !== 0
+            if (store.speechRecognitionAutoSend)
+                sendMessage();
+
+            sr.continuous = _speechRecognitionAlwaysOn.value;
+            if (store.activeActivationPhrase) {
+                store._speechRecognitionTranscribing = false
+                sr.start();
+            }
+        }
     }
     sr.start();
 }
@@ -390,11 +465,22 @@ const availableMicro = computed(() => {
     return store.speechRecognition && !thereIsContent.value
 })
 const activeSend = computed(() => {
-    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !speechRecognitionRunning.value
+    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning
 })
-const activeMicro = computed(() => {
-    return !speechRecognitionRunning.value
+const _speechRecognitionAlwaysOn = computed(() => {
+    return store.speechRecognitionAlwaysOn || (store.activeActivationPhrase)
 })
+
+function matchActivationPhrase(text) {
+    return text.toLowerCase().includes(store.speechRecognitionPhraseActivation.toLowerCase())
+}
+function trimFromActivationPhraseForwards(text) {
+    if (!store.activeActivationPhrase)
+        return text
+    if (text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) > -1)
+        return text.substring(text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) + store.speechRecognitionPhraseActivation.length)
+    return text
+}
 
 </script>
 <style scoped lang="scss">
@@ -668,5 +754,7 @@ const activeMicro = computed(() => {
     height: 100%;
     width: 100%;
 }
-
+.merge-to-prev {
+    display: none;
+}
 </style>
