@@ -166,12 +166,13 @@ files = [
 
 [[package]]
 name = "anthropic"
-version = "0.28.0"
+version = "0.49.0"
 description = "The official Python library for the anthropic API"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "anthropic-0.28.0-py3-none-any.whl", hash = "sha256:2b620b21aee3d20c5d8005483c34df239d53ae895687113b26b8a36892a7e20f"},
+    {file = "anthropic-0.49.0-py3-none-any.whl", hash = "sha256:bbc17ad4e7094988d2fa86b87753ded8dce12498f4b85fe5810f208f454a8375"},
+    {file = "anthropic-0.49.0.tar.gz", hash = "sha256:c09e885b0f674b9119b4f296d8508907f6cff0009bc20d5cf6b35936c40b4398"},
 ]
 
 [package.dependencies]
@@ -181,8 +182,7 @@ httpx = ">=0.23.0,<1"
 jiter = ">=0.4.0,<1"
 pydantic = ">=1.9.0,<3"
 sniffio = "*"
-tokenizers = ">=0.13.0"
-typing-extensions = ">=4.7,<5"
+typing-extensions = ">=4.10,<5"
 
 [package.extras]
 bedrock = ["boto3 (>=1.28.57)", "botocore (>=1.31.57)"]
@@ -3442,13 +3442,13 @@ sympy = "*"
 
 [[package]]
 name = "openai"
-version = "1.56.2"
+version = "1.66.2"
 description = "The official Python library for the openai API"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "openai-1.56.2-py3-none-any.whl", hash = "sha256:82d0c48f9504e04c7797e9b799dcf7f49a246d99b6cbfd90f3193ea80815b69e"},
-    {file = "openai-1.56.2.tar.gz", hash = "sha256:17312af69bc7670d4048f98ab5849f8784d98c39ac64fcde19406e3774a0c1e5"},
+    {file = "openai-1.66.2-py3-none-any.whl", hash = "sha256:75194057ee6bb8b732526387b6041327a05656d976fc21c064e21c8ac6b07999"},
+    {file = "openai-1.66.2.tar.gz", hash = "sha256:9b3a843c25f81ee09b6469d483d9fba779d5c6ea41861180772f043481b0598d"},
 ]
 
 [package.dependencies]
@@ -3463,6 +3463,7 @@ typing-extensions = ">=4.11,<5"
 
 [package.extras]
 datalib = ["numpy (>=1)", "pandas (>=1.2.3)", "pandas-stubs (>=1.1.0.11)"]
+realtime = ["websockets (>=13,<15)"]
 
 [[package]]
 name = "opencv-python"
@@ -6615,9 +6616,9 @@ multidict = ">=4.0"
 propcache = ">=0.2.0"
 
 [extras]
-full = ["accelerate", "bm25s", "einops", "hdbscan", "protobuf", "ragatouille", "sentence-transformers", "torch", "torchvision", "transformers", "umap-learn", "unstructured", "unstructured-inference"]
+full = ["accelerate", "bm25s", "einops", "hdbscan", "pillow", "protobuf", "ragatouille", "sentence-transformers", "torch", "torchvision", "transformers", "umap-learn", "unstructured", "unstructured-inference"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "a98e8bf3f85b52ed7fd71ad9b495a1e0f6b5c45d5884cfad5aa0fbbc572fa0e4"
+content-hash = "777562017c9ee942145e967f5f2e6d0f70724208c89e8bf709da137cd8fb0a6a"
