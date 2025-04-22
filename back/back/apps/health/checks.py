@@ -1,12 +1,16 @@
 import asyncio
 import json
+import logging
 import random
+from datetime import timedelta
 from typing import Mapping, Sequence
 
 import requests
 import websockets
 from channels.db import database_sync_to_async
 from django.conf import settings
+from django.core.cache import cache
+from django.utils import timezone
 from health_check.cache.backends import CacheBackend
 from health_check.contrib.psutil.backends import MemoryUsage
 from health_check.db.backends import DatabaseBackend
@@ -16,6 +20,8 @@ from back.config.storage_backends import select_private_storage
 from .base import DjangoHealthCheckWrapper, HealthCheck, Outcome, Status
 from .models import Event
 
+# Get a logger instance
+logger = logging.getLogger(__name__)
 
 def disp_window(window: Mapping[str, int]) -> str:
     """
@@ -176,6 +182,8 @@ class ModuleSimulationBase(HealthCheck):
     """
     Base class for module simulation health checks.
     Provides common WebSocket communication and file processing methods.
+    Uses a cache-based lock to prevent concurrent runs.
+    Triggers long simulations in the background to return status quickly.
     """
     
     # Configuration parameters that should be overridden by subclasses
@@ -185,11 +193,13 @@ class ModuleSimulationBase(HealthCheck):
     FSM_DEF = "lefebvre_fsm"
     STATE_OVERWRITE = None
     HANDSHAKE_TIMEOUT = 10.0
-    FILE_PROCESSING_TIMEOUT = 300.0
+    FILE_PROCESSING_TIMEOUT = 300.0 # 5 minutes
     USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3" # Random UUID for the health check
     STORAGE = select_private_storage()
-    # This is a heavy health check, so run it once per 6 hours
+    # This is a heavy health check, results cached based on this window
     WINDOW = dict(hours=6)
+    # Timeout for the cache lock (processing timeout + buffer)
+    LOCK_TIMEOUT_SECONDS = FILE_PROCESSING_TIMEOUT + 120 # Increased buffer
     
     def get_name(self) -> str:
         if self.MODULE_NAME is None:
@@ -218,7 +228,9 @@ class ModuleSimulationBase(HealthCheck):
         Waits for initial messages, throwing an error if any indicate a problem.
         """
         for _ in range(num_messages):
+            print("11111111111111")
             response = await self._receive_json_message(websocket, timeout=self.HANDSHAKE_TIMEOUT)
+            print("22222222222222", response)
             if response.get("status") == 400:
                 raise ValueError(f"Error in initial message from WS: {response.get('payload')}")
     
@@ -234,8 +246,12 @@ class ModuleSimulationBase(HealthCheck):
 
         auth_token = settings.BACKEND_TOKEN
         internal_ws_url = settings.INTERNAL_WS_URL
-        if not auth_token or not internal_ws_url:
-            return False, "BACKEND_TOKEN or INTERNAL_WS_URL is not set"
+        if not auth_token:
+             logger.error(f"[Module {self.MODULE_NUMBER}] BACKEND_TOKEN is not set.")
+             return False, "BACKEND_TOKEN is not set in settings"
+        if not internal_ws_url:
+            logger.error(f"[Module {self.MODULE_NUMBER}] INTERNAL_WS_URL is not set.")
+            return False, "INTERNAL_WS_URL is not set in settings"
         
         query_params = ""
         
@@ -258,11 +274,12 @@ class ModuleSimulationBase(HealthCheck):
             + f"{self.USER_ID}/" 
             + query_params
         )
-
+        logger.info(f"[Module {self.MODULE_NUMBER}] Connecting to WebSocket: {uri}")
         try:
             async with websockets.connect(uri, close_timeout=1000) as websocket:
-                # Process the initial handshake responses.
+                logger.info(f"[Module {self.MODULE_NUMBER}] WebSocket connected. Waiting for initial messages.")
                 await self._wait_for_initial_messages(websocket)
+                logger.info(f"[Module {self.MODULE_NUMBER}] Initial messages received. Sending file payload.")
 
                 # Build and send the message payload.
                 message = {
@@ -285,13 +302,19 @@ class ModuleSimulationBase(HealthCheck):
                     "last": True
                 }
                 await websocket.send(json.dumps(message))
+                logger.info(f"[Module {self.MODULE_NUMBER}] File payload sent. Waiting for responses.")
 
                 # Process responses after sending the message.
                 first_response = await self._receive_json_message(websocket, timeout=self.HANDSHAKE_TIMEOUT)
                 if first_response.get("status") == 400:
-                    return False, f"Error in initial response from WS: {first_response.get('payload')}"
+                    error_payload = first_response.get('payload')
+                    logger.error(f"[Module {self.MODULE_NUMBER}] Error in initial response from WS: {error_payload}")
+                    return False, f"Error in initial response from WS: {error_payload}"
 
+                logger.info(f"[Module {self.MODULE_NUMBER}] Initial response OK. Waiting for file processing response (timeout={self.FILE_PROCESSING_TIMEOUT}s).")
                 new_file_response = await self._receive_json_message(websocket, timeout=self.FILE_PROCESSING_TIMEOUT, timeout_message="Timeout waiting for file processing") # Increase timeout for file processing, if it takes longer than 5 minutes then there may be an issue
+                logger.info(f"[Module {self.MODULE_NUMBER}] File processing response received.")
+
                 new_file_url = (
                     new_file_response.get("stack", [{}])[0]
                     .get("payload", {})
@@ -300,82 +323,172 @@ class ModuleSimulationBase(HealthCheck):
 
                 # Try to download the newly created file
                 if new_file_url:
+                    logger.info(f"[Module {self.MODULE_NUMBER}] Received new file URL: {new_file_url}. Attempting download.")
                     try:
                         response = requests.get(new_file_url, timeout=10)
                         response.raise_for_status()  # Raise an exception for 4XX/5XX responses
+                        logger.info(f"[Module {self.MODULE_NUMBER}] Successfully downloaded generated file.")
                         # Successfully downloaded the file
                     except requests.exceptions.RequestException as e:
+                        logger.error(f"[Module {self.MODULE_NUMBER}] Failed to download generated file: {e}. Response: {new_file_response}")
                         return False, f"Failed to download the generated file: {str(e)}. Full response: {str(new_file_response)}"
                 else:
+                    logger.error(f"[Module {self.MODULE_NUMBER}] No file URL provided in response: {new_file_response}")
                     return False, "No file URL was provided in the response. Full response: " + str(new_file_response)
             
-                return True, "Everything is working correctly"
+                logger.info(f"[Module {self.MODULE_NUMBER}] Simulation completed successfully.")
+                return True, f"Module {self.MODULE_NUMBER} simulation completed successfully."
         except websockets.exceptions.ConnectionClosedError as e:
+            print("cccccccccccccccc")
+            logger.error(f"[Module {self.MODULE_NUMBER}] WebSocket connection closed unexpectedly: {e.code} {e.reason}")
             return False, f"WebSocket connection closed unexpectedly: {e.code} {e.reason}"
+        except asyncio.TimeoutError as e:
+             print("bbbbbbbbbbbbbbbb")
+             logger.error(f"[Module {self.MODULE_NUMBER}] Timeout occurred during WebSocket communication: {e}")
+             return False, f"Timeout occurred during WebSocket communication: {e}"
         except Exception as e:
-            return False, f"An unexpected error occurred: {type(e).__name__} - {e}"
+            print("aaaaaaaaaaaaaaaa")
+            logger.exception(f"[Module {self.MODULE_NUMBER}] Unexpected error during WebSocket communication.") # Use logger.exception to include stack trace
+            # Catch specific configuration errors if possible, otherwise generic
+            if isinstance(e, (ValueError, ConnectionRefusedError)):
+                 return False, f"Configuration or Connection Error: {type(e).__name__} - {e}"
+            return False, f"An unexpected error occurred during WebSocket communication: {type(e).__name__} - {e}"
 
     async def get_status(self) -> Outcome:
         """
-        Performs the module simulation to determine system health.
-        Only runs the actual check once per hour, using cached results in between.
+        Performs the module simulation health check.
+        Returns status based on cached results or last known state.
+        If no recent cached result exists and no other check is running,
+        it acquires a lock and runs the simulation synchronously (blocking).
         """
-        # Check if we have a successful run within the last hour
         event_type = f"module_{self.MODULE_NUMBER}_simulation"
-        last_event = await database_sync_to_async(Event.objects.type(event_type).within(**self.WINDOW).filter(is_success=True).first, thread_sensitive=False)()
-        
-        # If we have a successful check in the last hour, return a cached result
-        if last_event:
+        lock_key = f"health_check_lock_{event_type}"
+        now = timezone.now()
+        cache_cutoff = now - timedelta(**self.WINDOW)
+
+        logger.info(f"[Module {self.MODULE_NUMBER}] Running health check. Type: {event_type}")
+
+        # --- Check for Cached Successful Run ---
+        logger.debug(f"[Module {self.MODULE_NUMBER}] Checking for successful event since {cache_cutoff.isoformat()}")
+        last_success_event = await database_sync_to_async(
+            Event.objects.type(event_type)
+            .filter(is_success=True, date_created__gt=cache_cutoff)
+            .order_by('-date_created')
+            .first,
+            thread_sensitive=False
+        )()
+
+        if last_success_event:
+            logger.info(f"[Module {self.MODULE_NUMBER}] Found recent successful event from {last_success_event.date_created.isoformat()}. Returning cached OK status.")
             return Outcome(
                 instance=self,
                 status=Status.OK,
-                message=f"Module {self.MODULE_NUMBER} successful (cached result from {last_event.date_created.strftime('%H:%M:%S')})",
-            )
-            
-        # Otherwise run the simulation
-        try:
-            if self.FILE_NAME is None:
-                raise ValueError("Subclasses must define FILE_NAME")
-            
-            file_name = f'health_check_files/{self.FILE_NAME}'
-            if self.STORAGE.exists(file_name):
-                file_url = self.STORAGE.generate_presigned_url_get(file_name)
-                success, message = await self._run_module(file_name, file_url)
-            else:
-                success = False
-                message = f"The base document to test module {self.MODULE_NUMBER} does not exist in the storage. Please upload the file {file_name} to the Digital Ocean bucket."
-                
-            # Record this check result as an event
-            await database_sync_to_async(Event.objects.create, thread_sensitive=False)(
-                event_type=event_type,
-                is_success=success,
-                data={"message": message} if not success else {}
-            )
-        except Exception as e:
-            # Record failure event
-            await database_sync_to_async(Event.objects.create, thread_sensitive=False)(
-                event_type=event_type,
-                is_success=False,
-                data={"error": str(e)}
-            )
-            return Outcome(
-                instance=self,
-                status=Status.ERROR,
-                message=f"Module {self.MODULE_NUMBER} failed: {e}",
-            )
-        
-        if success:
-            return Outcome(
-                instance=self,
-                status=Status.OK,
-                message=f"Module {self.MODULE_NUMBER} successful",
+                message=f"Module {self.MODULE_NUMBER} successful (cached result from {last_success_event.date_created.strftime('%H:%M:%S')})",
             )
         else:
+             logger.info(f"[Module {self.MODULE_NUMBER}] No recent successful event found in cache window.")
+
+        # --- Try to Acquire Lock ---
+        logger.info(f"[Module {self.MODULE_NUMBER}] Attempting to acquire cache lock: {lock_key} (timeout: {self.LOCK_TIMEOUT_SECONDS}s)")
+        acquired_lock = cache.add(lock_key, "running", timeout=self.LOCK_TIMEOUT_SECONDS)
+
+        if acquired_lock:
+            logger.info(f"[Module {self.MODULE_NUMBER}] Lock acquired: {lock_key}. Running live simulation check.")
+            success = False
+            message = ""
+            status = Status.ERROR # Default to error unless success
+            try:
+                # --- Run the simulation directly ---
+                if self.FILE_NAME is None:
+                    logger.error(f"[Module {self.MODULE_NUMBER}] Internal configuration error: FILE_NAME is not defined.")
+                    message = "Internal Error: FILE_NAME not defined for health check."
+                    raise ValueError(message)
+
+                base_file_name = f'health_check_files/{self.FILE_NAME}'
+                logger.debug(f"[Module {self.MODULE_NUMBER}] Checking existence of base file: {base_file_name}")
+                # Assume storage interaction is okay in async context for now
+                file_exists = self.STORAGE.exists(base_file_name)
+
+                if file_exists:
+                    logger.info(f"[Module {self.MODULE_NUMBER}] Base file found. Generating presigned URL.")
+                    # Assume storage interaction is okay in async context for now
+                    file_url = self.STORAGE.generate_presigned_url_get(base_file_name)
+
+                    logger.info(f"[Module {self.MODULE_NUMBER}] Running module simulation via _run_module.")
+                    success, message = await self._run_module(base_file_name, file_url)
+                    logger.info(f"[Module {self.MODULE_NUMBER}] Simulation run finished. Success: {success}, Message: {message}")
+                else:
+                    success = False
+                    message = f"Base file '{base_file_name}' not found in storage for Module {self.MODULE_NUMBER} simulation."
+                    logger.error(f"[Module {self.MODULE_NUMBER}] {message}")
+
+                # Record the final result as an event
+                logger.info(f"[Module {self.MODULE_NUMBER}] Recording simulation result event. Success: {success}")
+                await database_sync_to_async(Event.objects.create, thread_sensitive=False)(
+                    event_type=event_type,
+                    is_success=success,
+                    data={"message": message}
+                )
+                status = Status.OK if success else Status.ERROR
+
+            except BaseException as e: # Catch BaseException to handle potential errors robustly
+                success = False
+                # Use existing message if available, otherwise format the exception
+                if not message:
+                     message = f"Module {self.MODULE_NUMBER} simulation check failed unexpectedly: {type(e).__name__} - {e}"
+                logger.exception(f"[Module {self.MODULE_NUMBER}] Exception during live simulation run.")
+                # Attempt to record the failure event
+                try:
+                    await database_sync_to_async(Event.objects.create, thread_sensitive=False)(
+                        event_type=event_type,
+                        is_success=False,
+                        data={"error": message}
+                    )
+                except Exception as db_exc:
+                    logger.error(f"[Module {self.MODULE_NUMBER}] Failed to record failure event after exception: {db_exc}")
+                status = Status.ERROR # Ensure status is Error on exception
+
+            finally:
+                # Ensure the lock is released regardless of outcome
+                logger.info(f"[Module {self.MODULE_NUMBER}] Releasing lock: {lock_key}")
+                cache.delete(lock_key)
+                logger.info(f"[Module {self.MODULE_NUMBER}] Live simulation run complete.")
+
+            # Return the outcome of the live run
             return Outcome(
                 instance=self,
-                status=Status.ERROR,
-                message=f"Module {self.MODULE_NUMBER} failed: {message}",
+                status=status,
+                message=message,
             )
+
+        else:
+            # --- Lock Not Acquired: Return Last Known Status ---
+            logger.warning(f"[Module {self.MODULE_NUMBER}] Lock NOT acquired ({lock_key}). Another check is likely running.")
+            # Determine Last Completed Status (needed if lock not acquired)
+            last_completed_event = await database_sync_to_async(
+                Event.objects.type(event_type)
+                .order_by('-date_created')
+                .first,
+                thread_sensitive=False
+            )()
+
+            if last_completed_event:
+                status = Status.OK if last_completed_event.is_success else Status.ERROR
+                last_message = last_completed_event.data.get('message', last_completed_event.data.get('error', 'No details available.'))
+                logger.info(f"[Module {self.MODULE_NUMBER}] Returning status based on last completed event ({last_completed_event.date_created.isoformat()}). Status: {status}.")
+                return Outcome(
+                    instance=self,
+                    status=status,
+                    message=f"{last_message} (Result from {last_completed_event.date_created.strftime('%H:%M:%S')}; another check currently in progress)",
+                )
+            else:
+                # Lock not acquired, and no prior completed state available
+                logger.warning(f"[Module {self.MODULE_NUMBER}] Lock not acquired, and no prior completed state found. Returning WARNING status.")
+                return Outcome(
+                    instance=self,
+                    status=Status.WARNING,
+                    message=f"Module {self.MODULE_NUMBER} simulation check is already in progress, but no previous completed state is available.",
+                )
 
     def get_resolving_actions(self, outcome: Outcome) -> str:
         return f"""# __CODE__ &mdash; {self.MODULE_NAME} failed
@@ -386,6 +499,8 @@ This check simulates a file generation with the chatbot via WebSocket to verify:
 - The FastAPI modules server is reachable.
 - The file generation LLM is reachable.
 - The file storage is reachable.
+
+Note: Simulation runs in the background. Status reflects the last completed run.
 """
 
     def suggest_reboot(self, outcome: Outcome) -> Sequence[str]:
@@ -437,6 +552,7 @@ class LLMCheck(HealthCheck):
         return "LLM Check"
 
     def get_status(self) -> Outcome:
+        logger.info(f"[LLM Check] Running health check. Type: llm_call_complete")
         events = Event.objects.types(["llm_call_complete", "llm_call_start"]).within(**self.WINDOW)
         stats = events.stats()
         stats_str = disp_stats(stats)
