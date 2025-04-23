@@ -281,7 +281,7 @@ async def run_module_simulation(
         # Delete the conversation to not leave any traces of the simulation
         await delete_conversation(conversation_id)
 
-        Event.objects.create(
+        await database_sync_to_async(Event.objects.create)(
             event_type=event_type,
             is_success=success,
             data={"message": message, "task_run_time": timezone.now().isoformat()},

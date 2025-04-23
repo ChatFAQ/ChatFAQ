@@ -275,14 +275,14 @@ class ModuleSimulationBase(HealthCheck):
         stats = Event.objects.types(event_type).within(**self.WINDOW).stats()
         stats_str = disp_stats(stats)
 
-        if stats["success"]:
+        if stats["failure"]:
             outcome = dict(
-                status=Status.OK,
+                status=Status.ERROR,
                 message=f"{stats_str} in the last {disp_window(self.WINDOW)}",
             )
         else:
             outcome = dict(
-                status=Status.ERROR,
+                status=Status.OK,
                 message=f"{stats_str} in the last {disp_window(self.WINDOW)}",
             )
 
