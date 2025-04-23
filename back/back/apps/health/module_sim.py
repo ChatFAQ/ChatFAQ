@@ -7,7 +7,6 @@ import requests
 import websockets
 from channels.db import database_sync_to_async
 from django.conf import settings
-from django.utils import timezone
 
 from back.apps.broker.models.message import Conversation
 from back.apps.health.models import Event
@@ -284,7 +283,7 @@ async def run_module_simulation(
         await database_sync_to_async(Event.objects.create)(
             event_type=event_type,
             is_success=success,
-            data={"message": message, "task_run_time": timezone.now().isoformat()},
+            data={"message": message},
         )
         logger.info(f"[Task {event_type}] Recorded event. Success: {success}")
 
