@@ -54,6 +54,7 @@ markdown = "^3.7"
 networkx = "^3.4.2"
 
 
+procrastinate = {extras = ["django"], version = "^3.1.0"}
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
