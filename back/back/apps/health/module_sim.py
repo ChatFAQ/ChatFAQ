@@ -5,9 +5,9 @@ import random
 
 import requests
 import websockets
+from channels.db import database_sync_to_async
 from django.conf import settings
 from django.utils import timezone
-from channels.db import database_sync_to_async
 
 from back.apps.broker.models.message import Conversation
 from back.apps.health.models import Event
@@ -296,12 +296,12 @@ async def delete_conversation(conversation_id: int):
     conv_to_delete = await database_sync_to_async(
         Conversation.objects.filter(
             platform_conversation_id=str(conversation_id)
-        ).first()
+        ).first
     )()
     if conv_to_delete:
         logger.info(f"Deleting conversation with platform_id {conversation_id}")
         await database_sync_to_async(
-            conv_to_delete.delete()
+            conv_to_delete.delete
         )()
         logger.info(f"Deleted conversation {conversation_id}")
     else:
