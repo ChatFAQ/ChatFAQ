@@ -7,6 +7,7 @@ import requests
 import websockets
 from django.conf import settings
 from django.utils import timezone
+from channels.db import database_sync_to_async
 
 from back.apps.broker.models.message import Conversation
 from back.apps.health.models import Event
@@ -128,9 +129,8 @@ async def _run_single_module_simulation(
     )
     logger.info(f"[Module {module_number}] Connecting to WebSocket: {uri}")
     try:
-        # Increased connect_timeout and close_timeout
         async with websockets.connect(
-            uri, connect_timeout=20, close_timeout=20
+            uri, close_timeout=300
         ) as websocket:
             logger.info(
                 f"[Module {module_number}] WebSocket connected. Waiting for initial messages."
@@ -279,7 +279,7 @@ async def run_module_simulation(
 
     finally:
         # Delete the conversation to not leave any traces of the simulation
-        delete_conversation(conversation_id)
+        await delete_conversation(conversation_id)
 
         Event.objects.create(
             event_type=event_type,
@@ -289,16 +289,20 @@ async def run_module_simulation(
         logger.info(f"[Task {event_type}] Recorded event. Success: {success}")
 
 
-def delete_conversation(conversation_id: int):
+async def delete_conversation(conversation_id: int):
     """Synchronous function to delete a conversation by platform ID.
     We need to delete the conversation to not leave any traces of the simulation.
     """
-    conv_to_delete = Conversation.objects.filter(
-        platform_conversation_id=str(conversation_id)
-    ).first()
+    conv_to_delete = await database_sync_to_async(
+        Conversation.objects.filter(
+            platform_conversation_id=str(conversation_id)
+        ).first()
+    )()
     if conv_to_delete:
         logger.info(f"Deleting conversation with platform_id {conversation_id}")
-        conv_to_delete.delete()
+        await database_sync_to_async(
+            conv_to_delete.delete()
+        )()
         logger.info(f"Deleted conversation {conversation_id}")
     else:
         logger.warning(
