@@ -21,7 +21,7 @@ async def run_module_1_simulation_periodic(timestamp: int):
         state_overwrite="M1",
     )
 
-@app.periodic(cron="4 */6 * * *", queue="health_checks") # Stagger start times slightly
+@app.periodic(cron="0 */6 * * *", queue="health_checks")
 @app.task(queue="health_checks")
 async def run_module_2_simulation_periodic(timestamp: int):
     logger.info("Scheduling Module 2 simulation task.")
@@ -32,7 +32,7 @@ async def run_module_2_simulation_periodic(timestamp: int):
         state_overwrite="M2",
     )
 
-@app.periodic(cron="1 */6 * * *", queue="health_checks") # Stagger start times slightly
+@app.periodic(cron="0 */6 * * *", queue="health_checks")
 @app.task(queue="health_checks")
 async def run_module_3_simulation_periodic(timestamp: int):
     logger.info("Scheduling Module 3 simulation task.")
