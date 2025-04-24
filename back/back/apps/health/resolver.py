@@ -132,8 +132,6 @@ class Resolver:
             # noinspection PyBroadException
             try:
                 status = instance.check.get_status()
-                if asyncio.iscoroutine(status):
-                    status = asyncio.run(status)
             except Exception:
                 capture_exception()
                 traceback.print_exc()
@@ -272,14 +270,6 @@ def build_resolver() -> Resolver:
         Instance(
             code="S001",
             check=RamUsage(),
-            depends_on=[],
-        )
-    )
-
-    resolver.register(
-        Instance(
-            code="M001",
-            check=Module1Simulation(),
             depends_on=[],
         )
     )

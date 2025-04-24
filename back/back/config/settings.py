@@ -150,6 +150,7 @@ with EnvManager(model_w_django) as env:
         "django_filters",
         "drf_spectacular",
         "drf_spectacular_sidecar",
+        "procrastinate.contrib.django",
         "back.apps.people",
         "back.apps.broker",
         "back.apps.fsm",
