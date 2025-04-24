@@ -265,15 +265,6 @@ def build_resolver() -> Resolver:
         )
     )
 
-
-    resolver.register(
-        Instance(
-            code="S001",
-            check=RamUsage(),
-            depends_on=[],
-        )
-    )
-
     resolver.register(
         Instance(
             code="M002",

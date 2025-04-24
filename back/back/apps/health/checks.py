@@ -4,7 +4,6 @@ from typing import Mapping, Sequence
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from health_check.cache.backends import CacheBackend
-from health_check.contrib.psutil.backends import MemoryUsage
 from health_check.db.backends import (
     BaseHealthCheckBackend,
     DatabaseBackend,
@@ -106,38 +105,6 @@ row in a test table.
 
     def get_name(self) -> str:
         return "Database"
-
-
-class RamUsage(DjangoHealthCheckWrapper):
-    """
-    Checks that we don't use too much RAM
-    """
-
-    base_class = MemoryUsage
-
-    def get_name(self) -> str:
-        return "RAM Usage"
-
-    def get_resolving_actions(self, outcome: Outcome) -> str:
-        return """# __CODE__ &mdash; RAM usage is too high
-
-The memory usage in the container running the application is too high.
-
-## Possible causes
-
-- There is a memory leak in the application
-- The application just needs more RAM
-
-## Possible solutions
-
-- Short term, restart the container
-- Long term, identify if this issue comes from a leak (in which case you can
-  fix the leak) or if the application just needs more RAM (in which case you
-  can increase the RAM allocated to the container)
-"""
-
-    def suggest_reboot(self, outcome: Outcome) -> Sequence[str]:
-        return ["api"]
 
 
 class Cache(DjangoHealthCheckWrapper):
