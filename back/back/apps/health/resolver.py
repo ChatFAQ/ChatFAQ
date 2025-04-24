@@ -276,14 +276,6 @@ def build_resolver() -> Resolver:
 
     resolver.register(
         Instance(
-            code="M001",
-            check=Module1Simulation(),
-            depends_on=[],
-        )
-    )
-
-    resolver.register(
-        Instance(
             code="M002",
             check=Module2Simulation(),
             depends_on=[],
