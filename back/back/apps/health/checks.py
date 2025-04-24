@@ -275,7 +275,13 @@ class ModuleSimulationBase(HealthCheck):
         stats = Event.objects.types(event_type).within(**self.WINDOW).stats()
         stats_str = disp_stats(stats)
 
-        if stats["failure"]:
+        if stats["total"] == 0:
+            # No events found, means the task likely didn't run
+            outcome = dict(
+                status=Status.ERROR,
+                message=f"No simulation task events found in the last {disp_window(self.WINDOW)}",
+            )
+        elif stats["failure"]:
             outcome = dict(
                 status=Status.ERROR,
                 message=f"{stats_str} in the last {disp_window(self.WINDOW)}",

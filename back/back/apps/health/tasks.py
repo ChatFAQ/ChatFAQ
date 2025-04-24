@@ -94,4 +94,4 @@ def check_status(timestamp: int):
     """
 
     resolver = build_resolver()
-    resolver.check()
+    resolver.check(stop_on_error=False)
