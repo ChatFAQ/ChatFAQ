@@ -272,7 +272,7 @@ class ModuleSimulationBase(HealthCheck):
         recorded by the periodic Procrastinate task.
         """
         event_type = f"module_{self.MODULE_NUMBER}_simulation"
-        stats = Event.objects.types(event_type).within(**self.WINDOW).stats()
+        stats = Event.objects.type(event_type).within(**self.WINDOW).stats()
         stats_str = disp_stats(stats)
 
         if stats["total"] == 0:
