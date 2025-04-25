@@ -267,6 +267,14 @@ def build_resolver() -> Resolver:
 
     resolver.register(
         Instance(
+            code="S004",
+            check=ProcrastinateHealthCheck(),
+            depends_on=["I001"],
+        )
+    )
+
+    resolver.register(
+        Instance(
             code="M002",
             check=Module2Simulation(),
             depends_on=[],

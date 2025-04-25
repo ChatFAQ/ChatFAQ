@@ -128,9 +128,7 @@ async def _run_single_module_simulation(
     )
     logger.info(f"[Module {module_number}] Connecting to WebSocket: {uri}")
     try:
-        async with websockets.connect(
-            uri, close_timeout=300
-        ) as websocket:
+        async with websockets.connect(uri, close_timeout=300) as websocket:
             logger.info(
                 f"[Module {module_number}] WebSocket connected. Waiting for initial messages."
             )
@@ -269,6 +267,9 @@ async def run_module_simulation(
             state_overwrite=state_overwrite,
         )
         logger.info(f"[Task {event_type}] Simulation finished. Success: {success}")
+
+        # Delete the conversation to not leave any traces of the simulation
+        await delete_conversation(conversation_id)
     except Exception as e:
         success = False
         message = (
@@ -277,9 +278,6 @@ async def run_module_simulation(
         logger.exception(f"[Task {event_type}] Exception during simulation run.")
 
     finally:
-        # Delete the conversation to not leave any traces of the simulation
-        await delete_conversation(conversation_id)
-
         await database_sync_to_async(Event.objects.create)(
             event_type=event_type,
             is_success=success,
@@ -293,15 +291,11 @@ async def delete_conversation(conversation_id: int):
     We need to delete the conversation to not leave any traces of the simulation.
     """
     conv_to_delete = await database_sync_to_async(
-        Conversation.objects.filter(
-            platform_conversation_id=str(conversation_id)
-        ).first
+        Conversation.objects.filter(platform_conversation_id=str(conversation_id)).first
     )()
     if conv_to_delete:
         logger.info(f"Deleting conversation with platform_id {conversation_id}")
-        await database_sync_to_async(
-            conv_to_delete.delete
-        )()
+        await database_sync_to_async(conv_to_delete.delete)()
         logger.info(f"Deleted conversation {conversation_id}")
     else:
         logger.warning(
