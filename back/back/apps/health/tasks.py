@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 # Schedule tasks for each module
-@app.periodic(cron="0 */6 * * *", queue="health_checks") # Run every 6 hours
+# @app.periodic(cron="0 */6 * * *", queue="health_checks") # Module 1 is not needed for now
 @app.task(queue="health_checks")
 async def run_module_1_simulation_periodic(timestamp: int):
     logger.info("Scheduling Module 1 simulation task.")
