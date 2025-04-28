@@ -218,6 +218,14 @@ async def _run_single_module_simulation(
                 )
 
             logger.info(f"[Module {module_number}] Simulation completed successfully.")
+            # Wait for the last message to be received
+            last = False
+            while not last:
+                response = await _receive_json_message(
+                    websocket, timeout=HANDSHAKE_TIMEOUT
+                )
+                if response.get("last"):
+                    last = True
             return True, f"Module {module_number} simulation completed successfully."
     except websockets.exceptions.ConnectionClosedError as e:
         logger.error(
