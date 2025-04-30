@@ -172,18 +172,12 @@ class ProcrastinateBuiltInHealthCheck(BaseHealthCheckBackend):
         from procrastinate.contrib.django.healthchecks import healthchecks
 
         try:
-            # Redirect stdout and stderr to a dummy buffer to suppress prints because the logs of my app are full of them
-            with io.StringIO() as buf, contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-                async_to_sync(healthchecks)(app=self.app)
-            # Output from healthchecks is captured in 'buf' and discarded here
+            async_to_sync(healthchecks)(app=self.app)
         except exceptions.ConnectorException:
             self.add_error(
                 ServiceUnavailable("Error connecting to Procrastinate database")
             )
         except Exception as exc:
-            # Log the captured output if an unexpected error occurs
-            captured_output = buf.getvalue()
-            logger.error(f"Error checking Procrastinate. Captured output: {captured_output}", exc_info=True)
             self.add_error(ServiceUnavailable("Error checking Procrastinate"), exc)
 
 
