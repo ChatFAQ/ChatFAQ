@@ -32,6 +32,7 @@ import MarkdownIt from "markdown-it";
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css'; // You can choose a different style
 import { useI18n } from "vue-i18n";
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
 const { t } = useI18n();
 
@@ -117,6 +118,11 @@ const md = new MarkdownIt({
 
 const SpeechSynthesisUtterance = window.SpeechSynthesisUtterance || window.webkitSpeechSynthesisUtterance;
 const speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+
+// ElevenLabs client instance
+let elevenLabsClient = null;
+const audioPlayer = new Audio(); // Single audio player instance
+let currentAudioStreamController = null; // To control the current stream
 
 function copyCode(event) {
     // Find the button element (might be the SVG or span that was clicked)
@@ -259,30 +265,155 @@ function splitIntoSentences(text) {
 
 const speechBuffer = ref(''); // Buffer to accumulate unspoken text
 const receivedContent = ref(''); // Track the entire received content
+const elevenLabsIsSpeaking = ref(false);
 
 // ------- non-streaming messages -------
 onMounted(() => {
-    speechIt({ data: props.data, isLastChunk: props.isLastChunk })
+    initializeElevenLabsClient();
+    speechIt({ data: props.data, isLastChunk: props.isLastChunk });
 });
 // ------- streaming messages -------
 watch(() => ({ data: props.data, isLastChunk: props.isLastChunk }), speechIt, { immediate: false });
 
-watch (() => store.speechVoicesInitialized, (val) => {
-    if (val)
+watch (() => store.speechVoicesInitialized, (val) => { // This watcher might need adjustment or removal if Web Speech API voices are no longer primary
+    if (val && !store.elevenLabsEnabled) // Only run if ElevenLabs is not enabled
         speechIt({ data: props.data, isLastChunk: props.isLastChunk })
 })
+watch(() => store.elevenLabsApiKey, (val) => {
+    if(val)
+        initializeElevenLabsClient();
+});
+
 watch(() => store.speechRecognitionTranscribing, (val) => {
     if (val)
         cancelSynthesis();
 })
 
-function speechIt ({ data: newMessage, isLastChunk }) {
+function initializeElevenLabsClient() {
+    if (store.elevenLabsApiKey && store.elevenLabsEnabled) {
+        elevenLabsClient = new ElevenLabsClient({
+            apiKey: process.env.ELEVENLABS_API_KEY,
+        });
+    } else {
+        elevenLabsClient = null;
+    }
+}
+
+async function speechIt ({ data: newMessage, isLastChunk }) {
+    if (store.elevenLabsEnabled && elevenLabsClient) {
+        await speechItElevenLabs({ data: newMessage, isLastChunk });
+    } else if (store.speechSynthesisEnabled && store.speechVoicesInitialized) { // Fallback to Web Speech API
+        speechItWebSpeech({ data: newMessage, isLastChunk });
+    }
+}
+
+async function speechItElevenLabs({ data: newMessage, isLastChunk }) {
+    if (!elevenLabsClient || !store.elevenLabsEnabled) return;
+
+    const newContent = newMessage.payload.content;
+    const delta = newContent.slice(receivedContent.value.length);
+    receivedContent.value = newContent;
+    speechBuffer.value += delta;
+
+    const { sentences, remaining } = splitIntoSentences(speechBuffer.value);
+
+    if (sentences.length > 0) {
+        for (const sentence of sentences) {
+            if (elevenLabsIsSpeaking.value) // Wait for previous sentence to finish
+                await new Promise(resolve => audioPlayer.onended = resolve);
+            await playTextWithElevenLabs(sentence);
+        }
+        speechBuffer.value = remaining;
+    }
+
+    if (isLastChunk && speechBuffer.value.trim().length > 0) {
+        if (elevenLabsIsSpeaking.value)
+            await new Promise(resolve => audioPlayer.onended = resolve);
+        await playTextWithElevenLabs(speechBuffer.value);
+        speechBuffer.value = '';
+    }
+}
+
+async function playTextWithElevenLabs(text) {
+    if (!text.trim() || !elevenLabsClient) return;
+    elevenLabsIsSpeaking.value = true;
+
+    try {
+        // Abort previous stream if any
+        if (currentAudioStreamController) {
+            currentAudioStreamController.abort();
+        }
+        const abortController = new AbortController();
+        currentAudioStreamController = abortController;
+
+        const audioStream = await elevenLabsClient.textToSpeech.stream(
+            store.elevenLabsVoiceId,
+            {
+                modelId: store.elevenLabsModelId,
+                text: text,
+                outputFormat: store.elevenLabsOutputFormat,
+                voiceSettings: {
+                    stability: store.elevenLabsStability,
+                    similarityBoost: store.elevenLabsSimilarityBoost,
+                    style: store.elevenLabsStyle,
+                    useSpeakerBoost: store.elevenLabsUseSpeakerBoost,
+                    speed: store.elevenLabsSpeed,
+                },
+            },
+            { signal: abortController.signal }
+        );
+
+        const chunks = [];
+        for await (const chunk of audioStream) {
+            chunks.push(chunk);
+        }
+
+        if (abortController.signal.aborted) {
+            console.log("ElevenLabs stream aborted");
+            elevenLabsIsSpeaking.value = false;
+            return;
+        }
+
+        const blob = new Blob(chunks, { type: 'audio/mpeg' });
+        const url = URL.createObjectURL(blob);
+        audioPlayer.src = url;
+        audioPlayer.play();
+
+        audioPlayer.onended = () => {
+            elevenLabsIsSpeaking.value = false;
+            URL.revokeObjectURL(url); // Clean up
+            currentAudioStreamController = null;
+        };
+        audioPlayer.onerror = (e) => {
+            console.error("Error playing ElevenLabs audio:", e);
+            elevenLabsIsSpeaking.value = false;
+            URL.revokeObjectURL(url);
+            currentAudioStreamController = null;
+        };
+
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.log('ElevenLabs request was aborted.');
+        } else {
+            console.error("Error with ElevenLabs TTS:", error);
+        }
+        elevenLabsIsSpeaking.value = false;
+        currentAudioStreamController = null;
+    }
+}
+
+function speechItWebSpeech ({ data: newMessage, isLastChunk }) {
+    // This is the original Web Speech API logic
     if (store.speechSynthesisEnabled && store.speechVoicesInitialized) {
         const newContent = newMessage.payload.content;
 
         // Calculate delta from the last received content
+        // Note: receivedContent is shared, consider if it needs to be separate for WebSpeech vs ElevenLabs
         const delta = newContent.slice(receivedContent.value.length);
-        receivedContent.value = newContent; // Update the received content
+         // If not using ElevenLabs, receivedContent should be updated here too.
+        if (!store.elevenLabsEnabled) {
+            receivedContent.value = newContent;
+        }
 
         speechBuffer.value += delta; // Append delta to the buffer
 
@@ -326,17 +457,24 @@ function configureUtterance(utterance) {
     }
 }
 
-
 function cancelSynthesis() {
-    if (speechSynthesis) {
-        speechSynthesis.cancel(); // Stop any ongoing speech
-        speechBuffer.value = ''; // Clear the speech buffer
-        receivedContent.value = ''; // Reset received content
+    if (store.elevenLabsEnabled && elevenLabsClient) {
+        if (currentAudioStreamController) {
+            currentAudioStreamController.abort();
+            currentAudioStreamController = null;
+        }
+        audioPlayer.pause();
+        audioPlayer.src = ""; // Clear source
+        elevenLabsIsSpeaking.value = false;
     }
+    if (speechSynthesis) { // Also cancel Web Speech API if it was in use
+        speechSynthesis.cancel();
+    }
+    speechBuffer.value = ''; // Clear the speech buffer
+    receivedContent.value = ''; // Reset received content
 }
 
 onBeforeUnmount(cancelSynthesis);
-
 
 </script>
 <style lang="scss">

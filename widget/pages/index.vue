@@ -3,6 +3,7 @@
         <Widget :chatfaqWs="chatfaqWS" :chatfaqApi="chatfaqAPI" :fsmDef="fsmDef" :title="title"
                 :subtitle="subtitle" enable-logout :allow-attachments="true" 
                 :hideSources="hideSources" :stateOverride="stateOverride" :widgetConfigId="widgetId"
+                :speechRecognition="true" :speechSynthesis="true" :speechRecognitionAlwaysOn="true" :speechRecognitionAutoSend="true"
         />
     </client-only>
 </template>
