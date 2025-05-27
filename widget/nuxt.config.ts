@@ -15,9 +15,14 @@ export default defineNuxtConfig({
     devServer: {
         port: parseInt(process.env.WIDGET_PORT ?? "3000"),
     },
+    nitro: {
+        experimental: {
+            websocket: true
+        }
+    },
     runtimeConfig: {
         // The private keys which are only available server-side
-        // privateKey: process.env.PRIVATE_KEY,
+        ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || "",
         // Keys within public are also exposed client-side
 
         // In order to pass env variables to the client AT RUNTIME, you have to
