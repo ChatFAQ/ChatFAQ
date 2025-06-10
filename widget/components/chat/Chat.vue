@@ -1,26 +1,36 @@
 <template>
-    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
-        <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
-            <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}" v-for="(message, index) in store.messages">
-                <ChatMsgManager
-                    v-if="isRenderableStackType(message)"
-                    :message="message"
-                    :key="message.stack_id"
-                    :is-last-of-type="isLastOfType(index)"
-                    :is-first="index === 0"
-                    :is-last="index === store.messages.length - 1"
-                ></ChatMsgManager>
+    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt, 'split-screen': store.splitScreenIframe}" @click="store.menuOpened = false">
+        <div class="right-content">
+            <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
+                <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}" v-for="(message, index) in store.messages">
+                    <ChatMsgManager
+                        v-if="isRenderableStackType(message)"
+                        :message="message"
+                        :key="message.stack_id"
+                        :is-last-of-type="isLastOfType(index)"
+                        :is-first="index === 0"
+                        :is-last="index === store.messages.length - 1"
+                    ></ChatMsgManager>
+                </div>
+                <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
             </div>
-            <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
+            <div class="alert-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">
+                {{ $t("feedbacksent") }}
+            </div>
+            <div class="alert-message"
+                 :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
+                {{ $t("connectingtoserver") }}
+            </div>
+            <ChatPrompt @send="(msg) => sendMessage(msg)"/>
         </div>
-        <div class="alert-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">
-            {{ $t("feedbacksent") }}
+        <div v-if="store.splitScreenIframe" class="split-screen-iframe-container">
+            <iframe
+                class="split-screen-iframe"
+                :src="store.splitScreenIframe"
+                frameborder="0"
+                allowfullscreen
+            ></iframe>
         </div>
-        <div class="alert-message"
-             :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
-            {{ $t("connectingtoserver") }}
-        </div>
-        <ChatPrompt @send="(msg) => sendMessage(msg)"/>
     </div>
 </template>
 
@@ -236,8 +246,23 @@ function sendToGTM(msg) {
     width: 100%;
     display: flex;
     flex-direction: column;
-
     background-color: $chatfaq-color-chat-background-light;
+    &.split-screen {
+        flex-direction: row;
+    }
+    .right-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        width: 100%;
+
+    }
+    .split-screen-iframe-container {
+        height: 100%;
+        width: 100%;
+        box-shadow: 0px 2px 18px 0px #0000001A;
+    }
 
     &.dark-mode {
         background-color: $chatfaq-color-chat-background-dark;
@@ -291,8 +316,6 @@ function sendToGTM(msg) {
 }
 
 .conversation-content {
-    height: 100%;
-    width: 100%;
     overflow-x: hidden;
 
     @include scroll-style();

@@ -75,6 +75,7 @@ const props = defineProps({
     initialConversationMetadata: String,
     stateOverride: String,
     customIFramedMsgs: String,
+    splitScreenIframe: String,
     stickInputPrompt: Boolean,
     speechRecognition: Boolean,
     speechRecognitionLang: String,
@@ -188,6 +189,7 @@ function initStore() {
         store.userId = getUserId()
     }
     store.customIFramedMsgs = data.customIFramedMsgs
+    store.splitScreenIframe = data.splitScreenIframe
     store.initialConversationMetadata = data.initialConversationMetadata
     store.stateOverride = data.stateOverride
 

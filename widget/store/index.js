@@ -41,6 +41,7 @@ export const useGlobalStore = defineStore('globalStore', {
             initialConversationMetadata: {},
             stateOverride: undefined,
             customIFramedMsgs: {},
+            splitScreenIframe: null,
             speechRecognition: false,
             speechRecognitionTranscribing: false,
             speechRecognitionAutoSend: false,
