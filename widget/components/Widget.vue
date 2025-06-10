@@ -109,6 +109,10 @@ watch( () => props.customCss, async (newVal, _)=> {
     _customCss.value = newVal
     await init()
 }, {immediate: true, deep: true})
+
+watch( () => props.splitScreenIframe, (newVal, _)=> {
+    store.splitScreenIframe = newVal
+}, {immediate: true, deep: true})
 async function init() {
     if(_customCss.value) {
         const customCss = document.getElementById("custom-css");
@@ -189,7 +193,6 @@ function initStore() {
         store.userId = getUserId()
     }
     store.customIFramedMsgs = data.customIFramedMsgs
-    store.splitScreenIframe = data.splitScreenIframe
     store.initialConversationMetadata = data.initialConversationMetadata
     store.stateOverride = data.stateOverride
 

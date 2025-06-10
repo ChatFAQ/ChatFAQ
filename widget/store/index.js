@@ -115,6 +115,9 @@ export const useGlobalStore = defineStore('globalStore', {
                 this.messages[index] = message
             else
                 this.messages.push(message)
+            const messagesChangeEvent = new CustomEvent("chatfaq-messages-change", {detail: this.messages});
+            document.dispatchEvent(messagesChangeEvent);
+
         },
         setPreviewMode() {
             this.previewMode = true
