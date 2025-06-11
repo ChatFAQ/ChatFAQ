@@ -94,12 +94,14 @@ const props = defineProps({
     speechSynthesisRate: Number,
     speechSynthesisVoices: String,
     speechSynthesisEnabledByDefault: Boolean,
+    notRenderableStackTypes: String
 });
 
 const jsonProps = [
     "initialConversationMetadata",
     "stateOverride",
-    "customIFramedMsgs"
+    "customIFramedMsgs",
+    "notRenderableStackTypes",
 ]
 
 let data = props
@@ -158,6 +160,13 @@ async function init() {
         const style = document.createElement('style');
         style.innerHTML = data.css;
         document.head.appendChild(style);
+    } else {
+        for (const key in data) {
+            if (jsonProps.indexOf(key) > -1) {
+                if (typeof data[key] == "string" && data[key].length > 0)
+                    data[key] = JSON.parse(data[key] || "{}")
+            }
+        }
     }
     initStore()
 }
@@ -195,6 +204,7 @@ function initStore() {
     store.customIFramedMsgs = data.customIFramedMsgs
     store.initialConversationMetadata = data.initialConversationMetadata
     store.stateOverride = data.stateOverride
+    store.notRenderableStackTypes = data.notRenderableStackTypes
 
     store.fsmDef = data.fsmDef;
     store.title = data.title;

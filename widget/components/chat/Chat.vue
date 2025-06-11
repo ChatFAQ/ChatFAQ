@@ -39,15 +39,15 @@ import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import ChatPrompt from "~/components/chat/ChatPrompt.vue";
-import {createMessage} from "~/utils";
+import { createTextMessage, createMessage } from "~/utils";
 
 const store = useGlobalStore();
 
 const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
-const notRenderableStackTypes = ["gtm_tag", "close_conversation", undefined]
-
+let notRenderableStackTypes = ["gtm_tag", "close_conversation", undefined]
+notRenderableStackTypes = notRenderableStackTypes.concat(store.notRenderableStackTypes)
 let ws = undefined
 
 watch(() => store.scrollToBottom, scrollConversationDown)
@@ -152,7 +152,7 @@ function createConnection() {
     ws.onclose = function (e) {
         if (e.code === 4000 || e.code === 3000) {  // SDK not existent or RPC worker not connected || Authentication error
             let _msg = e.reason
-            store.addMessage(createMessage("bot", _msg));
+            store.addMessage(createTextMessage("bot", _msg));
             return;
         }
         if (plConversationId !== store.selectedPlConversationId)
@@ -221,6 +221,7 @@ function sendToGTM(msg) {
             console.warn("GTM tag received but no dataLayer found")
     }
 }
+document.addEventListener("request-text-message-send", (ev) => sendMessage(createTextMessage("human", ev.detail)))
 document.addEventListener("request-message-send", (ev) => sendMessage(createMessage("human", ev.detail)))
 
 </script>
