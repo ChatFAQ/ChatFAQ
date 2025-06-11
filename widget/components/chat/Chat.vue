@@ -39,6 +39,7 @@ import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import ChatPrompt from "~/components/chat/ChatPrompt.vue";
+import {createMessage} from "~/utils";
 
 const store = useGlobalStore();
 
@@ -151,21 +152,7 @@ function createConnection() {
     ws.onclose = function (e) {
         if (e.code === 4000 || e.code === 3000) {  // SDK not existent or RPC worker not connected || Authentication error
             let _msg = e.reason
-            store.addMessage({
-                "sender": {
-                    "type": "bot",
-                    "platform": "WS",
-                },
-                "stack": [{
-                    "type": "message",
-                    "payload": {
-                        "content": _msg
-                    },
-                }],
-                "stack_id": Math.random().toString(36).substring(7),
-                "stack_group_id": Math.random().toString(36).substring(7),
-                "last": true,
-            });
+            store.addMessage(createMessage("bot", _msg));
             return;
         }
         if (plConversationId !== store.selectedPlConversationId)
@@ -234,6 +221,7 @@ function sendToGTM(msg) {
             console.warn("GTM tag received but no dataLayer found")
     }
 }
+document.addEventListener("request-message-send", (ev) => sendMessage(createMessage("human", ev.detail)))
 
 </script>
 <style scoped lang="scss">
