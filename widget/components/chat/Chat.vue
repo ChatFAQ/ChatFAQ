@@ -27,7 +27,6 @@
             <iframe
                 class="split-screen-iframe"
                 :src="store.splitScreenIframe"
-                frameborder="0"
                 allowfullscreen
             ></iframe>
         </div>
@@ -249,6 +248,7 @@ function sendToGTM(msg) {
     background-color: $chatfaq-color-chat-background-light;
     &.split-screen {
         flex-direction: row;
+        overflow: hidden !important;
     }
     .right-content {
         display: flex;
@@ -263,7 +263,11 @@ function sendToGTM(msg) {
         width: 100%;
         box-shadow: 0px 2px 18px 0px #0000001A;
     }
-
+    .split-screen-iframe {
+        height: 100%;
+        width: 100%;
+        border: 0;
+    }
     &.dark-mode {
         background-color: $chatfaq-color-chat-background-dark;
     }
