@@ -5,7 +5,7 @@ from logging import getLogger
 from typing import List, Callable, Any
 
 from chatfaq_sdk import ChatFAQSDK
-from chatfaq_sdk.clients import query_prompt, llm_request
+from chatfaq_sdk.clients import query_prompt_default, llm_request
 from chatfaq_sdk.layers import Message, ToolUse, ToolResult, StreamingMessage, Layer
 
 logger = getLogger(__name__)
@@ -131,21 +131,10 @@ class AgentAbs:
             *res,
         ]
 
-    @staticmethod
-    async def request_prompt(
-        sdk: ChatFAQSDK, prompt_name: str, default_prompt: str
-    ):
-        if prompt := await query_prompt(sdk, prompt_name):
-            logger.info(f"{prompt_name} found")
-            return prompt
-        else:
-            logger.warning(f"{prompt_name} not found, using default")
-            return default_prompt
-
     async def set_prompt(
         self, sdk: ChatFAQSDK, prompt_name: str, default_prompt: str
     ):
-        self.prompt = await self.request_prompt(sdk, prompt_name, default_prompt)
+        self.prompt = await sdk.query_prompt_default(prompt_name, default_prompt)
 
     async def tool_use_loop(self, sdk: ChatFAQSDK, ctx: dict, tools: List[Callable], logging=False):
         if logging:

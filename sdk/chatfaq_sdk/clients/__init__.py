@@ -33,7 +33,7 @@ def llm_request(
 
     When `stream` is False, returns an awaitable coroutine that resolves to
     the final (non‑streamed) result, so you would use:
-    
+
       response = await llm_request(..., stream=False)
     """
     if stream:
@@ -196,6 +196,12 @@ async def query_prompt(
 ):
     return await sdk.query_prompt(prompt_name)
 
+async def query_prompt_default(
+    sdk: ChatFAQSDK,
+    prompt_name: str,
+    default_prompt: str,
+):
+    return await sdk.query_prompt_default(prompt_name, default_prompt)
 
 async def get_prompt(
     sdk: ChatFAQSDK,
