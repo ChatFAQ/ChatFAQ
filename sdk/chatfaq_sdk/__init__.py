@@ -252,7 +252,7 @@ class ChatFAQSDK:
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         status = {}
         if self.fsm_def.status_class:
-            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"]["status"])
+            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"], payload["ctx"]["status"])
         payload["ctx"]["status"] = status
 
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
