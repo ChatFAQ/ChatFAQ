@@ -23,7 +23,7 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 import { ref, computed } from "vue";
-import { createTextMessage } from "~/utils";
+import { createMessage } from "~/utils";
 
 import FileAttachment from "~/components/icons/FileAttachment.vue";
 
@@ -105,11 +105,14 @@ async function uploadFileToS3(file) {
 }
 
 function handleFileUploaded(s3_path, file_name) {
-    const m = createTextMessage("human", {
+    const m = createMessage("human", [{
+            "type": "file_uploaded",
+            "payload": {
                 "s3_path": s3_path,
                 "name": file_name,
                 // We don't pass url because we don't have it yet
-            }, "0", "0");
+            },
+        }], "0", "0");
     if (store.userId !== undefined)
         m["sender"]["id"] = store.userId
 
