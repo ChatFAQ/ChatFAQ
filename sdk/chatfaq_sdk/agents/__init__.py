@@ -136,7 +136,7 @@ class AgentAbs:
     ):
         self.prompt = await sdk.query_prompt_default(prompt_name, default_prompt)
 
-    async def tool_use_loop(self, sdk: ChatFAQSDK, ctx: dict, tools: List[Callable], logging=False):
+    async def tool_use_loop(self, sdk: ChatFAQSDK, llm: str, ctx: dict, tools: List[Callable], logging=False):
         if logging:
             logger.info("\n" + "-" * 50 + "      TOOL USE LOOP \n")
             logger.info("\033[42m" + "\033[30m tools \033[0m")
@@ -151,7 +151,7 @@ class AgentAbs:
 
             response = await llm_request(
                 sdk,
-                os.getenv("LLM"),
+                llm,
                 use_conversation_context=False,
                 conversation_id=ctx["conversation_id"],
                 bot_channel_name=ctx["bot_channel_name"],
