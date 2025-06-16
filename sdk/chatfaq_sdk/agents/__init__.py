@@ -1,5 +1,6 @@
 import inspect
 import os
+import json
 from enum import Enum
 from logging import getLogger
 from typing import List, Callable, Any
@@ -16,6 +17,11 @@ class MessageSender(Enum):
     assistant = "assistant"
     user = "user"
 
+class MessageSenderEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, MessageSender):
+            return obj.value
+        return super().default(obj)
 
 class StreamingMessageWithReferences(Layer):
     """
