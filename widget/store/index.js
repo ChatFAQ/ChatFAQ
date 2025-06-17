@@ -102,6 +102,8 @@ export const useGlobalStore = defineStore('globalStore', {
             });
             response = await response.json();
             this.messages = response.msgs_chain
+            const messagesChangeEvent = new CustomEvent("chatfaq-messages-change", {detail: this.messages});
+            document.dispatchEvent(messagesChangeEvent);
             this.selectedPlConversationId = _selectedPlConversationId;
         },
         createNewConversation(selectedPlConversationId) {
