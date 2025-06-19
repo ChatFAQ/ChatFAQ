@@ -358,12 +358,13 @@ async def query_llm(
 
     except Exception as e:
         logger.error("Error during LLM query", exc_info=e)
-        await error_handler({
-            "payload": {
-                "errors": "There was an error generating the response. Please try again or contact the administrator.",
-                "request_info": {"conversation_id": conversation_id},
-            }
-        })
+        if error_handler:
+            await error_handler({
+                "payload": {
+                    "errors": "There was an error generating the response. Please try again or contact the administrator.",
+                    "request_info": {"conversation_id": conversation_id},
+                }
+            })
         return
 
 
