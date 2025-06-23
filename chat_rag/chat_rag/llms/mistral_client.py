@@ -3,7 +3,6 @@ from typing import Callable, Dict, List, Union
 
 from mistralai.async_client import MistralAsyncClient
 from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
 
 from .base_llm import LLM
 from .format_tools import Mode, format_tools
@@ -21,12 +20,12 @@ class MistralChatModel(LLM):
     def format_prompt(
         self,
         messages: List[Dict[str, str]],
-    ) -> List[ChatMessage]:
+    ) -> List[Dict[str, str]]:
         """
         Formats the prompt to be used by the model into the correct Mistral format.
         """
         final_messages = [
-            ChatMessage(role=message["role"], content=message["content"])
+            {"role": message["role"], "content": message["content"]}
             for message in messages
         ]
 

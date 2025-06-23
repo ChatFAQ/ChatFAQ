@@ -15,6 +15,7 @@ def llm_request(
     temperature: float = 0.7,
     max_tokens: int = 4096,
     seed: int = 42,
+    thinking: str | Dict = None,
     tools: List[Union[Callable, Dict]] = None,
     tool_choice: str = None,
     conversation_id: str = None,
@@ -32,7 +33,7 @@ def llm_request(
 
     When `stream` is False, returns an awaitable coroutine that resolves to
     the final (non‑streamed) result, so you would use:
-    
+
       response = await llm_request(..., stream=False)
     """
     if stream:
@@ -43,6 +44,7 @@ def llm_request(
             temperature,
             max_tokens,
             seed,
+            thinking,
             tools,
             tool_choice,
             conversation_id,
@@ -60,6 +62,7 @@ def llm_request(
             temperature,
             max_tokens,
             seed,
+            thinking,
             tools,
             tool_choice,
             conversation_id,
@@ -78,6 +81,7 @@ async def _llm_request_non_streaming(
     temperature: float = 0.7,
     max_tokens: int = 4096,
     seed: int = 42,
+    thinking: str | Dict = None,
     tools: List[Union[Callable, Dict]] = None,
     tool_choice: str = None,
     conversation_id: str = None,
@@ -96,6 +100,7 @@ async def _llm_request_non_streaming(
         temperature,
         max_tokens,
         seed,
+        thinking,
         tools,
         tool_choice,
         conversation_id,
@@ -120,6 +125,7 @@ async def _llm_request_streaming(
     temperature: float = 0.7,
     max_tokens: int = 4096,
     seed: int = 42,
+    thinking: str | Dict = None,
     tools: List[Union[Callable, Dict]] = None,
     tool_choice: str = None,
     conversation_id: str = None,
@@ -138,6 +144,7 @@ async def _llm_request_streaming(
         temperature,
         max_tokens,
         seed,
+        thinking,
         tools,
         tool_choice,
         conversation_id,
@@ -189,6 +196,12 @@ async def query_prompt(
 ):
     return await sdk.query_prompt(prompt_name)
 
+async def query_prompt_default(
+    sdk: ChatFAQSDK,
+    prompt_name: str,
+    default_prompt: str,
+):
+    return await sdk.query_prompt_default(prompt_name, default_prompt)
 
 async def get_prompt(
     sdk: ChatFAQSDK,

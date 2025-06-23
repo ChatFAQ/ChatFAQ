@@ -24,7 +24,7 @@ class Widget(models.Model):
         default=uuid4,
     )
     name = models.CharField(max_length=255)
-    domain = models.URLField()
+    domain = models.CharField(max_length=2048)
     fsm_def = models.CharField(null=True, max_length=255)
     # chatfaq_api = models.CharField(
     #     max_length=255,
@@ -56,6 +56,8 @@ class Widget(models.Model):
     allow_attachments = models.BooleanField(default=False)
     disable_day_night_mode = models.BooleanField(default=False)
     enable_logout = models.BooleanField(default=False)
+    hide_sources = models.BooleanField(default=False)
+    show_tool_messages = models.BooleanField(default=False)
     # interfacing
     # # in
     speech_recognition = models.BooleanField(default=False)
@@ -63,6 +65,8 @@ class Widget(models.Model):
     speech_recognition_auto_send = models.BooleanField(default=False)
     speech_recognition_phrase_activation = models.CharField(max_length=255, null=True, blank=True)
     speech_recognition_beep = models.BooleanField(default=False)
+    speech_recognition_interim_results = models.BooleanField(default=False)
+
     # # out
     speech_synthesis = models.BooleanField(default=False)
     speech_synthesis_pitch = models.FloatField(default=1.0, validators=[MinValueValidator(0.0), MaxValueValidator(2.0)])

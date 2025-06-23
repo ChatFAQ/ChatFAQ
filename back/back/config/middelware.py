@@ -1,3 +1,4 @@
+import fnmatch
 from logging import getLogger
 from urllib.parse import parse_qs
 
@@ -10,6 +11,11 @@ from rest_framework.permissions import BasePermission
 
 from back.apps.widget.models import Widget
 from urllib.parse import urlparse
+
+from functools import wraps
+from asgiref.sync import sync_to_async
+from knox.auth import TokenAuthentication
+from django.http import JsonResponse
 
 logger = getLogger(__name__)
 
@@ -86,6 +92,27 @@ class IsAuthenticatedOrWidgetOriginHostPermission(BasePermission):
             widget = Widget.objects.get(id=widget_id)
         except Widget.DoesNotExist:
             return False
-        if urlparse(widget.domain).netloc == urlparse(origin).netloc:
+        if fnmatch.fnmatch(urlparse(origin).netloc, widget.domain):
             return True
         return False
+
+class KnoxAsyncAuthMixin:
+    """Mixin to add Knox authentication to async class-based views."""
+
+    async def dispatch(self, request, *args, **kwargs):
+        knox_auth = TokenAuthentication()
+
+        async def authenticate_async():
+            try:
+                return await sync_to_async(knox_auth.authenticate)(request)
+            except Exception as e:
+                return None
+
+        auth_result = await authenticate_async()
+
+        if auth_result:
+            request.user = auth_result[0]
+            request.auth = auth_result[1]
+            return await super().dispatch(request, *args, **kwargs)
+        else:
+            return JsonResponse({"error": "Authentication failed"}, status=401)

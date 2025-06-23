@@ -9,6 +9,7 @@ from back.apps.broker.consumers.message_types import (
     RPCNodeType,
 )
 from back.apps.broker.models.message import AgentType
+from back.apps.broker.serializers import RetrieverRequestSerializer
 from back.config.storage_backends import (
     PrivateMediaLocalStorage,
     select_private_storage,
@@ -91,6 +92,16 @@ class CacheConfigSerializer(serializers.Serializer):
     name = serializers.CharField(required=False, allow_null=True)
 
 
+class ThinkingField(serializers.Field):
+    """Custom field that accepts both a string or a dictionary"""
+    def to_internal_value(self, data):
+        # Return as is - can be either string or dict
+        return data
+
+    def to_representation(self, value):
+        return value
+
+
 class RPCLLMRequestSerializer(serializers.Serializer):
     """
     Represents the LLM requests coming from the RPC server
@@ -112,6 +123,8 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         The seed to use in the LLM
     stream: bool
         Whether the LLM response should be streamed or not
+    thinking: str or Dict
+        The thinking to use in the LLM
     """
 
     llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
@@ -121,6 +134,7 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     temperature = serializers.FloatField(default=0.7, required=False)
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)
+    thinking = ThinkingField(default=None, required=False, allow_null=True)
     tools = serializers.ListField(
         child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
     )
@@ -155,12 +169,8 @@ class RPCPromptRequestSerializer(serializers.Serializer):
     bot_channel_name = serializers.CharField()
 
 
-class RPCRetrieverRequestSerializer(serializers.Serializer):
-
+class RPCRetrieverRequestSerializer(RetrieverRequestSerializer):
     retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    bot_channel_name = serializers.CharField()
-    query = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    top_k = serializers.IntegerField(default=3)
 
 
 class RegisterParsersSerializer(serializers.Serializer):

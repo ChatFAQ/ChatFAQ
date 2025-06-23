@@ -252,7 +252,7 @@ class ChatFAQSDK:
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         status = {}
         if self.fsm_def.status_class:
-            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"]["status"])
+            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"], payload["ctx"]["status"])
         payload["ctx"]["status"] = status
 
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
@@ -328,6 +328,7 @@ class ChatFAQSDK:
         temperature,
         max_tokens,
         seed,
+        thinking,
         tools,
         tool_choice,
         conversation_id,
@@ -353,6 +354,7 @@ class ChatFAQSDK:
                         "temperature": temperature,
                         "max_tokens": max_tokens,
                         "seed": seed,
+                        "thinking": thinking,
                         "tools": tools,
                         "tool_choice": tool_choice,
                         "use_conversation_context": use_conversation_context,
@@ -384,6 +386,20 @@ class ChatFAQSDK:
                 }
             )
         )
+
+    async def retriever_request(
+        self, retriever_config_name, query, top_k=3
+    ):
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                urllib.parse.urljoin(
+                    self.chatfaq_http,
+                    f"back/api/language-model/retrieve/?retriever_config__name={retriever_config_name}&query={query}&top_k={top_k}"
+                ),
+                headers={"Authorization": f"Token {self.token}"},
+            )
+            response.raise_for_status()
+            return response.json()
 
     async def query_kis(self, knowledge_base_name, query: Optional[dict] = None) -> List[KnowledgeItem]:
         res = []
@@ -420,6 +436,51 @@ class ChatFAQSDK:
             results = response.json()["results"]
             if results:
                 return results[0]["prompt"]
+
+    async def query_prompt_default(self, prompt_name, default_prompt) -> List[KnowledgeItem]:
+        """
+        Queries the prompt with the given name, if not found returns the default prompt.
+        """
+        try:
+            prompt = await self.query_prompt(prompt_name)
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Error querying prompt {prompt_name}: {e}")
+            return default_prompt
+
+        if prompt is None:
+            logger.warning(f"{prompt_name} not found, using default")
+            return default_prompt
+        else:
+            logger.info(f"{prompt_name} found")
+            return prompt
+
+    async def submit_feedback_last_bot_msg(self, ctx: dict, value: str, comment: str):
+        conv_mml = ctx.get("conv_mml", [])
+        last_bot_message_id = None
+        for i in reversed(conv_mml):
+            if i["sender"]["type"] == "bot" and i["stack"]:
+                last_bot_message_id = i["id"]
+                break
+        if last_bot_message_id:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    urllib.parse.urljoin(
+                        self.chatfaq_http,
+                        f"back/api/broker/user-feedback/",
+                    ),
+                    json={
+                        "message_source": last_bot_message_id,
+                        "message_target": last_bot_message_id,
+                        "feedback_data": {
+                            "thumb_value": value,
+                            "feedback_comment": comment,
+                        },
+                    },
+                    headers={"Authorization": f"Token {self.token}"},
+                )
+                response.raise_for_status()
+                return response.json()
+        return False
 
     async def send_prompt_request(self, prompt_config_name, bot_channel_name):
         logger.info(f"[PROMPT] Requesting Prompt ({prompt_config_name})")

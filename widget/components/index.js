@@ -1,9 +1,10 @@
 import Widget from "./Widget.vue";
-import { createApp } from "vue";
+import { createApp, h } from "vue";
 import {_createI18n, _createPinia} from "../plugins";
 
+let expose
 function _buildApp(props) {
-    return createApp(Widget, { ...props }).use(_createPinia()).use(_createI18n())
+    return createApp({ render: () => expose = h(Widget, props) }).use(_createPinia()).use(_createI18n())
 }
 
 class ChatfaqWidget {
@@ -26,10 +27,25 @@ class ChatfaqWidget {
 // a possible solution is to use Vite istead of Rollup as such: https://maximomussini.com/posts/vue-custom-elements
 // for the moment we just implemented: https://github.com/vuejs/vue-web-component-wrapper/issues/93#issuecomment-909136116
 class ChatfaqWidgetCustomElement extends HTMLElement {
+    static get observedAttributes() {
+        return ['data-split-screen-iframe']; // Add any other attributes you want to observe
+    }
+
     connectedCallback() {
-        const app = _buildApp(this.dataset);
-        app.mount(this)
+        this.app = _buildApp(this.dataset);
+        this.app.mount(this)
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.app) return; // Guard if app isn't mounted yet
+
+        // Convert the attribute name to a prop name (remove 'data-' prefix and convert to camelCase)
+        const propName = name.replace('data-', '')
+            .replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+
+        // Update the prop in the Vue app
+        window.testApp = this.app;
+        expose.component.props[propName] = newValue;
     }
 }
-
 export { ChatfaqWidgetCustomElement, ChatfaqWidget };

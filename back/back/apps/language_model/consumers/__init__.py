@@ -45,7 +45,7 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
     ----------
     msgs_chain :
         A list of messages in the broker format.
-        
+
     Returns
     -------
     List[Message]
@@ -201,13 +201,13 @@ async def resolve_references(reference_kis, retriever_config):
 
 
 async def log_llm_event(
-    event_type: str, 
-    is_success: bool, 
+    event_type: str,
+    is_success: bool,
     data: dict
 ):
     """
     Async function to log LLM-related events to the Event model.
-    
+
     Parameters:
     -----------
     event_type : str
@@ -241,6 +241,7 @@ async def query_llm(
     temperature: float = 0.7,
     max_tokens: int = 1024,
     seed: int = 42,
+    thinking: Union[str, Dict] = None,
     tools: List[Dict] = None,
     tool_choice: str = None,
     use_conversation_context: bool = True,
@@ -248,7 +249,7 @@ async def query_llm(
     response_schema: Optional[Dict] = None,
     stream: bool = False,
     error_handler: Callable[[dict], Awaitable[None]] = None,
-):  
+):
     try:
         llm_config = await database_sync_to_async(LLMConfig.enabled_objects.get)(
             name=llm_config_name
@@ -357,13 +358,25 @@ async def query_llm(
             }
         # chat_rag models don't support streaming when using tools
         elif stream:
+            extra_args = {}
+            # check if llm.astream signature has "thinking" and "cache_config"
+            if "thinking" in llm.astream.__code__.co_varnames:
+                extra_args = {
+                    "thinking": thinking,
+                }
+            if "cache_config" in llm.astream.__code__.co_varnames:
+                extra_args = {
+                    **extra_args,
+                    "cache_config": cache_config,
+                }
             response = llm.astream(
                 messages=new_messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
                 seed=seed,
-                cache_config=cache_config,
+                **extra_args
             )
+
             async for res in response:
                 yield {
                     "content": res,
@@ -375,6 +388,17 @@ async def query_llm(
             }
 
         else:
+            extra_args = {}
+            # check if llm.agenerate signature has "thinking" and "cache_config"
+            if "thinking" in llm.agenerate.__code__.co_varnames:
+                extra_args = {
+                    "thinking": thinking,
+                }
+            if "cache_config" in llm.agenerate.__code__.co_varnames:
+                extra_args = {
+                    **extra_args,
+                    "cache_config": cache_config,
+                }
             response_message = await llm.agenerate(
                 messages=new_messages,
                 temperature=temperature,
@@ -382,7 +406,7 @@ async def query_llm(
                 seed=seed,
                 tools=tools,
                 tool_choice=tool_choice,
-                cache_config=cache_config,
+                **extra_args
             )
             yield {
                 "content": [content.model_dump() for content in response_message.content], # Make it serializable
@@ -498,7 +522,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
 
         lm_msg_id = str(uuid.uuid4())
         data = serializer.validated_data
-        
+
         async for chunk in query_llm(
             data["llm_config_name"],
             data["conversation_id"],
@@ -506,6 +530,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("temperature"),
             data.get("max_tokens"),
             data.get("seed"),
+            data.get("thinking"),
             data.get("tools"),
             data.get("tool_choice"),
             data.get("use_conversation_context"),
