@@ -1,9 +1,7 @@
 import json
-import time
-import traceback
 import uuid
 from logging import getLogger
-from typing import Awaitable, Callable, Dict, List, Optional
+from typing import Awaitable, Callable, Dict, List, Optional, Union
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
@@ -18,7 +16,6 @@ from back.apps.broker.serializers.rpc import (
     RPCResponseSerializer,
     RPCRetrieverRequestSerializer,
 )
-from back.apps.health.models import Event
 from back.apps.language_model.models import (
     KnowledgeItem,
     LLMConfig,
@@ -26,10 +23,12 @@ from back.apps.language_model.models import (
     RetrieverConfig,
 )
 from back.apps.language_model.models.enums import LLMChoices
+from back.config import settings
 from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
 from chat_rag.llms import load_llm
 from chat_rag.llms.types import Content, Message, ToolResult, ToolUse
+
 
 logger = getLogger(__name__)
 
