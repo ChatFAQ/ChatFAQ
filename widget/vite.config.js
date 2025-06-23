@@ -3,6 +3,7 @@ import path, {resolve} from "path";
 import {defineConfig, loadEnv} from "vite";
 import vue from "@vitejs/plugin-vue";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
+import { analyzer } from 'vite-bundle-analyzer'
 
 const stripScssMarker = '/* STYLES STRIP IMPORTS MARKER */'
 const projectRootDir = path.resolve(__dirname)
@@ -14,6 +15,7 @@ export default ({mode}) => {
         publicDir: "public",
         define: {
             "process.env": env,
+            '__VUE_OPTIONS_API__': false,
         },
         plugins: [vue(), {
             name: 'vite-plugin-strip-css',
@@ -34,7 +36,7 @@ export default ({mode}) => {
                     }
                 }
             }
-        }, cssInjectedByJsPlugin()],
+        }, cssInjectedByJsPlugin(), analyzer()],
         resolve: {
             alias: {
                 "@": projectRootDir,
