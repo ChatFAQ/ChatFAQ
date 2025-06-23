@@ -1,8 +1,12 @@
 <template>
-    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt, 'split-screen': store.splitScreenIframe}" @click="store.menuOpened = false">
-        <div class="right-content">
-            <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
-                <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}" v-for="(message, index) in store.messages">
+    <div class="chat-wrapper"
+         :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt, 'split-screen': store.splitScreenIframe}"
+         @click="store.menuOpened = false">
+        <div class="right-content" :style="rightContentStyle">
+            <div class="conversation-content" ref="conversationContent"
+                 :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
+                <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}"
+                     v-for="(message, index) in store.messages">
                     <ChatMsgManager
                         v-if="isRenderableStackType(message)"
                         :message="message"
@@ -23,7 +27,14 @@
             </div>
             <ChatPrompt @send="(msg) => sendMessage(msg)"/>
         </div>
-        <div v-if="store.splitScreenIframe" class="split-screen-iframe-container">
+
+        <div v-if="store.splitScreenIframe"
+             class="resizable-divider"
+             @mousedown="startResize"
+             :class="{'dark-mode': store.darkMode}">
+        </div>
+
+        <div v-if="store.splitScreenIframe" class="split-screen-iframe-container" :style="iframeContainerStyle">
             <iframe
                 class="split-screen-iframe"
                 :src="store.splitScreenIframe"
@@ -34,12 +45,12 @@
 </template>
 
 <script setup>
-import {ref, watch, nextTick, onMounted} from "vue";
+import {ref, watch, nextTick, onMounted, computed, onUnmounted} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
 import ChatPrompt from "~/components/chat/ChatPrompt.vue";
-import { createTextMessage, createMessage } from "~/utils";
+import {createTextMessage, createMessage} from "~/utils";
 
 const store = useGlobalStore();
 
@@ -50,6 +61,31 @@ let notRenderableStackTypes = ["gtm_tag", "close_conversation", undefined]
 notRenderableStackTypes = notRenderableStackTypes.concat(store.notRenderableStackTypes)
 let ws = undefined
 
+// --- Resizing functionality ---
+const rightContentWidth = ref( '100%' );
+const iframeContainerWidth = ref('0');
+const isResizing = ref(false);
+const startX = ref(0);
+const startRightWidth = ref(0);
+// Computed styles
+const rightContentStyle = computed(() => ({
+    width: rightContentWidth.value
+}));
+
+const iframeContainerStyle = computed(() => ({
+    width: iframeContainerWidth.value,
+    pointerEvents: isResizing.value ? 'none' : 'auto'
+}));
+
+watch(() => store.splitScreenIframe, () => {
+    if (store.splitScreenIframe) {
+        rightContentWidth.value = '50%';
+        iframeContainerWidth.value = '50%';
+    } else {
+        rightContentWidth.value = '100%';
+        iframeContainerWidth.value = '0';
+    }
+})
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
@@ -66,9 +102,11 @@ onMounted(async () => {
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
 }
+
 function getFirstLayerMergeToPrev(message) {
     return message?.stack[0]?.payload.merge_to_prev;
 }
+
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
@@ -85,12 +123,13 @@ function animateFeedbackSent() {
         feedbackSentDisabled.value = true
     }, 1500)
 }
+
 function isRenderableStackType(message) {
     return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
 function createConnection() {
-    if(store.previewMode)
+    if (store.previewMode)
         return
 
     if (ws)
@@ -141,7 +180,7 @@ function createConnection() {
 
         sendToGTM(msg)
         store.addMessage(msg);
-        if(store.messages.length === 1)
+        if (store.messages.length === 1)
             await store.gatherConversations()
     };
     ws.onopen = async function () {
@@ -166,7 +205,7 @@ function createConnection() {
 
 
 async function initializeConversation() {
-    if(store.previewMode)
+    if (store.previewMode)
         return
 
     if (store.initialSelectedPlConversationId) {
@@ -194,7 +233,7 @@ function sendMessage(message) {
 }
 
 function sendMessagesToBeSent() {
-    if(!store.canSendMsg) {
+    if (!store.canSendMsg) {
         setTimeout(() => sendMessagesToBeSent(), 1000)
         return
     }
@@ -221,8 +260,51 @@ function sendToGTM(msg) {
             console.warn("GTM tag received but no dataLayer found")
     }
 }
+
 document.addEventListener("request-text-message-send", (ev) => sendMessage(createTextMessage("human", ev.detail)))
 document.addEventListener("request-message-send", (ev) => sendMessage(createMessage("human", ev.detail)))
+
+// --- Resizing functionality ---
+// Resize methods
+function startResize(e) {
+    isResizing.value = true;
+    startX.value = e.clientX;
+    startRightWidth.value = parseInt(rightContentWidth.value);
+
+    // Add event listeners
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+
+    // Prevent text selection during resize
+    // e.preventDefault();
+}
+
+function resize(e) {
+    if (!isResizing.value) return;
+
+    const chatWrapper = document.querySelector('.chat-wrapper');
+    const totalWidth = chatWrapper.offsetWidth;
+
+    // Calculate the new width based on mouse movement
+    const dx = e.clientX - startX.value;
+    const newRightWidth = Math.max(20, Math.min(80, (startRightWidth.value + dx / totalWidth * 100)));
+
+    // Update the widths
+    rightContentWidth.value = `${newRightWidth}%`;
+    iframeContainerWidth.value = `${100 - newRightWidth}%`;
+}
+
+function stopResize() {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+}
+
+// Clean up event listeners when component is unmounted
+onUnmounted(() => {
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+});
 
 </script>
 <style scoped lang="scss">
@@ -235,31 +317,52 @@ document.addEventListener("request-message-send", (ev) => sendMessage(createMess
     display: flex;
     flex-direction: column;
     background-color: $chatfaq-color-chat-background-light;
+
     &.split-screen {
         flex-direction: row;
         overflow: hidden !important;
     }
+
     .right-content {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         height: 100%;
-        width: 100%;
+        // width: 100%;
+        // transition: width 0.05s ease;
 
     }
+
+
+    .resizable-divider {
+        width: 8px;
+        opacity: 0;
+        height: 100%;
+        background-color: #f0f0f0;
+        cursor: col-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+
     .split-screen-iframe-container {
         height: 100%;
-        width: 100%;
+        // width: 100%;
         box-shadow: 0px 2px 18px 0px #0000001A;
+        // transition: width 0.05s ease;
     }
+
     .split-screen-iframe {
         height: 100%;
         width: 100%;
         border: 0;
     }
+
     &.dark-mode {
         background-color: $chatfaq-color-chat-background-dark;
     }
+
     &.fit-to-parent {
         border: unset !important;
         border-radius: inherit !important;
@@ -316,6 +419,7 @@ document.addEventListener("request-message-send", (ev) => sendMessage(createMess
     &.dark-mode {
         @include scroll-style($chatfaq-color-scrollBar-dark);
     }
+
     &.fit-to-parent-conversation-content {
         min-height: inherit;
     }
