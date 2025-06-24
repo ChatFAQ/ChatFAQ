@@ -19,7 +19,7 @@ components:
     image: back
     envs: [back]
     size_hint: ram >= 1g
-  
+
 ingresses:
   - match:
       prefix: '/'
