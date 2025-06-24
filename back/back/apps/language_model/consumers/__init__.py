@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 from logging import getLogger
 from typing import Awaitable, Callable, Dict, List, Optional, Union
@@ -28,6 +29,8 @@ from back.utils import WSStatusCodes
 from back.utils.custom_channels import CustomAsyncConsumer
 from chat_rag.llms import load_llm
 from chat_rag.llms.types import Content, Message, ToolResult, ToolUse
+
+from back.apps.health.models import Event
 
 logger = getLogger(__name__)
 
@@ -198,6 +201,40 @@ async def resolve_references(reference_kis, retriever_config):
     }
 
 
+async def log_llm_event(
+    event_type: str,
+    is_success: bool,
+    data: dict
+):
+    """
+    Async function to log LLM-related events to the Event model.
+
+    Parameters:
+    -----------
+    event_type : str
+        Type of event (e.g., 'llm_call_start', 'llm_call_complete')
+    is_success : bool
+        Whether the event represents a successful operation
+    llm_call_id : str
+        Unique identifier for the LLM call
+    llm_config_name : str
+        Name of the LLM configuration
+    conversation_id : int
+        ID of the conversation
+    start_time : float
+        Start time of the LLM call (used to calculate duration for 'complete' events)
+    additional_data : dict, optional
+        Any additional data to include in the event
+    """
+
+    # Create the event asynchronously
+    await database_sync_to_async(Event.objects.create)(
+        event_type=event_type,
+        is_success=is_success,
+        data=data
+    )
+
+
 async def query_llm(
     llm_config_name: str,
     conversation_id: int,
@@ -221,18 +258,20 @@ async def query_llm(
         # if the llm config is mistral then return an error that mistral is not supported yet
         if llm_config.llm_type == LLMChoices.MISTRAL.value:
             await error_handler({
-                "payload": {
-                    "errors": "Error: Mistral is temporarily unavailable. We're working to add support for it soon. For now, please select a different model like OpenAI.",
-                    "request_info": {"llm_config_name": llm_config_name},
-                }
-            })
+                    "errors": "Error: Mistral is temporarily unavailable. We're working to add support for it soon. For now, please select a different model provider like OpenAI.",
+                    "llm_config_name": llm_config_name,
+                    "conversation_id": conversation_id
+                },
+                event_type="llm_config_not_found"
+            )
     except LLMConfig.DoesNotExist:
         await error_handler({
-            "payload": {
                 "errors": f"LLM config with name: {llm_config_name} does not exist.",
-                "request_info": {"llm_config_name": llm_config_name},
-            }
-        })
+                "llm_config_name": llm_config_name,
+                "conversation_id": conversation_id
+            },
+            event_type="llm_config_not_found"
+        )
         return
 
     conv = await database_sync_to_async(Conversation.objects.get)(pk=conversation_id)
@@ -252,11 +291,10 @@ async def query_llm(
                 messages = messages[1:]
         elif not prev_messages:
             await error_handler({
-                "payload": {
-                    "errors": "Error: No previous messages and no messages provided.",
-                    "request_info": {"conversation_id": conversation_id},
-                }
-            })
+                "errors": "Error: No previous messages and no messages provided.",
+                "conversation_id": conversation_id,
+            },
+            )
             return
         if messages:
             new_messages.extend(messages)
@@ -264,11 +302,10 @@ async def query_llm(
         new_messages = messages
         if new_messages is None:
             await error_handler({
-                "payload": {
-                    "errors": "Error: No messages provided.",
-                    "request_info": {"conversation_id": conversation_id},
-                }
-            })
+                "errors": "Error: No messages provided.",
+                "conversation_id": conversation_id,
+            },
+            )
             return
 
     try:
@@ -286,6 +323,29 @@ async def query_llm(
             base_url=llm_config.base_url,
             model_max_length=llm_config.model_max_length,
             api_key=api_key,
+        )
+
+            # Generate a unique ID for this LLM call
+        llm_call_id = str(uuid.uuid4())
+        start_time = time.perf_counter()
+
+        await log_llm_event(
+            event_type="llm_call_start",
+            is_success=True,
+            data={
+                "llm_call_id": llm_call_id,
+                "llm_config_name": llm_config_name,
+                "conversation_id": conversation_id,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "seed": seed,
+                "tools": tools,
+                "tool_choice": tool_choice,
+                "messages": new_messages,
+                "schema": response_schema,
+                "cache_config": cache_config,
+                "stream": stream,
+            }
         )
 
         if response_schema:
@@ -356,15 +416,28 @@ async def query_llm(
                 "last_chunk": True,
             }
 
+        await log_llm_event(
+            event_type="llm_call_complete",
+            is_success=True,
+            data={
+                "llm_call_id": llm_call_id,
+                "duration_seconds": time.perf_counter() - start_time,
+            }
+        )
+
     except Exception as e:
-        logger.error("Error during LLM query", exc_info=e)
-        if error_handler:
-            await error_handler({
-                "payload": {
-                    "errors": "There was an error generating the response. Please try again or contact the administrator.",
-                    "request_info": {"conversation_id": conversation_id},
-                }
-            })
+        logger.exception(f"Error during llm call: {e}")
+        await error_handler(
+            {
+                "errors": "There was an error generating the response. Please try again or contact the administrator.",
+                "error_message": str(e),
+                "llm_config_name": llm_config_name,
+                "conversation_id": conversation_id,
+                "llm_call_id": llm_call_id,
+                "duration_seconds": time.perf_counter() - start_time,
+            },
+            event_type="llm_call_complete",
+        )
         return
 
 
@@ -450,6 +523,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
 
         lm_msg_id = str(uuid.uuid4())
         data = serializer.validated_data
+
         async for chunk in query_llm(
             data["llm_config_name"],
             data["conversation_id"],
@@ -464,7 +538,7 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
             data.get("cache_config"),
             data.get("response_schema"),
             data.get("stream"),
-            error_handler=self.error_response,
+            error_handler=self.llm_error_response,
         ):
             await self.send(
                 json.dumps(
@@ -556,9 +630,24 @@ class AIConsumer(CustomAsyncConsumer, AsyncJsonWebsocketConsumer):
                 }
             )
 
-
-
     async def error_response(self, data: dict):
         data["status"] = WSStatusCodes.bad_request.value
         data["type"] = RPCMessageType.error.value
         await self.send(json.dumps(data))
+
+    async def llm_error_response(self, data: dict, event_type: str = None):
+        if event_type:
+            await log_llm_event(
+                event_type=event_type,
+                is_success=False,
+                data=data
+            )
+        # This is info sent to the SDK, so don't send a detailed error message for now.
+        return await self.error_response(
+            {
+                "payload": {
+                    "errors": data["errors"],
+                    "request_info": {"conversation_id": data["conversation_id"], "llm_config_name": data["llm_config_name"]},
+                }
+            }
+        )
