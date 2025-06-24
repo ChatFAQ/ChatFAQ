@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 from logging import getLogger
 from typing import Awaitable, Callable, Dict, List, Optional, Union
@@ -29,6 +30,7 @@ from back.utils.custom_channels import CustomAsyncConsumer
 from chat_rag.llms import load_llm
 from chat_rag.llms.types import Content, Message, ToolResult, ToolUse
 
+from back.apps.health.models import Event
 
 logger = getLogger(__name__)
 
