@@ -80,3 +80,4 @@ envs:
     INTERNAL_WS_URL: '${{ vars::INTERNAL_WS_URL }}'
     BACKEND_TOKEN: '${{ secrets::BACKEND_TOKEN }}'
     AZOR_PRIVATE_KEY: '${{ secrets::AZOR_PRIVATE_KEY }}'
+    GOOGLE_API_KEY: '${{ secrets::GOOGLE_API_KEY }}'
