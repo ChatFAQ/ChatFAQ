@@ -192,6 +192,7 @@ class AgentAbs:
                         else:
                             result = tool(**tool_use["args"], sdk=sdk, ctx=ctx, agent=self)
                     except Exception as e:
+                        logger.exception(f"Error executing tool {tool_use['name']}")
                         result = f"Error executing tool {tool_use['name']}: {str(e)}"
 
                     if inspect.isasyncgen(result):
