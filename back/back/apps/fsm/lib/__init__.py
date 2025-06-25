@@ -148,6 +148,8 @@ class FSM:
                 logger.debug(f"FSM to -----> {self.current_state}")
                 await self.run_current_state_events(transition_data)
 
+        await self.save_cache()
+
     async def run_current_state_events(self, transition_data=None):
         """
         It will call the RPC server, the procedure name is the event name declared in the fsm definition for the
