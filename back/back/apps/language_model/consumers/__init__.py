@@ -308,6 +308,11 @@ async def query_llm(
             )
             return
 
+
+    # Generate a unique ID for this LLM call
+    llm_call_id = str(uuid.uuid4())
+    start_time = time.perf_counter()
+
     try:
         # Decrypt the API key from the LLMConfig if available.
         api_key = None
@@ -324,10 +329,6 @@ async def query_llm(
             model_max_length=llm_config.model_max_length,
             api_key=api_key,
         )
-
-            # Generate a unique ID for this LLM call
-        llm_call_id = str(uuid.uuid4())
-        start_time = time.perf_counter()
 
         await log_llm_event(
             event_type="llm_call_start",
