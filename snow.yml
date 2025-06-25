@@ -79,3 +79,4 @@ envs:
     USE_RAY: 'False'
     INTERNAL_WS_URL: '${{ vars::INTERNAL_WS_URL }}'
     BACKEND_TOKEN: '${{ secrets::BACKEND_TOKEN }}'
+    AZOR_PRIVATE_KEY: '${{ secrets::AZOR_PRIVATE_KEY }}'
