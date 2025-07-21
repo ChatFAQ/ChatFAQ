@@ -16,17 +16,20 @@ export const useGlobalStore = defineStore('globalStore', {
             fullScreen: false,
             sourcesFirst: false,
             hideSources: false,
-            hideToolMessages: true,
+            showToolMessages: false,
             noHeader: false,
             previewMode: false,
             opened: false,
             fitToParent: false,
             stickInputPrompt: false,
+            notRenderableStackTypes: [],
             conversations: [],
             messages: [],
             selectedConversations: [],
             initialSelectedPlConversationId: undefined,
             selectedPlConversationId: undefined,
+            conversationClosed: false,
+            promptWithText: false,
             // The value of this properties (scrollToBottom, feedbackSent) is irrelevant, what it
             // really matters is the fact that its value changed, which happens every time "New Conversation" button is
             // clicked, then other components will subscribe for any change and react to the fact that has been clicked
@@ -39,14 +42,14 @@ export const useGlobalStore = defineStore('globalStore', {
             initialConversationMetadata: {},
             stateOverride: undefined,
             customIFramedMsgs: {},
+            splitScreenIframe: null,
             speechRecognition: false,
-            _speechRecognitionTranscribing: false,
+            speechRecognitionTranscribing: false,
             speechRecognitionAutoSend: false,
             speechRecognitionAlwaysOn: false,
             speechRecognitionLang: 'en-US',
             speechRecognitionPhraseActivation: undefined,
-            speechRecognitionRunning: false,
-            speechRecognitionPhraseActivated: false,
+            speechRecognitionInterimResults: false,
             speechRecognitionBeep: false,
             allowAttachments: false,
             authToken: undefined,
@@ -99,6 +102,8 @@ export const useGlobalStore = defineStore('globalStore', {
             });
             response = await response.json();
             this.messages = response.msgs_chain
+            const messagesChangeEvent = new CustomEvent("chatfaq-messages-change", {detail: this.messages});
+            document.dispatchEvent(messagesChangeEvent);
             this.selectedPlConversationId = _selectedPlConversationId;
         },
         createNewConversation(selectedPlConversationId) {
@@ -113,6 +118,9 @@ export const useGlobalStore = defineStore('globalStore', {
                 this.messages[index] = message
             else
                 this.messages.push(message)
+            const messagesChangeEvent = new CustomEvent("chatfaq-messages-change", {detail: this.messages});
+            document.dispatchEvent(messagesChangeEvent);
+
         },
         setPreviewMode() {
             this.previewMode = true
@@ -250,18 +258,12 @@ export const useGlobalStore = defineStore('globalStore', {
                 return response.results[0].feedback_data
             }
         },
-        activeActivationPhrase: (state) => {
-            if (state.speechRecognitionPhraseActivation)
-                return state.speechRecognitionPhraseActivation.length > 0
-            return false
+
+        promptEditable: (state) => {
+            return !(state.conversationClosed || state.speechRecognitionTranscribing)
         },
-        getSpeechSynthesisVoice: (state) => (voiceURI) => {
-            if (state.speechSynthesisVoices.length === 0)
-                return
-            return state.speechSynthesisVoices.find(voice => voice.voiceURI === voiceURI)
-        },
-        speechRecognitionTranscribing: (state) => {
-            return state.speechRecognitionRunning && (state._speechRecognitionTranscribing || !state.activeActivationPhrase)
+        canSendMsg: (state) => {
+            return !state.waitingForResponse && !state.disconnected && !state.speechRecognitionTranscribing && !state.conversationClosed
         }
     }
 })
@@ -281,6 +283,7 @@ function initializeSpeechVoices(state) {
         if (typeof speechSynthesis !== "undefined") {
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
+        populateVoiceList()
     }
     return false
 }

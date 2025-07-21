@@ -125,7 +125,7 @@ class CustomPreset(ModelWDjango):
         return super().pre_logging(env)
 
 
-model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=False)
+model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=False, enable_wagtail=False)
 
 with EnvManager(model_w_django) as env:
     # ---

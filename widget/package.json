@@ -1,6 +1,6 @@
 {
     "name": "chatfaq-widget",
-    "version": "0.1.81",
+    "version": "0.2.11",
     "private": false,
     "main": "./dist/chatfaq-widget.umd.cjs",
     "module": "./dist/chatfaq-widget.mjs",
@@ -28,6 +28,7 @@
         "cross-env": "^7.0.3",
         "nuxt": "^3.1.1",
         "typescript": "^5.7.2",
+        "vite-bundle-analyzer": "^0.22.3",
         "vue-i18n": "^9.2.2",
         "vue-tsc": "^2.2.0"
     },

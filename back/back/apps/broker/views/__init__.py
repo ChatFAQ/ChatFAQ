@@ -56,7 +56,11 @@ class ConversationFilterSet(django_filters.FilterSet):
         return queryset.filter(message__adminreview__isnull=val).distinct()
 
     def filter_user_feedback_exists(self, queryset, name, value):
-        return queryset.filter(message__userfeedback__isnull=False).distinct()
+        return queryset.filter(
+            message__in=Message.objects.filter(
+                Q(source_userfeedback_set__isnull=False) | Q(target_userfeedback_set__isnull=False)
+            )
+        ).distinct()
 
 
 class ConversationAPIViewSet(

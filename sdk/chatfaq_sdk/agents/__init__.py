@@ -1,18 +1,13 @@
 import inspect
 import os
+import json
+from enum import Enum
 from logging import getLogger
 from typing import List, Callable, Any
 
-from chatfaq_sdk.clients import query_prompt
-from chatfaq_sdk.layers import StreamingMessage
-
-
 from chatfaq_sdk import ChatFAQSDK
-from chatfaq_sdk.clients import llm_request
-from chatfaq_sdk.layers import Message, ToolUse, ToolResult
-
-from enum import Enum
-
+from chatfaq_sdk.clients import query_prompt_default, llm_request
+from chatfaq_sdk.layers import Message, ToolUse, ToolResult, StreamingMessage, Layer
 
 logger = getLogger(__name__)
 
@@ -22,8 +17,60 @@ class MessageSender(Enum):
     assistant = "assistant"
     user = "user"
 
+class MessageSenderEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, MessageSender):
+            return obj.value
+        return super().default(obj)
 
-class Agent:
+class StreamingMessageWithReferences(Layer):
+    """
+    This layer is used to send a streaming message with references to the user.
+    The special thing is that the references come in the last chunk, instead of when initializing the layer as done in StreamingMessage
+    """
+    _type = "message_chunk"
+    _streaming = True
+
+    def __init__(
+        self,
+        generator,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        self.generator = generator
+
+    async def build_payloads(self, ctx, data):
+        async for chunk in self.generator:
+            references = chunk.get("references", {})
+            if references:  # now we send the references only in the final message
+                payload = {
+                    "payload": {
+                        "content": chunk.get("content"),
+                        "references": references,
+                        "tool_calls": [],
+                    }
+                }
+                yield (
+                    [payload],
+                    True,  # last_chunk
+                )
+
+            else:
+                yield (
+                    [
+                        {
+                            "payload": {
+                                "content": chunk.get("content"),
+                                "tool_calls": [],
+                            }
+                        }
+                    ],
+                    False,  # last_chunk
+                )
+
+
+class AgentAbs:
     intro_msg = ""
 
     def __init__(self):
@@ -47,7 +94,7 @@ class Agent:
         return {}
 
     async def _async_init(self, sdk: ChatFAQSDK, *args, **kwargs):
-        pass
+        raise NotImplementedError
 
     @classmethod
     def from_serialized(cls, data):
@@ -90,36 +137,27 @@ class Agent:
             *res,
         ]
 
-    @staticmethod
-    async def request_prompt(
-        sdk: ChatFAQSDK, prompt_name: str, default_prompt: str
-    ):
-        if prompt := await query_prompt(sdk, prompt_name):
-            logger.info(f"{prompt_name} found")
-            return prompt
-        else:
-            logger.warning(f"{prompt_name} not found, using default")
-            return default_prompt
-
     async def set_prompt(
         self, sdk: ChatFAQSDK, prompt_name: str, default_prompt: str
     ):
-        self.prompt = await self.request_prompt(sdk, prompt_name, default_prompt)
+        self.prompt = await sdk.query_prompt_default(prompt_name, default_prompt)
 
-    async def tool_use_loop(self, sdk: ChatFAQSDK, ctx: dict, tools: List[Callable]):
-        print("\n" + "-" * 50 + "      TOOL USE LOOP \n")
-        print("\033[42m" + "\033[30m tools \033[0m")
-        print("\033[92m" + str(tools) + "\033[0m")
+    async def tool_use_loop(self, sdk: ChatFAQSDK, llm: str, ctx: dict, tools: List[Callable], logging=False):
+        if logging:
+            logger.info("\n" + "-" * 50 + "      TOOL USE LOOP \n")
+            logger.info("\033[42m" + "\033[30m tools \033[0m")
+            logger.info("\033[92m" + str(tools) + "\033[0m")
 
         while True:
             messages = self.format_conversation()
-            print("\n" + "-" * 50 + "      PROMPT \n")
-            print("\033[43m" + "\033[30m prompt \033[0m")
-            print("\033[93m" + messages[0]["content"] + "\033[0m")
+            if logging:
+                logger.info("\n" + "-" * 50 + "      PROMPT \n")
+                logger.info("\033[43m" + "\033[30m prompt \033[0m")
+                logger.info("\033[93m" + messages[0]["content"] + "\033[0m")
 
             response = await llm_request(
                 sdk,
-                os.getenv("LLM"),
+                llm,
                 use_conversation_context=False,
                 conversation_id=ctx["conversation_id"],
                 bot_channel_name=ctx["bot_channel_name"],
@@ -128,9 +166,10 @@ class Agent:
                 tool_choice="auto",
                 stream=False,
             )
-            print("\n" + "-" * 50 + "      RESPONSE \n")
-            print("\033[45m" + "\033[30m response \033[0m")
-            print("\033[95m" + str(response) + "\033[0m")
+            if logging:
+                logger.info("\n" + "-" * 50 + "      RESPONSE \n")
+                logger.info("\033[45m" + "\033[30m response \033[0m")
+                logger.info("\033[95m" + str(response) + "\033[0m")
 
             tool_results = []
             for content in response["content"]:
@@ -153,10 +192,11 @@ class Agent:
                         else:
                             result = tool(**tool_use["args"], sdk=sdk, ctx=ctx, agent=self)
                     except Exception as e:
+                        logger.exception(f"Error executing tool {tool_use['name']}")
                         result = f"Error executing tool {tool_use['name']}: {str(e)}"
 
                     if inspect.isasyncgen(result):
-                        yield StreamingMessage(result)
+                        yield StreamingMessageWithReferences(result)
                         result = str("submitted")
 
                     yield ToolUse(name=tool_use["name"], id=tool_use["id"], args=tool_use["args"])

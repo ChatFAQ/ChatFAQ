@@ -76,8 +76,12 @@ async function initKIReview() {
     }
     for (const ki_ref of props.references.knowledge_items || []) {
         const ki = await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {id: ki_ref.knowledge_item_id, limit: 0, offset: 0, ordering: undefined}, true)
-        if (ki)
+        if (ki) {
             reviewedKIs.value.kis.push(ki)
+        } else if (ki_ref.title && ki_ref.content) {
+            // If KI not found in backend, use the reference if it has title and content
+            reviewedKIs.value.kis.push(ki_ref);
+        }
     }
     review.value = await itemsStore.retrieveItems("/back/api/broker/admin-review/", {message: props.message.id, limit: 0, offset: 0, ordering: undefined}, true) || {}
     ki_choices.value = (await itemsStore.retrieveItems("/back/api/language-model/knowledge-items/", {knowledge_base: props.references.knowledge_base_id, knowledge_base__id: props.references.knowledge_base_id, limit: 0, offset: 0, ordering: undefined})).results

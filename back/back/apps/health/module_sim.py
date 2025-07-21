@@ -184,7 +184,8 @@ async def _run_single_module_simulation(
             new_file_url = (
                 new_file_response.get("stack", [{}])[0]
                 .get("payload", {})
-                .get("url", "")
+                .get("document_result", {})
+                .get("file_url", "")
             )
 
             # Try to download the newly created file

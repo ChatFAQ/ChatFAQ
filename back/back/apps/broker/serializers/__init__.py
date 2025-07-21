@@ -118,3 +118,9 @@ class StatsSerializer(serializers.Serializer):
     granularity = serializers.ChoiceField(
         required=False, choices=["year", "quarter", "month", "week", "day", "date", "time", "hour", "minute", "second"], default="day"
     )
+
+
+class RetrieverRequestSerializer(serializers.Serializer):
+    retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    query = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    top_k = serializers.IntegerField(default=3)

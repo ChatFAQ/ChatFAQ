@@ -92,7 +92,7 @@ def gemini_schema(schema: Dict) -> Dict[str, Any]:
     schema = {
         "name": schema["name"],
         "description": schema["description"],
-        "parameters": uppercase_types_recursively(schema["parameters"]),
+        "parameters": transform_tool_spec(uppercase_types_recursively(schema["parameters"]), keys_to_remove=["additionalProperties", "default", "$schema"]),
     }
     return schema
 
@@ -112,6 +112,22 @@ def uppercase_types_recursively(schema: Dict[str, Any]) -> Dict[str, Any]:
         for i, item in enumerate(schema):
             schema[i] = uppercase_types_recursively(item)
     return schema
+
+def transform_tool_spec(data, keys_to_remove):
+    """
+    Recursively removes 'additionalProperties', 'default', and '$schema' keys
+    from a dictionary or list representing tool specifications.
+    """
+    if isinstance(data, dict):
+        new_dict = {}
+        for key, value in data.items():
+            if key not in keys_to_remove:
+                new_dict[key] = transform_tool_spec(value, keys_to_remove)
+        return new_dict
+    elif isinstance(data, list):
+        return [transform_tool_spec(item, keys_to_remove) for item in data]
+    else:
+        return data
 
 
 def _check_tool_choice(tools: List[Dict], tool_choice: str) -> str:
@@ -154,6 +170,7 @@ def format_tools(
     tools_formatted = []
     if mode in {Mode.OPENAI_TOOLS, Mode.MISTRAL_TOOLS}:
         for tool in tools:
+            tool = transform_tool_spec(tool, keys_to_remove=["default"])
             # As it is already in the openai format, we can just append it
             tools_formatted.append(tool)
 

@@ -1,7 +1,9 @@
-from rest_framework import viewsets
+from rest_framework import views, viewsets
 from django.http import JsonResponse
 from rest_framework.decorators import action
 
+from back.apps.broker.serializers.rpc import RetrieverRequestSerializer
+from back.apps.language_model.consumers import query_retriever
 from back.apps.language_model.models.rag_pipeline import LLMConfig, GenerationConfig, PromptConfig, RetrieverConfig
 from back.apps.language_model.serializers.rag_pipeline import LLMConfigSerializer, \
     GenerationConfigSerializer, PromptConfigSerializer, RetrieverConfigSerializer
@@ -74,3 +76,25 @@ class PromptConfigAPIViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id", "name"]
     search_fields = ['name']
+
+
+class RetrieveAPI(views.APIView):
+    def get(self, request):
+        serializer = RetrieverRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {"error": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        data = serializer.validated_data
+        result = query_retriever(
+            data["retriever_config_name"],
+            data["query"],
+            data.get("top_k"),
+        )
+
+        if result.get("error"):
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(result, status=status.HTTP_200_OK)
