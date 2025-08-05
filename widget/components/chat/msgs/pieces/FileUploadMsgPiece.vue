@@ -156,12 +156,7 @@ async function uploadFileToS3(file, fileExtension, fileName, fileIndex) {
 }
 
 function handleMultipleFilesUploaded(uploadedFiles) {
-    const m = {
-        "sender": {
-            "type": "human",
-            "platform": "WS",
-        },
-        "stack": [{
+    const m = createMessage("human", [{
             "type": "file_uploaded",
             "payload": {
                 "files": uploadedFiles.map(file => ({
