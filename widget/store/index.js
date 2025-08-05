@@ -22,6 +22,7 @@ export const useGlobalStore = defineStore('globalStore', {
             opened: false,
             fitToParent: false,
             stickInputPrompt: false,
+            notRenderableStackTypes: [],
             conversations: [],
             messages: [],
             selectedConversations: [],
@@ -41,6 +42,7 @@ export const useGlobalStore = defineStore('globalStore', {
             initialConversationMetadata: {},
             stateOverride: undefined,
             customIFramedMsgs: {},
+            splitScreenIframe: null,
             speechRecognition: false,
             speechRecognitionTranscribing: false,
             speechRecognitionAutoSend: false,
@@ -100,6 +102,8 @@ export const useGlobalStore = defineStore('globalStore', {
             });
             response = await response.json();
             this.messages = response.msgs_chain
+            const messagesChangeEvent = new CustomEvent("chatfaq-messages-change", {detail: this.messages});
+            document.dispatchEvent(messagesChangeEvent);
             this.selectedPlConversationId = _selectedPlConversationId;
         },
         createNewConversation(selectedPlConversationId) {
@@ -114,6 +118,9 @@ export const useGlobalStore = defineStore('globalStore', {
                 this.messages[index] = message
             else
                 this.messages.push(message)
+            const messagesChangeEvent = new CustomEvent("chatfaq-messages-change", {detail: this.messages});
+            document.dispatchEvent(messagesChangeEvent);
+
         },
         setPreviewMode() {
             this.previewMode = true

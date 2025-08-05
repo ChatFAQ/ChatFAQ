@@ -252,7 +252,7 @@ class ChatFAQSDK:
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         status = {}
         if self.fsm_def.status_class:
-            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"]["status"])
+            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"], payload["ctx"]["status"])
         payload["ctx"]["status"] = status
 
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
@@ -436,6 +436,23 @@ class ChatFAQSDK:
             results = response.json()["results"]
             if results:
                 return results[0]["prompt"]
+
+    async def query_prompt_default(self, prompt_name, default_prompt) -> List[KnowledgeItem]:
+        """
+        Queries the prompt with the given name, if not found returns the default prompt.
+        """
+        try:
+            prompt = await self.query_prompt(prompt_name)
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Error querying prompt {prompt_name}: {e}")
+            return default_prompt
+
+        if prompt is None:
+            logger.warning(f"{prompt_name} not found, using default")
+            return default_prompt
+        else:
+            logger.info(f"{prompt_name} found")
+            return prompt
 
     async def submit_feedback_last_bot_msg(self, ctx: dict, value: str, comment: str):
         conv_mml = ctx.get("conv_mml", [])

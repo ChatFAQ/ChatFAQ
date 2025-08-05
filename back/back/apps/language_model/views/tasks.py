@@ -1,13 +1,19 @@
+import asyncio
+import json
 from django.http import JsonResponse
-from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from back.apps.language_model.models import RayTaskState
 from back.apps.language_model.serializers.tasks import RayTaskStateSerializer
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from django.conf import settings
-
-
+from django.views import View
+from back.apps.language_model.consumers import query_llm
+from back.apps.broker.serializers.rpc import RPCLLMRequestSerializer
+from back.config.middelware import KnoxAsyncAuthMixin
 
 def get_paginated_response(data, limit, offset, count):
     return JsonResponse({
@@ -61,7 +67,30 @@ class ListTasksAPI(APIView):
             page = [task for task in page if task.get('task_id') == task_id]
 
         return get_paginated_response(page, limit, offset, len(data))
-    
+
+@method_decorator(csrf_exempt, name='dispatch')
+class QueryLLM(KnoxAsyncAuthMixin, View):
+    async def post(self, request):
+        body_data = json.loads(request.body.decode('utf-8'))
+        serializer = RPCLLMRequestSerializer(data=body_data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        llm_config_name = data.pop("llm_config_name")
+        conversation_id = data.pop("conversation_id")
+        data.pop("bot_channel_name", None)
+
+        res = None
+        async for _res in query_llm(
+            llm_config_name,
+            conversation_id,
+            **data
+        ):
+            res = _res
+
+        return JsonResponse(res, safe=False, status=status.HTTP_200_OK)
 
 class RayStatusAPI(APIView):
     @extend_schema(

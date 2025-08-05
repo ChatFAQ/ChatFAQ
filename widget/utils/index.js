@@ -30,6 +30,37 @@ export function getUserId() {
     return uuid;
 }
 
+export function createTextMessage(type, content, stack_id, stack_group_id) {
+    return {
+        "sender": {
+            "type": type,
+            "platform": "WS",
+        },
+        "stack": [{
+            "type": "message",
+            "payload": {
+                content
+            },
+        }],
+        "stack_id": stack_id || generateUUID(),
+        "stack_group_id": stack_group_id || generateUUID(),
+        "last": true,
+    };
+}
+
+export function createMessage(type, stack, stack_id, stack_group_id) {
+    return {
+        "sender": {
+            "type": type,
+            "platform": "WS",
+        },
+        "stack": stack,
+        "stack_id": stack_id || generateUUID(),
+        "stack_group_id": stack_group_id || generateUUID(),
+        "last": true,
+    };
+}
+
 const logoutEvent = new Event("chatfaq-logout");
 
 window.chatfaqFetch = async (...args) => {

@@ -24,6 +24,7 @@
 <script setup>
 import { useGlobalStore } from "~/store";
 import { ref, computed } from "vue";
+import { createMessage } from "~/utils";
 
 import FileAttachment from "~/components/icons/FileAttachment.vue";
 
@@ -168,11 +169,7 @@ function handleMultipleFilesUploaded(uploadedFiles) {
                     "name": file.name,
                 }))
             },
-        }],
-        "stack_id": "0",
-        "stack_group_id": "0",
-        "last": true,
-    };
+        }], "0", "0");
     if (store.userId !== undefined)
         m["sender"]["id"] = store.userId
 
