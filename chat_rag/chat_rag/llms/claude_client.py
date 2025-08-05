@@ -156,8 +156,8 @@ class ClaudeChatModel(LLM):
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            temperature=temperature if temperature else NOT_GIVEN,
+            max_tokens=max_tokens if max_tokens else NOT_GIVEN,
             stream=True,
             thinking=thinking if thinking else NOT_GIVEN,
         )
@@ -196,8 +196,8 @@ class ClaudeChatModel(LLM):
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            temperature=temperature if temperature else NOT_GIVEN,
+            max_tokens=max_tokens if max_tokens else NOT_GIVEN,
             stream=True,
             thinking=thinking if thinking else NOT_GIVEN,
         )
@@ -243,8 +243,8 @@ class ClaudeChatModel(LLM):
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            temperature=temperature if temperature else NOT_GIVEN,
+            max_tokens=max_tokens if max_tokens else NOT_GIVEN,
             **tool_kwargs,
             thinking=thinking if thinking else NOT_GIVEN,
         )
@@ -284,8 +284,8 @@ class ClaudeChatModel(LLM):
             model=self.llm_name,
             system=system_prompt,
             messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            temperature=temperature if temperature else NOT_GIVEN,
+            max_tokens=max_tokens if max_tokens else NOT_GIVEN,
             **tool_kwargs,
             thinking=thinking if thinking else NOT_GIVEN,
         )
