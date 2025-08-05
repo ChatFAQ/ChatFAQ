@@ -48,6 +48,9 @@ channels-redis = "^4.3.0"
 typefit = "^1.0.0"
 ray = {extras = ["data", "serve"], version = "^2.48.0"}
 chat-rag = "0.2.13"
+networkx = "^3.5"
+markdown = "^3.8.2"
+procrastinate = "^3.5.0"
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
