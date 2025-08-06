@@ -276,15 +276,19 @@ async def run_module_simulation(
             state_overwrite=state_overwrite,
         )
         logger.info(f"[Task {event_type}] Simulation finished. Success: {success}")
-
-        # Delete the conversation to not leave any traces of the simulation
-        await delete_conversation(conversation_id)
+    
     except Exception as e:
         success = False
         message = (
             f"Task failed unexpectedly during simulation: {type(e).__name__} - {e}"
         )
         logger.exception(f"[Task {event_type}] Exception during simulation run.")
+
+    try:
+        # Delete the conversation to not leave any traces of the simulation
+        await delete_conversation(conversation_id)
+    except Exception as e:
+        logger.exception(f"[Task {event_type}] Exception during conversation deletion.")
 
     finally:
         await database_sync_to_async(Event.objects.create)(
