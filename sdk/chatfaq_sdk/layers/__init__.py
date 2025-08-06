@@ -84,21 +84,25 @@ class FileUpload(Layer):
         content,
         file_extensions=[],
         max_size=0,
+        max_files=1,
         *args,
         **kwargs,
     ):
         """
         :param file_extensions: A list of file extensions to request. For example: ["pdf", "xml"]
         :param max_size: The maximum size of the file to request in bytes. For example: 50 * 1024 * 1024 (50MB)
+        :param max_files: The maximum number of files that can be uploaded. For example: 5
         """
         super().__init__(*args, **kwargs)
         self.content = content
         self.file_extensions = file_extensions
         self.max_size = max_size
+        self.max_files = max_files
 
     async def build_payloads(self, ctx, data):
         _payload = {
             "content": self.content,
+            "max_files": self.max_files,
             "files": {
                 file_extension: {
                     "max_size": self.max_size,
@@ -112,33 +116,34 @@ class FileUpload(Layer):
 
 class FileDownload(Layer):
     """
-    A message layer that includes a file download.
+    A message layer that includes file downloads (single or multiple).
     """
     _type = "file_download"
 
     def __init__(
             self,
             content: str,
-            file_name: str,
-            file_url: str,
+            files=None,
             *args,
             **kwargs,
     ):
         """
-        :param file_name: The name of the file. For example: "report.pdf"
-        :param file_url: The URL of the file where the user can download it or visualize it. For example: "https://example.com/report.pdf"
+        :param files: List of files to download. Each file should be a dict with 'name' and 'url' keys.
+                     For example: [{"name": "report.pdf", "url": "https://example.com/report.pdf"}]
         """
         super().__init__(*args, **kwargs)
         self.content = content
-        self.file_name = file_name
-        self.file_url = file_url
+        
+        if files:
+            self.files = files
+        else:
+            raise ValueError("'files' parameter must be provided")
 
     async def build_payloads(self, ctx, data):
         payload = {
             "payload": {
-                    "content": self.content,
-                    "name": self.file_name,
-                    "url": self.file_url,
+                "content": self.content,
+                "files": self.files,
             }
         }
         yield [payload], True

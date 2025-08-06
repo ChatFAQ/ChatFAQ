@@ -202,10 +202,17 @@ class MessageStackSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         # If it is a file for download and doesn't have a url then we need to return a url to the file so the fsm can download it
-        if attrs['type'] == 'file_uploaded' and not attrs.get('payload', {}).get('url') and attrs.get('payload', {}).get('s3_path'):
+        if attrs['type'] == 'file_uploaded':
             storage = select_private_storage()
             if not isinstance(storage, PrivateMediaLocalStorage):
-                attrs['payload']['url'] = storage.generate_presigned_url_get(attrs.get('payload', {}).get('s3_path'), expires_in=3600)
+                payload = attrs.get('payload', {})
+                
+                # Handle new multiple files format
+                if payload.get('files'):
+                    for file_data in payload['files']:
+                        if file_data.get('s3_path') and not file_data.get('url'):
+                            file_data['url'] = storage.generate_presigned_url_get(file_data['s3_path'], expires_in=3600)
+        
         return attrs
 
 

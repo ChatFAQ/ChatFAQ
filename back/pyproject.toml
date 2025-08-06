@@ -10,8 +10,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "~3.11"
-modelw-preset-django = {extras = ["health"], version = "2024.10.0"}
+python = "~3.12"
+modelw-preset-django = {version = "2025.4.0", extras = ["health"]}
 drf-spectacular = {extras = ["sidecar"], version = "^0.24.0"}
 channels = "*"
 daphne = "*"
@@ -19,7 +19,6 @@ Django = "*"
 django-cors-headers = "^3.13.0"
 django-extensions = "^3.2.1"
 django-better-admin-arrayfield = "^1.4.2"
-typefit = "^0.4.2"
 requests = "^2.28.1"
 python-json-logger = "^2.0.4"
 psycopg2 = "*"
@@ -40,21 +39,18 @@ scrapy-playwright = "^0.0.28"
 undetected-playwright = "^0.1.0"
 django-simple-history = "~3.3.0"
 crochet = "^2.1.1"
-ray = {extras = ["data", "serve"], version = "2.40.0"}
 pillow = "^11.1.0"
-redis = "~5.1"
-fastapi = "0.111"
 memray = "^1.12.0"
 gunicorn = "^22.0.0"
 uvicorn = "^0.30.1"
-chat-rag = "0.2.12"
-channels-redis = "^4.2.1"
 PyMuPDF = "^1.25.1"
-markdown = "^3.7"
-networkx = "^3.4.2"
-
-
-procrastinate = {extras = ["django"], version = "^3.1.0"}
+channels-redis = "^4.3.0"
+typefit = "^1.0.0"
+ray = {extras = ["data", "serve"], version = "^2.48.0"}
+chat-rag = "0.2.13"
+networkx = "^3.5"
+markdown = "^3.8.2"
+procrastinate = "^3.5.0"
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"
