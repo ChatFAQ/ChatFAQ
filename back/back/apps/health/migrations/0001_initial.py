@@ -63,7 +63,12 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ["-date_created"],
-                "index_together": {("event_type", "date_created")},
+                "indexes": [
+                    models.Index(
+                        fields=["event_type", "date_created"],
+                        name="health_even_event_t_90d77c_idx",
+                    )
+                ],
             },
         ),
     ]

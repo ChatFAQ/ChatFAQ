@@ -2761,8 +2761,10 @@ files = [
 
 [package.dependencies]
 coloredlogs = ">=15.0,<15.1"
-dj-database-url = ">=2.2,<2.3"
-django = {version = ">=4.2,<4.3", extras = ["argon2"]}
+dj-database-url = ">=2.3,<2.4"
+django = {version = ">=5.1,<5.2", extras = ["argon2"]}
+django-health-check = {version = ">=3.18.0,<3.19.0", optional = true, markers = "extra == \"health\""}
+django-ipware = ">=7.0.1,<8.0.0"
 django-postgres-extra = ">=2.0,<2.1"
 django-wailer = ">=1.0.0-beta.2,<1.1.0"
 djangorestframework = ">=3.15,<3.16"
