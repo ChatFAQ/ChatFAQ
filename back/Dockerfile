@@ -1,9 +1,9 @@
-FROM python:3.11.3-slim
+FROM python:3.12.11-slim
 
 ARG MODEL_W_PIP_EXTRA=""
 
 RUN python -m venv /opt/model-w  \
-    && /opt/model-w/bin/python -m pip install --no-cache-dir $MODEL_W_PIP_EXTRA 'modelw-docker==2023.4.0b4' \
+    && /opt/model-w/bin/python -m pip install --no-cache-dir $MODEL_W_PIP_EXTRA 'modelw-docker[health]==2025.4.0' \
     && ln -s /opt/model-w/bin/modelw-docker /usr/local/bin/modelw-docker
 
 RUN mkdir /code \
