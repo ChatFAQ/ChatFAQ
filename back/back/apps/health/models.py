@@ -131,7 +131,7 @@ class Event(models.Model):
 
     class Meta:
         ordering = ["-date_created"]
-        index_together = (("event_type", "date_created"),)
+        indexes = [models.Index(fields=["event_type", "date_created"])]
 
 
 class StatusHistory(models.Model):

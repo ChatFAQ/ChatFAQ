@@ -7,6 +7,7 @@
                 @change="handleFileUpload"
                 ref="fileInput"
                 :accept="acceptedFileExtensions"
+                :multiple="(props.data.max_files || 1) > 1"
             >
             <span class="button-text" :class="{ 'dark-mode': store.darkMode }">{{ $t('upload_file') }}</span>
             <FileAttachment class="file-icon" :class="{ 'dark-mode': store.darkMode }" />
@@ -31,8 +32,6 @@ const store = useGlobalStore();
 const fileInput = ref(null);
 const uploadProgress = ref(0);
 const uploadError = ref(null);
-const selectedFileExtension = ref(null);
-const selectedFileName = ref(null);
 
 const props = defineProps({
     data: {
@@ -48,69 +47,122 @@ const acceptedFileExtensions = computed(() => {
     return Object.keys(props.data.files).map(ext => '.' + ext).join(',');
 });
 
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        selectedFileName.value = file.name;
-        selectedFileExtension.value = file.name.split('.').pop().toLowerCase();
-        if (!props.data.files[selectedFileExtension.value]) {
-            alert('Tipo de archivo no permitido.');
-            fileInput.value.value = ''; // Clear the input
-            return;
-        }
-        const { max_size } = props.data.files[selectedFileExtension.value];
-        if (file.size > max_size) {
-            alert('El archivo no debe superar los ' + max_size / (1024 * 1024) + ' MB');
-            fileInput.value.value = ''; // Clear the input
-            return;
-        }
-        if (props.data.files[selectedFileExtension.value].presigned_url) {
-            uploadFileToS3(file);
-        } else {
-            emit('fileSelected', file);
-        }
-    }
-}
-
-async function uploadFileToS3(file) {
-    try {
-        uploadProgress.value = 0;
+async function handleFileUpload(event) {
+    const files = event.target.files;
+    if (files.length > 0) {
+        const uploadedFiles = [];
+        const nonS3Files = [];
+        let hasError = false;
         uploadError.value = null;
-        const { presigned_url, s3_path, content_type } = props.data.files[selectedFileExtension.value];
 
-        const response = await fetch(presigned_url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': content_type,
-            },
-            body: file,
-            onUploadProgress: (progressEvent) => { // TODO: fix this
-                const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-                console.log('progress: ', progress);
-                uploadProgress.value = progress;
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al subir el archivo a S3');
+        // Check max_files limit
+        const maxFiles = props.data.max_files || 1;
+        if (files.length > maxFiles) {
+            uploadError.value = `You can only upload up to ${maxFiles} file${maxFiles > 1 ? 's' : ''} at a time`;
+            hasError = true;
         }
-        console.log('File uploaded successfully');
-        handleFileUploaded(s3_path, selectedFileName.value);
-    } catch (error) {
-        console.error('Error uploading file:', error);
-        uploadError.value = 'Error al subir el archivo. Por favor, inténtalo de nuevo.';
-    } finally {
-        fileInput.value.value = ''; // Clear the input
+
+        if (!hasError) {
+            // First validate all files
+            for (const file of files) {
+                const fileName = file.name;
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                if (!props.data.files[fileExtension]) {
+                    uploadError.value = `File type not allowed: ${fileName}`;
+                    hasError = true;
+                    break;
+                }
+                const { max_size } = props.data.files[fileExtension];
+                if (file.size > max_size) {
+                    uploadError.value = `The file ${fileName} must not exceed ${max_size / (1024 * 1024)} MB`;
+                    hasError = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasError) {
+            // Process all files
+            for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                const file = files[fileIndex];
+                const fileName = file.name;
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+
+                if (props.data.files[fileExtension].presigned_urls) {
+                    try {
+                        const uploadResult = await uploadFileToS3(file, fileExtension, fileName, fileIndex);
+                        if (uploadResult) {
+                            uploadedFiles.push(uploadResult);
+                        }
+                    } catch (error) {
+                        console.error('Error uploading file:', error);
+                        uploadError.value = `Error uploading ${fileName}. Please try again.`;
+                        hasError = true;
+                        break;
+                    }
+                } else {
+                    nonS3Files.push(file);
+                }
+            }
+
+            // Only send message if no errors occurred
+            if (!hasError) {
+                if (uploadedFiles.length > 0) {
+                    handleMultipleFilesUploaded(uploadedFiles);
+                }
+                if (nonS3Files.length > 0) {
+                    // Handle non-S3 files (emit for each)
+                    nonS3Files.forEach(file => emit('fileSelected', file));
+                }
+            }
+        }
+
+        fileInput.value.value = ''; // Clear the input after processing all files
     }
 }
 
-function handleFileUploaded(s3_path, file_name) {
+async function uploadFileToS3(file, fileExtension, fileName, fileIndex) {
+    uploadProgress.value = 0;
+    uploadError.value = null;
+    const { presigned_urls, s3_paths, content_type } = props.data.files[fileExtension];
+    
+    // Use the presigned URL and S3 path for this specific file index
+    const presigned_url = presigned_urls[fileIndex];
+    const s3_path = s3_paths[fileIndex];
+
+    const response = await fetch(presigned_url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': content_type,
+        },
+        body: file,
+        onUploadProgress: (progressEvent) => { // TODO: fix this
+            const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+            console.log('progress: ', progress);
+            uploadProgress.value = progress;
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error('Error uploading file to S3');
+    }
+    console.log('File uploaded successfully:', fileName);
+    
+    return {
+        s3_path: s3_path,
+        name: fileName
+    };
+}
+
+function handleMultipleFilesUploaded(uploadedFiles) {
     const m = createMessage("human", [{
             "type": "file_uploaded",
             "payload": {
-                "s3_path": s3_path,
-                "name": file_name,
-                // We don't pass url because we don't have it yet
+                "files": uploadedFiles.map(file => ({
+                    "s3_path": file.s3_path,
+                    "name": file.name,
+                }))
             },
         }], "0", "0");
     if (store.userId !== undefined)
@@ -118,7 +170,6 @@ function handleFileUploaded(s3_path, file_name) {
 
     store.messagesToBeSent.push(m);
     store.messagesToBeSentSignal += 1
-
 }
 
 </script>
