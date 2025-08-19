@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq_sdk"
-version = "0.1.54"
+version = "0.1.55"
 description = "ChatFAQ SDK"
 authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 readme = "README.md"
@@ -12,7 +12,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 asyncio = "^3.4.3"
-websockets = "^10.4"
+websockets = "^15.0.1"
 coloredlogs = "^15.0.1"
 python-dotenv = "^1.0.0"
 requests = "^2.31.0"
