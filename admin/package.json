@@ -49,5 +49,8 @@
         "vue": "3.5.x",
         "vue3-carousel": "^0.16.0",
         "wasync": "^0.1.1"
+    },
+    "peerDependencies": {
+        "sha.js": ">=2.4.12"
     }
 }
