@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chat-rag"
-version = "0.2.13"
+version = "0.2.14"
 description = ""
 authors = ["Diego Peláez Paquico <diego.pelaez@with-madrid.com>"]
 readme = "README.md"
@@ -29,7 +29,6 @@ accelerate = {version = "^0.31.0", optional = true}
 unstructured = {extras = ["pdf"], version = "0.12.0", python = ">=3.10,<3.12", optional = true}
 unstructured-inference = {version = "0.7.21", optional = true}
 protobuf = ">=4.25.8"
-ragatouille = {version = "^0.0.9.post2", optional = true}
 hdbscan = {version = "^0.8.36", optional = true}
 umap-learn = {version = "^0.5.6", optional = true}
 bm25s = {version = "^0.1.7", optional = true}
@@ -67,7 +66,6 @@ accelerate = "^0.31.0"
 unstructured = {extras = ["pdf"], version = "0.12.0", python = ">=3.10,<3.12"}
 unstructured-inference = "0.7.21"
 protobuf = "*"
-ragatouille = "^0.0.9.post2"
 hdbscan = "^0.8.36"
 umap-learn = "^0.5.6"
 bm25s = "^0.1.7"

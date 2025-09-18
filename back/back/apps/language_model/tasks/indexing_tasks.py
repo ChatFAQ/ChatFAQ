@@ -1,4 +1,3 @@
-import gc
 import json
 import os
 from logging import getLogger
@@ -13,7 +12,6 @@ from back.apps.language_model.models.enums import (
 )
 from back.utils.ray_utils import ray_task
 
-from .colbert_actor import ColBERTActor
 
 logger = getLogger(__name__)
 
@@ -199,186 +197,6 @@ def get_indexed_k_items_ids(s3_index_path):
     return indexed_k_item_ids
 
 
-def modify_index(retriever_config):
-    """
-    Modify the index for a knowledge base. It removes, modifies and adds the k items to an existing index.
-    """
-    from django.conf import settings
-    from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
-    from back.apps.language_model.models import Embedding, KnowledgeItem
-
-    s3_index_path = retriever_config.s3_index_path
-    index_path = construct_index_path(retriever_config.s3_index_path)
-    bsize = retriever_config.batch_size
-    device =retriever_config.get_device().value
-    num_gpus = 1 if device == "cuda" else 0
-    storages_mode = settings.STORAGES_MODE
-    actor_name = f"modify_colbert_index_{retriever_config.name}"
-
-    logger.info(f"Index path: {index_path}")
-    logger.info(f"Bsize: {bsize}, Device: {device}, Num GPUs: {num_gpus}, Storages Mode: {storages_mode}")
-
-    colbert = ColBERTActor.options(num_gpus=num_gpus, name=actor_name).remote(index_path, device=device, storages_mode=storages_mode)
-
-    try:
-        save_index = False
-
-        # k items to remove
-        current_k_item_ids = KnowledgeItem.objects.filter(
-            knowledge_base=retriever_config.knowledge_base
-        ).values_list("pk", flat=True)
-
-        indexed_k_item_ids = get_indexed_k_items_ids(s3_index_path)
-
-        logger.info(f"Number of current k items: {len(current_k_item_ids)}")
-
-        # Current indexed k items - k items in the database = k items to remove
-        k_item_ids_to_remove = set(indexed_k_item_ids) - set(current_k_item_ids)
-
-        logger.info(f"Number of k items to remove: {len(k_item_ids_to_remove)}")
-
-        # modified k items need to be removed from the index also
-        modified_k_item_ids = get_modified_k_items_ids(retriever_config)
-
-        logger.info(f"Number of modified k items: {len(modified_k_item_ids)}")
-
-        # add the modified k items to the k items to remove
-        k_item_ids_to_remove = k_item_ids_to_remove.union(modified_k_item_ids)
-
-        logger.info(f"Number of k items to remove after adding modified k items: {len(k_item_ids_to_remove)}")
-
-        # ids to string
-        k_item_ids_to_remove = [str(id) for id in k_item_ids_to_remove]
-
-        if k_item_ids_to_remove:
-            logger.info("Removing from the index...")
-            delete_task_ref = colbert.delete_from_index.remote(k_item_ids_to_remove)
-            logger.info("Deleted from the index.")
-
-            save_index = True
-
-            # remove the embeddings with the given ids
-            Embedding.objects.filter(knowledge_item__pk__in=k_item_ids_to_remove).delete()
-
-        # get the k items that have no associated embeddings
-        k_items = KnowledgeItem.objects.filter(
-            knowledge_base=retriever_config.knowledge_base
-        ).exclude(embedding__retriever_config=retriever_config)
-
-        logger.info(f"Number of k items to add: {len(k_items)}")
-
-        contents_to_add = [item.content for item in k_items]
-        contents_pk_to_add = [str(item.pk) for item in k_items]
-
-        if k_items:
-            add_task_ref = colbert.add_to_index.remote(contents_to_add, contents_pk_to_add, bsize)
-
-            # create an empty embedding for each knowledge item for the given retriever config for tracking which items are indexed
-            embeddings = [
-                Embedding(
-                    knowledge_item=item,
-                    retriever_config=retriever_config,
-                )
-                for item in k_items
-            ]
-            Embedding.objects.bulk_create(embeddings)
-
-        # wait for the tasks to finish to catch any exceptions
-        ray.get([delete_task_ref, add_task_ref])
-
-        if save_index:
-
-            new_s3_index_path = retriever_config.generate_s3_index_path()
-            logger.info(f"New index path: {new_s3_index_path}")
-
-            # Now we save the index only once after all modifications
-            index_saved = ray.get(colbert.save_index.remote(
-                construct_index_path(new_s3_index_path)
-            ))
-            retriever_config.s3_index_path = new_s3_index_path
-            retriever_config.save()
-
-            # delete the old index files
-            task_name = f"delete_index_files_{retriever_config.name}"
-            print(f"Submitting the {task_name} task to the Ray cluster...")
-            delete_index_files.options(name=task_name).remote(s3_index_path)
-
-        if not index_saved:
-            raise Exception("Failed to save index.")
-
-    except Exception as e:
-        logger.error(f"Error modifying index: {e}")
-        # remove all embeddings for the given retriever config
-        Embedding.objects.filter(retriever_config=retriever_config).delete()
-        # indexing starting from scratch
-        creates_index(retriever_config=retriever_config)
-
-
-def creates_index(retriever_config):
-    """
-    Build the index for a knowledge base using the ColBERT retriever.
-    Parameters
-    ----------
-    retriever_config:
-        The RetrieverConfig object.
-    """
-    from django.conf import settings
-    from back.apps.language_model.ray_deployments.colbert_deployment import construct_index_path
-    from back.apps.language_model.models import Embedding, KnowledgeItem
-
-    k_items = KnowledgeItem.objects.filter(knowledge_base=retriever_config.knowledge_base)
-
-    s3_index_path = retriever_config.generate_s3_index_path()
-
-    colbert_name = retriever_config.model_name
-    bsize = retriever_config.batch_size
-    device = retriever_config.get_device().value
-    storages_mode = settings.STORAGES_MODE
-
-
-    # TODO: Because these lists can be huge, partition them and use ray.put to store each partition in the object store
-    # and then pass the object ids to the remote function
-    contents = [item.content for item in k_items]
-    contents_pk = [str(item.pk) for item in k_items]
-
-    logger.info(
-            f"Building index for knowledge base: {retriever_config.knowledge_base.name} with colbert model: {colbert_name}"
-        )
-
-    actor_name = f"create_colbert_index_{retriever_config.name}"
-
-    index_path = construct_index_path(s3_index_path)
-    colbert = ColBERTActor.options(name=actor_name).remote(index_path, device=device, colbert_name=colbert_name, storages_mode=storages_mode)
-    colbert.index.remote(contents, contents_pk, bsize)
-
-    # Delete all the contents from memory because they are not needed anymore and can be very large
-    del contents
-    del contents_pk
-    gc.collect()
-
-    index_saved = ray.get(colbert.save_index.remote())
-    colbert.exit.remote()
-
-
-    if index_saved:
-        # create an empty embedding for each knowledge item for the given retriever config for tracking which items are indexed
-        embeddings = [
-            Embedding(
-                knowledge_item=item,
-                retriever_config=retriever_config,
-            )
-            for item in k_items
-        ]
-        Embedding.objects.bulk_create(embeddings)
-
-        # save s3 index path
-        retriever_config.s3_index_path = s3_index_path
-        retriever_config.save()
-
-    else:
-        logger.error(f"Error building index for knowledge base: {retriever_config.knowledge_base.name}")
-
-
 def index_colbert(retriever_config):
     """
     Build the index for a knowledge base.
@@ -387,16 +205,7 @@ def index_colbert(retriever_config):
     retriever_config : 
         The RetrieverConfig object.
     """
-
-    from back.apps.language_model.models import Embedding
-
-    if Embedding.objects.filter(
-        retriever_config=retriever_config
-    ).exists():  # if there are embeddings for the given retriever config
-        modify_index(retriever_config)
-
-    else:
-        creates_index(retriever_config=retriever_config)
+    raise NotImplementedError("ColBERT has been deprecated. Please use the E5 retriever instead.")
 
 
 @ray_task(num_cpus=0.2, resources={"tasks": 1})
