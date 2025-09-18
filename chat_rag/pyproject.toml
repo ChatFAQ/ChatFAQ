@@ -36,7 +36,6 @@ bm25s = {version = "^0.1.7", optional = true}
 google-genai = "^1.38.0"
 pillow = "^11.1.0"
 together = "^1.5.13"
-mistral = "^20.1.0"
 
 [tool.poetry.extras]
 full = [
