@@ -141,7 +141,7 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
                     content=aggregated_contents,
                     usage=None,
                     stop_reason="end_turn"
-                )
+                ).model_dump()
             )
             # Start a new group for the new role.
             current_role = role
@@ -155,7 +155,7 @@ def format_msgs_chain_to_llm_context(msgs_chain) -> List[Message]:
                 content=aggregated_contents,
                 usage=None,
                 stop_reason="end_turn"
-            )
+            ).model_dump()
         )
 
     return aggregated_messages
@@ -283,9 +283,9 @@ async def query_llm(
         if messages: # In case the fsm sends messages
             if messages[0]["role"] == AgentType.system.value:
                 if prev_messages[0].role == AgentType.system.value:
-                    new_messages[0] = Message(**messages[0])  # replace the original system message with the new one from the fsm
+                    new_messages[0] = messages[0].copy()  # replace the original system message with the new one from the fsm
                 else:
-                    new_messages.insert(0, Message(**messages[0]))  # or add the fsm system message
+                    new_messages.insert(0, messages[0].copy())  # or add the fsm system message
 
                 # pop the system message
                 messages = messages[1:]

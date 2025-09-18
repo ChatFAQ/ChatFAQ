@@ -16,7 +16,6 @@ from back.apps.language_model.models.enums import (
 )
 from back.apps.language_model.ray_deployments import (
     delete_serve_app,
-    launch_colbert_deployment,
     launch_e5_deployment,
 )
 from back.apps.language_model.tasks import index_task
@@ -132,9 +131,10 @@ class RetrieverConfig(ChangesMixin):
                     self.num_replicas,
                 )
             elif self.get_retriever_type() == RetrieverTypeChoices.COLBERT:
-                launch_colbert_deployment.options(name=task_name).remote(
-                    self.get_deploy_name(), self.s3_index_path, self.num_replicas
-                )
+                raise NotImplementedError("ColBERT has been deprecated. Please use the E5 retriever instead.")
+                # launch_colbert_deployment.options(name=task_name).remote(
+                #     self.get_deploy_name(), self.s3_index_path, self.num_replicas
+                # )
         else:
             logger.info(f"Retriever {self.name} is not enabled, skipping deploy")
 

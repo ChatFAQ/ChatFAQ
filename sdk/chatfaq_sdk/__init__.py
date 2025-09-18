@@ -13,6 +13,7 @@ from typing import Callable, List, Optional, Union
 import httpx
 import sentry_sdk
 import websockets
+from websockets.protocol import State
 
 from chatfaq_sdk import settings
 from chatfaq_sdk.conditions import Condition
@@ -183,7 +184,7 @@ class ChatFAQSDK:
         ws_attrs = [attr for attr in dir(self) if attr.startswith("ws_")]
         while True:
             if any(
-                getattr(self, ws_attr) is None or not getattr(self, ws_attr).open
+                getattr(self, ws_attr) is None or getattr(self, ws_attr).state != State.OPEN
                 for ws_attr in ws_attrs
             ):
                 await asyncio.sleep(0.01)
@@ -245,7 +246,7 @@ class ChatFAQSDK:
         logger.info("Shutting Down...")
         wss = [getattr(self, attr) for attr in dir(self) if attr.startswith("ws_")]
         for ws in wss:
-            if ws is not None and ws.open:
+            if ws is not None and ws.state == State.OPEN:
                 await ws.close()
 
     async def rpc_request_callback(self, payload):

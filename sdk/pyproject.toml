@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chatfaq_sdk"
-version = "0.1.53"
+version = "0.1.57"
 description = "ChatFAQ SDK"
 authors = ["Hector Soria <hector.soria@with-madrid.com>"]
 readme = "README.md"
@@ -12,18 +12,18 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 asyncio = "^3.4.3"
-websockets = "^10.4"
+websockets = "^15.0.1"
 coloredlogs = "^15.0.1"
 python-dotenv = "^1.0.0"
 requests = "^2.31.0"
-certifi = "~2023.7.22"
-urllib3 = "^1.26.18"
-httpx = "^0.26.0"
+certifi = "^2025.8.3"
+urllib3 = "^2.5.0"
+httpx = "^0.28.1"
 pydantic = "^2.8.2"
 sentry-sdk = "^2.15.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
+black = "^25.1.0"
 isort = "^5.12.0"
 
 [build-system]
