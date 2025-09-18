@@ -2,7 +2,7 @@ import {defineEventHandler} from 'h3'
 import {createProxyMiddleware} from 'http-proxy-middleware';
 import * as path from "path"; // npm install http-proxy-middleware@beta
 
-const rayProxyMiddleware = createProxyMiddleware('/ray/', {
+const rayProxyMiddleware = createProxyMiddleware({
     target: 'http://back:8265',
     changeOrigin: true,
     ws: true,
