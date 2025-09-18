@@ -31,7 +31,7 @@
         "@vuelidate/core": "2.0.x",
         "@vuelidate/validators": "2.0.x",
         "@vueuse/core": "^13.9.0",
-        "chatfaq-widget": "^0.2.13",
+        "chatfaq-widget": "^0.2.14",
         "defu": "^6.1.4",
         "http-proxy-middleware": "^3.0.5",
         "jsdom": "27.0.x",
