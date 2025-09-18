@@ -21,12 +21,11 @@
         "@averjs/nuxt-compression": "^1.2.2",
         "@babel/traverse": ">=7.28.4",
         "@element-plus/icons-vue": "^2.3.2",
-        "@model-w/axios": "1.x",
-        "@model-w/preset-nuxt3": "2025.7.x",
-        "@model-w/proxy": "2.x",
-        "@model-w/sentry": "1.x",
-        "@nuxtjs/proxy": "^2.1.0",
-        "@nuxtjs/sentry": "^8.0.8",
+        "@model-w/axios": "*",
+        "@model-w/preset-nuxt3": "*",
+        "@model-w/proxy": "*",
+        "@model-w/sentry": "*",
+        "@nuxtjs/sentry": "*",
         "@pinia/nuxt": "^0.11.2",
         "@vuelidate/core": "2.0.x",
         "@vuelidate/validators": "2.0.x",
@@ -51,6 +50,8 @@
         "wasync": "^0.1.1"
     },
     "peerDependencies": {
+        "axios": "*",
+        "form-data": "^4.0.4",
         "sha.js": ">=2.4.12"
     }
 }
