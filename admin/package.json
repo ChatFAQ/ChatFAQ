@@ -14,7 +14,7 @@
         "@element-plus/nuxt": "^1.1.4",
         "@intlify/unplugin-vue-i18n": "^11.0.1",
         "element-plus": "^2.11.2",
-        "nuxt": "3.17.x",
+        "nuxt": "3.19.x",
         "vue-i18n": "^11.1.12"
     },
     "dependencies": {
@@ -52,6 +52,10 @@
     "peerDependencies": {
         "axios": "*",
         "form-data": "^4.0.4",
-        "sha.js": ">=2.4.12"
+        "sha.js": ">=2.4.12",
+        "pbkdf2": ">=3.1.3",
+        "cipher-base": ">=1.0.5",
+        "elliptic": ">=6.6.1",
+        "brace-expansion": ">=1.1.12"
     }
 }
