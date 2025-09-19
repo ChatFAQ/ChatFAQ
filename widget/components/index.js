@@ -1,10 +1,15 @@
 import Widget from "./Widget.vue";
 import { createApp, h } from "vue";
 import {_createI18n, _createPinia} from "../plugins";
+import { createHead } from '@unhead/vue/client'
 
 let expose
 function _buildApp(props) {
-    return createApp({ render: () => expose = h(Widget, props) }).use(_createPinia()).use(_createI18n())
+    const app = createApp({ render: () => expose = h(Widget, props) })
+        .use(_createPinia())
+        .use(_createI18n());
+    app.use(createHead());
+    return app;
 }
 
 class ChatfaqWidget {
