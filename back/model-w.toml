@@ -1,6 +1,6 @@
 [project]
 name = "back"
-server = "granian"
+server = "daphne"
 asgi = "back.config.asgi:application"
 
 [apt.packages]
