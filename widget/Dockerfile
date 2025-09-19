@@ -1,6 +1,6 @@
-FROM modelw/base:2023.03
+FROM modelw/base:2025.07
 
-COPY --chown=user package.json package-lock.json ./
+COPY --chown=user .npmrc package.json package-lock.json ./
 
 RUN modelw-docker install
 
