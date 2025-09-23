@@ -65,7 +65,7 @@ const props = defineProps({
     conversationId: String,
     widgetConfigId: String,
     hideSources: Boolean,
-    hideToolMessages: Boolean,
+    showToolMessages: Boolean,
     sourcesFirst: Boolean,
     onlyChat: Boolean,
     fitToParent: Boolean,
@@ -75,6 +75,7 @@ const props = defineProps({
     initialConversationMetadata: String,
     stateOverride: String,
     customIFramedMsgs: String,
+    splitScreenIframe: String,
     stickInputPrompt: Boolean,
     speechRecognition: Boolean,
     speechRecognitionLang: String,
@@ -82,6 +83,7 @@ const props = defineProps({
     speechRecognitionAlwaysOn: Boolean,
     speechRecognitionBeep: Boolean,
     speechRecognitionPhraseActivation: String,
+    speechRecognitionInterimResults: Boolean,
     allowAttachments: Boolean,
     authToken: String,
     disableDayNightMode: Boolean,
@@ -92,12 +94,14 @@ const props = defineProps({
     speechSynthesisRate: Number,
     speechSynthesisVoices: String,
     speechSynthesisEnabledByDefault: Boolean,
+    notRenderableStackTypes: String
 });
 
 const jsonProps = [
     "initialConversationMetadata",
     "stateOverride",
-    "customIFramedMsgs"
+    "customIFramedMsgs",
+    "notRenderableStackTypes",
 ]
 
 let data = props
@@ -106,6 +110,10 @@ const _customCss = ref(props.customCss)
 watch( () => props.customCss, async (newVal, _)=> {
     _customCss.value = newVal
     await init()
+}, {immediate: true, deep: true})
+
+watch( () => props.splitScreenIframe, (newVal, _)=> {
+    store.splitScreenIframe = newVal
 }, {immediate: true, deep: true})
 async function init() {
     if(_customCss.value) {
@@ -138,7 +146,10 @@ async function init() {
             if (jsonProps.indexOf(key) > -1) {
                 if (typeof data[key] == "string" && data[key].length > 0)
                     data[key] = JSON.parse(data[key] || "{}")
-                merged_data[key] = {...data[key], ...server_data[key]}
+                if (key in server_data)
+                    merged_data[key] = {...data[key], ...server_data[key]}
+                else
+                    merged_data[key] = data[key]
             }
             else
                 merged_data[key] = data[key] || server_data[key]
@@ -152,6 +163,13 @@ async function init() {
         const style = document.createElement('style');
         style.innerHTML = data.css;
         document.head.appendChild(style);
+    } else {
+        for (const key in data) {
+            if (jsonProps.indexOf(key) > -1) {
+                if (typeof data[key] == "string" && data[key].length > 0)
+                    data[key] = JSON.parse(data[key] || "{}")
+            }
+        }
     }
     initStore()
 }
@@ -167,9 +185,10 @@ function initStore() {
     store.stickInputPrompt = data.stickInputPrompt
     store.speechRecognition = data.speechRecognition
     store.speechRecognitionLang = data.speechRecognitionLang || store.speechRecognitionLang
-    store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn
-    store.speechRecognitionAutoSend = data.speechRecognitionAutoSend
-    store.speechRecognitionPhraseActivation = data.speechRecognitionPhraseActivation
+    store.speechRecognitionAlwaysOn = data.speechRecognitionAlwaysOn && !data.speechRecognitionPhraseActivation
+    store.speechRecognitionAutoSend = data.speechRecognitionAutoSend || data.speechRecognitionAlwaysOn
+    store.speechRecognitionPhraseActivation = !data.speechRecognitionAlwaysOn ? data.speechRecognitionPhraseActivation : undefined
+    store.speechRecognitionInterimResults = data.speechRecognitionInterimResults
     store.speechRecognitionBeep = data.speechRecognitionBeep
     store.allowAttachments = data.allowAttachments
     store.authToken = data.authToken
@@ -188,6 +207,7 @@ function initStore() {
     store.customIFramedMsgs = data.customIFramedMsgs
     store.initialConversationMetadata = data.initialConversationMetadata
     store.stateOverride = data.stateOverride
+    store.notRenderableStackTypes = data.notRenderableStackTypes
 
     store.fsmDef = data.fsmDef;
     store.title = data.title;
@@ -196,7 +216,7 @@ function initStore() {
     store.fullScreen = data.fullScreen
     store.sourcesFirst = data.sourcesFirst
     store.hideSources = data.hideSources
-    store.hideToolMessages = data.hideToolMessages
+    store.showToolMessages = data.showToolMessages
 
     if (store.fullScreen) {
         store.opened = true

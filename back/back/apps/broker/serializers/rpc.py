@@ -1,5 +1,7 @@
 import mimetypes
 import time
+from datetime import datetime
+import uuid
 
 from rest_framework import serializers
 
@@ -9,6 +11,7 @@ from back.apps.broker.consumers.message_types import (
     RPCNodeType,
 )
 from back.apps.broker.models.message import AgentType
+from back.apps.broker.serializers import RetrieverRequestSerializer
 from back.config.storage_backends import (
     PrivateMediaLocalStorage,
     select_private_storage,
@@ -69,17 +72,32 @@ class RPCResultSerializer(serializers.Serializer):
         for ndx, element in enumerate(attrs.get("stack", [])):
             if element["type"] == "file_upload":
                 storage = select_private_storage()
+                max_files = element["payload"].get("max_files", 1)
 
                 for file_extension in element["payload"]["files"].keys():
 
                     # Generate presigned URL if using S3
                     if not isinstance(storage, PrivateMediaLocalStorage):
-                        s3_path = f"uploads/{attrs['ctx']['conversation_id']}/{int(time.time())}"
-
-                        # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
-                        content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
-                        attrs['stack'][ndx]['payload']["files"][file_extension]['presigned_url'] = storage.generate_presigned_url_put(s3_path, content_type=content_type)
-                        attrs['stack'][ndx]['payload']["files"][file_extension]['s3_path'] = s3_path
+                        date_partition = datetime.utcnow().strftime('%Y/%m/%d')
+                        
+                        # Generate multiple presigned URLs based on max_files
+                        presigned_urls = []
+                        s3_paths = []
+                        
+                        for file_index in range(max_files):
+                            # Create unique path for each potential file upload
+                            unique_id = uuid.uuid4()
+                            s3_path = f"uploads/{date_partition}/{attrs['ctx']['conversation_id']}/{unique_id}"
+                            
+                            # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
+                            content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
+                            presigned_url = storage.generate_presigned_url_put(s3_path, content_type=content_type)
+                            
+                            presigned_urls.append(presigned_url)
+                            s3_paths.append(s3_path)
+                        
+                        attrs['stack'][ndx]['payload']["files"][file_extension]['presigned_urls'] = presigned_urls
+                        attrs['stack'][ndx]['payload']["files"][file_extension]['s3_paths'] = s3_paths
                         attrs['stack'][ndx]['payload']["files"][file_extension]['content_type'] = content_type
 
         return super().validate(attrs)
@@ -89,6 +107,16 @@ class CacheConfigSerializer(serializers.Serializer):
     """Serializer for cache configuration"""
     ttl = serializers.IntegerField(required=False, allow_null=True)
     name = serializers.CharField(required=False, allow_null=True)
+
+
+class ThinkingField(serializers.Field):
+    """Custom field that accepts both a string or a dictionary"""
+    def to_internal_value(self, data):
+        # Return as is - can be either string or dict
+        return data
+
+    def to_representation(self, value):
+        return value
 
 
 class RPCLLMRequestSerializer(serializers.Serializer):
@@ -112,15 +140,18 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         The seed to use in the LLM
     stream: bool
         Whether the LLM response should be streamed or not
+    thinking: str or Dict
+        The thinking to use in the LLM
     """
 
     llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
     messages = serializers.ListField(child=serializers.DictField(), allow_empty=True, required=False, allow_null=True)
-    temperature = serializers.FloatField(default=0.7, required=False)
+    temperature = serializers.FloatField(default=0.7, required=False, allow_null=True)
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)
+    thinking = ThinkingField(default=None, required=False, allow_null=True)
     tools = serializers.ListField(
         child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
     )
@@ -155,12 +186,8 @@ class RPCPromptRequestSerializer(serializers.Serializer):
     bot_channel_name = serializers.CharField()
 
 
-class RPCRetrieverRequestSerializer(serializers.Serializer):
-
+class RPCRetrieverRequestSerializer(RetrieverRequestSerializer):
     retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    bot_channel_name = serializers.CharField()
-    query = serializers.CharField(required=True, allow_blank=False, allow_null=False)
-    top_k = serializers.IntegerField(default=3)
 
 
 class RegisterParsersSerializer(serializers.Serializer):

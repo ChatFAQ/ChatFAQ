@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import Group, PermissionsMixin
-from django.contrib.postgres.fields import CIEmailField
 from django.core.management import CommandError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -78,9 +77,10 @@ class User(UuidPkModel, AbstractBaseUser, PermissionsMixin):
         _("last name"),
         max_length=150,
     )
-    email = CIEmailField(
+    email = models.EmailField(
         _("email address"),
         unique=True,
+        db_collation="und-x-icu",
     )
     is_staff = models.BooleanField(
         _("staff status"),

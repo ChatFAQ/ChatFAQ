@@ -62,7 +62,7 @@
                             :references="props.message.stack[0].payload.references"
                         ></ReferencesMsgPiece>
                     </template>
-                    <template v-else-if="getFirstLayerType() === 'tool_use' && !store.hideToolMessages">
+                    <template v-else-if="getFirstLayerType() === 'tool_use' && store.showToolMessages">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece
                                 :data="formatToolUseLayer(layer)"
@@ -71,7 +71,7 @@
                             />
                         </div>
                     </template>
-                    <template v-else-if="getFirstLayerType() === 'tool_result' && !store.hideToolMessages">
+                    <template v-else-if="getFirstLayerType() === 'tool_result' && store.showToolMessages">
                         <div class="layer" v-for="layer in props.message.stack">
                             <TextMsgPiece
                                 :data="formatToolResultLayer(layer)"
@@ -183,7 +183,7 @@ function addingQueryParamStack(url) {
 }
 
 function shouldHideMessage() {
-    if (!store.hideToolMessages) return false;
+    if (store.showToolMessages) return false;
     const messageType = getFirstLayerType();
     return messageType === 'tool_use' || messageType === 'tool_result';
 }

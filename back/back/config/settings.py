@@ -125,7 +125,7 @@ class CustomPreset(ModelWDjango):
         return super().pre_logging(env)
 
 
-model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=False)
+model_w_django = CustomPreset(enable_storages=not LOCAL_STORAGE, enable_celery=False, enable_wagtail=False)
 
 with EnvManager(model_w_django) as env:
     # ---
@@ -150,11 +150,13 @@ with EnvManager(model_w_django) as env:
         "django_filters",
         "drf_spectacular",
         "drf_spectacular_sidecar",
+        "procrastinate.contrib.django",
         "back.apps.people",
         "back.apps.broker",
         "back.apps.fsm",
         "back.apps.language_model",
         "back.apps.widget",
+        "back.apps.health",
     ]
     # if not env.get("REDIS_URL"):
     #     INSTALLED_APPS += [

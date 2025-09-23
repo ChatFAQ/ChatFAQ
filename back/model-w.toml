@@ -1,5 +1,7 @@
 [project]
 name = "back"
+server = "daphne"
+asgi = "back.config.asgi:application"
 
 [apt.packages]
 git = "*"

@@ -7,12 +7,16 @@ from django.db.models import Avg, Count, Q
 from django.db.models.functions import Trunc
 from django.http import HttpResponse, JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, viewsets, exceptions
+from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import CreateAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
+
+from back.config.storage_backends import select_private_storage
 
 from ...language_model.stats import calculate_general_stats, calculate_response_stats
 from ..models import ConsumerRoundRobinQueue
@@ -26,10 +30,6 @@ from ..serializers import (
     UserFeedbackSerializer,
 )
 from ..serializers.messages import MessageSerializer
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.files.storage import default_storage
 
 
 class ConversationFilterSet(django_filters.FilterSet):
@@ -56,7 +56,11 @@ class ConversationFilterSet(django_filters.FilterSet):
         return queryset.filter(message__adminreview__isnull=val).distinct()
 
     def filter_user_feedback_exists(self, queryset, name, value):
-        return queryset.filter(message__userfeedback__isnull=False).distinct()
+        return queryset.filter(
+            message__in=Message.objects.filter(
+                Q(source_userfeedback_set__isnull=False) | Q(target_userfeedback_set__isnull=False)
+            )
+        ).distinct()
 
 
 class ConversationAPIViewSet(
@@ -305,13 +309,111 @@ class Stats(APIView):
 
 
 class FileUploadView(APIView):
+    """
+    API View for secure file upload and retrieval using presigned URLs.
+    
+    POST: Upload a file to private storage and return metadata with presigned URL
+    GET: Retrieve a presigned URL for an existing file
+    """
+    permission_classes = [AllowAny]
+    
     def post(self, request, format=None):
+        """Upload a file to private storage and return presigned URL for access."""
         file = request.FILES.get('file')
         if not file:
-            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
-        expire = request.data.get('expire', 3600)
-        # Save the file
-        file_name = default_storage.save(file.name, file)
-        file_url = default_storage.url(file_name, expire=expire)
-
-        return Response({'url': file_url}, status=status.HTTP_201_CREATED)
+            return Response(
+                {'error': 'No file provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Get expiration time from request (default 1 hour)
+            expire_seconds = int(request.data.get('expire', 3600))
+            if expire_seconds > 86400:  # Max 24 hours
+                expire_seconds = 86400
+            
+            # Use private storage for security
+            private_storage = select_private_storage()
+            
+            # Save the file with a unique name
+            file_name = private_storage.save(file.name, file)
+            
+            # Generate presigned URL for GET access
+            if hasattr(private_storage, 'generate_presigned_url_get'):
+                # S3 storage
+                presigned_url = private_storage.generate_presigned_url_get(
+                    file_name, 
+                    expires_in=expire_seconds
+                )
+            else:
+                # Local storage fallback
+                presigned_url = private_storage.url(file_name)
+            
+            return Response({
+                'file_name': file_name,
+                'content_type': file.content_type,
+                'presigned_url': presigned_url,
+                'expires_in': expire_seconds
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to upload file: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def get(self, request, format=None):
+        """Generate a new presigned URL for an existing file."""
+        file_name = request.query_params.get('file_name')
+        if not file_name:
+            return Response(
+                {'error': 'file_name parameter is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Get expiration time from request (default 1 hour)
+            expire_seconds = int(request.query_params.get('expire', 3600))
+            if expire_seconds > 86400:  # Max 24 hours
+                expire_seconds = 86400
+                
+            private_storage = select_private_storage()
+            
+            # Check if file exists
+            if not private_storage.exists(file_name):
+                return Response(
+                    {'error': 'File not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Generate presigned URL for GET access
+            if hasattr(private_storage, 'generate_presigned_url_get'):
+                # S3 storage
+                presigned_url = private_storage.generate_presigned_url_get(
+                    file_name, 
+                    expires_in=expire_seconds
+                )
+            else:
+                # Local storage fallback
+                presigned_url = private_storage.url(file_name)
+            
+            # Get file metadata
+            file_size = private_storage.size(file_name)
+            
+            return Response({
+                'file_name': file_name,
+                'size': file_size,
+                'presigned_url': presigned_url,
+                'expires_in': expire_seconds
+            }, status=status.HTTP_200_OK)
+            
+        except ValueError:
+            return Response(
+                {'error': 'Invalid expire parameter. Must be a number.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to generate presigned URL: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

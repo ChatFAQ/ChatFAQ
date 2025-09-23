@@ -1,7 +1,34 @@
 <template>
     <div class="file-download-wrapper">
-        <span>{{ props.data.content }}</span>
-        <div class="file-download" :class="{ 'dark-mode': store.darkMode }">
+        <span v-if="props.data.content">{{ props.data.content }}</span>
+        
+        <!-- Handle multiple files (new format) -->
+        <div v-if="props.data.files" class="files-container">
+            <div 
+                v-for="(file, index) in props.data.files" 
+                :key="index"
+                class="file-download" 
+                :class="{ 'dark-mode': store.darkMode }"
+            >
+                <div class="file-icon-wrapper" :class="{ 'dark-mode': store.darkMode }">
+                    <File class="file-icon" :class="{ 'dark-mode': store.darkMode }"/>
+                </div>
+                <div class="file-info">
+                    <span class="file-name">{{ file.name }}</span>
+                    <span v-if="file.name" class="file-type">{{ getFileTypeFromName(file.name) }}</span>
+                </div>
+                <div class="file-download-icon" v-if="file.url" @click="downloadFile(file.url)">
+                    <Download class="download-icon" :class="{ 'dark-mode': store.darkMode }"/>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Handle single file (legacy format) -->
+        <div 
+            v-else-if="props.data.name" 
+            class="file-download" 
+            :class="{ 'dark-mode': store.darkMode }"
+        >
             <div class="file-icon-wrapper" :class="{ 'dark-mode': store.darkMode }">
                 <File class="file-icon" :class="{ 'dark-mode': store.darkMode }"/>
             </div>
@@ -9,7 +36,7 @@
                 <span class="file-name">{{ props.data.name }}</span>
                 <span v-if="props.data.name" class="file-type">{{ getFileTypeFromName(props.data.name) }}</span>
             </div>
-            <div class="file-download-icon" v-if="props.data.url" @click="downloadFile">
+            <div class="file-download-icon" v-if="props.data.url" @click="downloadFile(props.data.url)">
                 <Download class="download-icon" :class="{ 'dark-mode': store.darkMode }"/>
             </div>
         </div>
@@ -30,8 +57,8 @@ const props = defineProps({
     }
 });
 
-function downloadFile() {
-    window.open(props.data.url, '_blank');
+function downloadFile(url) {
+    window.open(url, '_blank');
 }
 
 function getFileTypeFromName(url) {
@@ -44,6 +71,12 @@ function getFileTypeFromName(url) {
 
 <style scoped lang="scss">
 .file-download-wrapper {
+    .files-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
     .file-download {
         background-color: #FFFFFF;
         display: flex;

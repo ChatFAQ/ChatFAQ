@@ -32,6 +32,7 @@ apply_fixtures:
 celery_worker:
 	$(POETRY_RUN) celery -A back.config worker -l INFO -P solo
 
+#
 # create_fsm_fixtures:
 # 	./manage.py dumpdata fsm.fsmdefinition --indent 4 > back/apps/fsm/fixtures/initial.json
 #

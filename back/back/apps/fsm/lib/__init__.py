@@ -125,7 +125,7 @@ class FSM:
         is reached it makes sure everything is saved and cached into the DB to keep the system stateful
         """
         transitions = self.get_current_state_transitions()
-        
+
         if state_override := self.get_state_by_name(self.ctx.conversation.fsm_state_override):
             logger.debug("Overriding FSM state")
             logger.debug(f"FSM from ---> {self.current_state}")
@@ -147,6 +147,8 @@ class FSM:
                 self.current_state = self.get_state_by_name(best_transition.dest)
                 logger.debug(f"FSM to -----> {self.current_state}")
                 await self.run_current_state_events(transition_data)
+
+        await self.save_cache()
 
     async def run_current_state_events(self, transition_data=None):
         """

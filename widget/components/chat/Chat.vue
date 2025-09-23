@@ -1,112 +1,99 @@
 <template>
-    <div class="chat-wrapper" :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt }" @click="store.menuOpened = false">
-        <div class="conversation-content" ref="conversationContent" :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
-            <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}" v-for="(message, index) in store.messages">
-                <ChatMsgManager
-                    v-if="isRenderableStackType(message)"
-                    :message="message"
-                    :key="message.stack_id"
-                    :is-last-of-type="isLastOfType(index)"
-                    :is-first="index === 0"
-                    :is-last="index === store.messages.length - 1"
-                ></ChatMsgManager>
+    <div class="chat-wrapper"
+         :class="{ 'dark-mode': store.darkMode, 'fit-to-parent': store.fitToParent, 'stick-input-prompt': store.stickInputPrompt, 'split-screen': store.splitScreenIframe}"
+         @click="store.menuOpened = false">
+        <div class="right-content" :style="rightContentStyle">
+            <div class="conversation-content" ref="conversationContent"
+                 :class="{'dark-mode': store.darkMode, 'fit-to-parent-conversation-content': store.fitToParent}">
+                <div class="stacks" :class="{'merge-to-prev': getFirstLayerMergeToPrev(message)}"
+                     v-for="(message, index) in store.messages">
+                    <ChatMsgManager
+                        v-if="isRenderableStackType(message)"
+                        :message="message"
+                        :key="message.stack_id"
+                        :is-last-of-type="isLastOfType(index)"
+                        :is-first="index === 0"
+                        :is-last="index === store.messages.length - 1"
+                    ></ChatMsgManager>
+                </div>
+                <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
             </div>
-            <LoaderMsg v-if="store.waitingForResponse"></LoaderMsg>
-        </div>
-        <div class="alert-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">
-            {{ $t("feedbacksent") }}
-        </div>
-        <div class="alert-message"
-             :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
-            {{ $t("connectingtoserver") }}
-        </div>
-        <div class="chat-prompt-wrapper" :class="{ 'dark-mode': store.darkMode, 'stick-input-prompt': store.stickInputPrompt, 'fit-to-parent-prompt': store.fitToParent }">
-            <div class="chat-prompt-outer">
-                <Attach v-if="store.allowAttachments" class="attach-buttom"/>
-                <div
-                    :placeholder="$t('writeaquestionhere')"
-                    class="chat-prompt"
-                    :class="{
-                        'dark-mode': store.darkMode,
-                        'maximized': store.maximized,
-                        'disabled': conversationClosed
-                    }"
-                    ref="chatInput"
-                    @keydown="(ev) => manageHotKeys(ev, sendMessage)"
-                    :contenteditable="!conversationClosed"
-                    @input="($event)=>thereIsContent = $event.target.innerHTML.trim().length !== 0"
-                />
+            <div class="alert-message" :class="{ 'fade-out': feedbackSentDisabled, 'dark-mode': store.darkMode }">
+                {{ $t("feedbacksent") }}
             </div>
-            <div class="prompt-right-button"
-                 :class="{
-                     'dark-mode': store.darkMode,
-                 }"
-                 @click="() => {
-                     if (store.activeActivationPhrase) {
-                         store.speechRecognitionPhraseActivated = true
-                     } else if (!conversationClosed && availableMicro) {
-                         speechToText()
-                     } else if (!conversationClosed && availableSend) {
-                         sendMessage()
-                     }
-                 }">
-                <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation"></div>
-                <div v-if="store.speechRecognitionTranscribing" class="micro-anim-elm has-scale-animation has-delay-short"></div>
-                <Microphone v-if="availableMicro" class="chat-prompt-button micro" :class="{'dark-mode': store.darkMode, 'active': !store.speechRecognitionTranscribing}"/>
-                <Send v-else-if="availableSend" class="chat-prompt-button send" :class="{'dark-mode': store.darkMode, 'active': activeSend}"/>
+            <div class="alert-message"
+                 :class="{ 'fade-out': !store.disconnected, 'dark-mode': store.darkMode, 'pulsating': store.disconnected }">
+                {{ $t("connectingtoserver") }}
             </div>
+            <ChatPrompt @send="(msg) => sendMessage(msg)"/>
+        </div>
+
+        <div v-if="store.splitScreenIframe"
+             class="resizable-divider"
+             @mousedown="startResize"
+             :class="{'dark-mode': store.darkMode}">
+        </div>
+
+        <div v-if="store.splitScreenIframe" class="split-screen-iframe-container" :style="iframeContainerStyle">
+            <iframe
+                class="split-screen-iframe"
+                :src="store.splitScreenIframe"
+                allowfullscreen
+            ></iframe>
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, watch, nextTick, onMounted, computed} from "vue";
+import {ref, watch, nextTick, onMounted, computed, onUnmounted} from "vue";
 import {useGlobalStore} from "~/store";
 import LoaderMsg from "~/components/chat/LoaderMsg.vue";
 import ChatMsgManager from "~/components/chat/msgs/ChatMsgManager.vue";
-import Microphone from "~/components/icons/Microphone.vue";
-import Send from "~/components/icons/Send.vue";
-import Attach from "~/components/icons/Attach.vue";
-import beepAudio from '~/assets/audio/beep.mp3';
-import beepOutAudio from '~/assets/audio/beepOut.mp3';
+import ChatPrompt from "~/components/chat/ChatPrompt.vue";
+import {createTextMessage, createMessage} from "~/utils";
 
 const store = useGlobalStore();
 
 const chatInput = ref(null);
 const conversationContent = ref(null)
 const feedbackSentDisabled = ref(true)
-const thereIsContent = ref(false)
-const notRenderableStackTypes = ["gtm_tag", "close_conversation",undefined]
-const conversationClosed = ref(false)
-
+let notRenderableStackTypes = ["gtm_tag", "close_conversation", undefined]
+notRenderableStackTypes = notRenderableStackTypes.concat(store.notRenderableStackTypes)
 let ws = undefined
-let historyIndexHumanMsg = -1
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const speechRecognition = ref(new SpeechRecognition())
-const audioBeep = new Audio(beepAudio);
-const audioBeepOut = new Audio(beepOutAudio);
+// --- Resizing functionality ---
+const rightContentWidth = ref( '100%' );
+const iframeContainerWidth = ref('0');
+const isResizing = ref(false);
+const startX = ref(0);
+const startRightWidth = ref(0);
+// Computed styles
+const rightContentStyle = computed(() => ({
+    width: rightContentWidth.value
+}));
 
+const iframeContainerStyle = computed(() => ({
+    width: iframeContainerWidth.value,
+    pointerEvents: isResizing.value ? 'none' : 'auto'
+}));
+
+watch(() => store.splitScreenIframe, () => {
+    if (store.splitScreenIframe) {
+        rightContentWidth.value = '50%';
+        iframeContainerWidth.value = '50%';
+    } else {
+        rightContentWidth.value = '100%';
+        iframeContainerWidth.value = '0';
+    }
+})
 watch(() => store.scrollToBottom, scrollConversationDown)
 watch(() => store.selectedPlConversationId, createConnection)
 watch(() => store.feedbackSent, animateFeedbackSent)
 watch(() => store.resendMsgId, resendMsg)
 watch(() => store.messagesToBeSentSignal, sendMessagesToBeSent)
 watch(() => store.selectedPlConversationId, () => {
-    conversationClosed.value = false
+    store.conversationClosed = false
 })
-watch(() => store.speechRecognitionPhraseActivated, (val) => {
-    if (store.speechRecognitionBeep && val) {
-        audioBeep.play();
-    }
-})
-
-watch(() => store._speechRecognitionTranscribing, (val) => {
-    if (store.speechRecognitionBeep && store.activeActivationPhrase && !val) {
-        audioBeepOut.play();
-    }
-})
-
 
 onMounted(async () => {
     await initializeConversation()
@@ -115,9 +102,11 @@ onMounted(async () => {
 function isLastOfType(index) {
     return index === store.messages.length - 1 || store.messages[index + 1].sender.type !== store.messages[index].sender.type
 }
+
 function getFirstLayerMergeToPrev(message) {
     return message?.stack[0]?.payload.merge_to_prev;
 }
+
 function scrollConversationDown() {
     nextTick(() => {
         conversationContent.value.scroll({top: conversationContent.value.scrollHeight, behavior: "smooth"})
@@ -134,13 +123,13 @@ function animateFeedbackSent() {
         feedbackSentDisabled.value = true
     }, 1500)
 }
+
 function isRenderableStackType(message) {
     return !notRenderableStackTypes.includes(message.stack[0]?.type)
 }
 
-
 function createConnection() {
-    if(store.previewMode)
+    if (store.previewMode)
         return
 
     if (ws)
@@ -187,11 +176,11 @@ function createConnection() {
         if (isFullyScrolled())  // Scroll down if user is at the bottom
             store.scrollToBottom += 1;
         if (msg.stack[0]?.type === 'close_conversation')
-            conversationClosed.value = true
+            store.conversationClosed = true
 
         sendToGTM(msg)
         store.addMessage(msg);
-        if(store.messages.length === 1)
+        if (store.messages.length === 1)
             await store.gatherConversations()
     };
     ws.onopen = async function () {
@@ -202,21 +191,7 @@ function createConnection() {
     ws.onclose = function (e) {
         if (e.code === 4000 || e.code === 3000) {  // SDK not existent or RPC worker not connected || Authentication error
             let _msg = e.reason
-            store.addMessage({
-                "sender": {
-                    "type": "bot",
-                    "platform": "WS",
-                },
-                "stack": [{
-                    "type": "message",
-                    "payload": {
-                        "content": _msg
-                    },
-                }],
-                "stack_id": Math.random().toString(36).substring(7),
-                "stack_group_id": Math.random().toString(36).substring(7),
-                "last": true,
-            });
+            store.addMessage(createTextMessage("bot", _msg));
             return;
         }
         if (plConversationId !== store.selectedPlConversationId)
@@ -230,7 +205,7 @@ function createConnection() {
 
 
 async function initializeConversation() {
-    if(store.previewMode)
+    if (store.previewMode)
         return
 
     if (store.initialSelectedPlConversationId) {
@@ -239,59 +214,13 @@ async function initializeConversation() {
             return await store.openConversation(store.initialSelectedPlConversationId);
         }
     }
-    conversationClosed.value = false
+    store.conversationClosed = false
     store.createNewConversation(store.initialSelectedPlConversationId);
-
-    if (_speechRecognitionAlwaysOn.value) {
-        speechToText();
-    }
 }
 
-function manageHotKeys(ev, cb) {
-    const _s = window.getSelection()
-    const _r = window.getSelection().getRangeAt(0)
-    const atTheBeginning = _r.endOffset === 0 && !_r.previousSibling;
-    const atTheEnd = _r.endOffset === _s.focusNode.length && !_r.endContainer.nextSibling;
-
-    if (ev.key === 'Enter' && !ev.shiftKey) {
-        ev.preventDefault()
-        cb();
-    } else if (ev.key === 'ArrowUp' && atTheBeginning) {
-        // Search for the previous human message from the index historyIndexHumanMsg
-        if (historyIndexHumanMsg === -1)
-            historyIndexHumanMsg = store.messages.length
-        ev.preventDefault()
-        if (store.messages) {
-            for (let i = historyIndexHumanMsg - 1; i >= 0; i--) {
-                if (store.messages[i].sender.type === 'human') {
-                    chatInput.value.innerText = store.messages[i].stack[0].payload.content
-                    historyIndexHumanMsg = i
-                    break
-                }
-            }
-        }
-    } else if (ev.key === 'ArrowDown' && atTheEnd) { // Search for the next human message from the index historyIndexHumanMsg
-        ev.preventDefault()
-        if (historyIndexHumanMsg === -1)
-            historyIndexHumanMsg = store.messages.length
-        if (store.messages) {
-            for (let i = historyIndexHumanMsg + 1; i < store.messages.length; i++) {
-                if (store.messages[i].sender.type === 'human') {
-                    chatInput.value.innerText = store.messages[i].stack[0].payload.content
-                    historyIndexHumanMsg = i
-                    break
-                }
-            }
-        }
-    }
-}
-
-function sendMessage(_message) {
-    if (!canSend())
+function sendMessage(message) {
+    if (!store.canSendMsg)
         return;
-    historyIndexHumanMsg = -1
-
-    const message = _message ? _message : createMessageFromInputPrompt()
 
     if (!message)
         return
@@ -304,7 +233,7 @@ function sendMessage(_message) {
 }
 
 function sendMessagesToBeSent() {
-    if(!canSend()) {
+    if (!store.canSendMsg) {
         setTimeout(() => sendMessagesToBeSent(), 1000)
         return
     }
@@ -312,39 +241,6 @@ function sendMessagesToBeSent() {
     while (store.messagesToBeSent.length) {
         sendMessage(store.messagesToBeSent.pop());
     }
-
-}
-
-function canSend() {
-    return !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning && !conversationClosed.value
-}
-
-function createMessageFromInputPrompt() {
-    if (!thereIsContent.value)
-        return
-
-    const user_message = chatInput.value.innerText.trim()
-    const message = {
-        "sender": {
-            "type": "human",
-            "platform": "WS",
-        },
-        "stack": [{
-            "type": "message",
-            "payload": {
-                "content": user_message
-            },
-        }],
-        "stack_id": "0",
-        "stack_group_id": "0",
-        "last": true,
-    };
-    if (store.userId !== undefined)
-        message["sender"]["id"] = store.userId
-
-    chatInput.value.innerText = "";
-    thereIsContent.value = false
-    return message
 }
 
 function resendMsg(msgId) {
@@ -365,129 +261,53 @@ function sendToGTM(msg) {
     }
 }
 
-function speechToText() {
-    const sr = speechRecognition.value;
-    if (store.speechRecognitionRunning || !store.speechRecognition) {
-        sr.stop()
-        return
-    }
+document.addEventListener("request-text-message-send", (ev) => sendMessage(createTextMessage("human", ev.detail)))
+document.addEventListener("request-message-send", (ev) => sendMessage(createMessage("human", ev.detail)))
 
-    sr.lang = store.speechRecognitionLang;
-    sr.continuous = _speechRecognitionAlwaysOn.value;
-    sr.interimResults = true;
-    sr.maxAlternatives = 1;
+// --- Resizing functionality ---
+// Resize methods
+function startResize(e) {
+    isResizing.value = true;
+    startX.value = e.clientX;
+    startRightWidth.value = parseInt(rightContentWidth.value);
 
-    sr.onaudioend = () => {
-        sr.stop();
-    }
-    sr.soundend = () => {
-        sr.stop();
-    }
-    sr.onresult = (event) => {
-        const text = event.results[0][0].transcript;
-        chatInput.value.innerText += text;
-        sr.stop();
-    }
-    sr.onresult = (event) => {
-        var final = "";
-        var interim = "";
+    // Add event listeners
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
 
-        for (let i = 0; i < event.results.length; ++i) {
-            if (event.results[i].final) {
-                final += event.results[i][0].transcript;
-            } else {
-                interim += event.results[i][0].transcript;
-            }
-        }
-        if (
-            !store.speechRecognitionPhraseActivated &&
-            !store._speechRecognitionTranscribing &&
-            store.activeActivationPhrase
-        ) {
-            if (
-                matchActivationPhrase(final + interim)
-            ) {
-                store.speechRecognitionPhraseActivated = true
-                sr.stop()
-            }
-        } else {
-            if (event.results[0].final)
-                chatInput.value.innerText = trimFromActivationPhraseForwards(final);
-            else
-                chatInput.value.innerText = trimFromActivationPhraseForwards(interim);
-        }
-    }
-    sr.onspeechend = () => {
-        sr.stop();
-    }
-    sr.onerror = (event) => {
-        console.log('Error occurred in the speech recognition:', event.error)
-        store.speechRecognitionRunning = false;
-        // Don't restart if we got a not-allowed error, usually because the user has not granted permission
-        if (event.error === 'not-allowed') {
-            store.speechRecognition = false;  // Disable speech recognition entirely
-            store.speechRecognitionAlwaysOn = false;  // Ensure we don't retry
-            return;
-        }
-    }
-    sr.onstart = () => {
-        if (store.speechRecognition && store.speechRecognitionAlwaysOn)
-            store.speechRecognitionRunning = true;
-    }
-    sr.onend = () => {
-        if(store.speechRecognitionPhraseActivated && store.speechRecognition) { // that means we programmatically ended the SR because we detected the activation phrase
-            store.speechRecognitionPhraseActivated = false
-            store._speechRecognitionTranscribing = true
-
-            sr.continuous = false;
-            sr.start();
-
-        } else if (store.speechRecognition) {
-            store.speechRecognitionRunning = false;
-            thereIsContent.value = chatInput.value.innerText.length !== 0
-            if (store.speechRecognitionAutoSend)
-                sendMessage();
-
-            sr.continuous = _speechRecognitionAlwaysOn.value;
-            if (store.activeActivationPhrase) {
-                store._speechRecognitionTranscribing = false
-                sr.start();
-            }
-        }
-    }
-    sr.start();
+    // Prevent text selection during resize
+    // e.preventDefault();
 }
 
-const availableSend = computed(() => {
-    return !store.speechRecognition || thereIsContent.value
-})
-const availableMicro = computed(() => {
-    return store.speechRecognition && !thereIsContent.value
-})
-const activeSend = computed(() => {
-    return thereIsContent.value && !store.waitingForResponse && !store.disconnected && !store.speechRecognitionRunning
-})
-const _speechRecognitionAlwaysOn = computed(() => {
-    return store.speechRecognitionAlwaysOn || (store.activeActivationPhrase)
-})
+function resize(e) {
+    if (!isResizing.value) return;
 
-function matchActivationPhrase(text) {
-    return text.toLowerCase().includes(store.speechRecognitionPhraseActivation.toLowerCase())
+    const chatWrapper = document.querySelector('.chat-wrapper');
+    const totalWidth = chatWrapper.offsetWidth;
+
+    // Calculate the new width based on mouse movement
+    const dx = e.clientX - startX.value;
+    const newRightWidth = Math.max(20, Math.min(80, (startRightWidth.value + dx / totalWidth * 100)));
+
+    // Update the widths
+    rightContentWidth.value = `${newRightWidth}%`;
+    iframeContainerWidth.value = `${100 - newRightWidth}%`;
 }
-function trimFromActivationPhraseForwards(text) {
-    if (!store.activeActivationPhrase)
-        return text
-    if (text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) > -1)
-        return text.substring(text.toLowerCase().indexOf(store.speechRecognitionPhraseActivation.toLowerCase()) + store.speechRecognitionPhraseActivation.length)
-    return text
+
+function stopResize() {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
 }
+
+// Clean up event listeners when component is unmounted
+onUnmounted(() => {
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+});
 
 </script>
 <style scoped lang="scss">
-
-
-
-
 .chat-wrapper {
     font: $chatfaq-font-body-s;
     font-style: normal;
@@ -496,12 +316,53 @@ function trimFromActivationPhraseForwards(text) {
     width: 100%;
     display: flex;
     flex-direction: column;
-
     background-color: $chatfaq-color-chat-background-light;
+
+    &.split-screen {
+        flex-direction: row;
+        overflow: hidden !important;
+    }
+
+    .right-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+        // width: 100%;
+        // transition: width 0.05s ease;
+
+    }
+
+
+    .resizable-divider {
+        width: 8px;
+        opacity: 0;
+        height: 100%;
+        background-color: #f0f0f0;
+        cursor: col-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+
+    .split-screen-iframe-container {
+        height: 100%;
+        // width: 100%;
+        box-shadow: 0px 2px 18px 0px #0000001A;
+        // transition: width 0.05s ease;
+    }
+
+    .split-screen-iframe {
+        height: 100%;
+        width: 100%;
+        border: 0;
+    }
 
     &.dark-mode {
         background-color: $chatfaq-color-chat-background-dark;
     }
+
     &.fit-to-parent {
         border: unset !important;
         border-radius: inherit !important;
@@ -510,63 +371,6 @@ function trimFromActivationPhraseForwards(text) {
 
     &.stick-input-prompt {
         overflow: initial !important;
-    }
-}
-
-.chat-prompt-wrapper {
-    padding: 24px;
-    display: flex;
-    background-color: $chatfaq-color-chat-background-light;
-    &.dark-mode {
-        background-color: $chatfaq-color-chat-background-dark;
-    }
-
-    &.fit-to-parent-prompt {
-        border-radius: inherit;
-    }
-    .chat-prompt-outer {
-        width: 100%;
-        display: flex;
-        border-radius: 4px;
-        border: 1px solid $chatfaq-color-chatInput-border-light !important;
-        box-shadow: 0px 4px 4px $chatfaq-box-shadows-color;
-
-        .attach-buttom {
-            margin-top: auto;
-            margin-bottom: auto;
-            line-height: 100%;
-            margin-left: 16px;
-            cursor: pointer;
-            color: $chatfaq-attach-icon-color-light;
-            &.dark-mode {
-                color: $chatfaq-attach-icon-color-dark;
-            }
-
-        }
-    }
-
-    &.stick-input-prompt {
-        position: sticky;
-        bottom: 0px;
-    }
-    .prompt-right-button {
-        position: relative;
-        flex: 0 0 40px;
-        height: 40px;
-        margin-left: 8px;
-        border-radius: 4px;
-        display: flex;
-        cursor: pointer;
-        background-color: $chatfaq-prompt-button-background-color-light;
-        &.dark-mode {
-            background-color: $chatfaq-prompt-button-background-color-dark;
-        }
-
-        &.disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
-            pointer-events: none;
-        }
     }
 }
 
@@ -579,7 +383,6 @@ function trimFromActivationPhraseForwards(text) {
         color: $chatfaq-color-alertMessage-text-dark;
     }
 }
-
 
 .pulsating {
     animation-duration: 2s;
@@ -609,8 +412,6 @@ function trimFromActivationPhraseForwards(text) {
 }
 
 .conversation-content {
-    height: 100%;
-    width: 100%;
     overflow-x: hidden;
 
     @include scroll-style();
@@ -618,142 +419,12 @@ function trimFromActivationPhraseForwards(text) {
     &.dark-mode {
         @include scroll-style($chatfaq-color-scrollBar-dark);
     }
+
     &.fit-to-parent-conversation-content {
         min-height: inherit;
     }
 }
 
-.chat-prompt, .chat-prompt:focus, .chat-prompt:hover {
-    width: 100%;
-    word-wrap: break-word;
-    border: 0;
-    outline: 0;
-    margin-left: 16px;
-    background-color: transparent;
-    color: $chatfaq-color-chatInput-text-light;
-    @include scroll-style();
-
-    &.dark-mode {
-        @include scroll-style($chatfaq-color-scrollBar-dark);
-    }
-}
-
-[contenteditable][placeholder]:empty:before {
-    content: attr(placeholder);
-    position: absolute;
-    color: $chatfaq-color-chatPlaceholder-text-light;
-    background-color: transparent;
-    font-style: italic;
-    cursor: text;
-}
-
-.dark-mode[contenteditable][placeholder]:empty:before {
-    color: $chatfaq-color-chatPlaceholder-text-dark;
-}
-
-.chat-prompt {
-    font: $chatfaq-font-caption-md;
-    font-style: normal;
-    min-height: 1em;
-    overflow-x: hidden;
-    overflow-y: auto;
-    margin-top: auto;
-    margin-bottom: auto;
-    max-height: 80px;
-
-    &.maximized {
-        max-height: 190px;
-    }
-
-    &::placeholder {
-        font-style: italic;
-        color: $chatfaq-color-chatInput-text-light;
-    }
-
-    &.dark-mode {
-        color: $chatfaq-color-chatPlaceholder-text-dark;
-
-        &::placeholder {
-            color: $chatfaq-color-chatInput-text-dark;
-        }
-    }
-
-    &.disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-        pointer-events: none;
-    }
-}
-
-.chat-prompt-button, .chat-prompt-button:focus, .chat-prompt-button:hover {
-    cursor: pointer;
-    height: 16px;
-    align-self: end;
-    opacity: 0.6;
-    margin: auto;
-    z-index: 1;
-
-    &.send {
-        color: $chatfaq-send-icon-color-light;
-        &.dark-mode {
-            color: $chatfaq-send-icon-color-dark;
-        }
-    }
-    &.micro {
-        color: $chatfaq-microphone-icon-color-light;
-        &.dark-mode {
-            color: $chatfaq-microphone-icon-color-dark;
-        }
-    }
-
-    &.active {
-        opacity: 1;
-    }
-}
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes smallScale {
-    0% {
-        transform: scale(1);
-        opacity: 0.7;
-    }
-    100% {
-        transform: scale(1.5);
-        opacity: 0;
-    }
-}
-
-.has-scale-animation {
-    animation: smallScale 1.7s infinite
-}
-
-.has-delay-short {
-    animation-delay: 0.5s
-}
-
-.micro-anim-elm {
-    position: absolute;
-    background: $chatfaq-prompt-button-background-color-light;
-
-    &.dark-mode {
-        background: $chatfaq-prompt-button-background-color-dark;
-    }
-
-    border-radius: 4px;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 100%;
-    width: 100%;
-}
 .merge-to-prev {
     display: none;
 }
