@@ -15,7 +15,7 @@ from back.config.storage_backends import select_private_storage
 logger = logging.getLogger(__name__)
 
 HANDSHAKE_TIMEOUT = 10.0
-FILE_PROCESSING_TIMEOUT = 300.0  # 5 minutes
+FILE_PROCESSING_TIMEOUT = 900.0  # 15 minutes
 USER_ID = "2b84e03d-cb1e-48db-b79c-7c41372b98a3"  # Random UUID for the health check simulation
 STORAGE = select_private_storage()
 DEFAULT_FSM_DEF = "lefebvre_fsm"
@@ -30,6 +30,7 @@ async def _receive_json_message(websocket, timeout=10.0, timeout_message=None):
     try:
         message_text = await asyncio.wait_for(websocket.recv(), timeout)
         msg = json.loads(message_text)
+        print(f"Received message: {msg}")
         return msg
     except asyncio.TimeoutError:
         if timeout_message:
@@ -92,13 +93,11 @@ async def _run_single_module_simulation(
     file_exists = STORAGE.exists(base_file_name)
 
     if not file_exists:
-        message = f"Base file '{base_file_name}' not found in storage for Module {module_number} simulation."
+        message = f"Base file '{base_file_name}' not found in storage for Module {module_number} simulation. Please upload a test file to the project S3 bucket in the health_check_files folder."
         logger.error(f"[Module {module_number}] {message}")
         return False, message
 
     logger.info(f"[Module {module_number}] Base file found. Generating presigned URL.")
-    # Assume storage interaction is okay in async context for now
-    file_url = STORAGE.generate_presigned_url_get(base_file_name)
 
     query_params = ""
 
@@ -144,10 +143,14 @@ async def _run_single_module_simulation(
                     {
                         "type": "file_uploaded",
                         "payload": {
-                            "name": base_file_name.split("/")[
-                                -1
-                            ],  # just send the file name
-                            "url": file_url,
+                            "files": [
+                                {
+                                    "name": base_file_name.split("/")[
+                                        -1
+                                    ],  # just send the file name
+                                    "s3_path": base_file_name,
+                                }
+                            ]
                         },
                     }
                 ],
@@ -276,7 +279,7 @@ async def run_module_simulation(
             state_overwrite=state_overwrite,
         )
         logger.info(f"[Task {event_type}] Simulation finished. Success: {success}")
-    
+
     except Exception as e:
         success = False
         message = (
