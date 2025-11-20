@@ -46,6 +46,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "email",
+            "sender_uuid",
         ]
 
     is_authenticated = serializers.BooleanField()
