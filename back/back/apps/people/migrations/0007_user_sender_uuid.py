@@ -4,6 +4,12 @@ import uuid
 from django.db import migrations, models
 
 
+def create_uuid(apps, schema_editor):
+    User = apps.get_model("people", "User")
+    for user in User.objects.all():
+        user.sender_uuid = uuid.uuid4()
+        user.save(update_fields=["sender_uuid"])
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -19,7 +25,19 @@ class Migration(migrations.Migration):
                 default=uuid.uuid4,
                 editable=False,
                 help_text="Universal sender identifier for lefebvre-chatfaq integration",
-                unique=True,
+                null=True,  # Change unique=True to null=True here
+            ),
+        ),
+        migrations.RunPython(create_uuid, reverse_code=migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name="user",
+            name="sender_uuid",
+            field=models.UUIDField(
+                db_index=True,
+                default=uuid.uuid4,
+                editable=False,
+                help_text="Universal sender identifier for lefebvre-chatfaq integration",
+                unique=True,  # This one remains unique=True
             ),
         ),
     ]
