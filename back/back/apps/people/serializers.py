@@ -37,6 +37,9 @@ class ContentTypeSerializer(serializers.ModelSerializer):
 class AuthUserSerializer(serializers.ModelSerializer):
     """
     Serializer used when the user is authenticated on /api/me/
+
+    NOTE: sender_uuid intentionally NOT included here to avoid exposing it to
+    frontend clients. AdminUserSerializer still exposes it for admin use.
     """
 
     class Meta:

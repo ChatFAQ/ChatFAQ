@@ -27,7 +27,11 @@ class CustomWSBotConsumer(WSBotConsumer):
         return fsm, None if fsm else f"`No FSM found with name {name}`"
 
     async def gather_user_id(self):
-        return self.scope["url_route"]["kwargs"]["sender_id"]
+        # If user is authenticated, use their sender_uuid
+        if self.scope.get("user") and self.scope["user"].is_authenticated:
+            return str(self.scope["user"].sender_uuid)
+        # Otherwise, fall back to URL parameter
+        return self.scope["url_route"]["kwargs"].get("sender_id")
 
     async def gather_initial_conversation_metadata(self):
         params = parse_qs(self.scope["query_string"])

@@ -113,8 +113,14 @@ class LoginView(KnoxLoginView):
 
 
 class UserAPIViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only CRUD for users. Keep AdminUserSerializer (fields="__all__"),
+    but make access explicit and restricted to admins so sender_uuid is not
+    leaked to non-admins.
+    """
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
+    permission_classes = [permissions.IsAdminUser]  # Ensure only admins can read/write all fields
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ["id"]
 

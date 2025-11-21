@@ -23,6 +23,9 @@ export default envManager((env) => {
     });
     const viteNuxtConfig = defineNuxtConfig({
         ssr: true,
+        devServer: {
+            port: process.env.NUXT_PORT || 3000,
+        },
         css: ["@/assets/styles/global.scss"],
         buildModules: [],
         modules: [...config.modules, "@pinia/nuxt", "@element-plus/nuxt"],
