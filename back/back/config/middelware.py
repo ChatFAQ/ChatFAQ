@@ -92,7 +92,9 @@ class IsAuthenticatedOrWidgetOriginHostPermission(BasePermission):
             widget = Widget.objects.get(id=widget_id)
         except Widget.DoesNotExist:
             return False
-        if fnmatch.fnmatch(urlparse(origin).netloc, widget.domain):
+        # Compare netloc to netloc (both should be like "localhost:3000")
+        widget_domain_netloc = urlparse(widget.domain).netloc if widget.domain else widget.domain
+        if fnmatch.fnmatch(urlparse(origin).netloc, widget_domain_netloc):
             return True
         return False
 
