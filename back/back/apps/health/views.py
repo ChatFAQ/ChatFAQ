@@ -51,7 +51,6 @@ def global_status_json(request: HttpRequest) -> HttpResponse:
     """
     Return the global status of the system, in JSON for robots to exploit.
     """
-
     out: MutableMapping[Any, Any] = {}
 
     resolver = build_resolver()
@@ -65,6 +64,7 @@ def global_status_json(request: HttpRequest) -> HttpResponse:
             "code": root_cause.code,
             "message": root_cause.message,
             "name": root_cause.name,
+            "extra": root_cause.outcome.extra,
         }
     else:
         out["status"] = "ok"

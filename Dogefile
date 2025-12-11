@@ -113,15 +113,15 @@ workers:
     envs: [ sdk ]
     instance_size: XS
 
-  # - name: ray
-  #   image:
-  #     host: docker.io
-  #     registry: chatfaq
-  #     repository: back-chatrag
-  #     tag: "develop"
-  #   envs: [ django, ray_worker ]
-  #   instance_size: XXL
-  #   command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"ai_components":100}' --block
+  - name: ray
+    image:
+      host: docker.io
+      registry: chatfaq
+      repository: back-chatrag
+      tag: "develop"
+    envs: [ django, ray_worker ]
+    instance_size: XXL
+    command: /.venv/bin/ray start --address=back:6375 --resources='{"tasks":100,"ai_components":100}' --block
 
 jobs:
   - name: migrate

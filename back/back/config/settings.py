@@ -338,3 +338,7 @@ with EnvManager(model_w_django) as env:
     else:
         AZOR_PRIVATE_KEY = None
 
+    # Health check settings
+    INTERNAL_WS_URL = env.get("INTERNAL_WS_URL", default="ws://localhost:8000")
+    BACKEND_TOKEN = env.get("BACKEND_TOKEN", default="")
+

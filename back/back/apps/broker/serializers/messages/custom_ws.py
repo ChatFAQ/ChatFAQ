@@ -29,10 +29,16 @@ class ExampleWSSerializer(BotMessageSerializer):
         if not self.is_valid():
             return False
 
+        sender_data = self.data["sender"].copy()
+
+        # If user is authenticated, use their sender_uuid as the sender ID
+        if ctx.scope.get("user") and ctx.scope["user"].is_authenticated:
+            sender_data["id"] = str(ctx.scope["user"].sender_uuid)
+
         s = MessageSerializer(
             data={
                 "stack": self.data["stack"],
-                "sender": self.data["sender"],
+                "sender": sender_data,
                 "send_time": int(time.time() * 1000),
                 "conversation": ctx.conversation.pk,
             }

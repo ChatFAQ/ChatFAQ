@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from django.db import models
 from django.db.transaction import atomic
 from django.utils.timezone import now
+
 from .base import Status
 from .itertools2 import n_uple
 
@@ -26,7 +27,20 @@ class EventQuerySet(models.QuerySet):
         event_type
             Type of event to filter by
         """
+
         return self.filter(event_type=event_type)
+
+    def types(self, event_types):
+        """
+        Filters by multiple event types
+
+        Parameters
+        ----------
+        event_types
+            List of event types to filter by
+        """
+        
+        return self.filter(event_type__in=event_types)
 
     def within(
         self,
@@ -42,6 +56,7 @@ class EventQuerySet(models.QuerySet):
         Returns all events that are within a time window from now. The
         parameters are the ones from timedelta.
         """
+
         delta = datetime.timedelta(
             days=days,
             seconds=seconds,
@@ -59,6 +74,7 @@ class EventQuerySet(models.QuerySet):
         """
         Computes the number of success/failure/total for all events.
         """
+
         return self.aggregate(
             total=models.Count("id"),
             success=models.Sum(
@@ -66,14 +82,14 @@ class EventQuerySet(models.QuerySet):
                     models.When(is_success=True, then=1),
                     default=0,
                     output_field=models.IntegerField(),
-                ),
+                )
             ),
             failure=models.Sum(
                 models.Case(
                     models.When(is_success=False, then=1),
                     default=0,
                     output_field=models.IntegerField(),
-                ),
+                )
             ),
         )
 
@@ -81,6 +97,7 @@ class EventQuerySet(models.QuerySet):
         """
         Returns the latest event of a given type
         """
+
         return self.type(event_type).order_by("-date_created").first()
 
 
@@ -136,6 +153,7 @@ class StatusHistory(models.Model):
         status if this tuple changes, basically. It can be created either
         from here either from cause_signature() (to compare to current status).
         """
+
         return (
             self.status,
             self.root_cause_code,
@@ -148,6 +166,7 @@ class StatusHistory(models.Model):
         """
         Returns the signature of a cause, if any
         """
+
         if cause is None:
             return (Status.OK.name, "", "", "")
 
@@ -170,6 +189,7 @@ class StatusHistory(models.Model):
         cause
             Output from the Resolver.check() method
         """
+
         current_status = cls.cause_signature(cause)
         last_status = cls.objects.select_for_update().order_by("-date_created").first()
 
@@ -205,6 +225,7 @@ class StatusHistory(models.Model):
         We're collecting all the ranges of downtimes and then compute how long
         that lasted in comparison to the length of the time window.
         """
+
         delta = datetime.timedelta(
             days=days,
             seconds=seconds,

@@ -1,10 +1,10 @@
 import traceback
 from dataclasses import dataclass, field
-from collections.abc import Mapping, MutableMapping, Sequence
+from typing import Mapping, MutableMapping, Optional, Sequence
 
 import networkx as nx
 from sentry_sdk import capture_exception
-
+import asyncio
 from .checks import *
 from .models import StatusHistory
 
@@ -29,7 +29,7 @@ class Cause:
     """
 
     instance: Instance
-    outcome: Outcome | None
+    outcome: Optional[Outcome]
 
     @property
     def code(self):
@@ -144,7 +144,7 @@ class Resolver:
 
         self.outcomes = outcomes
 
-    def get_root_cause(self) -> Cause | None:
+    def get_root_cause(self) -> Optional[Cause]:
         """
         Once the tests are made (don't forget to run_tests()), determines the
         first failing test in topological order, which should be the root cause
@@ -158,7 +158,7 @@ class Resolver:
             if outcome.status == Status.ERROR:
                 return Cause(instance, outcome)
 
-    def check(self, stop_on_error=True) -> Cause | None:
+    def check(self, stop_on_error=True) -> Optional[Cause]:
         """
         Shortcut to run tests and get the root cause.
 
@@ -257,22 +257,10 @@ def build_resolver() -> Resolver:
         )
     )
 
-    # :: IF api__redis
-
     resolver.register(
         Instance(
             code="I002",
             check=Cache(),
-            depends_on=[],
-        )
-    )
-
-    # :: ENDIF
-
-    resolver.register(
-        Instance(
-            code="S001",
-            check=RamUsage(),
             depends_on=[],
         )
     )
@@ -282,6 +270,30 @@ def build_resolver() -> Resolver:
             code="S004",
             check=ProcrastinateHealthCheck(),
             depends_on=["I001"],
+        )
+    )
+
+    resolver.register(
+        Instance(
+            code="M002",
+            check=Module2Simulation(),
+            depends_on=[],
+        )
+    )
+
+    resolver.register(
+        Instance(
+            code="M003",
+            check=Module3Simulation(),
+            depends_on=[],
+        )
+    )
+
+    resolver.register(
+        Instance(
+            code="M004",
+            check=LLMCheck(),
+            depends_on=[],
         )
     )
 

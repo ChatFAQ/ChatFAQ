@@ -100,13 +100,19 @@ class ConversationAPIViewSet(
 
     @action(methods=("get",), detail=False, permission_classes=[AllowAny])
     def from_sender(self, request, *args, **kwargs):
-        if not request.query_params.get("sender"):
-            return JsonResponse(
-                {"error": "sender is required"},
-                status=400,
-            )
+        # Use authenticated user's sender_uuid if available, otherwise fall back to query param
+        if request.user.is_authenticated:
+            sender_id = str(request.user.sender_uuid)
+        else:
+            sender_id = request.query_params.get("sender")
+            if not sender_id:
+                return JsonResponse(
+                    {"error": "sender is required"},
+                    status=400,
+                )
+
         results = []
-        for c in Conversation.conversations_from_sender(request.query_params.get("sender")):
+        for c in Conversation.conversations_from_sender(sender_id):
             if error := self._instance_permissions(c, request):
                 return error
             results.append(ConversationSerializer(c).data)

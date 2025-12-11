@@ -99,6 +99,13 @@ class User(UuidPkModel, AbstractBaseUser, PermissionsMixin):
         _("date joined"),
         auto_now_add=True,
     )
+    sender_uuid = models.UUIDField(
+        unique=True,
+        default=uuid4,
+        editable=False,
+        db_index=True,
+        help_text=_("Universal sender identifier for lefebvre-chatfaq integration"),
+    )
     remember_me = models.TextField(
         _("remember me"),
         null=True,
