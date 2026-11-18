@@ -1,0 +1,12 @@
+**
+!back/
+!back/**
+!chat_rag/
+!chat_rag/**
+
+back/**/__pycache__/
+back/**/.pytest_cache/
+back/.venv/
+chat_rag/**/__pycache__/
+chat_rag/**/.pytest_cache/
+chat_rag/.venv/

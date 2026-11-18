@@ -6,9 +6,8 @@ This is ChatFAQ's core component, the orchestrator of ChatGPT. It manages client
 
 Make sure the next list of packages are installed on your system:
 
-- Python 3.10
-- python3.10-dev
-- python3.10-distutils
+- Python 3.14
+- python3.14-dev
 - PostgreSQL
 - gdal-bin
 - poetry

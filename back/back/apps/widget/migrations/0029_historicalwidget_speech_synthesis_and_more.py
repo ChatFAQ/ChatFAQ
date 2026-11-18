@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="widget",
             constraint=models.CheckConstraint(
-                check=models.Q(
+                condition=models.Q(
                     ("speech_synthesis_pitch__gte", 0.0),
                     ("speech_synthesis_pitch__lte", 2.0),
                 ),
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="widget",
             constraint=models.CheckConstraint(
-                check=models.Q(
+                condition=models.Q(
                     ("speech_synthesis_rate__gte", 0.1),
                     ("speech_synthesis_rate__lte", 10.0),
                 ),

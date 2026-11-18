@@ -6,8 +6,8 @@ We built for you a custom front-end solution just so you can talk with your chat
 
 Make sure the next list of packages are installed on your system:
 
-- npm
-- node v19.6.0
+- pnpm
+- Node 24
 
 
 ## Installation
@@ -26,7 +26,7 @@ Make sure the next list of packages are installed on your system:
 
 Install project dependencies:
 
-    npm i
+    pnpm install --frozen-lockfile
 
 ## Run
 
@@ -38,7 +38,7 @@ First of all, create a `.env` file with the needed variables set. You can see an
 
 Run the example:
 
-    npm run dev
+    pnpm run dev
 
 This will run a node server which will serve an empty webpage with just the Widget integrated on it, if you navigate to http://localhost:3000
 

@@ -5,12 +5,9 @@ from typing import Mapping, Sequence
 
 from asgiref.sync import async_to_sync
 from django.conf import settings
-from health_check.cache.backends import CacheBackend
-from health_check.db.backends import (
-    BaseHealthCheckBackend,
-    DatabaseBackend,
-    ServiceUnavailable,
-)
+from health_check.checks import Cache as CacheCheck
+from health_check.checks import Database as DatabaseCheck
+from health_check.exceptions import ServiceUnavailable
 
 from .base import DjangoHealthCheckWrapper, HealthCheck, Outcome, Status
 from .models import Event
@@ -80,7 +77,7 @@ class Database(DjangoHealthCheckWrapper):
     Checks that the default database can be reached, read and write
     """
 
-    base_class = DatabaseBackend
+    base_class = DatabaseCheck
 
     def get_resolving_actions(self, outcome: Outcome) -> str:
         return """# __CODE__ &mdash; Database cannot be reached
@@ -115,7 +112,7 @@ class Cache(DjangoHealthCheckWrapper):
     validate the queue as well (somehow).
     """
 
-    base_class = CacheBackend
+    base_class = CacheCheck
 
     def get_name(self) -> str:
         return "Cache"
@@ -142,7 +139,7 @@ entry in the cache.
         return ["redis"]
 
 
-class ProcrastinateBuiltInHealthCheck(BaseHealthCheckBackend):
+class ProcrastinateBuiltInHealthCheck:
     """
     Health check for Procrastinate task processor.
 
@@ -155,7 +152,6 @@ class ProcrastinateBuiltInHealthCheck(BaseHealthCheckBackend):
         Get the Procrastinate app from the settings.
         If not set, it will be set to the default app.
         """
-        super().__init__()
         self.app = getattr(settings, "PROCRASTINATE_APP", None)
 
         if self.app is None:
@@ -163,7 +159,7 @@ class ProcrastinateBuiltInHealthCheck(BaseHealthCheckBackend):
 
             self.app = app
 
-    def check_status(self):
+    def run(self):
         """
         Use the built-in healthchecks to check if the Procrastinate app is
         working.
@@ -173,12 +169,12 @@ class ProcrastinateBuiltInHealthCheck(BaseHealthCheckBackend):
 
         try:
             async_to_sync(healthchecks)(app=self.app)
-        except exceptions.ConnectorException:
-            self.add_error(
-                ServiceUnavailable("Error connecting to Procrastinate database")
-            )
+        except exceptions.ConnectorException as exc:
+            raise ServiceUnavailable(
+                "Error connecting to Procrastinate database"
+            ) from exc
         except Exception as exc:
-            self.add_error(ServiceUnavailable("Error checking Procrastinate"), exc)
+            raise ServiceUnavailable("Error checking Procrastinate") from exc
 
 
 class ProcrastinateHealthCheck(DjangoHealthCheckWrapper):

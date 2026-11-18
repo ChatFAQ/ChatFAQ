@@ -10,8 +10,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "~3.13"
-modelw-preset-django = {version = "*", extras = ["health"]}
+python = "~3.14"
+modelw-preset-django = {version = "~2026.10.0", extras = ["health"]}
 drf-spectacular = {extras = ["sidecar"], version = "*"}
 channels = "*"
 daphne = "*"
@@ -47,10 +47,10 @@ PyMuPDF = "*"
 channels-redis = "*"
 typefit = "*"
 ray = {extras = ["data", "serve"], version = "*"}
-chat-rag = "*"
+chat-rag = { path = "../chat_rag", develop = true }
 networkx = "*"
 markdown = "*"
-procrastinate = "*"
+procrastinate = "~3.10"
 [tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "*"

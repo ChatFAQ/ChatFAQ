@@ -1,10 +1,11 @@
-FROM modelw/base:2025.07
+FROM modelw/base:2026.10
 
-COPY --chown=user pyproject.toml poetry.lock ./
+COPY --chown=user back/pyproject.toml back/poetry.lock ./
+COPY --chown=user chat_rag /chat_rag
 
 RUN modelw-docker install
 
-COPY --chown=user . .
+COPY --chown=user back .
 
 RUN modelw-docker build
 

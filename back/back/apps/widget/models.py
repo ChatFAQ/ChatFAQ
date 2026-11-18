@@ -93,11 +93,11 @@ class Widget(models.Model):
     class Meta:
         constraints = (
             CheckConstraint(
-                check=Q(speech_synthesis_pitch__gte=0.0) & Q(speech_synthesis_pitch__lte=2.0),
+                condition=Q(speech_synthesis_pitch__gte=0.0) & Q(speech_synthesis_pitch__lte=2.0),
                 name='pitch_range'
             ),
             CheckConstraint(
-                check=Q(speech_synthesis_rate__gte=0.1) & Q(speech_synthesis_rate__lte=10.0),
+                condition=Q(speech_synthesis_rate__gte=0.1) & Q(speech_synthesis_rate__lte=10.0),
                 name='rate_range'
             ),
         )
