@@ -1,22 +1,55 @@
-from typing import List, Optional, Union, BinaryIO, IO, Callable
+from __future__ import annotations
+
+from typing import Any, List, Optional, Union, BinaryIO, IO, Callable
 from tempfile import SpooledTemporaryFile
 
-from unstructured.documents.elements import (
-    Element,
-    Text,  # Uncategorized text
-    Title,
-)
-
-from unstructured.partition.auto import partition_pdf, partition_html
-
 from chat_rag.data.models import KnowledgeItem
+
+
+class ParsingUnavailableError(RuntimeError):
+    """Report why the optional document parser cannot run.
+
+    A dedicated exception prevents an unexplained dependency import failure
+    from hiding the upstream Python-version incompatibility.
+    """
+
+
+def _load_unstructured():
+    """Load optional parsing dependencies only when parsing is requested.
+
+    Returns
+    -------
+    tuple
+        Element classes and partition functions supplied by ``unstructured``.
+
+    Raises
+    ------
+    ParsingUnavailableError
+        If the optional parsing dependency stack cannot be imported.
+    """
+    try:
+        from unstructured.documents.elements import Text, Title
+        from unstructured.partition.auto import partition_html, partition_pdf
+    except ImportError as exc:
+        raise ParsingUnavailableError(
+            "PDF/HTML parsing is unavailable in chat-rag 0.2.15 on Python "
+            "3.14 because `unstructured` and `unstructured-inference` "
+            "currently require Python <3.14. This is not a new 0.2.15 "
+            "regression: the previous chat-rag manifest constrained "
+            "`unstructured` to Python <3.12, so parsing was already "
+            "unavailable on Python 3.12 and 3.13. Run document parsing in a "
+            "separate environment supported by `unstructured`, or wait for "
+            "upstream Python 3.14 support."
+        ) from exc
+
+    return Text, Title, partition_pdf, partition_html
 
 
 def is_strict_instance(obj, class_type):
     return isinstance(obj, class_type) and obj.__class__ is class_type
 
 
-def is_header_or_footer(element: Element) -> bool:
+def is_header_or_footer(element: Any) -> bool:
     """
     Checks if an element is a header or footer.
     Parameters
@@ -53,11 +86,11 @@ def is_header_or_footer(element: Element) -> bool:
 
 
 def parse_elements(
-    elements: List[Element],
+    elements: List[Any],
     file_type: str = "pdf",
     combine_section_under_n_chars: int = 500,
     new_after_n_chars: int = 1000,
-) -> List[List[Element]]:
+) -> List[List[Any]]:
     """
     Parse a list of elements into sections following a set of rules based on the titles and length parameters.
     Parameters
@@ -77,6 +110,7 @@ def parse_elements(
         A list of sections, where each section is a list of elements.
     """
 
+    Text, Title, _, _ = _load_unstructured()
     sections = []
     section = []
     for element in elements:
@@ -135,7 +169,7 @@ def parse_elements(
     return sections
 
 
-def transform_to_k_items(sections: List[List[Element]], file_type: str = 'pdf',) -> List[KnowledgeItem]:
+def transform_to_k_items(sections: List[List[Any]], file_type: str = 'pdf',) -> List[KnowledgeItem]:
     """
     Transforms a list of sections into a list of KnowledgeItems.
     Parameters
@@ -150,6 +184,7 @@ def transform_to_k_items(sections: List[List[Element]], file_type: str = 'pdf',)
         A list of KnowledgeItems.
     """
 
+    _, Title, _, _ = _load_unstructured()
     sections_k_items = []
     prev_title = None
     for ndx, section in enumerate(sections):
@@ -236,6 +271,8 @@ def parse_pdf(
         A list of KnowledgeItem.
     """
 
+    _, _, partition_pdf, _ = _load_unstructured()
+
     if strategy in ['ocr_only', 'hi_res']:
         print(f'Using strategy {strategy}. This might take a few minutes.')
 
@@ -298,6 +335,7 @@ def parse_html(
     List[KnowledgeItem]
         A list of KnowledgeItems.
     """
+    _, _, _, partition_html = _load_unstructured()
     elements = partition_html(
         filename=filename,
         file=file,
