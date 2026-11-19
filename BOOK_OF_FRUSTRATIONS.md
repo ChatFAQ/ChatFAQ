@@ -27,6 +27,17 @@ already contains the newest versions allowed by the current constraints.
 Moving beyond them requires widening constraints and validating behavioral or
 API changes. Versions below were observed on 2026-11-19.
 
+### Blocked PDF/HTML parsing
+
+- [ ] Restore PDF and HTML parsing on Python 3.14. The parser depends on
+      `unstructured` and `unstructured-inference`, which currently require
+      Python `<3.14`. This is not a regression introduced by `chat-rag 0.2.15`:
+      the previous manifest constrained `unstructured` to Python `<3.12` while
+      `chat-rag 0.2.14` targeted Python 3.13, so parsing was already
+      unavailable. Replace the parser or wait for upstream Python 3.14 support,
+      then restore the dependencies and add end-to-end PDF/HTML ingestion
+      coverage.
+
 ### High-risk API migrations
 
 These upgrades cross major or otherwise significant API boundaries. They
