@@ -1,7 +1,7 @@
 import mimetypes
 import time
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 from rest_framework import serializers
 
@@ -60,8 +60,12 @@ class RPCResultSerializer(serializers.Serializer):
             }
 
         # Tool results are categorized as human messages although not exactly true
-        if attrs.get('node_type') == RPCNodeType.action.value and attrs.get('stack', []) and attrs['stack'][0].get('type') == 'tool_result':
-            attrs['sender'] = {
+        if (
+            attrs.get("node_type") == RPCNodeType.action.value
+            and attrs.get("stack", [])
+            and attrs["stack"][0].get("type") == "tool_result"
+        ):
+            attrs["sender"] = {
                 "type": AgentType.human.value,
             }
 
@@ -78,39 +82,51 @@ class RPCResultSerializer(serializers.Serializer):
 
                     # Generate presigned URL if using S3
                     if not isinstance(storage, PrivateMediaLocalStorage):
-                        date_partition = datetime.utcnow().strftime('%Y/%m/%d')
-                        
+                        date_partition = datetime.utcnow().strftime("%Y/%m/%d")
+
                         # Generate multiple presigned URLs based on max_files
                         presigned_urls = []
                         s3_paths = []
-                        
+
                         for file_index in range(max_files):
                             # Create unique path for each potential file upload
                             unique_id = uuid.uuid4()
                             s3_path = f"uploads/{date_partition}/{attrs['ctx']['conversation_id']}/{unique_id}"
-                            
+
                             # We receive the file extension from the client, but we need to add the placeholder to the file extension to be able to guess the content type
-                            content_type = mimetypes.guess_type(f'placeholder.{file_extension}')[0]
-                            presigned_url = storage.generate_presigned_url_put(s3_path, content_type=content_type)
-                            
+                            content_type = mimetypes.guess_type(
+                                f"placeholder.{file_extension}"
+                            )[0]
+                            presigned_url = storage.generate_presigned_url_put(
+                                s3_path, content_type=content_type
+                            )
+
                             presigned_urls.append(presigned_url)
                             s3_paths.append(s3_path)
-                        
-                        attrs['stack'][ndx]['payload']["files"][file_extension]['presigned_urls'] = presigned_urls
-                        attrs['stack'][ndx]['payload']["files"][file_extension]['s3_paths'] = s3_paths
-                        attrs['stack'][ndx]['payload']["files"][file_extension]['content_type'] = content_type
+
+                        attrs["stack"][ndx]["payload"]["files"][file_extension][
+                            "presigned_urls"
+                        ] = presigned_urls
+                        attrs["stack"][ndx]["payload"]["files"][file_extension][
+                            "s3_paths"
+                        ] = s3_paths
+                        attrs["stack"][ndx]["payload"]["files"][file_extension][
+                            "content_type"
+                        ] = content_type
 
         return super().validate(attrs)
 
 
 class CacheConfigSerializer(serializers.Serializer):
     """Serializer for cache configuration"""
+
     ttl = serializers.IntegerField(required=False, allow_null=True)
     name = serializers.CharField(required=False, allow_null=True)
 
 
 class ThinkingField(serializers.Field):
     """Custom field that accepts both a string or a dictionary"""
+
     def to_internal_value(self, data):
         # Return as is - can be either string or dict
         return data
@@ -144,10 +160,14 @@ class RPCLLMRequestSerializer(serializers.Serializer):
         The thinking to use in the LLM
     """
 
-    llm_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    llm_config_name = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False
+    )
     conversation_id = serializers.CharField()
     bot_channel_name = serializers.CharField()
-    messages = serializers.ListField(child=serializers.DictField(), allow_empty=True, required=False, allow_null=True)
+    messages = serializers.ListField(
+        child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
+    )
     temperature = serializers.FloatField(default=0.7, required=False, allow_null=True)
     max_tokens = serializers.IntegerField(default=1024, required=False)
     seed = serializers.IntegerField(default=42, required=False)
@@ -155,10 +175,14 @@ class RPCLLMRequestSerializer(serializers.Serializer):
     tools = serializers.ListField(
         child=serializers.DictField(), allow_empty=True, required=False, allow_null=True
     )
-    tool_choice = serializers.CharField(allow_blank=True, required=False, allow_null=True)
+    tool_choice = serializers.CharField(
+        allow_blank=True, required=False, allow_null=True
+    )
     stream = serializers.BooleanField(default=False)
     use_conversation_context = serializers.BooleanField(default=True)
-    response_schema = serializers.JSONField(default=dict, required=False, allow_null=True)
+    response_schema = serializers.JSONField(
+        default=dict, required=False, allow_null=True
+    )
     cache_config = CacheConfigSerializer(required=False, allow_null=True)
 
     def validate(self, attrs):
@@ -173,21 +197,30 @@ class RPCLLMRequestSerializer(serializers.Serializer):
             )
 
         if attrs.get("tools") and attrs.get("stream"):
-            raise serializers.ValidationError("ChatFAQ doesn't support streaming when using tools")
+            raise serializers.ValidationError(
+                "ChatFAQ doesn't support streaming when using tools"
+            )
 
         if attrs.get("response_schema") and attrs.get("stream"):
-            raise serializers.ValidationError("ChatFAQ doesn't support structured output when streaming")
+            raise serializers.ValidationError(
+                "ChatFAQ doesn't support structured output when streaming"
+            )
 
         return attrs
 
 
 class RPCPromptRequestSerializer(serializers.Serializer):
-    prompt_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    prompt_config_name = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False
+    )
     bot_channel_name = serializers.CharField()
 
 
 class RPCRetrieverRequestSerializer(RetrieverRequestSerializer):
-    retriever_config_name = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    retriever_config_name = serializers.CharField(
+        required=True, allow_blank=False, allow_null=False
+    )
+    bot_channel_name = serializers.CharField()
 
 
 class RegisterParsersSerializer(serializers.Serializer):
@@ -229,9 +262,8 @@ class RPCResponseSerializer(serializers.Serializer):
     """
 
     type = serializers.ChoiceField(choices=[n.value for n in RPCMessageType])
-    data = serializers.JSONField(
-        default=dict
-    )
+    data = serializers.JSONField(default=dict)
+
 
 class ParseResponseSerializer(serializers.Serializer):
     """

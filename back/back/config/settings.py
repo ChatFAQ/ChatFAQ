@@ -140,6 +140,7 @@ with EnvManager(model_w_django) as env:
         "django.contrib.sessions",
         "django.contrib.messages",
         "django.contrib.staticfiles",
+        "django.contrib.postgres",
         "django_extensions",
         "simple_history",
         "corsheaders",

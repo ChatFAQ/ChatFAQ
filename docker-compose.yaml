@@ -27,8 +27,8 @@ services:
     #   - cache:/data
   back:
     build:
-      context: back
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: back/Dockerfile
     image: chatfaq_back
     container_name: chatfaq_back
     hostname: back
@@ -48,8 +48,8 @@ services:
     #   - ./back/back:/back
   ray:
     build:
-      context: back
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: back/Dockerfile
       args:
         - INSTALL_CHAT_RAG=true
     container_name: chatfaq_ray

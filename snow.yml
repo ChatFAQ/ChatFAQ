@@ -3,8 +3,8 @@ images:
     context: admin
     dockerfile: Dockerfile
   - id: back
-    context: back
-    dockerfile: Dockerfile
+    context: .
+    dockerfile: back/Dockerfile
 
 components:
   - id: admin
