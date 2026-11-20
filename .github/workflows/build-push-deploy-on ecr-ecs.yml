@@ -107,7 +107,7 @@ jobs:
       - name: Deploy Amazon ECS task definition for migrate
         id: task-def-new-version-migrate
         if: steps.get-last-def-migrate.outputs.exists == 'true'
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def-migrate.outputs.task-definition }}
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
@@ -147,7 +147,7 @@ jobs:
       -   name: Deploy Amazon ECS task definition for celery
           id: task-def-new-version-celery
           if: steps.get-last-def-celery.outputs.exists == 'true'
-          uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+          uses: aws-actions/amazon-ecs-deploy-task-definition@v2
           with:
               task-definition: ${{ steps.task-def-celery.outputs.task-definition }}
               cluster: ${{ vars.ECS_CLUSTER_NAME }}
@@ -179,7 +179,7 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           cluster: ${{ vars.ECS_CLUSTER_NAME }}
