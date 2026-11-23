@@ -29,6 +29,7 @@ class KnowledgeItem:
     """
     A KnowledgeItem is a set of elements (titles, texts, urls, etc.) that are used for Retrieval Augmented Generation (RAG).
     """
+
     title: str
     content: str
     knowledge_base: Optional[str] = None
@@ -80,5 +81,6 @@ class CacheConfig:
     :param name: The name of the cache.
     :param ttl: The time to live for the cache in seconds.
     """
+
     name: str
     ttl: int = 3600  # Default TTL of 1 hour in seconds

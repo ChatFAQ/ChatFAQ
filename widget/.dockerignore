@@ -16,7 +16,8 @@
 !babel.config.js
 !nuxt.config.ts
 !package.json
-!package-lock.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
 !README.md
 !rollup.config.js
 !tsconfig.json

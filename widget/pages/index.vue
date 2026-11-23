@@ -11,15 +11,20 @@
 import { onMounted } from 'vue';
 
 const conf = useRuntimeConfig()
+const route = useRoute()
 
 const chatfaqWS = ref(conf.public.chatfaqWS)
 const chatfaqAPI = ref(conf.public.chatfaqAPI)
 const title = ref("Hello there 👋")
 const subtitle = ref("How can we help you?")
-const fsmDef = ref("cawl_fsm")
+const fsmDef = ref(typeof route.query.fsm === "string" ? route.query.fsm : "simple_fsm")
 const hideSources = ref(false)
 const stateOverride = ref(null)
-const widgetId = ref("6a5fb833-cdcf-468a-ac22-8f1c2b7b1672")
+const widgetId = ref(
+    typeof route.query.widget_id === "string"
+        ? route.query.widget_id
+        : "6a5fb833-cdcf-468a-ac22-8f1c2b7b1672"
+)
 
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);

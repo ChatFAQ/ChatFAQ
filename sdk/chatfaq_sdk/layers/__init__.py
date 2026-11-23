@@ -77,6 +77,7 @@ class FileUpload(Layer):
     """
     A message layer that includes a file upload request.
     """
+
     _type = "file_upload"
 
     def __init__(
@@ -118,14 +119,15 @@ class FileDownload(Layer):
     """
     A message layer that includes file downloads (single or multiple).
     """
+
     _type = "file_download"
 
     def __init__(
-            self,
-            content: str,
-            files=None,
-            *args,
-            **kwargs,
+        self,
+        content: str,
+        files=None,
+        *args,
+        **kwargs,
     ):
         """
         :param files: List of files to download. Each file should be a dict with 'name' and 'url' keys.
@@ -133,7 +135,7 @@ class FileDownload(Layer):
         """
         super().__init__(*args, **kwargs)
         self.content = content
-        
+
         if files:
             self.files = files
         else:
@@ -243,6 +245,7 @@ class StarRating(UserFeedback):
     """
     A message layer that includes a star rating.
     """
+
     _type = "star_rating"
 
     def __init__(
@@ -274,6 +277,7 @@ class ThumbsRating(UserFeedback):
     """
     A message layer that includes a thumbs rating.
     """
+
     _type = "thumbs_rating"
 
     def __init__(
@@ -296,6 +300,7 @@ class TextFeedback(UserFeedback):
     """
     A message layer that includes a feedback text box.
     """
+
     _type = "text_feedback"
 
     def __init__(
@@ -324,6 +329,7 @@ class CloseConversation(Layer):
     """
     A message layer that includes a close conversation request.
     """
+
     _type = "close_conversation"
 
     async def build_payloads(self, ctx, data):
@@ -334,6 +340,7 @@ class ToolUse(Layer):
     """
     A message layer that includes a tool use request.
     """
+
     _type = "tool_use"
 
     def __init__(self, name: str = None, id: str = None, args: dict = None):
@@ -352,10 +359,12 @@ class ToolUse(Layer):
         }
         yield [payload], True
 
+
 class ToolResult(Layer):
     """
     A message layer that includes a tool result.
     """
+
     _type = "tool_result"
 
     def __init__(self, id: str = None, name: str = None, result: dict = None):

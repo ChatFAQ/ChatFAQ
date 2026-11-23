@@ -5,6 +5,7 @@ from chatfaq_sdk.layers import Message
 
 MODEL_NAME = "gemini-2.0-flash"
 
+
 def get_weather(location: str) -> str:
     """
     Get current temperature for a given location.
@@ -23,7 +24,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
         sdk=sdk,
         model_name=MODEL_NAME,
         tools=[get_weather],
-        system_instruction="You are a knowledgeable weather assistant. Use provided tools when necessary."
+        system_instruction="You are a knowledgeable weather assistant. Use provided tools when necessary.",
     )
     async for item in agent.run(ctx):
         yield item
@@ -35,6 +36,5 @@ answering_state = State(name="Answering", events=[send_answer])
 _to_answer = Transition(dest=answering_state)
 
 fsm_definition = FSMDefinition(
-    states=[greeting_state, answering_state],
-    transitions=[_to_answer]
+    states=[greeting_state, answering_state], transitions=[_to_answer]
 )

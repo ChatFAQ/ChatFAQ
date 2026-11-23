@@ -2,9 +2,8 @@ from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.clients import llm_request, query_kis
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import Message, StreamingMessage
-from chatfaq_sdk.utils import convert_mml_to_llm_format
 from chatfaq_sdk.types import CacheConfig
-
+from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 """
 This FSM is a simple example of how to do RAG with the whole knowledge base, given that context windows are 

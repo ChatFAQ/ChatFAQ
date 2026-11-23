@@ -1,18 +1,12 @@
 import inspect
 import os
+from enum import Enum
 from logging import getLogger
-from typing import List, Callable, Any
-
-from chatfaq_sdk.clients import query_prompt
-from chatfaq_sdk.layers import StreamingMessage
-
+from typing import Any, Callable, List
 
 from chatfaq_sdk import ChatFAQSDK
-from chatfaq_sdk.clients import llm_request
-from chatfaq_sdk.layers import Message, ToolUse, ToolResult
-
-from enum import Enum
-
+from chatfaq_sdk.clients import llm_request, query_prompt
+from chatfaq_sdk.layers import Message, StreamingMessage, ToolResult, ToolUse
 
 logger = getLogger(__name__)
 
@@ -54,7 +48,7 @@ class Agent:
         instance = cls()
         instance.conversation = []
 
-        for s, m in data['conversation']:
+        for s, m in data["conversation"]:
             instance.add_message(MessageSender(s), m)
 
         instance._from_serialized(data)
@@ -64,7 +58,7 @@ class Agent:
     def serialize(self):
         return {
             "conversation": [(s.value, m) for s, m in self.conversation],
-            **self._serialize()
+            **self._serialize(),
         }
 
     @classmethod
@@ -84,16 +78,18 @@ class Agent:
             )
         return [
             {
-                "role": MessageSender.system.value if self.conversation else MessageSender.user.value,
+                "role": (
+                    MessageSender.system.value
+                    if self.conversation
+                    else MessageSender.user.value
+                ),
                 "content": self.prompt,
             },
             *res,
         ]
 
     @staticmethod
-    async def request_prompt(
-        sdk: ChatFAQSDK, prompt_name: str, default_prompt: str
-    ):
+    async def request_prompt(sdk: ChatFAQSDK, prompt_name: str, default_prompt: str):
         if prompt := await query_prompt(sdk, prompt_name):
             logger.info(f"{prompt_name} found")
             return prompt
@@ -101,9 +97,7 @@ class Agent:
             logger.warning(f"{prompt_name} not found, using default")
             return default_prompt
 
-    async def set_prompt(
-        self, sdk: ChatFAQSDK, prompt_name: str, default_prompt: str
-    ):
+    async def set_prompt(self, sdk: ChatFAQSDK, prompt_name: str, default_prompt: str):
         self.prompt = await self.request_prompt(sdk, prompt_name, default_prompt)
 
     async def tool_use_loop(self, sdk: ChatFAQSDK, ctx: dict, tools: List[Callable]):
@@ -149,9 +143,13 @@ class Agent:
                     # Execute the tool
                     try:
                         if inspect.iscoroutinefunction(tool):
-                            result = await tool(**tool_use["args"], sdk=sdk, ctx=ctx, agent=self)
+                            result = await tool(
+                                **tool_use["args"], sdk=sdk, ctx=ctx, agent=self
+                            )
                         else:
-                            result = tool(**tool_use["args"], sdk=sdk, ctx=ctx, agent=self)
+                            result = tool(
+                                **tool_use["args"], sdk=sdk, ctx=ctx, agent=self
+                            )
                     except Exception as e:
                         result = f"Error executing tool {tool_use['name']}: {str(e)}"
 
@@ -159,22 +157,26 @@ class Agent:
                         yield StreamingMessage(result)
                         result = str("submitted")
 
-                    yield ToolUse(name=tool_use["name"], id=tool_use["id"], args=tool_use["args"])
+                    yield ToolUse(
+                        name=tool_use["name"], id=tool_use["id"], args=tool_use["args"]
+                    )
                     yield ToolResult(
                         id=tool_use["id"], name=tool_use["name"], result=result
                     )
-                    tool_results.append({
-                        "id": tool_use["id"],
-                        "name": tool_use["name"],
-                        "result": result
-                    })
+                    tool_results.append(
+                        {
+                            "id": tool_use["id"],
+                            "name": tool_use["name"],
+                            "result": result,
+                        }
+                    )
             if not tool_results:
                 break
             # Append assistant and user messages for the next iteration
             self.add_assistant_message(response["content"])
-            self.add_user_message([
-                {"type": "tool_result", "tool_result": tr} for tr in tool_results
-            ])
+            self.add_user_message(
+                [{"type": "tool_result", "tool_result": tr} for tr in tool_results]
+            )
 
     async def conversation_loop(self, sdk, ctx):
         raise NotImplementedError

@@ -24,6 +24,5 @@ _to_answer = Transition(
 )
 
 fsm_definition = FSMDefinition(
-    states=[greeting_state, answering_state],
-    transitions=[_to_answer]
+    states=[greeting_state, answering_state], transitions=[_to_answer]
 )
