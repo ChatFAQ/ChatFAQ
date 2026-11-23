@@ -4,6 +4,7 @@ import inspect
 import json
 import os
 import queue
+import re
 import urllib.parse
 import uuid
 from functools import wraps
@@ -26,6 +27,14 @@ from chatfaq_sdk.types.messages import MessageType, RPCNodeType
 settings.configure()
 
 logger = getLogger()
+
+_TOKEN_QUERY_PATTERN = re.compile(r"([?&]token=)[^&\s]+", re.IGNORECASE)
+
+
+def _redact_token(value: object) -> str:
+    """Redact authentication query values before they reach application logs."""
+
+    return _TOKEN_QUERY_PATTERN.sub(r"\1<redacted>", str(value))
 
 
 class ChatFAQSDK:
@@ -155,12 +164,11 @@ class ChatFAQSDK:
         ):
             uri = f"{uri}{self.fsm_name}/"
 
-        parsed_token = urllib.parse.quote(self.token)
-        uri = f"{uri}?token={parsed_token}"
+        connection_uri = f"{uri}?{urllib.parse.urlencode({'token': self.token})}"
         while True:
             try:
-                logger.info(f"[{consumer_route.upper()}] Connecting to {uri}")
-                async with websockets.connect(uri) as ws:
+                logger.info("[%s] Connecting to %s", consumer_route.upper(), uri)
+                async with websockets.connect(connection_uri) as ws:
                     logger.info(f"[{consumer_route.upper()}] Connected")
                     setattr(self, f"ws_{consumer_route}", ws)
                     if on_connect is not None:
@@ -173,7 +181,9 @@ class ChatFAQSDK:
                     )  # <----- "infinite" Connection Loop
             except (websockets.WebSocketException, ConnectionRefusedError) as e:
                 logger.info(
-                    f"{consumer_route.upper()} Connection error: {e}, retrying..."
+                    "%s Connection error: %s, retrying...",
+                    consumer_route.upper(),
+                    _redact_token(e),
                 )
                 await asyncio.sleep(1)
 
