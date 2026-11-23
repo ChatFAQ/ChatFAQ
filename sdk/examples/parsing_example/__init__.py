@@ -1,5 +1,6 @@
 import csv
 from typing import Iterator
+
 from chatfaq_sdk import DataSourceParser
 from chatfaq_sdk.types import KnowledgeItem, KnowledgeItemImage
 from examples import make_chatfaq_sdk
@@ -16,31 +17,37 @@ class CustomDataSourceParser(DataSourceParser):
             title="title1",
             content="begin content 1 [[Image 0]] end content 1",
             url="http://www.exaple.com/1",
-            images=[KnowledgeItemImage(
-                image_name=image_name,
-                image_bytes=image_bytes,
-                image_caption="image1",
-            )]
+            images=[
+                KnowledgeItemImage(
+                    image_name=image_name,
+                    image_bytes=image_bytes,
+                    image_caption="image1",
+                )
+            ],
         )
         yield KnowledgeItem(
             title="title2",
             content="begin content 2 [[Image 0]] end content 2",
             url="http://www.exaple.com/2",
-            images=[KnowledgeItemImage(
-                image_name=image_name,
-                image_bytes=image_bytes,
-                image_caption="image2",
-            )]
+            images=[
+                KnowledgeItemImage(
+                    image_name=image_name,
+                    image_bytes=image_bytes,
+                    image_caption="image2",
+                )
+            ],
         )
         yield KnowledgeItem(
             title="title3",
             content="begin content 3 [[Image 0]] end content 3",
             url="http://www.exaple.com/3",
-            images=[KnowledgeItemImage(
-                image_name=image_name,
-                image_bytes=image_bytes,
-                image_caption="image3",
-            )]
+            images=[
+                KnowledgeItemImage(
+                    image_name=image_name,
+                    image_bytes=image_bytes,
+                    image_caption="image3",
+                )
+            ],
         )
 
 
@@ -48,6 +55,6 @@ def main():
     sdk = make_chatfaq_sdk(
         fsm_name="model_fsm",
         fsm_definition=fsm_definition,
-        data_source_parsers={"three_static_kis": CustomDataSourceParser()}
+        data_source_parsers={"three_static_kis": CustomDataSourceParser()},
     )
     sdk.connect()

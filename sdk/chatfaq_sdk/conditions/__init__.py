@@ -20,7 +20,6 @@ class Condition:
         self.score = score
         self.data = data
 
-
     def __or__(self, other):
         return Condition(max(self.score, other.score), {**self.data, **other.data})
 

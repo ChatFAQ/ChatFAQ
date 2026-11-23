@@ -10,7 +10,7 @@ import VueI18nVitePlugin from '@intlify/unplugin-vue-i18n/vite'
 export default defineNuxtConfig({
     ssr: true,
     build: {
-        transpile: []
+        transpile: ["vue-i18n"]
     },
     devServer: {
         port: parseInt(process.env.WIDGET_PORT ?? "3000"),
@@ -36,7 +36,7 @@ export default defineNuxtConfig({
         baseURL: "/demo",
         head: {
             style: [
-                {children: 'body { margin: 0 }'}
+                {innerHTML: 'body { margin: 0 }'}
             ],
         }
     },

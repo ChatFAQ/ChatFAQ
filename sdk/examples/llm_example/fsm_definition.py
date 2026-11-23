@@ -1,7 +1,7 @@
 from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import Message, StreamingMessage, TextFeedback, ThumbsRating
-from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 
@@ -16,7 +16,7 @@ async def send_answer(sdk: ChatFAQSDK, ctx: dict):
     generator = llm_request(
         sdk,
         "gpt-4o",
-        use_conversation_context=True, # If this is true the backend will send the previous messages to the LLM. Otherwise, the fsm manages the conversation.
+        use_conversation_context=True,  # If this is true the backend will send the previous messages to the LLM. Otherwise, the fsm manages the conversation.
         conversation_id=ctx["conversation_id"],
         bot_channel_name=ctx["bot_channel_name"],
         # messages=messages,
@@ -40,6 +40,5 @@ _to_answer = Transition(
 )
 
 fsm_definition = FSMDefinition(
-    states=[greeting_state, answering_state],
-    transitions=[_to_answer]
+    states=[greeting_state, answering_state], transitions=[_to_answer]
 )

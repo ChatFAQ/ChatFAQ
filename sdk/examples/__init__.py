@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 
-from chatfaq_sdk import ChatFAQSDK, FSMDefinition, DataSourceParser
 from dotenv import load_dotenv
+
+from chatfaq_sdk import ChatFAQSDK, DataSourceParser, FSMDefinition
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -18,7 +19,6 @@ def make_chatfaq_sdk(
     token: str = os.getenv("CHATFAQ_TOKEN"),
     data_source_parsers: dict[str, DataSourceParser] = {},
     authentication_required: bool = False,
-
 ):
     """
     This function is used to create a ChatFAQSDK instance with the given parameters

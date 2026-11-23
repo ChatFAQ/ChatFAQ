@@ -36,7 +36,11 @@ export default ({mode}) => {
                     }
                 }
             }
-        }, cssInjectedByJsPlugin(), analyzer()],
+        }, cssInjectedByJsPlugin(), analyzer({
+            analyzerMode: 'static',
+            openAnalyzer: false,
+            fileName: '.cache/bundle-analysis/stats.html',
+        })],
         resolve: {
             alias: {
                 "@": projectRootDir,

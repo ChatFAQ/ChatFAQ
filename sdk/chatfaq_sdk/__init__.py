@@ -13,7 +13,7 @@ from typing import Callable, List, Optional, Union
 import httpx
 import sentry_sdk
 import websockets
-from websockets.protocol import State
+from websockets import State
 
 from chatfaq_sdk import settings
 from chatfaq_sdk.conditions import Condition
@@ -45,7 +45,7 @@ class ChatFAQSDK:
         fsm_definition: Optional[FSMDefinition] = None,
         overwrite_definition: Optional[bool] = False,
         data_source_parsers: Optional[dict[str, DataSourceParser]] = None,
-        authentication_required: bool = False
+        authentication_required: bool = False,
     ):
         """
         Parameters
@@ -172,7 +172,9 @@ class ChatFAQSDK:
                         consumer_route
                     )  # <----- "infinite" Connection Loop
             except (websockets.WebSocketException, ConnectionRefusedError) as e:
-                logger.info(f"{consumer_route.upper()} Connection error: {e}, retrying...")
+                logger.info(
+                    f"{consumer_route.upper()} Connection error: {e}, retrying..."
+                )
                 await asyncio.sleep(1)
 
     async def _consume_loop(self, consumer_route):
@@ -184,7 +186,8 @@ class ChatFAQSDK:
         ws_attrs = [attr for attr in dir(self) if attr.startswith("ws_")]
         while True:
             if any(
-                getattr(self, ws_attr) is None or getattr(self, ws_attr).state != State.OPEN
+                getattr(self, ws_attr) is None
+                or getattr(self, ws_attr).state != State.OPEN
                 for ws_attr in ws_attrs
             ):
                 await asyncio.sleep(0.01)
@@ -200,11 +203,9 @@ class ChatFAQSDK:
             else:
                 logger.error(f"Unknown action type: {data.get('type')}")
 
-
     async def retriever_request_result_callback(self, payload):
         logger.info(f"[RETRIEVER] Result received: {payload}")
         self.retriever_request_futures[payload["bot_channel_name"]].set_result(payload)
-
 
     async def prompt_request_result_callback(self, payload):
         logger.info(f"[PROMPT] Result received: {payload}")
@@ -212,7 +213,12 @@ class ChatFAQSDK:
 
     async def on_connect_rpc(self):
         if self.fsm_def is not None:
-            logger.info(f"[RPC] Setting FSM by definition {self.fsm_name}" + ", overwriting existing definition if already exists." if self.overwrite_definition else "")
+            logger.info(
+                f"[RPC] Setting FSM by definition {self.fsm_name}"
+                + ", overwriting existing definition if already exists."
+                if self.overwrite_definition
+                else ""
+            )
             await getattr(self, f"ws_{WSType.rpc.value}").send(
                 json.dumps(
                     {
@@ -253,16 +259,22 @@ class ChatFAQSDK:
         logger.info(f"[RPC] Executing ::: {payload['name']}")
         status = {}
         if self.fsm_def.status_class:
-            status = await self.fsm_def.status_class.deserialize(self, payload["ctx"], payload["ctx"]["status"])
+            status = await self.fsm_def.status_class.deserialize(
+                self, payload["ctx"], payload["ctx"]["status"]
+            )
         payload["ctx"]["status"] = status
 
         for index, state_or_transition in enumerate(self.rpcs[payload["name"]]):
             stack_group_id = str(uuid.uuid4())
             logger.info(f"[RPC]     |---> ::: {state_or_transition}")
 
-            async for res, stack_id, last_chunk, node_type, last_from_state_or_transition in self._run_state_or_transition(
-                state_or_transition, payload["ctx"]
-            ):
+            async for (
+                res,
+                stack_id,
+                last_chunk,
+                node_type,
+                last_from_state_or_transition,
+            ) in self._run_state_or_transition(state_or_transition, payload["ctx"]):
                 _ctx = {**payload["ctx"]}
                 if _ctx["status"]:
                     _ctx["status"] = _ctx["status"].serialize()
@@ -278,8 +290,7 @@ class ChatFAQSDK:
                                 "stack_id": stack_id,
                                 "stack": res,
                                 "last_chunk": last_chunk,
-                                "last": index
-                                == len(self.rpcs[payload["name"]]) - 1
+                                "last": index == len(self.rpcs[payload["name"]]) - 1
                                 and last_from_state_or_transition,
                             },
                         }
@@ -388,21 +399,21 @@ class ChatFAQSDK:
             )
         )
 
-    async def retriever_request(
-        self, retriever_config_name, query, top_k=3
-    ):
+    async def retriever_request(self, retriever_config_name, query, top_k=3):
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 urllib.parse.urljoin(
                     self.chatfaq_http,
-                    f"back/api/language-model/retrieve/?retriever_config__name={retriever_config_name}&query={query}&top_k={top_k}"
+                    f"back/api/language-model/retrieve/?retriever_config__name={retriever_config_name}&query={query}&top_k={top_k}",
                 ),
                 headers={"Authorization": f"Token {self.token}"},
             )
             response.raise_for_status()
             return response.json()
 
-    async def query_kis(self, knowledge_base_name, query: Optional[dict] = None) -> List[KnowledgeItem]:
+    async def query_kis(
+        self, knowledge_base_name, query: Optional[dict] = None
+    ) -> List[KnowledgeItem]:
         res = []
         offset = 0
         more = True
@@ -438,7 +449,9 @@ class ChatFAQSDK:
             if results:
                 return results[0]["prompt"]
 
-    async def query_prompt_default(self, prompt_name, default_prompt) -> List[KnowledgeItem]:
+    async def query_prompt_default(
+        self, prompt_name, default_prompt
+    ) -> List[KnowledgeItem]:
         """
         Queries the prompt with the given name, if not found returns the default prompt.
         """
@@ -549,9 +562,11 @@ class ChatFAQSDK:
         # check if is generator
         async for r in results:
             yield r + [
-                RPCNodeType.action.value
-                if isinstance(layer, Layer)
-                else RPCNodeType.condition.value
+                (
+                    RPCNodeType.action.value
+                    if isinstance(layer, Layer)
+                    else RPCNodeType.condition.value
+                )
             ]
 
     def parsing_wrapper(self, parser):

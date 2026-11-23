@@ -92,7 +92,10 @@ async def _llm_request_non_streaming(
     stream: bool = False,  # always False in this branch
 ):
     if tools:
-        tools = [function_to_json(tool) if isinstance(tool, Callable) else tool for tool in tools]
+        tools = [
+            function_to_json(tool) if isinstance(tool, Callable) else tool
+            for tool in tools
+        ]
 
     await sdk.send_llm_request(
         llm_config_name,
@@ -136,7 +139,10 @@ async def _llm_request_streaming(
     stream: bool = True,  # always True in this branch
 ):
     if tools:
-        tools = [function_to_json(tool) if isinstance(tool, Callable) else tool for tool in tools]
+        tools = [
+            function_to_json(tool) if isinstance(tool, Callable) else tool
+            for tool in tools
+        ]
 
     await sdk.send_llm_request(
         llm_config_name,
@@ -196,12 +202,14 @@ async def query_prompt(
 ):
     return await sdk.query_prompt(prompt_name)
 
+
 async def query_prompt_default(
     sdk: ChatFAQSDK,
     prompt_name: str,
     default_prompt: str,
 ):
     return await sdk.query_prompt_default(prompt_name, default_prompt)
+
 
 async def get_prompt(
     sdk: ChatFAQSDK,

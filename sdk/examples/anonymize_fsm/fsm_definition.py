@@ -1,17 +1,18 @@
 import time
 
-from chatfaq_sdk import ChatFAQSDK
-from chatfaq_sdk.clients import llm_request
-from chatfaq_sdk.fsm import FSMDefinition, State, Transition
-from chatfaq_sdk.layers import Message, ThumbsRating
-from chatfaq_sdk.utils import convert_mml_to_llm_format
+from faker import Faker
 
 # pip install presidio-analyzer presidio-anonymizer spacy faker
 # python -m spacy download en_core_web_lg
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
-from faker import Faker
+
+from chatfaq_sdk import ChatFAQSDK
+from chatfaq_sdk.clients import llm_request
+from chatfaq_sdk.fsm import FSMDefinition, State, Transition
+from chatfaq_sdk.layers import Message, ThumbsRating
+from chatfaq_sdk.utils import convert_mml_to_llm_format
 
 t1 = time.perf_counter()
 analyzer = AnalyzerEngine()

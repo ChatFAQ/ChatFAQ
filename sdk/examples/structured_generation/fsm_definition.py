@@ -1,10 +1,12 @@
+import json
+import logging
+
+from pydantic import BaseModel
+
 from chatfaq_sdk import ChatFAQSDK
 from chatfaq_sdk.clients import llm_request
 from chatfaq_sdk.fsm import FSMDefinition, State, Transition
 from chatfaq_sdk.layers import Message
-from pydantic import BaseModel
-import json
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ async def send_greeting(sdk: ChatFAQSDK, ctx: dict):
 
 
 async def send_info(sdk: ChatFAQSDK, ctx: dict):
-    print('The last MML is:')
+    print("The last MML is:")
     print(ctx["conv_mml"][-1])
     logger.info("Extracting user info...")
     response = await llm_request(
@@ -51,6 +53,7 @@ async def send_info(sdk: ChatFAQSDK, ctx: dict):
     else:
         yield Message("No information extracted")
 
+
 greeting_state = State(name="Greeting", events=[send_greeting], initial=True)
 
 send_info_state = State(
@@ -67,4 +70,3 @@ _to_send_info = Transition(
 fsm_definition = FSMDefinition(
     states=[greeting_state, send_info_state], transitions=[_to_send_info]
 )
-
